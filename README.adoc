@@ -875,11 +875,21 @@ Kubernetes service accounts, roles and role bindings.
 
 Another option for using `ConfigMap` instances is to mount them into the Pod by running the Spring Cloud Kubernetes application
 and having Spring Cloud Kubernetes read them from the file system.
+
+NOTE: This feature is deprecated and will be removed in a future release (Use `spring.config.import` instead).
 This behavior is controlled by the `spring.cloud.kubernetes.config.paths` property. You can use it in
 addition to or instead of the mechanism described earlier.
-You can specify multiple (exact) file paths in `spring.cloud.kubernetes.config.paths` by using the `,` delimiter.
+`spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
 
-NOTE: You have to provide the full exact path to each property file, because directories are not being recursively parsed.
+```
+spring:
+  cloud:
+    kubernetes:
+      config:
+        paths:
+          - /tmp/application.properties
+          - /var/application.yaml
+```
 
 NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
 functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
