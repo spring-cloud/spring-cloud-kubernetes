@@ -436,6 +436,19 @@ public final class Util {
 
 	}
 
+	public void configWatcher(Phase phase) {
+
+		V1Deployment deployment = (V1Deployment) yaml("config-watcher/deployment.yaml");
+		V1Service service = (V1Service) yaml("config-watcher/service.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait("default", deployment.getMetadata().getName(), deployment, service, null, true);
+		}
+		else {
+			deleteAndWait("default", deployment, service, null);
+		}
+	}
+
 	private String deploymentName(V1Deployment deployment) {
 		return deployment.getMetadata().getName();
 	}
