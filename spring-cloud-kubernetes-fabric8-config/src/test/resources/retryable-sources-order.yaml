@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: sources-order
+  cloud:
+    kubernetes:
+      secrets:
+        fail-fast: true
+        enabled: true
+        enableApi: true
+        namespace: spring-k8s
+        sources:
+          - name: my-secret
+      config:
+        fail-fast: true
+        namespace: spring-k8s
+        sources:
+          - name: my-configmap

@@ -14,44 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.sources_order;
+package org.springframework.cloud.kubernetes.fabric8.config.retryable_sources_order;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * @author wind57
  */
-@ConfigurationProperties("my")
-class Properties {
+@SpringBootApplication
+@EnableConfigurationProperties(Properties.class)
+class RetryableSourcesOrderApp {
 
-	private String key;
-
-	private String one;
-
-	private String two;
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public String getOne() {
-		return one;
-	}
-
-	public void setOne(String one) {
-		this.one = one;
-	}
-
-	public String getTwo() {
-		return two;
-	}
-
-	public void setTwo(String two) {
-		this.two = two;
+	static void main(String[] args) {
+		SpringApplication.run(RetryableSourcesOrderApp.class, args);
 	}
 
 }

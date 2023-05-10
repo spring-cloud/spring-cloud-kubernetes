@@ -14,44 +14,36 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.sources_order;
+package org.springframework.cloud.kubernetes.fabric8.config.retryable_sources_order;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author wind57
  */
-@ConfigurationProperties("my")
-class Properties {
+@RestController
+class RetryableSourcesOrderController {
 
-	private String key;
+	private final Properties properties;
 
-	private String one;
-
-	private String two;
-
-	public String getKey() {
-		return key;
+	RetryableSourcesOrderController(Properties properties) {
+		this.properties = properties;
 	}
 
-	public void setKey(String key) {
-		this.key = key;
+	@GetMapping("/retryable-key")
+	String key() {
+		return properties.getKey();
 	}
 
-	public String getOne() {
-		return one;
+	@GetMapping("/retryable-one")
+	String one() {
+		return properties.getOne();
 	}
 
-	public void setOne(String one) {
-		this.one = one;
-	}
-
-	public String getTwo() {
-		return two;
-	}
-
-	public void setTwo(String two) {
-		this.two = two;
+	@GetMapping("/retryable-two")
+	String two() {
+		return properties.getTwo();
 	}
 
 }

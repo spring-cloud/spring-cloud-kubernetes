@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.sources_order;
+package org.springframework.cloud.kubernetes.fabric8.config.retryable_sources_order;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -38,10 +38,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SourcesOrderApp.class,
-		properties = { "spring.cloud.bootstrap.name=sources-order" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RetryableSourcesOrderApp.class,
+		properties = { "spring.cloud.bootstrap.name=retryable-sources-order" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class SourcesOrderTests {
+class RetryableSourcesOrderTests {
 
 	private static KubernetesClient mockClient;
 
@@ -86,6 +86,7 @@ class SourcesOrderTests {
 				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
 	}
 
+
 	/**
 	 * <pre>
 	 *	 1. There is one secret deployed: my-secret. It has two properties: {my.one=one, my.key=from-secret}
@@ -98,12 +99,12 @@ class SourcesOrderTests {
 	 */
 	@Test
 	void test() {
-		this.webClient.get().uri("/one").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/retryable-one").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("one"));
-		this.webClient.get().uri("/two").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/retryable-two").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("two"));
 
-		this.webClient.get().uri("/key").exchange().expectStatus().isOk().expectBody(String.class)
+		this.webClient.get().uri("/retryable-key").exchange().expectStatus().isOk().expectBody(String.class)
 				.value(Matchers.equalTo("from-configmap"));
 	}
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.sources_order;
+package org.springframework.cloud.kubernetes.fabric8.config.retryable_sources_order;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
