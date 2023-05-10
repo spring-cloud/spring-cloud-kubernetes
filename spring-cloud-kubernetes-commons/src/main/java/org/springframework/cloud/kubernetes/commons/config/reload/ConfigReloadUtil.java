@@ -93,7 +93,7 @@ public final class ConfigReloadUtil {
 			}
 		}
 
-		LOG.debug(() -> "findPropertySources : " + managedSources.stream().map(PropertySource::getName).toList());
+		LOG.debug(() -> "sources from findPropertySources : " + managedSources);
 		return managedSources;
 	}
 

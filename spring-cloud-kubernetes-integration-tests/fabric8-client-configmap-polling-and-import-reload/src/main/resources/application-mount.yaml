@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: poll-reload-mount
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        monitoring-config-maps: true
+        strategy: shutdown
+
+  config:
+    import: "kubernetes:,configtree:/tmp/"
+
+management:
+  endpoint:
+    refresh:
+      enabled: true
+    restart:
+      enabled: true
+
+  endpoints:
+    web:
+      exposure:
+        include: '*'

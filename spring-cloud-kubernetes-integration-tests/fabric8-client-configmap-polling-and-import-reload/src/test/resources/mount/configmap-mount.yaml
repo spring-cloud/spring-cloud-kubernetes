@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reload-as-mount
+  namespace: default
+data:
+  from.properties: 'as-mount-initial'

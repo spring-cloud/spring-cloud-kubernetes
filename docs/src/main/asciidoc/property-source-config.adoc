@@ -579,25 +579,82 @@ for individual ones; the latter having a higher priority.
 NOTE: You should check the security configuration section. To access config maps from inside a pod you need to have the correct
 Kubernetes service accounts, roles and role bindings.
 
-Another option for using `ConfigMap` instances is to mount them into the Pod by running the Spring Cloud Kubernetes application
-and having Spring Cloud Kubernetes read them from the file system. Please note that this feature is deprecated and will be removed in a future release (Use `spring.config.import` instead).
-This behavior is controlled by the `spring.cloud.kubernetes.config.paths` property. You can use it in
-addition to or instead of the mechanism described earlier.
-`spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
+Another option for using `ConfigMap` (or `Secrets`) instances is to mount them into the Pod and use `spring.config.import` support. For example, suppose that you have such a ConfigMap deployed:
 
 ```
-spring:
-  cloud:
-    kubernetes:
-      config:
-        paths:
-          - /tmp/application.properties
-          - /var/application.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+  namespace: default
+data:
+  from.properties: 'as-mount-initial'
 ```
 
-NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
-functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
-restart/redeploy the application.
+You can mount it in the pod (see https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#populate-a-volume-with-data-stored-in-a-configmap):
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-pod
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: ....
+          image: ....
+          volumeMounts:
+            - name: my-configmap
+              mountPath: /tmp/props
+      volumes:
+        - name: my-configmap
+          configMap:
+            name: my-configmap
+            items:
+              - key: 'from.properties'
+                path: key
+```
+
+And then in `application.properties` have a property:
+
+```
+spring.config.import: "configtree:/tmp/"
+```
+
+This will result in a Property Source being created that will hold: `props.key=as-mount-initial`.
+
+NOTE: Using `spring.config.import`, automatic reload
+functionality will work only using configuration watcher image. Or you will need to make a `POST` request to the `/actuator/refresh` endpoint or
+restart/redeploy the application manually. There is a small caveat here: kubernetes will update the value of the file once the ConfigMap changes, but that does not happen instantly. It might take up to two minutes before you see the changed values.
+
+To better understand the note above, consider the example:
+
+- there is a ConfigMap that stores `from.properties: 'as-mount-initial'`
+- that config map is mounted into `/tmp` (just like the example above)
+- you use `spring.config.import: configtree:/tmp`
+- you have a `@ConfigurationProperty` class:
+
+```
+@ConfigurationProperties("props")
+public class ConfigMapProperties {
+    // getters, setters
+	private String key;
+}
+```
+
+Once you start the application, the value read by `ConfigMapProperties::getKey` will be `as-mount-initial`. Now consider the case that you change `from.properties: 'as-mount-changed'` inside the ConfigMap and trigger a restart (manually or automatic via configuration watcher). The value read by: `ConfigMapProperties::getkey` might _not_ be `as-mount-changed`. This is because it takes up to two minutes for kubernetes to update the value from the ConfigMap to the mounted volume. In the case when you are using configuration watcher, things will work as expected, because there we have:
+
+```
+spring.cloud.kubernetes.configuration.watcher.refreshDelay = Duration.ofMillis(120000);
+```
+
 
 [#config-map-fail-fast]
 In some cases, your application may be unable to load some of your `ConfigMaps` using the Kubernetes API.
@@ -622,7 +679,6 @@ by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 | `spring.cloud.kubernetes.config.enabled`                | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
 | `spring.cloud.kubernetes.config.name`                   | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
 | `spring.cloud.kubernetes.config.namespace`              | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
-| `spring.cloud.kubernetes.config.paths`                  | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
 | `spring.cloud.kubernetes.config.enableApi`              | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
 | `spring.cloud.kubernetes.config.fail-fast`              | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `ConfigMap`
 | `spring.cloud.kubernetes.config.retry.enabled`          | `Boolean` | `true`                       | Enable or disable config retry.
@@ -716,24 +772,6 @@ spec:
 
 You can select the Secrets to consume in a number of ways:
 
-. By listing the directories where secrets are mapped:
-+
-====
-[source,bash]
-----
--Dspring.cloud.kubernetes.secrets.paths=/etc/secrets/db-secret,etc/secrets/postgresql
-----
-====
-+
-If you have all the secrets mapped to a common root, you can set them like:
-+
-====
-[source,bash]
-----
--Dspring.cloud.kubernetes.secrets.paths=/etc/secrets
-----
-====
-
 . By setting a named secret:
 +
 ====
@@ -805,7 +843,6 @@ by setting `spring.cloud.kubernetes.secrets.retry.enabled=false`.
 | `spring.cloud.kubernetes.secrets.name`                   | `String`  | `${spring.application.name}` | Sets the name of the secret to look up
 | `spring.cloud.kubernetes.secrets.namespace`              | `String`  | Client namespace             | Sets the Kubernetes namespace where to look up
 | `spring.cloud.kubernetes.secrets.labels`                 | `Map`     | `null`                       | Sets the labels used to lookup secrets
-| `spring.cloud.kubernetes.secrets.paths`                  | `List`    | `null`                       | Sets the paths where secrets are mounted (example 1)
 | `spring.cloud.kubernetes.secrets.enableApi`              | `Boolean` | `false`                      | Enables or disables consuming secrets through APIs (examples 2 and 3)
 | `spring.cloud.kubernetes.secrets.fail-fast`              | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `Secret`
 | `spring.cloud.kubernetes.secrets.retry.enabled`          | `Boolean` | `true`                       | Enable or disable secrets retry.
@@ -819,8 +856,6 @@ Notes:
 
 * The `spring.cloud.kubernetes.secrets.labels` property behaves as defined by
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#map-based-binding[Map-based binding].
-* The `spring.cloud.kubernetes.secrets.paths` property behaves as defined by
-https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Configuration-Binding#collection-based-binding[Collection-based binding].
 * Access to secrets through the API may be restricted for security reasons. The preferred way is to mount secrets to the Pod.
 
 You can find an example of an application that uses secrets (though it has not been updated to use the new `spring-cloud-kubernetes` project) at

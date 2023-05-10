@@ -1,0 +1,3 @@
+spring:
+  config:
+    import: "configtree:/tmp/"
