@@ -16,11 +16,16 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
+        #TODO wind57 remove me
       - name: download surefire reports
         uses: actions/checkout@v3
         with:
-          path: '**/surefire-reports/*'
+          name: surefire-reports
+          path: /tmp/reports
+
+      - name: display downloaded files
         run: ls -R
+        working-directory: /tmp/reports
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
