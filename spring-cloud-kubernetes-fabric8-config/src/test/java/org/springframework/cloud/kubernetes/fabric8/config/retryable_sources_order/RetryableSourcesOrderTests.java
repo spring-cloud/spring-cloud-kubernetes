@@ -86,7 +86,6 @@ class RetryableSourcesOrderTests {
 				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
 	}
 
-
 	/**
 	 * <pre>
 	 *	 1. There is one secret deployed: my-secret. It has two properties: {my.one=one, my.key=from-secret}
