@@ -18,7 +18,7 @@ jobs:
 
         #TODO wind57 remove me
       - name: download surefire reports
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
           name: surefire-reports
           path: /tmp/reports
@@ -312,7 +312,7 @@ jobs:
             fi
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: surefire-reports
           path: '**/surefire-reports/*'
