@@ -16,7 +16,6 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-        #TODO wind57 remove me
       - name: download surefire reports
         uses: actions/checkout@v3
         with:
