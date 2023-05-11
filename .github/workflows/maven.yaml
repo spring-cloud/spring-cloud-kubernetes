@@ -16,6 +16,13 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
+        #TODO wind57 remove me
+      - name: download surefire reports
+        uses: actions/checkout@v3
+        with:
+          path: '**/surefire-reports/*'
+        run: ls -R
+
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
@@ -301,7 +308,7 @@ jobs:
             fi
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: surefire-reports
           path: '**/surefire-reports/*'
