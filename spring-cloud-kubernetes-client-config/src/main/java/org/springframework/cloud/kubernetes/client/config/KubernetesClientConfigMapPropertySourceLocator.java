@@ -23,6 +23,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
@@ -31,6 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Ryan Baxter
  * @author Isik Erhan
  */
+@Order(0)
 public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPropertySourceLocator {
 
 	private final CoreV1Api coreV1Api;

@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.retry.annotation.Retryable;
@@ -31,6 +32,7 @@ import org.springframework.retry.annotation.Retryable;
  *
  * @author Ryan Baxter
  */
+@Order(1)
 class RetryableFabric8SecretsPropertySourceLocator extends Fabric8SecretsPropertySourceLocator {
 
 	RetryableFabric8SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties,
