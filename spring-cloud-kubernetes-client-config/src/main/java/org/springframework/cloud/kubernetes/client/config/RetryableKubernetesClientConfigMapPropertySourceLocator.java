@@ -22,6 +22,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.retry.annotation.Retryable;
@@ -31,6 +32,7 @@ import org.springframework.retry.annotation.Retryable;
  *
  * @author Ryan Baxter
  */
+@Order(0)
 class RetryableKubernetesClientConfigMapPropertySourceLocator extends KubernetesClientConfigMapPropertySourceLocator {
 
 	RetryableKubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,

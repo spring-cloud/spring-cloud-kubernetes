@@ -92,7 +92,7 @@ public abstract class ConfigurationChangeDetector {
 				right.forEach(item -> log.debug(item));
 			}
 			this.log.warn("The current number of ConfigMap PropertySources does not match "
-				+ "the ones loaded from the Kubernetes - No reload will take place");
+					+ "the ones loaded from the Kubernetes - No reload will take place");
 			return false;
 		}
 
@@ -165,8 +165,8 @@ public abstract class ConfigurationChangeDetector {
 			}
 		}
 
-		this.log.debug("findPropertySources : " + managedSources.stream().map(PropertySource::getName)
-			.collect(Collectors.toList()));
+		this.log.debug("findPropertySources : "
+				+ managedSources.stream().map(PropertySource::getName).collect(Collectors.toList()));
 		return managedSources;
 	}
 
