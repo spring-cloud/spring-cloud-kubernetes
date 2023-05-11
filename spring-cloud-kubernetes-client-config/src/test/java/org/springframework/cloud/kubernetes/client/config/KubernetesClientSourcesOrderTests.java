@@ -38,7 +38,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SourcesOrderApp.class,
-		properties = { "spring.cloud.bootstrap.name=sources-order", "sources.order.stub=true" })
+		properties = { "spring.cloud.bootstrap.name=sources-order", "sources.order.stub=true",
+			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true"})
 @AutoConfigureWebTestClient
 class KubernetesClientSourcesOrderTests {
 
