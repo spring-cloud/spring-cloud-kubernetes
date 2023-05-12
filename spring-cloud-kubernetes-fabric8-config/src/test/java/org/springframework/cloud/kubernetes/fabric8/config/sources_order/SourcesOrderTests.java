@@ -25,31 +25,24 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SourcesOrderApp.class,
-		properties = { "spring.cloud.bootstrap.name=sources-order" })
-@EnableKubernetesMockClient(crud = true, https = false)
-class SourcesOrderTests {
+abstract class SourcesOrderTests {
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	static void setUpBeforeClass() {
+	static void setUpBeforeClass(KubernetesClient mockClient) {
+		SourcesOrderTests.mockClient = mockClient;
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -69,11 +62,6 @@ class SourcesOrderTests {
 		configMapData.put("my.two", "two");
 		createConfigmap("my-configmap", configMapData);
 
-	}
-
-	@AfterAll
-	static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY);
 	}
 
 	private static void createSecret(String name, Map<String, String> data) {
