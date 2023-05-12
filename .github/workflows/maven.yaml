@@ -300,9 +300,3 @@ jobs:
               -Dskip.build.image=true          
             fi
 
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
-        with:
-          name: surefire-reports
-          path: '**/surefire-reports/*'
-
