@@ -137,8 +137,8 @@ class KubernetesConfigDataLoaderTests {
 		ConfigData configData = loader.load(CONTEXT, EMPTY_RESOURCE);
 		Assertions.assertNotNull(configData);
 		Assertions.assertEquals(2, configData.getPropertySources().size());
-		Assertions.assertEquals("k8s-config-map", configData.getPropertySources().get(0).getName());
-		Assertions.assertEquals("k8s-secrets", configData.getPropertySources().get(1).getName());
+		Assertions.assertEquals("k8s-secrets", configData.getPropertySources().get(0).getName());
+		Assertions.assertEquals("k8s-config-map", configData.getPropertySources().get(1).getName());
 	}
 
 }
