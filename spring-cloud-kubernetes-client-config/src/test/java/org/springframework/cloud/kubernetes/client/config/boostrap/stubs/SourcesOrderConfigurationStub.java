@@ -64,7 +64,7 @@ public class SourcesOrderConfigurationStub {
 		return apiClient;
 	}
 
-	private void stubConfigMapData() {
+	public static void stubConfigMapData() {
 
 		Map<String, String> configMapData = new HashMap<>();
 		configMapData.put("my.key", "from-configmap");
@@ -82,7 +82,7 @@ public class SourcesOrderConfigurationStub {
 				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 
-	private void stubSecretsData() {
+	public static void stubSecretsData() {
 
 		Map<String, byte[]> secretData = new HashMap<>();
 		secretData.put("my.key", "from-secret".getBytes(StandardCharsets.UTF_8));

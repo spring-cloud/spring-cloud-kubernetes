@@ -25,32 +25,21 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-/**
- * @author wind57
- */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RetryableSourcesOrderApp.class,
-		properties = { "spring.cloud.bootstrap.name=retryable-sources-order" })
-@EnableKubernetesMockClient(crud = true, https = false)
-class RetryableSourcesOrderTests {
+abstract class RetryableSourcesOrderTests {
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
 	private WebTestClient webClient;
 
-	@BeforeAll
-	static void setUpBeforeClass() {
-
+	static void setUpBeforeClass(KubernetesClient mockClient) {
+		RetryableSourcesOrderTests.mockClient = mockClient;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -69,11 +58,6 @@ class RetryableSourcesOrderTests {
 		configMapData.put("my.two", "two");
 		createConfigmap("my-configmap", configMapData);
 
-	}
-
-	@AfterAll
-	static void afterAll() {
-		System.clearProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY);
 	}
 
 	private static void createSecret(String name, Map<String, String> data) {
