@@ -581,6 +581,8 @@ Kubernetes service accounts, roles and role bindings.
 
 Another option for using `ConfigMap` instances is to mount them into the Pod by running the Spring Cloud Kubernetes application
 and having Spring Cloud Kubernetes read them from the file system.
+
+NOTE: This feature is deprecated and will be removed in a future release (Use `spring.config.import` instead).
 This behavior is controlled by the `spring.cloud.kubernetes.config.paths` property. You can use it in
 addition to or instead of the mechanism described earlier.
 `spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
@@ -864,6 +866,11 @@ such a method. This, in turn, could be configured via environment properties. Fo
 "KUBERNETES_NAMESPACE" property; consult the client documentation for exact details.
 
 Failure to find a namespace from the above steps will result in an Exception being raised.
+
+[[order_of_configMaps_and_secrets]]
+=== Order of ConfigMaps and Secrets
+
+If, for whatever reason, you enabled both configmaps and secrets, and there is a common property between them, the value from the ConfigMap will have a higher precedence. That is: it will override whatever values are found in secrets.
 
 === `PropertySource` Reload
 
