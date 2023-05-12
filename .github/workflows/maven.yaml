@@ -16,17 +16,6 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-        #TODO wind57 remove me
-      - name: download surefire reports
-        uses: actions/download-artifact@v2
-        with:
-          name: surefire-reports
-          path: /tmp/reports
-
-      - name: display downloaded files
-        run: ls -R
-        working-directory: /tmp/reports
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
@@ -310,10 +299,3 @@ jobs:
               -Dmaven.wagon.http.retryHandler.count=3 \
               -Dskip.build.image=true          
             fi
-
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v2
-        with:
-          name: surefire-reports
-          path: '**/surefire-reports/*'
-

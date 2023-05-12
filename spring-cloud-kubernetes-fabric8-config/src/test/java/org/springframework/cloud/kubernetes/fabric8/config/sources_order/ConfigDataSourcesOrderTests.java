@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2018 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.fabric8.config.sources_order;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.example.App;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
- * Tests reading property from YAML document specified by profile expression.
+ * @author wind57
  */
-
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "spring.application.name=configmap-with-profile-example",
-				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
-@ActiveProfiles({ "production", "us-east" })
-@AutoConfigureWebTestClient
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SourcesOrderApp.class,
+		properties = { "spring.application.name=sources-order", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:,classpath:./sources-order.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class BootstrapConfigMapsWithProfileExpressionTests extends ConfigMapsWithProfileExpressionTests {
+class ConfigDataSourcesOrderTests extends SourcesOrderTests {
 
 	private static KubernetesClient mockClient;
 
 	@BeforeAll
-	static void setUpBeforeClass() {
+	static void setUp() {
 		setUpBeforeClass(mockClient);
 	}
 

@@ -43,11 +43,12 @@ public class KubernetesConfigDataLoader implements ConfigDataLoader<KubernetesCo
 		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
 		Environment env = resource.getEnvironment();
 
-		if (bootstrapContext.isRegistered(ConfigMapPropertySourceLocator.class)) {
-			propertySources.add(bootstrapContext.get(ConfigMapPropertySourceLocator.class).locate(env));
-		}
 		if (bootstrapContext.isRegistered(SecretsPropertySourceLocator.class)) {
 			propertySources.add(bootstrapContext.get(SecretsPropertySourceLocator.class).locate(env));
+		}
+
+		if (bootstrapContext.isRegistered(ConfigMapPropertySourceLocator.class)) {
+			propertySources.add(bootstrapContext.get(ConfigMapPropertySourceLocator.class).locate(env));
 		}
 
 		// boot 2.4.5+
