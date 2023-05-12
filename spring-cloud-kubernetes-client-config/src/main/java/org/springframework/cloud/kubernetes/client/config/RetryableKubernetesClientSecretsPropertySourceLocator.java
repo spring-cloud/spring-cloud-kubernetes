@@ -22,6 +22,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.retry.annotation.Retryable;
@@ -31,8 +32,8 @@ import org.springframework.retry.annotation.Retryable;
  *
  * @author Ryan Baxter
  */
-public class RetryableKubernetesClientSecretsPropertySourceLocator
-		extends KubernetesClientSecretsPropertySourceLocator {
+@Order(1)
+class RetryableKubernetesClientSecretsPropertySourceLocator extends KubernetesClientSecretsPropertySourceLocator {
 
 	RetryableKubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {

@@ -32,7 +32,7 @@ import org.springframework.retry.annotation.Retryable;
  *
  * @author Ryan Baxter
  */
-@Order(1)
+@Order(0)
 class RetryableFabric8ConfigMapPropertySourceLocator extends Fabric8ConfigMapPropertySourceLocator {
 
 	RetryableFabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
