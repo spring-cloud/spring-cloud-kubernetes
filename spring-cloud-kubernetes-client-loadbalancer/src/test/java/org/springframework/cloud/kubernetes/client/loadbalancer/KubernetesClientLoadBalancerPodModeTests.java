@@ -21,9 +21,8 @@ import java.util.Collections;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.ClientBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,7 +51,6 @@ import static org.mockito.Mockito.when;
 /**
  * @author Ryan Baxter
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = KubernetesClientLoadBalancerPodModeTests.App.class)
 public class KubernetesClientLoadBalancerPodModeTests {

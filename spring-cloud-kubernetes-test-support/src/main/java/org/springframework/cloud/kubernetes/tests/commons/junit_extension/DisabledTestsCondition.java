@@ -20,12 +20,22 @@ import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+/**
+ * This is mainly needed for out pipeline, to get the test classes names.
+ *
+ * @author wind57
+ */
 public class DisabledTestsCondition implements ExecutionCondition {
 
 	@Override
 	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext extensionContext) {
-		System.out.println(extensionContext.getRequiredTestClass());
-		return ConditionEvaluationResult.disabled("tests are disabled");
+		if ("true".equals(System.getProperty("spring.cloud.k8s.skip.tests"))) {
+			System.out.println("spring.cloud.k8s.test.to.run -> " + extensionContext.getRequiredTestClass().getName());
+			return ConditionEvaluationResult.disabled("");
+		}
+		else {
+			return ConditionEvaluationResult.enabled("");
+		}
 	}
 
 }
