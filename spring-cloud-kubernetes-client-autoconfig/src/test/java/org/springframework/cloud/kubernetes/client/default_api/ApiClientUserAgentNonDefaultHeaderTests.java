@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(classes = App.class, properties = { "kubernetes.informer.enabled=false",
 		"spring.cloud.kubernetes.client.userAgent=non-default", "spring.main.cloud-platform=KUBERNETES" })
-class ApiClientUserAgentNonDefaultHeader {
+class ApiClientUserAgentNonDefaultHeaderTests {
 
 	@Autowired
 	private ApiClient apiClient;

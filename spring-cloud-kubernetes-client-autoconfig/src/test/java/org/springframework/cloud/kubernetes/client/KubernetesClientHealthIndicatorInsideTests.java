@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = "spring.main.cloud-platform=KUBERNETES")
-public class KubernetesClientHealthIndicatorInsideTests {
+class KubernetesClientHealthIndicatorInsideTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -39,7 +39,7 @@ public class KubernetesClientHealthIndicatorInsideTests {
 	// the actual fields it must provide are tested in
 	// KubernetesClientHealthIndicatorTests.
 	@Test
-	public void test() {
+	void test() {
 		assertThat(context.getBean(KubernetesClientHealthIndicator.class)).isNotNull();
 	}
 

@@ -31,7 +31,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 		properties = { "management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
 				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
 				"spring.main.cloud-platform=KUBERNETES" })
-class ActuatorEnabledHealthTest {
+class ActuatorEnabledHealthTests {
 
 	@Autowired
 	private WebTestClient webClient;

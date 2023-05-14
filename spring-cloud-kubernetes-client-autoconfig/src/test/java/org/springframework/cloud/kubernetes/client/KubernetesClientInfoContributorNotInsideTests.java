@@ -31,14 +31,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "management.info.kubernetes.enabled=false" })
-public class KubernetesClientInfoContributorNotInsideTests {
+class KubernetesClientInfoContributorNotInsideTests {
 
 	@Autowired
 	private ApplicationContext context;
 
 	// test that the bean responsible for info contribution is NOT present.
 	@Test
-	public void test() {
+	void test() {
 		assertThatThrownBy(() -> context.getBean(KubernetesClientInfoContributor.class))
 				.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}

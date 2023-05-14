@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * @author wind57
  */
-public class KubernetesClientPodUtilsTests {
+class KubernetesClientPodUtilsTests {
 
 	private static final String KUBERNETES_SERVICE_HOST = KubernetesClientPodUtils.KUBERNETES_SERVICE_HOST;
 
@@ -70,26 +70,26 @@ public class KubernetesClientPodUtilsTests {
 	private MockedStatic<Paths> paths;
 
 	@BeforeEach
-	public void before() {
+	void before() {
 		envReader = Mockito.mockStatic(EnvReader.class);
 		paths = Mockito.mockStatic(Paths.class);
 	}
 
 	@AfterEach
-	public void after() {
+	void after() {
 		envReader.close();
 		paths.close();
 	}
 
 	@Test
-	public void constructorThrowsIllegalArgumentExceptionWhenKubeClientIsNull() {
+	void constructorThrowsIllegalArgumentExceptionWhenKubeClientIsNull() {
 		assertThatThrownBy(() -> new KubernetesClientPodUtils(null, "namespace"))
 				.isInstanceOf(IllegalArgumentException.class)
 				.hasMessage("Must provide an instance of KubernetesClient");
 	}
 
 	@Test
-	public void serviceHostNotPresent() {
+	void serviceHostNotPresent() {
 		mockHost(null);
 
 		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace");
@@ -98,7 +98,7 @@ public class KubernetesClientPodUtilsTests {
 	}
 
 	@Test
-	public void hostNameNotPresent() {
+	void hostNameNotPresent() {
 		mockHost(HOST);
 		mockHostname(null);
 
@@ -108,7 +108,7 @@ public class KubernetesClientPodUtilsTests {
 	}
 
 	@Test
-	public void serviceAccountPathNotPresent() {
+	void serviceAccountPathNotPresent() {
 		mockTokenPath(false);
 		mockHostname(HOST);
 
@@ -118,7 +118,7 @@ public class KubernetesClientPodUtilsTests {
 	}
 
 	@Test
-	public void serviceAccountCertPathNotPresent() {
+	void serviceAccountCertPathNotPresent() {
 		mockTokenPath(true);
 		mockCertPath(false);
 		mockHostname(HOST);
@@ -129,7 +129,7 @@ public class KubernetesClientPodUtilsTests {
 	}
 
 	@Test
-	public void allPresent() throws ApiException {
+	void allPresent() throws ApiException {
 		mockTokenPath(true);
 		mockCertPath(true);
 		mockHost(HOST);

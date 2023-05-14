@@ -34,7 +34,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 		properties = { "management.health.kubernetes.enabled=false", "management.endpoint.health.show-details=always",
 				"management.endpoint.health.show-components=always", "spring.main.cloud-platform=KUBERNETES",
 				"management.endpoints.web.exposure.include=health" })
-class ActuatorDisabledHealthTest {
+class ActuatorDisabledHealthTests {
 
 	@Autowired
 	private ReactiveHealthContributorRegistry registry;
