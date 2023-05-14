@@ -68,10 +68,6 @@
 		<spring-cloud-bus.version>4.0.2-SNAPSHOT</spring-cloud-bus.version>
 		<spring-cloud-contract.version>4.0.3-SNAPSHOT</spring-cloud-contract.version>
 
-		<!-- Maven Plugin Versions -->
-		<maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
-		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
 		</maven-checkstyle-plugin.failsOnViolation>
