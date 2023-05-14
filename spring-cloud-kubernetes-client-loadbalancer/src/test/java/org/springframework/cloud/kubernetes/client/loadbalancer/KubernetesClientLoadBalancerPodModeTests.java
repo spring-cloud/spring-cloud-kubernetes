@@ -21,8 +21,8 @@ import java.util.Collections;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.ClientBuilder;
-
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,7 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;

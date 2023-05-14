@@ -21,7 +21,7 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
- * This is mainly needed for out pipeline, to get the test classes names.
+ * This is mainly needed for our pipeline, to get the test classes names.
  *
  * @author wind57
  */
