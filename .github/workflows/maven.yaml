@@ -149,10 +149,10 @@ jobs:
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
-        run: | 
+        run: |
           
+            SORTED_TEST_CLASSNAMES
             
-
             number_of_tests=${#SORTED_TEST_CLASSNAMES[@]}
             number_of_jobs=${NUMBER_OF_JOBS}
             current_index=${CURRENT_INDEX}
@@ -236,4 +236,3 @@ jobs:
               -Dmaven.wagon.http.retryHandler.count=3 \
               -Dskip.build.image=true          
             fi
-
