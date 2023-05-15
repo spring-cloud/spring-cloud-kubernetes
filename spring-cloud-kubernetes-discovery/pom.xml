@@ -11,9 +11,6 @@
 
 	<artifactId>spring-cloud-kubernetes-discovery</artifactId>
 
-	<properties>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
