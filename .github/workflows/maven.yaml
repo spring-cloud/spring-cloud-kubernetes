@@ -151,7 +151,7 @@ jobs:
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
         run: |
           
-            PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt))
+            PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run'))
             IFS=$'\n'
             SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
             unset IFS
