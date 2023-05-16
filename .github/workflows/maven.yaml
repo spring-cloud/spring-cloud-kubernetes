@@ -245,7 +245,7 @@ jobs:
               echo "searching for filename: ${filename}"
               file=$(find . -name "${filename}")
               echo "found file: ${file}"
-              result = $(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
+              result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
           
               echo 'run test: ${filename} in : ${result}'
             done
