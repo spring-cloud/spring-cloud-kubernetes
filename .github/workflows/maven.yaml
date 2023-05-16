@@ -247,5 +247,5 @@ jobs:
               echo "found file: ${file}"
               result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
           
-              echo 'run test: ${filename} in : ${result}'
+              echo "run test: ${filename} in : ${result}"
             done
