@@ -965,6 +965,11 @@ such a method. This, in turn, could be configured via environment properties. Fo
 
 Failure to find a namespace from the above steps will result in an Exception being raised.
 
+[[order_of_configMaps_and_secrets]]
+=== Order of ConfigMaps and Secrets
+
+If, for whatever reason, you enabled both configmaps and secrets, and there is a common property between them, the value from the ConfigMap will have a higher precedence. That is: it will override whatever values are found in secrets.
+
 === `PropertySource` Reload
 
 WARNING:  This functionality has been deprecated in the 2020.0 release.  Please see
