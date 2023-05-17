@@ -264,6 +264,7 @@ jobs:
         run: cat /tmp/test_times.txt
 
       - name: upload test
+        if: env.BASE_BRANCH != '2.1.x'
         uses: actions/upload-artifact@v3
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
@@ -280,15 +281,18 @@ jobs:
 
       # we omit the name, as such all artifacts are downloaded
       - name: download all artifacts
+        if: env.BASE_BRANCH != '2.1.x'
         uses: actions/download-artifact@v3
         with:
           path: /tmp/all-artifacts
 
       - name: show all artifacts
+        if: env.BASE_BRANCH != '2.1.x'
         shell: bash
         run: ls /tmp/all-artifacts
 
       - name: merge all artifacts into a single file
+        if: env.BASE_BRANCH != '2.1.x'
         shell: bash
         run: |
           arr=($(find /tmp -name "test_times*"))
