@@ -291,7 +291,7 @@ jobs:
         shell: bash
         run: ls /tmp/all-artifacts
 
-      - name: merge all artifacts into a single file
+      - name: merge all artifacts into a single file and sort by time
         if: env.BASE_BRANCH != '2.1.x'
         shell: bash
         run: |
@@ -300,6 +300,7 @@ jobs:
             cat "${i}" | awk '{print $3" "$6}' >> /tmp/times-of-all-tests.txt
           done
           
-          cat /tmp/times-of-all-tests.txt
+          sort -t' '  -nk2 /tmp/times-of-all-tests.txt >> /tmp/sorted.txt
+          cat /tmp/sorted.txt
 
 
