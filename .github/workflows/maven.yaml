@@ -288,4 +288,14 @@ jobs:
         shell: bash
         run: ls /tmp/all-artifacts
 
+      - name: merge all artifacts into a single file
+        shell: bash
+        run: |
+          arr=($(find /tmp -name "test_times*"))
+          for i in "${arr[@]}"; do
+            cat "${i}" | awk '{print $3" "$6}' >> /tmp/all-tests.txt
+          done
+          
+          cat /tmp/all-tests.txt
+
 
