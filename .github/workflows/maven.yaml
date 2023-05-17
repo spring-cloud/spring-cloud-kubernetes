@@ -265,6 +265,8 @@ jobs:
 
       - name: upload test
         uses: actions/upload-artifact@v3
+        env:
+          CURRENT_INDEX: ${{ matrix.current_index }}
         with:
           name: test_times_${CURRENT_INDEX}.txt
           path: /tmp/test_times.txt
@@ -274,9 +276,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
-    # we omit the name, as such all artifacts are downloaded
     steps:
 
+      # we omit the name, as such all artifacts are downloaded
       - name: download all artifacts
         uses: actions/download-artifact@v3
         with:
