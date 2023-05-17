@@ -22,6 +22,16 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * This is mainly needed for our pipeline, to get the test classes names.
+ * Its purpose is to act like a 'dry-run': show all the tests fully qualified names
+ * without actually running them.
+ *
+ * The way to use it:
+ * "mvn clean test -Dspring.cloud.k8s.skip.tests=true". This way all tests will be skipped, but also will
+ * be printed to the standard output as a fully qualified name, i.e.:
+ *
+ * <pre>
+ *     spring.cloud.k8s.test.to.run -> org.springframework.cloud.kubernetes.Fabric8InsideHealthIndicatorTest
+ * </pre>
  *
  * @author wind57
  */
