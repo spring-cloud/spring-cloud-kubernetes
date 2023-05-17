@@ -268,7 +268,7 @@ jobs:
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
         with:
-          name: test_times_${CURRENT_INDEX}.txt
+          name: test_times_${{ env.CURRENT_INDEX }}.txt
           path: /tmp/test_times.txt
 
   test_times:
