@@ -262,3 +262,28 @@ jobs:
         shell: bash
         if: env.BASE_BRANCH != '2.1.x'
         run: cat /tmp/test_times.txt
+
+      - name: upload test
+        uses: actions/upload-artifact@v3
+        with:
+          name: test_times_${CURRENT_INDEX}.txt
+          path: /tmp/test_times.txt
+
+  test_times:
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    # we omit the name, as such all artifacts are downloaded
+    steps:
+
+      - name: download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: /tmp/all-artifacts
+
+      - name: show all artifacts
+        shell: bash
+        run: ls /tmp/all-artifacts
+
+
