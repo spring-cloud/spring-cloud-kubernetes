@@ -295,11 +295,11 @@ jobs:
         if: env.BASE_BRANCH != '2.1.x'
         shell: bash
         run: |
-          arr=($(find /tmp -name "test_times*"))
+          arr=($(find /tmp/all-artifacts -name "test_times*"))
           for i in "${arr[@]}"; do
-            cat "${i}" | awk '{print $3" "$6}' >> /tmp/all-tests.txt
+            cat "${i}" | awk '{print $3" "$6}' >> /tmp/times-of-all-tests.txt
           done
           
-          cat /tmp/all-tests.txt
+          cat /tmp/times-of-all-tests.txt
 
 
