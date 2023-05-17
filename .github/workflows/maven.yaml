@@ -263,7 +263,7 @@ jobs:
         if: env.BASE_BRANCH != '2.1.x'
         run: cat /tmp/test_times.txt
 
-      - name: upload test
+      - name: upload tests
         if: env.BASE_BRANCH != '2.1.x'
         uses: actions/upload-artifact@v3
         env:
@@ -271,6 +271,14 @@ jobs:
         with:
           name: test_times_${{ env.CURRENT_INDEX }}.txt
           path: /tmp/test_times.txt
+
+  # this stage sort all tests by their timings. For that we rely on the surefire-plugin reports
+  # that have the name as <TEST_NAME>.txt and inside it there is a field that holds the time it took
+  # We get a hold of that field via awk '{print $12, $13} in the previous step.
+  # That previous step stores only tests for one matrix step, which we uploaded.
+  # In the steps below we download all artifacts (thus all test times), put them into a single file
+  # called /tmp/times-of-all-tests.txt, then sort this file, thus get a histogram of all test names
+  # and the time it took to run them.
 
   test_times:
     needs: [ test ]
@@ -295,8 +303,10 @@ jobs:
         if: env.BASE_BRANCH != '2.1.x'
         shell: bash
         run: |
-          arr=($(find /tmp/all-artifacts -name "test_times*"))
+          arr=($(find /tmp/all-artifacts/ -name "test_times*"))
           for i in "${arr[@]}"; do
+            echo "parsing -> ${i}"
+            cat "${i}"
             cat "${i}" | awk '{print $3" "$6}' >> /tmp/times-of-all-tests.txt
           done
           
