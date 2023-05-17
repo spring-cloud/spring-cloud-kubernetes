@@ -303,7 +303,7 @@ jobs:
         if: env.BASE_BRANCH != '2.1.x'
         shell: bash
         run: |
-          arr=($(find /tmp/all-artifacts/ -name "test_times*"))
+          arr=($(find /tmp/all-artifacts/ -type f -name "test_times*"))
           for i in "${arr[@]}"; do
             echo "parsing -> ${i}"
             cat "${i}"
