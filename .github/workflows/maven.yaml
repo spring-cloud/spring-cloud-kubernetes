@@ -240,12 +240,15 @@ jobs:
               -Dskip.build.image=true          
             fi
           
+            ########################################### find test times #######################################
+            # find files that look like this: 'org.springframework.xxx.txt', these are files are generated
+            # by surefire-plugin. 
             for i in "${sliced_array[@]}"; do
               filename="${i}.txt"
-              echo "searching for filename: ${filename}"
+              #echo "searching for filename: ${filename}"
               file=$(find . -name "${filename}")
-              echo "found file: ${file}"
+              #echo "found file: ${file}"
               result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
           
-              echo "run test: ${filename} in : ${result}"
+              echo "run test: ${i} in : ${result}"
             done
