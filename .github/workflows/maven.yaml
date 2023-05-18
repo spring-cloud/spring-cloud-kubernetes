@@ -45,7 +45,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: /tmp/restored-test-times
-          key: spring-k8s-test-times-cache
+          key: 'spring-k8s-test-times-cache'
 
       - name: show test times cache
         if: steps.restore_cache.outputs.cache-hit == 'true'
