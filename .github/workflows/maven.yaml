@@ -28,6 +28,23 @@ jobs:
         uses: ./.github/workflows/composites/setup-jdk1.8
         if: env.BASE_BRANCH == '2.1.x'
 
+      - name: restore spring-k8s-test-times-cache if it exists
+        id: restore_cache
+        uses: actions/cache/restore@v3
+        with:
+          path: /tmp/restored-test-times
+          key: spring-k8s-test-times-cache
+
+      - name: show test times cache
+        if: steps.restore_cache.outputs.cache-hit == 'true'
+        shell: bash
+        run: cat /tmp/restored-test-times/sorted.txt
+
+      - name: no tests time cache
+        if: steps.restore_cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: echo "no test times cache"
+
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
@@ -317,29 +334,11 @@ jobs:
         shell: bash
         run: cat /tmp/sorted.txt
 
-#      - name: clear tests cache
-#        uses: actions/github-script@v6
-#        with:
-#          script: |
-#            const caches = await github.rest.actions.getActionsCacheList({
-#              owner: context.repo.owner,
-#              repo: context.repo.repo,
-#            })
-#            for (const cache of caches.data.actions_caches) {
-#              console.log(cache)
-#              github.rest.actions.deleteActionsCacheByKey({
-#                owner: context.repo.owner,
-#                repo: context.repo.repo,
-#                cache_id: cache.id,
-#              })
-#            }
-
       - name: save test times in cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-               ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
+          path: /tmp/sorted.txt
+          key: spring-k8s-test-times-cache
 
 

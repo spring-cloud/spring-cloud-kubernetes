@@ -8,25 +8,4 @@ runs:
         path: ~/.m2/repository
         key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
-             ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-
-    - uses: actions/github-script@v6
-      with:
-        script: |
-                    console.log("About to clear")
-                    const caches = await github.rest.actions.getActionsCacheList({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    })
-                    for (const cache of caches.data.actions_caches) {
-                      console.log(cache)
-                      github.rest.actions.deleteActionsCacheByKey({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          cache_key: 'docker-images-cache-5013781421'
-                        })
-                    }
-                    for (const cache of caches.data.actions_caches) {
-                      console.log(cache)
-                    }
-                    console.log("Clear completed")     
+             ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}     
