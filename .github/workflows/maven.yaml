@@ -317,12 +317,29 @@ jobs:
         shell: bash
         run: cat /tmp/sorted.txt
 
-#      - name: save test times in cache
-#        uses: actions/cache@v3
+#      - name: clear tests cache
+#        uses: actions/github-script@v6
 #        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#               ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
+#          script: |
+#            const caches = await github.rest.actions.getActionsCacheList({
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#            })
+#            for (const cache of caches.data.actions_caches) {
+#              console.log(cache)
+#              github.rest.actions.deleteActionsCacheByKey({
+#                owner: context.repo.owner,
+#                repo: context.repo.repo,
+#                cache_id: cache.id,
+#              })
+#            }
+
+      - name: save test times in cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+               ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
 
 

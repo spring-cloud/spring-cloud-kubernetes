@@ -20,5 +20,13 @@ runs:
                     })
                     for (const cache of caches.data.actions_caches) {
                       console.log(cache)
+                      github.rest.actions.deleteActionsCacheByKey({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          cache_key: 'docker-images-cache-5013781421'
+                        })
+                    }
+                    for (const cache of caches.data.actions_caches) {
+                      console.log(cache)
                     }
                     console.log("Clear completed")     
