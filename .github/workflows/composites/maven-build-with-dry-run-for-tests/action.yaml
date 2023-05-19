@@ -1,9 +1,9 @@
-name: find all tests
-description: find all tests
+name: maven-build-with-dry-run-for-tests
+description: maven-build-with-dry-run-for-tests
 runs:
   using: "composite"
   steps:
-    - name: find all tests
+    - name: maven-build-with-dry-run-for-tests
       shell: bash
       run: |
           # find all the tests that are supposed to be run, but don't actually run them.
