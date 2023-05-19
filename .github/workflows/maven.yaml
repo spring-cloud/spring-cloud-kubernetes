@@ -56,8 +56,8 @@ jobs:
       - name: build with skip tests and skip images
         run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
 
-      - name: find all tests
-        uses: ./.github/workflows/composites/find-all-tests
+      - name: compile-with-dry-run-for-tests
+        uses: ./.github/workflows/composites/compile-with-dry-run-for-tests
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
