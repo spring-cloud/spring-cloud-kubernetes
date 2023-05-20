@@ -157,7 +157,10 @@ jobs:
             SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
             unset IFS
           
-            sliced_array=("${SORTED_TEST_CLASSNAMES[@]:$LEFT_BOUND:$RIGHT_BOUND}")
+            left_bound_name=LEFT_BOUND_${CURRENT_INDEX}
+            right_bound_name=RIGHT_BOUND_${CURRENT_INDEX}
+          
+            sliced_array=("${SORTED_TEST_CLASSNAMES[@]:${left_bound_name}:${right_bound_name}")
             TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
             echo "$TEST_ARG"
           

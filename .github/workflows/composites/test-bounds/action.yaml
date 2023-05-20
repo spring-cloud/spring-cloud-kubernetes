@@ -67,8 +67,8 @@ runs:
           done
         fi
         
-        echo "LEFT_BOUND=$(echo $left_bound)" >> $GITHUB_ENV
-        echo "RIGHT_BOUND=$(echo $right_bound)" >> $GITHUB_ENV
+        echo "LEFT_BOUND_${CURRENT_INDEX}=$(echo $left_bound)" >> $GITHUB_ENV
+        echo "RIGHT_BOUND_${CURRENT_INDEX}=$(echo $right_bound)" >> $GITHUB_ENV
         
         
 
