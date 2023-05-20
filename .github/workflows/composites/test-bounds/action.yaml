@@ -1,0 +1,75 @@
+name: test-bounds
+description: test-bounds
+runs:
+  using: "composite"
+  steps:
+    - name: test-bounds
+      shell: bash
+      run: |
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
+        NUMBER_OF_TESTS=${#PLAIN_TEST_CLASSNAMES[@]}
+        
+        echo "current index : ${CURRENT_INDEX}"
+        echo "total number of tests: ${NUMBER_OF_TESTS} to be run on ${NUMBER_OF_JOBS} instances"
+        
+        ##########################################################################################################
+        ##########################################################################################################
+        # Split tests per instance. The simplest form is when (for example), there are 100 tests and 10 instances.
+        # In this case, we will run 10 tests per a single instance. This is the case when reminder == 0 (100 / 10)
+        
+        # When reminder is != 0, the distribution is not perfect, for example: 13 tests to run on 10 instances.
+        # In this case, we find what would the distribution be if we where in a perfect one. That is:
+        # 13/10 = 1; also find out what the reminder is: 13 - 10 * 1 = 3. 
+        # As such, the first 3 batches will run each two tests, and 7 will run one test:
+        # [1 + 1] , [1 + 1] , [1 + 1] , [1] , [1] , [1] ....  
+        # In other words, we first lay out a perfect distribution, and then in the first "reminder of batches"
+        # add one more test. 
+        ##########################################################################################################
+        ##########################################################################################################
+        
+        per_instance=$((${NUMBER_OF_TESTS} / ${NUMBER_OF_JOBS}))
+        reminder=$((${NUMBER_OF_TESTS} - ${NUMBER_OF_JOBS} * ${per_instance}))
+        
+        # perfect distribution
+        if [[ $reminder -eq 0 ]]; then
+          for i in $(seq 0 $((${NUMBER_OF_JOBS} -1 ))); do
+            left_bound=$(($i * $per_instance))
+            right_bound=$(($i * $per_instance + $per_instance))
+            echo "[left-bound, right_bound)"
+          done
+
+        left_bound=0
+        right_bound=0
+        else
+          for i in $(seq 0 $((${NUMBER_OF_JOBS} -1))); do
+            if [[ $i -lt $reminder ]]; then
+              if [[ $i -eq 0 ]]; then
+                left_bound=$(($per_instance * $i))
+                right_bound=$(($per_instance * $i + $per_instance + 1))
+                echo "[$left_bound, $right_bound)"
+              else
+                left_bound=$(( (1 + $per_instance) * $i ))
+                right_bound=$(($left_bound + $per_instance + 1))
+                echo "[$left_bound, $right_bound)"
+              fi
+  
+            elif [[ $i -eq $reminder ]]; then
+              left_bound=$(( (1 + $per_instance) * $i ))
+              right_bound=$(($left_bound + $per_instance))
+              echo "[$left_bound, $right_bound)"
+  
+            else
+              diff=$(($i - $reminder))
+              left_bound=$(($reminder * 2 + diff))
+              right_bound=$(($reminder * 2 + diff + 1))
+              echo "[$left_bound, $right_bound)"
+            fi
+          done
+        fi
+        
+        echo "LEFT_BOUND=$(echo $left_bound)" >> $GITHUB_ENV
+        echo "RIGHT_BOUND=$(echo $right_bound)" >> $GITHUB_ENV
+        
+        
+
+
