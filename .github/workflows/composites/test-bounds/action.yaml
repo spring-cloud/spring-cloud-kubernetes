@@ -60,8 +60,8 @@ runs:
   
             else
               diff=$(($i - $reminder))
-              left_bound=$(($reminder * 2 + diff))
-              right_bound=$(($reminder * 2 + diff + 1))
+              left_bound=$(($reminder + $i * $per_instance))
+        	  right_bound=$(($left_bound + $per_instance))
               echo "[$left_bound, $right_bound)"
             fi
           done
