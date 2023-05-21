@@ -158,17 +158,15 @@ jobs:
             SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
             unset IFS
           
-            current_index=${CURRENT_INDEX}
-            echo "current index: ${current_index}"
             left_bound_name=LEFT_BOUND_${CURRENT_INDEX}
-            echo "left bound name: ${left_bound_name}"
             right_bound_name=RIGHT_BOUND_${CURRENT_INDEX}
           
-            echo "${SORTED_TEST_CLASSNAMES[@]}"
-            echo "left_bound:${left_bound_name}"
-            echo "right_bound:${right_bound_name}"
+            left_bound=${left_bound_name}
+            right_bound=${right_bound_name}
+            echo "left bound : ${left_bound}"
+            echo "right bound : ${right_bound}"
           
-            sliced_array=("${SORTED_TEST_CLASSNAMES[@]:$left_bound_name:$right_bound_name")
+            sliced_array=("${SORTED_TEST_CLASSNAMES[@]:${left_bound}:${right_bound}")
             TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
             echo "$TEST_ARG"
           
