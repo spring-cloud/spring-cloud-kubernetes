@@ -149,7 +149,8 @@ jobs:
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
 
       - name: run tests
-
+        env:
+          CURRENT_INDEX: ${{ matrix.current_index }}
         run: |
           
             PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
