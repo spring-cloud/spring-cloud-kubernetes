@@ -157,7 +157,8 @@ jobs:
             SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
             unset IFS
           
-            echo "current index: ${CURRENT_INDEX}"
+            current_index=${CURRENT_INDEX}
+            echo "current index: ${current_index}"
             left_bound_name=LEFT_BOUND_${CURRENT_INDEX}
             echo "left bound name: ${left_bound_name}"
             right_bound_name=RIGHT_BOUND_${CURRENT_INDEX}
