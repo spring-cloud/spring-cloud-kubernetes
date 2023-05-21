@@ -164,7 +164,7 @@ jobs:
             echo "left_bound:${left_bound_name}"
             echo "right_bound:${right_bound_name}"
           
-            sliced_array=("${SORTED_TEST_CLASSNAMES[@]:${left_bound_name}:${right_bound_name}")
+            sliced_array=("${SORTED_TEST_CLASSNAMES[@]:$left_bound_name:$right_bound_name")
             TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
             echo "$TEST_ARG"
           
