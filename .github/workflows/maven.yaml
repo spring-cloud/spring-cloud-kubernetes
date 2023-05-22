@@ -161,8 +161,8 @@ jobs:
             left_bound_name=LEFT_BOUND_${CURRENT_INDEX}
             right_bound_name=RIGHT_BOUND_${CURRENT_INDEX}
           
-            left_bound=${left_bound_name}
-            right_bound=${right_bound_name}
+            left_bound=${!left_bound_name}
+            right_bound=${!right_bound_name}
             echo "left bound : ${left_bound}"
             echo "right bound : ${right_bound}"
           
