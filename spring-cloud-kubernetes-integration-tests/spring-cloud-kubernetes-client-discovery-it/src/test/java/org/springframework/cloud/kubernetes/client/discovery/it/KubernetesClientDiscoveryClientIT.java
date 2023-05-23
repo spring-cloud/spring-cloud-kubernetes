@@ -341,13 +341,4 @@ class KubernetesClientDiscoveryClientIT {
 		});
 	}
 
-	private String clusterEvents() {
-		try {
-			return K3S.execInContainer("sh", "-c", "kubectl get events").getStdout();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 }
