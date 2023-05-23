@@ -37,9 +37,6 @@ jobs:
       - name: maven build with dry-run for tests
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
 
-      - name: find all tests
-        uses: ./.github/workflows/composites/find-all-tests
-
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
         if: env.BASE_BRANCH != '2.1.x'
