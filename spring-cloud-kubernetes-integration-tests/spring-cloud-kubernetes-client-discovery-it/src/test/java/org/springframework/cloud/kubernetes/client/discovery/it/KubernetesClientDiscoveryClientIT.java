@@ -28,6 +28,7 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +45,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -52,6 +54,8 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author wind57
  */
 class KubernetesClientDiscoveryClientIT {
+
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientDiscoveryClientIT.class));
 
 	private static final String NAMESPACE = "default";
 
@@ -295,10 +299,17 @@ class KubernetesClientDiscoveryClientIT {
 		envVars.add(debugLevelForClient);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+		try {
+			if (phase.equals(Phase.CREATE)) {
+				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			}
 		}
-		else if (phase.equals(Phase.DELETE)) {
+		catch (Exception e) {
+			LOG.info("events: " + events());
+			LOG.info("deployment describe: " + describeDeployment());
+		}
+
+		if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 	}
@@ -339,6 +350,27 @@ class KubernetesClientDiscoveryClientIT {
 			}
 
 		});
+	}
+
+	private static String events() {
+		try {
+			return K3S.execInContainer("sh", "-c", "kubectl get events").getStdout();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static String describeDeployment() {
+		try {
+			return K3S
+					.execInContainer("sh", "-c",
+							"kubectl describe deployment spring-cloud-kubernetes-client-discovery-deployment-it")
+					.getStdout();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
