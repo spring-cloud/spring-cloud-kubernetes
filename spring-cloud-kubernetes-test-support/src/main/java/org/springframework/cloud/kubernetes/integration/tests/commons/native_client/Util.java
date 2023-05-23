@@ -534,7 +534,7 @@ public final class Util {
 	}
 
 	private void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
-		await().timeout(Duration.ofSeconds(90)).until(() -> {
+		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
 				appsV1Api.readNamespacedDeployment(deploymentName, namespace, null);
 				return false;
