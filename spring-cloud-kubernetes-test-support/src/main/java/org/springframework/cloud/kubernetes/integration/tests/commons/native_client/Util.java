@@ -136,6 +136,8 @@ public final class Util {
 				System.out.println(apiException.getResponseBody());
 			}
 			e.printStackTrace();
+			LOG.info("events : " + events());
+			LOG.info("describe deployment : " + describeDeployment(deployment));
 			throw new RuntimeException(e);
 		}
 	}
@@ -532,7 +534,7 @@ public final class Util {
 	}
 
 	private void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
-		await().timeout(Duration.ofSeconds(90)).until(() -> {
+		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
 				appsV1Api.readNamespacedDeployment(deploymentName, namespace, null);
 				return false;
@@ -607,6 +609,26 @@ public final class Util {
 
 	private static String labelSelector(Map<String, String> labels) {
 		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
+	}
+
+	private String events() {
+		try {
+			return container.execInContainer("sh", "-c", "kubectl get events").getStdout();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private String describeDeployment(V1Deployment deployment) {
+		try {
+			return container
+					.execInContainer("sh", "-c", "kubectl describe deployment " + deployment.getMetadata().getName())
+					.getStdout();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private interface CheckedSupplier<T> {
