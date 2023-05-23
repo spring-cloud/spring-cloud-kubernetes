@@ -30,6 +30,9 @@ runs:
         per_instance=$((${NUMBER_OF_TESTS} / ${NUMBER_OF_JOBS}))
         reminder=$((${NUMBER_OF_TESTS} - ${NUMBER_OF_JOBS} * ${per_instance}))
         
+        left_bound=0
+        right_bound=0
+        
         # perfect distribution
         if [[ $reminder -eq 0 ]]; then
           for i in $(seq 0 $((${NUMBER_OF_JOBS} -1 ))); do
@@ -38,8 +41,6 @@ runs:
             echo "[left-bound, right_bound)"
           done
 
-        left_bound=0
-        right_bound=0
         else
           for i in $(seq 0 $((${NUMBER_OF_JOBS} -1))); do
             if [[ $i -lt $reminder ]]; then
