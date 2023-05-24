@@ -24,7 +24,7 @@ runs:
         # when current_index < reminder and the rest.
         # The batches in the example above are going to be [0, 11) [11, 22) [22, 33) [33, 43) [43, 53) ... 
         # So when current_index < reminder, we need to start at : current_index * per_instance + current_index,
-        # i.e.: 0, 11, 22, 33 
+        # i.e.: 0, 11, 22
         # and how many elements to take is : per_instance + 1, i.e. : 11
         # On the other hand when current_index is not < reminder, how_many is easy, it's equal to per_instance.
         # start_from on the other hand is : per_instance * current_index + reminder, i.e. : 33, 43, 53 and so on
