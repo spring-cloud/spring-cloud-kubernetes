@@ -166,10 +166,11 @@ jobs:
             diff=$(( $right_bound - $left_bound ))
           
             echo "${SORTED_TEST_CLASSNAMES[@]}"
+            echo "left bound name ${left_bound_name}"
+            echo "right bound name ${right_bound_name}"
             echo "left bound : ${left_bound}"
             echo "right bound : ${right_bound}"
             echo "diff : ${diff}"
-          
           
             sliced_array=(${SORTED_TEST_CLASSNAMES[@]:$left_bound:$diff})
 
