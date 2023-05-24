@@ -154,7 +154,6 @@ jobs:
         run: |
           
             PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
-            echo "${PLAIN_TEST_CLASSNAMES[@]}"
             IFS=$'\n'
             SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
             unset IFS
@@ -165,6 +164,8 @@ jobs:
             left_bound=${!left_bound_name}
             right_bound=${!right_bound_name}
             diff=$(( $right_bound - $left_bound ))
+          
+            echo "${SORTED_TEST_CLASSNAMES[@]}"
             echo "left bound : ${left_bound}"
             echo "right bound : ${right_bound}"
             echo "diff : ${diff}"
