@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>3.0.3-SNAPSHOT</version>
+		<version>3.0.4-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
@@ -63,8 +63,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-launcher</artifactId>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
