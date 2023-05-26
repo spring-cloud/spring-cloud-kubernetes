@@ -36,7 +36,6 @@
 		<kubernetes-fabric8-client.version>6.2.0</kubernetes-fabric8-client.version>
 		<kubernetes-native-client.version>17.0.2</kubernetes-native-client.version>
 		<wiremock.version>2.26.3</wiremock.version>
-		<spring-retry.version>1.3.1</spring-retry.version>
 		<commons.collections4.version>4.4</commons.collections4.version>
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 	</properties>
@@ -70,12 +69,6 @@
 				<groupId>io.kubernetes</groupId>
 				<artifactId>client-java-spring-integration</artifactId>
 				<version>${kubernetes-native-client.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework.retry</groupId>
-				<artifactId>spring-retry</artifactId>
-				<version>${spring-retry.version}</version>
 			</dependency>
 
 			<!-- Own dependencies -->
