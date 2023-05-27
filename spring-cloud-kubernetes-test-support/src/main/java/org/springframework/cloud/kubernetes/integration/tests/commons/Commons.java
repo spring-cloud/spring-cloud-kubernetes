@@ -163,7 +163,7 @@ public final class Commons {
 	}
 
 	/**
-	 * equivalent of 'docker system prune', but for crictl
+	 * equivalent of 'docker system prune', but for crictl.
 	 */
 	public static void systemPrune() {
 		try {
