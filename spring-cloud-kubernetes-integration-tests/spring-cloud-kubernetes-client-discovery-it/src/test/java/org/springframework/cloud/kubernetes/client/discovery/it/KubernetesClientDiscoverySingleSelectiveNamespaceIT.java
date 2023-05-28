@@ -74,7 +74,7 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-		Commons.systemPrune();
+		//Commons.systemPrune();
 
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);

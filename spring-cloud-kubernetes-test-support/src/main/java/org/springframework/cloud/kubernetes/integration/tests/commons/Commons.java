@@ -168,7 +168,7 @@ public final class Commons {
 	public static void systemPrune() {
 		try {
 			CONTAINER.execInContainer("sh", "-c",
-				"crictl ps -a | grep -v Running | awk '{print $1}' | xargs crictl rm && crictl rmi --prune");
+					"crictl ps -a | grep -v Running | awk '{print $1}' | xargs crictl rm && crictl rmi --prune");
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
