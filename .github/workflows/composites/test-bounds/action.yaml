@@ -58,8 +58,8 @@ runs:
         start_from_name=start_from_${CURRENT_INDEX}
         how_many_name=how_many_${CURRENT_INDEX}
         
-        echo "$start_from_name : $start_from"
-        echo "how_many_name    : $how_many"
+        echo "$start_from_name  : $start_from"
+        echo "$how_many_name    : $how_many"
         
         echo "$start_from_name=$start_from" >> $GITHUB_ENV
         echo "$how_many_name=$how_many" >> $GITHUB_ENV
