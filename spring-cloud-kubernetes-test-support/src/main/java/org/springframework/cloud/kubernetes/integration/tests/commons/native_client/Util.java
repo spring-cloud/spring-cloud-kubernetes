@@ -550,7 +550,7 @@ public final class Util {
 	}
 
 	private void waitForDeploymentPodsToBeDeleted(Map<String, String> labels, String namespace) {
-		await().timeout(Duration.ofSeconds(90)).until(() -> {
+		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
 				int currentNumberOfPods = coreV1Api.listNamespacedPod(namespace, null, null, null, null,
 						labelSelector(labels), null, null, null, null, null).getItems().size();
