@@ -31,9 +31,6 @@ jobs:
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
-      - name: build fabric8 istio
-        uses: ./.github/workflows/composites/fabric8-istio
-
       - name: maven build with dry-run for tests
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
 
