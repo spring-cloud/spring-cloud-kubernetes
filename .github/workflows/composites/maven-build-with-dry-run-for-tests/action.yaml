@@ -1,18 +1,9 @@
-<<<<<<<< HEAD:.github/workflows/composites/compile-with-dry-run-for-tests/action.yaml
-name: compile with dry-run for tests
-description: find all tests
-runs:
-  using: "composite"
-  steps:
-    - name: compile with dry-run for tests
-========
 name: maven-build-with-dry-run-for-tests
 description: maven-build-with-dry-run-for-tests
 runs:
   using: "composite"
   steps:
     - name: maven-build-with-dry-run-for-tests
->>>>>>>> simplifiy-existing-split-of-tests:.github/workflows/composites/maven-build-with-dry-run-for-tests/action.yaml
       shell: bash
       run: |
           # find all the tests that are supposed to be run, but don't actually run them.
