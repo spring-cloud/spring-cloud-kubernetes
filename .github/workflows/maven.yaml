@@ -50,14 +50,8 @@ jobs:
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
-      - name: build fabric8 istio
-        uses: ./.github/workflows/composites/fabric8-istio
-
-      - name: build with skip tests and skip images
-        run: ./mvnw -T 1C -s .settings.xml clean install -U -DskipTests -Dskip.build.image=true
-
-      - name: compile-with-dry-run-for-tests
-        uses: ./.github/workflows/composites/compile-with-dry-run-for-tests
+      - name: maven build with dry-run for tests
+        uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
@@ -164,71 +158,36 @@ jobs:
           name: tests.txt
           path: /tmp
 
-      - name: run tests
+      - name: compute single step test bounds
+        uses: ./.github/workflows/composites/test-bounds
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
+
+      - name: run tests
+        env:
+          CURRENT_INDEX: ${{ matrix.current_index }}
         run: |
           
             PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
             IFS=$'\n'
             SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
             unset IFS
-            
-            number_of_tests=${#SORTED_TEST_CLASSNAMES[@]}
-            number_of_jobs=${NUMBER_OF_JOBS}
-            current_index=${CURRENT_INDEX}
+          
+            start_from_name=start_from_${CURRENT_INDEX}
+            how_many_name=how_many_${CURRENT_INDEX}
+          
+            start_from=${!start_from_name}
+            how_many=${!how_many_name}
+          
+            echo "${SORTED_TEST_CLASSNAMES[@]}"
+            echo "$start_from_name : ${start_from}"
+            echo "$how_many_name   : ${how_many}"
+          
+            sliced_array=(${SORTED_TEST_CLASSNAMES[@]:$start_from:$how_many})
 
-            per_instance=$((number_of_tests / number_of_jobs))
-
-            # we do not get an ideal distribution all the time, so this is needed to add one more test
-            # to the first "reminder" number of instances.
-
-            # consider the case when there are 10 tests, and 4 instances
-            # 10/4=2 (and this is "per_instance"), at the same time "reminder" = (10 - 4 * 2) = 2
-            # this means that the first instance will run (2 + 1) tests
-            # second instance will run (2 + 1) tests
-            # all subsequent instances will run 2 tests.
-
-            reminder=$((number_of_tests - number_of_jobs * per_instance))
-            elements_in_current_instance=$((per_instance + 1))
-
-            left_bound=0
-            right_bound=0
-
-            # we are in a range where we might need to add one more test to each instance
-            # notice the "less then" condition here, it is important and must not change
-            if [[ $current_index -lt $reminder ]]; then
-
-                # this one is easy, the range will be [0..3] (following our example above)
-                if [[ $current_index == 0 ]]; then
-                  left_bound=0
-                  right_bound=$elements_in_current_instance
-                  # this one will be [3..6]
-                else
-                  left_bound=$((current_index * elements_in_current_instance))
-                  right_bound=$(((current_index + 1) * elements_in_current_instance))
-                fi
-
-                echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
-
-            else
-
-              # reminder can be zero here (in case of a perfect distribution): in such a case, this is just "current_index * per_instance".
-                # if reminder is not zero, we have two regions here, logically. the one of the left is "reminder * elements_in_current_instance",
-                # basically [0..3] and [3..6]
-                # and the region on the right [6..8].
-                left_bound=$((reminder * elements_in_current_instance + ((current_index - reminder) * per_instance)))
-                right_bound=$((left_bound + per_instance))
-
-                echo "total tests : $number_of_tests, jobs: $number_of_jobs, current index : $current_index. will run tests in range : [$left_bound..$right_bound]"
-            fi
-
-            diff=$((right_bound - left_bound))
-            sliced_array=("${SORTED_TEST_CLASSNAMES[@]:$left_bound:$diff}")
             TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
-
-            echo "will run tests : ${TEST_ARG[@]}"
+            echo "$TEST_ARG"
           
             if [[ $baseBranch == "2.1.x" ]]; then
           
