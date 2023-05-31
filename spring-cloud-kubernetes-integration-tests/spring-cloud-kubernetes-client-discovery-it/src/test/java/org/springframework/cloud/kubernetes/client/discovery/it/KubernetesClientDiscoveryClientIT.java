@@ -72,6 +72,7 @@ class KubernetesClientDiscoveryClientIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
+		Commons.systemPrune();
 	}
 
 	@AfterAll
