@@ -28,8 +28,7 @@ import io.kubernetes.client.openapi.models.V1ServiceListBuilder;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import io.kubernetes.client.util.ClientBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.mock.http.client.MockClientHttpResponse;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +56,6 @@ import static org.mockito.Mockito.when;
 /**
  * @author Ryan Baxter
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = KubernetesClientLoadBalancerServiceModeTests.App.class,
 		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE" })

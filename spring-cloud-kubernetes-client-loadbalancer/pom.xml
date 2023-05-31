@@ -6,7 +6,7 @@
 		<artifactId>spring-cloud-kubernetes</artifactId>
 		<groupId>org.springframework.cloud</groupId>
 
-		<version>3.0.3-SNAPSHOT</version>
+		<version>3.0.4-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -52,8 +52,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.junit.vintage</groupId>
-			<artifactId>junit-vintage-engine</artifactId>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
