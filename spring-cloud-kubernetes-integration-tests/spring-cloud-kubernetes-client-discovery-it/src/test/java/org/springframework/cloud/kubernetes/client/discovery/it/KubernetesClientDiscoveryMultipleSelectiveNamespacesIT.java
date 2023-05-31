@@ -75,7 +75,6 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-		Commons.systemPrune();
 
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
@@ -95,6 +94,7 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesIT {
 		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A, NAMESPACE_B));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
+		Commons.systemPrune();
 	}
 
 	/**

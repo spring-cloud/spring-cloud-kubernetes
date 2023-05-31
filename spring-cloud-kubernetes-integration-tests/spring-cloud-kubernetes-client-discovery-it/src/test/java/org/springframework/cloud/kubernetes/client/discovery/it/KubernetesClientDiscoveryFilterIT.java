@@ -77,7 +77,6 @@ class KubernetesClientDiscoveryFilterIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-		Commons.systemPrune();
 	}
 
 	@BeforeEach
@@ -98,8 +97,9 @@ class KubernetesClientDiscoveryFilterIT {
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**

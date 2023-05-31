@@ -85,7 +85,7 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
@@ -94,6 +94,7 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A, NAMESPACE_B));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
+		Commons.systemPrune();
 	}
 
 	/**
