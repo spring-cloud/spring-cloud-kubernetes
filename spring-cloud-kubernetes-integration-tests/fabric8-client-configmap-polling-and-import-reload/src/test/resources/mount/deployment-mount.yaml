@@ -20,10 +20,16 @@ spec:
             httpGet:
               port: 8080
               path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 2
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               port: 8080
               path: /actuator/health/liveness
+            initialDelaySeconds: 10
+            periodSeconds: 2
+            failureThreshold: 3
           ports:
             - containerPort: 8080
 
