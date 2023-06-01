@@ -32,8 +32,10 @@ import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -51,6 +53,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class KubernetesClientDiscoveryFilterIT {
 
 	private static final String FILTER_SINGLE_NAMESPACE = "#root.metadata.namespace matches 'a-uat$'";

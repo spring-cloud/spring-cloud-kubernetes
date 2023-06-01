@@ -596,7 +596,7 @@ public final class Util {
 
 	public void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
 		try {
-			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS)
+			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(3)).atMost(30, TimeUnit.SECONDS)
 					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
 		}
 		catch (Exception e) {

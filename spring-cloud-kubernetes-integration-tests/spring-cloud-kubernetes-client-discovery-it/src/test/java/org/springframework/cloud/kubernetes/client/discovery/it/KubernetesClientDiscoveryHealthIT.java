@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -29,7 +30,10 @@ import io.kubernetes.client.openapi.models.V1Service;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -48,6 +52,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class KubernetesClientDiscoveryHealthIT {
 
 	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status";
@@ -57,6 +62,8 @@ class KubernetesClientDiscoveryHealthIT {
 	private static final String NAMESPACE = "default";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
+
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(
 			KubernetesClientDiscoveryHealthIT.class);
@@ -73,12 +80,15 @@ class KubernetesClientDiscoveryHealthIT {
 
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
+
+		manifests(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.systemPrune();
+		manifests(Phase.DELETE);
 	}
 
 	/**
@@ -90,9 +100,8 @@ class KubernetesClientDiscoveryHealthIT {
 	 * client was initialized.
 	 */
 	@Test
+	@Order(1)
 	void testBlockingConfiguration() {
-
-		manifests(true, false, Phase.CREATE);
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
 		assertLogStatement("publishing InstanceRegisteredEvent");
@@ -118,52 +127,6 @@ class KubernetesClientDiscoveryHealthIT {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
-		manifests(true, false, Phase.DELETE);
-	}
-
-	/**
-	 * Both blocking and reactive are enabled.
-	 */
-	@Test
-	void testDefaultConfiguration() {
-
-		manifests(false, false, Phase.CREATE);
-
-		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
-		assertLogStatement("publishing InstanceRegisteredEvent");
-		assertLogStatement("Discovery Client has been initialized");
-		assertLogStatement(
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
-
-		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
-
-		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
-				.isEqualTo("UP");
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathArrayValue(
-						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
-				.isEqualTo("UP");
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
-
-		manifests(false, false, Phase.DELETE);
 	}
 
 	/**
@@ -175,9 +138,12 @@ class KubernetesClientDiscoveryHealthIT {
 	 * client was initialized.
 	 */
 	@Test
+	@Order(2)
 	void testReactiveConfiguration() {
 
-		manifests(false, true, Phase.CREATE);
+		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation");
 		assertLogStatement("publishing InstanceRegisteredEvent");
@@ -213,68 +179,88 @@ class KubernetesClientDiscoveryHealthIT {
 		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-client-discovery-it");
 		Assertions.assertThat(servicesResult).contains("kubernetes");
 
-		manifests(false, true, Phase.DELETE);
 	}
 
-	private static void manifests(boolean disableReactive, boolean disableBlocking, Phase phase) {
+	/**
+	 * Both blocking and reactive are enabled.
+	 */
+	@Test
+	@Order(3)
+	void testDefaultConfiguration() {
+
+		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
+		assertLogStatement("publishing InstanceRegisteredEvent");
+		assertLogStatement("Discovery Client has been initialized");
+		assertLogStatement(
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+
+		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
+
+		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
+				.isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathArrayValue(
+						"$.components.discoveryComposite.components.discoveryClient.details.services")
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
+				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
+				.isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
+				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+
+	}
+
+	private static void manifests(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("kubernetes-discovery-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
 
-		List<V1EnvVar> envVars = new ArrayList<>(
-				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-						.orElse(List.of()));
+		if (Phase.DELETE.equals(phase)) {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			return;
+		}
 
-		V1EnvVar debugLevelForCommons = new V1EnvVar()
-				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
+		if (Phase.CREATE.equals(phase)) {
 
-		if (!disableBlocking) {
-			V1EnvVar debugBlockingEnvVar = new V1EnvVar()
+			List<V1EnvVar> envVars = new ArrayList<>(
+					Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
+							.orElse(List.of()));
+
+			V1EnvVar debugLevelForCommons = new V1EnvVar()
+					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
+			V1EnvVar disableReactive = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED").value("FALSE");
+
+			V1EnvVar debugBlocking = new V1EnvVar()
 					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH").value("DEBUG");
 
 			V1EnvVar debugLevelForBlocking = new V1EnvVar()
 					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
 
-			envVars.add(debugBlockingEnvVar);
+			envVars.add(disableReactive);
+			envVars.add(debugBlocking);
 			envVars.add(debugLevelForBlocking);
-		}
+			envVars.add(debugLevelForCommons);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		if (!disableReactive) {
-			V1EnvVar debugReactiveEnvVar = new V1EnvVar()
-					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH_REACTIVE").value("DEBUG");
-
-			V1EnvVar debugLevelForReactive = new V1EnvVar()
-					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY_REACTIVE")
-					.value("DEBUG");
-
-			V1EnvVar debugLevelForBlocking = new V1EnvVar()
-					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
-
-			envVars.add(debugReactiveEnvVar);
-			envVars.add(debugLevelForBlocking);
-			envVars.add(debugLevelForReactive);
-		}
-
-		if (disableBlocking) {
-			V1EnvVar disableBlockingEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED")
-					.value("FALSE");
-			envVars.add(disableBlockingEnvVar);
-		}
-
-		if (disableReactive) {
-			V1EnvVar disableReactiveEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED")
-					.value("FALSE");
-			envVars.add(disableReactiveEnvVar);
-		}
-
-		envVars.add(debugLevelForCommons);
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 	}
 

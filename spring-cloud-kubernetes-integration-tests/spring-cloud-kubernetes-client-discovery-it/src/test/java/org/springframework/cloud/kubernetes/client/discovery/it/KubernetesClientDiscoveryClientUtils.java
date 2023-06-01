@@ -22,11 +22,17 @@ import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.util.PatchUtils;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author wind57
  */
 final class KubernetesClientDiscoveryClientUtils {
+
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesClientDiscoveryClientUtils.class));
 
 	// patch the filter so that it matches both namespaces
 	private static final String BODY_ONE = """
@@ -39,6 +45,67 @@ final class KubernetesClientDiscoveryClientUtils {
 								"env": [{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_FILTER",
 									"value": "#root.metadata.namespace matches '^.*uat$'"
+								}]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_TWO = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH_REACTIVE",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY_REACTIVE",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
+									"value": "FALSE"
+								},
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
+									"value": "TRUE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	// this one patches on top of BODY_TWO, so it essentially enables both blocking and
+	// reactive implementations
+	// and adds proper packages in DEBUG mode, so that we could assert logs.
+	private static final String BODY_THREE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [{
+									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
+									"value": "TRUE"
 								}]
 							}]
 						}
@@ -60,6 +127,35 @@ final class KubernetesClientDiscoveryClientUtils {
 					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchForReactiveHealth(String deploymentName, String namespace) {
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_TWO), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchForBlockingAndReactiveHealth(String deploymentName, String namespace) {
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_THREE), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
 			throw new RuntimeException(e);
 		}
 	}
