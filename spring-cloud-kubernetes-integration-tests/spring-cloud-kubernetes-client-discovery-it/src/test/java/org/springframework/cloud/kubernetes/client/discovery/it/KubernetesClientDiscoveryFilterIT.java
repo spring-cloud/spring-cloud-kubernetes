@@ -30,10 +30,9 @@ import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -53,8 +52,6 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author wind57
  */
 class KubernetesClientDiscoveryFilterIT {
-
-	private static final String FILTER_BOTH_NAMESPACES = "#root.metadata.namespace matches '^.*uat$'";
 
 	private static final String FILTER_SINGLE_NAMESPACE = "#root.metadata.namespace matches 'a-uat$'";
 
@@ -77,29 +74,58 @@ class KubernetesClientDiscoveryFilterIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-	}
 
-	@BeforeEach
-	void beforeEach() {
 		util.createNamespace(NAMESPACE_A_UAT);
 		util.createNamespace(NAMESPACE_B_UAT);
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A_UAT, NAMESPACE_B_UAT));
 		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE);
 		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE);
-	}
 
-	@AfterEach
-	void afterEach() {
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
-		util.deleteNamespace(NAMESPACE_A_UAT);
-		util.deleteNamespace(NAMESPACE_B_UAT);
+		manifests(Phase.CREATE, FILTER_SINGLE_NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
+		util.deleteNamespace(NAMESPACE_A_UAT);
+		util.deleteNamespace(NAMESPACE_B_UAT);
+
+		manifests(Phase.DELETE, FILTER_SINGLE_NAMESPACE);
+
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.systemPrune();
+	}
+
+	@Test
+	@Order(1)
+	void filterMatchesOneNamespaceViaThePredicate() {
+
+		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
+
+		@SuppressWarnings("unchecked")
+		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
+				.retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(services.size(), 1);
+		Assertions.assertTrue(services.contains("service-wiremock"));
+
+		WebClient client = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
+		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
+				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+
+				}).retryWhen(retrySpec()).block();
+
+		Assertions.assertEquals(serviceInstances.size(), 1);
+
+		DefaultKubernetesServiceInstance first = serviceInstances.get(0);
+		Assertions.assertEquals(first.getServiceId(), "service-wiremock");
+		Assertions.assertNotNull(first.getInstanceId());
+		Assertions.assertEquals(first.getPort(), 8080);
+		Assertions.assertEquals(first.getNamespace(), "a-uat");
+		Assertions.assertEquals(first.getMetadata(),
+				Map.of("app", "service-wiremock", "http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+
 	}
 
 	/**
@@ -113,9 +139,13 @@ class KubernetesClientDiscoveryFilterIT {
 	 * </pre>
 	 */
 	@Test
+	@Order(2)
 	void filterMatchesBothNamespacesViaThePredicate() {
 
-		manifests(Phase.CREATE, FILTER_BOTH_NAMESPACES);
+		// patch the deployment to change what namespaces are take into account
+		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate();
+		util.waitForDeploymentAfterPatch("spring-cloud-kubernetes-client-discovery-deployment-it", NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
@@ -152,49 +182,6 @@ class KubernetesClientDiscoveryFilterIT {
 		Assertions.assertEquals(second.getMetadata(),
 				Map.of("app", "service-wiremock", "http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 
-		manifests(Phase.DELETE, FILTER_BOTH_NAMESPACES);
-	}
-
-	/**
-	 * <pre>
-	 *     - service "wiremock" is present in namespace "a-uat"
-	 *     - service "wiremock" is present in namespace "b-uat"
-	 *
-	 *     - we search with a predicate : "#root.metadata.namespace matches 'a-uat$'"
-	 *
-	 *     As such, only service from 'a-uat' namespace matches.
-	 * </pre>
-	 */
-	@Test
-	void filterMatchesOneNamespaceViaThePredicate() {
-		manifests(Phase.CREATE, FILTER_SINGLE_NAMESPACE);
-
-		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
-
-		@SuppressWarnings("unchecked")
-		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(retrySpec()).block();
-
-		Assertions.assertEquals(services.size(), 1);
-		Assertions.assertTrue(services.contains("service-wiremock"));
-
-		WebClient client = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
-		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
-
-				}).retryWhen(retrySpec()).block();
-
-		Assertions.assertEquals(serviceInstances.size(), 1);
-
-		DefaultKubernetesServiceInstance first = serviceInstances.get(0);
-		Assertions.assertEquals(first.getServiceId(), "service-wiremock");
-		Assertions.assertNotNull(first.getInstanceId());
-		Assertions.assertEquals(first.getPort(), 8080);
-		Assertions.assertEquals(first.getNamespace(), "a-uat");
-		Assertions.assertEquals(first.getMetadata(),
-				Map.of("app", "service-wiremock", "http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
-
-		manifests(Phase.DELETE, FILTER_SINGLE_NAMESPACE);
 	}
 
 	private static void manifests(Phase phase, String serviceFilter) {
@@ -202,6 +189,11 @@ class KubernetesClientDiscoveryFilterIT {
 		V1Deployment deployment = (V1Deployment) util.yaml("kubernetes-discovery-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
+
+		if (phase.equals(Phase.DELETE)) {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			return;
+		}
 
 		List<V1EnvVar> envVars = new ArrayList<>(
 				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
@@ -221,9 +213,6 @@ class KubernetesClientDiscoveryFilterIT {
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
 	}

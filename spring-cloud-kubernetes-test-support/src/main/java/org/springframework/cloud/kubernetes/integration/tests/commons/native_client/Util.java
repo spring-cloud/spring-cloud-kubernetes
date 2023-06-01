@@ -24,6 +24,7 @@ import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -591,6 +592,46 @@ public final class Util {
 		LOG.info("Available replicas for " + deploymentName + ": "
 				+ (availableReplicas == null ? 0 : availableReplicas));
 		return availableReplicas != null && availableReplicas >= 1;
+	}
+
+	public void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
+		try {
+			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS)
+					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
+		}
+		catch (Exception e) {
+			if (e instanceof ApiException apiException) {
+				LOG.error("Error: ");
+				LOG.error(apiException.getResponseBody());
+			}
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	private boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace, Map<String, String> labels)
+			throws ApiException {
+
+		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
+				"metadata.name=" + deploymentName, null, null, null, null, null, null);
+		if (deployments.getItems().size() < 1) {
+			fail("No deployment with name " + deploymentName);
+		}
+
+		V1Deployment deployment = deployments.getItems().get(0);
+		// if no replicas are defined, it means only 1 is needed
+		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
+
+		int numberOfPods = coreV1Api.listNamespacedPod(namespace, null, null, null, null, labelSelector(labels), null,
+				null, null, null, null).getItems().size();
+
+		if (numberOfPods != replicas) {
+			LOG.info("number of pods not yet stabilized");
+			return false;
+		}
+
+		return replicas == Optional.ofNullable(deployment.getStatus().getAvailableReplicas()).orElse(0);
+
 	}
 
 	private static <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {
