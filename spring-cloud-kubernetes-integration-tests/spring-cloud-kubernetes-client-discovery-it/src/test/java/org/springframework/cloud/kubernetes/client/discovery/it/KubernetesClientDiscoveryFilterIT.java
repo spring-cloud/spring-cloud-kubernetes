@@ -63,6 +63,8 @@ class KubernetesClientDiscoveryFilterIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
 
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
+
 	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
@@ -143,8 +145,8 @@ class KubernetesClientDiscoveryFilterIT {
 	void filterMatchesBothNamespacesViaThePredicate() {
 
 		// patch the deployment to change what namespaces are take into account
-		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate();
-		util.waitForDeploymentAfterPatch("spring-cloud-kubernetes-client-discovery-deployment-it", NAMESPACE,
+		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
 				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();

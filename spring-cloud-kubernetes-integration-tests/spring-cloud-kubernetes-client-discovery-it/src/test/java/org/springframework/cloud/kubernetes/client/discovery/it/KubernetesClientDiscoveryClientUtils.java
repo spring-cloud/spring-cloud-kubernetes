@@ -51,13 +51,12 @@ final class KubernetesClientDiscoveryClientUtils {
 
 	}
 
-	static void patchForTwoNamespacesMatchViaThePredicate() {
+	static void patchForTwoNamespacesMatchViaThePredicate(String deploymentName, String namespace) {
 
 		try {
 			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(
-							"spring-cloud-kubernetes-client-discovery-deployment-it", "default", new V1Patch(BODY_ONE),
-							null, null, null, null, null, null),
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_ONE), null, null, null, null, null, null),
 					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
