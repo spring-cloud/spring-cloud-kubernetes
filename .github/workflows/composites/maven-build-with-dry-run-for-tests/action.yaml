@@ -12,6 +12,11 @@ runs:
                 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error \
                 -T 1C > /tmp/tests.txt
 
+    - name: show result
+      if: always()
+      shell: bash
+      run: cat /tmp/tests.txt
+
     - name: upload test
       uses: actions/upload-artifact@v3
       with:
