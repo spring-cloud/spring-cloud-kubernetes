@@ -24,12 +24,12 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;

@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -295,7 +294,7 @@ class KubernetesClientDiscoveryClientIT {
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
 		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesOneNamespaceViaThePredicate(util);
 
 	}
@@ -317,7 +316,7 @@ class KubernetesClientDiscoveryClientIT {
 		// patch the deployment to change what namespaces are take into account
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
 		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate(util);
 	}
@@ -332,7 +331,7 @@ class KubernetesClientDiscoveryClientIT {
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
 		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
 	}
@@ -343,7 +342,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(util, K3S);
 	}
@@ -354,7 +353,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(util, K3S);
 	}

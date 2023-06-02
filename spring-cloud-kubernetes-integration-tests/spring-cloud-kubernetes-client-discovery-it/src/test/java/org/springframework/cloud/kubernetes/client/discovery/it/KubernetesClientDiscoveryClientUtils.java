@@ -32,7 +32,7 @@ import org.springframework.core.log.LogAccessor;
 final class KubernetesClientDiscoveryClientUtils {
 
 	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesClientDiscoveryClientUtils.class));
+			LogFactory.getLog(KubernetesClientDiscoveryClientUtils.class));
 
 	// patch the filter so that it matches both namespaces
 	private static final String BODY_ONE = """
@@ -414,9 +414,9 @@ final class KubernetesClientDiscoveryClientUtils {
 	private static void patchWithMerge(String deploymentName, String namespace, String patchBody) {
 		try {
 			PatchUtils.patch(V1Deployment.class,
-				() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-					new V1Patch(patchBody), null, null, null, null, null, null),
-				V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(patchBody), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
 			LOG.error(() -> "error : " + e.getResponseBody());
@@ -429,9 +429,9 @@ final class KubernetesClientDiscoveryClientUtils {
 
 		try {
 			PatchUtils.patch(V1Deployment.class,
-				() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
-					null, null, null, null, null, null),
-				V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
+							null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
 			LOG.error(() -> "error : " + e.getResponseBody());
