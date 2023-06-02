@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assertions;
 import org.testcontainers.containers.Container;
@@ -34,6 +35,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -197,10 +200,13 @@ class KubernetesClientDiscoveryHealthITDelegate {
 			String appPodName = container.execInContainer("sh", "-c",
 					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
 
-			Container.ExecResult execResult = container.execInContainer("sh", "-c",
-					"kubectl logs " + appPodName.trim());
-			String ok = execResult.getStdout();
-			Assertions.assertThat(ok).contains(message);
+			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(1)).atMost(20, TimeUnit.SECONDS)
+					.until(() -> {
+						Container.ExecResult execResult = container.execInContainer("sh", "-c",
+								"kubectl logs " + appPodName.trim());
+						String ok = execResult.getStdout();
+						return ok.contains(message);
+					});
 		}
 		catch (Exception e) {
 			e.printStackTrace();
