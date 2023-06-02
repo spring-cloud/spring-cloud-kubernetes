@@ -114,6 +114,42 @@ final class KubernetesClientDiscoveryClientUtils {
 			}
 						""";
 
+	// this one patches on top of BODY_TWO, so it essentially enables both blocking and
+	// reactive implementations
+	// and adds proper packages in DEBUG mode, so that we could assert logs.
+	private static final String BODY_FOUR = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
+									"value": "FALSE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private KubernetesClientDiscoveryClientUtils() {
 
 	}
@@ -153,6 +189,24 @@ final class KubernetesClientDiscoveryClientUtils {
 					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
 							new V1Patch(BODY_THREE), null, null, null, null, null, null),
 					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	// notice the usage of 'PATCH_FORMAT_JSON_MERGE_PATCH' here, it will not merge
+	// env variables
+	static void patchForBlockingHealth(String image, String deploymentName, String namespace) {
+
+		String body = BODY_FOUR.replace("image_name_here", image);
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
+							null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
 			LOG.error(() -> "error : " + e.getResponseBody());

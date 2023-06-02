@@ -91,11 +91,6 @@ class KubernetesClientDiscoveryFilterIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
-		util.deleteNamespace(NAMESPACE_A_UAT);
-		util.deleteNamespace(NAMESPACE_B_UAT);
-
 		manifests(Phase.DELETE, FILTER_SINGLE_NAMESPACE);
 
 		Commons.cleanUp(IMAGE_NAME, K3S);
@@ -187,6 +182,50 @@ class KubernetesClientDiscoveryFilterIT {
 		Assertions.assertEquals(second.getMetadata(),
 				Map.of("app", "service-wiremock", "http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 
+	}
+
+	@Test
+	@Order(4)
+	void testBlockingConfiguration() {
+
+		// filter tests are done, clean-up a bit to prepare everything for health tests
+		deleteNamespacesAndWiremock();
+
+		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
+		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
+	}
+
+	@Test
+	@Order(5)
+	void testReactiveConfiguration() {
+
+		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(util, K3S);
+	}
+
+	@Test
+	@Order(6)
+	void testDefaultConfiguration() {
+
+		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(util, K3S);
+	}
+
+	private void deleteNamespacesAndWiremock() {
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
+		util.deleteNamespace(NAMESPACE_A_UAT);
+		util.deleteNamespace(NAMESPACE_B_UAT);
 	}
 
 	private static void manifests(Phase phase, String serviceFilter) {
