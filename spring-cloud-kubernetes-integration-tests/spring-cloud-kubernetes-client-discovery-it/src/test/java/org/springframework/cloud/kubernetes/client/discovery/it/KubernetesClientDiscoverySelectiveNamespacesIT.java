@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +31,10 @@ import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -49,7 +53,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
-class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 	private static final String BLOCKING_PUBLISH = "Will publish InstanceRegisteredEvent from blocking implementation";
 
@@ -63,6 +68,8 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
 
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
+
 	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
@@ -74,7 +81,6 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-		Commons.systemPrune();
 
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
@@ -82,6 +88,7 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
+		manifests(Phase.CREATE);
 	}
 
 	@AfterAll
@@ -94,7 +101,7 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A, NAMESPACE_B));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
-		Commons.systemPrune();
+		manifests(Phase.DELETE);
 	}
 
 	/**
@@ -103,9 +110,8 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 	 * its service instance.
 	 */
 	@Test
+	@Order(1)
 	void testOneNamespaceBlockingOnly() {
-
-		manifests(Phase.CREATE, false, true);
 
 		String logs = logs();
 		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
@@ -122,8 +128,6 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 
 		blockingCheck();
 
-		manifests(Phase.DELETE, false, true);
-
 	}
 
 	/**
@@ -132,9 +136,12 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 	 * its service instance.
 	 */
 	@Test
+	@Order(2)
 	void testOneNamespaceReactiveOnly() {
 
-		manifests(Phase.CREATE, true, false);
+		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		String logs = logs();
 		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
@@ -151,8 +158,6 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 
 		reactiveCheck();
 
-		manifests(Phase.DELETE, true, false);
-
 	}
 
 	/**
@@ -161,9 +166,12 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 	 * its service instance.
 	 */
 	@Test
+	@Order(3)
 	void testOneNamespaceBothBlockingAndReactive() {
 
-		manifests(Phase.CREATE, false, false);
+		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactive(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		String logs = logs();
 		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
@@ -181,43 +189,100 @@ class KubernetesClientDiscoverySingleSelectiveNamespaceIT {
 		blockingCheck();
 		reactiveCheck();
 
-		manifests(Phase.DELETE, false, false);
-
 	}
 
-	private static void manifests(Phase phase, boolean disableBlocking, boolean disableReactive) {
+	/**
+	 * previous test already has: <pre>
+	 *     - SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0 = a
+	 *     - SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED = TRUE
+	 *     - SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED = TRUE
+	 *
+	 *     All we need to patch for is:
+	 *     -  add one more namespace to track, via SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1 = b
+	 *     - disable reactive, via SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED = FALSE
+	 *
+	 *    As such, two namespaces + blocking only, is achieved.
+	 * </pre>
+	 */
+	@Test
+	@Order(4)
+	void testTwoNamespacesBlockingOnly() {
+		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesBlockingOnly(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate().testTwoNamespacesBlockingOnly(K3S);
+	}
+
+	/**
+	 * previous test already has: <pre>
+	 *     - SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0 = a
+	 *     - SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1 = b
+	 *     - SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED = FALSE
+	 *     - SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED = TRUE
+	 *
+	 *     We invert the reactive and blocking in this test via patching.
+	 *
+	 *    As such, two namespaces + reactive only, is achieved.
+	 * </pre>
+	 */
+	@Test
+	@Order(5)
+	void testTwoNamespacesReactiveOnly() {
+		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate().testTwoNamespaceReactiveOnly(K3S);
+	}
+
+	/**
+	 * previous test already has: <pre>
+	 *     - SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0 = a
+	 *     - SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1 = b
+	 *     - SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED = TRUE
+	 *     - SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED = FALSE
+	 *
+	 *     We invert the blocking support.
+	 *
+	 *    As such, two namespaces + blocking and reactive, is achieved.
+	 * </pre>
+	 */
+	@Test
+	@Order(6)
+	void testTwoNamespacesBothBlockingAndReactive() {
+		KubernetesClientDiscoveryClientUtils.patchToAddBlockingSupport(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate()
+				.testTwoNamespacesBothBlockingAndReactive(K3S);
+	}
+
+	private static void manifests(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("kubernetes-discovery-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
 
-		List<V1EnvVar> envVars = new ArrayList<>(
-				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-						.orElse(List.of()));
-		V1EnvVar debugLevel = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY")
-				.value("DEBUG");
-		V1EnvVar selectiveNamespaceA = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-				.value(NAMESPACE_A);
-		if (disableReactive) {
+		if (phase.equals(Phase.DELETE)) {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			return;
+		}
+
+		if (phase.equals(Phase.CREATE)) {
+			List<V1EnvVar> envVars = new ArrayList<>(
+					Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
+							.orElse(List.of()));
+			V1EnvVar debugLevel = new V1EnvVar()
+					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
+			V1EnvVar selectiveNamespaceA = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
+					.value(NAMESPACE_A);
+
 			V1EnvVar disableReactiveEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED")
 					.value("FALSE");
 			envVars.add(disableReactiveEnvVar);
-		}
 
-		if (disableBlocking) {
-			V1EnvVar disableBlockingEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED")
-					.value("FALSE");
-			envVars.add(disableBlockingEnvVar);
-		}
-
-		envVars.add(debugLevel);
-		envVars.add(selectiveNamespaceA);
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		if (phase.equals(Phase.CREATE)) {
+			envVars.add(debugLevel);
+			envVars.add(selectiveNamespaceA);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 	}
 

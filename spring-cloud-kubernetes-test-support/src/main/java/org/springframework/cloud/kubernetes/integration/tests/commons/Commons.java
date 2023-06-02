@@ -163,42 +163,6 @@ public final class Commons {
 	}
 
 	/**
-	 * equivalent of 'docker system prune', but for crictl.
-	 */
-	public static void systemPrune() {
-		try {
-
-			String resultOne = CONTAINER.execInContainer("sh", "-c", "crictl rmi --prune").getStdout();
-			LOG.info("crictl rmi --prune : \n" + resultOne);
-
-			/**
-			 * <pre>
-			 *		'crictl ps -a'          -> get all images
-			 * 		'grep -v Running'       -> get those image ids that are not 'Running'
-			 * 		'awk 'NR>1 {print $1}'' -> skip first line and then print the image ID
-			 * 		tr '\n' ' '             -> replace new line with space, so that the result could be fed to 'crictl rm'
-			 * </pre>
-			 */
-			String existingImageIds = CONTAINER.execInContainer("sh", "-c",
-					"crictl ps -a  | grep -v Running | awk 'NR>1 {print $1}' | tr '\n' ' '").getStdout();
-
-			if (!existingImageIds.trim().isBlank()) {
-
-				String whatWillBeDropped = CONTAINER.execInContainer("sh", "-c", "crictl ps -a  | grep -v Running")
-						.getStdout();
-				LOG.info("Will delete: \n" + whatWillBeDropped);
-
-				String resultTwo = CONTAINER.execInContainer("sh", "-c", "crictl rm " + existingImageIds).getStdout();
-				LOG.info("crictl rm : \n" + resultTwo);
-			}
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
 	 * validates that the provided image does exist in the local docker registry.
 	 */
 	public static void validateImage(String image, K3sContainer container) {

@@ -54,7 +54,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author wind57
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class KubernetesClientDiscoveryFilterIT {
+class KubernetesClientDiscoveryFilterAndHealthIT {
 
 	private static final String FILTER_SINGLE_NAMESPACE = "#root.metadata.namespace matches 'a-uat$'";
 
@@ -94,7 +94,6 @@ class KubernetesClientDiscoveryFilterIT {
 		manifests(Phase.DELETE, FILTER_SINGLE_NAMESPACE);
 
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 	}
 
 	@Test

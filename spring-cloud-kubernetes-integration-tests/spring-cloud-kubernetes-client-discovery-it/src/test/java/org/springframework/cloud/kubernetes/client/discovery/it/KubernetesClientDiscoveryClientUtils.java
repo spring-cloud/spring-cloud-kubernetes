@@ -150,6 +150,179 @@ final class KubernetesClientDiscoveryClientUtils {
 			}
 						""";
 
+	// patch to include all namespaces
+	private static final String BODY_FIVE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
+									"value": "TRUE"
+								}]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	// disable all namespaces and include a single namespace to be discoverable
+	private static final String BODY_SIX = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "a"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
+									"value": "FALSE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_SEVEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDLABELS",
+									"value": "TRUE"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_LABELSPREFIX",
+									"value": "label-"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDANNOTATIONS",
+									"value": "TRUE"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ANNOTATIONSPREFIX",
+									"value": "annotation-"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_EIGHT = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
+									"value": "TRUE"
+								},
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
+									"value": "FALSE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_NINE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
+									"value": "TRUE"
+								},
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
+									"value": "TRUE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_TEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1",
+									"value": "b"
+								},
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
+									"value": "FALSE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_ELEVEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
+									"value": "TRUE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private KubernetesClientDiscoveryClientUtils() {
 
 	}
@@ -207,6 +380,106 @@ final class KubernetesClientDiscoveryClientUtils {
 					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
 							null, null, null, null, null, null),
 					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	// add SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES=TRUE
+	static void patchForAllNamespaces(String deploymentName, String namespace) {
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_FIVE), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchForSingleNamespace(String deploymentName, String namespace) {
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_SIX), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchForPodMetadata(String imageName, String deploymentName, String namespace) {
+
+		String body = BODY_SEVEN.replace("image_name_here", imageName);
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
+							null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchForReactiveOnly(String deploymentName, String namespace) {
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_EIGHT), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchForBlockingAndReactive(String deploymentName, String namespace) {
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_NINE), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchForTwoNamespacesBlockingOnly(String deploymentName, String namespace) {
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_TEN), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error(() -> "error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void patchToAddBlockingSupport(String deploymentName, String namespace) {
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(BODY_ELEVEN), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
 			LOG.error(() -> "error : " + e.getResponseBody());
