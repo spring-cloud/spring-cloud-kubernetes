@@ -32,7 +32,7 @@ import org.springframework.core.log.LogAccessor;
 final class KubernetesClientDiscoveryClientUtils {
 
 	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientDiscoveryClientUtils.class));
+		LogFactory.getLog(KubernetesClientDiscoveryClientUtils.class));
 
 	// patch the filter so that it matches both namespaces
 	private static final String BODY_ONE = """
@@ -323,150 +323,100 @@ final class KubernetesClientDiscoveryClientUtils {
 			}
 						""";
 
+	private static final String BODY_TWELVE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "a-uat"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1",
+									"value": "b-uat"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_FILTER",
+									"value": "#root.metadata.namespace matches 'a-uat$'"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private KubernetesClientDiscoveryClientUtils() {
 
 	}
 
 	static void patchForTwoNamespacesMatchViaThePredicate(String deploymentName, String namespace) {
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_ONE), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithMerge(deploymentName, namespace, BODY_ONE);
 	}
 
 	static void patchForReactiveHealth(String deploymentName, String namespace) {
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_TWO), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithMerge(deploymentName, namespace, BODY_TWO);
 	}
 
 	static void patchForBlockingAndReactiveHealth(String deploymentName, String namespace) {
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_THREE), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithMerge(deploymentName, namespace, BODY_THREE);
 	}
 
 	// notice the usage of 'PATCH_FORMAT_JSON_MERGE_PATCH' here, it will not merge
 	// env variables
 	static void patchForBlockingHealth(String image, String deploymentName, String namespace) {
-
-		String body = BODY_FOUR.replace("image_name_here", image);
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
-							null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithReplace(image, deploymentName, namespace, BODY_FOUR);
 	}
 
 	// add SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES=TRUE
 	static void patchForAllNamespaces(String deploymentName, String namespace) {
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_FIVE), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithMerge(deploymentName, namespace, BODY_FIVE);
 	}
 
 	static void patchForSingleNamespace(String deploymentName, String namespace) {
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_SIX), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithMerge(deploymentName, namespace, BODY_SIX);
 	}
 
 	static void patchForPodMetadata(String imageName, String deploymentName, String namespace) {
-
-		String body = BODY_SEVEN.replace("image_name_here", imageName);
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
-							null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithReplace(imageName, deploymentName, namespace, BODY_SEVEN);
 	}
 
 	static void patchForReactiveOnly(String deploymentName, String namespace) {
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_EIGHT), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithMerge(deploymentName, namespace, BODY_EIGHT);
 	}
 
 	static void patchForBlockingAndReactive(String deploymentName, String namespace) {
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_NINE), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
+		patchWithMerge(deploymentName, namespace, BODY_NINE);
 	}
 
 	static void patchForTwoNamespacesBlockingOnly(String deploymentName, String namespace) {
+		patchWithMerge(deploymentName, namespace, BODY_TEN);
+	}
 
+	static void patchToAddBlockingSupport(String deploymentName, String namespace) {
+		patchWithMerge(deploymentName, namespace, BODY_ELEVEN);
+	}
+
+	static void patchForUATNamespacesTests(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_TWELVE);
+	}
+
+	private static void patchWithMerge(String deploymentName, String namespace, String patchBody) {
 		try {
 			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_TEN), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+				() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+					new V1Patch(patchBody), null, null, null, null, null, null),
+				V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
 			LOG.error(() -> "error : " + e.getResponseBody());
@@ -474,12 +424,14 @@ final class KubernetesClientDiscoveryClientUtils {
 		}
 	}
 
-	static void patchToAddBlockingSupport(String deploymentName, String namespace) {
+	private static void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody) {
+		String body = patchBody.replace("image_name_here", imageName);
+
 		try {
 			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(BODY_ELEVEN), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+				() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
+					null, null, null, null, null, null),
+				V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
 			LOG.error(() -> "error : " + e.getResponseBody());

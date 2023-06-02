@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,7 +56,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author wind57
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class KubernetesClientDiscoveryClientAndPodMetadataIT {
+class KubernetesClientDiscoveryClientIT {
 
 	private static final String NAMESPACE = "default";
 
@@ -66,6 +67,10 @@ class KubernetesClientDiscoveryClientAndPodMetadataIT {
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
 
 	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
+
+	private static final String NAMESPACE_A_UAT = "a-uat";
+
+	private static final String NAMESPACE_B_UAT = "b-uat";
 
 	private static Util util;
 
@@ -85,7 +90,6 @@ class KubernetesClientDiscoveryClientAndPodMetadataIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		manifests(Phase.DELETE);
-
 		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
@@ -283,6 +287,83 @@ class KubernetesClientDiscoveryClientAndPodMetadataIT {
 		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
 				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryPodMetadataITDelegate().testSimple();
+	}
+
+	@Test
+	@Order(5)
+	void filterMatchesOneNamespaceViaThePredicate() {
+		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
+		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesOneNamespaceViaThePredicate(util);
+
+	}
+
+	/**
+	 * <pre>
+	 *     - service "wiremock" is present in namespace "a-uat"
+	 *     - service "wiremock" is present in namespace "b-uat"
+	 *
+	 *     - we search with a predicate : "#root.metadata.namespace matches '^uat.*$'"
+	 *
+	 *     As such, both services are found via 'getInstances' call.
+	 * </pre>
+	 */
+	@Test
+	@Order(6)
+	void filterMatchesBothNamespacesViaThePredicate() {
+
+		// patch the deployment to change what namespaces are take into account
+		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate(util);
+	}
+
+	@Test
+	@Order(7)
+	void testBlockingConfiguration() {
+
+		// filter tests are done, clean-up a bit to prepare everything for health tests
+		deleteNamespacesAndWiremock();
+
+		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
+		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
+	}
+
+	@Test
+	@Order(8)
+	void testReactiveConfiguration() {
+
+		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(util, K3S);
+	}
+
+	@Test
+	@Order(9)
+	void testDefaultConfiguration() {
+
+		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
+		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
+			Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+
+		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(util, K3S);
+	}
+
+	private void deleteNamespacesAndWiremock() {
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
+		util.deleteNamespace(NAMESPACE_A_UAT);
+		util.deleteNamespace(NAMESPACE_B_UAT);
 	}
 
 	private static void manifests(Phase phase) {
