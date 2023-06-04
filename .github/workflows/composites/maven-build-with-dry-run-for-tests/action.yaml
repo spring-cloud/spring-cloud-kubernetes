@@ -13,6 +13,7 @@ runs:
                 -T 1C > /tmp/tests.txt
 
     - name: show result
+      if: always()
       shell: bash
       run: cat /tmp/tests.txt
 
