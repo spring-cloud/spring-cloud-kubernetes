@@ -63,6 +63,7 @@
 
 	<properties>
 		<!-- Dependency Versions -->
+		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>4.0.4-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>4.0.4-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>4.0.3-SNAPSHOT</spring-cloud-bus.version>
@@ -146,6 +147,19 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-contract-dependencies</artifactId>
 				<version>${spring-cloud-contract.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<!--Spring Boot 3.1 uses Mockito 5.x.  Mockito 5.x has removed support for mockito-inline.-->
+			<!--https://github.com/mockito/mockito/issues/2877-->
+			<!--We need to support both Boot 3.0.x and Boot 3.1.x with Spring Cloud K8s 3.0.x-->
+			<!--To maintain compatibility we manage the version ourselves-->
+			<!-- TODO Remove this and all references to mockito-inline in the next minor -->
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-bom</artifactId>
+				<version>${mockito-inline.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

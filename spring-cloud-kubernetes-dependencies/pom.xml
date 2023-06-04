@@ -37,7 +37,6 @@
 		<kubernetes-native-client.version>17.0.2</kubernetes-native-client.version>
 		<wiremock.version>2.26.3</wiremock.version>
 		<commons.collections4.version>4.4</commons.collections4.version>
-		<mockito-inline.version>4.8.1</mockito-inline.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -226,20 +225,6 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
-
-			<!--Spring Boot 3.1 uses Mockito 5.x.  Mockito 5.x has removed support for mockito-inline.-->
-			<!--https://github.com/mockito/mockito/issues/2877-->
-			<!--We need to support both Boot 3.0.x and Boot 3.1.x with Spring Cloud K8s 3.0.x-->
-			<!--To maintain compatibility we manage the version ourselves-->
-			<!-- TODO Remove this and all references to mockito-inline in the next major -->
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-bom</artifactId>
-				<version>${mockito-inline.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-
 
 		</dependencies>
 	</dependencyManagement>
