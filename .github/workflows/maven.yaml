@@ -28,41 +28,41 @@ jobs:
         uses: ./.github/workflows/composites/setup-jdk1.8
         if: env.BASE_BRANCH == '2.1.x'
 
-      - name: create dummy cache file
-        shell: bash
-        run: |
-          touch /tmp/dummy.txt
-          echo "some input" > /tmp/dummy.txt
-
-      - name: show dummy cache file content
-        shell: bash
-        run: |
-          cat /tmp/dummy.txt
-
-      - name: save dummy cache file
-        uses: actions/cache/save@v3
-        with:
-          path: /tmp/dummy.txt
-          key: ${{ runner.os }}-abcdef-${{ env.BRANCH_NAME }}
-
-#      - name: Show caches
-#        uses: actions/github-script@v6
+#      - name: create dummy cache file
+#        shell: bash
+#        run: |
+#          touch /tmp/dummy.txt
+#          echo "some input" > /tmp/dummy.txt
+#
+#      - name: show dummy cache file content
+#        shell: bash
+#        run: |
+#          cat /tmp/dummy.txt
+#
+#      - name: save dummy cache file
+#        uses: actions/cache/save@v3
 #        with:
-#          script: |
-#            const caches = await github.rest.actions.getActionsCacheList({
-#              owner: context.repo.owner,
-#              repo: context.repo.repo,
-#            })
-#            for (const cache of caches.data.actions_caches) {
-#              console.log(cache)
-#            }
+#          path: /tmp/dummy.txt
+#          key: ${{ runner.os }}-abcdef-${{ env.BRANCH_NAME }}
+
+      - name: Show caches
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            for (const cache of caches.data.actions_caches) {
+              console.log(cache)
+            }
 
       - name: restore spring-k8s-test-times-cache if it exists
         id: restore_cache
         uses: actions/cache/restore@v3
         with:
           path: /tmp/restored-test-times
-          key: ${{ runner.os }}-spring-k8s-test-times-cache-${{ env.BRANCH_NAME }}
+          key: ${{ runner.os }}-abcdef-${{ env.BRANCH_NAME }}
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
