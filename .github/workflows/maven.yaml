@@ -61,7 +61,7 @@ jobs:
         id: restore_cache
         uses: actions/cache/restore@v3
         with:
-          path: /tmp/restored-test-times
+          path: /tmp/dummy.txt
           key: ${{ runner.os }}-abcdef-${{ env.BRANCH_NAME }}
 
       - name: cache local maven repository
