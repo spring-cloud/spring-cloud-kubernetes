@@ -163,19 +163,6 @@ public final class Commons {
 	}
 
 	/**
-	 * equivalent of 'docker system prune', but for crictl.
-	 */
-	public static void systemPrune() {
-		try {
-			CONTAINER.execInContainer("sh", "-c",
-					"crictl ps -a | grep -v Running | awk '{print $1}' | xargs crictl rm && crictl rmi --prune");
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
 	 * validates that the provided image does exist in the local docker registry.
 	 */
 	public static void validateImage(String image, K3sContainer container) {
