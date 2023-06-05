@@ -253,6 +253,9 @@ jobs:
   test_times:
     needs: [ test ]
     runs-on: ubuntu-latest
-    uses: ./.github/workflows/composites/test-times
+
+    steps:
+      if: env.BASE_BRANCH == '2.1.x'
+      uses: ./.github/workflows/composites/test-times
 
 
