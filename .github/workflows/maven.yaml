@@ -45,6 +45,18 @@ jobs:
 #          path: /tmp/dummy.txt
 #          key: ${{ runner.os }}-spring-k8s-test-times-cache-${{ env.BRANCH_NAME }}
 
+      - name: Show caches
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            for (const cache of caches.data.actions_caches) {
+              console.log(cache)
+            }
+
       - name: restore spring-k8s-test-times-cache if it exists
         id: restore_cache
         uses: actions/cache/restore@v3
