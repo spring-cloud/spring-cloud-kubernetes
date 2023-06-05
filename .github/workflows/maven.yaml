@@ -45,7 +45,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: /tmp/restored-test-times
-          key: "spring-k8s-test-times-cache"
+          key: spring-k8s-test-times-cache-${{ env.BRANCH_NAME }}
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
@@ -250,56 +250,9 @@ jobs:
           name: test_times_${{ env.CURRENT_INDEX }}.txt
           path: /tmp/test_times.txt
 
-  # this stage sort all tests by their timings. For that we rely on the surefire-plugin reports
-  # that have the name as <TEST_NAME>.txt and inside it there is a field that holds the time it took
-  # We get a hold of that field via awk '{print $12, $13} in the previous step.
-  # That previous step stores only tests for one matrix step, which we uploaded.
-  # In the steps below we download all artifacts (thus all test times), put them into a single file
-  # called /tmp/times-of-all-tests.txt, then sort this file, thus get a histogram of all test names
-  # and the time it took to run them.
-
   test_times:
     needs: [ test ]
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    steps:
-
-      # we omit the name, as such all artifacts are downloaded
-      - name: download all artifacts
-        if: env.BASE_BRANCH != '2.1.x'
-        uses: actions/download-artifact@v3
-        with:
-          path: /tmp/all-artifacts
-
-      - name: show all artifacts
-        if: env.BASE_BRANCH != '2.1.x'
-        shell: bash
-        run: ls /tmp/all-artifacts
-
-      - name: merge all artifacts into a single file and sort by time
-        if: env.BASE_BRANCH != '2.1.x'
-        shell: bash
-        run: |
-          arr=($(find /tmp/all-artifacts/ -type f -name "test_times*"))
-          
-          for i in "${arr[@]}"; do
-            echo "parsing -> ${i}"
-            cat "${i}" | awk '{print $3" "$6}' >> /tmp/times-of-all-tests.txt
-          done
-          
-          sort -t' '  -nk2 /tmp/times-of-all-tests.txt >> /tmp/sorted.txt
-
-      - name: show all tests in a sorted manner
-        if: env.BASE_BRANCH != '2.1.x'
-        shell: bash
-        run: cat /tmp/sorted.txt
-
-      - name: save test times in cache
-        uses: actions/cache/save@v3
-        if: env.BASE_BRANCH != '2.1.x'
-        with:
-          path: /tmp/sorted.txt
-          key: spring-k8s-test-times-cache
+    uses: ./.github/workflows/composites/test-times
 
 
