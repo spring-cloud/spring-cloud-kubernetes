@@ -44,7 +44,7 @@ jobs:
         id: restore_cache
         uses: actions/cache/restore@v3
         with:
-          path: /tmp/restored-test-times
+          path: /tmp/sorted.txt
           key: ${{ runner.os }}-spring-k8s-test-times-cache-${{ env.BRANCH_NAME }}
 
       - name: cache local maven repository
