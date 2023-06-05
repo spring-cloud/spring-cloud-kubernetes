@@ -20,9 +20,15 @@ spec:
             httpGet:
               port: 8080
               path: /__admin/mappings
+            initialDelaySeconds: 3
+            periodSeconds: 2
+            failureThreshold: 1
           livenessProbe:
             httpGet:
               port: 8080
               path: /__admin/mappings
+            initialDelaySeconds: 3
+            periodSeconds: 2
+            failureThreshold: 1
           ports:
             - containerPort: 8080
