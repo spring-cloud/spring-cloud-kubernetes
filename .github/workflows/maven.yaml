@@ -255,6 +255,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: checkout project
+        uses: actions/checkout@v2
+
       - name: compute and save running time of tests
         if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/test-times
