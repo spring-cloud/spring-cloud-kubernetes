@@ -48,4 +48,4 @@ runs:
       if: env.BASE_BRANCH != '2.1.x'
       with:
         path: /tmp/sorted.txt
-        key: spring-k8s-test-times-cache
+        key: spring-k8s-test-times-cache-${{ env.BRANCH_NAME }}
