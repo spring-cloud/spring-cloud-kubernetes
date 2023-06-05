@@ -46,6 +46,7 @@ jobs:
         with:
           path: /tmp/restored-test-times
           restore-keys: spring-k8s-test-times-cache
+          key: spring-k8s-test-times-cache
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
