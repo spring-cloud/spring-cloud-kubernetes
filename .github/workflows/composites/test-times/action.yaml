@@ -32,11 +32,13 @@ runs:
         arr=($(find /tmp/all-artifacts/ -type f -name "test_times*"))
 
         for i in "${arr[@]}"; do
-          #echo "parsing -> ${i}"
+          echo "parsing -> ${i}"
           cat "${i}" | awk '{print $3" "$6}' >> /tmp/times-of-all-tests.txt
         done
 
         sort -t' '  -nk2 /tmp/times-of-all-tests.txt >> /tmp/sorted.txt
+        
+        cat /tmp/sorted.txt
 
     - name: show all tests in a sorted manner
       if: env.BASE_BRANCH != '2.1.x'
