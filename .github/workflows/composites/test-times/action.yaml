@@ -45,25 +45,9 @@ runs:
       shell: bash
       run: cat /tmp/sorted.txt
 
-    - name: delete existing test times cache
-      if: env.BASE_BRANCH != '2.1.x'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const caches = await github.rest.actions.getActionsCacheList({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-          })
-          github.rest.actions.deleteActionsCacheById({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            cache_id: ${{ runner.os }}-spring-k8s-test-times-cache
-            })
-          console.log("Clear completed")
-
     - name: save test times in cache
       uses: actions/cache/save@v3
       if: env.BASE_BRANCH != '2.1.x'
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-k8s-test-times-cache
+        key: ${{ runner.os }}-spring-k8s-cache-of-test-times-${{ env.BRANCH_NAME }}

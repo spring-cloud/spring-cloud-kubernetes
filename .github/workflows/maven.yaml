@@ -16,17 +16,6 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: delete existing test times cache
-        if: env.BASE_BRANCH != '2.1.x'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.actions.deleteActionsCacheById({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              cache_id: '${{ runner.os }}-spring-k8s-test-times-cache'
-            })
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
@@ -56,7 +45,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: /tmp/sorted.txt
-          key: ${{ runner.os }}-spring-k8s-test-times-cache
+          key: ${{ runner.os }}-spring-k8s-cache-of-test-times-${{ env.BRANCH_NAME }}
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
