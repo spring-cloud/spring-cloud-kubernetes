@@ -1,0 +1,42 @@
+########################################### find test times #######################################
+# 1. find files that look like this: 'org.springframework.xxx.txt', these files are generated
+# by surefire-plugin when tests run.
+# 2. extract the time it took to run a certain test (from the above .txt file)
+# 3. create a file that contains test times from this current matrix
+
+name: save-test-times
+description: save-test-times
+runs:
+  using: "composite"
+
+  steps:
+
+    - name: save individual matrix tests
+      shell: bash
+      run: |
+        
+        touch /tmp/test_times.txt
+        
+        for i in "${sliced_array[@]}"; do
+          filename="${i}.txt"
+          #echo "searching for filename: ${filename}"
+          file=$(find . -name "${filename}")
+          #echo "found file: ${file}"
+          result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
+        
+          echo "run test: ${i} in : ${result}" >> /tmp/test_times.txt
+        done
+
+    - name: show test times
+      shell: bash
+      if: env.BASE_BRANCH != '2.1.x'
+      run: cat /tmp/test_times.txt
+
+    - name: upload tests
+      if: env.BASE_BRANCH != '2.1.x'
+      uses: actions/upload-artifact@v3
+      with:
+        name: test_times_${{ env.CURRENT_INDEX }}.txt
+        path: /tmp/test_times.txt
+
+

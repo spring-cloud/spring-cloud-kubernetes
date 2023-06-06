@@ -32,7 +32,7 @@ runs:
         arr=($(find /tmp/all-artifacts/ -type f -name "test_times*"))
 
         for i in "${arr[@]}"; do
-          echo "parsing -> ${i}"
+          #echo "parsing -> ${i}"
           cat "${i}" | awk '{print $3" "$6}' >> /tmp/times-of-all-tests.txt
         done
 
@@ -48,4 +48,4 @@ runs:
       if: env.BASE_BRANCH != '2.1.x'
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-k8s-test-times-cache-${{ env.BRANCH_NAME }}
+        key: ${{ runner.os }}-spring-k8s-test-times-cache
