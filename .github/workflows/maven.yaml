@@ -24,7 +24,7 @@ jobs:
             github.rest.actions.deleteActionsCacheById({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              cache_id: ${{ runner.os }}-spring-k8s-test-times-cache
+              cache_id: '${{ runner.os }}-spring-k8s-test-times-cache'
             })
 
       - name: set env variables
