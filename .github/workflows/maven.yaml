@@ -181,5 +181,3 @@ jobs:
       - name: compute and save running time of tests
         if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/test-times
-
-
