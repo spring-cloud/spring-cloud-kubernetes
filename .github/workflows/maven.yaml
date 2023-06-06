@@ -168,7 +168,7 @@ jobs:
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
         if: env.BASE_BRANCH != '2.1.x'
-        uses: ./.github/workflows/composites/save-test-times
+        uses: ./.github/workflows/composites/run-and-save-test-times
 
   test_times:
     needs: [ test ]
