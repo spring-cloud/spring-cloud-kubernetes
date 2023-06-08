@@ -55,7 +55,7 @@ jobs:
           key: ${{ runner.os }}-spring-k8s-cache-of-test-times-${{ env.BRANCH_NAME }}
 
       - name: compute matrix bounds if cache exists
-        if: steps.restore_test_times_cache.cache-hit == 'true'
+        if: steps.restore_test_times_cache.cache-hit = 'true'
         uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
 
       - name: build controllers project
