@@ -28,30 +28,35 @@ jobs:
         uses: ./.github/workflows/composites/setup-jdk1.8
         if: env.BASE_BRANCH == '2.1.x'
 
+      - name: cache local maven repository
+        uses: ./.github/workflows/composites/cache
+
       - name: Show caches
         uses: actions/github-script@v6
         with:
           script: |
-              const caches = await github.rest.actions.getActionsCacheList({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-              })
-              for (const cache of caches.data.actions_caches) {
-                console.log(cache)
-              }
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            for (const cache of caches.data.actions_caches) {
+              console.log(cache)
+            }  
 
-      - name: restore spring-k8s-test-times-cache if it exists
-        id: restore_cache
+      - name: maven build with dry-run for tests
+        uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
+
+      - name: restore test times cache if it exists
+        id: restore_test_times_cache
+        if: env.BASE_BRANCH != '2.1.x'
         uses: actions/cache/restore@v3
         with:
           path: /tmp/sorted.txt
           key: ${{ runner.os }}-spring-k8s-cache-of-test-times-${{ env.BRANCH_NAME }}
 
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
-
-      - name: maven build with dry-run for tests
-        uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
+      - name: compute matrix bounds if cache exists
+        if: steps.restore_test_times_cache.cache-hit == 'true'
+        uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
