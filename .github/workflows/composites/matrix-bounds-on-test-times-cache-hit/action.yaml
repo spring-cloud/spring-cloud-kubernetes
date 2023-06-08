@@ -41,9 +41,9 @@ runs:
         array_like='['
         for ((i=0; i<${number_of_instances}; i++)); do
           if [[ $array_like = '[' ]]; then
-            y="$array_like$i"
+            array_like="$array_like$i"
           else
-            y="$array_like, $i"
+            array_like="$array_like, $i"
           fi
         done
   
