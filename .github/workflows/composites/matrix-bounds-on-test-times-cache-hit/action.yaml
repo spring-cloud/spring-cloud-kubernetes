@@ -30,11 +30,11 @@ runs:
         max_test_time_as_int=$(printf "%.0f\n" "$max_test_time")
         echo "max test time : $max_test_time_as_int"
         
-        average_time_per_instance=$((  sum_of_all_tests_as_int / number_of_instances  ))
-        echo "average time per instance $average_time_per_instance"
-        
         number_of_instances=$((  $sum_of_all_tests_as_int / $max_test_time_as_int  ))
         echo "number of instances $number_of_instances"
+        
+        average_time_per_instance=$((  sum_of_all_tests_as_int / $number_of_instances ))
+        echo "average time per instance $average_time_per_instance"
         
         echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances)" >> $GITHUB_ENV
         
