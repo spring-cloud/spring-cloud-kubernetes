@@ -68,9 +68,9 @@ runs:
         
         for i in "${sliced_array[@]}"; do
           filename="${i}.txt"
-          #echo "searching for filename: ${filename}"
+          echo "searching for filename: ${filename}"
           file=$(find . -name "${filename}")
-          #echo "found file: ${file}"
+          echo "found file: ${file}"
           result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
         
           echo "run test: ${i} in : ${result}" >> /tmp/test_times.txt
