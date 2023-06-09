@@ -50,11 +50,13 @@ runs:
         array_like="$array_like]"
         
         echo "MATRIX_ARRAY=$(echo $array_like)" >> $GITHUB_ENV
+        echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
 
     - name: show matrix env variables
       shell: bash
       run: |
         echo ${{ env.NUMBER_OF_MATRIX_INSTANCES }}
         echo ${{ env.MATRIX_ARRAY }}
+        echo ${{ env.TEST_TIMES_CACHE_PRESENT }}
 
 

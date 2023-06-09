@@ -57,7 +57,7 @@ jobs:
 
       - name: check test times cache exists
         id: check_files
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
           files: /tmp/sorted.txt
 
@@ -127,6 +127,8 @@ jobs:
     needs: [ build, fabric8_istio_integration_test ]
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # only run this one if there is no previous cache of test times
+    if: env.TEST_TIMES_CACHE_PRESENT != 'true'
 
     strategy:
       fail-fast: true
