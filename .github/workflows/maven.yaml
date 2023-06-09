@@ -52,7 +52,8 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: /tmp/sorted.txt
-          key: ${{ runner.os }}-spring-k8s-cache-of-test-times-${{ env.BRANCH_NAME }}
+          key: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-
 
       - name: compute matrix bounds if cache exists
         if: steps.restore_test_times_cache.outputs.cache-hit == 'true'

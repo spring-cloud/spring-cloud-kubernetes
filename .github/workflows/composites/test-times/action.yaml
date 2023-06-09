@@ -50,4 +50,4 @@ runs:
       if: env.BASE_BRANCH != '2.1.x'
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-k8s-cache-of-test-times-${{ env.BRANCH_NAME }}
+        key: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-${{ github.run_id }}
