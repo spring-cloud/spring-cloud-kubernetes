@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     # only run this one if there is no previous cache of test times
-    if: needs.build.outputs.test_times_cache_present == 'false'
+    if: needs.build.outputs.test_times_cache_present == 'true'
 
     strategy:
       fail-fast: true
