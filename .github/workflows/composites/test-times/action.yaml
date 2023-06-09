@@ -45,6 +45,11 @@ runs:
       shell: bash
       run: cat /tmp/sorted.txt
 
+    # save with the current run_id, but restore it without it. This means two things:
+    # 1) if we re-run, cache will be available
+    # 2) if there is a new run, we restore as '${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-'
+    #    meaning there could be many of them already present and this is not an exact match
+    #    github in this case will pick up the latest one, exactly what we want.
     - name: save test times in cache
       uses: actions/cache/save@v3
       if: env.BASE_BRANCH != '2.1.x'
