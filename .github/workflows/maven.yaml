@@ -12,7 +12,12 @@ jobs:
     env:
       TESTCONTAINERS_REUSE_ENABLE: false
       # this might get set to true if there is an existing cache of test times
+      # this happens in 'matrix-bounds-on-test-times-cache-hit'
       TEST_TIMES_CACHE_PRESENT: false
+
+    # this job ('build') outputs a value from step 'test_times_cache_present_init', that has the name of:
+    # 'test_times_cache_present'. This can later be used by other jobs. For example, we use this one
+    # to skip the job responsible for running the tests, if a previous cache that has the test times is not present.
     outputs:
       test_times_cache_present: ${{ steps.test_times_cache_present_init.outputs.test_times_cache_present }}
     steps:
@@ -137,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     # only run this one if there is no previous cache of test times
-    if: needs.build.outputs.test_times_cache_present == 'true'
+    if: needs.build.outputs.test_times_cache_present == 'false'
 
     strategy:
       fail-fast: true
