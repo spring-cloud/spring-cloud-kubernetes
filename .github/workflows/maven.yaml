@@ -137,12 +137,35 @@ jobs:
         uses: ./.github/workflows/composites/fabric8-istio-integration-test
         if: env.BASE_BRANCH != '2.1.x'
 
-  test:
+  test_with_previous_test_times:
+    needs: [ build, fabric8_istio_integration_test ]
+    runs-on: ubuntu-latest
+    # only run this one if there is a previous cache of test times
+    if: needs.build.outputs.test_times_cache_present == 'true'
+
+    strategy:
+      fail-fast: true
+      matrix:
+        current_index: ${{ env.MATRIX_ARRAY }}
+        number_of_jobs: ${{ env.NUMBER_OF_MATRIX_INSTANCES }}
+
+    steps:
+
+      - name: print
+        env:
+          CURRENT_INDEX: ${{ matrix.current_index }}
+          NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
+        shell: bash
+        run: |
+          echo ${{ env.CURRENT_INDEX }}
+          echo ${{ env.NUMBER_OF_JOBS }}
+
+  test_without_previous_test_times:
     needs: [ build, fabric8_istio_integration_test ]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     # only run this one if there is no previous cache of test times
-    if: needs.build.outputs.test_times_cache_present == 'true'
+    if: needs.build.outputs.test_times_cache_present == 'false'
 
     strategy:
       fail-fast: true
@@ -199,7 +222,6 @@ jobs:
         uses: ./.github/workflows/composites/run-and-save-test-times
 
   test_times:
-    needs: [ test ]
     runs-on: ubuntu-latest
 
     steps:

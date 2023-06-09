@@ -36,7 +36,8 @@ runs:
         average_time_per_instance=$((  sum_of_all_tests_as_int / $number_of_instances ))
         echo "average time per instance $average_time_per_instance"
         
-        echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances)" >> $GITHUB_ENV
+        number_of_instances_as_array='[ $number_of_instances ]'
+        echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_as_array)" >> $GITHUB_ENV
         
         array_like='['
         for ((i=0; i<${number_of_instances}; i++)); do
