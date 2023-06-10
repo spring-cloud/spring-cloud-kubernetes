@@ -231,6 +231,13 @@ jobs:
 
   test_times:
     runs-on: ubuntu-latest
+    needs:
+      - job: build
+        optional: false
+      - job: test_without_previous_test_times
+        optional: true
+      - job: test_with_previous_test_times
+        optional: true
 
     steps:
       - name: checkout project
