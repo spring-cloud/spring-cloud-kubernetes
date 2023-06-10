@@ -229,17 +229,21 @@ jobs:
         if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/run-and-save-test-times
 
-  test_times:
+
+  save_test_times_one:
     runs-on: ubuntu-latest
-    needs: [build, test_without_previous_test_times, test_with_previous_test_times ]
+    needs: [build, test_without_previous_test_times ]
 
     steps:
-      - name: checkout project
-        uses: actions/checkout@v2
+      - name: compute and save running time of tests
+        if: env.BASE_BRANCH != '2.1.x'
+        uses: ./.github/workflows/composites/test-times
 
-      - name: set env variables
-        uses: ./.github/workflows/composites/env-variables
+  save_test_times_two:
+    runs-on: ubuntu-latest
+    needs: [ build, test_with_previous_test_times ]
 
+    steps:
       - name: compute and save running time of tests
         if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/test-times
