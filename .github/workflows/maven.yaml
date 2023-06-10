@@ -15,11 +15,17 @@ jobs:
       # this happens in 'matrix-bounds-on-test-times-cache-hit'
       TEST_TIMES_CACHE_PRESENT: false
 
+      NUMBER_OF_MATRIX_INSTANCES: []
+      MATRIX_ARRAY: []
+
     # this job ('build') outputs a value from step 'test_times_cache_present_init', that has the name of:
     # 'test_times_cache_present'. This can later be used by other jobs. For example, we use this one
     # to skip the job responsible for running the tests, if a previous cache that has the test times is not present.
+    # Same for other two variables 'number_of_matrix_instances' and 'matrix_array'.
     outputs:
       test_times_cache_present: ${{ steps.test_times_cache_present_init.outputs.test_times_cache_present }}
+      number_of_matrix_instances: ${{ steps.test_times_cache_present_init.outputs.number_of_matrix_instances }}
+      matrix_array: ${{ steps.test_times_cache_present_init.outputs.matrix_array }}
     steps:
 
       - name: checkout project
@@ -74,10 +80,12 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
 
-      - name: provide TEST_TIMES_CACHE_PRESENT for other jobs
+      - name: matrix related variables when cache is present
         id: test_times_cache_present_init
         run: |
           echo "test_times_cache_present=${{ env.TEST_TIMES_CACHE_PRESENT }}" >> $GITHUB_OUTPUT
+          echo "number_of_matrix_instances=${{ env.NUMBER_OF_MATRIX_INSTANCES }}" >> $GITHUB_OUTPUT
+          echo "matrix_array=${{ MATRIX_ARRAY }}" >> $GITHUB_OUTPUT
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
@@ -146,8 +154,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        current_index: ${{ env.MATRIX_ARRAY }}
-        number_of_jobs: ${{ env.NUMBER_OF_MATRIX_INSTANCES }}
+        current_index: ${{ needs.build.outputs.number_of_matrix_instances }}
+        number_of_jobs: ${{ needs.build.outputs.matrix_array }}
 
     steps:
 
