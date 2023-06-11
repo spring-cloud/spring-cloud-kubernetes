@@ -46,8 +46,7 @@ runs:
             matrix_array+=$i
           else 
             matrix_array+=$i,
-          if
-          matrix_array+=$i, 
+          fi 
         done
 
         matrix_array+=]
