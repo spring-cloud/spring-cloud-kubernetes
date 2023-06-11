@@ -37,15 +37,17 @@ runs:
         echo "average time per instance $average_time_per_instance"
         
         number_of_instances_as_array=()
-        number_of_instances_as_array+=[
         number_of_instances_as_array+=$number_of_instances
-        number_of_instances_as_array+=]
         echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_as_array)" >> $GITHUB_ENV
         
         matrix_array=()
-        matrix_array+=[
         for ((i=0; i<${number_of_instances}; i++)); do
-          matrix_array+=$i 
+          if (( $i == $(( $number_of_instances - 1 )) )); then
+            matrix_array+=$i
+          else 
+            matrix_array+=$i,
+          if
+          matrix_array+=$i, 
         done
 
         matrix_array+=]
