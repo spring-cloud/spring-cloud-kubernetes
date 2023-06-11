@@ -151,8 +151,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        current_index: [ ${{ needs.build.outputs.number_of_matrix_instances }} ]
-        number_of_jobs: [ ${{ needs.build.outputs.matrix_array }} ]
+        current_index: [ "${{ needs.build.outputs.number_of_matrix_instances }}" ]
+        number_of_jobs: [ "${{ needs.build.outputs.matrix_array }}" ]
 
     steps:
 
