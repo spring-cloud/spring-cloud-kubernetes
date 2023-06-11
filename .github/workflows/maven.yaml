@@ -15,9 +15,6 @@ jobs:
       # this happens in 'matrix-bounds-on-test-times-cache-hit'
       TEST_TIMES_CACHE_PRESENT: false
 
-      NUMBER_OF_MATRIX_INSTANCES: []
-      MATRIX_ARRAY: []
-
     # this job ('build') outputs a value from step 'test_times_cache_present_init', that has the name of:
     # 'test_times_cache_present'. This can later be used by other jobs. For example, we use this one
     # to skip the job responsible for running the tests, if a previous cache that has the test times is not present.
