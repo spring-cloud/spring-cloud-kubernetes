@@ -235,6 +235,10 @@ jobs:
     needs: [build, test_without_previous_test_times ]
 
     steps:
+
+      - name: checkout project
+        uses: actions/checkout@v2
+
       - name: compute and save running time of tests
         if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/test-times
@@ -244,6 +248,10 @@ jobs:
     needs: [ build, test_with_previous_test_times ]
 
     steps:
+
+      - name: checkout project
+        uses: actions/checkout@v2
+
       - name: compute and save running time of tests
         if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/test-times
