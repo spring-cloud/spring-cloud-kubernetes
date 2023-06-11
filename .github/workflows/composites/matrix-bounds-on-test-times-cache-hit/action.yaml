@@ -48,8 +48,6 @@ runs:
             matrix_array+=$i,
           fi 
         done
-
-        matrix_array+=]
         
         echo "MATRIX_ARRAY=$(echo $matrix_array)" >> $GITHUB_ENV
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
