@@ -55,8 +55,8 @@ runs:
         echo "average time per instance : $average_time_per_instance"
         echo "matrix_array : $matrix_array"
         
-        echo "NUMBER_OF_MATRIX_INSTANCES=toJSON($(echo $number_of_instances_as_array))" >> $GITHUB_ENV
-        echo "MATRIX_ARRAY=toJSON($(echo $matrix_array))" >> $GITHUB_ENV
+        echo "NUMBER_OF_MATRIX_INSTANCES=$(echo toJSON($number_of_instances_as_array))" >> $GITHUB_ENV
+        echo "MATRIX_ARRAY=$(echo toJSON($matrix_array))" >> $GITHUB_ENV
         echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
 
