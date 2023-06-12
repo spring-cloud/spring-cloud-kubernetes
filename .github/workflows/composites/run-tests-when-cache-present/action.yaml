@@ -5,7 +5,6 @@ runs:
 
   steps:
     - name: restore test times cache
-      id: restore_test_times_cache
       uses: actions/cache/restore@v3
       with:
         path: /tmp/sorted.txt
