@@ -156,14 +156,11 @@ jobs:
 
     steps:
 
-      - name: print
-        env:
-          CURRENT_INDEX: ${{ matrix.current_index }}
-          NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
-        shell: bash
-        run: |
-          echo ${{ env.CURRENT_INDEX }}
-          echo ${{ env.NUMBER_OF_JOBS }}
+      - name: pre-test-actions
+        uses: ./.github/workflows/composites/pre-test-actions
+
+      - name: run and save test times when cache is present
+        uses: ./.github/workflows/composites/run-tests-when-cache-present
 
   test_without_previous_test_times:
     needs: [ build, fabric8_istio_integration_test ]
@@ -180,39 +177,8 @@ jobs:
 
     steps:
 
-      - name: testcontainers reuse support
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
-      - name: checkout project
-        uses: actions/checkout@v2
-
-      - name: set env variables
-        uses: ./.github/workflows/composites/env-variables
-
-      - name: setup project jdk-17
-        uses: ./.github/workflows/composites/setup-jdk17
-        if: env.BASE_BRANCH == 'main'
-
-      - name: setup project jdk-8
-        uses: ./.github/workflows/composites/setup-jdk1.8
-        if: env.BASE_BRANCH == '2.1.x'
-
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
-
-      - name: download docker images
-        uses: ./.github/workflows/composites/download-docker-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: load docker images into local repo
-        uses: ./.github/workflows/composites/load-docker-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: download tests
-        uses: actions/download-artifact@v3
-        with:
-          name: tests.txt
-          path: /tmp
+      - name: pre-test-actions
+        uses: ./.github/workflows/composites/pre-test-actions
 
       - name: compute single step test bounds
         uses: ./.github/workflows/composites/test-bounds

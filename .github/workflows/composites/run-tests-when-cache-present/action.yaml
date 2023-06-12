@@ -1,0 +1,21 @@
+name: run and save test times when cache is present
+description: run and save test times when cache is present
+runs:
+  using: "composite"
+
+  steps:
+    - name: restore test times cache
+      id: restore_test_times_cache
+      uses: actions/cache/restore@v3
+      with:
+        path: /tmp/sorted.txt
+        key: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-
+
+    - name: show cached test times
+      shell: bash
+      run: cat /tmp/sorted.txt
+
+    - name: show existing tests without timing
+      shell: bash
+      run: cat /tmp/tests.txt
