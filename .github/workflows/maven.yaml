@@ -74,7 +74,6 @@ jobs:
           files: /tmp/sorted.txt
 
       - name: compute matrix related fields when cache is present
-        id: test_times_cache_present_init
         if: steps.check_files.outputs.files_exists == 'true'
         uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
 
