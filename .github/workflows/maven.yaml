@@ -25,6 +25,18 @@ jobs:
       matrix_array: ${{ steps.test_times_cache_present_init.outputs.matrix_array }}
     steps:
 
+      - name: delete-me
+        shell: bash
+        run: |
+          array=()
+          array+='['
+          array+='0'
+          array+='1'
+          array+=']'
+          
+          array_as_json=${{ toJSON(array) }}
+          echo $array_as_json
+
       - name: checkout project
         uses: actions/checkout@v2
 
