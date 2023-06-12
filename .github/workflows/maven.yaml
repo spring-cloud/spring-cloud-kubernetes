@@ -26,6 +26,7 @@ jobs:
     steps:
 
       - name: delete-me
+        id: delete_me
         shell: bash
         run: |
           array=()
@@ -34,8 +35,12 @@ jobs:
           array+='1,'
           array+=']'
           
-          array_as_json=${{ toJSON($array) }}
-          echo $array_as_json
+          echo "matrix_array=$(jq -r -c . <<< "$array")" >> $GITHUB_OUTPUT
+
+      - name: print_previous
+        shell: bash
+        run: |
+          jq . <<< '${{ steps.delete_me.outputs.matrix_array }}'
 
       - name: checkout project
         uses: actions/checkout@v2
