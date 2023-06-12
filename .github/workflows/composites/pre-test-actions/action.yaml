@@ -12,9 +12,6 @@ runs:
       shell: bash
       run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
-    - name: checkout project
-      uses: actions/checkout@v2
-
     - name: set env variables
       uses: ./.github/workflows/composites/env-variables
 
