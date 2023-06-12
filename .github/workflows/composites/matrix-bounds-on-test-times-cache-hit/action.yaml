@@ -54,21 +54,17 @@ runs:
         echo "number of instances : $number_of_instances_as_array"
         echo "average time per instance : $average_time_per_instance"
         echo "matrix_array : $matrix_array"
+        echo "********************************************************************************************************"
         
-        number_of_instances_json=${{ toJSON(number_of_instances_as_array) }}
+        number_of_instances_json=$(jq -r -c . <<< $number_of_instances_as_array)
         echo "number_of_instances_json : $number_of_instances_json"
         
-        echo "NUMBER_OF_MATRIX_INSTANCES=$(echo toJSON(number_of_instances_as_array))" >> $GITHUB_ENV
-        echo "MATRIX_ARRAY=$(echo toJSON(matrix_array))" >> $GITHUB_ENV
-        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
-        echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
+        matrix_array_json=$(jq -r -c . <<< $matrix_array)
+        echo "matrix_array_json : $matrix_array_json"
 
-    - name: show matrix env variables
-      shell: bash
-      run: |
-        echo ${{ env.NUMBER_OF_MATRIX_INSTANCES }}
-        echo ${{ env.MATRIX_ARRAY }}
-        echo ${{ env.AVERAGE_TIME_PER_INSTANCE }}
-        echo ${{ env.TEST_TIMES_CACHE_PRESENT }}
+        echo "test_times_cache_present=true" >> $GITHUB_OUTPUT        
+        echo "number_of_matrix_instances=$(echo $number_of_instances_json)" >> $GITHUB_OUTPUT
+        echo "matrix_array=$(echo $matrix_array_json)" >> $GITHUB_OUTPUT
+        echo "average_time_per_instance=$(echo $average_time_per_instance)" >> $GITHUB_OUTPUT
 
 
