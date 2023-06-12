@@ -64,7 +64,7 @@ runs:
            -Dskip.build.image=true          
         fi
         
-        touch /tmp/test_times.txt
+        touch /tmp/current_index_test_times.txt
         
         for i in "${sliced_array[@]}"; do
           filename="${i}.txt"
@@ -73,7 +73,7 @@ runs:
           echo "found file: ${file}"
           result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
         
-          echo "run test: ${i} in : ${result}" >> /tmp/test_times.txt
+          echo "run test: ${i} in : ${result}" >> /tmp/current_index_test_times.txt
         done
 
     - name: show individual test times
@@ -86,6 +86,6 @@ runs:
       uses: actions/upload-artifact@v3
       with:
         name: test_times_${{ env.CURRENT_INDEX }}.txt
-        path: /tmp/test_times.txt
+        path: /tmp/current_index_test_times.txt
 
 
