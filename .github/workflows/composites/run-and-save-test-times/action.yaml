@@ -79,7 +79,7 @@ runs:
     - name: show individual test times
       shell: bash
       if: env.BASE_BRANCH != '2.1.x'
-      run: cat /tmp/test_times.txt
+      run: cat /tmp/current_index_test_times.txt
 
     - name: upload individual tests
       if: env.BASE_BRANCH != '2.1.x'
