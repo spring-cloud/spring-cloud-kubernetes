@@ -31,10 +31,10 @@ jobs:
           array=()
           array+='['
           array+='0'
-          array+='1'
+          array+='1,'
           array+=']'
           
-          array_as_json=${{ toJSON(array) }}
+          array_as_json=${{ toJSON($array) }}
           echo $array_as_json
 
       - name: checkout project
