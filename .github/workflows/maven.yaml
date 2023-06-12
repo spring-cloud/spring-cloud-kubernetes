@@ -31,11 +31,11 @@ jobs:
         run: |
           array=()
           array+='['
-          array+='0'
-          array+='1,'
+          array+='0,'
+          array+='1'
           array+=']'
           
-          echo "matrix_array=$(jq -r -c . <<< "$array[@]")" >> $GITHUB_OUTPUT
+          echo "matrix_array=$(jq -r -c . <<< "$array")" >> $GITHUB_OUTPUT
 
       - name: print_previous
         shell: bash
