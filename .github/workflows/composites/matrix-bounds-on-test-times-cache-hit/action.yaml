@@ -62,9 +62,9 @@ runs:
         matrix_array_json=$(jq -r -c . <<< $matrix_array)
         echo "matrix_array_json : $matrix_array_json"
 
-        echo "test_times_cache_present=true" >> $GITHUB_OUTPUT        
-        echo "number_of_matrix_instances=$(echo $number_of_instances_json)" >> $GITHUB_OUTPUT
-        echo "matrix_array=$(echo $matrix_array_json)" >> $GITHUB_OUTPUT
-        echo "average_time_per_instance=$(echo $average_time_per_instance)" >> $GITHUB_OUTPUT
+        echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
+        echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_json)" >> $GITHUB_ENV
+        echo "MATRIX_ARRAY=$(echo $matrix_array_json)" >> $GITHUB_ENV
+        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
 
 
