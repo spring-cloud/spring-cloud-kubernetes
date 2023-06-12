@@ -31,16 +31,16 @@ runs:
         echo "max test time : $max_test_time_as_int"
         
         number_of_instances=$((  $sum_of_all_tests_as_int / $max_test_time_as_int  ))
-        echo "number of instances $number_of_instances"
+        number_of_instances_as_array=()
+        number_of_instances_as_array+='['
+        number_of_instances_as_array+=$number_of_instances
+        number_of_instances_as_array+=']'
         
         average_time_per_instance=$((  sum_of_all_tests_as_int / $number_of_instances ))
         echo "average time per instance $average_time_per_instance"
         
-        number_of_instances_as_array=()
-        number_of_instances_as_array+=$number_of_instances
-        echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_as_array)" >> $GITHUB_ENV
-        
         matrix_array=()
+        matrix_array+='['
         for ((i=0; i<${number_of_instances}; i++)); do
           if (( $i == $(( $number_of_instances - 1 )) )); then
             matrix_array+=$i
@@ -49,7 +49,15 @@ runs:
           fi 
         done
         
-        echo "MATRIX_ARRAY=$(echo $matrix_array)" >> $GITHUB_ENV
+        matrix_array+=']'
+        
+        echo "number of instances : $number_of_instances_as_array"
+        echo "average time per instance : $average_time_per_instance"
+        echo "matrix_array : $matrix_array"
+        
+        echo "NUMBER_OF_MATRIX_INSTANCES=toJSON($(echo $number_of_instances_as_array))" >> $GITHUB_ENV
+        echo "MATRIX_ARRAY=toJSON($(echo $matrix_array))" >> $GITHUB_ENV
+        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
 
     - name: show matrix env variables
@@ -57,6 +65,7 @@ runs:
       run: |
         echo ${{ env.NUMBER_OF_MATRIX_INSTANCES }}
         echo ${{ env.MATRIX_ARRAY }}
+        echo ${{ env.AVERAGE_TIME_PER_INSTANCE }}
         echo ${{ env.TEST_TIMES_CACHE_PRESENT }}
 
 
