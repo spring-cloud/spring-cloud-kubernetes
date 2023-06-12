@@ -160,7 +160,7 @@ jobs:
         uses: ./.github/workflows/composites/pre-test-actions
 
       - name: run and save test times when cache is present
-        uses: ./.github/workflows/composites/run-tests-when-cache-present
+        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
 
   test_without_previous_test_times:
     needs: [ build, fabric8_istio_integration_test ]
@@ -190,7 +190,7 @@ jobs:
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
         if: env.BASE_BRANCH != '2.1.x'
-        uses: ./.github/workflows/composites/run-and-save-test-times
+        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
 
 
   save_test_times_when_cache_not_present:

@@ -4,8 +4,8 @@
 # 2. extract the time it took to run a certain test (from the above .txt file)
 # 3. create a file that contains test times from this current matrix
 
-name: run and save test times
-description: run and save test times
+name: run and save test times when cache missing
+description: run and save test times when cache missing
 runs:
   using: "composite"
 

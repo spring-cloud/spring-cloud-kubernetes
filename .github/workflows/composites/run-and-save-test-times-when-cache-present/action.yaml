@@ -1,5 +1,5 @@
-name: run and save test times when cache is present
-description: run and save test times when cache is present
+name: run and save test times when cache present
+description: run and save test times when cache present
 runs:
   using: "composite"
 
