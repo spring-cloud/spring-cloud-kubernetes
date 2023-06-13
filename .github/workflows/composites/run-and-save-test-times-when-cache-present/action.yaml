@@ -15,6 +15,8 @@ runs:
       shell: bash
       run: cat /tmp/sorted.txt
 
-    - name: show existing tests without timing
+    - name: find all tests
       shell: bash
-      run: cat /tmp/tests.txt
+      run: |
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
+        echo "${PLAIN_TEST_CLASSNAMES[@]}"

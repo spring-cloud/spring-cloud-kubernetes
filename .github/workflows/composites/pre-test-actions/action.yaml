@@ -40,10 +40,6 @@ runs:
         name: tests.txt
         path: /tmp
 
-    - name: show tests
-      shell: bash
-      run: cat /tmp/tests.txt
-
 
 
 
