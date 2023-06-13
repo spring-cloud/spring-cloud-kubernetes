@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		classes = KubernetesCommonsAutoConfigurationTests.App.class,
 		properties = { "spring.cloud.kubernetes.client.password=mypassword",
-				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
+				"spring.cloud.kubernetes.client.proxy-password=myproxypassword", "spring.cloud.config.enabled=false" })
 public class KubernetesCommonsAutoConfigurationTests {
 
 	@Autowired

@@ -5,3 +5,6 @@ org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInforme
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
 org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientConfigClientBootstrapConfiguration
 
+org.springframework.boot.BootstrapRegistryInitializer=\
+org.springframework.cloud.kubernetes.client.discovery.KubernetesClientConfigServerBootstrapper
+
