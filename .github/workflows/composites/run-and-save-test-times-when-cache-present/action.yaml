@@ -124,7 +124,7 @@ runs:
           echo "last index spotted"
           
           if [ ! -f $temp_dir/tests-without-times.txt ]; then
-            echo "no tests outside cache found, skipping this one"
+            echo "no tests outside cache found"
           else 
             TESTS_WITHOUT_TIMES=($(cat $temp_dir/tests-without-times.txt))
         
@@ -136,10 +136,13 @@ runs:
               fi    
             done
         
-            tests_to_run_in_current_index=$new_tests_to_run
-            echo "will run tests : $tests_to_run_in_current_index"
+          fi        
+        fi 
         
-            ./mvnw -s .settings.xml \
+        tests_to_run_in_current_index=$new_tests_to_run
+        echo "will run tests : $tests_to_run_in_current_index"
+        
+        ./mvnw -s .settings.xml \
               -DtestsToRun=${tests_to_run_in_current_index} \
               -e clean install \
               -U -P sonar -nsu --batch-mode \
@@ -149,6 +152,3 @@ runs:
               -Dmaven.wagon.http.retryHandler.class=standard \
               -Dmaven.wagon.http.retryHandler.count=3 \
               -Dskip.build.image=true
-        
-          fi        
-        fi 
