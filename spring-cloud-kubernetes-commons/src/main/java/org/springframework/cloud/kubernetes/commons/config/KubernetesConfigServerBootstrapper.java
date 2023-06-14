@@ -22,6 +22,7 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.config.client.ConfigClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.util.ClassUtils;
 
@@ -37,12 +38,12 @@ public abstract class KubernetesConfigServerBootstrapper implements BootstrapReg
 	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(Binder binder,
 			BindHandler bindHandler) {
 		return binder.bind("spring.cloud.kubernetes.discovery", Bindable.of(KubernetesDiscoveryProperties.class),
-				bindHandler).orElseGet(KubernetesDiscoveryProperties::new);
+				bindHandler).orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
 	}
 
 	public static KubernetesClientProperties createKubernetesClientProperties(Binder binder, BindHandler bindHandler) {
-		return binder.bind("spring.cloud.kubernetes.client", Bindable.of(KubernetesClientProperties.class), bindHandler)
-				.orElseGet(KubernetesClientProperties::new);
+		return binder.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
+				.withNamespace(new KubernetesNamespaceProvider(binder).getNamespace());
 	}
 
 	public static Boolean getDiscoveryEnabled(Binder binder, BindHandler bindHandler) {

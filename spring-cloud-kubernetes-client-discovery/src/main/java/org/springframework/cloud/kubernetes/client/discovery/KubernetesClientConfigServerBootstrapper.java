@@ -48,6 +48,8 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
 
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
+
 /**
  * @author Ryan Baxter
  */
@@ -102,18 +104,18 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 				return client::getInstances;
 			}
 			else {
+
+				ApiClient defaultApiClient = kubernetesApiClient();
+				defaultApiClient.setUserAgent(binder.bind("spring.cloud.kubernetes.client.user-agent", String.class)
+						.orElse(KubernetesClientProperties.DEFAULT_USER_AGENT));
 				KubernetesClientAutoConfiguration clientAutoConfiguration = new KubernetesClientAutoConfiguration();
-				ApiClient apiClient = context.getOrElseSupply(ApiClient.class,
-						() -> clientAutoConfiguration.apiClient(clientProperties));
+				ApiClient apiClient = context.getOrElseSupply(ApiClient.class, () -> defaultApiClient);
 
 				KubernetesNamespaceProvider kubernetesNamespaceProvider = clientAutoConfiguration
 						.kubernetesNamespaceProvider(getNamespaceEnvironment(binder, bindHandler));
 
 				String namespace = getInformerNamespace(kubernetesNamespaceProvider, discoveryProperties);
 				SharedInformerFactory sharedInformerFactory = new SharedInformerFactory(apiClient);
-				SpringCloudKubernetesInformerFactoryProcessor informerFactoryProcessor = new SpringCloudKubernetesInformerFactoryProcessor(
-						kubernetesNamespaceProvider, apiClient, sharedInformerFactory,
-						discoveryProperties.isAllNamespaces());
 				final GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(
 						V1Service.class, V1ServiceList.class, "", "v1", "services", apiClient);
 				SharedIndexInformer<V1Service> serviceSharedIndexInformer = sharedInformerFactory
@@ -125,8 +127,8 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 						.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
 				Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsSharedIndexInformer.getIndexer());
 				KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-						kubernetesNamespaceProvider.getNamespace(), sharedInformerFactory, serviceLister,
-						endpointsLister, serviceSharedIndexInformer, endpointsSharedIndexInformer, discoveryProperties);
+						sharedInformerFactory, serviceLister, endpointsLister, serviceSharedIndexInformer,
+						endpointsSharedIndexInformer, discoveryProperties);
 				try {
 					discoveryClient.afterPropertiesSet();
 					return discoveryClient::getInstances;
@@ -145,7 +147,7 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 
 		private String getInformerNamespace(KubernetesNamespaceProvider kubernetesNamespaceProvider,
 				KubernetesDiscoveryProperties discoveryProperties) {
-			return discoveryProperties.isAllNamespaces() ? Namespaces.NAMESPACE_ALL
+			return discoveryProperties.allNamespaces() ? Namespaces.NAMESPACE_ALL
 					: kubernetesNamespaceProvider.getNamespace() == null ? Namespaces.NAMESPACE_DEFAULT
 							: kubernetesNamespaceProvider.getNamespace();
 		}

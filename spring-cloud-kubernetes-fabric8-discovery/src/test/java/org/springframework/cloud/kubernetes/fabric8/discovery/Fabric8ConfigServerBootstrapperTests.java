@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -86,7 +87,7 @@ class Fabric8ConfigServerBootstrapperTests {
 		mockClient.endpoints().inNamespace("test").create(endPoint);
 
 		Service service = new ServiceBuilder().withNewMetadata().withName("spring-cloud-kubernetes-configserver")
-				.withNamespace("test").withLabels(new HashMap<>()).endMetadata().build();
+				.withNamespace("test").withLabels(new HashMap<>()).endMetadata().withSpec(new ServiceSpecBuilder().withType("NodePort").build()).build();
 
 		mockClient.services().inNamespace("test").create(service);
 
@@ -130,6 +131,7 @@ class Fabric8ConfigServerBootstrapperTests {
 		set.add("spring.cloud.config.discovery.enabled=true");
 		set.add("spring.config.import=optional:configserver:");
 		set.add("spring.cloud.config.discovery.service-id=spring-cloud-kubernetes-configserver");
+		set.add("spring.cloud.kubernetes.client.namespace=test");
 		return set.toArray(new String[0]);
 	}
 
