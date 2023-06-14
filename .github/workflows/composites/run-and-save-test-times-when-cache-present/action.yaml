@@ -11,10 +11,6 @@ runs:
         key: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-${{ github.run_id }}
         restore-keys: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-
 
-    - name: show sorted
-      shell: bash
-      run: cat /tmp/sorted.txt
-
     - name: split tests into known times and un-known times
       shell: bash
       run: |
@@ -114,6 +110,7 @@ runs:
             done
   
             if [[ $i = ${CURRENT_INDEX} ]]; then
+              echo "current index : ${CURRENT_INDEX}"
               tests_to_run_in_current_index=$tests_to_take_in_current_iteration
               echo "time of tests in current index : $sum"
             fi
