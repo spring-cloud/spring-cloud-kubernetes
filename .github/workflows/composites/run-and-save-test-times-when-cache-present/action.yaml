@@ -102,7 +102,7 @@ runs:
                       tests_to_take_in_current_iteration="$tests_to_take_in_current_iteration,$current_test_name"
                   fi
   
-                  sed -i "" "${j}d" $temp_dir/tests-with-times-sorted.txt
+                  sed -i "${j}d" $temp_dir/tests-with-times-sorted.txt
                   j=$(( j-1 ))
                   continue
               fi
