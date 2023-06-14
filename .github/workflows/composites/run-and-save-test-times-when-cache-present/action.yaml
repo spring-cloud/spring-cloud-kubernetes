@@ -122,28 +122,33 @@ runs:
         new_tests_to_run=''
         if [[ ${CURRENT_INDEX} = ${NUMBER_OF_JOBS} ]]; then
           echo "last index spotted"
-          TESTS_WITHOUT_TIMES=($(cat $temp_dir/tests-without-times.txt))
+          
+          if [ ! -f $temp_dir/tests-without-times.txt ]; then
+            echo "no tests outside cache found, skipping this one"
+          else 
+            TESTS_WITHOUT_TIMES=($(cat $temp_dir/tests-without-times.txt))
         
-          for test in "${TESTS_WITHOUT_TIMES[@]}"; do
-            if [[ -z $new_tests_to_run ]]; then
-              new_tests_to_run="$test"
-            else
-              new_tests_to_run="new_tests_to_run,$test"
-            fi    
-          done
+            for test in "${TESTS_WITHOUT_TIMES[@]}"; do
+              if [[ -z $new_tests_to_run ]]; then
+                new_tests_to_run="$test"
+              else
+                new_tests_to_run="new_tests_to_run,$test"
+              fi    
+            done
         
-          tests_to_run_in_current_index=$new_tests_to_run
-        fi
-
-        echo "will run tests : $tests_to_run_in_current_index"
+            tests_to_run_in_current_index=$new_tests_to_run
+            echo "will run tests : $tests_to_run_in_current_index"
         
-        ./mvnw -s .settings.xml \
-           -DtestsToRun=${tests_to_run_in_current_index} \
-           -e clean install \
-           -U -P sonar -nsu --batch-mode \
-           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-           -Dhttp.keepAlive=false \
-           -Dmaven.wagon.http.pool=false \
-           -Dmaven.wagon.http.retryHandler.class=standard \
-           -Dmaven.wagon.http.retryHandler.count=3 \
-           -Dskip.build.image=true 
+            ./mvnw -s .settings.xml \
+              -DtestsToRun=${tests_to_run_in_current_index} \
+              -e clean install \
+              -U -P sonar -nsu --batch-mode \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3 \
+              -Dskip.build.image=true
+        
+          fi        
+        fi 
