@@ -11,6 +11,10 @@ runs:
         key: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-${{ github.run_id }}
         restore-keys: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-
 
+    - name: show sorted
+      shell: bash
+      run: cat /tmp/sorted.txt
+
     - name: split tests into known times and un-known times
       shell: bash
       run: |
