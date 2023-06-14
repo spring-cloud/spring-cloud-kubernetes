@@ -139,11 +139,10 @@ runs:
                 new_tests_to_run="new_tests_to_run,$test"
               fi    
             done
-        
+            tests_to_run_in_current_index=$new_tests_to_run
           fi        
         fi 
         
-        tests_to_run_in_current_index=$new_tests_to_run
         echo "will run tests : $tests_to_run_in_current_index"
         
         ./mvnw -s .settings.xml \
