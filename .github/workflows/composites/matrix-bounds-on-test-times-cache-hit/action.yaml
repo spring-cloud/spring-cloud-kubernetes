@@ -42,7 +42,7 @@ runs:
         matrix_array=()
         matrix_array+='['
         for ((i=0; i<${number_of_instances}; i++)); do
-          if (( $i == $(( $number_of_instances - 1 )) )); then
+          if (( $i == $(( $number_of_instances )) )); then
             matrix_array+=$i
           else 
             matrix_array+=$i,

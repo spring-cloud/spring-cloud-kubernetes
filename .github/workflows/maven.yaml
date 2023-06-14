@@ -164,6 +164,9 @@ jobs:
 
       - name: run and save test times when cache is present
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
+        env:
+          CURRENT_INDEX: ${{ matrix.current_index }}
+          NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
 
   test_when_cache_missing:
     needs: [ build, fabric8_istio_integration_test ]
