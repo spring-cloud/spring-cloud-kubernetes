@@ -74,7 +74,7 @@ jobs:
 
       - name: setup project
         uses: ./.github/workflows/composites/setup-jdk17
-        if: env.BASE_BRANCH == 'main'
+        if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
@@ -116,7 +116,7 @@ jobs:
 
       - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
-        if: env.BASE_BRANCH == 'main'
+        if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
 
       - name: setup project jdk-8
         uses: ./.github/workflows/composites/setup-jdk1.8
