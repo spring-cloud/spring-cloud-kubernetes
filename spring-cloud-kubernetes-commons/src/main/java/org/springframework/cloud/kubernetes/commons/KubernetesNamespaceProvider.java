@@ -21,6 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.springframework.boot.context.properties.bind.BindHandler;
+import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLog;
 import org.springframework.core.env.Environment;
@@ -44,6 +46,7 @@ public class KubernetesNamespaceProvider {
 	 * Property for namespace file path.
 	 */
 	public static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
+	private BindHandler bindHandler;
 
 	private String serviceAccountNamespace;
 
@@ -56,8 +59,9 @@ public class KubernetesNamespaceProvider {
 		LOG.replayTo(KubernetesNamespaceProvider.class);
 	}
 
-	public KubernetesNamespaceProvider(Binder binder) {
+	public KubernetesNamespaceProvider(Binder binder, BindHandler bindHandler) {
 		this.binder = binder;
+		this.bindHandler = bindHandler;
 	}
 
 	public String getNamespace() {
@@ -78,7 +82,8 @@ public class KubernetesNamespaceProvider {
 					SERVICE_ACCOUNT_NAMESPACE_PATH);
 		}
 		if (ObjectUtils.isEmpty(serviceAccountNamespacePathString) && binder != null) {
-			serviceAccountNamespacePathString = binder.bind(NAMESPACE_PATH_PROPERTY, String.class)
+			// When using the binder we cannot use camelcase properties, it considers them invalid
+			serviceAccountNamespacePathString = binder.bind("spring.cloud.kubernetes.client.service-account-namespace-path", String.class)
 					.orElse(SERVICE_ACCOUNT_NAMESPACE_PATH);
 		}
 		if (serviceAccountNamespace == null) {

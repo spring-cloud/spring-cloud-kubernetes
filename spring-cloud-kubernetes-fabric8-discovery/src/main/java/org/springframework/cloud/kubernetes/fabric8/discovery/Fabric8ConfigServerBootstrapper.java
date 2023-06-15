@@ -78,12 +78,12 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 			KubernetesDiscoveryProperties discoveryProperties = createKubernetesDiscoveryProperties(binder,
 					bindHandler);
 			KubernetesClientProperties clientProperties = createKubernetesClientProperties(binder, bindHandler);
-			return getInstanceProvider(discoveryProperties, clientProperties, context, binder).getInstances(serviceId);
+			return getInstanceProvider(discoveryProperties, clientProperties, context, binder, bindHandler).getInstances(serviceId);
 		}
 
 		private KubernetesConfigServerInstanceProvider getInstanceProvider(
 				KubernetesDiscoveryProperties discoveryProperties, KubernetesClientProperties clientProperties,
-				BootstrapContext context, Binder binder) {
+				BootstrapContext context, Binder binder, BindHandler bindHandler) {
 			if (context.isRegistered(KubernetesDiscoveryClient.class)) {
 				KubernetesDiscoveryClient client = context.get(KubernetesDiscoveryClient.class);
 				return client::getInstances;
@@ -92,10 +92,9 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 				Fabric8AutoConfiguration fabric8AutoConfiguration = new Fabric8AutoConfiguration();
 				Config config = fabric8AutoConfiguration.kubernetesClientConfig(clientProperties);
 				KubernetesClient kubernetesClient = fabric8AutoConfiguration.kubernetesClient(config);
-				KubernetesDiscoveryClientAutoConfiguration discoveryClientAutoConfiguration = new KubernetesDiscoveryClientAutoConfiguration();
 				KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(kubernetesClient,
 						discoveryProperties,
-						KubernetesClientServicesFunctionProvider.servicesFunction(discoveryProperties, binder), null,
+						KubernetesClientServicesFunctionProvider.servicesFunction(discoveryProperties, binder, bindHandler), null,
 						new ServicePortSecureResolver(discoveryProperties));
 				return discoveryClient::getInstances;
 			}

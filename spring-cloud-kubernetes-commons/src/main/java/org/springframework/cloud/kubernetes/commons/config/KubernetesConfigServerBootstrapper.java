@@ -43,7 +43,7 @@ public abstract class KubernetesConfigServerBootstrapper implements BootstrapReg
 
 	public static KubernetesClientProperties createKubernetesClientProperties(Binder binder, BindHandler bindHandler) {
 		return binder.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
-				.withNamespace(new KubernetesNamespaceProvider(binder).getNamespace());
+				.withNamespace(new KubernetesNamespaceProvider(binder, bindHandler).getNamespace());
 	}
 
 	public static Boolean getDiscoveryEnabled(Binder binder, BindHandler bindHandler) {

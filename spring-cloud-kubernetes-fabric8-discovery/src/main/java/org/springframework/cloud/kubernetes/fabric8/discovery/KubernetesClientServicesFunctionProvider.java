@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -46,7 +47,7 @@ public final class KubernetesClientServicesFunctionProvider {
 	}
 
 	public static KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
-			Binder binder) {
+			Binder binder, BindHandler bindHandler) {
 
 		if (properties.allNamespaces()) {
 			return (client) -> client.services().inAnyNamespace().withLabels(properties.serviceLabels());
@@ -54,7 +55,7 @@ public final class KubernetesClientServicesFunctionProvider {
 
 		return client -> {
 			String namespace = Fabric8Utils.getApplicationNamespace(client, null, "discovery-service",
-					new KubernetesNamespaceProvider(binder));
+					new KubernetesNamespaceProvider(binder, bindHandler));
 			return client.services().inNamespace(namespace).withLabels(properties.serviceLabels());
 		};
 
