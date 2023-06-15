@@ -29,7 +29,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = App.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = App.class,
+		properties = { "spring.cloud.config.enabled=false" })
 class FailFastDisabled {
 
 	@Autowired

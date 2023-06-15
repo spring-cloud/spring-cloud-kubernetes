@@ -29,8 +29,8 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
@@ -102,7 +102,7 @@ class KubernetesClientConfigServerBootstrapperTests {
 						.metadata(new V1ObjectMeta().name("spring-cloud-kubernetes-configserver").namespace("default"))
 						.addSubsetsItem(
 								new V1EndpointSubset()
-										.addPortsItem(new V1EndpointPort().port(wireMockServer.port()).name("http"))
+										.addPortsItem(new CoreV1EndpointPort().port(wireMockServer.port()).name("http"))
 										.addAddressesItem(new V1EndpointAddress().hostname("localhost").ip("localhost")
 												.targetRef(new V1ObjectReferenceBuilder().withUid("uid1").build()))))
 				.build();
