@@ -23,7 +23,7 @@ runs:
     - name: show all artifacts
       if: env.BASE_BRANCH != '2.1.x'
       shell: bash
-      run: ls /tmp/all-artifacts
+      run: ls -l /tmp/all-artifacts
 
     - name: merge all artifacts into a single file and sort by time
       if: env.BASE_BRANCH != '2.1.x'

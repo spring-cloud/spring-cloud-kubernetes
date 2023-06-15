@@ -85,7 +85,7 @@ runs:
       if: env.BASE_BRANCH != '2.1.x'
       uses: actions/upload-artifact@v3
       with:
-        name: test_times_${{ env.CURRENT_INDEX }}.txt
-        path: /tmp/current_index_test_times.txt
+        name: test_times_${{ env.CURRENT_INDEX }}
+        path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
 
 
