@@ -1,1 +1,4 @@
 org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientAutoConfiguration
+
+org.springframework.boot.BootstrapRegistryInitializer=\
+org.springframework.cloud.kubernetes.discovery.ConfigServerBootstrapper
