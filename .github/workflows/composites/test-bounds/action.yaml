@@ -6,7 +6,7 @@ runs:
     - name: test-bounds
       shell: bash
       run: |
-        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run -> org' | awk '{print $3}'))
         NUMBER_OF_TESTS=${#PLAIN_TEST_CLASSNAMES[@]}
         
         echo "current index : ${CURRENT_INDEX}"
