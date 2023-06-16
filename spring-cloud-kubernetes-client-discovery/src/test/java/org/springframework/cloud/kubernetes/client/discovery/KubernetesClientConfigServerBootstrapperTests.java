@@ -156,6 +156,7 @@ class KubernetesClientConfigServerBootstrapperTests {
 		if (env != null && env.length > 0) {
 			set.addAll(Arrays.asList(env));
 		}
+		set.add("server.port=0");
 		set.add("spring.cloud.config.discovery.enabled=true");
 		set.add("spring.config.import=optional:configserver:");
 		set.add("spring.cloud.config.discovery.service-id=spring-cloud-kubernetes-configserver");
