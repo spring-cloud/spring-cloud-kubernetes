@@ -16,20 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -133,6 +119,7 @@ class Fabric8ConfigServerBootstrapperTests {
 		set.add("spring.config.import=optional:configserver:");
 		set.add("spring.cloud.config.discovery.service-id=spring-cloud-kubernetes-configserver");
 		set.add("spring.cloud.kubernetes.client.namespace=test");
+		set.add("server.port=0");
 		return set.toArray(new String[0]);
 	}
 
