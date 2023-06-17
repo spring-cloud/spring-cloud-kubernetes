@@ -116,6 +116,15 @@ jobs:
         run: |
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo apt-get remove -y '^dotnet-.*'
+          sudo apt-get remove -y '^llvm-.*'
+          sudo apt-get remove -y 'php.*'
+          sudo apt-get remove -y '^mongodb-.*'
+          sudo apt-get remove -y '^mysql-.*
+          sudo apt-get remove -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+          sudo apt-get autoremove -y
+          sudo apt-get clean
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
