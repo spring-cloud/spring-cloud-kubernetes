@@ -75,6 +75,11 @@ class PollingReloadConfigMapMountIT {
 	}
 
 	@AfterAll
+	static void afterAll() {
+		Commons.systemPrune();
+	}
+
+	@AfterAll
 	static void after() throws Exception {
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);

@@ -23,6 +23,7 @@ import java.util.Objects;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +65,11 @@ class KubernetesClientCatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		Commons.systemPrune();
 	}
 
 	@BeforeEach

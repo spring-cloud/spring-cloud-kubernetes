@@ -79,8 +79,9 @@ class DataChangesInSecretsReloadIT {
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**

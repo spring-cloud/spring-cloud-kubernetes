@@ -191,6 +191,19 @@ public final class Commons {
 		return execResult.getStdout();
 	}
 
+	/**
+	 * equivalent of 'docker system prune', but for crictl.
+	 */
+	public static void systemPrune() {
+		try {
+			CONTAINER.execInContainer("sh", "-c",
+				"crictl ps -a | grep -v Running | awk '{print $1}' | xargs crictl rm && crictl rmi --prune");
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static String pomVersion() {
 		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
 			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);

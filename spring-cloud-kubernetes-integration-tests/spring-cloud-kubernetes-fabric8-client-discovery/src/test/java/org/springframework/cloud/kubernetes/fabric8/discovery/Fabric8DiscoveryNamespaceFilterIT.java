@@ -83,13 +83,14 @@ class Fabric8DiscoveryNamespaceFilterIT {
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void afterAll() throws Exception {
 		manifests(Phase.DELETE);
 		util.wiremock(NAMESPACE_LEFT, "/wiremock", Phase.DELETE);
 		util.wiremock(NAMESPACE_RIGHT, "/wiremock", Phase.DELETE);
 		util.deleteNamespace(NAMESPACE_LEFT);
 		util.deleteNamespace(NAMESPACE_RIGHT);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@Test

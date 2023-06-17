@@ -69,9 +69,10 @@ class SimpleCoreIT {
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void afterAll() throws Exception {
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@Test

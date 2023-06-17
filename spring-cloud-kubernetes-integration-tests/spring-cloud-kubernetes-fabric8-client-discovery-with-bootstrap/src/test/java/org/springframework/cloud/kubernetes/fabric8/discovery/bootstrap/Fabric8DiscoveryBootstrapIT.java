@@ -76,10 +76,11 @@ class Fabric8DiscoveryBootstrapIT {
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void afterAll() throws Exception {
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**
