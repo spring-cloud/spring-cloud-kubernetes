@@ -14,7 +14,7 @@ runs:
     - name: split tests into known times and un-known times
       shell: bash
       run: |
-        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
         
         temp_dir=$(mktemp -d)
         

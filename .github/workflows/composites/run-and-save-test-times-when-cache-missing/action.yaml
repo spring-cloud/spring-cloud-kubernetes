@@ -17,7 +17,7 @@ runs:
         
         # take only likes that look like : 
         # 'spring.cloud.k8s.test.to.run -> org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolverTest'
-        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run -> org' | awk '{print $3}'))
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
         IFS=$'\n'
         SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
         unset IFS
