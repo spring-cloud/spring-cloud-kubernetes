@@ -136,6 +136,12 @@ public final class Util {
 			if (e instanceof ApiException apiException) {
 				System.out.println(apiException.getResponseBody());
 			}
+			try {
+				String result = container.execInContainer("sh", "-c", "kubectl get events").getStdout();
+				LOG.info("getEvents : " + result);
+			} catch (Exception ex) {
+				throw new RuntimeException("from execInContainer", ex);
+			}
 			throw new RuntimeException(e);
 		}
 	}
