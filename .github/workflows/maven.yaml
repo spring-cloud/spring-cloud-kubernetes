@@ -111,16 +111,11 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: Free Up GitHub Actions Ubuntu Runner Disk Space 🔧
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
+      - name: clean space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
