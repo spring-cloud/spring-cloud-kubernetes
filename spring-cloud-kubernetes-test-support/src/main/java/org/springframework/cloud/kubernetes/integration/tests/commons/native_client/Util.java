@@ -139,7 +139,8 @@ public final class Util {
 			try {
 				String result = container.execInContainer("sh", "-c", "kubectl get events").getStdout();
 				LOG.info("getEvents : " + result);
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				throw new RuntimeException("from execInContainer", ex);
 			}
 			throw new RuntimeException(e);
