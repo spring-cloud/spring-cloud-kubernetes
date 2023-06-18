@@ -14,7 +14,7 @@ runs:
         sudo apt-get remove --no-upgrade -y '^llvm-.*'
         sudo apt-get remove --no-upgrade -y 'php.*'
         sudo apt-get remove --no-upgrade -y '^mongodb-.*'
-        sudo apt-get remove --no-upgrade -y '^mysql-.*
+        sudo apt-get remove --no-upgrade -y '^mysql-.*'
         sudo apt-get remove --no-upgrade -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
         sudo apt-get autoremove -y
         sudo apt-get clean
