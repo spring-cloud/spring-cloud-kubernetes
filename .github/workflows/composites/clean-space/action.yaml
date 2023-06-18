@@ -9,6 +9,7 @@ runs:
         sudo rm -rf /usr/local/lib/android
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /opt/ghc
+        sudo apt-get update
         sudo apt-get remove --no-upgrade -y '^dotnet-.*'
         sudo apt-get remove --no-upgrade -y '^llvm-.*'
         sudo apt-get remove --no-upgrade -y 'php.*'
