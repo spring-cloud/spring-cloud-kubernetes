@@ -84,6 +84,7 @@ class ConfigMapAndSecretIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@AfterEach

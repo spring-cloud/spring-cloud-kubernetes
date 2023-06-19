@@ -81,6 +81,11 @@ class Fabric8DiscoveryFilterIT {
 		util.setUp(NAMESPACE);
 	}
 
+	@AfterAll
+	static void afterAll() {
+		Commons.systemPrune();
+	}
+
 	@BeforeEach
 	void beforeEach() {
 		util.createNamespace(NAMESPACE_A_UAT);

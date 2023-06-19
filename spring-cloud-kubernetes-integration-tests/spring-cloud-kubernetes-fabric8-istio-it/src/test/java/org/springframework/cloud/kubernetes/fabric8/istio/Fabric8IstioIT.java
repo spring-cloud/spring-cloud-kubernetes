@@ -100,6 +100,7 @@ class Fabric8IstioIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@AfterAll
