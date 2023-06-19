@@ -3,18 +3,20 @@ description: clean space
 runs:
   using: "composite"
   steps:
-    - name: echo saved images
+    - name: apt-update
       shell: bash
       run: |
-        sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /opt/ghc
         sudo apt-get update
-        sudo apt-get remove --no-upgrade -y '^dotnet-.*'
-        sudo apt-get remove --no-upgrade -y '^llvm-.*'
-        sudo apt-get remove --no-upgrade -y 'php.*'
-        sudo apt-get remove --no-upgrade -y '^mongodb-.*'
-        sudo apt-get remove --no-upgrade -y '^mysql-.*'
-        sudo apt-get remove --no-upgrade -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
-        sudo apt-get autoremove -y
-        sudo apt-get clean
+
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        swap-storage: true
+
+
+
