@@ -80,6 +80,7 @@ class DiscoveryClientIT {
 
 		discoveryServer(Phase.DELETE);
 		discoveryIt(Phase.DELETE);
+		Commons.systemPrune();
 	}
 
 	@Test

@@ -80,6 +80,7 @@ class Fabric8DiscoveryBootstrapIT {
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**

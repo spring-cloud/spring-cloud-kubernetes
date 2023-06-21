@@ -95,6 +95,7 @@ class Fabric8CatalogWatchWithNamespacesIT {
 	static void afterAll() {
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
+		Commons.systemPrune();
 	}
 
 	/**
