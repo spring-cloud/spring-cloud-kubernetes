@@ -68,6 +68,7 @@ class ActuatorEndpointIT {
 	@AfterAll
 	static void afterAll() {
 		coreK8sClientIt(Phase.DELETE);
+		Commons.systemPrune();
 	}
 
 	@Test

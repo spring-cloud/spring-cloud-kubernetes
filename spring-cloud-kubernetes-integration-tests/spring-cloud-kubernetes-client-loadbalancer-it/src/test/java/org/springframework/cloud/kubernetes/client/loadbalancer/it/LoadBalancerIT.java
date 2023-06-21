@@ -70,6 +70,7 @@ class LoadBalancerIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@BeforeEach

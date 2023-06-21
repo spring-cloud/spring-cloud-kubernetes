@@ -72,6 +72,7 @@ class SimpleCoreIT {
 	static void after() throws Exception {
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@Test
