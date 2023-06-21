@@ -100,6 +100,7 @@ class DiscoveryClientFilterNamespaceIT {
 		discoveryServer(Phase.DELETE);
 		util.deleteNamespace(NAMESPACE_LEFT);
 		util.deleteNamespace(NAMESPACE_RIGHT);
+		Commons.systemPrune();
 	}
 
 	@AfterEach

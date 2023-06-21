@@ -29,6 +29,7 @@ import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,6 +73,11 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 		util = new Util(K3S);
 		util.setUp(NAMESPACE_DEFAULT);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		Commons.systemPrune();
 	}
 
 	@BeforeEach

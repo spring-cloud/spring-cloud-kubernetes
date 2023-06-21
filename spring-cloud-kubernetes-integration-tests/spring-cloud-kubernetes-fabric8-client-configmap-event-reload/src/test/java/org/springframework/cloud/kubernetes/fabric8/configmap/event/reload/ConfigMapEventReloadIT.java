@@ -87,6 +87,7 @@ class ConfigMapEventReloadIT {
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**

@@ -76,6 +76,7 @@ public class Fabric8ClientLoadbalancerIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@BeforeEach

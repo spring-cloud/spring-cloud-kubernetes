@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,11 @@ class Fabric8CatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
 		util.setUp(NAMESPACE);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		Commons.systemPrune();
 	}
 
 	@BeforeEach
