@@ -150,7 +150,7 @@ class DataChangesInSecretsReloadIT {
 		InputStream ingressStream = util.inputStream("ingress.yaml");
 		InputStream secretAsStream = util.inputStream("secret.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -168,9 +168,9 @@ class DataChangesInSecretsReloadIT {
 		envVars.add(configMapsDisabledEnvVar);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		Secret secret = client.secrets().load(secretAsStream).get();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		Secret secret = client.secrets().load(secretAsStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, secret);

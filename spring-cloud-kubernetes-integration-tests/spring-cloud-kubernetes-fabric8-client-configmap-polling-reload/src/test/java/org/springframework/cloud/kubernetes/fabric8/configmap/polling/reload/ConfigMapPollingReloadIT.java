@@ -111,10 +111,10 @@ class ConfigMapPollingReloadIT {
 		InputStream ingressStream = util.inputStream("ingress.yaml");
 		InputStream configMapStream = util.inputStream("configmap.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		ConfigMap configMap = client.configMaps().load(configMapStream).item();
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());

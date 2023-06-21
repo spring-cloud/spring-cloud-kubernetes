@@ -69,7 +69,7 @@ class Fabric8SecretsPropertySourceMockTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
+				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Not Found.");
 	}
 
 	@Test

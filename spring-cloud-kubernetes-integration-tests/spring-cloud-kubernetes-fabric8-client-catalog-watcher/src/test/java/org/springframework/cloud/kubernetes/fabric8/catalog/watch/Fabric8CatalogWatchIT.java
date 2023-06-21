@@ -196,10 +196,10 @@ class Fabric8CatalogWatchIT {
 		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
 		Deployment deployment = useEndpointSlices
-				? client.apps().deployments().load(endpointSlicesDeploymentStream).get()
-				: client.apps().deployments().load(endpointsDeploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+				? client.apps().deployments().load(endpointSlicesDeploymentStream).item()
+				: client.apps().deployments().load(endpointsDeploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(Fabric8CatalogWatchIT.NAMESPACE, null, deployment, service, ingress, true);

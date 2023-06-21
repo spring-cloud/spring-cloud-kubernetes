@@ -218,8 +218,8 @@ class Fabric8CatalogWatchWithNamespacesIT {
 		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
 		Deployment deployment = useEndpointSlices
-				? client.apps().deployments().load(endpointSlicesDeploymentStream).get()
-				: client.apps().deployments().load(endpointsDeploymentStream).get();
+				? client.apps().deployments().load(endpointSlicesDeploymentStream).item()
+				: client.apps().deployments().load(endpointsDeploymentStream).item();
 
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -232,8 +232,8 @@ class Fabric8CatalogWatchWithNamespacesIT {
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, null, deployment, service,

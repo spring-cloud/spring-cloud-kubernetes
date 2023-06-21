@@ -153,7 +153,7 @@ class DataChangesInConfigMapReloadIT {
 		InputStream ingressStream = util.inputStream("ingress.yaml");
 		InputStream configmapAsStream = util.inputStream("left-configmap.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -171,9 +171,9 @@ class DataChangesInConfigMapReloadIT {
 		envVars.add(secretsDisabledEnvVar);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap configMap = client.configMaps().load(configmapAsStream).get();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		ConfigMap configMap = client.configMaps().load(configmapAsStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(LEFT_NAMESPACE, configMap, null);

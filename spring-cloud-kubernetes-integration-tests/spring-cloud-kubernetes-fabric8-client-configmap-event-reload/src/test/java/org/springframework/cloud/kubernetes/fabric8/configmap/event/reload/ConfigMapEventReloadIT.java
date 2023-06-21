@@ -294,7 +294,7 @@ class ConfigMapEventReloadIT {
 		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
 		InputStream rightWithLabelConfigMapStream = util.inputStream("right-configmap-with-label.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -311,11 +311,11 @@ class ConfigMapEventReloadIT {
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap leftConfigMap = client.configMaps().load(leftConfigMapStream).get();
-		ConfigMap rightConfigMap = client.configMaps().load(rightConfigMapStream).get();
-		ConfigMap rightWithLabelConfigMap = client.configMaps().load(rightWithLabelConfigMapStream).get();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		ConfigMap leftConfigMap = client.configMaps().load(leftConfigMapStream).item();
+		ConfigMap rightConfigMap = client.configMaps().load(rightConfigMapStream).item();
+		ConfigMap rightWithLabelConfigMap = client.configMaps().load(rightWithLabelConfigMapStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait("left", leftConfigMap, null);
