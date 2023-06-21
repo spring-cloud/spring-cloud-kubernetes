@@ -83,6 +83,7 @@ class DataChangesInConfigMapReloadIT {
 	static void afterAll() throws Exception {
 		util.deleteNamespace(LEFT_NAMESPACE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**
