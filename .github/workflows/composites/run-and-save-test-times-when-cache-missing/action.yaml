@@ -54,6 +54,10 @@ runs:
            -Dskip.build.image=true
         
         else 
+           
+           version=$(java -version)
+           echo "version of java: $version"
+        
            ./mvnw -s .settings.xml \
            -DtestsToRun=${TEST_ARG[@]} \
            -e clean install \
