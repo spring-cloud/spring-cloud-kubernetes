@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,6 +72,11 @@ class Fabric8CatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
 		util.setUp(NAMESPACE);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		Commons.systemPrune();
 	}
 
 	@BeforeEach
@@ -196,10 +202,10 @@ class Fabric8CatalogWatchIT {
 		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
 		Deployment deployment = useEndpointSlices
-				? client.apps().deployments().load(endpointSlicesDeploymentStream).get()
-				: client.apps().deployments().load(endpointsDeploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+				? client.apps().deployments().load(endpointSlicesDeploymentStream).item()
+				: client.apps().deployments().load(endpointsDeploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(Fabric8CatalogWatchIT.NAMESPACE, null, deployment, service, ingress, true);
