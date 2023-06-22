@@ -45,7 +45,7 @@ class Fabric8SecretsPropertySourceMockTests {
 
 	@Test
 	void namedStrategyShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
-		final String name = "my-config";
+		final String name = "my-secret";
 		final String namespace = "default";
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
@@ -74,7 +74,7 @@ class Fabric8SecretsPropertySourceMockTests {
 
 	@Test
 	void namedStrategyShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
-		final String name = "my-config";
+		final String name = "my-secret";
 		final String namespace = "default";
 		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
 
