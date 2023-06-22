@@ -90,10 +90,10 @@ class Fabric8ConfigMapIT {
 		InputStream ingressStream = util.inputStream("fabric8-ingress.yaml");
 		InputStream configMapStream = util.inputStream("fabric8-configmap.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		ConfigMap configMap = client.configMaps().load(configMapStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, configMap, null);
