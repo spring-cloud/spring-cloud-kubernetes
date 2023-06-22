@@ -76,7 +76,7 @@ class Fabric8SecretsPropertySourceMockTests {
 	void namedStrategyShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		final String name = "my-secret";
 		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
+		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
@@ -89,7 +89,7 @@ class Fabric8SecretsPropertySourceMockTests {
 	void labeledStrategyShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		final String namespace = "default";
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
-		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
+		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
