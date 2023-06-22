@@ -64,7 +64,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 	void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		String name = "my-config";
 		String namespace = "default";
-		String path = "/api/v1/namespaces/default/configmaps/my-config";
+		String path = "/api/v1/namespaces/default/configmaps";
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
