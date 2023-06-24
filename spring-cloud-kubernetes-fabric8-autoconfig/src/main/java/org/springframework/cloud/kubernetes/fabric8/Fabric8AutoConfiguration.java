@@ -92,8 +92,9 @@ public class Fabric8AutoConfiguration {
 				.withProxyUsername(or(kubernetesClientProperties.proxyUsername(), base.getProxyUsername()))
 				.withProxyPassword(or(kubernetesClientProperties.proxyPassword(), base.getProxyPassword()))
 				.withNoProxy(or(kubernetesClientProperties.noProxy(), base.getNoProxy()))
-				// Disable the built-in retry functionality since Spring Cloud Kubernetes provides it
-			    // See https://github.com/fabric8io/kubernetes-client/issues/4863
+				// Disable the built-in retry functionality since Spring Cloud Kubernetes
+				// provides it
+				// See https://github.com/fabric8io/kubernetes-client/issues/4863
 				.withRequestRetryBackoffLimit(0);
 
 		String userAgent = or(base.getUserAgent(), KubernetesClientProperties.DEFAULT_USER_AGENT);
