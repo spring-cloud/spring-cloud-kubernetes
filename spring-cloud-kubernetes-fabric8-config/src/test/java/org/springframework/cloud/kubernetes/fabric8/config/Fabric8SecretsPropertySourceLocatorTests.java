@@ -48,7 +48,7 @@ class Fabric8SecretsPropertySourceLocatorTests {
 		String namespace = "default";
 		String path = "/api/v1/namespaces/default/secrets";
 
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
 		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
 				List.of(), true, name, namespace, false, true, true, RetryProperties.DEFAULT);
@@ -57,7 +57,7 @@ class Fabric8SecretsPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("v1/namespaces/default/secrets. Message: Not Found.");
+				.hasMessageContaining("v1/namespaces/default/secrets. Message: Internal Server Error.");
 	}
 
 	@Test
@@ -66,7 +66,7 @@ class Fabric8SecretsPropertySourceLocatorTests {
 		String namespace = "default";
 		String path = "/api/v1/namespaces/default/secrets/my-secret";
 
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
 		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
 				List.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
