@@ -226,7 +226,7 @@ class Fabric8DiscoveryClientHealthIT {
 		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 
@@ -265,8 +265,8 @@ class Fabric8DiscoveryClientHealthIT {
 			envVars.add(debugLevelForReactive);
 		}
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (disableBlocking) {
 			EnvVar disableBlockingEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED")
