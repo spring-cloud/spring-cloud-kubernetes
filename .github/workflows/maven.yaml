@@ -159,6 +159,9 @@ jobs:
 
     steps:
 
+      - name: clean space
+        uses: ./.github/workflows/composites/clean-space
+
       - name: checkout project
         uses: actions/checkout@v2
 
@@ -192,6 +195,9 @@ jobs:
         number_of_jobs: [32]
 
     steps:
+
+      - name: clean space
+        uses: ./.github/workflows/composites/clean-space
 
       - name: checkout project
         uses: actions/checkout@v2
