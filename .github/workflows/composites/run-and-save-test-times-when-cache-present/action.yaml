@@ -166,7 +166,7 @@ runs:
           echo "found file: ${file}"
           result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
         
-          echo "run test: ${i} in : ${result}" >> /tmp/current_index_test_times.txt
+          echo "run test: ${i} in : ${result}" >> /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         done
 
     - name: show individual test times
