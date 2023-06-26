@@ -162,6 +162,10 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
+      - name: setup project jdk-17
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
+
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
 
@@ -188,6 +192,10 @@ jobs:
 
       - name: checkout project
         uses: actions/checkout@v2
+
+      - name: setup project jdk-17
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
