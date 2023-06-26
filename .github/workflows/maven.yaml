@@ -159,11 +159,11 @@ jobs:
 
     steps:
 
-      - name: clean space
-        uses: ./.github/workflows/composites/clean-space
-
       - name: checkout project
         uses: actions/checkout@v2
+
+      - name: clean space
+        uses: ./.github/workflows/composites/clean-space
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -171,6 +171,10 @@ jobs:
       - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
+
+      - name: setup project jdk-8
+        uses: ./.github/workflows/composites/setup-jdk1.8
+        if: env.BASE_BRANCH == '2.1.x'
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
@@ -196,11 +200,11 @@ jobs:
 
     steps:
 
-      - name: clean space
-        uses: ./.github/workflows/composites/clean-space
-
       - name: checkout project
         uses: actions/checkout@v2
+
+      - name: clean space
+        uses: ./.github/workflows/composites/clean-space
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -208,6 +212,10 @@ jobs:
       - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
+
+      - name: setup project jdk-8
+        uses: ./.github/workflows/composites/setup-jdk1.8
+        if: env.BASE_BRANCH == '2.1.x'
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
