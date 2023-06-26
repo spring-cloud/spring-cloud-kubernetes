@@ -162,6 +162,9 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
+      - name: set env variables
+        uses: ./.github/workflows/composites/env-variables
+
       - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
@@ -192,6 +195,9 @@ jobs:
 
       - name: checkout project
         uses: actions/checkout@v2
+
+      - name: set env variables
+        uses: ./.github/workflows/composites/env-variables
 
       - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
