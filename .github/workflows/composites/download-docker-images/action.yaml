@@ -3,10 +3,9 @@
 
 name: download docker images
 description: download docker images
+
 runs:
   using: "composite"
-  env:
-    SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
   steps:
 
     - name: show segment timeout
