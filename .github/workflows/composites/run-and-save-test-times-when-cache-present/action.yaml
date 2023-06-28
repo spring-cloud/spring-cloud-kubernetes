@@ -8,8 +8,8 @@ runs:
       uses: actions/cache/restore@v3
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-${{ github.run_id }}
-        restore-keys: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-
+        key: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-
 
     - name: split tests into known times and un-known times
       shell: bash

@@ -8,10 +8,6 @@ runs:
 
   steps:
 
-    - name: testcontainers reuse support
-      shell: bash
-      run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
     - name: set env variables
       uses: ./.github/workflows/composites/env-variables
 

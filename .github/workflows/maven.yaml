@@ -10,7 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      TESTCONTAINERS_REUSE_ENABLE: false
       # this might get set to true if there is an existing cache of test times
       # this happens in 'matrix-bounds-on-test-times-cache-hit'
       TEST_TIMES_CACHE_PRESENT: false
@@ -67,8 +66,8 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: /tmp/sorted.txt
-          key: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-${{ github.run_id }}
-          restore-keys: ${{ runner.os }}-spring-cloud-k8s-cache-of-test-times-
+          key: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-
 
       - name: check test times cache exists
         id: check_files
@@ -119,6 +118,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+
       - name: checkout project
         uses: actions/checkout@v2
 
@@ -158,6 +162,10 @@ jobs:
         number_of_jobs: [ "${{ fromJSON(needs.build.outputs.number_of_matrix_instances) }}" ]
 
     steps:
+
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: checkout project
         uses: actions/checkout@v2
@@ -199,6 +207,10 @@ jobs:
         number_of_jobs: [32]
 
     steps:
+
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: checkout project
         uses: actions/checkout@v2
