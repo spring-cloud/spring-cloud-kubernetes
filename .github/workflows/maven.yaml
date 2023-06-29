@@ -170,15 +170,15 @@ jobs:
 
     steps:
 
-      - name: testcontainers reuse support
-        shell: bash
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
       - name: checkout project
         uses: actions/checkout@v2
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
+
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -217,15 +217,15 @@ jobs:
 
     steps:
 
-      - name: testcontainers reuse support
-        shell: bash
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
       - name: checkout project
         uses: actions/checkout@v2
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
+
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
