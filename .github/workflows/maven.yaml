@@ -176,10 +176,6 @@ jobs:
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
 
-      - name: testcontainers reuse support
-        shell: bash
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
@@ -193,6 +189,10 @@ jobs:
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
+
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: run and save test times when cache is present
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
@@ -223,10 +223,6 @@ jobs:
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
 
-      - name: testcontainers reuse support
-        shell: bash
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
@@ -246,6 +242,10 @@ jobs:
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
+
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: run and save individual test times
         env:
