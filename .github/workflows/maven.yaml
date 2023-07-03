@@ -142,6 +142,10 @@ jobs:
             TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
             echo "$TEST_ARG"
           
+            cd spring-cloud-kubernetes-test-support
+            ../.mvnw clean install
+            cd ..
+          
             if [[ $baseBranch == "2.1.x" ]]; then
           
               ./mvnw -s .settings.xml -pl '-:kubernetes-leader-election-example' -pl '-:kubernetes-hello-world-example' \
