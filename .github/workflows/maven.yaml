@@ -143,7 +143,7 @@ jobs:
             echo "$TEST_ARG"
           
             cd spring-cloud-kubernetes-test-support
-            ../.mvnw clean install
+            .././mvnw clean install
             cd ..
           
             if [[ $baseBranch == "2.1.x" ]]; then
