@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Assertions;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ReflectionUtils;
@@ -55,6 +56,18 @@ import static org.awaitility.Awaitility.await;
 public final class Commons {
 
 	private static final Log LOG = LogFactory.getLog(Commons.class);
+
+	/**
+	 * istio version used in our integration tests.
+	 */
+	public static final String ISTIO_VERSION = "1.16.0";
+
+	/**
+	 * path inside the container of the istio binary.
+	 */
+	public static final String CONTAINER_ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
+
+	private static final String LOCAL_ISTIO_BIN_PATH = "istio-cli/istio-" + ISTIO_VERSION + "/bin";
 
 	private Commons() {
 		throw new AssertionError("No instance provided");
@@ -85,6 +98,8 @@ public final class Commons {
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
 			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
+			.withCopyFileToContainer(MountableFile.forClasspathResource(LOCAL_ISTIO_BIN_PATH + "/istioctl"),
+					CONTAINER_ISTIO_BIN_PATH)
 			.withCommand(Commons.RANCHER_COMMAND).withReuse(true);
 
 	public static K3sContainer container() {
