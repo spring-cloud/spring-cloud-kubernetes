@@ -98,7 +98,7 @@ public final class Commons {
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
 			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
-			.withCopyFileToContainer(MountableFile.forClasspathResource(LOCAL_ISTIO_BIN_PATH + "/istioctl"),
+			.withCopyFileToContainer(MountableFile.forClasspathResource(LOCAL_ISTIO_BIN_PATH + "/istioctl", 0777),
 					CONTAINER_ISTIO_BIN_PATH)
 			.withCommand(Commons.RANCHER_COMMAND).withReuse(true);
 
