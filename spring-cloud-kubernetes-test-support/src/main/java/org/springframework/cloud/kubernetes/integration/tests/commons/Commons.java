@@ -62,11 +62,6 @@ public final class Commons {
 	 */
 	public static final String ISTIO_VERSION = "1.16.0";
 
-	/**
-	 * path inside the container of the istio binary.
-	 */
-	public static final String CONTAINER_ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
-
 	private static final String LOCAL_ISTIO_BIN_PATH = "istio-cli/istio-" + ISTIO_VERSION + "/bin";
 
 	private Commons() {
@@ -98,8 +93,8 @@ public final class Commons {
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
 			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
-			.withCopyFileToContainer(MountableFile.forClasspathResource(LOCAL_ISTIO_BIN_PATH + "/istioctl", 0777),
-					CONTAINER_ISTIO_BIN_PATH)
+			.withCopyFileToContainer(MountableFile.forClasspathResource(LOCAL_ISTIO_BIN_PATH + "/istioctl", 0744),
+					"/tmp/istioctl")
 			.withCommand(Commons.RANCHER_COMMAND).withReuse(true);
 
 	public static K3sContainer container() {

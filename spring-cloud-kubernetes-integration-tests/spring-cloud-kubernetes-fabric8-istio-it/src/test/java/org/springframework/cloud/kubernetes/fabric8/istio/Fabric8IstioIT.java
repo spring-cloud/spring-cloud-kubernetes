@@ -80,8 +80,8 @@ class Fabric8IstioIT {
 		processExecResult(
 				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
 
-		processExecResult(K3S.execInContainer("sh", "-c", Commons.CONTAINER_ISTIO_BIN_PATH + "istioctl"
-				+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
+		processExecResult(K3S.execInContainer("sh", "-c",
+				"/tmp/istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
 
 		util.setUpIstio(NAMESPACE);
 
