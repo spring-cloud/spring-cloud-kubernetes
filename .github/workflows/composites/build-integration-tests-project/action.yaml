@@ -7,6 +7,10 @@ runs:
       shell: bash
       run: |
         
+        cd spring-cloud-kubernetes-test-support
+        .././mvnw clean install -U
+        cd ..
+        
         cd spring-cloud-kubernetes-integration-tests
         # build the images, but dont run the tests
         .././mvnw -T 1C clean install -DskipTests
