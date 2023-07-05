@@ -112,25 +112,19 @@ jobs:
         if: env.BASE_BRANCH != '2.1.x'
 
   test_when_cache_present:
-    needs: [ build, fabric8_istio_integration_test ]
+    needs: [ build ]
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
     # only run this one if there is a previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'true'
 
-  test:
-    needs: [ build ]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    env:
-      SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
-
     strategy:
       fail-fast: true
       matrix:
         current_index: [ "${{ fromJSON(needs.build.outputs.matrix_array) }}" ]
         number_of_jobs: [ "${{ fromJSON(needs.build.outputs.number_of_matrix_instances) }}" ]
+
 
     steps:
 
