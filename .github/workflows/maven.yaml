@@ -111,7 +111,6 @@ jobs:
         uses: ./.github/workflows/composites/upload-docker-images
         if: env.BASE_BRANCH != '2.1.x'
 
-<<<<<<< HEAD
   # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
   # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
   # This does not run on '2.1.x' branch.
