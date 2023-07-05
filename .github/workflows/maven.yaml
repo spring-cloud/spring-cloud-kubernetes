@@ -111,48 +111,6 @@ jobs:
         uses: ./.github/workflows/composites/upload-docker-images
         if: env.BASE_BRANCH != '2.1.x'
 
-  # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
-  # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-  # This does not run on '2.1.x' branch.
-  fabric8_istio_integration_test:
-    needs: build
-    runs-on: ubuntu-latest
-
-    env:
-      SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
-
-    steps:
-
-      - name: testcontainers reuse support
-        shell: bash
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
-
-      - name: checkout project
-        uses: actions/checkout@v2
-
-      - name: set env variables
-        uses: ./.github/workflows/composites/env-variables
-
-      - name: setup project
-        uses: ./.github/workflows/composites/setup-jdk17
-        if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
-
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: download docker images
-        uses: ./.github/workflows/composites/download-docker-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: echo saved images
-        uses: ./.github/workflows/composites/echo-saved-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: integration test fabric8 istio
-        uses: ./.github/workflows/composites/fabric8-istio-integration-test
-        if: env.BASE_BRANCH != '2.1.x'
-
   test_when_cache_present:
     needs: [ build, fabric8_istio_integration_test ]
     runs-on: ubuntu-latest
