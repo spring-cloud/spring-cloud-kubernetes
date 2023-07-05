@@ -158,7 +158,7 @@ jobs:
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
 
   test_when_cache_missing:
-    needs: [ build, fabric8_istio_integration_test ]
+    needs: [ build ]
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
