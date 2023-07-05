@@ -3,16 +3,9 @@
 
 name: download docker images
 description: download docker images
-
 runs:
   using: "composite"
   steps:
-
-    - name: show segment timeout
-      shell: bash
-      run: |
-        echo "segment timeout: $SEGMENT_DOWNLOAD_TIMEOUT_MINS"
-        echo "segment timeout (2): ${{ env.SEGMENT_DOWNLOAD_TIMEOUT_MINS }}"
 
     - uses: actions/cache@v3
       with:
