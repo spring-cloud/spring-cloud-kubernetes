@@ -14,6 +14,18 @@ runs:
     - name: split tests into known times and un-known times
       shell: bash
       run: |
+        ############################################################################################################
+        ############################################################################################################
+        ############################################################################################################
+        
+          1. Get all existing tests and place them in PLAIN_TEST_CLASSNAMES
+          2. Get all test times from the existing cache : /tmp/sorted.txt
+          3. Split tests from PLAIN_TEST_CLASSNAMES into two files depending if we already know their running times
+             or not : tests-without-times.txt and tests-with-times.txt
+        
+        ############################################################################################################
+        ############################################################################################################
+        ############################################################################################################
         PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
         
         temp_dir=$(mktemp -d)
@@ -156,7 +168,7 @@ runs:
         
         touch /tmp/current_index_test_times.txt
         
-        IFS=',' read -r -a sliced_array <<< "$test"
+        IFS=',' read -r -a sliced_array <<< "$tests_to_run_in_current_index"
         unset IFS
         
         for i in "${sliced_array[@]}"; do
