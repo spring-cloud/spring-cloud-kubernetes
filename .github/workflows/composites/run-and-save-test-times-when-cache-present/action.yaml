@@ -15,6 +15,10 @@ runs:
       shell: bash
       run: cat /tmp/sorted.txt
 
+    - name: show incoming tests
+      shell: bash
+      run: cat /tmp/tests.txt
+
     - name: split tests into known times and un-known times
       shell: bash
       run: |
