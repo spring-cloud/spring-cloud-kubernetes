@@ -15,10 +15,6 @@ runs:
       shell: bash
       run: cat /tmp/sorted.txt
 
-    - name: show incoming tests
-      shell: bash
-      run: cat /tmp/tests.txt
-
     - name: split tests into known times and un-known times
       shell: bash
       run: |
@@ -36,12 +32,15 @@ runs:
         ############################################################################################################
         PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
         
+        echo "${PLAIN_TEST_CLASSNAMES[@]}"
+        
         temp_dir=$(mktemp -d)
         
         for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
   
           find_test_in_sorted=$(grep $test /tmp/sorted.txt)
           if [ -z "$find_test_in_sorted" ]; then
+            echo "found test : $test"
             echo $test >> $temp_dir/tests-without-times.txt
           else
             echo $find_test_in_sorted >> $temp_dir/tests-with-times.txt
