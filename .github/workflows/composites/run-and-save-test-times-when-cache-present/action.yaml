@@ -40,18 +40,18 @@ runs:
   
           find_test_in_sorted=$(grep $test /tmp/sorted.txt)
           if [ -z "$find_test_in_sorted" ]; then
-            echo "found test : $test"
             echo $test >> $temp_dir/tests-without-times.txt
           else
+            echo "found test : $test"
             echo $find_test_in_sorted >> $temp_dir/tests-with-times.txt
           fi
   
         done
         
-        sort -t' '  -nk2 $temp_dir/tests-with-times.txt >> $temp_dir/tests-with-times-sorted.txt
+        echo "tests with times:"
+        cat $temp_dir/tests-with-times.txt
         
-        echo "tests with times sorted:"
-        cat $temp_dir/tests-with-times-sorted.txt
+        sort -t' '  -nk2 $temp_dir/tests-with-times.txt >> $temp_dir/tests-with-times-sorted.txt
         
         ############################################################################################################
         ############################################################################################################
