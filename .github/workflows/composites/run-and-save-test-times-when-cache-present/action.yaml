@@ -168,18 +168,23 @@ runs:
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         
-        IFS=',' read -r -a sliced_array <<< "$tests_to_run_in_current_index"
-        unset IFS
+        # if there are no tests to run in the last index, don't parse anything
+        if [ $tests_to_run_in_current_index != "none" ]; then
+            IFS=',' read -r -a sliced_array <<< "$tests_to_run_in_current_index"
+            unset IFS
         
-        for i in "${sliced_array[@]}"; do
-          filename="${i}.txt"
-          echo "searching for filename: ${filename}"
-          file=$(find . -name "${filename}")
-          echo "found file: ${file}"
-          result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
+            for i in "${sliced_array[@]}"; do
+              filename="${i}.txt"
+              echo "searching for filename: ${filename}"
+              file=$(find . -name "${filename}")
+              echo "found file: ${file}"
+              result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
         
-          echo "run test: ${i} in : ${result}" >> /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
-        done
+              echo "run test: ${i} in : ${result}" >> /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+            done
+        fi
+        
+        
 
     - name: show individual test times
       shell: bash
