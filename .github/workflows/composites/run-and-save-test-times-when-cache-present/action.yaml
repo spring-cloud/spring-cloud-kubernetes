@@ -166,7 +166,7 @@ runs:
               -Dmaven.wagon.http.retryHandler.count=3 \
               -Dskip.build.image=true
         
-        touch /tmp/current_index_test_times.txt
+        touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         
         IFS=',' read -r -a sliced_array <<< "$tests_to_run_in_current_index"
         unset IFS
@@ -184,11 +184,11 @@ runs:
     - name: show individual test times
       shell: bash
       if: env.BASE_BRANCH != '2.1.x'
-      run: cat /tmp/current_index_test_times.txt
+      run: cat /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
 
     - name: upload individual tests
       if: env.BASE_BRANCH != '2.1.x'
       uses: actions/upload-artifact@v3
       with:
         name: test_times_${{ env.CURRENT_INDEX }}.txt
-        path: /tmp/current_index_test_times.txt
+        path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
