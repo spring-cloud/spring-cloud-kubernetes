@@ -37,6 +37,8 @@ runs:
         temp_dir=$(mktemp -d)
         
         for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
+        
+          echo "test is : $test"
   
           find_test_in_sorted=$(grep $test /tmp/sorted.txt)
           if [ -z "$find_test_in_sorted" ]; then
