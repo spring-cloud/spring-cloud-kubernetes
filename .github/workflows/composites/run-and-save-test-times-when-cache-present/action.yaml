@@ -11,7 +11,7 @@ runs:
         key: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-${{ github.run_id }}
         restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-
 
-    - name: show test times
+    - name: show cached test times
       shell: bash
       run: cat /tmp/sorted.txt
 
@@ -47,6 +47,8 @@ runs:
         
         sort -t' '  -nk2 $temp_dir/tests-with-times.txt >> $temp_dir/tests-with-times-sorted.txt
         
+        echo "tests with times sorted:"
+        cat $temp_dir/tests-with-times-sorted.txt
         
         ############################################################################################################
         ############################################################################################################
