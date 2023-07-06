@@ -138,7 +138,7 @@ runs:
           
           if [ ! -f $temp_dir/tests-without-times.txt ]; then
             echo "no tests outside cache found"
-            tests_to_run_in_current_index=''
+            tests_to_run_in_current_index='none'
           else 
             TESTS_WITHOUT_TIMES=($(cat $temp_dir/tests-without-times.txt))
         
