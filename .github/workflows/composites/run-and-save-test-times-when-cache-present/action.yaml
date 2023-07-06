@@ -18,10 +18,10 @@ runs:
         ############################################################################################################
         ############################################################################################################
         
-          1. Get all existing tests and place them in PLAIN_TEST_CLASSNAMES
-          2. Get all test times from the existing cache : /tmp/sorted.txt
-          3. Split tests from PLAIN_TEST_CLASSNAMES into two files depending if we already know their running times
-             or not : tests-without-times.txt and tests-with-times.txt
+        #  1. Get all existing tests and place them in PLAIN_TEST_CLASSNAMES
+        #  2. Get all test times from the existing cache : /tmp/sorted.txt
+        #  3. Split tests from PLAIN_TEST_CLASSNAMES into two files depending if we already know their running times
+        #     or not : tests-without-times.txt and tests-with-times.txt
         
         ############################################################################################################
         ############################################################################################################
