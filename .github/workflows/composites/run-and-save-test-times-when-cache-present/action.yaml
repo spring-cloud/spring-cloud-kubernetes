@@ -38,14 +38,10 @@ runs:
         
         for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
         
-          echo "test is : $test"
-  
           find_test_in_sorted=$(grep $test /tmp/sorted.txt || true)
-          echo "find_test_in_sorted : $find_test_in_sorted"
           if [[ -z "$find_test_in_sorted" ]]; then
             echo $test >> $temp_dir/tests-without-times.txt
           else
-            echo "found test : $test"
             echo $find_test_in_sorted >> $temp_dir/tests-with-times.txt
           fi
   
