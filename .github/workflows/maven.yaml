@@ -70,6 +70,10 @@ jobs:
           key: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-${{ github.run_id }}
           restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-
 
+      - name: show existing cache of test times
+        shell: bash
+        run: cat /tmp/sorted.txt
+
       - name: check test times cache exists
         id: check_files
         uses: andstor/file-existence-action@v2
