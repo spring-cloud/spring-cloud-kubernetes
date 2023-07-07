@@ -8,8 +8,8 @@ runs:
       uses: actions/cache/restore@v3
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-${{ github.run_id }}
-        restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-
+        key: ${{ runner.os }}-spring-cloud-kubernetes-test-times-cache-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-test-times-cache-
 
     - name: show cached test times
       shell: bash
@@ -38,7 +38,7 @@ runs:
         
         for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
         
-          find_test_in_sorted=$(grep $test /tmp/sorted.txt || true)
+          find_test_in_sorted=$(grep "$test " /tmp/sorted.txt || true)
           if [[ -z "$find_test_in_sorted" ]]; then
             echo $test >> $temp_dir/tests-without-times.txt
           else

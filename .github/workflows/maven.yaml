@@ -67,8 +67,8 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: /tmp/sorted.txt
-          key: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-${{ github.run_id }}
-          restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-cache-of-test-times-
+          key: ${{ runner.os }}-spring-cloud-kubernetes-test-times-cache-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-test-times-cache-
 
       - name: show existing cache of test times
         shell: bash
