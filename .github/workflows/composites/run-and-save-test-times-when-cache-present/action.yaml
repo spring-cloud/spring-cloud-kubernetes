@@ -8,8 +8,8 @@ runs:
       uses: actions/cache/restore@v3
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-cloud-kubernetes-test-times-cache-${{ github.run_id }}
-        restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-test-times-cache-
+        key: ${{ runner.os }}-spring-cloud-kubernetes-running-test-times-cache-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-running-test-times-cache-
 
     - name: show cached test times
       shell: bash
@@ -91,12 +91,16 @@ runs:
         echo "max test time : $max_test_time_as_int"
   
         number_of_instances=$((  $sum_of_all_tests_as_int / $max_test_time_as_int  ))
+        number_of_instances=$(( $number_of_instances + 1 ))
         echo "number of instances $number_of_instances"
   
         average_time_per_instance=$((  sum_of_all_tests_as_int / number_of_instances  ))
+        # all the rounding that we do makes the test with max time not being picked up, 
+        # so add one more second to it average
+        average_time_per_instance=$(( $average_time_per_instance + 1 ))
         echo "average time per instance $average_time_per_instance"
   
-        number_of_lines_in_file=$(wc -l $temp_dir/tests-with-times-sorted.txt | awk '{print $1}')
+        number_of_lines_in_file=$(grep -c ^ $temp_dir/tests-with-times-sorted.txt)
         echo "number of lines in fine : $number_of_lines_in_file"
         tests_to_run_in_current_index=''
   
@@ -123,7 +127,7 @@ runs:
                   fi
   
                   sed -i "${j}d" $temp_dir/tests-with-times-sorted.txt
-                  j=$(( j-1 ))
+                  number_of_lines_in_file=$(( $number_of_lines_in_file-1 ))
                   continue
               fi
   
@@ -154,7 +158,7 @@ runs:
               if [[ -z $new_tests_to_run ]]; then
                 new_tests_to_run="$test"
               else
-                new_tests_to_run="new_tests_to_run,$test"
+                new_tests_to_run="$new_tests_to_run,$test"
               fi    
             done
             tests_to_run_in_current_index=$new_tests_to_run

@@ -31,6 +31,8 @@ runs:
         echo "max test time : $max_test_time_as_int"
         
         number_of_instances=$((  $sum_of_all_tests_as_int / $max_test_time_as_int  ))
+        number_of_instances=$(( $number_of_instances + 1 ))
+        
         number_of_instances_as_array=()
         number_of_instances_as_array+='['
         number_of_instances_as_array+=$number_of_instances
