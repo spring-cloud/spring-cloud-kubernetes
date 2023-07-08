@@ -91,13 +91,9 @@ runs:
         echo "max test time : $max_test_time_as_int"
   
         number_of_instances=$((  $sum_of_all_tests_as_int / $max_test_time_as_int  ))
-        number_of_instances=$(( $number_of_instances + 1 ))
         echo "number of instances $number_of_instances"
   
         average_time_per_instance=$((  sum_of_all_tests_as_int / number_of_instances  ))
-        # all the rounding that we do makes the test with max time not being picked up, 
-        # so add one more second to it average
-        average_time_per_instance=$(( $average_time_per_instance + 1 ))
         echo "average time per instance $average_time_per_instance"
   
         number_of_lines_in_file=$(grep -c ^ $temp_dir/tests-with-times-sorted.txt)
@@ -143,25 +139,31 @@ runs:
         
         # here we compute tests that are "new", these are tests that our cache is not aware of
         # for example these can come from a new PR where new tests are added
+        # This last step can have already existing tests to run, so we need to be careful to append
+        # new tests here. 
         
-        new_tests_to_run=''
         if [[ ${CURRENT_INDEX} = ${NUMBER_OF_JOBS} ]]; then
           echo "last index spotted"
           
           if [ ! -f $temp_dir/tests-without-times.txt ]; then
             echo "no tests outside cache found"
-            tests_to_run_in_current_index='none'
+           
+            if [ -z "$tests_to_run_in_current_index"]; then
+              echo "no tests to run in the last index"
+              tests_to_run_in_current_index='none'      
+            fi
+        
           else 
             TESTS_WITHOUT_TIMES=($(cat $temp_dir/tests-without-times.txt))
         
             for test in "${TESTS_WITHOUT_TIMES[@]}"; do
-              if [[ -z $new_tests_to_run ]]; then
-                new_tests_to_run="$test"
+              if [[ -z "$tests_to_run_in_current_index" ]]; then
+                tests_to_run_in_current_index="$test"
               else
-                new_tests_to_run="$new_tests_to_run,$test"
+                tests_to_run_in_current_index="$tests_to_run_in_current_index,$test"
               fi    
             done
-            tests_to_run_in_current_index=$new_tests_to_run
+
           fi        
         fi 
         
