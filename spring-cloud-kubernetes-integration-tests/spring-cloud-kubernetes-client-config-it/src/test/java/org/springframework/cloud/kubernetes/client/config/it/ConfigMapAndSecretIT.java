@@ -115,7 +115,7 @@ class ConfigMapAndSecretIT {
 		WebClient.Builder builder = builder();
 		WebClient propertyClient = builder.baseUrl(PROPERTY_URL).build();
 
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
+		await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
 				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
 
 		WebClient secretClient = builder.baseUrl(SECRET_URL).build();

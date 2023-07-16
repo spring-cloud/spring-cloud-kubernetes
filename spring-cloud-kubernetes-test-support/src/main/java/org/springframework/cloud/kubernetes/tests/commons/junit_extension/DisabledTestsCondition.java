@@ -40,7 +40,8 @@ public class DisabledTestsCondition implements ExecutionCondition {
 	@Override
 	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext extensionContext) {
 		if ("true".equals(System.getProperty("spring.cloud.k8s.skip.tests"))) {
-			System.out.println("spring.cloud.k8s.test.to.run -> " + extensionContext.getRequiredTestClass().getName());
+			System.out.println("\nspring.cloud.k8s.test.to.run -> "
+				+ extensionContext.getRequiredTestClass().getName() + " \n");
 			return ConditionEvaluationResult.disabled("");
 		}
 		else {
