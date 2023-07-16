@@ -1,0 +1,97 @@
+########################################### find test times #######################################
+# 1. find files that look like this: 'org.springframework.xxx.txt', these files are generated
+# by surefire-plugin when tests run.
+# 2. extract the time it took to run a certain test (from the above .txt file)
+# 3. create a file that contains test times from this current matrix
+
+name: run and save test times when cache missing
+description: run and save test times when cache missing
+runs:
+  using: "composite"
+
+  steps:
+
+    - name: run and save test times
+      shell: bash
+      run: |
+        
+        # take only likes that look like : 
+        # 'spring.cloud.k8s.test.to.run -> org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolverTest'
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
+        IFS=$'\n'
+        SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
+        unset IFS
+        
+        start_from_name=start_from_${CURRENT_INDEX}
+        how_many_name=how_many_${CURRENT_INDEX}
+        
+        start_from=${!start_from_name}
+        how_many=${!how_many_name}
+        
+        echo "${SORTED_TEST_CLASSNAMES[@]}"
+        echo "$start_from_name : ${start_from}"
+        echo "$how_many_name   : ${how_many}"
+        
+        sliced_array=(${SORTED_TEST_CLASSNAMES[@]:$start_from:$how_many})
+        
+        TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
+        echo "$TEST_ARG"
+        
+        if [[ $baseBranch == "2.1.x" ]]; then
+        
+           ./mvnw -s .settings.xml -pl '-:kubernetes-leader-election-example' -pl '-:kubernetes-hello-world-example' \
+           -pl '-:kubernetes-reload-example' -pl '-:kubernetes-loadbalancer-example' \
+           -pl '-:spring-cloud-kubernetes-configserver' -pl '-:spring-cloud-kubernetes-configuration-watcher' \
+           -pl '-:spring-cloud-kubernetes-discoveryserver' \
+           -DtestsToRun=${TEST_ARG[@]} \
+           -e clean install \
+           -U -P sonar -nsu --batch-mode \
+           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+           -Dhttp.keepAlive=false \
+           -Dmaven.wagon.http.pool=false \
+           -Dmaven.wagon.http.retryHandler.class=standard \
+           -Dmaven.wagon.http.retryHandler.count=3 \
+           -Dskip.build.image=true
+        
+        else 
+           
+           version=$(java -version)
+           echo "version of java: $version"
+        
+           ./mvnw -s .settings.xml \
+           -DtestsToRun=${TEST_ARG[@]} \
+           -e clean install \
+           -U -P sonar -nsu --batch-mode \
+           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+           -Dhttp.keepAlive=false \
+           -Dmaven.wagon.http.pool=false \
+           -Dmaven.wagon.http.retryHandler.class=standard \
+           -Dmaven.wagon.http.retryHandler.count=3 \
+           -Dskip.build.image=true          
+        fi
+        
+        touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+        
+        for i in "${sliced_array[@]}"; do
+          filename="${i}.txt"
+          echo "searching for filename: ${filename}"
+          file=$(find . -name "${filename}")
+          echo "found file: ${file}"
+          result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
+        
+          echo "run test: ${i} in : ${result}" >> /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+        done
+
+    - name: show individual test times
+      shell: bash
+      if: env.BASE_BRANCH != '2.1.x'
+      run: cat /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+
+    - name: upload individual tests
+      if: env.BASE_BRANCH != '2.1.x'
+      uses: actions/upload-artifact@v3
+      with:
+        name: test_times_${{ env.CURRENT_INDEX }}.txt
+        path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+
+

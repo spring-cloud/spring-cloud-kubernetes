@@ -1,0 +1,213 @@
+name: run and save test times when cache present
+description: run and save test times when cache present
+runs:
+  using: "composite"
+
+  steps:
+    - name: restore test times cache
+      uses: actions/cache/restore@v3
+      with:
+        path: /tmp/sorted.txt
+        key: ${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-
+
+    - name: show cached test times
+      shell: bash
+      run: cat /tmp/sorted.txt
+
+    - name: split tests into known times and un-known times
+      shell: bash
+      run: |
+        ############################################################################################################
+        ############################################################################################################
+        ############################################################################################################
+        
+        #  1. Get all existing tests and place them in PLAIN_TEST_CLASSNAMES
+        #  2. Get all test times from the existing cache : /tmp/sorted.txt
+        #  3. Split tests from PLAIN_TEST_CLASSNAMES into two files depending if we already know their running times
+        #     or not : tests-without-times.txt and tests-with-times.txt
+        
+        ############################################################################################################
+        ############################################################################################################
+        ############################################################################################################
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
+        
+        echo "${PLAIN_TEST_CLASSNAMES[@]}"
+        
+        temp_dir=$(mktemp -d)
+        
+        for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
+        
+          find_test_in_sorted=$(grep "$test " /tmp/sorted.txt || true)
+          if [[ -z "$find_test_in_sorted" ]]; then
+            echo $test >> $temp_dir/tests-without-times.txt
+          else
+            echo $find_test_in_sorted >> $temp_dir/tests-with-times.txt
+          fi
+  
+        done
+        
+        echo "tests with times:"
+        cat $temp_dir/tests-with-times.txt
+        
+        sort -t' '  -nk2 $temp_dir/tests-with-times.txt >> $temp_dir/tests-with-times-sorted.txt
+        
+        ############################################################################################################
+        ############################################################################################################
+        ############################################################################################################
+        # For each number_of_instances, iterate from bottom to top ('for ((j=$number_of_lines_in_file; j>0; j--))')
+        # (starting from the test that has the max time). Easier to understand is via an example. 
+        # Suppose our /tmp/sorted.txt looks like this (very artificial):
+        # testA  1 sec
+        # testB  2 sec
+        # testC  3 sec
+        
+        # average_time_per_instance = 3.1 sec
+        # number_of_lines_in_file   = 3
+        
+        # we start iterating from bottom to top and first get 'testC' that has a running time of 3 sec
+        # since 3 sec < 3.1 sec ('if [[ $next_sum -lt $average_time_per_instance ]];')
+        # this test needs to be taken in 'tests_to_take_in_current_iteration', thus:
+        # tests_to_take_in_current_iteration=testC; also next_sum becomes 3sec
+        # we then drop this line from /tmp/sorted.txt because we have already processed it 
+        # ('sed -i "" "${j}d" $temp_dir/tests-with-times-sorted.txt')
+        # we also decrement j, since we removed one line from the file
+
+        # we then take testB, add its time to next_sum, thus next_sum = 5 sec, but now the time is NOT < 3.1 sec
+        # This means we do not take testB in current iteration and skip it.
+        
+        # Same goes for testA, next_sum = 4 sec, and it is NOT < 3.1 sec
+        # There are no more lines in file to iterate, thus tests_to_take_in_current_iteration=testC
+        
+        # we repeat the process again and now tests_to_take_in_current_iteration=testB,testA because their cumulative 
+        # sum will be 3 sec and it's < 3.1 sec.
+        
+        sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' $temp_dir/tests-with-times-sorted.txt)
+        sum_of_all_tests_as_int=$(printf "%.0f\n" "$sum_of_all_tests")
+        echo "sum of all tests : $sum_of_all_tests_as_int"
+  
+        max_test_time=$(tail -1 $temp_dir/tests-with-times-sorted.txt | awk '{print $2}')
+        max_test_time_as_int=$(printf "%.0f\n" "$max_test_time")
+        echo "max test time : $max_test_time_as_int"
+  
+        number_of_instances=$((  $sum_of_all_tests_as_int / $max_test_time_as_int  ))
+        echo "number of instances $number_of_instances"
+  
+        average_time_per_instance=$((  sum_of_all_tests_as_int / number_of_instances  ))
+        echo "average time per instance $average_time_per_instance"
+  
+        number_of_lines_in_file=$(grep -c ^ $temp_dir/tests-with-times-sorted.txt)
+        echo "number of lines in fine : $number_of_lines_in_file"
+        tests_to_run_in_current_index=''
+  
+        for ((i=0; i<=${number_of_instances}; i++)) ; do
+  
+            sum=0
+            tests_to_take_in_current_iteration=''
+            for ((j=$number_of_lines_in_file; j>0; j--)) ; do
+  
+              current_line_in_file=$(awk "NR == ${j}" $temp_dir/tests-with-times-sorted.txt)
+              current_test_time=$(echo $current_line_in_file | awk '{print $2}')
+              current_test_time=$(printf "%.0f\n" "$current_test_time")
+              current_test_name=$(echo $current_line_in_file | awk '{print $1}')
+              next_sum=$(( $sum + $current_test_time ))
+          
+              if [[ $next_sum -lt $average_time_per_instance ]]; then
+          
+                  sum=$(( $sum + $current_test_time ))
+  
+                  if [[ -z $tests_to_take_in_current_iteration ]]; then
+                      tests_to_take_in_current_iteration="$current_test_name"
+                  else
+                      tests_to_take_in_current_iteration="$tests_to_take_in_current_iteration,$current_test_name"
+                  fi
+  
+                  sed -i "${j}d" $temp_dir/tests-with-times-sorted.txt
+                  number_of_lines_in_file=$(( $number_of_lines_in_file-1 ))
+                  continue
+              fi
+  
+            done
+  
+            if [[ $i = ${CURRENT_INDEX} ]]; then
+              echo "current index : ${CURRENT_INDEX}"
+              tests_to_run_in_current_index=$tests_to_take_in_current_iteration
+              echo "time of tests in current index : $sum"
+            fi
+            
+        done
+        
+        # here we compute tests that are "new", these are tests that our cache is not aware of
+        # for example these can come from a new PR where new tests are added
+        # This last step can have already existing tests to run, so we need to be careful to append
+        # new tests here. 
+        
+        if [[ ${CURRENT_INDEX} = ${NUMBER_OF_JOBS} ]]; then
+          echo "last index spotted"
+          
+          if [ ! -f $temp_dir/tests-without-times.txt ]; then
+            echo "no tests outside cache found"
+           
+            if [ -z "$tests_to_run_in_current_index" ]; then
+              echo "no tests to run in the last index"
+              tests_to_run_in_current_index='none'      
+            fi
+        
+          else 
+            TESTS_WITHOUT_TIMES=($(cat $temp_dir/tests-without-times.txt))
+        
+            for test in "${TESTS_WITHOUT_TIMES[@]}"; do
+              if [[ -z "$tests_to_run_in_current_index" ]]; then
+                tests_to_run_in_current_index="$test"
+              else
+                tests_to_run_in_current_index="$tests_to_run_in_current_index,$test"
+              fi    
+            done
+
+          fi        
+        fi 
+        
+        echo "will run tests : $tests_to_run_in_current_index"
+        
+        ./mvnw -s .settings.xml \
+              -DtestsToRun=${tests_to_run_in_current_index} \
+              -e clean install \
+              -U -P sonar -nsu --batch-mode \
+              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+              -Dhttp.keepAlive=false \
+              -Dmaven.wagon.http.pool=false \
+              -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.http.retryHandler.count=3 \
+              -Dskip.build.image=true
+        
+        touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+        
+        # if there are no tests to run in the last index, don't parse anything
+        if [ $tests_to_run_in_current_index != "none" ]; then
+            IFS=',' read -r -a sliced_array <<< "$tests_to_run_in_current_index"
+            unset IFS
+        
+            for i in "${sliced_array[@]}"; do
+              filename="${i}.txt"
+              echo "searching for filename: ${filename}"
+              file=$(find . -name "${filename}")
+              echo "found file: ${file}"
+              result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
+        
+              echo "run test: ${i} in : ${result}" >> /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+            done
+        fi
+        
+        
+
+    - name: show individual test times
+      shell: bash
+      if: env.BASE_BRANCH != '2.1.x'
+      run: cat /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+
+    - name: upload individual tests
+      if: env.BASE_BRANCH != '2.1.x'
+      uses: actions/upload-artifact@v3
+      with:
+        name: test_times_${{ env.CURRENT_INDEX }}.txt
+        path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
