@@ -1,0 +1,41 @@
+# common steps before running actula tests for both
+# when a cache of test times is presen and when it is not present
+
+name: pre-test-actions
+description: pre-test-actions
+runs:
+  using: "composite"
+
+  steps:
+
+    - name: set env variables
+      uses: ./.github/workflows/composites/env-variables
+
+    - name: setup project jdk-17
+      uses: ./.github/workflows/composites/setup-jdk17
+      if: env.BASE_BRANCH == 'main'
+
+    - name: setup project jdk-8
+      uses: ./.github/workflows/composites/setup-jdk1.8
+      if: env.BASE_BRANCH == '2.1.x'
+
+    - name: cache local maven repository
+      uses: ./.github/workflows/composites/cache
+
+    - name: download docker images
+      uses: ./.github/workflows/composites/download-docker-images
+      if: env.BASE_BRANCH != '2.1.x'
+
+    - name: load docker images into local repo
+      uses: ./.github/workflows/composites/load-docker-images
+      if: env.BASE_BRANCH != '2.1.x'
+
+    - name: download tests
+      uses: actions/download-artifact@v3
+      with:
+        name: tests.txt
+        path: /tmp
+
+
+
+

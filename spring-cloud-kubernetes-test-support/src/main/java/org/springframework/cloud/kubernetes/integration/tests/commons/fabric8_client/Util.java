@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -32,6 +31,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressLoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
@@ -110,8 +110,8 @@ public final class Util {
 	public void busybox(String namespace, Phase phase) {
 		InputStream deploymentStream = inputStream("busybox/deployment.yaml");
 		InputStream serviceStream = inputStream("busybox/service.yaml");
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "busybox", deployment, service, null, false);
@@ -187,19 +187,19 @@ public final class Util {
 		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
 		InputStream roleBindingAsStream = inputStream("cluster/role-binding.yaml");
 
-		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).get();
+		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).item();
 		if (client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).get() == null) {
 			client.rbac().clusterRoles().resource(clusterRole).create();
 		}
 
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
+		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).item();
 		serviceAccountFromStream.getMetadata().setNamespace(serviceAccountNamespace);
 		if (client.serviceAccounts().inNamespace(serviceAccountNamespace)
 				.withName(serviceAccountFromStream.getMetadata().getName()).get() == null) {
 			client.serviceAccounts().inNamespace(serviceAccountNamespace).resource(serviceAccountFromStream).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).item();
 		namespaces.forEach(namespace -> {
 			roleBindingFromStream.getMetadata().setNamespace(namespace);
 
@@ -260,9 +260,9 @@ public final class Util {
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			deployment.getMetadata().setNamespace(namespace);
@@ -342,7 +342,7 @@ public final class Util {
 					return false;
 				}
 
-				List<LoadBalancerIngress> loadBalancerIngress = inner.getStatus().getLoadBalancer().getIngress();
+				List<IngressLoadBalancerIngress> loadBalancerIngress = inner.getStatus().getLoadBalancer().getIngress();
 				if (loadBalancerIngress == null || loadBalancerIngress.isEmpty()) {
 					LOG.info("ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
 					return false;
@@ -368,19 +368,21 @@ public final class Util {
 
 	private void innerSetup(String namespace, InputStream serviceAccountAsStream, InputStream roleBindingAsStream,
 			InputStream roleAsStream) {
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
+		ServiceAccount serviceAccountFromStream = client.serviceAccounts().inNamespace(namespace)
+				.load(serviceAccountAsStream).item();
 		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
 				.get() == null) {
 			client.serviceAccounts().inNamespace(namespace).resource(serviceAccountFromStream).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		RoleBinding roleBindingFromStream = client.rbac().roleBindings().inNamespace(namespace)
+				.load(roleBindingAsStream).item();
 		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBindingFromStream.getMetadata().getName())
 				.get() == null) {
 			client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
 		}
 
-		Role roleFromStream = client.rbac().roles().load(roleAsStream).get();
+		Role roleFromStream = client.rbac().roles().inNamespace(namespace).load(roleAsStream).item();
 		if (client.rbac().roles().inNamespace(namespace).withName(roleFromStream.getMetadata().getName())
 				.get() == null) {
 			client.rbac().roles().inNamespace(namespace).resource(roleFromStream).create();

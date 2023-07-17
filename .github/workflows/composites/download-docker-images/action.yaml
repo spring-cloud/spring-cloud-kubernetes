@@ -6,7 +6,8 @@ description: download docker images
 runs:
   using: "composite"
   steps:
-    - uses: actions/cache@v2
+
+    - uses: actions/cache@v3
       with:
         path: /tmp/docker/images
         key: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}

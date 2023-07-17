@@ -9,7 +9,6 @@ you must name the image with the same name as the module. For example:
 	<artifactId>spring-boot-maven-plugin</artifactId>
 	<configuration>
 		<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
-		<imageBuilder>paketobuildpacks/builder</imageBuilder>
 	</configuration>
 	<executions>
 		<execution>
