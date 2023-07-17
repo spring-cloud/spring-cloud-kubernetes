@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.istio;
 
-import java.io.File;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
@@ -57,12 +56,6 @@ class Fabric8IstioIT {
 
 	private static final String ISTIO_PILOT = "istio/pilot";
 
-	private static final String ISTIO_VERSION = "1.16.0";
-
-	private static final String LOCAL_ISTIO_BIN_PATH = "../../istio-cli/istio-" + ISTIO_VERSION + "/bin";
-
-	private static final String CONTAINER_ISTIO_BIN_PATH = "/tmp/istio/istio-bin/bin/";
-
 	private static KubernetesClient client;
 
 	private static Util util;
@@ -71,26 +64,24 @@ class Fabric8IstioIT {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		// Path passed to K3S container must be absolute
-		String absolutePath = new File(LOCAL_ISTIO_BIN_PATH).getAbsolutePath();
-		K3S = Commons.container().withFileSystemBind(absolutePath, CONTAINER_ISTIO_BIN_PATH);
+		K3S = Commons.container();
 		K3S.start();
 		util = new Util(K3S);
 		client = util.client();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		Commons.pullImage(ISTIO_PROXY, ISTIO_VERSION, K3S);
-		Commons.loadImage(ISTIO_PROXY, ISTIO_VERSION, "istioproxy", K3S);
-		Commons.pullImage(ISTIO_PILOT, ISTIO_VERSION, K3S);
-		Commons.loadImage(ISTIO_PILOT, ISTIO_VERSION, "istiopilot", K3S);
+		Commons.pullImage(ISTIO_PROXY, Commons.ISTIO_VERSION, K3S);
+		Commons.loadImage(ISTIO_PROXY, Commons.ISTIO_VERSION, "istioproxy", K3S);
+		Commons.pullImage(ISTIO_PILOT, Commons.ISTIO_VERSION, K3S);
+		Commons.loadImage(ISTIO_PILOT, Commons.ISTIO_VERSION, "istiopilot", K3S);
 
 		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
 		processExecResult(
 				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
 
-		processExecResult(K3S.execInContainer("sh", "-c", CONTAINER_ISTIO_BIN_PATH + "istioctl"
-				+ " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
+		processExecResult(K3S.execInContainer("sh", "-c",
+				"/tmp/istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
 
 		util.setUpIstio(NAMESPACE);
 

@@ -10,7 +10,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      TESTCONTAINERS_REUSE_ENABLE: false
+      # this might get set to true if there is an existing cache of test times
+      # this happens in 'matrix-bounds-on-test-times-cache-hit'
+      TEST_TIMES_CACHE_PRESENT: false
+      SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+
+    # this job ('build') outputs a value from step 'test_times_cache_present_init', that has the name of:
+    # 'test_times_cache_present'. This can later be used by other jobs. For example, we use this one
+    # to skip the job responsible for running the tests, if a previous cache that has the test times is not present.
+    # Same for other two variables 'number_of_matrix_instances' and 'matrix_array'.
+    outputs:
+      test_times_cache_present: ${{ steps.test_times_cache_present_init.outputs.test_times_cache_present }}
+      number_of_matrix_instances: ${{ steps.test_times_cache_present_init.outputs.number_of_matrix_instances }}
+      matrix_array: ${{ steps.test_times_cache_present_init.outputs.matrix_array }}
     steps:
 
       - name: checkout project
@@ -34,8 +46,51 @@ jobs:
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
 
+      - name: Show caches
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const caches = await github.rest.actions.getActionsCacheList({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+            for (const cache of caches.data.actions_caches) {
+              console.log(cache)
+            }  
+
       - name: maven build with dry-run for tests
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
+
+      - name: restore test times cache if it exists
+        id: restore_test_times_cache
+        if: env.BASE_BRANCH != '2.1.x'
+        uses: actions/cache/restore@v3
+        with:
+          path: /tmp/sorted.txt
+          key: ${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-
+
+      - name: check test times cache exists
+        id: check_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: /tmp/sorted.txt
+
+      - name: show existing cache of test times
+        if: steps.check_files.outputs.files_exists == 'true'
+        shell: bash
+        run: cat /tmp/sorted.txt
+
+      - name: compute matrix related fields when cache is present
+        if: steps.check_files.outputs.files_exists == 'true'
+        uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
+
+      - name: matrix related variables when cache is present
+        id: test_times_cache_present_init
+        run: |
+          echo "test_times_cache_present=${{ env.TEST_TIMES_CACHE_PRESENT }}" >> $GITHUB_OUTPUT
+          echo "number_of_matrix_instances=${{ env.NUMBER_OF_MATRIX_INSTANCES }}" >> $GITHUB_OUTPUT
+          echo "matrix_array=${{ env.MATRIX_ARRAY }}" >> $GITHUB_OUTPUT
 
       - name: build controllers project
         uses: ./.github/workflows/composites/build-controllers-project
@@ -61,55 +116,21 @@ jobs:
         uses: ./.github/workflows/composites/upload-docker-images
         if: env.BASE_BRANCH != '2.1.x'
 
-  # we need to run some test, so that K3s container is started and then all other instances will re-use this one.
-  # Otherwise, (since we use static ports) there might be two instances starting at the same time, and ports might conflict
-  # This does not run on '2.1.x' branch.
-  fabric8_istio_integration_test:
-    needs: build
+  test_when_cache_present:
+    needs: [ build ]
     runs-on: ubuntu-latest
-
-    steps:
-      - name: checkout project
-        uses: actions/checkout@v2
-
-      - name: set env variables
-        uses: ./.github/workflows/composites/env-variables
-
-      - name: setup project
-        uses: ./.github/workflows/composites/setup-jdk17
-        if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
-
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: download docker images
-        uses: ./.github/workflows/composites/download-docker-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: echo saved images
-        uses: ./.github/workflows/composites/echo-saved-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: integration test fabric8 istio
-        uses: ./.github/workflows/composites/fabric8-istio-integration-test
-        if: env.BASE_BRANCH != '2.1.x'
-
-  test:
-    needs: [ build, fabric8_istio_integration_test ]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
+    env:
+      SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+    # only run this one if there is a previous cache of test times
+    if: needs.build.outputs.test_times_cache_present == 'true'
 
     strategy:
       fail-fast: true
       matrix:
-        current_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
-        number_of_jobs: [32]
+        current_index: [ "${{ fromJSON(needs.build.outputs.matrix_array) }}" ]
+        number_of_jobs: [ "${{ fromJSON(needs.build.outputs.number_of_matrix_instances) }}" ]
 
     steps:
-
-      - name: testcontainers reuse support
-        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: checkout project
         uses: actions/checkout@v2
@@ -128,22 +149,55 @@ jobs:
         uses: ./.github/workflows/composites/setup-jdk1.8
         if: env.BASE_BRANCH == '2.1.x'
 
-      - name: cache local maven repository
-        uses: ./.github/workflows/composites/cache
+      - name: pre-test-actions
+        uses: ./.github/workflows/composites/pre-test-actions
 
-      - name: download docker images
-        uses: ./.github/workflows/composites/download-docker-images
-        if: env.BASE_BRANCH != '2.1.x'
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
-      - name: load docker images into local repo
-        uses: ./.github/workflows/composites/load-docker-images
-        if: env.BASE_BRANCH != '2.1.x'
+      - name: run and save test times when cache is present
+        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
+        env:
+          CURRENT_INDEX: ${{ matrix.current_index }}
+          NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
 
-      - name: download tests
-        uses: actions/download-artifact@v3
-        with:
-          name: tests.txt
-          path: /tmp
+  test_when_cache_missing:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    env:
+      SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+    timeout-minutes: 60
+    # only run this one if there is no previous cache of test times
+    if: needs.build.outputs.test_times_cache_present == 'false'
+
+    strategy:
+      fail-fast: true
+      matrix:
+        current_index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+        number_of_jobs: [32]
+
+    steps:
+
+      - name: checkout project
+        uses: actions/checkout@v2
+
+      - name: clean space
+        uses: ./.github/workflows/composites/clean-space
+
+      - name: set env variables
+        uses: ./.github/workflows/composites/env-variables
+
+      - name: setup project jdk-17
+        uses: ./.github/workflows/composites/setup-jdk17
+        if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
+
+      - name: setup project jdk-8
+        uses: ./.github/workflows/composites/setup-jdk1.8
+        if: env.BASE_BRANCH == '2.1.x'
+
+      - name: pre-test-actions
+        uses: ./.github/workflows/composites/pre-test-actions
 
       - name: compute single step test bounds
         uses: ./.github/workflows/composites/test-bounds
@@ -151,56 +205,38 @@ jobs:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
 
-      - name: run tests
+      - name: testcontainers reuse support
+        shell: bash
+        run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
+
+      - name: run and save individual test times
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
-        run: |
-          
-            PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep 'spring.cloud.k8s.test.to.run' | awk '{print $3}'))
-            IFS=$'\n'
-            SORTED_TEST_CLASSNAMES=( $(sort <<< "${PLAIN_TEST_CLASSNAMES[*]}") )
-            unset IFS
-          
-            start_from_name=start_from_${CURRENT_INDEX}
-            how_many_name=how_many_${CURRENT_INDEX}
-          
-            start_from=${!start_from_name}
-            how_many=${!how_many_name}
-          
-            echo "${SORTED_TEST_CLASSNAMES[@]}"
-            echo "$start_from_name : ${start_from}"
-            echo "$how_many_name   : ${how_many}"
-          
-            sliced_array=(${SORTED_TEST_CLASSNAMES[@]:$start_from:$how_many})
+        if: env.BASE_BRANCH != '2.1.x'
+        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
 
-            TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
-            echo "$TEST_ARG"
-          
-            if [[ $baseBranch == "2.1.x" ]]; then
-          
-              ./mvnw -s .settings.xml -pl '-:kubernetes-leader-election-example' -pl '-:kubernetes-hello-world-example' \
-              -pl '-:kubernetes-reload-example' -pl '-:kubernetes-loadbalancer-example' \
-              -pl '-:spring-cloud-kubernetes-configserver' -pl '-:spring-cloud-kubernetes-configuration-watcher' \
-              -pl '-:spring-cloud-kubernetes-discoveryserver' \
-              -DtestsToRun=${TEST_ARG[@]} \
-              -e clean install \
-              -U -P sonar -nsu --batch-mode \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -Dhttp.keepAlive=false \
-              -Dmaven.wagon.http.pool=false \
-              -Dmaven.wagon.http.retryHandler.class=standard \
-              -Dmaven.wagon.http.retryHandler.count=3 \
-              -Dskip.build.image=true
-          
-            else 
-              ./mvnw -s .settings.xml \
-              -DtestsToRun=${TEST_ARG[@]} \
-              -e clean install \
-              -U -P sonar -nsu --batch-mode \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -Dhttp.keepAlive=false \
-              -Dmaven.wagon.http.pool=false \
-              -Dmaven.wagon.http.retryHandler.class=standard \
-              -Dmaven.wagon.http.retryHandler.count=3 \
-              -Dskip.build.image=true          
-            fi
+  save_test_times_when_cache_missing:
+    runs-on: ubuntu-latest
+    needs: [build, test_when_cache_missing ]
+
+    steps:
+
+      - name: checkout project
+        uses: actions/checkout@v2
+
+      - name: compute and save running time of tests
+        if: env.BASE_BRANCH != '2.1.x'
+        uses: ./.github/workflows/composites/test-times
+
+  save_test_times_when_cache_present:
+    runs-on: ubuntu-latest
+    needs: [ build, test_when_cache_present ]
+
+    steps:
+
+      - name: checkout project
+        uses: actions/checkout@v2
+
+      - name: compute and save running time of tests
+        if: env.BASE_BRANCH != '2.1.x'
+        uses: ./.github/workflows/composites/test-times
