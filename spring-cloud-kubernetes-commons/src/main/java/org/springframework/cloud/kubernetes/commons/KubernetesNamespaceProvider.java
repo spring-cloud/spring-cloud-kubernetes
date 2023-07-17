@@ -21,8 +21,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.springframework.boot.context.properties.bind.BindHandler;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLog;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ObjectUtils;
 
 import static org.springframework.cloud.kubernetes.commons.KubernetesClientProperties.SERVICE_ACCOUNT_NAMESPACE_PATH;
 
@@ -43,23 +47,49 @@ public class KubernetesNamespaceProvider {
 	 */
 	public static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
 
+	private BindHandler bindHandler;
+
 	private String serviceAccountNamespace;
 
-	private final Environment environment;
+	private Environment environment;
+
+	private Binder binder;
 
 	public KubernetesNamespaceProvider(Environment env) {
 		this.environment = env;
 		LOG.replayTo(KubernetesNamespaceProvider.class);
 	}
 
+	public KubernetesNamespaceProvider(Binder binder, BindHandler bindHandler) {
+		this.binder = binder;
+		this.bindHandler = bindHandler;
+	}
+
 	public String getNamespace() {
-		String namespace = environment.getProperty(NAMESPACE_PROPERTY);
+		String namespace = null;
+		if (environment != null) {
+			namespace = environment.getProperty(NAMESPACE_PROPERTY);
+		}
+		if (ObjectUtils.isEmpty(namespace) && binder != null) {
+			namespace = binder.bind(NAMESPACE_PROPERTY, String.class).orElse(null);
+		}
 		return namespace != null ? namespace : getServiceAccountNamespace();
 	}
 
 	private String getServiceAccountNamespace() {
-		String serviceAccountNamespacePathString = environment.getProperty(NAMESPACE_PATH_PROPERTY,
-				SERVICE_ACCOUNT_NAMESPACE_PATH);
+		String serviceAccountNamespacePathString = null;
+		if (environment != null) {
+			serviceAccountNamespacePathString = environment.getProperty(NAMESPACE_PATH_PROPERTY,
+					SERVICE_ACCOUNT_NAMESPACE_PATH);
+		}
+		if (ObjectUtils.isEmpty(serviceAccountNamespacePathString) && binder != null) {
+			// When using the binder we cannot use camelcase properties, it considers them
+			// invalid
+			serviceAccountNamespacePathString = binder
+					.bind("spring.cloud.kubernetes.client.service-account-namespace-path", Bindable.of(String.class),
+							bindHandler)
+					.orElse(SERVICE_ACCOUNT_NAMESPACE_PATH);
+		}
 		if (serviceAccountNamespace == null) {
 			serviceAccountNamespace = getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);
 		}

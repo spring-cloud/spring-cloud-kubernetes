@@ -80,6 +80,7 @@ class SecretsEventsReloadIT {
 	@AfterAll
 	static void after() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@Test
@@ -146,10 +147,10 @@ class SecretsEventsReloadIT {
 		InputStream ingressStream = util.inputStream("ingress.yaml");
 		InputStream secretStream = util.inputStream("secret.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		Secret secret = client.secrets().load(secretStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		Secret secret = client.secrets().load(secretStream).item();
 
 		if (configMapsDisabled) {
 			List<EnvVar> envVars = new ArrayList<>(

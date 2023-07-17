@@ -73,6 +73,7 @@ class ReactiveDiscoveryClientIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@BeforeEach

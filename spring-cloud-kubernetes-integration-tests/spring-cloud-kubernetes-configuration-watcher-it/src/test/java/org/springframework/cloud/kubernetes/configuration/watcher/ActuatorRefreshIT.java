@@ -73,6 +73,7 @@ class ActuatorRefreshIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@BeforeEach
