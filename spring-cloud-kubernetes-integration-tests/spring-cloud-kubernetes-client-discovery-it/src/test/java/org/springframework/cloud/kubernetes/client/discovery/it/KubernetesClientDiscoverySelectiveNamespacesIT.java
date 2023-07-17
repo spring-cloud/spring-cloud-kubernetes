@@ -262,35 +262,27 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
 
-		List<V1EnvVar> envVars = new ArrayList<>(
+		if (phase.equals(Phase.DELETE)) {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			return;
+		}
+
+		if (phase.equals(Phase.CREATE)) {
+			List<V1EnvVar> envVars = new ArrayList<>(
 				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-						.orElse(List.of()));
-		V1EnvVar debugLevel = new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY")
-				.value("DEBUG");
-
-		V1EnvVar debugLevelForCommons = new V1EnvVar()
-			.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
-
-		V1EnvVar selectiveNamespaceA = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
+					.orElse(List.of()));
+			V1EnvVar debugLevel = new V1EnvVar()
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
+			V1EnvVar selectiveNamespaceA = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
 				.value(NAMESPACE_A);
-		if (disableReactive) {
+
 			V1EnvVar disableReactiveEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED")
 				.value("FALSE");
 			envVars.add(disableReactiveEnvVar);
-		}
 
-		if (disableBlocking) {
-			V1EnvVar disableBlockingEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED")
-					.value("FALSE");
-			envVars.add(disableBlockingEnvVar);
-		}
-
-		envVars.add(debugLevel);
-		envVars.add(debugLevelForCommons);
-		envVars.add(selectiveNamespaceA);
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		if (phase.equals(Phase.CREATE)) {
+			envVars.add(debugLevel);
+			envVars.add(selectiveNamespaceA);
+			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 	}
