@@ -88,6 +88,7 @@ class BootstrapEnabledReloadConfigMapMountIT {
 		util.configWatcher(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.cleanUp(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**

@@ -88,6 +88,7 @@ class ReloadConfigMapMountIT {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.cleanUp(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
 		util.configWatcher(Phase.DELETE);
+		Commons.systemPrune();
 	}
 
 	/**
@@ -115,7 +116,7 @@ class ReloadConfigMapMountIT {
 		// replace data in configmap and wait for k8s to pick it up
 		// our configuration watcher will schedule a http refresh event
 		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
-		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		ConfigMap configMap = client.configMaps().load(configMapStream).item();
 		configMap.setData(Map.of("from.properties", "as-mount-changed"));
 
 		// add label so that configuration-watcher picks this up
@@ -143,10 +144,10 @@ class ReloadConfigMapMountIT {
 		InputStream ingressStream = util.inputStream("ingress.yaml");
 		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		ConfigMap configMap = client.configMaps().load(configMapStream).item();
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());

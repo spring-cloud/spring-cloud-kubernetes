@@ -1,0 +1,71 @@
+########################################### find test times #######################################
+# when cache of test times is present, compute matrix steps
+# we do this because the number of steps required in a matrix is not stable
+# it is computed as sum_of_times_of_all_tests / max_time_of_a_single_test
+# For example if there is no test times cache, we will be using 32 steps in the matrix
+# on the other hand if cache is present, we might need less steps:
+
+# sum_of_times_of_all_tests = 8000 seconds
+# max_time_of_a_single_test = 400
+# we would require 20 steps in the matrix, as having 32 would make no sense
+# because one step will run around 400 seconds and others will wait for this one to finish
+# as they finish earlier
+
+name: matrix bounds on test times cache hit
+description: matrix bounds on test times cache hit
+runs:
+  using: "composite"
+
+  steps:
+
+    - name: compute matrix steps
+      shell: bash
+      run: |
+        
+        sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' /tmp/sorted.txt)
+        sum_of_all_tests_as_int=$(printf "%.0f\n" "$sum_of_all_tests")
+        echo "sum of all tests : $sum_of_all_tests_as_int"
+        
+        max_test_time=$(tail -1 /tmp/sorted.txt | awk '{print $2}')
+        max_test_time_as_int=$(printf "%.0f\n" "$max_test_time")
+        echo "max test time : $max_test_time_as_int"
+        
+        number_of_instances=$((  $sum_of_all_tests_as_int / $max_test_time_as_int  ))
+        
+        number_of_instances_as_array=()
+        number_of_instances_as_array+='['
+        number_of_instances_as_array+=$number_of_instances
+        number_of_instances_as_array+=']'
+        
+        average_time_per_instance=$((  sum_of_all_tests_as_int / $number_of_instances ))
+        echo "average time per instance $average_time_per_instance"
+        
+        matrix_array=()
+        matrix_array+='['
+        for ((i=0; i<=${number_of_instances}; i++)); do
+          if (( $i == $(( $number_of_instances )) )); then
+            matrix_array+=$i
+          else 
+            matrix_array+=$i,
+          fi 
+        done
+        
+        matrix_array+=']'
+        
+        echo "number of instances : $number_of_instances_as_array"
+        echo "average time per instance : $average_time_per_instance"
+        echo "matrix_array : $matrix_array"
+        echo "********************************************************************************************************"
+        
+        number_of_instances_json=$(jq -r -c . <<< $number_of_instances_as_array)
+        echo "number_of_instances_json : $number_of_instances_json"
+        
+        matrix_array_json=$(jq -r -c . <<< $matrix_array)
+        echo "matrix_array_json : $matrix_array_json"
+
+        echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
+        echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_json)" >> $GITHUB_ENV
+        echo "MATRIX_ARRAY=$(echo $matrix_array_json)" >> $GITHUB_ENV
+        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
+
+

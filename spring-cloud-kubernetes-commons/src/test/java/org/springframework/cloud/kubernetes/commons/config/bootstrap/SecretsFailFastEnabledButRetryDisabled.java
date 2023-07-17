@@ -29,8 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Isik Erhan
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = App.class, properties = {
-		"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = App.class,
+		properties = { "spring.cloud.kubernetes.secrets.fail-fast=true",
+				"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.config.enabled=false" })
 class SecretsFailFastEnabledButRetryDisabled {
 
 	@Autowired

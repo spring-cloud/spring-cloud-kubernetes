@@ -24,6 +24,7 @@ import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -135,10 +136,6 @@ public final class Util {
 			if (e instanceof ApiException apiException) {
 				System.out.println(apiException.getResponseBody());
 			}
-			e.printStackTrace();
-			LOG.info("events : " + events());
-			LOG.info("describe deployment : " + describeDeployment(deployment));
-			LOG.info("node events : " + nodeEvents());
 			throw new RuntimeException(e);
 		}
 	}
@@ -606,6 +603,46 @@ public final class Util {
 		return availableReplicas != null && availableReplicas >= 1;
 	}
 
+	public void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
+		try {
+			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(3)).atMost(60, TimeUnit.SECONDS)
+					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
+		}
+		catch (Exception e) {
+			if (e instanceof ApiException apiException) {
+				LOG.error("Error: ");
+				LOG.error(apiException.getResponseBody());
+			}
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	private boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace, Map<String, String> labels)
+			throws ApiException {
+
+		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
+				"metadata.name=" + deploymentName, null, null, null, null, null, null);
+		if (deployments.getItems().size() < 1) {
+			fail("No deployment with name " + deploymentName);
+		}
+
+		V1Deployment deployment = deployments.getItems().get(0);
+		// if no replicas are defined, it means only 1 is needed
+		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
+
+		int numberOfPods = coreV1Api.listNamespacedPod(namespace, null, null, null, null, labelSelector(labels), null,
+				null, null, null, null).getItems().size();
+
+		if (numberOfPods != replicas) {
+			LOG.info("number of pods not yet stabilized");
+			return false;
+		}
+
+		return replicas == Optional.ofNullable(deployment.getStatus().getAvailableReplicas()).orElse(0);
+
+	}
+
 	private static <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {
 		try {
 			callee.get();
@@ -623,38 +660,6 @@ public final class Util {
 
 	private static String labelSelector(Map<String, String> labels) {
 		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
-	}
-
-	private String events() {
-		try {
-			return container.execInContainer("sh", "-c", "kubectl get events").getStdout();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private String nodeEvents() {
-		try {
-			String nodeName = container.execInContainer("sh", "-c", "kubectl get nodes --no-headers | awk '{print $1}'")
-					.getStdout();
-			LOG.info("nodeName : " + nodeName);
-			return container.execInContainer("sh", "-c", "kubectl describe node " + nodeName).getStdout();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private String describeDeployment(V1Deployment deployment) {
-		try {
-			return container
-					.execInContainer("sh", "-c", "kubectl describe deployment " + deployment.getMetadata().getName())
-					.getStdout();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	private interface CheckedSupplier<T> {

@@ -76,6 +76,7 @@ class SecretsEventReloadIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@Test
