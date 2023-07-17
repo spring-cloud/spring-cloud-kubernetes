@@ -90,6 +90,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		util.deleteNamespace(NAMESPACE_LEFT);
 		util.deleteNamespace(NAMESPACE_RIGHT);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	@Test
@@ -120,7 +121,7 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
@@ -128,17 +129,17 @@ class Fabric8DiscoveryNamespaceFilterIT {
 		envVars.add(activeProfileProperty);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
-					.create();
+			client.rbac().clusterRoleBindings()
+					.resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item()).create();
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
-					.delete();
+			client.rbac().clusterRoleBindings()
+					.resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item()).delete();
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 

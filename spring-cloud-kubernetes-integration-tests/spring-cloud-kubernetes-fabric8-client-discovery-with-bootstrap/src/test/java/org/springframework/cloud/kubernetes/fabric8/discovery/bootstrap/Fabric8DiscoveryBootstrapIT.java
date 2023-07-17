@@ -80,6 +80,7 @@ class Fabric8DiscoveryBootstrapIT {
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.systemPrune();
 	}
 
 	/**
@@ -106,7 +107,7 @@ class Fabric8DiscoveryBootstrapIT {
 		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -117,8 +118,8 @@ class Fabric8DiscoveryBootstrapIT {
 						.withValue("DEBUG").build());
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Service service = client.services().load(serviceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);

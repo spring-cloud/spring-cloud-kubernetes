@@ -47,6 +47,19 @@ To see the list of all Kubernetes related configuration properties please check 
 
 include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building.adoc[]
 
+=== Building Docker Images On ARM64
+
+If you run the Spring Cloud Kuberentes build on an ARM64 machine the docker images
+used for the integration tests will fail to run due to using the wrong architecture.
+This is because the Paketo build pack does not yet support ARM64.  To work around this you
+can run the build by passing `-Dspring-boot.build-image.builder=dashaun/builder:tiny` to Maven.
+
+For example:
+```
+./mvnw clean install -Dspring-boot.build-image.builder=dashaun/builder:tiny
+```
+
+
 == Contributing
 
 include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing.adoc[]
