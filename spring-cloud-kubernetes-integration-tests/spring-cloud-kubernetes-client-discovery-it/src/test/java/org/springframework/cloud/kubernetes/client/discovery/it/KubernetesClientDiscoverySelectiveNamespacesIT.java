@@ -273,6 +273,10 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 					.orElse(List.of()));
 			V1EnvVar debugLevel = new V1EnvVar()
 				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
+
+			V1EnvVar debugLevelCommons = new V1EnvVar()
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
+
 			V1EnvVar selectiveNamespaceA = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
 				.value(NAMESPACE_A);
 
@@ -281,6 +285,7 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 			envVars.add(disableReactiveEnvVar);
 
 			envVars.add(debugLevel);
+			envVars.add(debugLevelCommons);
 			envVars.add(selectiveNamespaceA);
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
