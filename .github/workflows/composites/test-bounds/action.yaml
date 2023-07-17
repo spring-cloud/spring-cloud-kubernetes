@@ -1,0 +1,65 @@
+name: test-bounds
+description: test-bounds
+runs:
+  using: "composite"
+  steps:
+    - name: test-bounds
+      shell: bash
+      run: |
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
+        NUMBER_OF_TESTS=${#PLAIN_TEST_CLASSNAMES[@]}
+        
+        echo "current index : ${CURRENT_INDEX}"
+        echo "total number of tests: ${NUMBER_OF_TESTS} to be run on ${NUMBER_OF_JOBS} instances"
+        
+        ##########################################################################################################
+        ##########################################################################################################
+        # Split tests per instance. The simplest form is when (for example), there are 100 tests and 10 instances.
+        # In this case, we will run 10 tests per a single instance. This is the case when reminder == 0 (100 / 10).
+        # In this case we will compute start_from as = current index * per_instance, that is: 0, 10, 20...
+        # and so on. How many tests are supposed to be taken in each matrix is equal to per_instance, that is 10.
+         
+        # Slightly more interesting is when the tests are not perfectly distributed, when reminder != 0. 
+        # For example 323 tests on 32 instances. In this case, we logically split this problem in two:
+        # when current_index < reminder and the rest.
+        # The batches in the example above are going to be [0, 11) [11, 22) [22, 33) [33, 43) [43, 53) ... 
+        # So when current_index < reminder, we need to start at : current_index * per_instance + current_index,
+        # i.e.: 0, 11, 22
+        # and how many elements to take is : per_instance + 1, i.e. : 11
+        # On the other hand when current_index is not < reminder, how_many is easy, it's equal to per_instance.
+        # start_from on the other hand is : per_instance * current_index + reminder, i.e. : 33, 43, 53 and so on
+        ##########################################################################################################
+        ##########################################################################################################
+        
+        per_instance=$((${NUMBER_OF_TESTS} / ${NUMBER_OF_JOBS}))
+        reminder=$((${NUMBER_OF_TESTS} - ${NUMBER_OF_JOBS} * ${per_instance}))
+        
+        start_from=0
+        how_many=0
+
+        if [[ $reminder -eq 0 ]]; then
+          start_from=$(( ${CURRENT_INDEX} * ${per_instance} ))
+          how_many=${per_instance}
+        else
+          if [[ $CURRENT_INDEX -eq 0 ]]; then
+            start_from=0
+            how_many=$(( $per_instance + 1 ))
+          else
+            if [[ $CURRENT_INDEX -lt $reminder ]]; then
+              start_from=$(( $per_instance * $CURRENT_INDEX + $CURRENT_INDEX ))
+              how_many=$(( $per_instance +1 ))
+            else
+              start_from=$(( $per_instance * $CURRENT_INDEX + $reminder ))
+              how_many=$per_instance
+            fi
+          fi
+        fi
+        
+        start_from_name=start_from_${CURRENT_INDEX}
+        how_many_name=how_many_${CURRENT_INDEX}
+        
+        echo "$start_from_name  : $start_from"
+        echo "$how_many_name    : $how_many"
+        
+        echo "$start_from_name=$start_from" >> $GITHUB_ENV
+        echo "$how_many_name=$how_many" >> $GITHUB_ENV

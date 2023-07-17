@@ -45,17 +45,17 @@ class Fabric8SecretsPropertySourceMockTests {
 
 	@Test
 	void namedStrategyShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
-		final String name = "my-config";
+		final String name = "my-secret";
 		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
+		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, true, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, namespace, new MockEnvironment());
 
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("Failure executing: GET at: https://localhost:")
-				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Not Found.");
+				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
 	}
 
 	@Test
@@ -67,21 +67,21 @@ class Fabric8SecretsPropertySourceMockTests {
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		assertThatThrownBy(() -> new Fabric8SecretsPropertySource(context)).isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
 	}
 
 	@Test
 	void namedStrategyShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
-		final String name = "my-config";
+		final String name = "my-secret";
 		final String namespace = "default";
-		final String path = String.format("/api/v1/namespaces/%s/secrets/%s", namespace, name);
+		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		NamedSecretNormalizedSource named = new NamedSecretNormalizedSource(name, namespace, false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, named, "default", new MockEnvironment());
 
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		assertThatNoException().isThrownBy(() -> new Fabric8SecretsPropertySource(context));
 	}
 
@@ -89,12 +89,12 @@ class Fabric8SecretsPropertySourceMockTests {
 	void labeledStrategyShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		final String namespace = "default";
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
-		final String path = String.format("/api/v1/namespaces/%s/secrets?labelSelector=", namespace) + "a%3Db";
+		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
-		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
+		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		assertThatNoException().isThrownBy(() -> new Fabric8SecretsPropertySource(context));
 	}
 

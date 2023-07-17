@@ -1,0 +1,58 @@
+# this stage sort all tests by their timings. For that we rely on the surefire-plugin reports
+# that have the name as <TEST_NAME>.txt and inside it there is a field that holds the time it took
+# We get a hold of that field via awk '{print $12, $13} in the previous step.
+# That previous step stores only tests for one matrix step, which we uploaded.
+# In the steps below we download all artifacts (thus all test times), put them into a single file
+# called /tmp/times-of-all-tests.txt, then sort this file, thus get a histogram of all test names
+# and the time it took to run them.
+
+name: test-times
+description: test-times
+runs:
+  using: "composite"
+
+  steps:
+
+    # we omit the name, as such all artifacts are downloaded
+    - name: download all artifacts
+      if: env.BASE_BRANCH != '2.1.x'
+      uses: actions/download-artifact@v3
+      with:
+        path: /tmp/all-artifacts
+
+    - name: show all artifacts
+      if: env.BASE_BRANCH != '2.1.x'
+      shell: bash
+      run: ls -l /tmp/all-artifacts
+
+    - name: merge all artifacts into a single file and sort by time
+      if: env.BASE_BRANCH != '2.1.x'
+      shell: bash
+      run: |
+        arr=($(find /tmp/all-artifacts/ -type f -name "test_times*"))
+
+        for i in "${arr[@]}"; do
+          echo "parsing -> ${i}"
+          cat "${i}" | awk '{print $3" "$6}' >> /tmp/times-of-all-tests.txt
+        done
+
+        sort -t' '  -nk2 /tmp/times-of-all-tests.txt >> /tmp/sorted.txt
+        
+        cat /tmp/sorted.txt
+
+    - name: show all tests in a sorted manner
+      if: env.BASE_BRANCH != '2.1.x'
+      shell: bash
+      run: cat /tmp/sorted.txt
+
+    # save with the current run_id, but restore it without it. This means two things:
+    # 1) if we re-run, cache will be available
+    # 2) if there is a new run, we restore as '${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-'
+    #    meaning there could be many of them already present and this is not an exact match
+    #    github in this case will pick up the latest one, exactly what we want.
+    - name: save test times in cache
+      uses: actions/cache/save@v3
+      if: env.BASE_BRANCH != '2.1.x'
+      with:
+        path: /tmp/sorted.txt
+        key: ${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-${{ github.run_id }}

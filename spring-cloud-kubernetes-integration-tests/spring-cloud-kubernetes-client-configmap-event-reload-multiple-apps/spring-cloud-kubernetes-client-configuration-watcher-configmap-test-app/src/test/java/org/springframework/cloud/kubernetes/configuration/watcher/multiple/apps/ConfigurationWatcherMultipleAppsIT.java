@@ -86,6 +86,7 @@ class ConfigurationWatcherMultipleAppsIT {
 		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Commons.cleanUp(CONFIG_WATCHER_APP_A_IMAGE, K3S);
 		Commons.cleanUp(CONFIG_WATCHER_APP_B_IMAGE, K3S);
+		Commons.systemPrune();
 	}
 
 	@BeforeEach
