@@ -282,8 +282,8 @@ public final class Util {
 		InputStream deploymentStream = inputStream("config-watcher/deployment.yaml");
 		InputStream serviceStream = inputStream("config-watcher/service.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait("default", deployment.getMetadata().getName(), deployment, service, null, true);
