@@ -161,6 +161,29 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertTrue(output.getOut().contains("Service labels from service : {a=b, c=d}"));
 	}
 
+	/**
+	 * <pre>
+	 *     properties = [app.kubernetes.io/component=java-service]
+	 *     service    = [app.kubernetes.io/component=database]
+	 *
+	 *     This means the service is not picked-up.
+	 * </pre>
+	 */
+	@Test
+	void testFive(CapturedOutput output) {
+		Map<String, String> propertiesLabels = Map.of("app.kubernetes.io/component", "java-service");
+		Map<String, String> serviceLabels = ordered(Map.of("app.kubernetes.io/component", "database"));
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+		V1Service service = new V1ServiceBuilder()
+				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+
+		boolean result = matchesServiceLabels(service, properties);
+		Assertions.assertFalse(result);
+		Assertions.assertTrue(output.getOut().contains("Service labels from properties : {app.kubernetes.io/component=java-service}"));
+		Assertions.assertTrue(output.getOut().contains("Service labels from service : {app.kubernetes.io/component=database}"));
+	}
+
 	// preserve order for testing reasons
 	private Map<String, String> ordered(Map<String, String> input) {
 		return input.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(
