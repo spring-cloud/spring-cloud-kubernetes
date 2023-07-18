@@ -134,6 +134,9 @@ runs:
               tests_to_run_in_current_index=$tests_to_take_in_current_iteration
               echo "time of tests in current index : $sum"
               
+              # this can be the case when we delete some tests in some PR for example
+              # the previous cache will contain more tests then we currently have, so some 
+              # matrix instances will have no tests to run
               if [[ "$sum" -eq "0" ]]; then
                 echo "no tests to run in current index, most probably this PR removed some tests"
                 tests_to_run_in_current_index='none'
@@ -194,13 +197,18 @@ runs:
             unset IFS
         
             for i in "${sliced_array[@]}"; do
-              filename="${i}.txt"
-              echo "searching for filename: ${filename}"
-              file=$(find . -name "${filename}")
-              echo "found file: ${file}"
-              result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
-        
-              echo "run test: ${i} in : ${result}" >> /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+              
+              # can be present in the last index as 'none,testA,testB'
+              if [[ "$i" -eq "none" ]]; then
+                echo "skipping 'none'"
+              else
+                filename="${i}.txt"
+                echo "searching for filename: ${filename}"
+                file=$(find . -name "${filename}")
+                echo "found file: ${file}"
+                result=$(cat "${file}" | grep 'elapsed' | awk '{print $12, $13}')
+                echo "run test: ${i} in : ${result}" >> /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
+              fi
             done
         fi
         
