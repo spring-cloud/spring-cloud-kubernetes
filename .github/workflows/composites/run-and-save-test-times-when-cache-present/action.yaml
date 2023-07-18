@@ -133,6 +133,12 @@ runs:
               echo "current index : ${CURRENT_INDEX}"
               tests_to_run_in_current_index=$tests_to_take_in_current_iteration
               echo "time of tests in current index : $sum"
+              
+              if [[ "$sum" -eq "0" ]]; then
+                echo "no tests to run in current index, most probably this PR removed some tests"
+                tests_to_run_in_current_index='none'
+              fi
+              
             fi
             
         done
