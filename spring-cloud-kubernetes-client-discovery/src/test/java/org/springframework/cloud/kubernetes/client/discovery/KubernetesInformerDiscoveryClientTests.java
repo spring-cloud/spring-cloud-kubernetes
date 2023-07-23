@@ -460,10 +460,11 @@ class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpointsA, endpointsB);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
-			false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
+				0, false);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-			SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstances.size()).isEqualTo(1);
@@ -482,13 +483,14 @@ class KubernetesInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpointsA, endpointsB);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
-			false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
+				0, false);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-			SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
 
-		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX")
-				.stream().sorted(Comparator.comparing(x -> x.getMetadata().get("k8s_namespace"))).toList();
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX").stream()
+				.sorted(Comparator.comparing(x -> x.getMetadata().get("k8s_namespace"))).toList();
 		assertThat(serviceInstances.size()).isEqualTo(2);
 		assertThat(serviceInstances.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
 		assertThat(serviceInstances.get(1).getMetadata().get("k8s_namespace")).isEqualTo("namespaceB");
