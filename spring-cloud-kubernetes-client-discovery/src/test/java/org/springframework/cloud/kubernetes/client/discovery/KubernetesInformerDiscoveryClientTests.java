@@ -448,6 +448,52 @@ class KubernetesInformerDiscoveryClientTests {
 
 	}
 
+	@Test
+	void testServicesWithDifferentMetadataLabels() {
+		V1Service serviceA = service("serviceX", "namespaceA", Map.of("shape", "round"));
+		V1Service serviceB = service("serviceX", "namespaceB", Map.of("shape", "triangle"));
+
+		V1Endpoints endpointsA = endpointsReadyAddress("serviceX", "namespaceA");
+		V1Endpoints endpointsB = endpointsReadyAddress("serviceX", "namespaceB");
+
+		Lister<V1Service> serviceLister = setupServiceLister(serviceA, serviceB);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpointsA, endpointsB);
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
+			false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+			SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
+		assertThat(serviceInstances.size()).isEqualTo(1);
+		assertThat(serviceInstances.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
+	}
+
+	@Test
+	void testServicesWithSameMetadataLabels() {
+		V1Service serviceA = service("serviceX", "namespaceA", Map.of("shape", "round"));
+		V1Service serviceB = service("serviceX", "namespaceB", Map.of("shape", "round"));
+
+		V1Endpoints endpointsA = endpointsReadyAddress("serviceX", "namespaceA");
+		V1Endpoints endpointsB = endpointsReadyAddress("serviceX", "namespaceB");
+
+		Lister<V1Service> serviceLister = setupServiceLister(serviceA, serviceB);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpointsA, endpointsB);
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
+			false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+			SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX")
+				.stream().sorted(Comparator.comparing(x -> x.getMetadata().get("k8s_namespace"))).toList();
+		assertThat(serviceInstances.size()).isEqualTo(2);
+		assertThat(serviceInstances.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
+		assertThat(serviceInstances.get(1).getMetadata().get("k8s_namespace")).isEqualTo("namespaceB");
+	}
+
 	private Lister<V1Service> setupServiceLister(V1Service... services) {
 		Cache<V1Service> serviceCache = new Cache<>();
 		Lister<V1Service> serviceLister = new Lister<>(serviceCache);
