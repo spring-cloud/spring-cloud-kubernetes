@@ -132,10 +132,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 		List<V1Service> services = serviceListers.stream().flatMap(x -> x.list().stream())
 				.filter(scv -> scv.getMetadata() != null).filter(svc -> serviceId.equals(svc.getMetadata().getName()))
+				.filter(svc -> matchesServiceLabels(svc, properties))
 				.filter(filter).toList();
-		if (services.size() == 0 || services.stream().noneMatch(service -> matchesServiceLabels(service, properties))) {
-			return List.of();
-		}
 		return services.stream().flatMap(service -> getServiceInstanceDetails(service, serviceId)).toList();
 	}
 
