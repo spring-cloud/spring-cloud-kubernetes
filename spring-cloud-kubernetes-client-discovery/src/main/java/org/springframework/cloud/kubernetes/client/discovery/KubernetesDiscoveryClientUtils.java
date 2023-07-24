@@ -75,10 +75,10 @@ final class KubernetesDiscoveryClientUtils {
 			return false;
 		}
 
-		LOG.debug(() -> "Service labels from properties : " + properties.serviceLabels());
-		LOG.debug(() -> "Service labels from service : " + service.getMetadata().getLabels());
+		LOG.debug(() -> "Service labels from properties : " + propertiesServiceLabels);
+		LOG.debug(() -> "Service labels from service : " + serviceLabels);
 
-		return serviceLabels.keySet().containsAll(propertiesServiceLabels.keySet());
+		return serviceLabels.entrySet().containsAll(propertiesServiceLabels.entrySet());
 
 	}
 
