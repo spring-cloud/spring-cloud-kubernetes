@@ -241,14 +241,14 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			Set<String> filteredServiceNames = client.services().inNamespace(entry.getKey()).list().getItems().stream()
 					.filter(filter).map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
 
-			// in the previous step we might have taken "too many" services, so in the next one
+			// in the previous step we might have taken "too many" services, so in the
+			// next one
 			// take only those that have a matching endpoints, by name.
-			// This way we only get the endpoints that have a matching service with an applied filter,
+			// This way we only get the endpoints that have a matching service with an
+			// applied filter,
 			// it's like we filtered endpoints by that filter.
-			result.addAll(
-					entry.getValue().stream().filter(endpoint ->
-						filteredServiceNames.contains(endpoint.getMetadata().getName())).toList()
-			);
+			result.addAll(entry.getValue().stream()
+					.filter(endpoint -> filteredServiceNames.contains(endpoint.getMetadata().getName())).toList());
 
 		}
 
