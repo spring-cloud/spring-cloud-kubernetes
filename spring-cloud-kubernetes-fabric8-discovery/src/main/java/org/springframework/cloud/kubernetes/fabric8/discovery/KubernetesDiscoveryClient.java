@@ -109,6 +109,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		for (EndpointSubsetNS es : subsetsNS) {
+			// subsetsNS are only those that matched the serviceId
 			instances.addAll(getNamespaceServiceInstances(es, serviceId));
 		}
 
