@@ -1,0 +1,373 @@
+/*
+ * Copyright 2013-2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.kubernetes.commons.discovery;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
+import io.fabric8.kubernetes.api.model.EndpointSubset;
+import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+
+/**
+ * @author wind57
+ */
+@ExtendWith(OutputCaptureExtension.class)
+class DiscoveryClientUtilsTests {
+
+	/**
+	 * <pre>
+	 *     - labels are not added
+	 *     - annotations are not added
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataEmpty() {
+		boolean addLabels = false;
+		String labelsPrefix = "";
+		boolean addAnnotations = false;
+		String annotationsPrefix = "";
+		boolean addPorts = false;
+		String portsPrefix = "";
+		String namespace = "default";
+
+		Map<String, String> serviceLabels = Map.of();
+		Map<String, String> serviceAnnotations = Map.of();
+		Map<String, String> portsData = Map.of();
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
+			serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("k8s_namespace", "default", "type", "ClusterIP"));
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are not added, though they are not empty
+	 *     - annotations are not added, though they are not empty
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataNotEmptyNotTaken() {
+		boolean addLabels = false;
+		String labelsPrefix = "";
+		boolean addAnnotations = false;
+		String annotationsPrefix = "";
+		boolean addPorts = false;
+		String portsPrefix = "";
+		String namespace = "default";
+
+		Map<String, String> serviceLabels = Map.of("a", "1");
+		Map<String, String> serviceAnnotations = Map.of("b", "2");
+		Map<String, String> portsData = Map.of("c", "3");
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
+			serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result, Map.of("k8s_namespace", "default", "type", "ClusterIP"));
+	}
+
+	/**
+	 * <pre>
+	 *     - labels are added without a prefix
+	 *     - annotations are not added
+	 * </pre>
+	 */
+	@Test
+	void testServiceMetadataAddLabelsNoPrefix(CapturedOutput output) {
+		boolean addLabels = true;
+		String labelsPrefix = "";
+		boolean addAnnotations = false;
+		String annotationsPrefix = "";
+		boolean addPorts = false;
+		String portsPrefix = "";
+		String namespace = "default";
+
+		Map<String, String> serviceLabels = Map.of("a", "b");
+		Map<String, String> serviceAnnotations = Map.of("c", "2");
+		Map<String, String> portsData = Map.of("d", "3");
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
+			serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+
+		Assertions.assertEquals(result.size(), 3);
+		Assertions.assertEquals(result, Map.of("a", "b", "k8s_namespace", "default", "type", "ClusterIP"));
+		String labelsMetadata = filterOnK8sNamespaceAndType(result);
+		Assertions.assertTrue(
+			output.getOut().contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service"));
+	}
+//
+//	/**
+//	 * <pre>
+//	 *     - labels are added with prefix
+//	 *     - annotations are not added
+//	 * </pre>
+//	 */
+//	@Test
+//	void testServiceMetadataAddLabelsWithPrefix(CapturedOutput output) {
+//		boolean addLabels = true;
+//		String labelsPrefix = "prefix-";
+//		boolean addAnnotations = false;
+//		String annotationsPrefix = "";
+//		boolean addPorts = false;
+//		String portsPrefix = "";
+//
+//		String namespace = "default";
+//
+//		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+//			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+//			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+//		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+//			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b", "c", "d")).build()).build();
+//
+//		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
+//			properties, List.of(), namespace);
+//		Assertions.assertEquals(result.size(), 4);
+//		Assertions.assertEquals(result,
+//			Map.of("prefix-a", "b", "prefix-c", "d", "k8s_namespace", "default", "type", "ClusterIP"));
+//		// so that result is deterministic in assertion
+//		String labelsMetadata = filterOnK8sNamespaceAndType(result);
+//		Assertions.assertTrue(
+//			output.getOut().contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service"));
+//	}
+//
+//	/**
+//	 * <pre>
+//	 *     - labels are not added
+//	 *     - annotations are added without prefix
+//	 * </pre>
+//	 */
+//	@Test
+//	void testServiceMetadataAddAnnotationsNoPrefix(CapturedOutput output) {
+//		boolean addLabels = false;
+//		String labelsPrefix = "";
+//		boolean addAnnotations = true;
+//		String annotationsPrefix = "";
+//		boolean addPorts = false;
+//		String portsPrefix = "";
+//
+//		String namespace = "default";
+//
+//		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+//			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+//			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+//		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+//			.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb")).withLabels(Map.of("a", "b"))
+//				.build())
+//			.build();
+//
+//		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
+//			properties, List.of(), namespace);
+//		Assertions.assertEquals(result.size(), 3);
+//		Assertions.assertEquals(result, Map.of("aa", "bb", "k8s_namespace", "default", "type", "ClusterIP"));
+//		Assertions
+//			.assertTrue(output.getOut().contains("Adding annotations metadata: {aa=bb} for serviceId: my-service"));
+//	}
+//
+//	/**
+//	 * <pre>
+//	 *     - labels are not added
+//	 *     - annotations are added with prefix
+//	 * </pre>
+//	 */
+//	@Test
+//	void testServiceMetadataAddAnnotationsWithPrefix(CapturedOutput output) {
+//		boolean addLabels = false;
+//		String labelsPrefix = "";
+//		boolean addAnnotations = true;
+//		String annotationsPrefix = "prefix-";
+//		boolean addPorts = false;
+//		String portsPrefix = "";
+//
+//		String namespace = "default";
+//
+//		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+//			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+//			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+//		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+//			.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb", "cc", "dd"))
+//				.withLabels(Map.of("a", "b")).build())
+//			.build();
+//
+//		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
+//			properties, List.of(), namespace);
+//		Assertions.assertEquals(result.size(), 4);
+//		Assertions.assertEquals(result,
+//			Map.of("prefix-aa", "bb", "prefix-cc", "dd", "k8s_namespace", "default", "type", "ClusterIP"));
+//		// so that result is deterministic in assertion
+//		String annotations = filterOnK8sNamespaceAndType(result);
+//		Assertions.assertTrue(
+//			output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
+//	}
+//
+//	/**
+//	 * <pre>
+//	 *     - labels are added with prefix
+//	 *     - annotations are added with prefix
+//	 * </pre>
+//	 */
+//	@Test
+//	void testServiceMetadataAddLabelsAndAnnotationsWithPrefix(CapturedOutput output) {
+//		boolean addLabels = true;
+//		String labelsPrefix = "label-";
+//		boolean addAnnotations = true;
+//		String annotationsPrefix = "annotation-";
+//		boolean addPorts = false;
+//		String portsPrefix = "";
+//
+//		String namespace = "default";
+//
+//		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+//			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+//			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+//		Service service = new ServiceBuilder()
+//			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).withMetadata(new ObjectMetaBuilder()
+//				.withAnnotations(Map.of("aa", "bb", "cc", "dd")).withLabels(Map.of("a", "b", "c", "d")).build())
+//			.build();
+//
+//		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
+//			properties, List.of(), namespace);
+//		Assertions.assertEquals(result.size(), 6);
+//		Assertions.assertEquals(result, Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c",
+//			"d", "k8s_namespace", "default", "type", "ClusterIP"));
+//		// so that result is deterministic in assertion
+//		String labels = result.entrySet().stream().filter(en -> en.getKey().contains("label"))
+//			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
+//		String annotations = result.entrySet().stream().filter(en -> en.getKey().contains("annotation"))
+//			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
+//		Assertions.assertTrue(
+//			output.getOut().contains("Adding labels metadata: " + labels + " for serviceId: my-service"));
+//		Assertions.assertTrue(
+//			output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
+//	}
+//
+//	/**
+//	 * <pre>
+//	 *     - ports without prefix are added
+//	 * </pre>
+//	 */
+//	@Test
+//	void testServiceMetadataAddPortsWithoutPrefix(CapturedOutput output) {
+//		boolean addLabels = false;
+//		String labelsPrefix = "";
+//		boolean addAnnotations = false;
+//		String annotationsPrefix = "prefix-";
+//		boolean addPorts = true;
+//		String portsPrefix = "";
+//
+//		String namespace = "default";
+//
+//		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+//			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+//			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+//		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+//			.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb", "cc", "dd"))
+//				.withLabels(Map.of("a", "b")).build())
+//			.build();
+//
+//		List<EndpointSubset> endpointSubsets = List.of(
+//			new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("").build())
+//				.build(),
+//			new EndpointSubsetBuilder()
+//				.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+//
+//		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
+//			properties, endpointSubsets, namespace);
+//		Assertions.assertEquals(result.size(), 3);
+//		Assertions.assertEquals(result, Map.of("https", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
+//		Assertions
+//			.assertTrue(output.getOut().contains("Adding port metadata: {https=8080} for serviceId : my-service"));
+//	}
+//
+//	/**
+//	 * <pre>
+//	 *     - ports without prefix are added
+//	 * </pre>
+//	 */
+//	@Test
+//	void testServiceMetadataAddPortsWithPrefix(CapturedOutput output) {
+//		boolean addLabels = false;
+//		String labelsPrefix = "";
+//		boolean addAnnotations = false;
+//		String annotationsPrefix = "prefix-";
+//		boolean addPorts = true;
+//		String portsPrefix = "prefix-";
+//
+//		String namespace = "default";
+//
+//		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
+//			labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
+//		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+//			true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+//		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+//			.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb", "cc", "dd"))
+//				.withLabels(Map.of("a", "b")).build())
+//			.build();
+//
+//		List<EndpointSubset> endpointSubsets = List.of(
+//			new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("http").build())
+//				.build(),
+//			new EndpointSubsetBuilder()
+//				.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+//
+//		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
+//			properties, endpointSubsets, namespace);
+//		Assertions.assertEquals(result.size(), 4);
+//		Assertions.assertEquals(result,
+//			Map.of("prefix-https", "8080", "prefix-http", "8081", "k8s_namespace", "default", "type", "ClusterIP"));
+//		Assertions.assertTrue(output.getOut()
+//			.contains("Adding port metadata: {prefix-http=8081, prefix-https=8080} for serviceId : my-service"));
+//	}
+
+	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
+		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
+			.filter(en -> !en.getKey().equals("type"))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
+	}
+
+}
