@@ -31,8 +31,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.ALWAYS_TRUE;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.ALWAYS_TRUE;
 
 /**
  * @author wind57
@@ -131,7 +132,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		Endpoints endpointsB = createEndpoints("b", "namespace-b");
 		createService("a", "namespace-a");
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
-			PROPERTIES, client, ALWAYS_TRUE);
+				PROPERTIES, client, ALWAYS_TRUE);
 		Assertions.assertEquals(result.size(), 2);
 	}
 
