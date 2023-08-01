@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.commons.discovery;
 
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,12 +31,11 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  */
 public final class DiscoveryClientUtils {
 
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(DiscoveryClientUtils.class));
+
 	private DiscoveryClientUtils() {
-
+		throw new AssertionError("no instance provided");
 	}
-
-	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(DiscoveryClientUtils.class));
 
 	/**
 	 * This adds the following metadata. <pre>
