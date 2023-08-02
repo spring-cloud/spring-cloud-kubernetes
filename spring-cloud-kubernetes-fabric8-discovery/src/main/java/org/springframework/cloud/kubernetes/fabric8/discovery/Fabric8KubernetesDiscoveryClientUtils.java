@@ -55,6 +55,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
 
@@ -66,12 +67,38 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(Fabric8KubernetesDiscoveryClientUtils.class));
 
+	static final Predicate<Service> ALWAYS_TRUE = x -> true;
+
 	private Fabric8KubernetesDiscoveryClientUtils() {
 
 	}
 
 	static EndpointSubsetNS subsetsFromEndpoints(Endpoints endpoints) {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
+	}
+
+	/**
+	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it
+	 * exists, otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
+	 */
+	static String primaryPortName(KubernetesDiscoveryProperties properties, Service service, String serviceId) {
+		String primaryPortNameFromProperties = properties.primaryPortName();
+		Map<String, String> serviceLabels = service.getMetadata().getLabels();
+
+		// the value from labels takes precedence over the one from properties
+		String primaryPortName = Optional
+				.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
+				.orElse(primaryPortNameFromProperties);
+
+		if (primaryPortName == null) {
+			LOG.debug(
+					() -> "did not find a primary-port-name in neither properties nor service labels for service with ID : "
+							+ serviceId);
+			return null;
+		}
+
+		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
+		return primaryPortName;
 	}
 
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -106,7 +133,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	static List<Endpoints> withFilter(List<Endpoints> endpoints, KubernetesDiscoveryProperties properties,
 			KubernetesClient client, Predicate<Service> filter) {
 
-		if (properties.filter() == null || properties.filter().isBlank()) {
+		if (properties.filter() == null || properties.filter().isBlank() || filter == ALWAYS_TRUE) {
 			LOG.debug(() -> "filter not present");
 			return endpoints;
 		}

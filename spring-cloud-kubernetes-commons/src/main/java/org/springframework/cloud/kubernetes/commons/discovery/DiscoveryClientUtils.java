@@ -84,8 +84,8 @@ public final class DiscoveryClientUtils {
 		return serviceMetadata;
 	}
 
-	public static ServicePortNameAndNumber endpointsPort(LinkedHashMap<String, Integer> endpointsPorts, String serviceId,
-			KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels) {
+	public static ServicePortNameAndNumber endpointsPort(LinkedHashMap<String, Integer> endpointsPorts,
+			String serviceId, KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels) {
 
 		if (endpointsPorts.size() == 0) {
 			LOG.debug(() -> "no ports found for service : " + serviceId + ", will return zero");
