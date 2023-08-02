@@ -67,6 +67,8 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(Fabric8KubernetesDiscoveryClientUtils.class));
 
+	static final Predicate<Service> ALWAYS_TRUE = x -> true;
+
 	private Fabric8KubernetesDiscoveryClientUtils() {
 
 	}
@@ -179,7 +181,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	static List<Endpoints> withFilter(List<Endpoints> endpoints, KubernetesDiscoveryProperties properties,
 			KubernetesClient client, Predicate<Service> filter) {
 
-		if (properties.filter() == null || properties.filter().isBlank()) {
+		if (properties.filter() == null || properties.filter().isBlank() || filter == ALWAYS_TRUE) {
 			LOG.debug(() -> "filter not present");
 			return endpoints;
 		}
