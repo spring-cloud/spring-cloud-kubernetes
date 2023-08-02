@@ -331,6 +331,13 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return Map.of();
 	}
 
+	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {
+		return endpointSubsets.stream()
+			.flatMap(endpointSubset -> endpointSubset.getPorts().stream())
+			.filter(port -> StringUtils.hasText(port.getName()))
+			.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
+	}
+
 	/**
 	 * serviceName can be null, in which case, such a filter will not be applied.
 	 */

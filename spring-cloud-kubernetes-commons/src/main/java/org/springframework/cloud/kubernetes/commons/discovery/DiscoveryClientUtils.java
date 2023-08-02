@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
-import org.apache.commons.logging.LogFactory;
-import org.springframework.core.log.LogAccessor;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
@@ -58,7 +59,7 @@ public final class DiscoveryClientUtils {
 		}
 		if (metadataProps.addAnnotations()) {
 			Map<String, String> annotationMetadata = keysWithPrefix(serviceAnnotations,
-				metadataProps.annotationsPrefix());
+					metadataProps.annotationsPrefix());
 			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: " + serviceId);
 			serviceMetadata.putAll(annotationMetadata);
 		}
