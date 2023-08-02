@@ -89,6 +89,7 @@ public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		for (EndpointSubsetNS es : subsetsNS) {
+			// subsetsNS are only those that matched the serviceId
 			instances.addAll(getNamespaceServiceInstances(es, serviceId));
 		}
 
