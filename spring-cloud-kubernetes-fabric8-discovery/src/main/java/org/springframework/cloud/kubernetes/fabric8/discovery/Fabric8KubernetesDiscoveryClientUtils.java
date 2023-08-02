@@ -222,26 +222,31 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	// see https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1182 on why this
 	// is needed
-	static List<Endpoints> withFilter(List<Endpoints> initial, KubernetesDiscoveryProperties properties,
+	static List<Endpoints> withFilter(List<Endpoints> endpoints, KubernetesDiscoveryProperties properties,
 			KubernetesClient client, Predicate<Service> filter) {
 
 		if (properties.filter() == null || properties.filter().isBlank()) {
 			LOG.debug(() -> "filter not present");
-			return initial;
+			return endpoints;
 		}
 
 		List<Endpoints> result = new ArrayList<>();
 		// group by namespace in order to make a single API call per namespace when
 		// retrieving services
-		Map<String, List<Endpoints>> byNamespace = initial.stream()
+		Map<String, List<Endpoints>> endpointsByNamespace = endpoints.stream()
 				.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
 
-		for (Map.Entry<String, List<Endpoints>> entry : byNamespace.entrySet()) {
-			Set<String> withFilter = client.services().inNamespace(entry.getKey()).list().getItems().stream()
+		for (Map.Entry<String, List<Endpoints>> entry : endpointsByNamespace.entrySet()) {
+			// get all services in the namespace that match the filter
+			Set<String> filteredServiceNames = client.services().inNamespace(entry.getKey()).list().getItems().stream()
 					.filter(filter).map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
 
-			result.addAll(
-					entry.getValue().stream().filter(x -> withFilter.contains(x.getMetadata().getName())).toList());
+			// in the previous step we might have taken "too many" services, so in the
+			// next one take only those that have a matching endpoints, by name.
+			// This way we only get the endpoints that have a matching service with an
+			// applied filter, it's like we filtered endpoints by that filter.
+			result.addAll(entry.getValue().stream()
+					.filter(endpoint -> filteredServiceNames.contains(endpoint.getMetadata().getName())).toList());
 
 		}
 
