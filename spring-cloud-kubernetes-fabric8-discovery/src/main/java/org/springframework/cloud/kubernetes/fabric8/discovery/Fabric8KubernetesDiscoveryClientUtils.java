@@ -290,6 +290,16 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	static LinkedHashMap<String, Integer> endpointSubsetPortsData(EndpointSubset endpointSubset) {
 		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
+		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
+
+		// this is most probably not a needed if statement, but it preserves the
+		// previous logic before I refactored the code. In particular, this takes care of the fact
+		// that an EndpointsPort name could be missing.
+		if (endpointPorts.size() == 1) {
+			result.put(endpointPorts.get(0).getName(), endpointPorts.get(0).getPort());
+			return result;
+		}
+
 		endpointSubset.getPorts().forEach(port -> {
 			if (StringUtils.hasText(port.getName())) {
 				result.put(port.getName(), port.getPort());
