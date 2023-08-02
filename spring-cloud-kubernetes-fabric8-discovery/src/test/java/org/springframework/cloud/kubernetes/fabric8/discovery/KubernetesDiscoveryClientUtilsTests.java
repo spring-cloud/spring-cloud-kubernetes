@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
@@ -506,12 +505,6 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
 		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
 		Assertions.assertNull(defaultInstance.getCluster());
-	}
-
-	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
-		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
-				.filter(en -> !en.getKey().equals("type"))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
 	}
 
 }

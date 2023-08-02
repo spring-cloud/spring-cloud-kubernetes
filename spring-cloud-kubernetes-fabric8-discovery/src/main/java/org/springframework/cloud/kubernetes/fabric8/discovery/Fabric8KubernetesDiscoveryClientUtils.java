@@ -52,12 +52,9 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import static java.util.stream.Collectors.toMap;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
@@ -332,10 +329,9 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {
-		return endpointSubsets.stream()
-			.flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-			.filter(port -> StringUtils.hasText(port.getName()))
-			.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
+		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
+				.filter(port -> StringUtils.hasText(port.getName()))
+				.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 	}
 
 	/**
