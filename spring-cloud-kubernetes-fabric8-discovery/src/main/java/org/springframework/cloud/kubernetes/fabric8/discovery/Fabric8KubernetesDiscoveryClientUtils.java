@@ -52,12 +52,9 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import static java.util.stream.Collectors.toMap;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
@@ -150,49 +147,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
 		return primaryPortName;
-	}
-
-	/**
-	 * This adds the following metadata. <pre>
-	 *     - labels (if requested)
-	 *     - annotations (if requested)
-	 *     - ports (if requested)
-	 *     - namespace
-	 *     - service type
-	 * </pre>
-	 */
-	static Map<String, String> serviceMetadata(String serviceId, Service service,
-			KubernetesDiscoveryProperties properties, List<EndpointSubset> endpointSubsets, String namespace) {
-		Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
-		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
-					metadataProps.labelsPrefix());
-			LOG.debug(() -> "Adding labels metadata: " + labelMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(labelMetadata);
-		}
-		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
-					metadataProps.annotationsPrefix());
-			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(annotationMetadata);
-		}
-
-		if (metadataProps.addPorts()) {
-			Map<String, String> ports = endpointSubsets.stream()
-					.flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-					.filter(port -> StringUtils.hasText(port.getName()))
-					.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
-			Map<String, String> portMetadata = keysWithPrefix(ports, properties.metadata().portsPrefix());
-			if (!portMetadata.isEmpty()) {
-				LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
-			}
-			serviceMetadata.putAll(portMetadata);
-		}
-
-		serviceMetadata.put(NAMESPACE_METADATA_KEY, namespace);
-		serviceMetadata.put(SERVICE_TYPE, service.getSpec().getType());
-		return serviceMetadata;
 	}
 
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -374,6 +328,12 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		}
 
 		return Map.of();
+	}
+
+	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {
+		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
+				.filter(port -> StringUtils.hasText(port.getName()))
+				.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 	}
 
 	/**
