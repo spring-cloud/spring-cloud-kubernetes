@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -83,7 +84,7 @@ public final class DiscoveryClientUtils {
 		return serviceMetadata;
 	}
 
-	public static ServicePortNameAndNumber endpointsPort(Map<String, Integer> endpointsPorts, String serviceId,
+	public static ServicePortNameAndNumber endpointsPort(LinkedHashMap<String, Integer> endpointsPorts, String serviceId,
 			KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels) {
 
 		if (endpointsPorts.size() == 0) {

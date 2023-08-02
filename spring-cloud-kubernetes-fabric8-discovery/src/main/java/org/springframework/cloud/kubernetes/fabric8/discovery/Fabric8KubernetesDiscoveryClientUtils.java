@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -260,9 +261,14 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 				.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
 	}
 
-	static Map<String, Integer> endpointSubsetPortsData(EndpointSubset endpointSubset) {
-		return endpointSubset.getPorts().stream().filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
-				.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
+	static LinkedHashMap<String, Integer> endpointSubsetPortsData(EndpointSubset endpointSubset) {
+		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
+		endpointSubset.getPorts().forEach(port -> {
+			if (StringUtils.hasText(port.getName())) {
+				result.put(port.getName(), port.getPort());
+			}
+		});
+		return result;
 	}
 
 	/**

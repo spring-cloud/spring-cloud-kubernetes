@@ -442,7 +442,7 @@ class DiscoveryClientUtilsTests {
 		String serviceId = "spring-k8s";
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 
-		Map<String, Integer> endpointsPorts = Map.of();
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		Map<String, String> serviceLabels = Map.of();
 
 		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
@@ -462,7 +462,8 @@ class DiscoveryClientUtilsTests {
 		String serviceId = "spring-k8s";
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 
-		Map<String, Integer> endpointsPorts = Map.of("http", 8080);
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("http", 8080);
 		Map<String, String> serviceLabels = Map.of();
 
 		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
@@ -482,8 +483,7 @@ class DiscoveryClientUtilsTests {
 		String serviceId = "spring-k8s";
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 
-		// LinkedHashMap so that assertions are properly done
-		Map<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		endpointsPorts.put(null, 8080);
 		endpointsPorts.put("not-http-or-https", 8081);
 		Map<String, String> serviceLabels = Map.of();
@@ -517,8 +517,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 
-		// LinkedHashMap so that tests work always the same
-		Map<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		endpointsPorts.put("one", 8080);
 		endpointsPorts.put("two", 8081);
 		Map<String, String> serviceLabels = Map.of();
@@ -552,7 +551,9 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 
-		Map<String, Integer> endpointsPorts = Map.of("one", 8080, "two", 8081);
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("one", 8080);
+		endpointsPorts.put("two", 8081);
 		Map<String, String> serviceLabels = Map.of();
 
 		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
@@ -578,7 +579,10 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
 
-		Map<String, Integer> endpointsPorts = Map.of("one", 8080, "two", 8081, "https", 8082);
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("one", 8080);
+		endpointsPorts.put("two", 8081);
+		endpointsPorts.put("https", 8082);
 		Map<String, String> serviceLabels = Map.of();
 
 		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
@@ -605,7 +609,10 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 
-		Map<String, Integer> endpointsPorts = Map.of("one", 8080, "two", 8081, "http", 8082);
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("one", 8080);
+		endpointsPorts.put("two", 8081);
+		endpointsPorts.put("http", 8082);
 		Map<String, String> serviceLabels = Map.of();
 
 		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
