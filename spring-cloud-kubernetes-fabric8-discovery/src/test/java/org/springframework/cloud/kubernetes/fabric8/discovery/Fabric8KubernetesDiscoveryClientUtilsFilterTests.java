@@ -33,6 +33,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.ALWAYS_TRUE;
+
 /**
  * @author wind57
  */
@@ -53,7 +55,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	@Test
 	void withFilterEmptyInput() {
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(), PROPERTIES, client,
-				x -> true);
+				ALWAYS_TRUE);
 		Assertions.assertEquals(result.size(), 0);
 	}
 
@@ -87,7 +89,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		Endpoints endpoints = createEndpoints("a", "namespace-a");
 		createService("a", "namespace-a");
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), PROPERTIES,
-				client, x -> true);
+				client, ALWAYS_TRUE);
 		Assertions.assertEquals(result.size(), 1);
 	}
 
@@ -117,6 +119,28 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	 *     - Endpoints with name : "a" and namespace "namespace-a", present
 	 *     - Endpoints with name : "b" and namespace "namespace-b", present
 	 *     - Service with name "a" and namespace "namespace-a" present
+	 *     - Predicate that we use is "ALWAYS_TRUE", so no service filter is applied
+	 *
+	 *     As such, there is a match, single endpoints as result.
+	 *     This test is the same as above with the difference in the predicate.
+	 *     It simulates Fabric8EndpointsCatalogWatch::apply
+	 * </pre>
+	 */
+	@Test
+	void withFilterTwoEndpointsOneMatchInServiceAlwaysTruePredicate() {
+		Endpoints endpointsA = createEndpoints("a", "namespace-a");
+		Endpoints endpointsB = createEndpoints("b", "namespace-b");
+		createService("a", "namespace-a");
+		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
+				PROPERTIES, client, ALWAYS_TRUE);
+		Assertions.assertEquals(result.size(), 2);
+	}
+
+	/**
+	 * <pre>
+	 *     - Endpoints with name : "a" and namespace "namespace-a", present
+	 *     - Endpoints with name : "b" and namespace "namespace-b", present
+	 *     - Service with name "a" and namespace "namespace-a" present
 	 *     - Service with name "b" and namespace "namespace-b" present
 	 *     - Service with name "c" and namespace "namespace-c" present
 	 *
@@ -132,7 +156,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("c", "namespace-c");
 
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
-				PROPERTIES, client, x -> true);
+				PROPERTIES, client, ALWAYS_TRUE);
 		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
