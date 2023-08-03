@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons.discovery;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
@@ -684,9 +685,249 @@ class DiscoveryClientUtilsTests {
 		Assertions.assertNull(defaultInstance.getCluster());
 	}
 
+	/**
+	 * type is ExternalName, as such we do nothing.
+	 */
 	@Test
 	void testPodMetadataExternalName() {
+		boolean addLabels = false;
+		boolean addAnnotations = false;
+		String podName = "pod-name";
+		Map<String, String> serviceMetadata = Map.of("type", "ExternalName");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
 
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	/**
+	 * type is not ExternalName, but labels and annotations have not been requested.
+	 * As such, we do nothing.
+	 */
+	@Test
+	void testPodMetadataNotExternalNameLabelsNorAnnotationsIncluded() {
+		boolean addLabels = false;
+		boolean addAnnotations = false;
+		String podName = "pod-name";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
+
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - labels and annotations have been requested
+	 *     - podName is null
+	 *
+	 *     As such we do nothing.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataNotExternalNameLabelsAndAnnotationsIncludedPodNameNull() {
+		boolean addLabels = true;
+		boolean addAnnotations = true;
+		String podName = null;
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
+
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - labels have been requested
+	 *     - labels are empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyLabelsRequestedButAreEmpty(CapturedOutput output) {
+		boolean addLabels = true;
+		boolean addAnnotations = false;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(
+			Map.of(), Map.of("c", "d")
+		);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - labels have been requested
+	 *     - labels are not empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add non empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyLabelsRequestedAndAreNotEmpty(CapturedOutput output) {
+		boolean addLabels = true;
+		boolean addAnnotations = false;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(
+			Map.of("a", "b"), Map.of("c", "d")
+		);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("labels"), Map.of("a", "b"));
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {labels={a=b}} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - annotation have been requested
+	 *     - annotation are empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyAnnotationsRequestedButAreEmpty(CapturedOutput output) {
+		boolean addLabels = false;
+		boolean addAnnotations = true;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(
+			Map.of("a", "b"), Map.of()
+		);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - annotations have been requested
+	 *     - annotation are not empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add non empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyAnnotationsRequestedAndAreNotEmpty(CapturedOutput output) {
+		boolean addLabels = false;
+		boolean addAnnotations = true;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(
+			Map.of("a", "b"), Map.of("c", "d")
+		);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("annotations"), Map.of("c", "d"));
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {annotations={c=d}} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - annotations have been requested
+	 *     - annotation are not empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add non empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataBothLabelsAndAnnotations(CapturedOutput output) {
+		boolean addLabels = true;
+		boolean addAnnotations = true;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(
+			false, "", false, "", false, "", addLabels, addAnnotations
+		);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", metadata , 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(
+			Map.of("a", "b"), Map.of("c", "d")
+		);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result =
+			DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties, podLabelsAndMetadata);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result.get("annotations"), Map.of("c", "d"));
+		Assertions.assertEquals(result.get("labels"), Map.of("a", "b"));
+
+		Assertions.assertTrue(output.getOut().contains(
+			"adding podMetadata : {annotations={c=d}, labels={a=b}} from pod : my-pod"));
 	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
