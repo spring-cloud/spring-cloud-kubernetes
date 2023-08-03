@@ -21,13 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -664,9 +657,6 @@ class DiscoveryClientUtilsTests {
 
 	@Test
 	void testExternalNameServiceInstance() {
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withExternalName("spring.io").withType("ExternalName").build())
-			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 			false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
@@ -675,7 +665,7 @@ class DiscoveryClientUtilsTests {
 		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
 			Map.of(), Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", null);
-		Map<String, String> serviceMetadata = Map.of("type", "ExternalName", "a", "b");
+		Map<String, String> serviceMetadata = Map.of("a", "b");
 
 		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, forServiceInstance,
 			() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
@@ -693,31 +683,6 @@ class DiscoveryClientUtilsTests {
 		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
 		Assertions.assertNull(defaultInstance.getCluster());
 	}
-//
-//	@Test
-//	void testNoPortsServiceInstance() {
-//		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-//			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
-//
-//		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
-//
-//		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(0, "http");
-//		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, service,
-//			endpointAddress, portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT,
-//			null);
-//		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
-//		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
-//		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
-//		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
-//		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
-//		Assertions.assertEquals(defaultInstance.getScheme(), "http");
-//		Assertions.assertEquals(defaultInstance.getPort(), 0);
-//		Assertions.assertFalse(defaultInstance.isSecure());
-//		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1");
-//		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
-//		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
-//		Assertions.assertNull(defaultInstance.getCluster());
-//	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
 		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
