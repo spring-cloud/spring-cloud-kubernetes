@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
@@ -37,13 +36,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 
 /**
  * @author wind57
@@ -73,577 +70,6 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertEquals(result.endpointSubset().size(), 1);
 		Assertions.assertEquals(result.endpointSubset().get(0).getPorts().get(0).getPort(), 8080);
 		Assertions.assertEquals(result.namespace(), "default");
-	}
-
-	/**
-	 * <pre>
-	 *     - properties do not have primary-port-name set
-	 *     - service labels do not have primary-port-name set
-	 *
-	 *     As such null is returned.
-	 * </pre>
-	 */
-	@Test
-	void testPrimaryPortNameNotFound(CapturedOutput output) {
-		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-
-		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
-		Assertions.assertNull(result);
-		Assertions.assertTrue(output.getOut().contains(
-				"did not find a primary-port-name in neither properties nor service labels for service with ID : abc"));
-	}
-
-	/**
-	 * <pre>
-	 *     - properties do have primary-port-name set to "https"
-	 *     - service labels do not have primary-port-name set
-	 *
-	 *     As such "https" is returned.
-	 * </pre>
-	 */
-	@Test
-	void testPrimaryPortNameFoundInProperties(CapturedOutput output) {
-		String primaryPortName = "https";
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-
-		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result, primaryPortName);
-		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
-	}
-
-	/**
-	 * <pre>
-	 *     - properties do not have primary-port-name set
-	 *     - service labels do have primary-port-name set to "https"
-	 *
-	 *     As such "https" is returned.
-	 * </pre>
-	 */
-	@Test
-	void testPrimaryPortNameFoundInLabels(CapturedOutput output) {
-		Map<String, String> labels = Map.of(PRIMARY_PORT_NAME_LABEL_KEY, "https");
-		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
-		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder().withLabels(labels).build()).build();
-
-		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result, "https");
-		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
-	}
-
-	/**
-	 * <pre>
-	 *     - properties do have primary-port-name set to "https"
-	 *     - service labels do have primary-port-name set to "http"
-	 *
-	 *     As such "http" is returned (labels win).
-	 * </pre>
-	 */
-	@Test
-	void testPrimaryPortNameFoundInBothPropertiesAndLabels(CapturedOutput output) {
-		String primaryPortName = "https";
-		Map<String, String> labels = Map.of(PRIMARY_PORT_NAME_LABEL_KEY, "http");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
-		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder().withLabels(labels).build()).build();
-
-		String result = Fabric8KubernetesDiscoveryClientUtils.primaryPortName(properties, service, "abc");
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result, "http");
-		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : http for service with ID = abc"));
-	}
-
-	/**
-	 * <pre>
-	 *     - EndpointSubset has no ports.
-	 * </pre>
-	 */
-	@Test
-	void testEndpointsPortNoPorts(CapturedOutput output) {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
-		String serviceId = "spring-k8s";
-		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
-		Service service = new ServiceBuilder().build();
-
-		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
-				properties, service);
-		Assertions.assertEquals(portData.portNumber(), 0);
-		Assertions.assertEquals(portData.portName(), "http");
-		Assertions.assertTrue(output.getOut().contains("no ports found for service : spring-k8s, will return zero"));
-	}
-
-	/**
-	 * <pre>
-	 *     - EndpointSubset has a single entry in getPorts.
-	 * </pre>
-	 */
-	@Test
-	void testEndpointsPortSinglePort(CapturedOutput output) {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("http").build()).build();
-		String serviceId = "spring-k8s";
-		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
-		Service service = new ServiceBuilder().build();
-
-		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
-				properties, service);
-		Assertions.assertEquals(portData.portNumber(), 8080);
-		Assertions.assertEquals(portData.portName(), "http");
-		Assertions.assertTrue(output.getOut().contains("endpoint ports has a single entry, using port : 8080"));
-	}
-
-	/**
-	 * <pre>
-	 *     - primary-port-name is null.
-	 * </pre>
-	 */
-	@Test
-	void testEndpointsPortNullPrimaryPortName(CapturedOutput output) {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).build(),
-						new EndpointPortBuilder().withPort(8081).build())
-				.build();
-		String serviceId = "spring-k8s";
-		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-
-		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
-				properties, service);
-		Assertions.assertEquals(portData.portNumber(), 8080);
-		Assertions.assertNull(portData.portName());
-		Assertions.assertTrue(output.getOut().contains(
-				"did not find a primary-port-name in neither properties nor service labels for service with ID : spring-k8s"));
-		Assertions.assertTrue(output.getOut()
-				.contains("not found primary-port-name (with value: 'null') via properties or service labels"));
-		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'https' to match port"));
-		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'http' to match port"));
-		Assertions.assertTrue(output.getOut().contains("""
-				Make sure that either the primary-port-name label has been added to the service,
-				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
-				Alternatively name the primary port 'https' or 'http'
-				An incorrect configuration may result in non-deterministic behaviour."""));
-	}
-
-	/**
-	 * <pre>
-	 *     - primary-port-name is "three", such a port name does not exist.
-	 * </pre>
-	 */
-	@Test
-	void testEndpointsPortPrimaryPortNameIsPresentButNotFound(CapturedOutput output) {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("one").build(),
-						new EndpointPortBuilder().withPort(8081).withName("two").build())
-				.build();
-		String serviceId = "spring-k8s";
-
-		String primaryPortName = "three";
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
-
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-
-		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
-				properties, service);
-		Assertions.assertEquals(portData.portNumber(), 8080);
-		Assertions.assertEquals(portData.portName(), "one");
-		Assertions.assertTrue(
-				output.getOut().contains("will use primaryPortName : three for service with ID = spring-k8s"));
-		Assertions.assertTrue(output.getOut()
-				.contains("not found primary-port-name (with value: 'three') via properties or service labels"));
-		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'https' to match port"));
-		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'http' to match port"));
-		Assertions.assertTrue(output.getOut().contains("""
-				Make sure that either the primary-port-name label has been added to the service,
-				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
-				Alternatively name the primary port 'https' or 'http'
-				An incorrect configuration may result in non-deterministic behaviour."""));
-	}
-
-	/**
-	 * <pre>
-	 *     - primary-port-name is "two", such a port name exists and matches 8081
-	 * </pre>
-	 */
-	@Test
-	void testEndpointsPortPrimaryPortNameFound(CapturedOutput output) {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("one").build(),
-						new EndpointPortBuilder().withPort(8081).withName("two").build())
-				.build();
-		String serviceId = "spring-k8s";
-
-		String primaryPortName = "two";
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
-
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-
-		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
-				properties, service);
-		Assertions.assertEquals(portData.portNumber(), 8081);
-		Assertions.assertEquals(portData.portName(), "two");
-		Assertions.assertTrue(
-				output.getOut().contains("will use primaryPortName : two for service with ID = spring-k8s"));
-		Assertions.assertTrue(output.getOut().contains(
-				"found primary-port-name (with value: 'two') via properties or service labels to match port : 8081"));
-	}
-
-	/**
-	 * <pre>
-	 *     - primary-port-name is "three", such a port name does not exist.
-	 *     - https port exists and this one is returned
-	 * </pre>
-	 */
-	@Test
-	void testEndpointsPortPrimaryPortHttps(CapturedOutput output) {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("one").build(),
-						new EndpointPortBuilder().withPort(8081).withName("two").build(),
-						new EndpointPortBuilder().withPort(8082).withName("https").build())
-				.build();
-		String serviceId = "spring-k8s";
-
-		String primaryPortName = "three";
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
-
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-
-		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
-				properties, service);
-		Assertions.assertEquals(portData.portNumber(), 8082);
-		Assertions.assertEquals(portData.portName(), "https");
-		Assertions.assertTrue(
-				output.getOut().contains("will use primaryPortName : three for service with ID = spring-k8s"));
-		Assertions.assertTrue(output.getOut().contains(
-				"not found primary-port-name (with value: 'three') via properties or service labels to match port"));
-		Assertions.assertTrue(output.getOut().contains("found primary-port-name via 'https' to match port : 8082"));
-	}
-
-	/**
-	 * <pre>
-	 *     - primary-port-name is "three", such a port name does not exist.
-	 *     - http port exists and this one is returned
-	 * </pre>
-	 */
-	@Test
-	void testEndpointsPortPrimaryPortHttp(CapturedOutput output) {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("one").build(),
-						new EndpointPortBuilder().withPort(8081).withName("two").build(),
-						new EndpointPortBuilder().withPort(8082).withName("http").build())
-				.build();
-		String serviceId = "spring-k8s";
-
-		String primaryPortName = "three";
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
-
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-
-		Fabric8ServicePortData portData = Fabric8KubernetesDiscoveryClientUtils.endpointsPort(endpointSubset, serviceId,
-				properties, service);
-		Assertions.assertEquals(portData.portNumber(), 8082);
-		Assertions.assertEquals(portData.portName(), "http");
-		Assertions.assertTrue(
-				output.getOut().contains("will use primaryPortName : three for service with ID = spring-k8s"));
-		Assertions.assertTrue(output.getOut().contains(
-				"not found primary-port-name (with value: 'three') via properties or service labels to match port"));
-		Assertions.assertTrue(output.getOut().contains("found primary-port-name via 'http' to match port : 8082"));
-	}
-
-	/**
-	 * <pre>
-	 *     - labels are not added
-	 *     - annotations are not added
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataEmpty() {
-		boolean addLabels = false;
-		String labelsPrefix = "";
-		boolean addAnnotations = false;
-		String annotationsPrefix = "";
-		boolean addPorts = false;
-		String portsPrefix = "";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).build();
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, List.of(), namespace);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result, Map.of("k8s_namespace", "default", "type", "ClusterIP"));
-	}
-
-	/**
-	 * <pre>
-	 *     - labels are added without a prefix
-	 *     - annotations are not added
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataAddLabelsNoPrefix(CapturedOutput output) {
-		boolean addLabels = true;
-		String labelsPrefix = "";
-		boolean addAnnotations = false;
-		String annotationsPrefix = "";
-		boolean addPorts = false;
-		String portsPrefix = "";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b")).build()).build();
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, List.of(), namespace);
-		Assertions.assertEquals(result.size(), 3);
-		Assertions.assertEquals(result, Map.of("a", "b", "k8s_namespace", "default", "type", "ClusterIP"));
-		String labelsMetadata = filterOnK8sNamespaceAndType(result);
-		Assertions.assertTrue(
-				output.getOut().contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service"));
-	}
-
-	/**
-	 * <pre>
-	 *     - labels are added with prefix
-	 *     - annotations are not added
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataAddLabelsWithPrefix(CapturedOutput output) {
-		boolean addLabels = true;
-		String labelsPrefix = "prefix-";
-		boolean addAnnotations = false;
-		String annotationsPrefix = "";
-		boolean addPorts = false;
-		String portsPrefix = "";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("a", "b", "c", "d")).build()).build();
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, List.of(), namespace);
-		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result,
-				Map.of("prefix-a", "b", "prefix-c", "d", "k8s_namespace", "default", "type", "ClusterIP"));
-		// so that result is deterministic in assertion
-		String labelsMetadata = filterOnK8sNamespaceAndType(result);
-		Assertions.assertTrue(
-				output.getOut().contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service"));
-	}
-
-	/**
-	 * <pre>
-	 *     - labels are not added
-	 *     - annotations are added without prefix
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataAddAnnotationsNoPrefix(CapturedOutput output) {
-		boolean addLabels = false;
-		String labelsPrefix = "";
-		boolean addAnnotations = true;
-		String annotationsPrefix = "";
-		boolean addPorts = false;
-		String portsPrefix = "";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb")).withLabels(Map.of("a", "b"))
-						.build())
-				.build();
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, List.of(), namespace);
-		Assertions.assertEquals(result.size(), 3);
-		Assertions.assertEquals(result, Map.of("aa", "bb", "k8s_namespace", "default", "type", "ClusterIP"));
-		Assertions
-				.assertTrue(output.getOut().contains("Adding annotations metadata: {aa=bb} for serviceId: my-service"));
-	}
-
-	/**
-	 * <pre>
-	 *     - labels are not added
-	 *     - annotations are added with prefix
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataAddAnnotationsWithPrefix(CapturedOutput output) {
-		boolean addLabels = false;
-		String labelsPrefix = "";
-		boolean addAnnotations = true;
-		String annotationsPrefix = "prefix-";
-		boolean addPorts = false;
-		String portsPrefix = "";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb", "cc", "dd"))
-						.withLabels(Map.of("a", "b")).build())
-				.build();
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, List.of(), namespace);
-		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result,
-				Map.of("prefix-aa", "bb", "prefix-cc", "dd", "k8s_namespace", "default", "type", "ClusterIP"));
-		// so that result is deterministic in assertion
-		String annotations = filterOnK8sNamespaceAndType(result);
-		Assertions.assertTrue(
-				output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
-	}
-
-	/**
-	 * <pre>
-	 *     - labels are added with prefix
-	 *     - annotations are added with prefix
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataAddLabelsAndAnnotationsWithPrefix(CapturedOutput output) {
-		boolean addLabels = true;
-		String labelsPrefix = "label-";
-		boolean addAnnotations = true;
-		String annotationsPrefix = "annotation-";
-		boolean addPorts = false;
-		String portsPrefix = "";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).withMetadata(new ObjectMetaBuilder()
-						.withAnnotations(Map.of("aa", "bb", "cc", "dd")).withLabels(Map.of("a", "b", "c", "d")).build())
-				.build();
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, List.of(), namespace);
-		Assertions.assertEquals(result.size(), 6);
-		Assertions.assertEquals(result, Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c",
-				"d", "k8s_namespace", "default", "type", "ClusterIP"));
-		// so that result is deterministic in assertion
-		String labels = result.entrySet().stream().filter(en -> en.getKey().contains("label"))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
-		String annotations = result.entrySet().stream().filter(en -> en.getKey().contains("annotation"))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
-		Assertions.assertTrue(
-				output.getOut().contains("Adding labels metadata: " + labels + " for serviceId: my-service"));
-		Assertions.assertTrue(
-				output.getOut().contains("Adding annotations metadata: " + annotations + " for serviceId: my-service"));
-	}
-
-	/**
-	 * <pre>
-	 *     - ports without prefix are added
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataAddPortsWithoutPrefix(CapturedOutput output) {
-		boolean addLabels = false;
-		String labelsPrefix = "";
-		boolean addAnnotations = false;
-		String annotationsPrefix = "prefix-";
-		boolean addPorts = true;
-		String portsPrefix = "";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb", "cc", "dd"))
-						.withLabels(Map.of("a", "b")).build())
-				.build();
-
-		List<EndpointSubset> endpointSubsets = List.of(
-				new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("").build())
-						.build(),
-				new EndpointSubsetBuilder()
-						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, endpointSubsets, namespace);
-		Assertions.assertEquals(result.size(), 3);
-		Assertions.assertEquals(result, Map.of("https", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
-		Assertions
-				.assertTrue(output.getOut().contains("Adding port metadata: {https=8080} for serviceId : my-service"));
-	}
-
-	/**
-	 * <pre>
-	 *     - ports without prefix are added
-	 * </pre>
-	 */
-	@Test
-	void testServiceMetadataAddPortsWithPrefix(CapturedOutput output) {
-		boolean addLabels = false;
-		String labelsPrefix = "";
-		boolean addAnnotations = false;
-		String annotationsPrefix = "prefix-";
-		boolean addPorts = true;
-		String portsPrefix = "prefix-";
-
-		String namespace = "default";
-
-		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
-				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withMetadata(new ObjectMetaBuilder().withAnnotations(Map.of("aa", "bb", "cc", "dd"))
-						.withLabels(Map.of("a", "b")).build())
-				.build();
-
-		List<EndpointSubset> endpointSubsets = List.of(
-				new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("http").build())
-						.build(),
-				new EndpointSubsetBuilder()
-						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
-
-		Map<String, String> result = Fabric8KubernetesDiscoveryClientUtils.serviceMetadata("my-service", service,
-				properties, endpointSubsets, namespace);
-		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result,
-				Map.of("prefix-https", "8080", "prefix-http", "8081", "k8s_namespace", "default", "type", "ClusterIP"));
-		Assertions.assertTrue(output.getOut()
-				.contains("Adding port metadata: {prefix-http=8081, prefix-https=8080} for serviceId : my-service"));
 	}
 
 	/**
@@ -732,7 +158,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		EndpointAddress address = new EndpointAddressBuilder().withNewTargetRef().withUid("123").endTargetRef()
 				.withIp("127.0.0.1").build();
 
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(resolver, service,
 				address, portData, "my-service", Map.of("a", "b"), "k8s", properties, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
@@ -755,7 +181,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				.withSpec(new ServiceSpecBuilder().withExternalName("spring.io").withType("ExternalName").build())
 				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
 
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(-1, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
 		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(null, service, null,
 				portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
@@ -779,7 +205,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
 
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(0, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(0, "http");
 		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(null, service,
 				endpointAddress, portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT,
 				null);
@@ -797,10 +223,42 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertNull(defaultInstance.getCluster());
 	}
 
-	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
-		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
-				.filter(en -> !en.getKey().equals("type"))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).toString();
+	/**
+	 * endpoints ports are empty.
+	 */
+	@Test
+	void testEndpointSubsetPortsDataOne() {
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
+		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	/**
+	 * endpoints ports has one entry.
+	 */
+	@Test
+	void testEndpointSubsetPortsDataTwo() {
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+				.withPorts(new EndpointPortBuilder().withPort(8080).withName("http").build()).build();
+		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("http"), 8080);
+	}
+
+	/**
+	 * endpoints ports has three entries, only two are picked up.
+	 */
+	@Test
+	void testEndpointSubsetPortsDataThree() {
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+				.withPorts(new EndpointPortBuilder().withPort(8080).withName("http").build(),
+						new EndpointPortBuilder().withPort(8081).build(),
+						new EndpointPortBuilder().withPort(8082).withName("https").build())
+				.build();
+		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result.get("http"), 8080);
+		Assertions.assertEquals(result.get("https"), 8082);
 	}
 
 }
