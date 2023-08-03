@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +30,6 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ObjectReference;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -44,20 +40,12 @@ import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 
 /**
  * @author wind57
@@ -75,30 +63,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	static EndpointSubsetNS subsetsFromEndpoints(Endpoints endpoints) {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
-	}
-
-	/**
-	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it
-	 * exists, otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
-	 */
-	static String primaryPortName(KubernetesDiscoveryProperties properties, Service service, String serviceId) {
-		String primaryPortNameFromProperties = properties.primaryPortName();
-		Map<String, String> serviceLabels = service.getMetadata().getLabels();
-
-		// the value from labels takes precedence over the one from properties
-		String primaryPortName = Optional
-				.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
-				.orElse(primaryPortNameFromProperties);
-
-		if (primaryPortName == null) {
-			LOG.debug(
-					() -> "did not find a primary-port-name in neither properties nor service labels for service with ID : "
-							+ serviceId);
-			return null;
-		}
-
-		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
-		return primaryPortName;
 	}
 
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
