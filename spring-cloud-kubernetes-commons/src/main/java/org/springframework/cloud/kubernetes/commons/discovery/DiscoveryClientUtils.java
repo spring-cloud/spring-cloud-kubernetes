@@ -137,8 +137,9 @@ public final class DiscoveryClientUtils {
 
 	public static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
 			ServiceMetadataForServiceInstance serviceMetadataForServiceInstance,
-			Supplier<InstanceIdHostPodName> instanceIdAndHost, Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata,
-			ServicePortNameAndNumber portData, String serviceId, Map<String, String> serviceMetadata, String namespace,
+			Supplier<InstanceIdHostPodName> instanceIdAndHost,
+			Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata, ServicePortNameAndNumber portData,
+			String serviceId, Map<String, String> serviceMetadata, String namespace,
 			KubernetesDiscoveryProperties properties) {
 
 		InstanceIdHostPodName data = instanceIdAndHost.get();
@@ -148,17 +149,16 @@ public final class DiscoveryClientUtils {
 			secured = false;
 		}
 		else {
-			secured = servicePortSecureResolver
-				.resolve(new ServicePortSecureResolver.Input(portData, serviceMetadataForServiceInstance.name(),
-					serviceMetadataForServiceInstance.labels(), serviceMetadataForServiceInstance.annotation()));
+			secured = servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(portData,
+					serviceMetadataForServiceInstance.name(), serviceMetadataForServiceInstance.labels(),
+					serviceMetadataForServiceInstance.annotations()));
 		}
 
-		Map<String, Map<String, String>> podMetadata = podMetadata(
-			data.podName(), serviceMetadata, properties, podLabelsAndMetadata);
+		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceMetadata, properties,
+				podLabelsAndMetadata);
 
-		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceId, data.host(),
-			portData.portNumber(), serviceMetadata,
-			secured, namespace, null, podMetadata);
+		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceId, data.host(), portData.portNumber(),
+				serviceMetadata, secured, namespace, null, podMetadata);
 	}
 
 	/**

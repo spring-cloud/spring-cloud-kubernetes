@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Map;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 
 /**
- * Holds pod labels and annotations.
  * @author wind57
  */
-public record PodLabelsAndAnnotations(Map<String, String> labels, Map<String, String> annotations) {
+@EnableKubernetesMockClient(crud = true, https = false)
+class Fabric8PodLabelsAndAnnotationsSupplierTests {
+
+	private static KubernetesClient client;
+
 }
