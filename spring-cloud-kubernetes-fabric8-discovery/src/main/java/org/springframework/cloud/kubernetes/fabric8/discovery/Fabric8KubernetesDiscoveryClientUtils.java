@@ -195,34 +195,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return addresses;
 	}
 
-	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
-			Service service, @Nullable EndpointAddress endpointAddress, ServicePortNameAndNumber portData,
-			String serviceId, Map<String, String> serviceMetadata, String namespace,
-			KubernetesDiscoveryProperties properties, KubernetesClient client) {
-		// instanceId is usually the pod-uid as seen in the .metadata.uid
-		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
-				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
-
-		boolean secured;
-		if (servicePortSecureResolver == null) {
-			secured = false;
-		}
-		else {
-			secured = servicePortSecureResolver
-					.resolve(new ServicePortSecureResolver.Input(portData, service.getMetadata().getName(),
-							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
-		}
-
-		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
-				.orElseGet(() -> service.getSpec().getExternalName());
-
-		Map<String, Map<String, String>> podMetadata = podMetadata(client, serviceMetadata, properties, endpointAddress,
-				namespace);
-
-		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, portData.portNumber(), serviceMetadata,
-				secured, namespace, null, podMetadata);
-	}
-
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
 			KubernetesNamespaceProvider namespaceProvider, Predicate<Service> predicate,
 			Map<String, String> fieldFilters, String target) {
@@ -250,37 +222,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		}
 
 		return services;
-	}
-
-	static Map<String, Map<String, String>> podMetadata(KubernetesClient client, Map<String, String> serviceMetadata,
-			KubernetesDiscoveryProperties properties, EndpointAddress endpointAddress, String namespace) {
-		if (!EXTERNAL_NAME.equals(serviceMetadata.get(SERVICE_TYPE))) {
-			if (properties.metadata().addPodLabels() || properties.metadata().addPodAnnotations()) {
-				String podName = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
-						.filter(objectReference -> "Pod".equals(objectReference.getKind()))
-						.map(ObjectReference::getName).orElse(null);
-
-				if (podName != null) {
-					ObjectMeta metadata = Optional
-							.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
-							.map(Pod::getMetadata).orElse(new ObjectMeta());
-					Map<String, Map<String, String>> result = new HashMap<>();
-					if (properties.metadata().addPodLabels() && !metadata.getLabels().isEmpty()) {
-						result.put("labels", metadata.getLabels());
-					}
-
-					if (properties.metadata().addPodAnnotations() && !metadata.getAnnotations().isEmpty()) {
-						result.put("annotations", metadata.getAnnotations());
-					}
-
-					LOG.debug(() -> "adding podMetadata : " + result + " from pod : " + podName);
-					return result;
-				}
-
-			}
-		}
-
-		return Map.of();
 	}
 
 	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {

@@ -21,12 +21,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.client.ServiceInstance;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 
@@ -625,6 +633,82 @@ class DiscoveryClientUtilsTests {
 				"not found primary-port-name (with value: 'three') via properties or service labels to match port"));
 		Assertions.assertTrue(output.getOut().contains("found primary-port-name via 'http' to match port : 8082"));
 	}
+
+	@Test
+	void testServiceInstance() {
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
+
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
+		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
+			Map.of(), Map.of());
+		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "127.0.0.1", null);
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+
+		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(resolver, forServiceInstance,
+			() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
+		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
+		Assertions.assertEquals(defaultInstance.getPort(), 8080);
+		Assertions.assertFalse(defaultInstance.isSecure());
+		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
+		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+		Assertions.assertNull(defaultInstance.getCluster());
+	}
+
+//	@Test
+//	void testExternalNameServiceInstance() {
+//		Service service = new ServiceBuilder()
+//			.withSpec(new ServiceSpecBuilder().withExternalName("spring.io").withType("ExternalName").build())
+//			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
+//
+//		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
+//		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, service, null,
+//			portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
+//		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+//		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+//		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+//		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+//		Assertions.assertEquals(defaultInstance.getHost(), "spring.io");
+//		Assertions.assertEquals(defaultInstance.getPort(), -1);
+//		Assertions.assertFalse(defaultInstance.isSecure());
+//		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "spring.io");
+//		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+//		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+//		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+//		Assertions.assertNull(defaultInstance.getCluster());
+//	}
+//
+//	@Test
+//	void testNoPortsServiceInstance() {
+//		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+//			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
+//
+//		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
+//
+//		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(0, "http");
+//		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, service,
+//			endpointAddress, portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT,
+//			null);
+//		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+//		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+//		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+//		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+//		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
+//		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+//		Assertions.assertEquals(defaultInstance.getPort(), 0);
+//		Assertions.assertFalse(defaultInstance.isSecure());
+//		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1");
+//		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+//		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+//		Assertions.assertNull(defaultInstance.getCluster());
+//	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
 		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
