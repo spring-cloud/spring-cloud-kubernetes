@@ -684,7 +684,10 @@ class DiscoveryClientUtilsTests {
 		Assertions.assertNull(defaultInstance.getCluster());
 	}
 
-	void testPodMetadataExternalName
+	@Test
+	void testPodMetadataExternalName() {
+
+	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
 		return result.entrySet().stream().filter(en -> !en.getKey().contains("k8s_namespace"))
