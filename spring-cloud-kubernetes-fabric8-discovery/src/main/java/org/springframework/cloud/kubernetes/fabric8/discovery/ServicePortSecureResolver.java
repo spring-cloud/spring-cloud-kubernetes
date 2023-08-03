@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SECURED;
@@ -53,7 +54,7 @@ class ServicePortSecureResolver {
 	boolean resolve(Input input) {
 
 		String serviceName = input.serviceName();
-		Fabric8ServicePortData portData = input.portData();
+		ServicePortNameAndNumber portData = input.portData();
 
 		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get(SECURED));
 		if (securedLabelValue.isPresent() && TRUTHY_STRINGS.contains(securedLabelValue.get())) {
@@ -89,10 +90,10 @@ class ServicePortSecureResolver {
 	/**
 	 * @author wind57
 	 */
-	record Input(Fabric8ServicePortData portData, String serviceName, Map<String, String> serviceLabels,
+	record Input(ServicePortNameAndNumber portData, String serviceName, Map<String, String> serviceLabels,
 			Map<String, String> serviceAnnotations) {
 
-		Input(Fabric8ServicePortData portData, String serviceName, Map<String, String> serviceLabels,
+		Input(ServicePortNameAndNumber portData, String serviceName, Map<String, String> serviceLabels,
 				Map<String, String> serviceAnnotations) {
 			this.portData = portData;
 			this.serviceName = serviceName;

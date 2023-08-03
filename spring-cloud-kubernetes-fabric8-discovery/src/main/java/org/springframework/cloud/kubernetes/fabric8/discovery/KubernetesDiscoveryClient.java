@@ -35,14 +35,15 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.addresses;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.portsData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
@@ -127,7 +128,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 						serviceMetadata.getNamespace(), service.getSpec().getType());
 
 				ServiceInstance externalNameServiceInstance = serviceInstance(null, service, null,
-						new Fabric8ServicePortData(-1, null), serviceId, result, service.getMetadata().getNamespace(),
+						new ServicePortNameAndNumber(-1, null), serviceId, result, service.getMetadata().getNamespace(),
 						properties, client);
 				instances.add(externalNameServiceInstance);
 			}
@@ -159,7 +160,10 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 				service.getSpec().getType());
 
 		for (EndpointSubset endpointSubset : subsets) {
-			Fabric8ServicePortData portData = endpointsPort(endpointSubset, serviceId, properties, service);
+
+			ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(
+					endpointSubsetPortsData(endpointSubset), serviceId, properties, service.getMetadata().getLabels());
+
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, service, endpointAddress,

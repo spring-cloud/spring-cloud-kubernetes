@@ -26,6 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
@@ -42,16 +43,16 @@ class ServicePortSecureResolverTest {
 	private static final Map<String, String> SECURED_ON_MAP = Collections.singletonMap("secured", "on");
 
 	private static final ServicePortSecureResolver.Input SECURED_TRUE = new ServicePortSecureResolver.Input(
-			new Fabric8ServicePortData(8080, "http"), "dummy", SECURED_TRUE_MAP, Collections.emptyMap());
+			new ServicePortNameAndNumber(8080, "http"), "dummy", SECURED_TRUE_MAP, Collections.emptyMap());
 
 	private static final ServicePortSecureResolver.Input SECURED_1 = new ServicePortSecureResolver.Input(
-			new Fabric8ServicePortData(1234, "http"), "dummy", SECURED_1_MAP, Collections.emptyMap());
+			new ServicePortNameAndNumber(1234, "http"), "dummy", SECURED_1_MAP, Collections.emptyMap());
 
 	private static final ServicePortSecureResolver.Input SECURED_YES = new ServicePortSecureResolver.Input(
-			new Fabric8ServicePortData(4321, "http"), "dummy", SECURED_YES_MAP, Collections.emptyMap());
+			new ServicePortNameAndNumber(4321, "http"), "dummy", SECURED_YES_MAP, Collections.emptyMap());
 
 	private static final ServicePortSecureResolver.Input SECURED_ON = new ServicePortSecureResolver.Input(
-			new Fabric8ServicePortData(4321, "http"), "dummy", SECURED_ON_MAP, Collections.emptyMap());
+			new ServicePortNameAndNumber(4321, "http"), "dummy", SECURED_ON_MAP, Collections.emptyMap());
 
 	@Test
 	void testPortNumbersOnly() {
@@ -61,20 +62,18 @@ class ServicePortSecureResolverTest {
 
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 
-		assertThat(
-				secureResolver.resolve(new Input(new Fabric8ServicePortData(-1, "http"), "dummy", Map.of(), Map.of())))
-						.isFalse();
 		assertThat(secureResolver
-				.resolve(new Input(new Fabric8ServicePortData(8080, "http"), "dummy", Map.of(), Map.of()))).isFalse();
+				.resolve(new Input(new ServicePortNameAndNumber(-1, "http"), "dummy", Map.of(), Map.of()))).isFalse();
 		assertThat(secureResolver
-				.resolve(new Input(new Fabric8ServicePortData(1234, "http"), "dummy", Map.of(), Map.of()))).isFalse();
-		assertThat(
-				secureResolver.resolve(new Input(new Fabric8ServicePortData(443, "http"), "dummy", Map.of(), Map.of())))
-						.isTrue();
+				.resolve(new Input(new ServicePortNameAndNumber(8080, "http"), "dummy", Map.of(), Map.of()))).isFalse();
 		assertThat(secureResolver
-				.resolve(new Input(new Fabric8ServicePortData(8443, "http"), "dummy", Map.of(), Map.of()))).isTrue();
+				.resolve(new Input(new ServicePortNameAndNumber(1234, "http"), "dummy", Map.of(), Map.of()))).isFalse();
 		assertThat(secureResolver
-				.resolve(new Input(new Fabric8ServicePortData(12345, "http"), "dummy", Map.of(), Map.of()))).isTrue();
+				.resolve(new Input(new ServicePortNameAndNumber(443, "http"), "dummy", Map.of(), Map.of()))).isTrue();
+		assertThat(secureResolver
+				.resolve(new Input(new ServicePortNameAndNumber(8443, "http"), "dummy", Map.of(), Map.of()))).isTrue();
+		assertThat(secureResolver
+				.resolve(new Input(new ServicePortNameAndNumber(12345, "http"), "dummy", Map.of(), Map.of()))).isTrue();
 	}
 
 	@Test
@@ -93,7 +92,7 @@ class ServicePortSecureResolverTest {
 				false, null, Set.of(443, 8443, 12345), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
 				0, true);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of(), Map.of());
 
 		boolean result = secureResolver.resolve(input);
@@ -107,7 +106,7 @@ class ServicePortSecureResolverTest {
 				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of("secured", "right"), Map.of());
 
 		boolean result = secureResolver.resolve(input);
@@ -121,7 +120,7 @@ class ServicePortSecureResolverTest {
 				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of("secured", "true"), Map.of());
 
 		boolean result = secureResolver.resolve(input);
@@ -136,7 +135,7 @@ class ServicePortSecureResolverTest {
 				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of(), Map.of("secured", "right"));
 
 		boolean result = secureResolver.resolve(input);
@@ -150,7 +149,7 @@ class ServicePortSecureResolverTest {
 				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of(), Map.of("secured", "true"));
 
 		boolean result = secureResolver.resolve(input);
@@ -164,7 +163,7 @@ class ServicePortSecureResolverTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(8080), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "http");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of(), Map.of());
 
 		boolean result = secureResolver.resolve(input);
@@ -178,7 +177,7 @@ class ServicePortSecureResolverTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(8081), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
-		Fabric8ServicePortData portData = new Fabric8ServicePortData(8080, "https");
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "https");
 		Input input = new Input(portData, "dummy", Map.of(), Map.of());
 
 		boolean result = secureResolver.resolve(input);

@@ -17,14 +17,21 @@
 package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.log.LogAccessor;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 
 /**
@@ -75,6 +82,97 @@ public final class DiscoveryClientUtils {
 		serviceMetadata.put(NAMESPACE_METADATA_KEY, namespace);
 		serviceMetadata.put(SERVICE_TYPE, serviceType);
 		return serviceMetadata;
+	}
+
+	public static ServicePortNameAndNumber endpointsPort(LinkedHashMap<String, Integer> endpointsPorts,
+			String serviceId, KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels) {
+
+		if (endpointsPorts.size() == 0) {
+			LOG.debug(() -> "no ports found for service : " + serviceId + ", will return zero");
+			return new ServicePortNameAndNumber(0, "http");
+		}
+
+		if (endpointsPorts.size() == 1) {
+			Map.Entry<String, Integer> single = endpointsPorts.entrySet().iterator().next();
+			LOG.debug(() -> "endpoint ports has a single entry, using port : " + single.getValue());
+			return new ServicePortNameAndNumber(single.getValue(), single.getKey());
+		}
+
+		else {
+
+			Optional<ServicePortNameAndNumber> portData;
+			String primaryPortName = primaryPortName(properties, serviceLabels, serviceId);
+
+			Map<String, Integer> existingPorts = endpointsPorts.entrySet().stream()
+					.filter(entry -> StringUtils.hasText(entry.getKey()))
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
+					+ primaryPortName + "') via properties or service labels to match port");
+			if (portData.isPresent()) {
+				return portData.get();
+			}
+
+			portData = fromMap(existingPorts, HTTPS, "found primary-port-name via 'https' to match port");
+			if (portData.isPresent()) {
+				return portData.get();
+			}
+
+			portData = fromMap(existingPorts, HTTP, "found primary-port-name via 'http' to match port");
+			if (portData.isPresent()) {
+				return portData.get();
+			}
+
+			logWarnings();
+			Map.Entry<String, Integer> first = endpointsPorts.entrySet().iterator().next();
+			return new ServicePortNameAndNumber(first.getValue(), first.getKey());
+
+		}
+	}
+
+	/**
+	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it
+	 * exists, otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
+	 */
+	static String primaryPortName(KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels,
+			String serviceId) {
+		String primaryPortNameFromProperties = properties.primaryPortName();
+
+		// the value from labels takes precedence over the one from properties
+		String primaryPortName = Optional
+				.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
+				.orElse(primaryPortNameFromProperties);
+
+		if (primaryPortName == null) {
+			LOG.debug(
+					() -> "did not find a primary-port-name in neither properties nor service labels for service with ID : "
+							+ serviceId);
+			return null;
+		}
+
+		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
+		return primaryPortName;
+	}
+
+	private static Optional<ServicePortNameAndNumber> fromMap(Map<String, Integer> existingPorts, String key,
+			String message) {
+		Integer fromPrimaryPortName = existingPorts.get(key);
+		if (fromPrimaryPortName == null) {
+			LOG.debug(() -> "not " + message);
+			return Optional.empty();
+		}
+		else {
+			LOG.debug(() -> message + " : " + fromPrimaryPortName);
+			return Optional.of(new ServicePortNameAndNumber(fromPrimaryPortName, key));
+		}
+	}
+
+	private static void logWarnings() {
+		LOG.warn(() -> """
+				Make sure that either the primary-port-name label has been added to the service,
+				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
+				Alternatively name the primary port 'https' or 'http'
+				An incorrect configuration may result in non-deterministic behaviour.""");
 	}
 
 }

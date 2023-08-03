@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 
 /**
  * @author wind57
@@ -345,6 +348,282 @@ class DiscoveryClientUtilsTests {
 				Map.of("prefix-https", "8080", "prefix-http", "8081", "k8s_namespace", "default", "type", "ClusterIP"));
 		Assertions.assertTrue(output.getOut()
 				.contains("Adding port metadata: {prefix-http=8081, prefix-https=8080} for serviceId : my-service"));
+	}
+
+	/**
+	 * <pre>
+	 *     - properties do not have primary-port-name set
+	 *     - service labels do not have primary-port-name set
+	 *
+	 *     As such null is returned.
+	 * </pre>
+	 */
+	@Test
+	void testPrimaryPortNameNotFound(CapturedOutput output) {
+		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
+
+		Map<String, String> serviceLabels = Map.of();
+
+		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		Assertions.assertNull(result);
+		Assertions.assertTrue(output.getOut().contains(
+				"did not find a primary-port-name in neither properties nor service labels for service with ID : abc"));
+	}
+
+	/**
+	 * <pre>
+	 *     - properties do have primary-port-name set to "https"
+	 *     - service labels do not have primary-port-name set
+	 *
+	 *     As such "https" is returned.
+	 * </pre>
+	 */
+	@Test
+	void testPrimaryPortNameFoundInProperties(CapturedOutput output) {
+		String primaryPortName = "https";
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+
+		Map<String, String> serviceLabels = Map.of();
+
+		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(result, primaryPortName);
+		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
+	}
+
+	/**
+	 * <pre>
+	 *     - properties do not have primary-port-name set
+	 *     - service labels do have primary-port-name set to "https"
+	 *
+	 *     As such "https" is returned.
+	 * </pre>
+	 */
+	@Test
+	void testPrimaryPortNameFoundInLabels(CapturedOutput output) {
+		Map<String, String> serviceLabels = Map.of(PRIMARY_PORT_NAME_LABEL_KEY, "https");
+		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
+
+		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(result, "https");
+		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
+	}
+
+	/**
+	 * <pre>
+	 *     - properties do have primary-port-name set to "https"
+	 *     - service labels do have primary-port-name set to "http"
+	 *
+	 *     As such "http" is returned (labels win).
+	 * </pre>
+	 */
+	@Test
+	void testPrimaryPortNameFoundInBothPropertiesAndLabels(CapturedOutput output) {
+		String primaryPortName = "https";
+		Map<String, String> serviceLabels = Map.of(PRIMARY_PORT_NAME_LABEL_KEY, "http");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+
+		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(result, "http");
+		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : http for service with ID = abc"));
+	}
+
+	/**
+	 * <pre>
+	 *     - EndpointSubset has no ports.
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortNoPorts(CapturedOutput output) {
+		String serviceId = "spring-k8s";
+		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
+
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		Map<String, String> serviceLabels = Map.of();
+
+		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
+				serviceLabels);
+		Assertions.assertEquals(portData.portNumber(), 0);
+		Assertions.assertEquals(portData.portName(), "http");
+		Assertions.assertTrue(output.getOut().contains("no ports found for service : spring-k8s, will return zero"));
+	}
+
+	/**
+	 * <pre>
+	 *     - EndpointSubset has a single entry in getPorts.
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortSinglePort(CapturedOutput output) {
+		String serviceId = "spring-k8s";
+		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
+
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("http", 8080);
+		Map<String, String> serviceLabels = Map.of();
+
+		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
+				serviceLabels);
+		Assertions.assertEquals(portData.portNumber(), 8080);
+		Assertions.assertEquals(portData.portName(), "http");
+		Assertions.assertTrue(output.getOut().contains("endpoint ports has a single entry, using port : 8080"));
+	}
+
+	/**
+	 * <pre>
+	 *     - primary-port-name is null.
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortNullPrimaryPortName(CapturedOutput output) {
+		String serviceId = "spring-k8s";
+		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
+
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put(null, 8080);
+		endpointsPorts.put("not-http-or-https", 8081);
+		Map<String, String> serviceLabels = Map.of();
+
+		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
+				serviceLabels);
+		Assertions.assertEquals(portData.portNumber(), 8080);
+		Assertions.assertNull(portData.portName());
+		Assertions.assertTrue(output.getOut().contains(
+				"did not find a primary-port-name in neither properties nor service labels for service with ID : spring-k8s"));
+		Assertions.assertTrue(output.getOut()
+				.contains("not found primary-port-name (with value: 'null') via properties or service labels"));
+		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'https' to match port"));
+		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'http' to match port"));
+		Assertions.assertTrue(output.getOut().contains("""
+				Make sure that either the primary-port-name label has been added to the service,
+				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
+				Alternatively name the primary port 'https' or 'http'
+				An incorrect configuration may result in non-deterministic behaviour."""));
+	}
+
+	/**
+	 * <pre>
+	 *     - primary-port-name is "three", such a port name does not exist.
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortPrimaryPortNameIsPresentButNotFound(CapturedOutput output) {
+		String serviceId = "spring-k8s";
+		String primaryPortName = "three";
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("one", 8080);
+		endpointsPorts.put("two", 8081);
+		Map<String, String> serviceLabels = Map.of();
+
+		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
+				serviceLabels);
+		Assertions.assertEquals(portData.portNumber(), 8080);
+		Assertions.assertEquals(portData.portName(), "one");
+		Assertions.assertTrue(
+				output.getOut().contains("will use primaryPortName : three for service with ID = spring-k8s"));
+		Assertions.assertTrue(output.getOut()
+				.contains("not found primary-port-name (with value: 'three') via properties or service labels"));
+		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'https' to match port"));
+		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'http' to match port"));
+		Assertions.assertTrue(output.getOut().contains("""
+				Make sure that either the primary-port-name label has been added to the service,
+				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
+				Alternatively name the primary port 'https' or 'http'
+				An incorrect configuration may result in non-deterministic behaviour."""));
+	}
+
+	/**
+	 * <pre>
+	 *     - primary-port-name is "two", such a port name exists and matches 8081
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortPrimaryPortNameFound(CapturedOutput output) {
+		String serviceId = "spring-k8s";
+		String primaryPortName = "two";
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("one", 8080);
+		endpointsPorts.put("two", 8081);
+		Map<String, String> serviceLabels = Map.of();
+
+		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
+				serviceLabels);
+		Assertions.assertEquals(portData.portNumber(), 8081);
+		Assertions.assertEquals(portData.portName(), "two");
+		Assertions.assertTrue(
+				output.getOut().contains("will use primaryPortName : two for service with ID = spring-k8s"));
+		Assertions.assertTrue(output.getOut().contains(
+				"found primary-port-name (with value: 'two') via properties or service labels to match port : 8081"));
+	}
+
+	/**
+	 * <pre>
+	 *     - primary-port-name is "three", such a port name does not exist.
+	 *     - https port exists and this one is returned
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortPrimaryPortHttps(CapturedOutput output) {
+		String serviceId = "spring-k8s";
+		String primaryPortName = "three";
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
+
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("one", 8080);
+		endpointsPorts.put("two", 8081);
+		endpointsPorts.put("https", 8082);
+		Map<String, String> serviceLabels = Map.of();
+
+		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
+				serviceLabels);
+		Assertions.assertEquals(portData.portNumber(), 8082);
+		Assertions.assertEquals(portData.portName(), "https");
+		Assertions.assertTrue(
+				output.getOut().contains("will use primaryPortName : three for service with ID = spring-k8s"));
+		Assertions.assertTrue(output.getOut().contains(
+				"not found primary-port-name (with value: 'three') via properties or service labels to match port"));
+		Assertions.assertTrue(output.getOut().contains("found primary-port-name via 'https' to match port : 8082"));
+	}
+
+	/**
+	 * <pre>
+	 *     - primary-port-name is "three", such a port name does not exist.
+	 *     - http port exists and this one is returned
+	 * </pre>
+	 */
+	@Test
+	void testEndpointsPortPrimaryPortHttp(CapturedOutput output) {
+		String serviceId = "spring-k8s";
+		String primaryPortName = "three";
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+
+		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
+		endpointsPorts.put("one", 8080);
+		endpointsPorts.put("two", 8081);
+		endpointsPorts.put("http", 8082);
+		Map<String, String> serviceLabels = Map.of();
+
+		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
+				serviceLabels);
+		Assertions.assertEquals(portData.portNumber(), 8082);
+		Assertions.assertEquals(portData.portName(), "http");
+		Assertions.assertTrue(
+				output.getOut().contains("will use primaryPortName : three for service with ID = spring-k8s"));
+		Assertions.assertTrue(output.getOut().contains(
+				"not found primary-port-name (with value: 'three') via properties or service labels to match port"));
+		Assertions.assertTrue(output.getOut().contains("found primary-port-name via 'http' to match port : 8082"));
 	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
