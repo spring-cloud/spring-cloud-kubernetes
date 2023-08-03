@@ -644,7 +644,7 @@ class DiscoveryClientUtilsTests {
 		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
 			Map.of(), Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "127.0.0.1", null);
-		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		Map<String, String> serviceMetadata = Map.of("a", "b");
 
 		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(resolver, forServiceInstance,
 			() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
@@ -662,28 +662,37 @@ class DiscoveryClientUtilsTests {
 		Assertions.assertNull(defaultInstance.getCluster());
 	}
 
-//	@Test
-//	void testExternalNameServiceInstance() {
-//		Service service = new ServiceBuilder()
-//			.withSpec(new ServiceSpecBuilder().withExternalName("spring.io").withType("ExternalName").build())
-//			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
-//
-//		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
-//		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, service, null,
-//			portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
-//		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
-//		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
-//		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
-//		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
-//		Assertions.assertEquals(defaultInstance.getHost(), "spring.io");
-//		Assertions.assertEquals(defaultInstance.getPort(), -1);
-//		Assertions.assertFalse(defaultInstance.isSecure());
-//		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "spring.io");
-//		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
-//		Assertions.assertEquals(defaultInstance.getScheme(), "http");
-//		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
-//		Assertions.assertNull(defaultInstance.getCluster());
-//	}
+	@Test
+	void testExternalNameServiceInstance() {
+		Service service = new ServiceBuilder()
+			.withSpec(new ServiceSpecBuilder().withExternalName("spring.io").withType("ExternalName").build())
+			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+			false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
+		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
+			Map.of(), Map.of());
+		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", null);
+		Map<String, String> serviceMetadata = Map.of("type", "ExternalName", "a", "b");
+
+		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, forServiceInstance,
+			() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
+
+		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+		Assertions.assertEquals(defaultInstance.getHost(), "spring.io");
+		Assertions.assertEquals(defaultInstance.getPort(), -1);
+		Assertions.assertFalse(defaultInstance.isSecure());
+		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "spring.io");
+		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+		Assertions.assertNull(defaultInstance.getCluster());
+	}
 //
 //	@Test
 //	void testNoPortsServiceInstance() {
