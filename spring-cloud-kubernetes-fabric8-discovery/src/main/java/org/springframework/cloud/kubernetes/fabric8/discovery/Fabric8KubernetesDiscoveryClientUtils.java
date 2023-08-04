@@ -49,6 +49,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
@@ -57,7 +58,6 @@ import org.springframework.util.StringUtils;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
 
 /**
  * @author wind57
@@ -208,8 +208,9 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			secured = false;
 		}
 		else {
-			secured = servicePortSecureResolver.resolve(new Input(portData, service.getMetadata().getName(),
-					service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+			secured = servicePortSecureResolver
+					.resolve(new ServicePortSecureResolver.Input(portData, service.getMetadata().getName(),
+							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
 		}
 
 		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
@@ -294,8 +295,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 		// this is most probably not a needed if statement, but it preserves the
 		// previous logic before I refactored the code. In particular, this takes care of
-		// the fact
-		// that an EndpointsPort name could be missing.
+		// the fact that an EndpointsPort name could be missing.
 		if (endpointPorts.size() == 1) {
 			result.put(endpointPorts.get(0).getName(), endpointPorts.get(0).getPort());
 			return result;
