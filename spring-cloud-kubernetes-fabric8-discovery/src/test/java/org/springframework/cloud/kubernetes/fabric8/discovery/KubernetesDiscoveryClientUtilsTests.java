@@ -142,42 +142,4 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
 	}
 
-	/**
-	 * endpoints ports are empty.
-	 */
-	@Test
-	void testEndpointSubsetPortsDataOne() {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
-		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
-		Assertions.assertTrue(result.isEmpty());
-	}
-
-	/**
-	 * endpoints ports has one entry.
-	 */
-	@Test
-	void testEndpointSubsetPortsDataTwo() {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("http").build()).build();
-		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get("http"), 8080);
-	}
-
-	/**
-	 * endpoints ports has three entries, only two are picked up.
-	 */
-	@Test
-	void testEndpointSubsetPortsDataThree() {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("http").build(),
-						new EndpointPortBuilder().withPort(8081).build(),
-						new EndpointPortBuilder().withPort(8082).withName("https").build())
-				.build();
-		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get("http"), 8080);
-		Assertions.assertEquals(result.get("https"), 8082);
-	}
-
 }

@@ -137,6 +137,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 						new Fabric8InstanceIdHostPodNameSupplier(null, service),
 						new Fabric8PodLabelsAndAnnotationsSupplier(null, null), new ServicePortNameAndNumber(-1, null),
 						serviceId, result, service.getMetadata().getNamespace(), properties);
+
 				instances.add(externalNameServiceInstance);
 			}
 		}
