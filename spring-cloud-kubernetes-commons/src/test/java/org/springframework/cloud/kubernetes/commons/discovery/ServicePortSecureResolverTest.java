@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.util.Collections;
 import java.util.Map;
@@ -25,11 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
+import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
 @ExtendWith(OutputCaptureExtension.class)
 class ServicePortSecureResolverTest {
