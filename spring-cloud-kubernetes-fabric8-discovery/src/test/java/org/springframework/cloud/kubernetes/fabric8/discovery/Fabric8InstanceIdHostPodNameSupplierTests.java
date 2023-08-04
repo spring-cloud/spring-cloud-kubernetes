@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodName;
 
 /**
@@ -36,12 +37,11 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 	@Test
 	void instanceIdNoEndpointAddress() {
 		EndpointAddress endpointAddress = null;
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().build())
-			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().build())
+				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
 
-		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(
-			endpointAddress, service);
+		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(endpointAddress,
+				service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertNotNull(result);
@@ -51,14 +51,12 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 	@Test
 	void instanceIdWithEndpointAddress() {
 		EndpointAddress endpointAddress = new EndpointAddressBuilder()
-			.withTargetRef(new ObjectReferenceBuilder().withUid("456").build())
-			.build();
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().build())
-			.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
+				.withTargetRef(new ObjectReferenceBuilder().withUid("456").build()).build();
+		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().build())
+				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
 
-		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(
-			endpointAddress, service);
+		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(endpointAddress,
+				service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertNotNull(result);
@@ -69,16 +67,62 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 	void hostNoEndpointAddress() {
 		EndpointAddress endpointAddress = null;
 		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withExternalName("external-name").build())
-			.withMetadata(new ObjectMeta())
-			.build();
+				.withSpec(new ServiceSpecBuilder().withExternalName("external-name").build())
+				.withMetadata(new ObjectMeta()).build();
 
-		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(
-			endpointAddress, service);
+		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(endpointAddress,
+				service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.host(), "external-name");
+	}
+
+	@Test
+	void hostWithEndpointAddress() {
+		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
+		Service service = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withExternalName("external-name").build())
+				.withMetadata(new ObjectMeta()).build();
+
+		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(endpointAddress,
+				service);
+		InstanceIdHostPodName result = supplier.get();
+
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(result.host(), "127.0.0.1");
+	}
+
+	@Test
+	void podNameKindNotPod() {
+		EndpointAddress endpointAddress = new EndpointAddressBuilder()
+				.withTargetRef(new ObjectReferenceBuilder().withKind("Service").build()).build();
+		Service service = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withExternalName("external-name").build())
+				.withMetadata(new ObjectMeta()).build();
+
+		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(endpointAddress,
+				service);
+		InstanceIdHostPodName result = supplier.get();
+
+		Assertions.assertNotNull(result);
+		Assertions.assertNull(result.podName());
+	}
+
+	@Test
+	void podNameKindIsPod() {
+		EndpointAddress endpointAddress = new EndpointAddressBuilder()
+				.withTargetRef(new ObjectReferenceBuilder().withKind("Pod").withName("my-pod").build()).build();
+		Service service = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withExternalName("external-name").build())
+				.withMetadata(new ObjectMeta()).build();
+
+		Fabric8InstanceIdHostPodNameSupplier supplier = new Fabric8InstanceIdHostPodNameSupplier(endpointAddress,
+				service);
+		InstanceIdHostPodName result = supplier.get();
+
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(result.podName(), "my-pod");
 	}
 
 }

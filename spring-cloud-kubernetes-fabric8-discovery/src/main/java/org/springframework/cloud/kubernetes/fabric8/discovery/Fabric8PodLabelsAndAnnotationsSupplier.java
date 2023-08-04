@@ -22,6 +22,7 @@ import java.util.function.Function;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
+
 import org.springframework.cloud.kubernetes.commons.discovery.PodLabelsAndAnnotations;
 
 /**
@@ -42,9 +43,9 @@ final class Fabric8PodLabelsAndAnnotationsSupplier implements Function<String, P
 
 	@Override
 	public PodLabelsAndAnnotations apply(String podName) {
-		ObjectMeta metadata = Optional
-			.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
-			.map(Pod::getMetadata).orElse(new ObjectMeta());
+		ObjectMeta metadata = Optional.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
+				.map(Pod::getMetadata).orElse(new ObjectMeta());
 		return new PodLabelsAndAnnotations(metadata.getLabels(), metadata.getAnnotations());
 	}
+
 }

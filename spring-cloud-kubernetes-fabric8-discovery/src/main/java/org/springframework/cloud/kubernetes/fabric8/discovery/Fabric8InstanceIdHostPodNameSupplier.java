@@ -16,16 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.ObjectReference;
-import io.fabric8.kubernetes.api.model.Service;
-import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodName;
-
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.ObjectReference;
+import io.fabric8.kubernetes.api.model.Service;
+
+import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodName;
+
 /**
  * computes instanceId, host and podName. All needed when calculating ServiceInstance.
+ *
  * @author wind57
  */
 final class Fabric8InstanceIdHostPodNameSupplier implements Supplier<InstanceIdHostPodName> {
@@ -46,18 +48,19 @@ final class Fabric8InstanceIdHostPodNameSupplier implements Supplier<InstanceIdH
 
 	// instanceId is usually the pod-uid as seen in the .metadata.uid
 	private String instanceId() {
-		return Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
-			.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
+		return Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef).map(ObjectReference::getUid)
+				.orElseGet(() -> service.getMetadata().getUid());
 	}
 
 	private String host() {
 		return Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
-			.orElseGet(() -> service.getSpec().getExternalName());
+				.orElseGet(() -> service.getSpec().getExternalName());
 	}
 
 	private String podName() {
 		return Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
-			.filter(objectReference -> "Pod".equals(objectReference.getKind()))
-			.map(ObjectReference::getName).orElse(null);
+				.filter(objectReference -> "Pod".equals(objectReference.getKind())).map(ObjectReference::getName)
+				.orElse(null);
 	}
+
 }
