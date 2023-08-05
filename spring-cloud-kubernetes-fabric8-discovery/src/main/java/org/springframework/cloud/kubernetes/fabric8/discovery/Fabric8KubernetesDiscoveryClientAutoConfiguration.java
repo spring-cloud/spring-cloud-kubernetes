@@ -40,6 +40,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKuber
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;

@@ -120,7 +120,6 @@ class Fabric8DiscoveryBootstrapIT {
 							.withValue("TRACE").build());
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-
 			Service service = client.services().load(serviceStream).item();
 			Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 

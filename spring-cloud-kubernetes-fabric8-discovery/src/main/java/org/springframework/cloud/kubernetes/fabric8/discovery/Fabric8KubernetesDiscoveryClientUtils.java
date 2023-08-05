@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,20 +50,16 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import static java.util.stream.Collectors.toMap;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.ServicePortSecureResolver.Input;
 
 /**
  * @author wind57
@@ -72,60 +69,14 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(Fabric8KubernetesDiscoveryClientUtils.class));
 
+	static final Predicate<Service> ALWAYS_TRUE = x -> true;
+
 	private Fabric8KubernetesDiscoveryClientUtils() {
 
 	}
 
 	static EndpointSubsetNS subsetsFromEndpoints(Endpoints endpoints) {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
-	}
-
-	static Fabric8ServicePortData endpointsPort(EndpointSubset endpointSubset, String serviceId,
-			KubernetesDiscoveryProperties properties, Service service) {
-
-		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
-
-		if (endpointPorts.size() == 0) {
-			LOG.debug(() -> "no ports found for service : " + serviceId + ", will return zero");
-			return new Fabric8ServicePortData(0, "http");
-		}
-
-		if (endpointPorts.size() == 1) {
-			EndpointPort single = endpointPorts.get(0);
-			int port = single.getPort();
-			LOG.debug(() -> "endpoint ports has a single entry, using port : " + port);
-			return new Fabric8ServicePortData(single.getPort(), single.getName());
-		}
-
-		else {
-
-			Optional<Fabric8ServicePortData> portData;
-			String primaryPortName = primaryPortName(properties, service, serviceId);
-
-			Map<String, Integer> existingPorts = endpointPorts.stream()
-					.filter(endpointPort -> StringUtils.hasText(endpointPort.getName()))
-					.collect(Collectors.toMap(EndpointPort::getName, EndpointPort::getPort));
-
-			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
-					+ primaryPortName + "') via properties or service labels to match port");
-			if (portData.isPresent()) {
-				return portData.get();
-			}
-
-			portData = fromMap(existingPorts, HTTPS, "found primary-port-name via 'https' to match port");
-			if (portData.isPresent()) {
-				return portData.get();
-			}
-
-			portData = fromMap(existingPorts, HTTP, "found primary-port-name via 'http' to match port");
-			if (portData.isPresent()) {
-				return portData.get();
-			}
-
-			logWarnings();
-			return new Fabric8ServicePortData(endpointPorts.get(0).getPort(), endpointPorts.get(0).getName());
-
-		}
 	}
 
 	/**
@@ -150,49 +101,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
 		return primaryPortName;
-	}
-
-	/**
-	 * This adds the following metadata. <pre>
-	 *     - labels (if requested)
-	 *     - annotations (if requested)
-	 *     - ports (if requested)
-	 *     - namespace
-	 *     - service type
-	 * </pre>
-	 */
-	static Map<String, String> serviceMetadata(String serviceId, Service service,
-			KubernetesDiscoveryProperties properties, List<EndpointSubset> endpointSubsets, String namespace) {
-		Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
-		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
-					metadataProps.labelsPrefix());
-			LOG.debug(() -> "Adding labels metadata: " + labelMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(labelMetadata);
-		}
-		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
-					metadataProps.annotationsPrefix());
-			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(annotationMetadata);
-		}
-
-		if (metadataProps.addPorts()) {
-			Map<String, String> ports = endpointSubsets.stream()
-					.flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-					.filter(port -> StringUtils.hasText(port.getName()))
-					.collect(toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
-			Map<String, String> portMetadata = keysWithPrefix(ports, properties.metadata().portsPrefix());
-			if (!portMetadata.isEmpty()) {
-				LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
-			}
-			serviceMetadata.putAll(portMetadata);
-		}
-
-		serviceMetadata.put(NAMESPACE_METADATA_KEY, namespace);
-		serviceMetadata.put(SERVICE_TYPE, service.getSpec().getType());
-		return serviceMetadata;
 	}
 
 	static List<EndpointSlice> endpointSlices(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -256,7 +164,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	static List<Endpoints> withFilter(List<Endpoints> endpoints, KubernetesDiscoveryProperties properties,
 			KubernetesClient client, Predicate<Service> filter) {
 
-		if (properties.filter() == null || properties.filter().isBlank()) {
+		if (properties.filter() == null || properties.filter().isBlank() || filter == ALWAYS_TRUE) {
 			LOG.debug(() -> "filter not present");
 			return endpoints;
 		}
@@ -319,7 +227,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
-			Service service, @Nullable EndpointAddress endpointAddress, Fabric8ServicePortData portData,
+			Service service, @Nullable EndpointAddress endpointAddress, ServicePortNameAndNumber portData,
 			String serviceId, Map<String, String> serviceMetadata, String namespace,
 			KubernetesDiscoveryProperties properties, KubernetesClient client) {
 		// instanceId is usually the pod-uid as seen in the .metadata.uid
@@ -331,8 +239,9 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			secured = false;
 		}
 		else {
-			secured = servicePortSecureResolver.resolve(new Input(portData, service.getMetadata().getName(),
-					service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+			secured = servicePortSecureResolver
+					.resolve(new ServicePortSecureResolver.Input(portData, service.getMetadata().getName(),
+							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
 		}
 
 		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
@@ -405,6 +314,32 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return Map.of();
 	}
 
+	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {
+		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
+				.filter(port -> StringUtils.hasText(port.getName()))
+				.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
+	}
+
+	static LinkedHashMap<String, Integer> endpointSubsetPortsData(EndpointSubset endpointSubset) {
+		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
+		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
+
+		// this is most probably not a needed if statement, but it preserves the
+		// previous logic before I refactored the code. In particular, this takes care of
+		// the fact that an EndpointsPort name could be missing.
+		if (endpointPorts.size() == 1) {
+			result.put(endpointPorts.get(0).getName(), endpointPorts.get(0).getPort());
+			return result;
+		}
+
+		endpointSubset.getPorts().forEach(port -> {
+			if (StringUtils.hasText(port.getName())) {
+				result.put(port.getName(), port.getPort());
+			}
+		});
+		return result;
+	}
+
 	/**
 	 * serviceName can be null, in which case, such a filter will not be applied.
 	 */
@@ -433,27 +368,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 		return partial.endFilter().list().getItems();
 
-	}
-
-	private static Optional<Fabric8ServicePortData> fromMap(Map<String, Integer> existingPorts, String key,
-			String message) {
-		Integer fromPrimaryPortName = existingPorts.get(key);
-		if (fromPrimaryPortName == null) {
-			LOG.debug(() -> "not " + message);
-			return Optional.empty();
-		}
-		else {
-			LOG.debug(() -> message + " : " + fromPrimaryPortName);
-			return Optional.of(new Fabric8ServicePortData(fromPrimaryPortName, key));
-		}
-	}
-
-	private static void logWarnings() {
-		LOG.warn(() -> """
-				Make sure that either the primary-port-name label has been added to the service,
-				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
-				Alternatively name the primary port 'https' or 'http'
-				An incorrect configuration may result in non-deterministic behaviour.""");
 	}
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.util.Map;
 import java.util.Optional;
@@ -22,12 +22,11 @@ import java.util.Set;
 
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SECURED;
 
-class ServicePortSecureResolver {
+public final class ServicePortSecureResolver {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ServicePortSecureResolver.class));
 
@@ -35,7 +34,7 @@ class ServicePortSecureResolver {
 
 	private final KubernetesDiscoveryProperties properties;
 
-	ServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
+	public ServicePortSecureResolver(KubernetesDiscoveryProperties properties) {
 		this.properties = properties;
 	}
 
@@ -50,10 +49,10 @@ class ServicePortSecureResolver {
 	 * </ul>
 	 *
 	 */
-	boolean resolve(Input input) {
+	public boolean resolve(Input input) {
 
 		String serviceName = input.serviceName();
-		Fabric8ServicePortData portData = input.portData();
+		ServicePortNameAndNumber portData = input.portData();
 
 		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get(SECURED));
 		if (securedLabelValue.isPresent() && TRUTHY_STRINGS.contains(securedLabelValue.get())) {
@@ -89,10 +88,10 @@ class ServicePortSecureResolver {
 	/**
 	 * @author wind57
 	 */
-	record Input(Fabric8ServicePortData portData, String serviceName, Map<String, String> serviceLabels,
+	public record Input(ServicePortNameAndNumber portData, String serviceName, Map<String, String> serviceLabels,
 			Map<String, String> serviceAnnotations) {
 
-		Input(Fabric8ServicePortData portData, String serviceName, Map<String, String> serviceLabels,
+		public Input(ServicePortNameAndNumber portData, String serviceName, Map<String, String> serviceLabels,
 				Map<String, String> serviceAnnotations) {
 			this.portData = portData;
 			this.serviceName = serviceName;

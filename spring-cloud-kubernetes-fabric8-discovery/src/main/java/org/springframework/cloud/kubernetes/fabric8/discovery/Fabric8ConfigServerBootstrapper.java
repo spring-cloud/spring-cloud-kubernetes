@@ -34,6 +34,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerBootstrapper;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerInstanceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.util.ClassUtils;
 
@@ -95,9 +96,7 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 				Config config = fabric8AutoConfiguration.kubernetesClientConfig(clientProperties);
 				KubernetesClient kubernetesClient = fabric8AutoConfiguration.kubernetesClient(config);
 				Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(
-						kubernetesClient,
-						discoveryProperties,
-						new ServicePortSecureResolver(discoveryProperties),
+						kubernetesClient, discoveryProperties, new ServicePortSecureResolver(discoveryProperties),
 						new KubernetesNamespaceProvider(binder, bindHandler),
 						new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(discoveryProperties));
 				return discoveryClient::getInstances;
