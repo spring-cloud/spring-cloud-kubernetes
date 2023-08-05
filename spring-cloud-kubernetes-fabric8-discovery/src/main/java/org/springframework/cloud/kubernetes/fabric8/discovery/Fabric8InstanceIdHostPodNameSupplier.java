@@ -36,7 +36,7 @@ final class Fabric8InstanceIdHostPodNameSupplier implements Supplier<InstanceIdH
 
 	private final Service service;
 
-	Fabric8InstanceIdHostPodNameSupplier(EndpointAddress endpointAddress, Service service) {
+	private Fabric8InstanceIdHostPodNameSupplier(EndpointAddress endpointAddress, Service service) {
 		this.endpointAddress = endpointAddress;
 		this.service = service;
 	}
@@ -44,6 +44,14 @@ final class Fabric8InstanceIdHostPodNameSupplier implements Supplier<InstanceIdH
 	@Override
 	public InstanceIdHostPodName get() {
 		return new InstanceIdHostPodName(instanceId(), host(), podName());
+	}
+
+	static Fabric8InstanceIdHostPodNameSupplier nonExternalName(EndpointAddress endpointAddress, Service service) {
+		return new Fabric8InstanceIdHostPodNameSupplier(endpointAddress, service);
+	}
+
+	static Fabric8InstanceIdHostPodNameSupplier externalName(Service service) {
+		return new Fabric8InstanceIdHostPodNameSupplier(null, service);
 	}
 
 	// instanceId is usually the pod-uid as seen in the .metadata.uid
