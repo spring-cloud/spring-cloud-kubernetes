@@ -41,6 +41,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 
 /**
  * @author wind57
