@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.ALWAYS_TRUE;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
 
 /**
@@ -41,7 +42,7 @@ final class Fabric8EndpointsCatalogWatch
 	@Override
 	public List<EndpointNameAndNamespace> apply(Fabric8CatalogWatchContext context) {
 		List<Endpoints> endpoints = endpoints(context.properties(), context.kubernetesClient(),
-				context.namespaceProvider(), "catalog-watcher", null, x -> true);
+				context.namespaceProvider(), "catalog-watcher", null, ALWAYS_TRUE);
 
 		/**
 		 * <pre>

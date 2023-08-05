@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
+import io.fabric8.kubernetes.api.model.EndpointSubset;
+import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
@@ -278,6 +281,33 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 				x -> x.getSpec().getType().equals("ExternalName"), Map.of(), "fabric8-discovery");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "external-name-service");
+	}
+
+	@Test
+	void testPortsDataOne() {
+		List<EndpointSubset> endpointSubsets = List.of(
+				new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("").build())
+						.build(),
+				new EndpointSubsetBuilder()
+						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+
+		Map<String, String> portsData = Fabric8KubernetesDiscoveryClientUtils.portsData(endpointSubsets);
+		Assertions.assertEquals(portsData.size(), 1);
+		Assertions.assertEquals(portsData.get("https"), "8080");
+	}
+
+	@Test
+	void testPortsDataTwo() {
+		List<EndpointSubset> endpointSubsets = List.of(
+				new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("http").build())
+						.build(),
+				new EndpointSubsetBuilder()
+						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+
+		Map<String, String> portsData = Fabric8KubernetesDiscoveryClientUtils.portsData(endpointSubsets);
+		Assertions.assertEquals(portsData.size(), 2);
+		Assertions.assertEquals(portsData.get("https"), "8080");
+		Assertions.assertEquals(portsData.get("http"), "8081");
 	}
 
 	private void service(String name, String namespace, Map<String, String> labels) {
