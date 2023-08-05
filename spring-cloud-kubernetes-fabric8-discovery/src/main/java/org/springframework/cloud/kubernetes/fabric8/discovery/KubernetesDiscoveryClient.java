@@ -46,14 +46,14 @@ import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryCl
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.externalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.nonExternalName;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.externalName;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.addresses;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.forServiceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.forServiceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.portsData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.externalName;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName;
 
 /**
  * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
@@ -138,9 +138,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
 				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
 
-				ServiceInstance externalNameServiceInstance = serviceInstance(null, forServiceInstance,
-						supplierOne, supplierTwo, new ServicePortNameAndNumber(-1, null),
-						serviceId, result, service.getMetadata().getNamespace(), properties);
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, forServiceInstance, supplierOne,
+						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceId, result,
+						service.getMetadata().getNamespace(), properties);
 
 				instances.add(externalNameServiceInstance);
 			}

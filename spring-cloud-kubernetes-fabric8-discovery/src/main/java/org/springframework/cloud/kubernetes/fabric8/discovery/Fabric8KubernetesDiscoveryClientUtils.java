@@ -216,8 +216,8 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	static ServiceMetadataForServiceInstance forServiceInstance(Service service) {
-		return new ServiceMetadataForServiceInstance(service.getMetadata().getName(),
-			service.getMetadata().getLabels(), service.getMetadata().getAnnotations());
+		return new ServiceMetadataForServiceInstance(service.getMetadata().getName(), service.getMetadata().getLabels(),
+				service.getMetadata().getAnnotations());
 	}
 
 	/**
