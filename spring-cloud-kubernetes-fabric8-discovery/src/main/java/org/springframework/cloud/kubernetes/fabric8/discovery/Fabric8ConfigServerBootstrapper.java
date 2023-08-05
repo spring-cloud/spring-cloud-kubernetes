@@ -33,6 +33,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerBootstrapper;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerInstanceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.util.ClassUtils;
 
