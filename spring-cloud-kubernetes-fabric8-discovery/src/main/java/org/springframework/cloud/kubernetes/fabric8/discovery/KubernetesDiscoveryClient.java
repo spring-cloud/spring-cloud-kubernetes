@@ -165,15 +165,14 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		Service service = client.services().inNamespace(namespace).withName(serviceId).get();
 		ServiceMetadata serviceMetadata = serviceMetadata(service);
 		Map<String, String> portsData = portsData(subsets);
-
 		Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		for (EndpointSubset endpointSubset : subsets) {
 
 			LinkedHashMap<String, Integer> endpointsPortData = endpointSubsetPortsData(endpointSubset);
 			ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, serviceMetadata, properties);
-
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
+
 			for (EndpointAddress endpointAddress : addresses) {
 
 				Fabric8InstanceIdHostPodNameSupplier supplierOne = nonExternalName(endpointAddress, service);

@@ -39,7 +39,7 @@ import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -186,11 +186,15 @@ final class KubernetesDiscoveryClientUtils {
 		return addresses;
 	}
 
-	static ServiceMetadataForServiceInstance forServiceInstance(V1Service service) {
+	static ServiceMetadata serviceMetadata(V1Service service) {
 		V1ObjectMeta metadata = Optional.ofNullable(service.getMetadata()).orElse(new V1ObjectMeta());
-		return new ServiceMetadataForServiceInstance(
-			metadata.getName(), Optional.ofNullable(metadata.getLabels()).orElse(Map.of()),
-			Optional.ofNullable(metadata.getAnnotations()).orElse(Map.of()));
+		V1ServiceSpec spec = Optional.ofNullable(service.getSpec()).orElse(new V1ServiceSpec());
+
+		return new ServiceMetadata(
+			metadata.getName(), metadata.getNamespace(), spec.getType(),
+			Optional.ofNullable(metadata.getLabels()).orElse(Map.of()),
+			Optional.ofNullable(metadata.getAnnotations()).orElse(Map.of())
+		);
 	}
 
 	static void postConstruct(List<SharedInformerFactory> sharedInformerFactories,

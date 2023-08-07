@@ -22,10 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.EndpointAddress;
-import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
-import io.fabric8.kubernetes.api.model.EndpointSubset;
-import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
@@ -39,7 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 
@@ -390,24 +386,22 @@ class KubernetesDiscoveryClientUtilsTests {
 		V1Service service = new V1Service();
 		Assertions.assertNull(service.getMetadata());
 
-		ServiceMetadataForServiceInstance forServiceInstance =
-			KubernetesDiscoveryClientUtils.forServiceInstance(service);
-		Assertions.assertNotNull(forServiceInstance);
-		Assertions.assertNull(forServiceInstance.name());
-		Assertions.assertTrue(forServiceInstance.labels().isEmpty());
-		Assertions.assertTrue(forServiceInstance.annotations().isEmpty());
+		ServiceMetadata serviceMetadata = KubernetesDiscoveryClientUtils.serviceMetadata(service);
+		Assertions.assertNotNull(serviceMetadata);
+		Assertions.assertNull(serviceMetadata.name());
+		Assertions.assertTrue(serviceMetadata.labels().isEmpty());
+		Assertions.assertTrue(serviceMetadata.annotations().isEmpty());
 	}
 
 	@Test
 	void forServiceInstanceEmptyMetadata() {
 		V1Service service = new V1Service().metadata(new V1ObjectMeta());
 
-		ServiceMetadataForServiceInstance forServiceInstance =
-			KubernetesDiscoveryClientUtils.forServiceInstance(service);
-		Assertions.assertNotNull(forServiceInstance);
-		Assertions.assertNull(forServiceInstance.name());
-		Assertions.assertTrue(forServiceInstance.labels().isEmpty());
-		Assertions.assertTrue(forServiceInstance.annotations().isEmpty());
+		ServiceMetadata serviceMetadata = KubernetesDiscoveryClientUtils.serviceMetadata(service);
+		Assertions.assertNotNull(serviceMetadata);
+		Assertions.assertNull(serviceMetadata.name());
+		Assertions.assertTrue(serviceMetadata.labels().isEmpty());
+		Assertions.assertTrue(serviceMetadata.annotations().isEmpty());
 	}
 
 	@Test
@@ -415,12 +409,11 @@ class KubernetesDiscoveryClientUtilsTests {
 		V1Service service = new V1Service().metadata(new V1ObjectMeta()
 			.name("name").labels(Map.of("a", "b")).annotations(Map.of("c", "d")));
 
-		ServiceMetadataForServiceInstance forServiceInstance =
-			KubernetesDiscoveryClientUtils.forServiceInstance(service);
-		Assertions.assertNotNull(forServiceInstance);
-		Assertions.assertEquals(forServiceInstance.name(), "name");
-		Assertions.assertEquals(forServiceInstance.labels(), Map.of("a", "b"));
-		Assertions.assertEquals(forServiceInstance.annotations(), Map.of("c", "d"));
+		ServiceMetadata serviceMetadata = KubernetesDiscoveryClientUtils.serviceMetadata(service);
+		Assertions.assertNotNull(serviceMetadata);
+		Assertions.assertEquals(serviceMetadata.name(), "name");
+		Assertions.assertEquals(serviceMetadata.labels(), Map.of("a", "b"));
+		Assertions.assertEquals(serviceMetadata.annotations(), Map.of("c", "d"));
 	}
 
 	// preserve order for testing reasons

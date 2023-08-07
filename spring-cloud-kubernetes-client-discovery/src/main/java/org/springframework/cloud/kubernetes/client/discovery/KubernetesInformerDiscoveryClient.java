@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +46,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
@@ -56,7 +58,9 @@ import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDi
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.postConstruct;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
@@ -65,7 +69,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.endpointSubsetPortsData;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.portsData;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.forServiceInstance;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.addresses;
 
 import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.nonExternalName;
@@ -165,49 +169,49 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	}
 
 	private Stream<ServiceInstance> getServiceInstanceDetails(V1Service service, String serviceId) {
-//		Map<String, String> serviceMetadata = serviceMetadata(properties, service, serviceId);
-//
-//		List<V1Endpoints> endpoints = endpointsListers.stream()
-//				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace())
-//						.get(service.getMetadata().getName()))
-//				.filter(Objects::nonNull).filter(ep -> ep.getSubsets() != null).toList();
-//
-//		List<ServiceInstance> instances = new ArrayList<>();
-//		for (V1Endpoints es : endpoints) {
-//			// subsetsNS are only those that matched the serviceId
-//			instances.addAll(getNamespaceServiceInstances(service, es, serviceId));
-//		}
-//
-//		if (properties.includeExternalNameServices()) {
-//			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
-//			List<Service> services = services(properties, client, namespaceProvider,
-//				s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
-//				"fabric8-discovery");
-//			for (Service service : services) {
-//				ObjectMeta serviceMetadata = service.getMetadata();
-//				Map<String, String> result = DiscoveryClientUtils.serviceMetadata(serviceId,
-//					serviceMetadata.getLabels(), serviceMetadata.getAnnotations(), Map.of(), properties,
-//					serviceMetadata.getNamespace(), service.getSpec().getType());
-//
-//				ServiceMetadataForServiceInstance forServiceInstance = forServiceInstance(service);
-//				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
-//				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
-//
-//				ServiceInstance externalNameServiceInstance = serviceInstance(null, forServiceInstance, supplierOne,
-//					supplierTwo, new ServicePortNameAndNumber(-1, null), serviceId, result,
-//					service.getMetadata().getNamespace(), properties);
-//
-//				instances.add(externalNameServiceInstance);
-//			}
-//		}
-//
-//		return instances;
+		List<V1Endpoints> endpoints = endpointsListers.stream()
+				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace())
+						.get(service.getMetadata().getName()))
+				.filter(Objects::nonNull).filter(ep -> ep.getSubsets() != null).toList();
 
-		return null;
+		List<ServiceInstance> instances = new ArrayList<>();
+		for (V1Endpoints es : endpoints) {
+			// subsetsNS are only those that matched the serviceId
+			instances.addAll(serviceInstances(service, es, serviceId));
+		}
+
+		if (properties.includeExternalNameServices()) {
+			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
+			serviceListers.stream().flatMap(lister -> lister.list().stream())
+
+
+
+
+
+
+			List<V1Service> services = services(properties, client, namespaceProvider,
+				s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
+				"fabric8-discovery");
+			for (Service service : services) {
+				ServiceMetadata serviceMetadata = serviceMetadata(service);
+				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
+					properties);
+
+				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
+				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
+
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
+					supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
+
+				instances.add(externalNameServiceInstance);
+			}
+		}
+
+		return instances;
 
 	}
 
-	private List<ServiceInstance> getNamespaceServiceInstances(V1Service service, V1Endpoints es, String serviceId) {
+	private List<ServiceInstance> serviceInstances(V1Service service, V1Endpoints es, String serviceId) {
 
 		List<V1EndpointSubset> subsets = es.getSubsets();
 		if (subsets == null || subsets.isEmpty()) {
@@ -218,26 +222,23 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		String namespace = es.getMetadata().getNamespace();
 		List<ServiceInstance> instances = new ArrayList<>();
 
-		V1ObjectMeta serviceMetadata = service.getMetadata();
-
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata(serviceId, serviceMetadata.getLabels(),
-			serviceMetadata.getAnnotations(), portsData(subsets), properties, serviceMetadata.getNamespace(),
-			service.getSpec().getType());
+		ServiceMetadata serviceMetadata = serviceMetadata(service);
+		Map<String, String> portsData = portsData(subsets);
+		Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		for (V1EndpointSubset endpointSubset : subsets) {
 
-			ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(
-				endpointSubsetPortsData(endpointSubset), serviceId, properties, service.getMetadata().getLabels());
-
+			LinkedHashMap<String, Integer> endpointsPortData = endpointSubsetPortsData(endpointSubset);
+			ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, serviceMetadata, properties);
 			List<V1EndpointAddress> addresses = addresses(endpointSubset, properties);
+
 			for (V1EndpointAddress endpointAddress : addresses) {
 
-				ServiceMetadataForServiceInstance forServiceInstance = forServiceInstance(service);
 				K8sInstanceIdHostPodNameSupplier supplierOne = nonExternalName(endpointAddress, service);
 				K8sPodLabelsAndAnnotationsSupplier supplierTwo = nonExternalName(coreV1Api, namespace);
 
-				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, forServiceInstance,
-					supplierOne, supplierTwo, portData, serviceId, result, namespace, properties);
+				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, serviceMetadata,
+					supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
 				instances.add(serviceInstance);
 			}
 		}
