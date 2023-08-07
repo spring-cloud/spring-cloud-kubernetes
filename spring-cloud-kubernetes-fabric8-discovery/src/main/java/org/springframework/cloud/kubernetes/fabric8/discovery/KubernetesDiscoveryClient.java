@@ -44,11 +44,16 @@ import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.externalName;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.nonExternalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.forServiceInstance;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.portsData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.externalName;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName;
 
 /**
  * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
@@ -129,14 +134,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 						serviceMetadata.getLabels(), serviceMetadata.getAnnotations(), Map.of(), properties,
 						serviceMetadata.getNamespace(), service.getSpec().getType());
 
-				ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance(
-						service.getMetadata().getName(), service.getMetadata().getLabels(),
-						service.getMetadata().getAnnotations());
+				ServiceMetadataForServiceInstance forServiceInstance = forServiceInstance(service);
+				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
+				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
 
-				ServiceInstance externalNameServiceInstance = serviceInstance(null, forServiceInstance,
-						new Fabric8InstanceIdHostPodNameSupplier(null, service),
-						new Fabric8PodLabelsAndAnnotationsSupplier(null, null), new ServicePortNameAndNumber(-1, null),
-						serviceId, result, service.getMetadata().getNamespace(), properties);
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, forServiceInstance, supplierOne,
+						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceId, result,
+						service.getMetadata().getNamespace(), properties);
 
 				instances.add(externalNameServiceInstance);
 			}
@@ -175,14 +179,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
 			for (EndpointAddress endpointAddress : addresses) {
 
-				ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance(
-						service.getMetadata().getName(), service.getMetadata().getLabels(),
-						service.getMetadata().getAnnotations());
+				ServiceMetadataForServiceInstance forServiceInstance = forServiceInstance(service);
+				Fabric8InstanceIdHostPodNameSupplier supplierOne = nonExternalName(endpointAddress, service);
+				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = nonExternalName(client, namespace);
 
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, forServiceInstance,
-						new Fabric8InstanceIdHostPodNameSupplier(endpointAddress, service),
-						new Fabric8PodLabelsAndAnnotationsSupplier(client, namespace), portData, serviceId, result,
-						namespace, properties);
+						supplierOne, supplierTwo, portData, serviceId, result, namespace, properties);
 				instances.add(serviceInstance);
 			}
 		}

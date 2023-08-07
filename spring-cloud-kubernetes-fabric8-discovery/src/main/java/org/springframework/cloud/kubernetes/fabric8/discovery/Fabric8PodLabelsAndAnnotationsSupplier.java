@@ -36,9 +36,23 @@ final class Fabric8PodLabelsAndAnnotationsSupplier implements Function<String, P
 
 	private final String namespace;
 
-	Fabric8PodLabelsAndAnnotationsSupplier(KubernetesClient client, String namespace) {
+	private Fabric8PodLabelsAndAnnotationsSupplier(KubernetesClient client, String namespace) {
 		this.client = client;
 		this.namespace = namespace;
+	}
+
+	/**
+	 * to be used when .spec.type of the Service is != 'ExternalName'.
+	 */
+	static Fabric8PodLabelsAndAnnotationsSupplier nonExternalName(KubernetesClient client, String namespace) {
+		return new Fabric8PodLabelsAndAnnotationsSupplier(client, namespace);
+	}
+
+	/**
+	 * to be used when .spec.type of the Service is == 'ExternalName'.
+	 */
+	static Fabric8PodLabelsAndAnnotationsSupplier externalName() {
+		return new Fabric8PodLabelsAndAnnotationsSupplier(null, null);
 	}
 
 	@Override
