@@ -46,7 +46,7 @@ class Fabric8PodLabelsAndAnnotationsSupplierTests {
 	}
 
 	@Test
-	void noObjetMeta() {
+	void noObjectMeta() {
 		client.pods().inNamespace(NAMESPACE)
 				.resource(new PodBuilder().withMetadata(new ObjectMetaBuilder().withName(POD_NAME).build()).build())
 				.create();

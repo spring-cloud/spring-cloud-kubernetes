@@ -17,15 +17,21 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
@@ -33,10 +39,13 @@ import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
@@ -132,6 +141,56 @@ final class KubernetesDiscoveryClientUtils {
 			LOG.debug(() -> "returning predicate based on filter expression: " + spelExpression);
 		}
 		return predicate;
+	}
+
+	static LinkedHashMap<String, Integer> endpointSubsetPortsData(V1EndpointSubset endpointSubset) {
+		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
+		List<CoreV1EndpointPort> endpointPorts = Optional.ofNullable(endpointSubset.getPorts())
+			.orElse(List.of());
+
+		// this is most probably not a needed if statement, but it preserves the
+		// previous logic before I refactored the code. In particular, this takes care of
+		// the fact that an EndpointsPort name could be missing.
+		if (endpointPorts.size() == 1) {
+			result.put(endpointPorts.get(0).getName(), endpointPorts.get(0).getPort());
+			return result;
+		}
+
+		endpointPorts.forEach(port -> {
+			if (StringUtils.hasText(port.getName())) {
+				result.put(port.getName(), port.getPort());
+			}
+		});
+		return result;
+	}
+
+	static Map<String, String> portsData(List<V1EndpointSubset> endpointSubsets) {
+		return endpointSubsets.stream().flatMap(endpointSubset -> Optional.ofNullable(endpointSubset.getPorts())
+				.orElse(List.of()).stream())
+			.filter(port -> StringUtils.hasText(port.getName()))
+			.collect(Collectors.toMap(CoreV1EndpointPort::getName, port -> Integer.toString(port.getPort())));
+	}
+
+	static List<V1EndpointAddress> addresses(V1EndpointSubset endpointSubset, KubernetesDiscoveryProperties properties) {
+		List<V1EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses()).map(ArrayList::new)
+			.orElse(new ArrayList<>());
+
+		if (properties.includeNotReadyAddresses()) {
+			List<V1EndpointAddress> notReadyAddresses = endpointSubset.getNotReadyAddresses();
+			if (CollectionUtils.isEmpty(notReadyAddresses)) {
+				return addresses;
+			}
+			addresses.addAll(notReadyAddresses);
+		}
+
+		return addresses;
+	}
+
+	static ServiceMetadataForServiceInstance forServiceInstance(V1Service service) {
+		V1ObjectMeta metadata = Optional.ofNullable(service.getMetadata()).orElse(new V1ObjectMeta());
+		return new ServiceMetadataForServiceInstance(
+			metadata.getName(), Optional.ofNullable(metadata.getLabels()).orElse(Map.of()),
+			Optional.ofNullable(metadata.getAnnotations()).orElse(Map.of()));
 	}
 
 	static void postConstruct(List<SharedInformerFactory> sharedInformerFactories,

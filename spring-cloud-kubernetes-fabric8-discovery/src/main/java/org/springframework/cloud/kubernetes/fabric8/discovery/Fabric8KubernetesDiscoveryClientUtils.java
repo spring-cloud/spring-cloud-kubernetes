@@ -207,7 +207,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			return result;
 		}
 
-		endpointSubset.getPorts().forEach(port -> {
+		endpointPorts.forEach(port -> {
 			if (StringUtils.hasText(port.getName())) {
 				result.put(port.getName(), port.getPort());
 			}
