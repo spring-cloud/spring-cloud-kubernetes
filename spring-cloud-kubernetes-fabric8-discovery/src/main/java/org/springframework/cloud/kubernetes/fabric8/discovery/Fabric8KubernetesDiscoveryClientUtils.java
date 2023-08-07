@@ -42,6 +42,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
@@ -212,6 +213,11 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			}
 		});
 		return result;
+	}
+
+	static ServiceMetadataForServiceInstance forServiceInstance(Service service) {
+		return new ServiceMetadataForServiceInstance(service.getMetadata().getName(), service.getMetadata().getLabels(),
+				service.getMetadata().getAnnotations());
 	}
 
 	/**
