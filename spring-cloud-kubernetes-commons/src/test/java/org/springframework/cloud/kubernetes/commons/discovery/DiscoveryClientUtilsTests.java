@@ -30,6 +30,11 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.client.ServiceInstance;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.podMetadata;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.primaryPortName;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 
 /**
@@ -62,9 +67,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result, Map.of("k8s_namespace", "default", "type", "ClusterIP"));
 	}
@@ -93,9 +99,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result, Map.of("k8s_namespace", "default", "type", "ClusterIP"));
 	}
@@ -124,9 +131,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertEquals(result, Map.of("a", "b", "k8s_namespace", "default", "type", "ClusterIP"));
@@ -159,9 +167,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertEquals(result.size(), 4);
 		Assertions.assertEquals(result,
@@ -196,9 +205,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertEquals(result, Map.of("aa", "bb", "k8s_namespace", "default", "type", "ClusterIP"));
@@ -230,9 +240,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertEquals(result.size(), 4);
 		Assertions.assertEquals(result,
@@ -267,9 +278,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertEquals(result.size(), 6);
 		Assertions.assertEquals(result, Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c",
@@ -308,9 +320,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertEquals(result.size(), 3);
 		Assertions.assertEquals(result, Map.of("https", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
@@ -341,9 +354,10 @@ class DiscoveryClientUtilsTests {
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
+				serviceAnnotations);
 
-		Map<String, String> result = DiscoveryClientUtils.serviceMetadata("my-service", serviceLabels,
-				serviceAnnotations, portsData, properties, namespace, "ClusterIP");
+		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertEquals(result.size(), 4);
 		Assertions.assertEquals(result,
@@ -366,7 +380,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of();
 
-		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		String result = primaryPortName(properties, serviceLabels, "abc");
 		Assertions.assertNull(result);
 		Assertions.assertTrue(output.getOut().contains(
 				"did not find a primary-port-name in neither properties nor service labels for service with ID : abc"));
@@ -388,7 +402,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of();
 
-		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		String result = primaryPortName(properties, serviceLabels, "abc");
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result, primaryPortName);
 		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
@@ -407,7 +421,7 @@ class DiscoveryClientUtilsTests {
 		Map<String, String> serviceLabels = Map.of(PRIMARY_PORT_NAME_LABEL_KEY, "https");
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 
-		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		String result = primaryPortName(properties, serviceLabels, "abc");
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result, "https");
 		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : https for service with ID = abc"));
@@ -428,7 +442,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
 
-		String result = DiscoveryClientUtils.primaryPortName(properties, serviceLabels, "abc");
+		String result = primaryPortName(properties, serviceLabels, "abc");
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result, "http");
 		Assertions.assertTrue(output.getOut().contains("will use primaryPortName : http for service with ID = abc"));
@@ -446,9 +460,10 @@ class DiscoveryClientUtilsTests {
 
 		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		Map<String, String> serviceLabels = Map.of();
+		ServiceMetadata serviceMetadata = new ServiceMetadata(serviceId, "default", "ClusterIP", serviceLabels,
+				Map.of());
 
-		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
-				serviceLabels);
+		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 0);
 		Assertions.assertEquals(portData.portName(), "http");
 		Assertions.assertTrue(output.getOut().contains("no ports found for service : spring-k8s, will return zero"));
@@ -467,9 +482,10 @@ class DiscoveryClientUtilsTests {
 		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		endpointsPorts.put("http", 8080);
 		Map<String, String> serviceLabels = Map.of();
+		ServiceMetadata serviceMetadata = new ServiceMetadata(serviceId, "default", "ClusterIP", serviceLabels,
+				Map.of());
 
-		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
-				serviceLabels);
+		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertEquals(portData.portName(), "http");
 		Assertions.assertTrue(output.getOut().contains("endpoint ports has a single entry, using port : 8080"));
@@ -490,8 +506,10 @@ class DiscoveryClientUtilsTests {
 		endpointsPorts.put("not-http-or-https", 8081);
 		Map<String, String> serviceLabels = Map.of();
 
-		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
-				serviceLabels);
+		ServiceMetadata serviceMetadata = new ServiceMetadata(serviceId, "default", "ClusterIP", serviceLabels,
+				Map.of());
+
+		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertNull(portData.portName());
 		Assertions.assertTrue(output.getOut().contains(
@@ -524,8 +542,10 @@ class DiscoveryClientUtilsTests {
 		endpointsPorts.put("two", 8081);
 		Map<String, String> serviceLabels = Map.of();
 
-		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
-				serviceLabels);
+		ServiceMetadata serviceMetadata = new ServiceMetadata(serviceId, "default", "ClusterIP", serviceLabels,
+				Map.of());
+
+		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 8080);
 		Assertions.assertEquals(portData.portName(), "one");
 		Assertions.assertTrue(
@@ -558,8 +578,10 @@ class DiscoveryClientUtilsTests {
 		endpointsPorts.put("two", 8081);
 		Map<String, String> serviceLabels = Map.of();
 
-		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
-				serviceLabels);
+		ServiceMetadata serviceMetadata = new ServiceMetadata(serviceId, "default", "ClusterIP", serviceLabels,
+				Map.of());
+
+		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 8081);
 		Assertions.assertEquals(portData.portName(), "two");
 		Assertions.assertTrue(
@@ -587,8 +609,10 @@ class DiscoveryClientUtilsTests {
 		endpointsPorts.put("https", 8082);
 		Map<String, String> serviceLabels = Map.of();
 
-		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
-				serviceLabels);
+		ServiceMetadata serviceMetadata = new ServiceMetadata(serviceId, "default", "ClusterIP", serviceLabels,
+				Map.of());
+
+		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 8082);
 		Assertions.assertEquals(portData.portName(), "https");
 		Assertions.assertTrue(
@@ -617,8 +641,10 @@ class DiscoveryClientUtilsTests {
 		endpointsPorts.put("http", 8082);
 		Map<String, String> serviceLabels = Map.of();
 
-		ServicePortNameAndNumber portData = DiscoveryClientUtils.endpointsPort(endpointsPorts, serviceId, properties,
-				serviceLabels);
+		ServiceMetadata serviceMetadata = new ServiceMetadata(serviceId, "default", "ClusterIP", serviceLabels,
+				Map.of());
+
+		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 8082);
 		Assertions.assertEquals(portData.portName(), "http");
 		Assertions.assertTrue(
@@ -635,13 +661,13 @@ class DiscoveryClientUtilsTests {
 		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
-		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
-				Map.of(), Map.of());
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "default", "ClusterIP", Map.of(),
+				Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "127.0.0.1", null);
 		Map<String, String> serviceMetadata = Map.of("a", "b");
 
-		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(resolver, forServiceInstance,
-				() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
+		ServiceInstance serviceInstance = serviceInstance(resolver, forServiceInstance, () -> instanceIdHostPodName,
+				null, portData, "my-service", serviceMetadata, "k8s", properties);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
 		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
@@ -663,13 +689,13 @@ class DiscoveryClientUtilsTests {
 				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
-		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
-				Map.of(), Map.of());
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "default", "ClusterIP", Map.of(),
+				Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", null);
 		Map<String, String> serviceMetadata = Map.of("a", "b");
 
-		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, forServiceInstance,
-				() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
+		ServiceInstance serviceInstance = serviceInstance(null, forServiceInstance, () -> instanceIdHostPodName, null,
+				portData, "my-service", serviceMetadata, "k8s", properties);
 
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
@@ -700,7 +726,7 @@ class DiscoveryClientUtilsTests {
 				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertTrue(result.isEmpty());
 	}
@@ -721,7 +747,7 @@ class DiscoveryClientUtilsTests {
 				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertTrue(result.isEmpty());
 	}
@@ -747,7 +773,7 @@ class DiscoveryClientUtilsTests {
 				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertTrue(result.isEmpty());
 	}
@@ -776,7 +802,7 @@ class DiscoveryClientUtilsTests {
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of(), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertTrue(result.isEmpty());
 
@@ -807,7 +833,7 @@ class DiscoveryClientUtilsTests {
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get("labels"), Map.of("a", "b"));
@@ -839,7 +865,7 @@ class DiscoveryClientUtilsTests {
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of());
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertTrue(result.isEmpty());
 
@@ -870,7 +896,7 @@ class DiscoveryClientUtilsTests {
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get("annotations"), Map.of("c", "d"));
@@ -902,7 +928,7 @@ class DiscoveryClientUtilsTests {
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
 
-		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
 				podLabelsAndMetadata);
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result.get("annotations"), Map.of("c", "d"));

@@ -46,10 +46,16 @@ final class Fabric8InstanceIdHostPodNameSupplier implements Supplier<InstanceIdH
 		return new InstanceIdHostPodName(instanceId(), host(), podName());
 	}
 
+	/**
+	 * to be used when .spec.type of the Service is != 'ExternalName'.
+	 */
 	static Fabric8InstanceIdHostPodNameSupplier nonExternalName(EndpointAddress endpointAddress, Service service) {
 		return new Fabric8InstanceIdHostPodNameSupplier(endpointAddress, service);
 	}
 
+	/**
+	 * to be used when .spec.type of the Service is == 'ExternalName'.
+	 */
 	static Fabric8InstanceIdHostPodNameSupplier externalName(Service service) {
 		return new Fabric8InstanceIdHostPodNameSupplier(null, service);
 	}
