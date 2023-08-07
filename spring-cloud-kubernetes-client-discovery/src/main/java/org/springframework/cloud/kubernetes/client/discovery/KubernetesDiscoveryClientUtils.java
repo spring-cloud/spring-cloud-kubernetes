@@ -145,8 +145,7 @@ final class KubernetesDiscoveryClientUtils {
 
 	static LinkedHashMap<String, Integer> endpointSubsetPortsData(V1EndpointSubset endpointSubset) {
 		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
-		List<CoreV1EndpointPort> endpointPorts = Optional.ofNullable(endpointSubset.getPorts())
-			.orElse(List.of());
+		List<CoreV1EndpointPort> endpointPorts = Optional.ofNullable(endpointSubset.getPorts()).orElse(List.of());
 
 		// this is most probably not a needed if statement, but it preserves the
 		// previous logic before I refactored the code. In particular, this takes care of
@@ -165,15 +164,16 @@ final class KubernetesDiscoveryClientUtils {
 	}
 
 	static Map<String, String> portsData(List<V1EndpointSubset> endpointSubsets) {
-		return endpointSubsets.stream().flatMap(endpointSubset -> Optional.ofNullable(endpointSubset.getPorts())
-				.orElse(List.of()).stream())
-			.filter(port -> StringUtils.hasText(port.getName()))
-			.collect(Collectors.toMap(CoreV1EndpointPort::getName, port -> Integer.toString(port.getPort())));
+		return endpointSubsets.stream()
+				.flatMap(endpointSubset -> Optional.ofNullable(endpointSubset.getPorts()).orElse(List.of()).stream())
+				.filter(port -> StringUtils.hasText(port.getName()))
+				.collect(Collectors.toMap(CoreV1EndpointPort::getName, port -> Integer.toString(port.getPort())));
 	}
 
-	static List<V1EndpointAddress> addresses(V1EndpointSubset endpointSubset, KubernetesDiscoveryProperties properties) {
+	static List<V1EndpointAddress> addresses(V1EndpointSubset endpointSubset,
+			KubernetesDiscoveryProperties properties) {
 		List<V1EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses()).map(ArrayList::new)
-			.orElse(new ArrayList<>());
+				.orElse(new ArrayList<>());
 
 		if (properties.includeNotReadyAddresses()) {
 			List<V1EndpointAddress> notReadyAddresses = endpointSubset.getNotReadyAddresses();
@@ -190,11 +190,9 @@ final class KubernetesDiscoveryClientUtils {
 		V1ObjectMeta metadata = Optional.ofNullable(service.getMetadata()).orElse(new V1ObjectMeta());
 		V1ServiceSpec spec = Optional.ofNullable(service.getSpec()).orElse(new V1ServiceSpec());
 
-		return new ServiceMetadata(
-			metadata.getName(), metadata.getNamespace(), spec.getType(),
-			Optional.ofNullable(metadata.getLabels()).orElse(Map.of()),
-			Optional.ofNullable(metadata.getAnnotations()).orElse(Map.of())
-		);
+		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), spec.getType(),
+				Optional.ofNullable(metadata.getLabels()).orElse(Map.of()),
+				Optional.ofNullable(metadata.getAnnotations()).orElse(Map.of()));
 	}
 
 	static void postConstruct(List<SharedInformerFactory> sharedInformerFactories,

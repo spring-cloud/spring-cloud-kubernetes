@@ -186,9 +186,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void endpointSubsetPortsDataOnePortNullName() {
-		V1EndpointSubset subset = new V1EndpointSubset().ports(List.of(
-			new CoreV1EndpointPort().port(8080)
-		));
+		V1EndpointSubset subset = new V1EndpointSubset().ports(List.of(new CoreV1EndpointPort().port(8080)));
 		Assertions.assertEquals(subset.getPorts().size(), 1);
 		Assertions.assertNull(subset.getPorts().get(0).getName());
 
@@ -199,9 +197,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void endpointSubsetPortsDataOnePort() {
-		V1EndpointSubset subset = new V1EndpointSubset().ports(List.of(
-			new CoreV1EndpointPort().port(8080).name("http")
-		));
+		V1EndpointSubset subset = new V1EndpointSubset()
+				.ports(List.of(new CoreV1EndpointPort().port(8080).name("http")));
 
 		LinkedHashMap<String, Integer> result = KubernetesDiscoveryClientUtils.endpointSubsetPortsData(subset);
 		Assertions.assertEquals(result.size(), 1);
@@ -210,11 +207,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void endpointSubsetPortsDataThreePorts() {
-		V1EndpointSubset subset = new V1EndpointSubset().ports(List.of(
-			new CoreV1EndpointPort().port(8080).name("http"),
-			new CoreV1EndpointPort().port(8081).name("https"),
-			new CoreV1EndpointPort().port(8082)
-		));
+		V1EndpointSubset subset = new V1EndpointSubset().ports(List.of(new CoreV1EndpointPort().port(8080).name("http"),
+				new CoreV1EndpointPort().port(8081).name("https"), new CoreV1EndpointPort().port(8082)));
 
 		LinkedHashMap<String, Integer> result = KubernetesDiscoveryClientUtils.endpointSubsetPortsData(subset);
 		Assertions.assertEquals(result.size(), 2);
@@ -248,9 +242,7 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void portsDataOneEndpointSubsetsWithoutName() {
-		V1EndpointSubset endpointSubset = new V1EndpointSubset().ports(List.of(
-			new CoreV1EndpointPort().port(8080)
-		));
+		V1EndpointSubset endpointSubset = new V1EndpointSubset().ports(List.of(new CoreV1EndpointPort().port(8080)));
 		Assertions.assertNotNull(endpointSubset.getPorts());
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.portsData(List.of(endpointSubset));
@@ -259,9 +251,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void portsDataOneEndpointSubsetsWithName() {
-		V1EndpointSubset endpointSubset = new V1EndpointSubset().ports(List.of(
-			new CoreV1EndpointPort().port(8080).name("http")
-		));
+		V1EndpointSubset endpointSubset = new V1EndpointSubset()
+				.ports(List.of(new CoreV1EndpointPort().port(8080).name("http")));
 		Assertions.assertNotNull(endpointSubset.getPorts());
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.portsData(List.of(endpointSubset));
@@ -271,11 +262,9 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void portsDataThreeEndpointSubsets() {
-		V1EndpointSubset endpointSubset = new V1EndpointSubset().ports(List.of(
-			new CoreV1EndpointPort().port(8080).name("http"),
-			new CoreV1EndpointPort().port(8081).name("https"),
-			new CoreV1EndpointPort().port(8082)
-		));
+		V1EndpointSubset endpointSubset = new V1EndpointSubset()
+				.ports(List.of(new CoreV1EndpointPort().port(8080).name("http"),
+						new CoreV1EndpointPort().port(8081).name("https"), new CoreV1EndpointPort().port(8082)));
 		Assertions.assertNotNull(endpointSubset.getPorts());
 
 		Map<String, String> result = KubernetesDiscoveryClientUtils.portsData(List.of(endpointSubset));
@@ -294,7 +283,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testNullAddresses() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-			includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubset();
 		Assertions.assertNull(endpointSubset.getAddresses());
 
@@ -312,7 +301,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testEmptyAddresses() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-			includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubset().addresses(List.of());
 		Assertions.assertEquals(endpointSubset.getAddresses().size(), 0);
 
@@ -330,11 +319,9 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testReadyAddressesOnly() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-			includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubset()
-			.addresses(List.of(
-				new V1EndpointAddress().hostname("one"),
-				new V1EndpointAddress().hostname("two")));
+				.addresses(List.of(new V1EndpointAddress().hostname("one"), new V1EndpointAddress().hostname("two")));
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 	}
@@ -349,11 +336,10 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testReadyAddressesTakenNotReadyAddressesNotTaken() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-			includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubset()
-			.addresses(List.of(new V1EndpointAddress().hostname("one"),
-				new V1EndpointAddress().hostname("two")))
-			.notReadyAddresses(List.of(new V1EndpointAddress().hostname("three")));
+				.addresses(List.of(new V1EndpointAddress().hostname("one"), new V1EndpointAddress().hostname("two")))
+				.notReadyAddresses(List.of(new V1EndpointAddress().hostname("three")));
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
@@ -370,11 +356,10 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testBothAddressesTaken() {
 		boolean includeNotReadyAddresses = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-			includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubset()
-			.addresses(List.of(new V1EndpointAddress().hostname("one"),
-				new V1EndpointAddress().hostname("two")))
-			.notReadyAddresses(List.of(new V1EndpointAddress().hostname("three")));
+				.addresses(List.of(new V1EndpointAddress().hostname("one"), new V1EndpointAddress().hostname("two")))
+				.notReadyAddresses(List.of(new V1EndpointAddress().hostname("three")));
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 3);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
@@ -406,8 +391,8 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	@Test
 	void forServiceInstancePresentMetadata() {
-		V1Service service = new V1Service().metadata(new V1ObjectMeta()
-			.name("name").labels(Map.of("a", "b")).annotations(Map.of("c", "d")));
+		V1Service service = new V1Service()
+				.metadata(new V1ObjectMeta().name("name").labels(Map.of("a", "b")).annotations(Map.of("c", "d")));
 
 		ServiceMetadata serviceMetadata = KubernetesDiscoveryClientUtils.serviceMetadata(service);
 		Assertions.assertNotNull(serviceMetadata);

@@ -23,6 +23,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodName;
 
 /**
@@ -32,8 +33,7 @@ class K8sInstanceIdHostPodNameSupplierTests {
 
 	@Test
 	void instanceIdNoEndpointAddress() {
-		V1Service service = new V1Service().spec(new V1ServiceSpec())
-			.metadata(new V1ObjectMeta().uid("123"));
+		V1Service service = new V1Service().spec(new V1ServiceSpec()).metadata(new V1ObjectMeta().uid("123"));
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
@@ -44,13 +44,11 @@ class K8sInstanceIdHostPodNameSupplierTests {
 
 	@Test
 	void instanceIdWithEndpointAddress() {
-		V1EndpointAddress endpointAddress = new V1EndpointAddress()
-			.targetRef(new V1ObjectReference().uid("456"));
-		V1Service service = new V1Service().spec(new V1ServiceSpec())
-			.metadata(new V1ObjectMeta().uid("123"));
+		V1EndpointAddress endpointAddress = new V1EndpointAddress().targetRef(new V1ObjectReference().uid("456"));
+		V1Service service = new V1Service().spec(new V1ServiceSpec()).metadata(new V1ObjectMeta().uid("123"));
 
-		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
+				service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertNotNull(result);
@@ -59,9 +57,8 @@ class K8sInstanceIdHostPodNameSupplierTests {
 
 	@Test
 	void hostNoEndpointAddress() {
-		V1Service service = new V1Service()
-			.spec(new V1ServiceSpec().externalName("external-name"))
-			.metadata(new V1ObjectMeta());
+		V1Service service = new V1Service().spec(new V1ServiceSpec().externalName("external-name"))
+				.metadata(new V1ObjectMeta());
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
@@ -73,12 +70,11 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void hostWithEndpointAddress() {
 		V1EndpointAddress endpointAddress = new V1EndpointAddress().ip("127.0.0.1");
-		V1Service service = new V1Service()
-			.spec(new V1ServiceSpec().externalName("external-name"))
-			.metadata(new V1ObjectMeta());
+		V1Service service = new V1Service().spec(new V1ServiceSpec().externalName("external-name"))
+				.metadata(new V1ObjectMeta());
 
-		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
+				service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertNotNull(result);
@@ -88,7 +84,7 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void testPodNameIsNull() {
 		V1Service service = new V1Service().metadata(new V1ObjectMeta().uid("123"))
-			.spec(new V1ServiceSpec().externalName("external-name"));
+				.spec(new V1ServiceSpec().externalName("external-name"));
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
 
@@ -98,14 +94,12 @@ class K8sInstanceIdHostPodNameSupplierTests {
 
 	@Test
 	void podNameKindNotPod() {
-		V1EndpointAddress endpointAddress = new V1EndpointAddress()
-			.targetRef(new V1ObjectReference().kind("Service"));
-		V1Service service = new V1Service()
-			.spec(new V1ServiceSpec().externalName("external-name"))
-			.metadata(new V1ObjectMeta());
+		V1EndpointAddress endpointAddress = new V1EndpointAddress().targetRef(new V1ObjectReference().kind("Service"));
+		V1Service service = new V1Service().spec(new V1ServiceSpec().externalName("external-name"))
+				.metadata(new V1ObjectMeta());
 
-		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
+				service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertNotNull(result);
@@ -115,13 +109,12 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void podNameKindIsPod() {
 		V1EndpointAddress endpointAddress = new V1EndpointAddress()
-			.targetRef(new V1ObjectReference().kind("Pod").name("my-pod"));
-		V1Service service = new V1Service()
-			.spec(new V1ServiceSpec().externalName("external-name"))
-			.metadata(new V1ObjectMeta());
+				.targetRef(new V1ObjectReference().kind("Pod").name("my-pod"));
+		V1Service service = new V1Service().spec(new V1ServiceSpec().externalName("external-name"))
+				.metadata(new V1ObjectMeta());
 
-		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
+				service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertNotNull(result);

@@ -16,13 +16,14 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1ObjectReference;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodName;
 
-import java.util.Optional;
-import java.util.function.Supplier;
+import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodName;
 
 /**
  * computes instanceId, host and podName. All needed when calculating ServiceInstance.
@@ -56,18 +57,18 @@ final class K8sInstanceIdHostPodNameSupplier implements Supplier<InstanceIdHostP
 	// instanceId is usually the pod-uid as seen in the .metadata.uid
 	private String instanceId() {
 		return Optional.ofNullable(endpointAddress).map(V1EndpointAddress::getTargetRef).map(V1ObjectReference::getUid)
-			.orElseGet(() -> service.getMetadata().getUid());
+				.orElseGet(() -> service.getMetadata().getUid());
 	}
 
 	private String host() {
 		return Optional.ofNullable(endpointAddress).map(V1EndpointAddress::getIp)
-			.orElseGet(() -> service.getSpec().getExternalName());
+				.orElseGet(() -> service.getSpec().getExternalName());
 	}
 
 	private String podName() {
 		return Optional.ofNullable(endpointAddress).map(V1EndpointAddress::getTargetRef)
-			.filter(objectReference -> "Pod".equals(objectReference.getKind())).map(V1ObjectReference::getName)
-			.orElse(null);
+				.filter(objectReference -> "Pod".equals(objectReference.getKind())).map(V1ObjectReference::getName)
+				.orElse(null);
 	}
 
 }

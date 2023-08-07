@@ -17,65 +17,45 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
-import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.nonExternalName;
+import static org.springframework.cloud.kubernetes.client.discovery.K8sPodLabelsAndAnnotationsSupplier.nonExternalName;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.addresses;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.endpointSubsetPortsData;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.filter;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.portsData;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.postConstruct;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SECURED;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.endpointSubsetPortsData;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.portsData;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.addresses;
-
-import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.nonExternalName;
-import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.externalName;
-import static org.springframework.cloud.kubernetes.client.discovery.K8sPodLabelsAndAnnotationsSupplier.nonExternalName;
-import static org.springframework.cloud.kubernetes.client.discovery.K8sPodLabelsAndAnnotationsSupplier.externalName;
 
 /**
  * @author Min Kim
@@ -180,34 +160,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 			instances.addAll(serviceInstances(service, es, serviceId));
 		}
 
-		if (properties.includeExternalNameServices()) {
-			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
-			serviceListers.stream().flatMap(lister -> lister.list().stream())
-
-
-
-
-
-
-			List<V1Service> services = services(properties, client, namespaceProvider,
-				s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
-				"fabric8-discovery");
-			for (Service service : services) {
-				ServiceMetadata serviceMetadata = serviceMetadata(service);
-				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
-					properties);
-
-				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
-				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
-
-				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
-					supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
-
-				instances.add(externalNameServiceInstance);
-			}
-		}
-
-		return instances;
+		return instances.stream();
 
 	}
 
@@ -238,14 +191,13 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 				K8sPodLabelsAndAnnotationsSupplier supplierTwo = nonExternalName(coreV1Api, namespace);
 
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, serviceMetadata,
-					supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
+						supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
 				instances.add(serviceInstance);
 			}
 		}
 
 		return instances;
 	}
-
 
 	@Override
 	public List<String> getServices() {

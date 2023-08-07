@@ -1,15 +1,35 @@
-package org.springframework.cloud.kubernetes.client.discovery;
+/*
+ * Copyright 2013-2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Pod;
-import org.springframework.cloud.kubernetes.commons.discovery.PodLabelsAndAnnotations;
+package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Pod;
+
+import org.springframework.cloud.kubernetes.commons.discovery.PodLabelsAndAnnotations;
+
+/**
+ * @author wind57
+ */
 final class K8sPodLabelsAndAnnotationsSupplier implements Function<String, PodLabelsAndAnnotations> {
 
 	private final CoreV1Api client;
@@ -33,12 +53,11 @@ final class K8sPodLabelsAndAnnotationsSupplier implements Function<String, PodLa
 	public PodLabelsAndAnnotations apply(String podName) {
 		try {
 			V1ObjectMeta meta = Optional.ofNullable(client.readNamespacedPod(podName, namespace, null))
-				.map(V1Pod::getMetadata).orElse(new V1ObjectMeta());
-			return new PodLabelsAndAnnotations(
-				Optional.ofNullable(meta.getLabels()).orElse(Map.of()),
-				Optional.ofNullable(meta.getAnnotations()).orElse(Map.of())
-			);
-		} catch (ApiException e) {
+					.map(V1Pod::getMetadata).orElse(new V1ObjectMeta());
+			return new PodLabelsAndAnnotations(Optional.ofNullable(meta.getLabels()).orElse(Map.of()),
+					Optional.ofNullable(meta.getAnnotations()).orElse(Map.of()));
+		}
+		catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
 

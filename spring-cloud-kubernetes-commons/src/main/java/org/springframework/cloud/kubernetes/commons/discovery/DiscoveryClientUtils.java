@@ -151,12 +151,12 @@ public final class DiscoveryClientUtils {
 					serviceMetadata.name(), serviceMetadata.labels(), serviceMetadata.annotations()));
 		}
 
-		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceInstanceMetadata,
-			properties, podLabelsAndMetadata);
+		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceInstanceMetadata, properties,
+				podLabelsAndMetadata);
 
-		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceMetadata.name(),
-			data.host(), portData.portNumber(), serviceInstanceMetadata, secured,
-			serviceMetadata.namespace(), null, podMetadata);
+		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceMetadata.name(), data.host(),
+				portData.portNumber(), serviceInstanceMetadata, secured, serviceMetadata.namespace(), null,
+				podMetadata);
 	}
 
 	/**
