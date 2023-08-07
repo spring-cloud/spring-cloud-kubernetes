@@ -661,13 +661,13 @@ class DiscoveryClientUtilsTests {
 		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
-		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "default", "ClusterIP", Map.of(),
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(),
 				Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "127.0.0.1", null);
 		Map<String, String> serviceMetadata = Map.of("a", "b");
 
 		ServiceInstance serviceInstance = serviceInstance(resolver, forServiceInstance, () -> instanceIdHostPodName,
-				null, portData, "my-service", serviceMetadata, "k8s", properties);
+				null, portData, serviceMetadata, properties);
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
 		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
@@ -689,13 +689,13 @@ class DiscoveryClientUtilsTests {
 				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
-		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "default", "ClusterIP", Map.of(),
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(),
 				Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", null);
 		Map<String, String> serviceMetadata = Map.of("a", "b");
 
 		ServiceInstance serviceInstance = serviceInstance(null, forServiceInstance, () -> instanceIdHostPodName, null,
-				portData, "my-service", serviceMetadata, "k8s", properties);
+				portData, serviceMetadata, properties);
 
 		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
 		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
