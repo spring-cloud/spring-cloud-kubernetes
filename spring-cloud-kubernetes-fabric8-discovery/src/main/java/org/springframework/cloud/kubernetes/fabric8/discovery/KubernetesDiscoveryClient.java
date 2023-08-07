@@ -134,13 +134,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
 						properties);
 
-				ServiceMetadata forServiceInstance = serviceMetadata(service);
 				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
 				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
 
-				ServiceInstance externalNameServiceInstance = serviceInstance(null, forServiceInstance, supplierOne,
-						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceId, serviceInstanceMetadata,
-						service.getMetadata().getNamespace(), properties);
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
+						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
 
 				instances.add(externalNameServiceInstance);
 			}
@@ -182,7 +180,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = nonExternalName(client, namespace);
 
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, serviceMetadata,
-						supplierOne, supplierTwo, portData, serviceId, serviceInstanceMetadata, namespace, properties);
+						supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
 				instances.add(serviceInstance);
 			}
 		}

@@ -136,10 +136,9 @@ public final class DiscoveryClientUtils {
 	}
 
 	public static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
-			ServiceMetadata serviceMetadataForServiceInstance, Supplier<InstanceIdHostPodName> instanceIdAndHost,
+			ServiceMetadata serviceMetadata, Supplier<InstanceIdHostPodName> instanceIdAndHost,
 			Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata, ServicePortNameAndNumber portData,
-			String serviceId, Map<String, String> serviceMetadata, String namespace,
-			KubernetesDiscoveryProperties properties) {
+			Map<String, String> serviceInstanceMetadata, KubernetesDiscoveryProperties properties) {
 
 		InstanceIdHostPodName data = instanceIdAndHost.get();
 
@@ -149,15 +148,15 @@ public final class DiscoveryClientUtils {
 		}
 		else {
 			secured = servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(portData,
-					serviceMetadataForServiceInstance.name(), serviceMetadataForServiceInstance.labels(),
-					serviceMetadataForServiceInstance.annotations()));
+					serviceMetadata.name(), serviceMetadata.labels(), serviceMetadata.annotations()));
 		}
 
-		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceMetadata, properties,
-				podLabelsAndMetadata);
+		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceInstanceMetadata,
+			properties, podLabelsAndMetadata);
 
-		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceId, data.host(), portData.portNumber(),
-				serviceMetadata, secured, namespace, null, podMetadata);
+		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceMetadata.name(),
+			data.host(), portData.portNumber(), serviceInstanceMetadata, secured,
+			serviceMetadata.namespace(), null, podMetadata);
 	}
 
 	/**
