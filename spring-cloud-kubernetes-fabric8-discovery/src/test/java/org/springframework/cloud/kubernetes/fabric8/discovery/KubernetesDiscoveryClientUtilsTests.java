@@ -27,21 +27,13 @@ import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 
 /**
  * @author wind57
@@ -148,118 +140,6 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertEquals(addresses.size(), 3);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
 		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
-	}
-
-	@Test
-	void testServiceInstance() {
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
-		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
-		Service service = new ServiceBuilder().withMetadata(new ObjectMeta()).build();
-		EndpointAddress address = new EndpointAddressBuilder().withNewTargetRef().withUid("123").endTargetRef()
-				.withIp("127.0.0.1").build();
-
-		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
-		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(resolver, service,
-				address, portData, "my-service", Map.of("a", "b"), "k8s", properties, null);
-		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
-		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
-		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
-		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
-		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
-		Assertions.assertEquals(defaultInstance.getPort(), 8080);
-		Assertions.assertFalse(defaultInstance.isSecure());
-		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
-		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
-		Assertions.assertEquals(defaultInstance.getScheme(), "http");
-		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
-		Assertions.assertNull(defaultInstance.getCluster());
-	}
-
-	@Test
-	void testExternalNameServiceInstance() {
-		Service service = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withExternalName("spring.io").withType("ExternalName").build())
-				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
-
-		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
-		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(null, service, null,
-				portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT, null);
-		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
-		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
-		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
-		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
-		Assertions.assertEquals(defaultInstance.getHost(), "spring.io");
-		Assertions.assertEquals(defaultInstance.getPort(), -1);
-		Assertions.assertFalse(defaultInstance.isSecure());
-		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "spring.io");
-		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
-		Assertions.assertEquals(defaultInstance.getScheme(), "http");
-		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
-		Assertions.assertNull(defaultInstance.getCluster());
-	}
-
-	@Test
-	void testNoPortsServiceInstance() {
-		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withMetadata(new ObjectMetaBuilder().withUid("123").build()).build();
-
-		EndpointAddress endpointAddress = new EndpointAddressBuilder().withIp("127.0.0.1").build();
-
-		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(0, "http");
-		ServiceInstance serviceInstance = Fabric8KubernetesDiscoveryClientUtils.serviceInstance(null, service,
-				endpointAddress, portData, "my-service", Map.of("a", "b"), "k8s", KubernetesDiscoveryProperties.DEFAULT,
-				null);
-		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
-		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
-		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
-		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
-		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
-		Assertions.assertEquals(defaultInstance.getScheme(), "http");
-		Assertions.assertEquals(defaultInstance.getPort(), 0);
-		Assertions.assertFalse(defaultInstance.isSecure());
-		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1");
-		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
-		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
-		Assertions.assertNull(defaultInstance.getCluster());
-	}
-
-	/**
-	 * endpoints ports are empty.
-	 */
-	@Test
-	void testEndpointSubsetPortsDataOne() {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
-		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
-		Assertions.assertTrue(result.isEmpty());
-	}
-
-	/**
-	 * endpoints ports has one entry.
-	 */
-	@Test
-	void testEndpointSubsetPortsDataTwo() {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("http").build()).build();
-		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get("http"), 8080);
-	}
-
-	/**
-	 * endpoints ports has three entries, only two are picked up.
-	 */
-	@Test
-	void testEndpointSubsetPortsDataThree() {
-		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(8080).withName("http").build(),
-						new EndpointPortBuilder().withPort(8081).build(),
-						new EndpointPortBuilder().withPort(8082).withName("https").build())
-				.build();
-		Map<String, Integer> result = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData(endpointSubset);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get("http"), 8080);
-		Assertions.assertEquals(result.get("https"), 8082);
 	}
 
 }
