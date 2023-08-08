@@ -68,6 +68,35 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
 	}
 
+	static List<EndpointSlice> endpointSlices(KubernetesDiscoveryProperties properties, KubernetesClient client,
+			KubernetesNamespaceProvider namespaceProvider, String target) {
+
+		List<EndpointSlice> endpointSlices;
+
+		if (properties.allNamespaces()) {
+			LOG.debug(() -> "discovering endpoint slices in all namespaces");
+			endpointSlices = filteredEndpointSlices(
+					client.discovery().v1().endpointSlices().inAnyNamespace().withNewFilter(), properties);
+		}
+		else if (!properties.namespaces().isEmpty()) {
+			LOG.debug(() -> "discovering endpoint slices in namespaces : " + properties.namespaces());
+			List<EndpointSlice> inner = new ArrayList<>(properties.namespaces().size());
+			properties.namespaces()
+					.forEach(namespace -> inner.addAll(filteredEndpointSlices(
+							client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(),
+							properties)));
+			endpointSlices = inner;
+		}
+		else {
+			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
+			LOG.debug(() -> "discovering endpoint slices in namespace : " + namespace);
+			endpointSlices = filteredEndpointSlices(
+					client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties);
+		}
+
+		return endpointSlices;
+	}
+
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
 			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName,
 			Predicate<Service> filter) {
