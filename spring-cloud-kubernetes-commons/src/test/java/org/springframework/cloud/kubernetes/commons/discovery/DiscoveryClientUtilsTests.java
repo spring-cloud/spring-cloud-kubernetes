@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons.discovery;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.client.ServiceInstance;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
 
@@ -624,6 +626,290 @@ class DiscoveryClientUtilsTests {
 		Assertions.assertTrue(output.getOut().contains(
 				"not found primary-port-name (with value: 'three') via properties or service labels to match port"));
 		Assertions.assertTrue(output.getOut().contains("found primary-port-name via 'http' to match port : 8082"));
+	}
+
+	@Test
+	void testServiceInstance() {
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
+
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
+		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
+				Map.of(), Map.of());
+		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "127.0.0.1", null);
+		Map<String, String> serviceMetadata = Map.of("a", "b");
+
+		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(resolver, forServiceInstance,
+				() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
+		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+		Assertions.assertEquals(defaultInstance.getHost(), "127.0.0.1");
+		Assertions.assertEquals(defaultInstance.getPort(), 8080);
+		Assertions.assertFalse(defaultInstance.isSecure());
+		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
+		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+		Assertions.assertNull(defaultInstance.getCluster());
+	}
+
+	@Test
+	void testExternalNameServiceInstance() {
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
+		ServiceMetadataForServiceInstance forServiceInstance = new ServiceMetadataForServiceInstance("my-service",
+				Map.of(), Map.of());
+		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", null);
+		Map<String, String> serviceMetadata = Map.of("a", "b");
+
+		ServiceInstance serviceInstance = DiscoveryClientUtils.serviceInstance(null, forServiceInstance,
+				() -> instanceIdHostPodName, null, portData, "my-service", serviceMetadata, "k8s", properties);
+
+		Assertions.assertTrue(serviceInstance instanceof DefaultKubernetesServiceInstance);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Assertions.assertEquals(defaultInstance.getInstanceId(), "123");
+		Assertions.assertEquals(defaultInstance.getServiceId(), "my-service");
+		Assertions.assertEquals(defaultInstance.getHost(), "spring.io");
+		Assertions.assertEquals(defaultInstance.getPort(), -1);
+		Assertions.assertFalse(defaultInstance.isSecure());
+		Assertions.assertEquals(defaultInstance.getUri().toASCIIString(), "spring.io");
+		Assertions.assertEquals(defaultInstance.getMetadata(), Map.of("a", "b"));
+		Assertions.assertEquals(defaultInstance.getScheme(), "http");
+		Assertions.assertEquals(defaultInstance.getNamespace(), "k8s");
+		Assertions.assertNull(defaultInstance.getCluster());
+	}
+
+	/**
+	 * type is ExternalName, as such we do nothing.
+	 */
+	@Test
+	void testPodMetadataExternalName() {
+		boolean addLabels = false;
+		boolean addAnnotations = false;
+		String podName = "pod-name";
+		Map<String, String> serviceMetadata = Map.of("type", "ExternalName");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	/**
+	 * type is not ExternalName, but labels and annotations have not been requested. As
+	 * such, we do nothing.
+	 */
+	@Test
+	void testPodMetadataNotExternalNameLabelsNorAnnotationsIncluded() {
+		boolean addLabels = false;
+		boolean addAnnotations = false;
+		String podName = "pod-name";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - labels and annotations have been requested
+	 *     - podName is null
+	 *
+	 *     As such we do nothing.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataNotExternalNameLabelsAndAnnotationsIncludedPodNameNull() {
+		boolean addLabels = true;
+		boolean addAnnotations = true;
+		String podName = null;
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - labels have been requested
+	 *     - labels are empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyLabelsRequestedButAreEmpty(CapturedOutput output) {
+		boolean addLabels = true;
+		boolean addAnnotations = false;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of(), Map.of("c", "d"));
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - labels have been requested
+	 *     - labels are not empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add non empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyLabelsRequestedAndAreNotEmpty(CapturedOutput output) {
+		boolean addLabels = true;
+		boolean addAnnotations = false;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("labels"), Map.of("a", "b"));
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {labels={a=b}} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - annotation have been requested
+	 *     - annotation are empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyAnnotationsRequestedButAreEmpty(CapturedOutput output) {
+		boolean addLabels = false;
+		boolean addAnnotations = true;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of());
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertTrue(result.isEmpty());
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - annotations have been requested
+	 *     - annotation are not empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add non empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataOnlyAnnotationsRequestedAndAreNotEmpty(CapturedOutput output) {
+		boolean addLabels = false;
+		boolean addAnnotations = true;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("annotations"), Map.of("c", "d"));
+
+		Assertions.assertTrue(output.getOut().contains("adding podMetadata : {annotations={c=d}} from pod : my-pod"));
+	}
+
+	/**
+	 * <pre>
+	 *     - type is not ExternalName
+	 *     - annotations have been requested
+	 *     - annotation are not empty
+	 *     - podName is not null.
+	 *
+	 *     As such we add non empty labels to pod metadata.
+	 * </pre>
+	 */
+	@Test
+	void testPodMetadataBothLabelsAndAnnotations(CapturedOutput output) {
+		boolean addLabels = true;
+		boolean addAnnotations = true;
+		String podName = "my-pod";
+		Map<String, String> serviceMetadata = Map.of("type", "ClusterIP");
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
+				"", false, "", addLabels, addAnnotations);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+
+		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
+		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
+
+		Map<String, Map<String, String>> result = DiscoveryClientUtils.podMetadata(podName, serviceMetadata, properties,
+				podLabelsAndMetadata);
+		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertEquals(result.get("annotations"), Map.of("c", "d"));
+		Assertions.assertEquals(result.get("labels"), Map.of("a", "b"));
+
+		Assertions.assertTrue(
+				output.getOut().contains("adding podMetadata : {annotations={c=d}, labels={a=b}} from pod : my-pod"));
 	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
