@@ -139,7 +139,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
 						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
-
 				instances.add(externalNameServiceInstance);
 			}
 		}
