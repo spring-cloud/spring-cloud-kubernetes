@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +30,6 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ObjectReference;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -44,20 +40,13 @@ import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
 
 /**
  * @author wind57
@@ -75,30 +64,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	static EndpointSubsetNS subsetsFromEndpoints(Endpoints endpoints) {
 		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
-	}
-
-	/**
-	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it
-	 * exists, otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
-	 */
-	static String primaryPortName(KubernetesDiscoveryProperties properties, Service service, String serviceId) {
-		String primaryPortNameFromProperties = properties.primaryPortName();
-		Map<String, String> serviceLabels = service.getMetadata().getLabels();
-
-		// the value from labels takes precedence over the one from properties
-		String primaryPortName = Optional
-				.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
-				.orElse(primaryPortNameFromProperties);
-
-		if (primaryPortName == null) {
-			LOG.debug(
-					() -> "did not find a primary-port-name in neither properties nor service labels for service with ID : "
-							+ serviceId);
-			return null;
-		}
-
-		LOG.debug(() -> "will use primaryPortName : " + primaryPortName + " for service with ID = " + serviceId);
-		return primaryPortName;
 	}
 
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -195,34 +160,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return addresses;
 	}
 
-	static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
-			Service service, @Nullable EndpointAddress endpointAddress, ServicePortNameAndNumber portData,
-			String serviceId, Map<String, String> serviceMetadata, String namespace,
-			KubernetesDiscoveryProperties properties, KubernetesClient client) {
-		// instanceId is usually the pod-uid as seen in the .metadata.uid
-		String instanceId = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
-				.map(ObjectReference::getUid).orElseGet(() -> service.getMetadata().getUid());
-
-		boolean secured;
-		if (servicePortSecureResolver == null) {
-			secured = false;
-		}
-		else {
-			secured = servicePortSecureResolver
-					.resolve(new ServicePortSecureResolver.Input(portData, service.getMetadata().getName(),
-							service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
-		}
-
-		String host = Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
-				.orElseGet(() -> service.getSpec().getExternalName());
-
-		Map<String, Map<String, String>> podMetadata = podMetadata(client, serviceMetadata, properties, endpointAddress,
-				namespace);
-
-		return new DefaultKubernetesServiceInstance(instanceId, serviceId, host, portData.portNumber(), serviceMetadata,
-				secured, namespace, null, podMetadata);
-	}
-
 	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
 			KubernetesNamespaceProvider namespaceProvider, Predicate<Service> predicate,
 			Map<String, String> fieldFilters, String target) {
@@ -252,37 +189,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return services;
 	}
 
-	static Map<String, Map<String, String>> podMetadata(KubernetesClient client, Map<String, String> serviceMetadata,
-			KubernetesDiscoveryProperties properties, EndpointAddress endpointAddress, String namespace) {
-		if (!EXTERNAL_NAME.equals(serviceMetadata.get(SERVICE_TYPE))) {
-			if (properties.metadata().addPodLabels() || properties.metadata().addPodAnnotations()) {
-				String podName = Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
-						.filter(objectReference -> "Pod".equals(objectReference.getKind()))
-						.map(ObjectReference::getName).orElse(null);
-
-				if (podName != null) {
-					ObjectMeta metadata = Optional
-							.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
-							.map(Pod::getMetadata).orElse(new ObjectMeta());
-					Map<String, Map<String, String>> result = new HashMap<>();
-					if (properties.metadata().addPodLabels() && !metadata.getLabels().isEmpty()) {
-						result.put("labels", metadata.getLabels());
-					}
-
-					if (properties.metadata().addPodAnnotations() && !metadata.getAnnotations().isEmpty()) {
-						result.put("annotations", metadata.getAnnotations());
-					}
-
-					LOG.debug(() -> "adding podMetadata : " + result + " from pod : " + podName);
-					return result;
-				}
-
-			}
-		}
-
-		return Map.of();
-	}
-
 	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {
 		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
 				.filter(port -> StringUtils.hasText(port.getName()))
@@ -307,6 +213,11 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			}
 		});
 		return result;
+	}
+
+	static ServiceMetadataForServiceInstance forServiceInstance(Service service) {
+		return new ServiceMetadataForServiceInstance(service.getMetadata().getName(), service.getMetadata().getLabels(),
+				service.getMetadata().getAnnotations());
 	}
 
 	/**
