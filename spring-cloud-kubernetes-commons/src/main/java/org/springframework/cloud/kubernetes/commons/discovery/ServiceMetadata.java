@@ -19,11 +19,11 @@ package org.springframework.cloud.kubernetes.commons.discovery;
 import java.util.Map;
 
 /**
- * Holds service name, labels and annotations.
+ * Holds service name, namespace, spec.type, labels and annotations.
  *
  * @author wind57
  *
  */
-public record ServiceMetadataForServiceInstance(String name, Map<String, String> labels,
+public record ServiceMetadata(String name, String namespace, String type, Map<String, String> labels,
 		Map<String, String> annotations) {
 }
