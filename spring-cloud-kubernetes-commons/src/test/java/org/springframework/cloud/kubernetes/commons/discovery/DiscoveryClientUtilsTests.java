@@ -661,8 +661,7 @@ class DiscoveryClientUtilsTests {
 		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
-		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(),
-				Map.of());
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(), Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "127.0.0.1", null);
 		Map<String, String> serviceMetadata = Map.of("a", "b");
 
@@ -689,8 +688,7 @@ class DiscoveryClientUtilsTests {
 				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
-		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(),
-				Map.of());
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(), Map.of());
 		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", null);
 		Map<String, String> serviceMetadata = Map.of("a", "b");
 
