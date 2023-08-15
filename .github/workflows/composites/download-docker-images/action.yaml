@@ -7,7 +7,7 @@ runs:
   using: "composite"
   steps:
 
-    - uses: actions/cache@v3
+    - uses: buildjet/cache@v3
       with:
         path: /tmp/docker/images
         key: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}
