@@ -77,4 +77,9 @@ public final class KubernetesDiscoveryConstants {
 	 */
 	public static final String SECURED = "secured";
 
+	/**
+	 * port name to be used when one is not explicitly provided.
+	 */
+	public static final String UNSET_PORT_NAME = "<unset>";
+
 }

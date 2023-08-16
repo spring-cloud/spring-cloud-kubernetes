@@ -188,7 +188,7 @@ class KubernetesInformerDiscoveryClientTests {
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, ALL_NAMESPACES);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080,
+				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 						Map.of("<unset>", "8080", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
 						"namespace1", null));
 	}
