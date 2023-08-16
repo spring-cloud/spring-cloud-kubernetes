@@ -16,14 +16,14 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import static org.mockito.Mockito.mock;
 
-@Configuration
+@TestConfiguration
 class MockConfig {
 
 	@Bean
