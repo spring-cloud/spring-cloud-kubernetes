@@ -92,7 +92,7 @@ public final class DiscoveryClientUtils {
 	public static ServicePortNameAndNumber endpointsPort(LinkedHashMap<String, Integer> endpointsPorts,
 			ServiceMetadata serviceMetadata, KubernetesDiscoveryProperties properties) {
 
-		if (endpointsPorts.size() == 0) {
+		if (endpointsPorts.isEmpty()) {
 			LOG.debug(() -> "no ports found for service : " + serviceMetadata.name() + ", will return zero");
 			return new ServicePortNameAndNumber(0, "http");
 		}
