@@ -30,8 +30,10 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
@@ -42,11 +44,13 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 
 /**
  * @author wind57
@@ -197,27 +201,21 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	static LinkedHashMap<String, Integer> endpointSubsetPortsData(EndpointSubset endpointSubset) {
 		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
-		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
-
-		// this is most probably not a needed if statement, but it preserves the
-		// previous logic before I refactored the code. In particular, this takes care of
-		// the fact that an EndpointsPort name could be missing.
-		if (endpointPorts.size() == 1) {
-			result.put(endpointPorts.get(0).getName(), endpointPorts.get(0).getPort());
-			return result;
-		}
-
 		endpointSubset.getPorts().forEach(port -> {
-			if (StringUtils.hasText(port.getName())) {
-				result.put(port.getName(), port.getPort());
-			}
+			// a service is allowed to not set a port name for a single entry.
+			// two ports without name can not be deployed, as this in an error
+			String portName = StringUtils.hasText(port.getName()) ? port.getName() : UNSET_PORT_NAME;
+			Integer portNumber = port.getPort();
+			result.put(portName, portNumber);
 		});
 		return result;
 	}
 
-	static ServiceMetadataForServiceInstance forServiceInstance(Service service) {
-		return new ServiceMetadataForServiceInstance(service.getMetadata().getName(), service.getMetadata().getLabels(),
-				service.getMetadata().getAnnotations());
+	static ServiceMetadata serviceMetadata(Service service) {
+		ObjectMeta metadata = service.getMetadata();
+		ServiceSpec serviceSpec = service.getSpec();
+		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), serviceSpec.getType(),
+				metadata.getLabels(), metadata.getAnnotations());
 	}
 
 	/**
