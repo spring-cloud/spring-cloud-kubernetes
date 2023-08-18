@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +47,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 import static org.springframework.util.StringUtils.hasText;
@@ -199,10 +197,9 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	 */
 	static Map<String, Integer> endpointSubsetsPortData(List<EndpointSubset> endpointSubsets) {
 		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-			.collect(Collectors.toMap(
-				endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
-				EndpointPort::getPort)
-			);
+				.collect(Collectors.toMap(
+						endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
+						EndpointPort::getPort));
 	}
 
 	static ServiceMetadata serviceMetadata(Service service) {
