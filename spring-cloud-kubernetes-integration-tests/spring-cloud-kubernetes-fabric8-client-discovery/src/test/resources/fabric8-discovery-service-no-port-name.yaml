@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: spring-cloud-kubernetes-fabric8-client-discovery
-  name: spring-cloud-kubernetes-fabric8-client-discovery
+  name: spring-cloud-kubernetes-fabric8-client-discovery-port-no-name
 spec:
   ports:
     - port: 8080
