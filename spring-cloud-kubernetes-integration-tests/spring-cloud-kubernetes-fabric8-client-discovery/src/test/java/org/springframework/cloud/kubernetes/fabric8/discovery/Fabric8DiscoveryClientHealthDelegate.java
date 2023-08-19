@@ -29,8 +29,6 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
@@ -50,7 +48,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
-class Fabric8DiscoveryClientHealthIT {
+final class Fabric8DiscoveryClientHealthDelegate {
 
 	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status";
 
@@ -62,28 +60,11 @@ class Fabric8DiscoveryClientHealthIT {
 
 	private static KubernetesClient client;
 
-	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(Fabric8DiscoveryClientHealthIT.class);
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(Fabric8DiscoveryClientHealthDelegate.class);
 
 	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
-
-	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S.start();
-		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-
-		util = new Util(K3S);
-		client = util.client();
-		util.setUp(NAMESPACE);
-	}
-
-	@AfterAll
-	static void after() throws Exception {
-		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
-	}
 
 	/**
 	 * Reactive is disabled, only blocking is active. As such,
@@ -93,10 +74,7 @@ class Fabric8DiscoveryClientHealthIT {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	@Test
 	void testBlockingConfiguration() {
-
-		manifests(true, false, Phase.CREATE);
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
 		assertLogStatement("publishing InstanceRegisteredEvent");
@@ -118,17 +96,17 @@ class Fabric8DiscoveryClientHealthIT {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+						"spring-cloud-kubernetes-fabric8-client-discovery-port-no-name", "external-name-service",
+						"service-wiremock");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
-		manifests(true, false, Phase.DELETE);
 	}
 
 	/**
 	 * Both blocking and reactive are enabled.
 	 */
-	@Test
 	void testDefaultConfiguration() {
 
 		manifests(false, false, Phase.CREATE);

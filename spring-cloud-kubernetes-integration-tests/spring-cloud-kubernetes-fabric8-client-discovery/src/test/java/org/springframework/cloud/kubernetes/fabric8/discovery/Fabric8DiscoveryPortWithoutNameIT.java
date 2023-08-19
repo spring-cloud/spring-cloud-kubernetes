@@ -48,6 +48,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_ONE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_TWO;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
@@ -121,6 +122,7 @@ class Fabric8DiscoveryPortWithoutNameIT {
 
 		testAllServices();
 		testExternalNameServiceInstance();
+		testBlockingConfiguration();
 	}
 
 	private void testAllServices() {
@@ -132,6 +134,13 @@ class Fabric8DiscoveryPortWithoutNameIT {
 
 	private void testExternalNameServiceInstance() {
 		new Fabric8DiscoveryDelegate().testExternalNameServiceInstance();
+	}
+
+	private void testBlockingConfiguration() {
+		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
+		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO,
+				Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryClientHealthDelegate().testBlockingConfiguration();
 	}
 
 	private static void manifests(Phase phase) {

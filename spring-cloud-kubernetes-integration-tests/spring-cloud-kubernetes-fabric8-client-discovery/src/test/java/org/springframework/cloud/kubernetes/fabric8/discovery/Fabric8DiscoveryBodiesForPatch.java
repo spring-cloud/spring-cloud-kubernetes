@@ -46,4 +46,38 @@ final class Fabric8DiscoveryBodiesForPatch {
 			}
 						""";
 
+	static final String BODY_TWO = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
+									"value": "FALSE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+
 }
