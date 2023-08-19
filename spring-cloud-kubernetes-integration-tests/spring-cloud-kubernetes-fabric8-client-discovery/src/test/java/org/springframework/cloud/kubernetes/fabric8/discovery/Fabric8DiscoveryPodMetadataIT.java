@@ -47,7 +47,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_FOUR;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_ONE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_THREE;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_TWO;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
@@ -139,6 +141,8 @@ class Fabric8DiscoveryPodMetadataIT {
 		testAllServices();
 		testExternalNameServiceInstance();
 		testBlockingConfiguration();
+		testDefaultConfiguration();
+		testReactiveConfiguration();
 	}
 
 	private void testAllServices() {
@@ -157,6 +161,20 @@ class Fabric8DiscoveryPodMetadataIT {
 		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO,
 			Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryClientHealthDelegate().testBlockingConfiguration();
+	}
+
+	private void testDefaultConfiguration() {
+		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
+		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_THREE,
+			Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryClientHealthDelegate().testDefaultConfiguration();
+	}
+
+	private void testReactiveConfiguration() {
+		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
+		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_FOUR,
+			Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryClientHealthDelegate().testReactiveConfiguration();
 	}
 
 	private static void manifests(Phase phase) {

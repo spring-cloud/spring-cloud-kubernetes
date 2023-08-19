@@ -16,20 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.io.InputStream;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -38,8 +29,6 @@ import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -54,15 +43,9 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
 
-	private static final String NAMESPACE = "default";
-
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery";
 
-	private static KubernetesClient client;
-
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(Fabric8DiscoveryClientHealthDelegate.class);
-
-	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -109,8 +92,6 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 */
 	void testDefaultConfiguration() {
 
-		manifests(false, false, Phase.CREATE);
-
 		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
 		assertLogStatement("publishing InstanceRegisteredEvent");
 		assertLogStatement("Discovery Client has been initialized");
@@ -132,7 +113,8 @@ final class Fabric8DiscoveryClientHealthDelegate {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+					"external-name-service", "service-wiremock", "busybox-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
@@ -143,9 +125,8 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
-
-		manifests(false, false, Phase.DELETE);
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+					"external-name-service", "service-wiremock", "busybox-service");
 	}
 
 	/**
@@ -156,10 +137,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	@Test
 	void testReactiveConfiguration() {
-
-		manifests(false, true, Phase.CREATE);
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation");
 		assertLogStatement("publishing InstanceRegisteredEvent");
@@ -180,7 +158,8 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+					"external-name-service", "service-wiremock", "busybox-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
@@ -195,78 +174,6 @@ final class Fabric8DiscoveryClientHealthDelegate {
 		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-fabric8-client-discovery");
 		Assertions.assertThat(servicesResult).contains("kubernetes");
 
-		manifests(false, true, Phase.DELETE);
-	}
-
-	private static void manifests(boolean disableReactive, boolean disableBlocking, Phase phase) {
-
-		InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
-		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
-		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
-
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		List<EnvVar> envVars = new ArrayList<>(
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-
-		EnvVar debugLevelForCommons = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").withValue("DEBUG")
-				.build();
-
-		if (!disableBlocking) {
-			EnvVar debugBlockingEnvVar = new EnvVarBuilder()
-					.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH").withValue("DEBUG")
-					.build();
-
-			EnvVar debugLevelForBlocking = new EnvVarBuilder()
-					.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY").withValue("DEBUG")
-					.build();
-
-			envVars.add(debugBlockingEnvVar);
-			envVars.add(debugLevelForBlocking);
-		}
-
-		if (!disableReactive) {
-			EnvVar debugReactiveEnvVar = new EnvVarBuilder()
-					.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH_REACTIVE")
-					.withValue("DEBUG").build();
-
-			EnvVar debugLevelForReactive = new EnvVarBuilder()
-					.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY_REACTIVE")
-					.withValue("DEBUG").build();
-
-			EnvVar debugLevelForBlocking = new EnvVarBuilder()
-					.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY").withValue("DEBUG")
-					.build();
-
-			envVars.add(debugReactiveEnvVar);
-			envVars.add(debugLevelForBlocking);
-			envVars.add(debugLevelForReactive);
-		}
-
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-
-		if (disableBlocking) {
-			EnvVar disableBlockingEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED")
-					.withValue("FALSE").build();
-			envVars.add(disableBlockingEnvVar);
-		}
-
-		if (disableReactive) {
-			EnvVar disableReactiveEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED")
-					.withValue("FALSE").build();
-			envVars.add(disableReactiveEnvVar);
-		}
-
-		envVars.add(debugLevelForCommons);
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
-		}
-		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
-		}
 	}
 
 	private WebClient.Builder builder() {
