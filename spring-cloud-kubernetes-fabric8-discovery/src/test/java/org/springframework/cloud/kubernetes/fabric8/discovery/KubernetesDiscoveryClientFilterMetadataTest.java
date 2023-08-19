@@ -193,7 +193,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"), entry("k8s_namespace", "test"),
-			entry("<unset>", "5555"), entry("type", "ClusterIP"));
+				entry("<unset>", "5555"), entry("type", "ClusterIP"));
 	}
 
 	@Test

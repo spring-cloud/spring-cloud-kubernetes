@@ -47,6 +47,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_ONE;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
+
 /**
  * @author wind57
  */
@@ -55,6 +58,8 @@ class Fabric8DiscoveryPortWithoutNameIT {
 	private static final String NAMESPACE = "default";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery";
+
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-fabric8-client-discovery-deployment";
 
 	private static KubernetesClient client;
 
@@ -109,17 +114,33 @@ class Fabric8DiscoveryPortWithoutNameIT {
 		Assertions.assertEquals(serviceInstances.size(), 1);
 
 		DefaultKubernetesServiceInstance result = serviceInstances.get(0);
-		Assertions.assertEquals(result.getMetadata(), Map.of("app", "spring-cloud-kubernetes-fabric8-client-discovery",
+		Assertions.assertEquals(result.getMetadata(), Map.of("app", IMAGE_NAME,
 				"k8s_namespace", "default", "port.<unset>", "8080", "type", "ClusterIP"));
 
 		Assertions.assertEquals(result.getPort(), 8080);
+
+		testAllServices();
+		testExternalNameServiceInstance();
+	}
+
+	private void testAllServices() {
+		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
+		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE,
+				Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryDelegate().testAllServices();
+	}
+
+	private void testExternalNameServiceInstance() {
+		new Fabric8DiscoveryDelegate().testExternalNameServiceInstance();
 	}
 
 	private static void manifests(Phase phase) {
 
 		InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
-		InputStream serviceStream = util.inputStream("fabric8-discovery-service-no-port-name.yaml");
-		InputStream ingressStream = util.inputStream("fabric8-discovery-service-no-port-name-ingress.yaml");
+		InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml");
+		InputStream noPortNameServiceStream = util.inputStream("fabric8-discovery-service-no-port-name.yaml");
+		InputStream discoveryServiceStream = util.inputStream("fabric8-discovery-service.yaml");
+		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 
@@ -130,14 +151,20 @@ class Fabric8DiscoveryPortWithoutNameIT {
 						.withValue("DEBUG").build());
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-		Service service = client.services().load(serviceStream).get();
+		Service externalServiceName = client.services().load(externalNameServiceStream).get();
+		Service noPortNameService = client.services().load(noPortNameServiceStream).get();
+		Service discoveryService = client.services().load(discoveryServiceStream).get();
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, deployment, noPortNameService, ingress, true);
+			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
+			util.createAndWait(NAMESPACE, null, null, discoveryService, null, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, noPortNameService, ingress);
+			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
+			util.deleteAndWait(NAMESPACE, null, discoveryService, null);
 		}
 
 	}
