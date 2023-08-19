@@ -47,10 +47,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_ONE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_TWO;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
+
 /**
  * @author wind57
  */
 class Fabric8DiscoveryPodMetadataIT {
+
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-fabric8-client-discovery-deployment";
 
 	private static final String NAMESPACE = "default";
 
@@ -74,11 +80,13 @@ class Fabric8DiscoveryPodMetadataIT {
 		util.setUp(NAMESPACE);
 
 		manifests(Phase.CREATE);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		util.busybox(NAMESPACE, Phase.DELETE);
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
@@ -123,12 +131,39 @@ class Fabric8DiscoveryPodMetadataIT {
 				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
 		Assertions.assertTrue(withCustomAnnotation.podMetadata().get("annotations").entrySet().stream().anyMatch(
 				x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
+
+		testAllOther();
+	}
+
+	private void testAllOther() {
+		testAllServices();
+		testExternalNameServiceInstance();
+		testBlockingConfiguration();
+	}
+
+	private void testAllServices() {
+		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
+		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE,
+			Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryDelegate().testAllServices();
+	}
+
+	private void testExternalNameServiceInstance() {
+		new Fabric8DiscoveryDelegate().testExternalNameServiceInstance();
+	}
+
+	private void testBlockingConfiguration() {
+		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
+		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO,
+			Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryClientHealthDelegate().testBlockingConfiguration();
 	}
 
 	private static void manifests(Phase phase) {
 
 		InputStream deploymentStream = util.inputStream("fabric8-discovery-deployment.yaml");
-		InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
+		InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml");
+		InputStream discoveryServiceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
@@ -144,14 +179,17 @@ class Fabric8DiscoveryPodMetadataIT {
 						.withValue("DEBUG").build());
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-		Service service = client.services().load(serviceStream).get();
+		Service externalServiceName = client.services().load(externalNameServiceStream).get();
+		Service discoveryService = client.services().load(discoveryServiceStream).get();
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, IMAGE_NAME, deployment, discoveryService, ingress, true);
+			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, discoveryService, ingress);
+			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
 		}
 
 	}

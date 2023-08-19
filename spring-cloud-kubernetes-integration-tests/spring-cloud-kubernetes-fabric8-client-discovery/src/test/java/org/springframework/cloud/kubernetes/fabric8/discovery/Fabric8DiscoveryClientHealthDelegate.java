@@ -97,7 +97,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-						"spring-cloud-kubernetes-fabric8-client-discovery-port-no-name", "external-name-service",
+						"busybox-service", "external-name-service",
 						"service-wiremock");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);

@@ -53,8 +53,8 @@ final class Fabric8DiscoveryDelegate {
 		Assertions.assertTrue(result.contains("kubernetes"));
 		Assertions.assertTrue(result.contains("spring-cloud-kubernetes-fabric8-client-discovery"));
 		Assertions.assertTrue(result.contains("service-wiremock"));
+		Assertions.assertTrue(result.contains("busybox-service"));
 		Assertions.assertTrue(result.contains("external-name-service"));
-		Assertions.assertTrue(result.contains("spring-cloud-kubernetes-fabric8-client-discovery-port-no-name"));
 	}
 
 	void testExternalNameServiceInstance() {
