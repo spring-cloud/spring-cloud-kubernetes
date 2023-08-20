@@ -119,4 +119,5 @@ final class Fabric8DiscoveryFilterDelegate {
 				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
 	}
+
 }

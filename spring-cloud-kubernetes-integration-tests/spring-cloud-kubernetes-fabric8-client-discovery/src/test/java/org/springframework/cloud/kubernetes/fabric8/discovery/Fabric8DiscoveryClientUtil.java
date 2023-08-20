@@ -19,14 +19,15 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.time.Duration;
 import java.util.Objects;
 
-import org.assertj.core.api.Assertions;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.junit.jupiter.api.Assertions;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
+
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author wind57
@@ -271,11 +272,12 @@ final class Fabric8DiscoveryClientUtil {
 	static void assertLogStatement(String message, K3sContainer k3sContainer, String imageName) {
 		try {
 			String appPodName = k3sContainer.execInContainer("sh", "-c",
-				"kubectl get pods -l app=" + imageName + " -o=name --no-headers | tr -d '\n'").getStdout();
+					"kubectl get pods -l app=" + imageName + " -o=name --no-headers | tr -d '\n'").getStdout();
 
-			Container.ExecResult execResult = k3sContainer.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			Container.ExecResult execResult = k3sContainer.execInContainer("sh", "-c",
+					"kubectl logs " + appPodName.trim());
 			String ok = execResult.getStdout();
-			Assertions.assertThat(ok).contains(message);
+			Assertions.assertTrue(ok.contains(message));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -283,6 +285,5 @@ final class Fabric8DiscoveryClientUtil {
 		}
 
 	}
-
 
 }

@@ -47,13 +47,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_FOUR;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_FIVE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_FOUR;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_ONE;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_THREE;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_TWO;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_SEVEN;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_SIX;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_THREE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_TWO;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
@@ -75,7 +75,7 @@ class Fabric8DiscoveryPodMetadataIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery";
 
-	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + pomVersion();
 
 	private static KubernetesClient client;
 
@@ -183,8 +183,7 @@ class Fabric8DiscoveryPodMetadataIT {
 	}
 
 	private void testAllServices() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE,
-			Map.of("app", IMAGE_NAME));
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE, Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryDelegate().testAllServices();
 	}
 
@@ -193,38 +192,32 @@ class Fabric8DiscoveryPodMetadataIT {
 	}
 
 	private void testBlockingConfiguration() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO,
-			Map.of("app", IMAGE_NAME));
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO, Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryClientHealthDelegate().testBlockingConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void testDefaultConfiguration() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_THREE,
-			Map.of("app", IMAGE_NAME));
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_THREE, Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryClientHealthDelegate().testDefaultConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void testReactiveConfiguration() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FOUR,
-			Map.of("app", IMAGE_NAME));
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FOUR, Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryClientHealthDelegate().testReactiveConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void filterMatchesBothNamespacesViaThePredicate() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FIVE,
-			Map.of("app", IMAGE_NAME));
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FIVE, Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryFilterDelegate().filterMatchesBothNamespacesViaThePredicate();
 	}
 
 	private void filterMatchesOneNamespaceViaThePredicate() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SIX,
-			Map.of("app", IMAGE_NAME));
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SIX, Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryFilterDelegate().filterMatchesOneNamespaceViaThePredicate();
 	}
 
 	private void namespaceFilter() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SEVEN,
-			Map.of("app", IMAGE_NAME));
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SEVEN, Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryNamespaceDelegate().namespaceFilter();
 	}
 
@@ -254,13 +247,13 @@ class Fabric8DiscoveryPodMetadataIT {
 
 		if (phase.equals(Phase.CREATE)) {
 			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
-				.create();
+					.create();
 			util.createAndWait(NAMESPACE, IMAGE_NAME, deployment, discoveryService, ingress, true);
 			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
 		}
 		else {
 			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
-				.delete();
+					.delete();
 			util.deleteAndWait(NAMESPACE, deployment, discoveryService, ingress);
 			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
 		}

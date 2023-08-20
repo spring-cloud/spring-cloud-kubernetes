@@ -39,7 +39,8 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
 
-	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(Fabric8DiscoveryClientHealthDelegate.class);
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(
+			Fabric8DiscoveryClientHealthDelegate.class);
 
 	/**
 	 * Reactive is disabled, only blocking is active. As such,
@@ -51,7 +52,8 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 */
 	void testBlockingConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer, imageName);
+		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
+				imageName);
 		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
 		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
 		assertLogStatement(
@@ -73,8 +75,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-						"busybox-service", "external-name-service",
-						"service-wiremock");
+						"busybox-service", "external-name-service", "service-wiremock");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
@@ -85,7 +86,8 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 */
 	void testDefaultConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer, imageName);
+		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
+				imageName);
 		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
 		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
 		assertLogStatement("received InstanceRegisteredEvent from pod with 'app' label value : "
@@ -107,7 +109,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-					"external-name-service", "service-wiremock", "busybox-service");
+						"external-name-service", "service-wiremock", "busybox-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
@@ -119,7 +121,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-					"external-name-service", "service-wiremock", "busybox-service");
+						"external-name-service", "service-wiremock", "busybox-service");
 	}
 
 	/**
@@ -132,7 +134,8 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 */
 	void testReactiveConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", k3sContainer, imageName);
+		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", k3sContainer,
+				imageName);
 		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
 		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
 		assertLogStatement(
@@ -153,7 +156,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-					"external-name-service", "service-wiremock", "busybox-service");
+						"external-name-service", "service-wiremock", "busybox-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
