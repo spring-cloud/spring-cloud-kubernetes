@@ -61,7 +61,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of();
 		Map<String, String> serviceAnnotations = Map.of();
-		Map<String, String> portsData = Map.of();
+		Map<String, Integer> portsData = Map.of();
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -93,7 +93,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "1");
 		Map<String, String> serviceAnnotations = Map.of("b", "2");
-		Map<String, String> portsData = Map.of("c", "3");
+		Map<String, Integer> portsData = Map.of("c", 3);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -125,7 +125,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		Map<String, String> serviceAnnotations = Map.of("c", "2");
-		Map<String, String> portsData = Map.of("d", "3");
+		Map<String, Integer> portsData = Map.of("d", 3);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -161,7 +161,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "b", "c", "d");
 		Map<String, String> serviceAnnotations = Map.of("c", "2");
-		Map<String, String> portsData = Map.of("d", "3");
+		Map<String, Integer> portsData = Map.of("d", 3);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -199,7 +199,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		Map<String, String> serviceAnnotations = Map.of("aa", "bb");
-		Map<String, String> portsData = Map.of("d", "3");
+		Map<String, Integer> portsData = Map.of("d", 3);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -234,7 +234,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		Map<String, String> serviceAnnotations = Map.of("aa", "bb", "cc", "dd");
-		Map<String, String> portsData = Map.of("d", "3");
+		Map<String, Integer> portsData = Map.of("d", 3);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -272,7 +272,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "b", "c", "d");
 		Map<String, String> serviceAnnotations = Map.of("aa", "bb", "cc", "dd");
-		Map<String, String> portsData = Map.of("d", "3");
+		Map<String, Integer> portsData = Map.of("d", 3);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -314,7 +314,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		Map<String, String> serviceAnnotations = Map.of("aa", "bb", "cc", "dd");
-		Map<String, String> portsData = Map.of("https", "8080");
+		Map<String, Integer> portsData = Map.of("https", 8080);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -348,7 +348,7 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		Map<String, String> serviceAnnotations = Map.of("aa", "bb", "cc", "dd");
-		Map<String, String> portsData = Map.of("http", "8081", "https", "8080");
+		Map<String, Integer> portsData = Map.of("http", 8081, "https", 8080);
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
@@ -502,7 +502,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 
 		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
-		endpointsPorts.put(null, 8080);
+		endpointsPorts.put("not-null", 8080);
 		endpointsPorts.put("not-http-or-https", 8081);
 		Map<String, String> serviceLabels = Map.of();
 
@@ -511,7 +511,7 @@ class DiscoveryClientUtilsTests {
 
 		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertEquals(portData.portNumber(), 8080);
-		Assertions.assertNull(portData.portName());
+		Assertions.assertEquals(portData.portName(), "not-null");
 		Assertions.assertTrue(output.getOut().contains(
 				"did not find a primary-port-name in neither properties nor service labels for service with ID : spring-k8s"));
 		Assertions.assertTrue(output.getOut()
