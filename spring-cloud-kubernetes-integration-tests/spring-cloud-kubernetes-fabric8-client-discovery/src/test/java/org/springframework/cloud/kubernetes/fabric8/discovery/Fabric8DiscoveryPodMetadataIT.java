@@ -47,10 +47,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_FOUR;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_ONE;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_THREE;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryBodiesForPatch.BODY_TWO;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_FOUR;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_FIVE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_ONE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_THREE;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_TWO;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_SEVEN;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.BODY_SIX;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
@@ -62,7 +65,17 @@ class Fabric8DiscoveryPodMetadataIT {
 
 	private static final String NAMESPACE = "default";
 
+	private static final String NAMESPACE_A_UAT = "a-uat";
+
+	private static final String NAMESPACE_B_UAT = "b-uat";
+
+	private static final String NAMESPACE_LEFT = "namespace-left";
+
+	private static final String NAMESPACE_RIGHT = "namespace-right";
+
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery";
+
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
 
 	private static KubernetesClient client;
 
@@ -84,12 +97,33 @@ class Fabric8DiscoveryPodMetadataIT {
 		manifests(Phase.CREATE);
 		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 		util.busybox(NAMESPACE, Phase.CREATE);
+
+		util.createNamespace(NAMESPACE_A_UAT);
+		util.createNamespace(NAMESPACE_B_UAT);
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE);
+
+		util.createNamespace(NAMESPACE_LEFT);
+		util.createNamespace(NAMESPACE_RIGHT);
+		util.wiremock(NAMESPACE_LEFT, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock", Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		util.busybox(NAMESPACE, Phase.DELETE);
+
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
+		util.deleteNamespace(NAMESPACE_A_UAT);
+		util.deleteNamespace(NAMESPACE_B_UAT);
+
+		util.wiremock(NAMESPACE_LEFT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock", Phase.DELETE);
+		util.deleteNamespace(NAMESPACE_LEFT);
+		util.deleteNamespace(NAMESPACE_RIGHT);
+
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.systemPrune();
@@ -143,11 +177,13 @@ class Fabric8DiscoveryPodMetadataIT {
 		testBlockingConfiguration();
 		testDefaultConfiguration();
 		testReactiveConfiguration();
+		filterMatchesBothNamespacesViaThePredicate();
+		filterMatchesOneNamespaceViaThePredicate();
+		namespaceFilter();
 	}
 
 	private void testAllServices() {
-		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
-		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE,
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE,
 			Map.of("app", IMAGE_NAME));
 		new Fabric8DiscoveryDelegate().testAllServices();
 	}
@@ -157,24 +193,39 @@ class Fabric8DiscoveryPodMetadataIT {
 	}
 
 	private void testBlockingConfiguration() {
-		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
-		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO,
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO,
 			Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryClientHealthDelegate().testBlockingConfiguration();
+		new Fabric8DiscoveryClientHealthDelegate().testBlockingConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void testDefaultConfiguration() {
-		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
-		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_THREE,
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_THREE,
 			Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryClientHealthDelegate().testDefaultConfiguration();
+		new Fabric8DiscoveryClientHealthDelegate().testDefaultConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void testReactiveConfiguration() {
-		String imageName = "docker.io/springcloud/" + IMAGE_NAME +":" + pomVersion();
-		util.patchWithReplace(imageName, DEPLOYMENT_NAME, NAMESPACE, BODY_FOUR,
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FOUR,
 			Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryClientHealthDelegate().testReactiveConfiguration();
+		new Fabric8DiscoveryClientHealthDelegate().testReactiveConfiguration(K3S, IMAGE_NAME);
+	}
+
+	private void filterMatchesBothNamespacesViaThePredicate() {
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FIVE,
+			Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryFilterDelegate().filterMatchesBothNamespacesViaThePredicate();
+	}
+
+	private void filterMatchesOneNamespaceViaThePredicate() {
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SIX,
+			Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryFilterDelegate().filterMatchesOneNamespaceViaThePredicate();
+	}
+
+	private void namespaceFilter() {
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SEVEN,
+			Map.of("app", IMAGE_NAME));
+		new Fabric8DiscoveryNamespaceDelegate().namespaceFilter();
 	}
 
 	private static void manifests(Phase phase) {
@@ -202,14 +253,22 @@ class Fabric8DiscoveryPodMetadataIT {
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
+			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
+				.create();
 			util.createAndWait(NAMESPACE, IMAGE_NAME, deployment, discoveryService, ingress, true);
 			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
 		}
 		else {
+			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
+				.delete();
 			util.deleteAndWait(NAMESPACE, deployment, discoveryService, ingress);
 			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
 		}
 
+	}
+
+	private static InputStream getAdminRole() {
+		return util.inputStream("namespace-filter/fabric8-cluster-admin-serviceaccount-role.yaml");
 	}
 
 	private WebClient.Builder builder() {

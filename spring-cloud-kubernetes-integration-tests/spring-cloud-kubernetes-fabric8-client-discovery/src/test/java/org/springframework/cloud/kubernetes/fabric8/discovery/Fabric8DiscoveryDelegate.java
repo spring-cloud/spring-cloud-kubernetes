@@ -16,21 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.junit.jupiter.api.Assertions;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.retrySpec;
 
 /**
  * @author wind57
@@ -76,14 +73,6 @@ final class Fabric8DiscoveryDelegate {
 		Assertions.assertFalse(result.isSecure());
 		Assertions.assertEquals(result.getUri().toASCIIString(), "spring.io");
 		Assertions.assertEquals(result.getScheme(), "http");
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

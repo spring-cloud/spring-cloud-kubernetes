@@ -16,10 +16,26 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.time.Duration;
+import java.util.Objects;
+
+import org.assertj.core.api.Assertions;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.testcontainers.containers.Container;
+import org.testcontainers.k3s.K3sContainer;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
+
 /**
  * @author wind57
  */
-final class Fabric8DiscoveryBodiesForPatch {
+final class Fabric8DiscoveryClientUtil {
+
+	private Fabric8DiscoveryClientUtil() {
+
+	}
 
 	static final String BODY_ONE = """
 			{
@@ -156,6 +172,117 @@ final class Fabric8DiscoveryBodiesForPatch {
 				}
 			}
 						""";
+
+	static final String BODY_FIVE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "a-uat"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1",
+									"value": "b-uat"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_FILTER",
+									"value": "#root.metadata.namespace matches '^.*uat$'"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	static final String BODY_SIX = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "a-uat"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1",
+									"value": "b-uat"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_FILTER",
+									"value": "#root.metadata.namespace matches 'a-uat$'"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	static final String BODY_SEVEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "namespace-left"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	static WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	static RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	static void assertLogStatement(String message, K3sContainer k3sContainer, String imageName) {
+		try {
+			String appPodName = k3sContainer.execInContainer("sh", "-c",
+				"kubectl get pods -l app=" + imageName + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = k3sContainer.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			String ok = execResult.getStdout();
+			Assertions.assertThat(ok).contains(message);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+
+	}
 
 
 }

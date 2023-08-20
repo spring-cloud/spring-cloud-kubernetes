@@ -16,23 +16,19 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 
 import org.assertj.core.api.Assertions;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.boot.test.json.BasicJsonTester;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.assertLogStatement;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.retrySpec;
 
 /**
  * @author wind57
@@ -43,11 +39,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-discovery";
-
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(Fabric8DiscoveryClientHealthDelegate.class);
-
-	private static final K3sContainer K3S = Commons.container();
 
 	/**
 	 * Reactive is disabled, only blocking is active. As such,
@@ -57,13 +49,14 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	void testBlockingConfiguration() {
+	void testBlockingConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
-		assertLogStatement("publishing InstanceRegisteredEvent");
-		assertLogStatement("Discovery Client has been initialized");
+		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer, imageName);
+		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
+		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
 		assertLogStatement(
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery");
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery",
+				k3sContainer, imageName);
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -90,13 +83,13 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	/**
 	 * Both blocking and reactive are enabled.
 	 */
-	void testDefaultConfiguration() {
+	void testDefaultConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation");
-		assertLogStatement("publishing InstanceRegisteredEvent");
-		assertLogStatement("Discovery Client has been initialized");
+		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer, imageName);
+		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
+		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
 		assertLogStatement("received InstanceRegisteredEvent from pod with 'app' label value : "
-				+ "spring-cloud-kubernetes-fabric8-client-discovery");
+				+ "spring-cloud-kubernetes-fabric8-client-discovery", k3sContainer, imageName);
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -137,13 +130,14 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	void testReactiveConfiguration() {
+	void testReactiveConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation");
-		assertLogStatement("publishing InstanceRegisteredEvent");
-		assertLogStatement("Discovery Client has been initialized");
+		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", k3sContainer, imageName);
+		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
+		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
 		assertLogStatement(
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery");
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery",
+				k3sContainer, imageName);
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -173,30 +167,6 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-fabric8-client-discovery");
 		Assertions.assertThat(servicesResult).contains("kubernetes");
-
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
-	}
-
-	private void assertLogStatement(String message) {
-		try {
-			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-			String ok = execResult.getStdout();
-			Assertions.assertThat(ok).contains(message);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
 
 	}
 
