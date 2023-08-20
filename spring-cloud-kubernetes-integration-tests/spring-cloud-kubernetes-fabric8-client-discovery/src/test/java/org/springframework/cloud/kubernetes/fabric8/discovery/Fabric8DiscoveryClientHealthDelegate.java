@@ -136,11 +136,15 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", k3sContainer,
 				imageName);
+		System.out.println("first log statement present");
 		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
+		System.out.println("second log statement present");
 		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
+		System.out.println("third log statement present");
 		assertLogStatement(
 				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery",
 				k3sContainer, imageName);
+		System.out.println("fourth log statement present");
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -149,16 +153,20 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+		System.out.println("first json tester OK");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS)
 				.isEqualTo("UP");
+		System.out.println("second json tester OK");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
 				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
 						"external-name-service", "service-wiremock", "busybox-service");
+		System.out.println("third json tester OK");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
+		System.out.println("fourth json tester OK");
 
 		// test for services also:
 
@@ -169,7 +177,9 @@ final class Fabric8DiscoveryClientHealthDelegate {
 				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-fabric8-client-discovery");
+		System.out.println("fifth json tester OK");
 		Assertions.assertThat(servicesResult).contains("kubernetes");
+		System.out.println("sixth json tester OK");
 
 	}
 
