@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,9 +47,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.externalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.nonExternalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.addresses;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointSubsetPortsData;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointSubsetsPortData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpoints;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.portsData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.externalName;
@@ -163,13 +161,13 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 		Service service = client.services().inNamespace(namespace).withName(serviceId).get();
 		ServiceMetadata serviceMetadata = serviceMetadata(service);
-		Map<String, String> portsData = portsData(subsets);
+		Map<String, Integer> portsData = endpointSubsetsPortData(subsets);
 
 		Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		for (EndpointSubset endpointSubset : subsets) {
 
-			LinkedHashMap<String, Integer> endpointsPortData = endpointSubsetPortsData(endpointSubset);
+			Map<String, Integer> endpointsPortData = endpointSubsetsPortData(List.of(endpointSubset));
 			ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, serviceMetadata, properties);
 
 			List<EndpointAddress> addresses = addresses(endpointSubset, properties);
