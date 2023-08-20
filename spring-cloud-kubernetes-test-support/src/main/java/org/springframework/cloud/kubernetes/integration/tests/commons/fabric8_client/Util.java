@@ -411,7 +411,7 @@ public final class Util {
 			return false;
 		}
 
-		return replicas == Optional.ofNullable(deployment.getStatus().getAvailableReplicas()).orElse(0);
+		return replicas == Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
 
 	}
 
