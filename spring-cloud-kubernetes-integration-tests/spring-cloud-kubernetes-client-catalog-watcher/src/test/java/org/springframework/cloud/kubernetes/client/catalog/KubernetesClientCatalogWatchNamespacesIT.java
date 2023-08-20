@@ -198,7 +198,7 @@ public class KubernetesClientCatalogWatchNamespacesIT {
 	private void app(boolean useEndpointSlices, Phase phase) {
 		V1Deployment deployment = useEndpointSlices
 				? (V1Deployment) util.yaml("app/watcher-endpoint-slices-deployment.yaml")
-				: (V1Deployment) util.yaml("app/watcher-endpoints-deployment.yaml");
+				: (V1Deployment) util.yaml("app/watcher-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("app/watcher-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("app/watcher-ingress.yaml");
 

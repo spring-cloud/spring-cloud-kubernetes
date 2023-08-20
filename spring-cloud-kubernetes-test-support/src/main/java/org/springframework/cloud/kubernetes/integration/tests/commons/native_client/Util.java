@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
@@ -51,6 +52,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.util.Config;
+import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
@@ -434,6 +436,34 @@ public final class Util {
 			deleteAndWait(namespace, deployment, service, ingress);
 		}
 
+	}
+
+	public static void patchWithMerge(String deploymentName, String namespace, String patchBody) {
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
+							new V1Patch(patchBody), null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error("error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody) {
+		String body = patchBody.replace("image_name_here", imageName);
+
+		try {
+			PatchUtils.patch(V1Deployment.class,
+					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
+							null, null, null, null, null, null),
+					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
+		}
+		catch (ApiException e) {
+			LOG.error("error : " + e.getResponseBody());
+			throw new RuntimeException(e);
+		}
 	}
 
 	private String deploymentName(V1Deployment deployment) {

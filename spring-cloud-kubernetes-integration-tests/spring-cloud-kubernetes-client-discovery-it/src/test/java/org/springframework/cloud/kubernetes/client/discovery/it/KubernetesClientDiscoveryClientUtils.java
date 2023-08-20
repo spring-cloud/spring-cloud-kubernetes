@@ -16,15 +16,12 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.it;
 
-import io.kubernetes.client.custom.V1Patch;
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.AppsV1Api;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.util.PatchUtils;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithMerge;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 
 /**
  * @author wind57
@@ -409,34 +406,6 @@ final class KubernetesClientDiscoveryClientUtils {
 
 	static void patchForUATNamespacesTests(String image, String deploymentName, String namespace) {
 		patchWithReplace(image, deploymentName, namespace, BODY_TWELVE);
-	}
-
-	private static void patchWithMerge(String deploymentName, String namespace, String patchBody) {
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(patchBody), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
-	}
-
-	private static void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody) {
-		String body = patchBody.replace("image_name_here", imageName);
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
-							null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error(() -> "error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
 	}
 
 }

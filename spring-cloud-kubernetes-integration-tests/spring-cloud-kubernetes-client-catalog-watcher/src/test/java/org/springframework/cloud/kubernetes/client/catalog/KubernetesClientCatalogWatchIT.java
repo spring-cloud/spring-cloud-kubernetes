@@ -27,7 +27,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -43,11 +46,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
 import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class KubernetesClientCatalogWatchIT {
 
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-catalog-watcher";
@@ -55,6 +60,8 @@ class KubernetesClientCatalogWatchIT {
 	private static final String NAMESPACE = "default";
 
 	private static final K3sContainer K3S = Commons.container();
+
+	private static final String DOCKER_IMAGE = APP_NAME + ":" + Commons.pomVersion();
 
 	private static Util util;
 
@@ -65,10 +72,12 @@ class KubernetesClientCatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
+		app(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
+		app(Phase.DELETE);
 		Commons.systemPrune();
 	}
 
@@ -86,19 +95,18 @@ class KubernetesClientCatalogWatchIT {
 	 * </pre>
 	 */
 	@Test
+	@Order(1)
 	void testCatalogWatchWithEndpoints() throws Exception {
-		app(false, Phase.CREATE);
 		assertLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch");
 		test();
-		app(false, Phase.DELETE);
 	}
 
 	@Test
+	@Order(2)
 	void testCatalogWatchWithEndpointSlices() throws Exception {
-		app(true, Phase.CREATE);
+		patchForEndpointSlices(APP_NAME, NAMESPACE, DOCKER_IMAGE);
 		assertLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch");
 		test();
-		app(true, Phase.DELETE);
 	}
 
 	/**
@@ -184,10 +192,8 @@ class KubernetesClientCatalogWatchIT {
 
 	}
 
-	private static void app(boolean useEndpointSlices, Phase phase) {
-		V1Deployment deployment = useEndpointSlices
-				? (V1Deployment) util.yaml("app/watcher-endpoint-slices-deployment.yaml")
-				: (V1Deployment) util.yaml("app/watcher-endpoints-deployment.yaml");
+	private static void app(Phase phase) {
+		V1Deployment deployment = (V1Deployment) util.yaml("app/watcher-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("app/watcher-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("app/watcher-ingress.yaml");
 
