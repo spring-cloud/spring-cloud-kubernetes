@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,9 +47,9 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author wind57
@@ -193,22 +192,14 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return services;
 	}
 
-	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {
+	/**
+	 * a service is allowed to have a single port defined without a name.
+	 */
+	static Map<String, Integer> endpointSubsetsPortData(List<EndpointSubset> endpointSubsets) {
 		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-				.filter(port -> StringUtils.hasText(port.getName()))
-				.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
-	}
-
-	static LinkedHashMap<String, Integer> endpointSubsetPortsData(EndpointSubset endpointSubset) {
-		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
-		endpointSubset.getPorts().forEach(port -> {
-			// a service is allowed to not set a port name for a single entry.
-			// two ports without name can not be deployed, as this in an error
-			String portName = StringUtils.hasText(port.getName()) ? port.getName() : UNSET_PORT_NAME;
-			Integer portNumber = port.getPort();
-			result.put(portName, portNumber);
-		});
-		return result;
+				.collect(Collectors.toMap(
+						endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
+						EndpointPort::getPort));
 	}
 
 	static ServiceMetadata serviceMetadata(Service service) {

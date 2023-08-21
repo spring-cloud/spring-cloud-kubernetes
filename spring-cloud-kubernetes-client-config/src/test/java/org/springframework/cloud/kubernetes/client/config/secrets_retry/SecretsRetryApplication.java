@@ -19,6 +19,6 @@ package org.springframework.cloud.kubernetes.client.config.secrets_retry;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-class Application {
+class SecretsRetryApplication {
 
 }

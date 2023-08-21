@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -29,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
@@ -59,7 +57,7 @@ public final class DiscoveryClientUtils {
 	 *     - service type
 	 * </pre>
 	 */
-	public static Map<String, String> serviceInstanceMetadata(Map<String, String> portsData,
+	public static Map<String, String> serviceInstanceMetadata(Map<String, Integer> portsData,
 			ServiceMetadata serviceMetadata, KubernetesDiscoveryProperties properties) {
 		Map<String, String> result = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
@@ -77,7 +75,10 @@ public final class DiscoveryClientUtils {
 		}
 
 		if (metadataProps.addPorts()) {
-			Map<String, String> portMetadata = keysWithPrefix(portsData, properties.metadata().portsPrefix());
+			Map<String, String> portsDataValueAsString = portsData.entrySet().stream()
+					.collect(Collectors.toMap(Map.Entry::getKey, en -> Integer.toString(en.getValue())));
+			Map<String, String> portMetadata = keysWithPrefix(portsDataValueAsString,
+					properties.metadata().portsPrefix());
 			if (!portMetadata.isEmpty()) {
 				LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceMetadata.name());
 			}
@@ -89,16 +90,16 @@ public final class DiscoveryClientUtils {
 		return result;
 	}
 
-	public static ServicePortNameAndNumber endpointsPort(LinkedHashMap<String, Integer> endpointsPorts,
+	public static ServicePortNameAndNumber endpointsPort(Map<String, Integer> existingPorts,
 			ServiceMetadata serviceMetadata, KubernetesDiscoveryProperties properties) {
 
-		if (endpointsPorts.size() == 0) {
+		if (existingPorts.isEmpty()) {
 			LOG.debug(() -> "no ports found for service : " + serviceMetadata.name() + ", will return zero");
 			return new ServicePortNameAndNumber(0, "http");
 		}
 
-		if (endpointsPorts.size() == 1) {
-			Map.Entry<String, Integer> single = endpointsPorts.entrySet().iterator().next();
+		if (existingPorts.size() == 1) {
+			Map.Entry<String, Integer> single = existingPorts.entrySet().iterator().next();
 			LOG.debug(() -> "endpoint ports has a single entry, using port : " + single.getValue());
 			return new ServicePortNameAndNumber(single.getValue(), single.getKey());
 		}
@@ -107,10 +108,6 @@ public final class DiscoveryClientUtils {
 
 			Optional<ServicePortNameAndNumber> portData;
 			String primaryPortName = primaryPortName(properties, serviceMetadata.labels(), serviceMetadata.name());
-
-			Map<String, Integer> existingPorts = endpointsPorts.entrySet().stream()
-					.filter(entry -> StringUtils.hasText(entry.getKey()))
-					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
 			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
 					+ primaryPortName + "') via properties or service labels to match port");
@@ -129,7 +126,7 @@ public final class DiscoveryClientUtils {
 			}
 
 			logWarnings();
-			Map.Entry<String, Integer> first = endpointsPorts.entrySet().iterator().next();
+			Map.Entry<String, Integer> first = existingPorts.entrySet().iterator().next();
 			return new ServicePortNameAndNumber(first.getValue(), first.getKey());
 
 		}
