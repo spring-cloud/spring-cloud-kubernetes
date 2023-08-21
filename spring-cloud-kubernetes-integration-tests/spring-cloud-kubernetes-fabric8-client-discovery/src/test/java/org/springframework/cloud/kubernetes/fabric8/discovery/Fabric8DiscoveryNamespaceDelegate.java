@@ -31,7 +31,7 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
 /**
  * @author mbialkowski1
  */
-class Fabric8DiscoveryNamespaceDelegate {
+final class Fabric8DiscoveryNamespaceDelegate {
 
 	private Fabric8DiscoveryNamespaceDelegate() {
 
