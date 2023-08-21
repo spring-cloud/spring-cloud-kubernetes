@@ -141,8 +141,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	void testOneNamespaceReactiveOnly() {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		String logs = logs();
 		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
@@ -171,8 +169,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	void testOneNamespaceBothBlockingAndReactive() {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactive(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		String logs = logs();
 		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
@@ -209,8 +205,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(4)
 	void testTwoNamespacesBlockingOnly() {
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesBlockingOnly(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate().testTwoNamespacesBlockingOnly(K3S);
 	}
 
@@ -230,8 +224,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(5)
 	void testTwoNamespacesReactiveOnly() {
 		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate().testTwoNamespaceReactiveOnly(K3S);
 	}
 
@@ -251,8 +243,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(6)
 	void testTwoNamespacesBothBlockingAndReactive() {
 		KubernetesClientDiscoveryClientUtils.patchToAddBlockingSupport(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate()
 				.testTwoNamespacesBothBlockingAndReactive(K3S);
 	}

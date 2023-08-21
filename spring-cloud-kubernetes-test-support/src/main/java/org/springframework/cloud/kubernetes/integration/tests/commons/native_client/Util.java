@@ -449,6 +449,8 @@ public final class Util {
 			LOG.error("error : " + e.getResponseBody());
 			throw new RuntimeException(e);
 		}
+
+		waitForDeploymentAfterPatch(deploymentName, namespace);
 	}
 
 	public static void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody) {
@@ -464,6 +466,9 @@ public final class Util {
 			LOG.error("error : " + e.getResponseBody());
 			throw new RuntimeException(e);
 		}
+
+		waitForDeploymentAfterPatch(deploymentName, namespace);
+
 	}
 
 	private String deploymentName(V1Deployment deployment) {
@@ -620,10 +625,10 @@ public final class Util {
 		return availableReplicas != null && availableReplicas >= 1;
 	}
 
-	public void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
+	private static void waitForDeploymentAfterPatch(String deploymentName, String namespace) {
 		try {
 			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(3)).atMost(60, TimeUnit.SECONDS)
-					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
+					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace));
 		}
 		catch (Exception e) {
 			if (e instanceof ApiException apiException) {
@@ -635,10 +640,9 @@ public final class Util {
 
 	}
 
-	private boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace, Map<String, String> labels)
-			throws ApiException {
+	private static boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace) throws ApiException {
 
-		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
+		V1DeploymentList deployments = new AppsV1Api().listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null);
 		if (deployments.getItems().isEmpty()) {
 			fail("No deployment with name " + deploymentName);
@@ -647,17 +651,14 @@ public final class Util {
 		V1Deployment deployment = deployments.getItems().get(0);
 		// if no replicas are defined, it means only 1 is needed
 		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
+		int readyReplicas = Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
 
-		int numberOfPods = coreV1Api.listNamespacedPod(namespace, null, null, null, null, labelSelector(labels), null,
-				null, null, null, null).getItems().size();
-
-		if (numberOfPods != replicas) {
+		if (readyReplicas != replicas) {
 			LOG.info("number of pods not yet stabilized");
 			return false;
 		}
 
-		return replicas == Optional.ofNullable(deployment.getStatus().getAvailableReplicas()).orElse(0);
-
+		return true;
 	}
 
 	private static <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {

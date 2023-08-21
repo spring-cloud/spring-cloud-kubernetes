@@ -103,8 +103,6 @@ class KubernetesClientDiscoveryHealthITDelegate {
 	void testReactiveConfiguration(Util util, K3sContainer container) {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		assertLogStatement(container, "Will publish InstanceRegisteredEvent from reactive implementation");
 		assertLogStatement(container, "publishing InstanceRegisteredEvent");
@@ -148,8 +146,6 @@ class KubernetesClientDiscoveryHealthITDelegate {
 	void testDefaultConfiguration(Util util, K3sContainer container) {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		assertLogStatement(container, "Will publish InstanceRegisteredEvent from blocking implementation");
 		assertLogStatement(container, "publishing InstanceRegisteredEvent");

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.catalog;
 
+import java.util.Map;
+
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithMerge;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 
@@ -36,6 +38,10 @@ final class KubernetesClientCatalogWatchUtils {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
 									"value": "TRUE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY_CATALOG",
+									"value": "DEBUG"
 								}
 								]
 							}]

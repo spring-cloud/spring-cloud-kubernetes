@@ -20,6 +20,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.log.LogAccessor;
 
+import java.util.Map;
+
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithMerge;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 

@@ -180,8 +180,6 @@ class KubernetesClientDiscoveryClientIT {
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 
 		KubernetesClientDiscoveryClientUtils.patchForAllNamespaces(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		Assertions.assertTrue(logs().contains("serviceSharedInformer will use all-namespaces"));
 
@@ -228,8 +226,6 @@ class KubernetesClientDiscoveryClientIT {
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
 
 		KubernetesClientDiscoveryClientUtils.patchForSingleNamespace(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		// first check that wiremock service is present in both namespaces a and b
 		assertServicePresentInNamespaces(List.of("a", "b"), "service-wiremock", "service-wiremock");
@@ -284,8 +280,6 @@ class KubernetesClientDiscoveryClientIT {
 		util.setUp(NAMESPACE);
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForPodMetadata(imageName, DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryPodMetadataITDelegate().testSimple();
 	}
 
@@ -293,9 +287,7 @@ class KubernetesClientDiscoveryClientIT {
 	@Order(5)
 	void filterMatchesOneNamespaceViaThePredicate() {
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
-		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE, POD_LABELS);
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesOneNamespaceViaThePredicate(util);
 
 	}
@@ -315,9 +307,8 @@ class KubernetesClientDiscoveryClientIT {
 	void filterMatchesBothNamespacesViaThePredicate() {
 
 		// patch the deployment to change what namespaces are take into account
-		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(
+			DEPLOYMENT_NAME, NAMESPACE);
 
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate(util);
 	}
@@ -330,9 +321,8 @@ class KubernetesClientDiscoveryClientIT {
 		deleteNamespacesAndWiremock();
 
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
-		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
+		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(
+			imageName, DEPLOYMENT_NAME, NAMESPACE);
 
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
 	}
@@ -342,8 +332,6 @@ class KubernetesClientDiscoveryClientIT {
 	void testReactiveConfiguration() {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(util, K3S);
 	}
@@ -353,8 +341,6 @@ class KubernetesClientDiscoveryClientIT {
 	void testDefaultConfiguration() {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(util, K3S);
 	}

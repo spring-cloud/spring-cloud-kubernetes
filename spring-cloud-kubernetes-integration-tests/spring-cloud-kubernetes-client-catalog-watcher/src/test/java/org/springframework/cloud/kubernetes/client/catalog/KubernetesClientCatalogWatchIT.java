@@ -46,6 +46,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
 import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
 import static org.awaitility.Awaitility.await;
 
@@ -61,7 +62,7 @@ class KubernetesClientCatalogWatchIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
-	private static final String DOCKER_IMAGE = APP_NAME + ":" + Commons.pomVersion();
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + APP_NAME + ":" + Commons.pomVersion();
 
 	private static Util util;
 
@@ -96,29 +97,17 @@ class KubernetesClientCatalogWatchIT {
 	 */
 	@Test
 	@Order(1)
-	void testCatalogWatchWithEndpoints() throws Exception {
-		assertLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch");
+	void testCatalogWatchWithEndpoints() {
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch", K3S, APP_NAME);
 		test();
 	}
 
 	@Test
 	@Order(2)
-	void testCatalogWatchWithEndpointSlices() throws Exception {
+	void testCatalogWatchWithEndpointSlices() {
 		patchForEndpointSlices(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		assertLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch");
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", K3S, APP_NAME);
 		test();
-	}
-
-	/**
-	 * we log in debug mode the type of the StateGenerator we use, be that Endpoints or
-	 * EndpointSlices. Here we make sure that in the test we actually use the correct
-	 * type.
-	 */
-	private void assertLogStatement(String log) throws Exception {
-		String appPodName = K3S.execInContainer("kubectl", "get", "pods", "-l",
-				"app=spring-cloud-kubernetes-client-catalog-watcher", "-o=name", "--no-headers").getStdout();
-		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-		Assertions.assertTrue(allLogs.contains(log));
 	}
 
 	/**
