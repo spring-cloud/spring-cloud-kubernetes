@@ -287,7 +287,7 @@ class KubernetesClientDiscoveryClientIT {
 	@Order(5)
 	void filterMatchesOneNamespaceViaThePredicate() {
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
-		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE, POD_LABELS);
+		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesOneNamespaceViaThePredicate(util);
 
 	}
@@ -307,8 +307,7 @@ class KubernetesClientDiscoveryClientIT {
 	void filterMatchesBothNamespacesViaThePredicate() {
 
 		// patch the deployment to change what namespaces are take into account
-		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(
-			DEPLOYMENT_NAME, NAMESPACE);
+		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
 
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate(util);
 	}
@@ -321,8 +320,7 @@ class KubernetesClientDiscoveryClientIT {
 		deleteNamespacesAndWiremock();
 
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
-		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(
-			imageName, DEPLOYMENT_NAME, NAMESPACE);
+		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
 
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
 	}

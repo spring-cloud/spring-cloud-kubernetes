@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.catalog;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -46,9 +47,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
-import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
+import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointSlicesNamespaces;
+import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
 
 /**
  * @author wind57
@@ -59,6 +62,10 @@ class KubernetesClientCatalogWatchIT {
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-catalog-watcher";
 
 	private static final String NAMESPACE = "default";
+
+	private static final String NAMESPACE_A = "namespacea";
+
+	private static final String NAMESPACE_B = "namespaceb";
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -78,6 +85,9 @@ class KubernetesClientCatalogWatchIT {
 
 	@AfterAll
 	static void afterAll() {
+		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE_A, NAMESPACE_B));
+		util.deleteNamespace(NAMESPACE_A);
+		util.deleteNamespace(NAMESPACE_B);
 		app(Phase.DELETE);
 		Commons.systemPrune();
 	}
@@ -108,6 +118,23 @@ class KubernetesClientCatalogWatchIT {
 		patchForEndpointSlices(APP_NAME, NAMESPACE, DOCKER_IMAGE);
 		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", K3S, APP_NAME);
 		test();
+
+		testCatalogWatchWithEndpointsNamespaces();
+	}
+
+	void testCatalogWatchWithEndpointsNamespaces() {
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE_A, NAMESPACE_B));
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
+		patchForEndpointsNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces();
+
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
+		patchForEndpointSlicesNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces();
 	}
 
 	/**

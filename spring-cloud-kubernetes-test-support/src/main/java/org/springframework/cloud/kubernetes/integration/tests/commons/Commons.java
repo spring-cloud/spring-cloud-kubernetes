@@ -235,12 +235,14 @@ public final class Commons {
 	public static void waitForLogStatement(String message, K3sContainer k3sContainer, String imageName) {
 		try {
 
-			String appPodName = k3sContainer.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + imageName + " -o custom-columns=POD:metadata.name,STATUS:status.phase"
-							+ " | grep -i 'running' | awk '{print $1}' | tr -d '\n' ")
-					.getStdout();
+			await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(4)).until(() -> {
 
-			await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(2)).until(() -> {
+				String appPodName = k3sContainer.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + imageName
+								+ " -o custom-columns=POD:metadata.name,STATUS:status.phase"
+								+ " | grep -i 'running' | awk '{print $1}' | tr -d '\n' ")
+						.getStdout();
+
 				String execResult = k3sContainer.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim())
 						.getStdout();
 				return execResult.contains(message);
