@@ -34,11 +34,15 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
  */
 final class Fabric8DiscoveryDelegate {
 
+	private Fabric8DiscoveryDelegate() {
+
+	}
+
 	/**
 	 * KubernetesDiscoveryClient::getServices call must include the external-name-service
 	 * also.
 	 */
-	void testAllServices() {
+	static void testAllServices() {
 		WebClient client = builder().baseUrl("http://localhost/services").build();
 
 		List<String> result = client.method(HttpMethod.GET).retrieve()
@@ -54,7 +58,7 @@ final class Fabric8DiscoveryDelegate {
 		Assertions.assertTrue(result.contains("external-name-service"));
 	}
 
-	void testExternalNameServiceInstance() {
+	static void testExternalNameServiceInstance() {
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/external-name-service").build();
 		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()

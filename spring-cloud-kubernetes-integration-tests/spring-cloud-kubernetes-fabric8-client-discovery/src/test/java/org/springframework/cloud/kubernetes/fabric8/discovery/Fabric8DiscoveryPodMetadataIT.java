@@ -184,41 +184,41 @@ class Fabric8DiscoveryPodMetadataIT {
 
 	private void testAllServices() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE, Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryDelegate().testAllServices();
+		Fabric8DiscoveryDelegate.testAllServices();
 	}
 
 	private void testExternalNameServiceInstance() {
-		new Fabric8DiscoveryDelegate().testExternalNameServiceInstance();
+		Fabric8DiscoveryDelegate.testExternalNameServiceInstance();
 	}
 
 	private void testBlockingConfiguration() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_TWO, Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryClientHealthDelegate().testBlockingConfiguration(K3S, IMAGE_NAME);
+		Fabric8DiscoveryClientHealthDelegate.testBlockingConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void testDefaultConfiguration() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_THREE, Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryClientHealthDelegate().testDefaultConfiguration(K3S, IMAGE_NAME);
+		Fabric8DiscoveryClientHealthDelegate.testDefaultConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void testReactiveConfiguration() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FOUR, Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryClientHealthDelegate().testReactiveConfiguration(K3S, IMAGE_NAME);
+		Fabric8DiscoveryClientHealthDelegate.testReactiveConfiguration(K3S, IMAGE_NAME);
 	}
 
 	private void filterMatchesBothNamespacesViaThePredicate() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_FIVE, Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryFilterDelegate().filterMatchesBothNamespacesViaThePredicate();
+		Fabric8DiscoveryFilterDelegate.filterMatchesBothNamespacesViaThePredicate();
 	}
 
 	private void filterMatchesOneNamespaceViaThePredicate() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SIX, Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryFilterDelegate().filterMatchesOneNamespaceViaThePredicate();
+		Fabric8DiscoveryFilterDelegate.filterMatchesOneNamespaceViaThePredicate();
 	}
 
 	private void namespaceFilter() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_SEVEN, Map.of("app", IMAGE_NAME));
-		new Fabric8DiscoveryNamespaceDelegate().namespaceFilter();
+		Fabric8DiscoveryNamespaceDelegate.namespaceFilter();
 	}
 
 	private static void manifests(Phase phase) {

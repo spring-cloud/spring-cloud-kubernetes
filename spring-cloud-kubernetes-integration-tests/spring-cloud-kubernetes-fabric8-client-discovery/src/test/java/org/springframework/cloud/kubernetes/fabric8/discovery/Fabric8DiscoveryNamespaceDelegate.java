@@ -33,7 +33,11 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
  */
 class Fabric8DiscoveryNamespaceDelegate {
 
-	void namespaceFilter() {
+	private Fabric8DiscoveryNamespaceDelegate() {
+
+	}
+
+	static void namespaceFilter() {
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
 		@SuppressWarnings("unchecked")

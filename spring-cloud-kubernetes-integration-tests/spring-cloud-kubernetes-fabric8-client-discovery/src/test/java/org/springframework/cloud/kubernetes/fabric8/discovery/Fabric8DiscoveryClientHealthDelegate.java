@@ -35,6 +35,10 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
  */
 final class Fabric8DiscoveryClientHealthDelegate {
 
+	private Fabric8DiscoveryClientHealthDelegate() {
+
+	}
+
 	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status";
 
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
@@ -50,7 +54,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	void testBlockingConfiguration(K3sContainer k3sContainer, String imageName) {
+	static void testBlockingConfiguration(K3sContainer k3sContainer, String imageName) {
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
 				imageName);
@@ -84,7 +88,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	/**
 	 * Both blocking and reactive are enabled.
 	 */
-	void testDefaultConfiguration(K3sContainer k3sContainer, String imageName) {
+	static void testDefaultConfiguration(K3sContainer k3sContainer, String imageName) {
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
 				imageName);
@@ -132,7 +136,7 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	void testReactiveConfiguration(K3sContainer k3sContainer, String imageName) {
+	static void testReactiveConfiguration(K3sContainer k3sContainer, String imageName) {
 
 		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", k3sContainer,
 				imageName);

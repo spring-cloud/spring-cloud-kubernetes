@@ -32,6 +32,10 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
 
 final class Fabric8DiscoveryFilterDelegate {
 
+	private Fabric8DiscoveryFilterDelegate() {
+
+	}
+
 	/**
 	 * <pre>
 	 *     - service "wiremock" is present in namespace "a-uat"
@@ -42,7 +46,7 @@ final class Fabric8DiscoveryFilterDelegate {
 	 *     As such, both services are found via 'getInstances' call.
 	 * </pre>
 	 */
-	void filterMatchesBothNamespacesViaThePredicate() {
+	static void filterMatchesBothNamespacesViaThePredicate() {
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
@@ -91,7 +95,7 @@ final class Fabric8DiscoveryFilterDelegate {
 	 *     As such, only service from 'a-uat' namespace matches.
 	 * </pre>
 	 */
-	void filterMatchesOneNamespaceViaThePredicate() {
+	static void filterMatchesOneNamespaceViaThePredicate() {
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
