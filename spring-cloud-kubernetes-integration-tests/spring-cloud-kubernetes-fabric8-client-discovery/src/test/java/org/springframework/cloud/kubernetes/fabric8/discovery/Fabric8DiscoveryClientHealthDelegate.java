@@ -26,9 +26,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.assertLogStatement;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.builder;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.retrySpec;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.waitForLogStatement;
 
 /**
  * @author wind57
@@ -56,11 +56,11 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 */
 	static void testBlockingConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
+		waitForLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
 				imageName);
-		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
-		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
-		assertLogStatement(
+		waitForLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
+		waitForLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
+		waitForLogStatement(
 				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery",
 				k3sContainer, imageName);
 
@@ -90,11 +90,11 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 */
 	static void testDefaultConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
+		waitForLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", k3sContainer,
 				imageName);
-		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
-		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
-		assertLogStatement("received InstanceRegisteredEvent from pod with 'app' label value : "
+		waitForLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
+		waitForLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
+		waitForLogStatement("received InstanceRegisteredEvent from pod with 'app' label value : "
 				+ "spring-cloud-kubernetes-fabric8-client-discovery", k3sContainer, imageName);
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
@@ -138,11 +138,11 @@ final class Fabric8DiscoveryClientHealthDelegate {
 	 */
 	static void testReactiveConfiguration(K3sContainer k3sContainer, String imageName) {
 
-		assertLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", k3sContainer,
+		waitForLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", k3sContainer,
 				imageName);
-		assertLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
-		assertLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
-		assertLogStatement(
+		waitForLogStatement("publishing InstanceRegisteredEvent", k3sContainer, imageName);
+		waitForLogStatement("Discovery Client has been initialized", k3sContainer, imageName);
+		waitForLogStatement(
 				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-fabric8-client-discovery",
 				k3sContainer, imageName);
 
