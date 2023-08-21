@@ -139,7 +139,11 @@ class KubernetesClientCatalogWatchIT {
 			// we get 3 pods as input, but because they are sorted by name in the catalog
 			// watcher implementation
 			// we will get the first busybox instances here.
+
 			if (result != null) {
+				if (result.size() != 3) {
+					return false;
+				}
 				holder[0] = result.get(0);
 				holder[1] = result.get(1);
 				return true;
