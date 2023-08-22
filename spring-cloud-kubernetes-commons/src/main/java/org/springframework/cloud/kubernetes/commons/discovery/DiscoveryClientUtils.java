@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -29,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
@@ -59,46 +57,49 @@ public final class DiscoveryClientUtils {
 	 *     - service type
 	 * </pre>
 	 */
-	public static Map<String, String> serviceMetadata(String serviceId, Map<String, String> serviceLabels,
-			Map<String, String> serviceAnnotations, Map<String, String> portsData,
-			KubernetesDiscoveryProperties properties, String namespace, String serviceType) {
-		Map<String, String> serviceMetadata = new HashMap<>();
+	public static Map<String, String> serviceInstanceMetadata(Map<String, Integer> portsData,
+			ServiceMetadata serviceMetadata, KubernetesDiscoveryProperties properties) {
+		Map<String, String> result = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
 		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = keysWithPrefix(serviceLabels, metadataProps.labelsPrefix());
-			LOG.debug(() -> "Adding labels metadata: " + labelMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(labelMetadata);
+			Map<String, String> labelMetadata = keysWithPrefix(serviceMetadata.labels(), metadataProps.labelsPrefix());
+			LOG.debug(() -> "Adding labels metadata: " + labelMetadata + " for serviceId: " + serviceMetadata.name());
+			result.putAll(labelMetadata);
 		}
 		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = keysWithPrefix(serviceAnnotations,
+			Map<String, String> annotationMetadata = keysWithPrefix(serviceMetadata.annotations(),
 					metadataProps.annotationsPrefix());
-			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(annotationMetadata);
+			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: "
+					+ serviceMetadata.name());
+			result.putAll(annotationMetadata);
 		}
 
 		if (metadataProps.addPorts()) {
-			Map<String, String> portMetadata = keysWithPrefix(portsData, properties.metadata().portsPrefix());
+			Map<String, String> portsDataValueAsString = portsData.entrySet().stream()
+					.collect(Collectors.toMap(Map.Entry::getKey, en -> Integer.toString(en.getValue())));
+			Map<String, String> portMetadata = keysWithPrefix(portsDataValueAsString,
+					properties.metadata().portsPrefix());
 			if (!portMetadata.isEmpty()) {
-				LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceId);
+				LOG.debug(() -> "Adding port metadata: " + portMetadata + " for serviceId : " + serviceMetadata.name());
 			}
-			serviceMetadata.putAll(portMetadata);
+			result.putAll(portMetadata);
 		}
 
-		serviceMetadata.put(NAMESPACE_METADATA_KEY, namespace);
-		serviceMetadata.put(SERVICE_TYPE, serviceType);
-		return serviceMetadata;
+		result.put(NAMESPACE_METADATA_KEY, serviceMetadata.namespace());
+		result.put(SERVICE_TYPE, serviceMetadata.type());
+		return result;
 	}
 
-	public static ServicePortNameAndNumber endpointsPort(LinkedHashMap<String, Integer> endpointsPorts,
-			String serviceId, KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels) {
+	public static ServicePortNameAndNumber endpointsPort(Map<String, Integer> existingPorts,
+			ServiceMetadata serviceMetadata, KubernetesDiscoveryProperties properties) {
 
-		if (endpointsPorts.size() == 0) {
-			LOG.debug(() -> "no ports found for service : " + serviceId + ", will return zero");
+		if (existingPorts.isEmpty()) {
+			LOG.debug(() -> "no ports found for service : " + serviceMetadata.name() + ", will return zero");
 			return new ServicePortNameAndNumber(0, "http");
 		}
 
-		if (endpointsPorts.size() == 1) {
-			Map.Entry<String, Integer> single = endpointsPorts.entrySet().iterator().next();
+		if (existingPorts.size() == 1) {
+			Map.Entry<String, Integer> single = existingPorts.entrySet().iterator().next();
 			LOG.debug(() -> "endpoint ports has a single entry, using port : " + single.getValue());
 			return new ServicePortNameAndNumber(single.getValue(), single.getKey());
 		}
@@ -106,11 +107,7 @@ public final class DiscoveryClientUtils {
 		else {
 
 			Optional<ServicePortNameAndNumber> portData;
-			String primaryPortName = primaryPortName(properties, serviceLabels, serviceId);
-
-			Map<String, Integer> existingPorts = endpointsPorts.entrySet().stream()
-					.filter(entry -> StringUtils.hasText(entry.getKey()))
-					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			String primaryPortName = primaryPortName(properties, serviceMetadata.labels(), serviceMetadata.name());
 
 			portData = fromMap(existingPorts, primaryPortName, "found primary-port-name (with value: '"
 					+ primaryPortName + "') via properties or service labels to match port");
@@ -129,18 +126,16 @@ public final class DiscoveryClientUtils {
 			}
 
 			logWarnings();
-			Map.Entry<String, Integer> first = endpointsPorts.entrySet().iterator().next();
+			Map.Entry<String, Integer> first = existingPorts.entrySet().iterator().next();
 			return new ServicePortNameAndNumber(first.getValue(), first.getKey());
 
 		}
 	}
 
 	public static ServiceInstance serviceInstance(@Nullable ServicePortSecureResolver servicePortSecureResolver,
-			ServiceMetadataForServiceInstance serviceMetadataForServiceInstance,
-			Supplier<InstanceIdHostPodName> instanceIdAndHost,
+			ServiceMetadata serviceMetadata, Supplier<InstanceIdHostPodName> instanceIdAndHost,
 			Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata, ServicePortNameAndNumber portData,
-			String serviceId, Map<String, String> serviceMetadata, String namespace,
-			KubernetesDiscoveryProperties properties) {
+			Map<String, String> serviceInstanceMetadata, KubernetesDiscoveryProperties properties) {
 
 		InstanceIdHostPodName data = instanceIdAndHost.get();
 
@@ -150,15 +145,15 @@ public final class DiscoveryClientUtils {
 		}
 		else {
 			secured = servicePortSecureResolver.resolve(new ServicePortSecureResolver.Input(portData,
-					serviceMetadataForServiceInstance.name(), serviceMetadataForServiceInstance.labels(),
-					serviceMetadataForServiceInstance.annotations()));
+					serviceMetadata.name(), serviceMetadata.labels(), serviceMetadata.annotations()));
 		}
 
-		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceMetadata, properties,
+		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceInstanceMetadata, properties,
 				podLabelsAndMetadata);
 
-		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceId, data.host(), portData.portNumber(),
-				serviceMetadata, secured, namespace, null, podMetadata);
+		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceMetadata.name(), data.host(),
+				portData.portNumber(), serviceInstanceMetadata, secured, serviceMetadata.namespace(), null,
+				podMetadata);
 	}
 
 	/**

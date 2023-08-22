@@ -51,7 +51,7 @@ import static org.mockito.Mockito.verify;
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
 				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
-		classes = Application.class)
+		classes = SecretsRetryApplication.class)
 class SecretsFailFastDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
