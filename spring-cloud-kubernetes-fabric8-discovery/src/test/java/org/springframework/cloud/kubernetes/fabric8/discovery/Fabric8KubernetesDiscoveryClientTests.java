@@ -576,7 +576,8 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertFalse(serviceInstance.isSecure());
 		Assertions.assertEquals(serviceInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
-		Assertions.assertEquals(serviceInstance.getMetadata(), Map.of("k8s_namespace", "a", "type", "ClusterIP"));
+		Assertions.assertEquals(serviceInstance.getMetadata(),
+				Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
 		Assertions.assertEquals(serviceInstance.podMetadata().get("labels"), Map.of("a", "b"));
 		Assertions.assertEquals(serviceInstance.podMetadata().get("annotations"), Map.of("c", "d"));
 	}
