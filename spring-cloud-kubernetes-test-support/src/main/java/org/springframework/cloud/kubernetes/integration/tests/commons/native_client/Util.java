@@ -610,7 +610,7 @@ public final class Util {
 
 		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null);
-		if (deployments.getItems().size() < 1) {
+		if (deployments.getItems().isEmpty()) {
 			fail("No deployment with name " + deploymentName);
 		}
 

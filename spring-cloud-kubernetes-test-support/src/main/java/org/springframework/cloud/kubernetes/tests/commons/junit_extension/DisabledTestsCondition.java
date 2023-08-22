@@ -37,9 +37,11 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  */
 public class DisabledTestsCondition implements ExecutionCondition {
 
+	private static final boolean SKIP_RUNNING_TESTS = "true".equals(System.getProperty("spring.cloud.k8s.skip.tests"));
+
 	@Override
 	public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext extensionContext) {
-		if ("true".equals(System.getProperty("spring.cloud.k8s.skip.tests"))) {
+		if (SKIP_RUNNING_TESTS) {
 			System.out.println(
 					"\nspring.cloud.k8s.test.to.run -> " + extensionContext.getRequiredTestClass().getName() + " \n");
 			return ConditionEvaluationResult.disabled("");
