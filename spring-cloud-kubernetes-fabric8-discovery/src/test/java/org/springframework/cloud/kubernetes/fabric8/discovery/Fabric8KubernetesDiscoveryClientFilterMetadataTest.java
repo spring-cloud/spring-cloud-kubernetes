@@ -207,7 +207,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = client.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("http", "80"), entry("k8s_namespace", "test"),
-				entry("type", "ClusterIP"));
+				entry("<unset>", "5555"), entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -228,7 +228,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = client.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"), entry("k8s_namespace", "ns"),
-				entry("type", "ClusterIP"));
+				entry("p_<unset>", "5555"), entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -249,7 +249,8 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 		List<ServiceInstance> instances = client.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
-				entry("l_l1", "la1"), entry("p_http", "80"), entry("k8s_namespace", "ns"), entry("type", "ClusterIP"));
+				entry("l_l1", "la1"), entry("p_http", "80"), entry("k8s_namespace", "ns"), entry("type", "ClusterIP"),
+				entry("p_<unset>", "5555"));
 	}
 
 	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,

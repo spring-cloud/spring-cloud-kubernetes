@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.client.config.secrets_retry;
 
-import java.util.Map;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/**
- * Holds service name, labels and annotations.
- *
- * @author wind57
- *
- */
-public record ServiceMetadataForServiceInstance(String name, Map<String, String> labels,
-		Map<String, String> annotations) {
+@SpringBootApplication
+class SecretsRetryApplication {
+
 }

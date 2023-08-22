@@ -43,6 +43,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.endpointSubsetsPortData;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesDiscoveryClientUtils.services;
 
 /**
@@ -391,9 +392,10 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 				new EndpointSubsetBuilder()
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
-		Map<String, String> portsData = Fabric8KubernetesDiscoveryClientUtils.portsData(endpointSubsets);
-		Assertions.assertEquals(portsData.size(), 1);
-		Assertions.assertEquals(portsData.get("https"), "8080");
+		Map<String, Integer> portsData = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetsPortData(endpointSubsets);
+		Assertions.assertEquals(portsData.size(), 2);
+		Assertions.assertEquals(portsData.get("https"), 8080);
+		Assertions.assertEquals(portsData.get("<unset>"), 8081);
 	}
 
 	@Test
@@ -404,10 +406,38 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 				new EndpointSubsetBuilder()
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
-		Map<String, String> portsData = Fabric8KubernetesDiscoveryClientUtils.portsData(endpointSubsets);
+		Map<String, Integer> portsData = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetsPortData(endpointSubsets);
 		Assertions.assertEquals(portsData.size(), 2);
-		Assertions.assertEquals(portsData.get("https"), "8080");
-		Assertions.assertEquals(portsData.get("http"), "8081");
+		Assertions.assertEquals(portsData.get("https"), 8080);
+		Assertions.assertEquals(portsData.get("http"), 8081);
+	}
+
+	@Test
+	void endpointSubsetPortsDataWithoutPorts() {
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
+		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
+
+		Assertions.assertEquals(result.size(), 0);
+	}
+
+	@Test
+	void endpointSubsetPortsDataSinglePort() {
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+				.withPorts(new EndpointPortBuilder().withName("name").withPort(80).build()).build();
+		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
+
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("name"), 80);
+	}
+
+	@Test
+	void endpointSubsetPortsDataSinglePortNoName() {
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+				.withPorts(new EndpointPortBuilder().withPort(80).build()).build();
+		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
+
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("<unset>"), 80);
 	}
 
 	private void service(String name, String namespace, Map<String, String> labels) {

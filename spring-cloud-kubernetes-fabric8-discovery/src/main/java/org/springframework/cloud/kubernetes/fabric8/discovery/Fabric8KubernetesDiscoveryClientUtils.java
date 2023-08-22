@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,10 +29,12 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSliceList;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
@@ -44,11 +45,13 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadataForServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author wind57
@@ -220,35 +223,21 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		return services;
 	}
 
-	static Map<String, String> portsData(List<EndpointSubset> endpointSubsets) {
+	/**
+	 * a service is allowed to have a single port defined without a name.
+	 */
+	static Map<String, Integer> endpointSubsetsPortData(List<EndpointSubset> endpointSubsets) {
 		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-				.filter(port -> StringUtils.hasText(port.getName()))
-				.collect(Collectors.toMap(EndpointPort::getName, port -> Integer.toString(port.getPort())));
+				.collect(Collectors.toMap(
+						endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
+						EndpointPort::getPort));
 	}
 
-	static LinkedHashMap<String, Integer> endpointSubsetPortsData(EndpointSubset endpointSubset) {
-		LinkedHashMap<String, Integer> result = new LinkedHashMap<>();
-		List<EndpointPort> endpointPorts = endpointSubset.getPorts();
-
-		// this is most probably not a needed if statement, but it preserves the
-		// previous logic before I refactored the code. In particular, this takes care of
-		// the fact that an EndpointsPort name could be missing.
-		if (endpointPorts.size() == 1) {
-			result.put(endpointPorts.get(0).getName(), endpointPorts.get(0).getPort());
-			return result;
-		}
-
-		endpointSubset.getPorts().forEach(port -> {
-			if (StringUtils.hasText(port.getName())) {
-				result.put(port.getName(), port.getPort());
-			}
-		});
-		return result;
-	}
-
-	static ServiceMetadataForServiceInstance forServiceInstance(Service service) {
-		return new ServiceMetadataForServiceInstance(service.getMetadata().getName(), service.getMetadata().getLabels(),
-				service.getMetadata().getAnnotations());
+	static ServiceMetadata serviceMetadata(Service service) {
+		ObjectMeta metadata = service.getMetadata();
+		ServiceSpec serviceSpec = service.getSpec();
+		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), serviceSpec.getType(),
+				metadata.getLabels(), metadata.getAnnotations());
 	}
 
 	/**

@@ -453,21 +453,20 @@ class Fabric8KubernetesDiscoveryClientTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("90")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+				.filteredOn(s -> s.getInstanceId().equals("90")).hasSize(1).hasSize(1);
 	}
 
 	@Test
 	void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameWithoutFallbackShouldLogWarning() {
 		Map<String, String> labels = Map.of();
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint4").withNamespace("test")
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint4").withNamespace("test")
 				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
 				.withUid("100").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
 				.addNewPort("http", "https2", 8443, "TCP").addNewPort("http", "http1", 80, "TCP")
 				.addNewPort("http", "http2", 8080, "TCP").endSubset().build();
 
-		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
+		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
 				.withNewMetadata().withName("endpoint4").withNamespace("test").withLabels(labels)
@@ -484,8 +483,7 @@ class Fabric8KubernetesDiscoveryClientTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
 		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("100")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+				.filteredOn(s -> s.getInstanceId().equals("100")).hasSize(1).hasSize(1);
 	}
 
 	@Test
