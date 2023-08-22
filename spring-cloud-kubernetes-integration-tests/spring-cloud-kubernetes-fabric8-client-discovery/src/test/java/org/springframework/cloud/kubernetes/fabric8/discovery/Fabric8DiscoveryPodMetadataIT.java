@@ -228,7 +228,7 @@ class Fabric8DiscoveryPodMetadataIT {
 		InputStream discoveryServiceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -241,18 +241,18 @@ class Fabric8DiscoveryPodMetadataIT {
 						.withValue("DEBUG").build());
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-		Service externalServiceName = client.services().load(externalNameServiceStream).get();
-		Service discoveryService = client.services().load(discoveryServiceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Service externalServiceName = client.services().load(externalNameServiceStream).item();
+		Service discoveryService = client.services().load(discoveryServiceStream).item();
+		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
+			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item())
 					.create();
 			util.createAndWait(NAMESPACE, IMAGE_NAME, deployment, discoveryService, ingress, true);
 			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
 		}
 		else {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).get())
+			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item())
 					.delete();
 			util.deleteAndWait(NAMESPACE, deployment, discoveryService, ingress);
 			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
