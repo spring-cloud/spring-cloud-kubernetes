@@ -246,14 +246,14 @@ class Fabric8DiscoveryPodMetadataIT {
 		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item())
-					.create();
+			client.rbac().clusterRoleBindings()
+					.resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item()).create();
 			util.createAndWait(NAMESPACE, IMAGE_NAME, deployment, discoveryService, ingress, true);
 			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
 		}
 		else {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item())
-					.delete();
+			client.rbac().clusterRoleBindings()
+					.resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item()).delete();
 			util.deleteAndWait(NAMESPACE, deployment, discoveryService, ingress);
 			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
 		}
