@@ -35,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  *
  * @author wind57
  */
+@Deprecated
 public class DisabledTestsCondition implements ExecutionCondition {
 
 	private static final boolean SKIP_RUNNING_TESTS = "true".equals(System.getProperty("spring.cloud.k8s.skip.tests"));
