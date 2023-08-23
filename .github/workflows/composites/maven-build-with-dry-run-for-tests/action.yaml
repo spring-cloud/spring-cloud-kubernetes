@@ -8,7 +8,7 @@ runs:
       run: |
           # find all the tests that are supposed to be run, but don't actually run them.
           # this is achieved via: 'spring.cloud.k8s.skip.tests=true' in DisabledTestsCondition
-          ./mvnw package -B -Dskip.build.image=true -Dspring.cloud.k8s.skip.tests=true \
+          ./mvnw install -B -Dskip.build.image=true -Dspring.cloud.k8s.skip.tests=true \
                 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error \
                 -T 1C -q > /tmp/tests.txt
 
