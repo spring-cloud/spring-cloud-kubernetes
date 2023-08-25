@@ -7,7 +7,7 @@ runs:
     - name: run 'package' on the project
       shell: bash
       run: |
-        ./mvnw package -B  \
+        ./mvnw install -B  \
               -Dskip.build.image=true \
               -DskipTests -DskipITs \
               -T 1C -q
