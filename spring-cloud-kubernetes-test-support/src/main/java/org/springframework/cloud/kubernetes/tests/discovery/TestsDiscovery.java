@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.test.support;
+package org.springframework.cloud.kubernetes.tests.discovery;
 
 import java.io.File;
 import java.net.URI;
@@ -23,13 +23,11 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
@@ -39,39 +37,32 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 /**
- * This is not really a test, but a way for us to discover all the tests using <a href=
- * "https://junit.org/junit5/docs/current/user-guide/#launcher-api-discovery">...</a>
- *
  * @author wind57
  */
-class TestsDiscovery {
+public class TestsDiscovery {
 
-	@Test
-	void discoverTests() throws Exception {
-
-		List<String> classpath = entireClasspath();
-
-		List<String> targetClasses = classpath.stream().filter(x -> x.contains("target/classes")).toList();
+	public static void main(String[] args) throws Exception {
+		List<String> targetClasses = entireClasspath().stream().filter(x -> x.contains("target/classes")).toList();
 		List<String> targetTestClasses = targetClasses.stream().map(x -> x.replace("classes", "test-classes")).toList();
-		List<String> jars = targetTestClasses.stream().filter(x -> x.contains(".jar")).toList();
+		List<String> jars = entireClasspath().stream().filter(x -> x.contains(".jar")).toList();
 
 		List<URL> urls = Stream.of(targetClasses, targetTestClasses, jars).flatMap(List::stream)
-			.map(x -> toURL(new File(x).toPath().toUri())).toList();
+				.map(x -> toURL(new File(x).toPath().toUri())).toList();
 
-		Set<Path> paths = Stream.of(targetClasses, targetTestClasses, jars).flatMap(List::stream)
-				.map(Paths::get).collect(Collectors.toSet());
+		Set<Path> paths = Stream.of(targetClasses, targetTestClasses, jars).flatMap(List::stream).map(Paths::get)
+				.collect(Collectors.toSet());
 
 		replaceClassloader(urls);
 
 		LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-				.selectors(DiscoverySelectors.selectClasspathRoots(paths))
-			.build();
+				.selectors(DiscoverySelectors.selectClasspathRoots(paths)).build();
 
 		Launcher launcher = LauncherFactory.openSession().getLauncher();
 		TestPlan testPlan = launcher.discover(request);
 		testPlan.getRoots().stream().flatMap(x -> testPlan.getChildren(x).stream())
-				.map(TestIdentifier::getLegacyReportingName).sorted().forEach(System.out::println);
-
+				.map(TestIdentifier::getLegacyReportingName).sorted().forEach(test -> {
+					System.out.println("spring.cloud.k8s.test.to.run -> " + test);
+				});
 	}
 
 	private static void replaceClassloader(List<URL> classpathURLs) {
