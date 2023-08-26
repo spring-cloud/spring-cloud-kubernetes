@@ -7,10 +7,10 @@ runs:
   using: "composite"
   steps:
 
-    - uses: buildjet/cache@v3
+    - uses: Wandalen/wretry.action@master
+      attempt_limit: 3
+      action: buildjet/cache@v3
       with:
         path: /tmp/docker/images
         key: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}
         restore-keys: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}
-
-
