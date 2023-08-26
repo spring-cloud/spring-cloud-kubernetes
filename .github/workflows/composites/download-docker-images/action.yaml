@@ -11,7 +11,7 @@ runs:
       with:
         attempt_limit: 3
         action: buildjet/cache@v3
-        with:
+        with: |
           path: /tmp/docker/images
           key: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}
           restore-keys: docker-images-cache-${{ env.DOCKER_IMAGES_KEY }}
