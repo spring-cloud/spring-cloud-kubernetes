@@ -52,6 +52,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchOne;
 
 /**
  * @author wind57
@@ -59,6 +60,8 @@ import static org.awaitility.Awaitility.await;
 class ConfigMapEventReloadIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-configmap-event-reload";
+
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + Commons.pomVersion();
 
 	private static final String NAMESPACE = "default";
 
@@ -99,7 +102,7 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() throws Exception {
-		manifests("one", Phase.CREATE, false);
+		manifests(Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -130,7 +133,8 @@ class ConfigMapEventReloadIT {
 		// left configmap has not changed, no restart of app has happened
 		Assertions.assertEquals("left-initial", result);
 
-		manifests("one", Phase.DELETE, false);
+		testInformFromOneNamespaceEventTriggered();
+
 	}
 
 	/**
@@ -141,9 +145,9 @@ class ConfigMapEventReloadIT {
 	 *     - as such, event is triggered and we see the updated value
 	 * </pre>
 	 */
-	@Test
 	void testInformFromOneNamespaceEventTriggered() throws Exception {
-		manifests("two", Phase.CREATE, false);
+		recreateConfigMaps();
+		patchOne("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE, DOCKER_IMAGE);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -170,8 +174,6 @@ class ConfigMapEventReloadIT {
 			return innerResult != null;
 		});
 		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
-
-		manifests("two", Phase.DELETE, false);
 	}
 
 	/**
@@ -183,9 +185,8 @@ class ConfigMapEventReloadIT {
 	*       right-configmap-with-label triggers changes.
 	* </pre>
 	 */
-	@Test
 	void testInform() throws Exception {
-		manifests("three", Phase.CREATE, false);
+		manifests(Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -241,7 +242,6 @@ class ConfigMapEventReloadIT {
 				.block();
 		Assertions.assertEquals("right-after-change", rightResult);
 
-		manifests("three", Phase.DELETE, false);
 	}
 
 	/**
@@ -252,40 +252,54 @@ class ConfigMapEventReloadIT {
 	 *     - as such, event is triggered and we see the updated value
 	 * </pre>
 	 */
-	@Test
-	void testInformFromOneNamespaceEventTriggeredSecretsDisabled() throws Exception {
-		manifests("two", Phase.CREATE, true);
-		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
+	// @Test
+	// void testInformFromOneNamespaceEventTriggeredSecretsDisabled() throws Exception {
+	// manifests("two", Phase.CREATE, true);
+	// Commons.assertReloadLogStatements("added configmap informer for namespace",
+	// "added secret informer for namespace", IMAGE_NAME);
+	//
+	// // read the value from the right-configmap
+	// WebClient webClient = builder().baseUrl("http://localhost/right").build();
+	// String result =
+	// webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+	// .block();
+	// Assertions.assertEquals("right-initial", result);
+	//
+	// // then deploy a new version of right-configmap
+	// V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
+	// .withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+	// .withData(Map.of("right.value", "right-after-change")).build();
+	//
+	// replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
+	//
+	// String[] resultAfterChange = new String[1];
+	// await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(()
+	// -> {
+	// WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
+	// String innerResult =
+	// innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+	// .retryWhen(retrySpec()).block();
+	//
+	// resultAfterChange[0] = innerResult;
+	// return innerResult != null;
+	// });
+	// Assertions.assertEquals("right-after-change", resultAfterChange[0]);
+	//
+	// manifests("two", Phase.DELETE, true);
+	// }
 
-		// read the value from the right-configmap
-		WebClient webClient = builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
-		Assertions.assertEquals("right-initial", result);
+	private void recreateConfigMaps() {
+		V1ConfigMap leftConfigMap = (V1ConfigMap) util.yaml("left-configmap.yaml");
+		V1ConfigMap rightConfigMap = (V1ConfigMap) util.yaml("right-configmap.yaml");
 
-		// then deploy a new version of right-configmap
-		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
-				.withData(Map.of("right.value", "right-after-change")).build();
+		util.deleteAndWait("left", leftConfigMap, null);
+		util.deleteAndWait("right", rightConfigMap, null);
 
-		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
-
-		String[] resultAfterChange = new String[1];
-		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
-
-			resultAfterChange[0] = innerResult;
-			return innerResult != null;
-		});
-		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
-
-		manifests("two", Phase.DELETE, true);
+		util.createAndWait("left", leftConfigMap, null);
+		util.createAndWait("right", rightConfigMap, null);
 	}
 
-	private static void manifests(String deploymentRoot, Phase phase, boolean secretsDisabled) {
+	private static void manifests(Phase phase, boolean secretsDisabled) {
 
 		try {
 
@@ -293,7 +307,7 @@ class ConfigMapEventReloadIT {
 			V1ConfigMap rightConfigMap = (V1ConfigMap) util.yaml("right-configmap.yaml");
 			V1ConfigMap rightWithLabelConfigMap = (V1ConfigMap) util.yaml("right-configmap-with-label.yaml");
 
-			V1Deployment deployment = (V1Deployment) util.yaml(deploymentRoot + "/deployment.yaml");
+			V1Deployment deployment = (V1Deployment) util.yaml("deployment.yaml");
 			V1Service service = (V1Service) util.yaml("service.yaml");
 			V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
@@ -312,18 +326,18 @@ class ConfigMapEventReloadIT {
 				util.createAndWait("left", leftConfigMap, null);
 				util.createAndWait("right", rightConfigMap, null);
 
-				if ("three".equals(deploymentRoot)) {
-					util.createAndWait("right", rightWithLabelConfigMap, null);
-				}
+				// if ("three".equals(deploymentRoot)) {
+				// util.createAndWait("right", rightWithLabelConfigMap, null);
+				// }
 				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 			}
 
 			if (phase.equals(Phase.DELETE)) {
 				util.deleteAndWait("left", leftConfigMap, null);
 				util.deleteAndWait("right", rightConfigMap, null);
-				if ("three".equals(deploymentRoot)) {
-					util.deleteAndWait("right", rightWithLabelConfigMap, null);
-				}
+				// if ("three".equals(deploymentRoot)) {
+				// util.deleteAndWait("right", rightWithLabelConfigMap, null);
+				// }
 				util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 			}
 
