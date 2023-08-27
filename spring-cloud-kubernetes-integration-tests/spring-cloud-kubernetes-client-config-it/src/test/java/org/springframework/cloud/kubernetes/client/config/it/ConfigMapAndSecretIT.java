@@ -176,7 +176,8 @@ class ConfigMapAndSecretIT {
 			V1ConfigMap configMap = (V1ConfigMap) util.yaml("spring-cloud-kubernetes-client-config-it-configmap.yaml");
 			V1Secret secret = (V1Secret) util.yaml("spring-cloud-kubernetes-client-config-it-secret.yaml");
 			util.createAndWait(NAMESPACE, configMap, secret);
-		} catch (ApiException e) {
+		}
+		catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
 	}
