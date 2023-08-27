@@ -116,6 +116,7 @@ class ConfigMapAndSecretIT {
 	}
 
 	void testConfigMapAndSecretPollingRefresh() {
+		recreateConfigMapAndSecret();
 		patchForPollingReload();
 		testConfigMapAndSecretRefresh();
 	}
@@ -165,6 +166,21 @@ class ConfigMapAndSecretIT {
 				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
+	void recreateConfigMapAndSecret() {
+		try {
+			coreV1Api.deleteNamespacedConfigMap("spring-cloud-kubernetes-client-config-it", NAMESPACE,
+				null, null, null, null, null, null);
+			coreV1Api.deleteNamespacedSecret("spring-cloud-kubernetes-client-config-it", NAMESPACE,
+				null, null, null, null, null, null);
+
+			V1ConfigMap configMap = (V1ConfigMap) util.yaml("spring-cloud-kubernetes-client-config-it-configmap.yaml");
+			V1Secret secret = (V1Secret) util.yaml("spring-cloud-kubernetes-client-config-it-secret.yaml");
+			util.createAndWait(NAMESPACE, configMap, secret);
+		} catch (ApiException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private static void configK8sClientIt(Phase phase) {
 
 		V1Deployment deployment = (V1Deployment) util.yaml("spring-cloud-kubernetes-client-config-it-deployment.yaml");
@@ -193,8 +209,8 @@ class ConfigMapAndSecretIT {
 	}
 
 	private static void patchForPollingReload() {
-		patchWithReplace(ConfigMapAndSecretIT.DOCKER_IMAGE,
-			ConfigMapAndSecretIT.APP_NAME + "-deployment", ConfigMapAndSecretIT.NAMESPACE, BODY);
+		patchWithReplace(ConfigMapAndSecretIT.DOCKER_IMAGE, ConfigMapAndSecretIT.APP_NAME + "-deployment",
+				ConfigMapAndSecretIT.NAMESPACE, BODY);
 	}
 
 }
