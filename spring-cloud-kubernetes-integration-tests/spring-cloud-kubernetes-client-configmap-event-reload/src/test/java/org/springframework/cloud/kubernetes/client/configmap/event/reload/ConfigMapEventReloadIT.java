@@ -134,6 +134,7 @@ class ConfigMapEventReloadIT {
 		Assertions.assertEquals("left-initial", result);
 
 		testInformFromOneNamespaceEventTriggered();
+		testInform();
 
 	}
 

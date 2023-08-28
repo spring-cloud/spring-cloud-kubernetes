@@ -28,29 +28,51 @@ final class ConfigMapEventReloadITUtil {
 	}
 
 	private static final String BODY_ONE = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-client-configmap-event-reload",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "two"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD",
-									"value": "DEBUG"
-								}
-								]
-							}]
-						}
+		{
+			"spec": {
+				"template": {
+					"spec": {
+						"containers": [{
+							"name": "spring-cloud-kubernetes-client-configmap-event-reload",
+							"image": "image_name_here",
+							"livenessProbe": {
+		                        "failureThreshold": 3,
+		                        "httpGet": {
+		                            "path": "/actuator/health/liveness",
+		                            "port": 8080,
+		                            "scheme": "HTTP"
+		                        },
+		                        "periodSeconds": 10,
+		                        "successThreshold": 1,
+		                        "timeoutSeconds": 1
+		                    },
+		                    "readinessProbe": {
+		                        "failureThreshold": 3,
+		                        "httpGet": {
+		                            "path": "/actuator/health/readiness",
+		                            "port": 8080,
+		                            "scheme": "HTTP"
+		                        },
+		                        "periodSeconds": 10,
+		                        "successThreshold": 1,
+		                        "timeoutSeconds": 1
+		                    },
+							"env": [
+							{
+								"name": "SPRING_PROFILES_ACTIVE",
+								"value": "two"
+							},
+							{
+								"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD",
+								"value": "DEBUG"
+							}
+							]
+						}]
 					}
 				}
 			}
-						""";
+		}
+					""";
 
 	static void patchOne(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE);
