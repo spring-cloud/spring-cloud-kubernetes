@@ -17,11 +17,8 @@
 package org.springframework.cloud.kubernetes.client.configmap.event.reload;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
@@ -31,7 +28,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -53,6 +49,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchOne;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchThree;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchTwo;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.DataChangesInConfigMapReloadDelegate.testSimple;
 
 /**
  * @author wind57
@@ -86,6 +85,7 @@ class ConfigMapEventReloadIT {
 	@AfterAll
 	static void afterAll() throws Exception {
 		util.deleteClusterWide(NAMESPACE, Set.of("left", "right"));
+		manifests(Phase.DELETE);
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
 		Commons.cleanUp(IMAGE_NAME, K3S);
@@ -102,7 +102,7 @@ class ConfigMapEventReloadIT {
 	 */
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() throws Exception {
-		manifests(Phase.CREATE, false);
+		manifests(Phase.CREATE);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -135,6 +135,8 @@ class ConfigMapEventReloadIT {
 
 		testInformFromOneNamespaceEventTriggered();
 		testInform();
+		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		testSimple(DOCKER_IMAGE);
 
 	}
 
@@ -187,7 +189,11 @@ class ConfigMapEventReloadIT {
 	* </pre>
 	 */
 	void testInform() throws Exception {
-		manifests(Phase.CREATE, false);
+		recreateConfigMaps();
+		V1ConfigMap rightWithLabelConfigMap = (V1ConfigMap) util.yaml("right-configmap-with-label.yaml");
+		util.createAndWait("right", rightWithLabelConfigMap, null);
+		patchTwo("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE, DOCKER_IMAGE);
+
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -242,7 +248,7 @@ class ConfigMapEventReloadIT {
 		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 		Assertions.assertEquals("right-after-change", rightResult);
-
+		util.deleteAndWait("right", rightWithLabelConfigMap, null);
 	}
 
 	/**
@@ -253,41 +259,36 @@ class ConfigMapEventReloadIT {
 	 *     - as such, event is triggered and we see the updated value
 	 * </pre>
 	 */
-	// @Test
-	// void testInformFromOneNamespaceEventTriggeredSecretsDisabled() throws Exception {
-	// manifests("two", Phase.CREATE, true);
-	// Commons.assertReloadLogStatements("added configmap informer for namespace",
-	// "added secret informer for namespace", IMAGE_NAME);
-	//
-	// // read the value from the right-configmap
-	// WebClient webClient = builder().baseUrl("http://localhost/right").build();
-	// String result =
-	// webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-	// .block();
-	// Assertions.assertEquals("right-initial", result);
-	//
-	// // then deploy a new version of right-configmap
-	// V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-	// .withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
-	// .withData(Map.of("right.value", "right-after-change")).build();
-	//
-	// replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
-	//
-	// String[] resultAfterChange = new String[1];
-	// await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(()
-	// -> {
-	// WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
-	// String innerResult =
-	// innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-	// .retryWhen(retrySpec()).block();
-	//
-	// resultAfterChange[0] = innerResult;
-	// return innerResult != null;
-	// });
-	// Assertions.assertEquals("right-after-change", resultAfterChange[0]);
-	//
-	// manifests("two", Phase.DELETE, true);
-	// }
+	void testInformFromOneNamespaceEventTriggeredSecretsDisabled() throws Exception {
+		recreateConfigMaps();
+		patchThree("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE, DOCKER_IMAGE);
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+				"added secret informer for namespace", IMAGE_NAME);
+
+		// read the value from the right-configmap
+		WebClient webClient = builder().baseUrl("http://localhost/right").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		Assertions.assertEquals("right-initial", result);
+
+		// then deploy a new version of right-configmap
+		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+				.withData(Map.of("right.value", "right-after-change")).build();
+
+		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
+
+		String[] resultAfterChange = new String[1];
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
+			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+					.retryWhen(retrySpec()).block();
+
+			resultAfterChange[0] = innerResult;
+			return innerResult != null;
+		});
+		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
+	}
 
 	private void recreateConfigMaps() {
 		V1ConfigMap leftConfigMap = (V1ConfigMap) util.yaml("left-configmap.yaml");
@@ -300,45 +301,26 @@ class ConfigMapEventReloadIT {
 		util.createAndWait("right", rightConfigMap, null);
 	}
 
-	private static void manifests(Phase phase, boolean secretsDisabled) {
+	private static void manifests(Phase phase) {
 
 		try {
 
 			V1ConfigMap leftConfigMap = (V1ConfigMap) util.yaml("left-configmap.yaml");
 			V1ConfigMap rightConfigMap = (V1ConfigMap) util.yaml("right-configmap.yaml");
-			V1ConfigMap rightWithLabelConfigMap = (V1ConfigMap) util.yaml("right-configmap-with-label.yaml");
 
 			V1Deployment deployment = (V1Deployment) util.yaml("deployment.yaml");
 			V1Service service = (V1Service) util.yaml("service.yaml");
 			V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
-			List<V1EnvVar> envVars = new ArrayList<>(
-					Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-							.orElse(List.of()));
-
-			if (secretsDisabled) {
-				V1EnvVar secretsDisabledEnvVar = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED")
-						.value("FALSE");
-				envVars.add(secretsDisabledEnvVar);
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-			}
-
 			if (phase.equals(Phase.CREATE)) {
 				util.createAndWait("left", leftConfigMap, null);
 				util.createAndWait("right", rightConfigMap, null);
-
-				// if ("three".equals(deploymentRoot)) {
-				// util.createAndWait("right", rightWithLabelConfigMap, null);
-				// }
 				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 			}
 
 			if (phase.equals(Phase.DELETE)) {
 				util.deleteAndWait("left", leftConfigMap, null);
 				util.deleteAndWait("right", rightConfigMap, null);
-				// if ("three".equals(deploymentRoot)) {
-				// util.deleteAndWait("right", rightWithLabelConfigMap, null);
-				// }
 				util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 			}
 

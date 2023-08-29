@@ -438,7 +438,8 @@ public final class Util {
 
 	}
 
-	public static void patchWithMerge(String deploymentName, String namespace, String patchBody) {
+	public static void patchWithMerge(String deploymentName, String namespace, String patchBody,
+			Map<String, String> podLabels) {
 		try {
 			PatchUtils.patch(V1Deployment.class,
 					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
@@ -450,10 +451,11 @@ public final class Util {
 			throw new RuntimeException(e);
 		}
 
-		waitForDeploymentAfterPatch(deploymentName, namespace);
+		waitForDeploymentAfterPatch(deploymentName, namespace, podLabels);
 	}
 
-	public static void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody) {
+	public static void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody,
+			Map<String, String> podLabels) {
 		String body = patchBody.replace("image_name_here", imageName);
 
 		try {
@@ -467,7 +469,7 @@ public final class Util {
 			throw new RuntimeException(e);
 		}
 
-		waitForDeploymentAfterPatch(deploymentName, namespace);
+		waitForDeploymentAfterPatch(deploymentName, namespace, podLabels);
 
 	}
 
@@ -625,10 +627,11 @@ public final class Util {
 		return availableReplicas != null && availableReplicas >= 1;
 	}
 
-	private static void waitForDeploymentAfterPatch(String deploymentName, String namespace) {
+	private static void waitForDeploymentAfterPatch(String deploymentName, String namespace,
+			Map<String, String> podLabels) {
 		try {
 			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(3)).atMost(60, TimeUnit.SECONDS)
-					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace));
+					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, podLabels));
 		}
 		catch (Exception e) {
 			if (e instanceof ApiException apiException) {
@@ -640,7 +643,8 @@ public final class Util {
 
 	}
 
-	private static boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace) throws ApiException {
+	private static boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace,
+			Map<String, String> podLabels) throws ApiException {
 
 		V1DeploymentList deployments = new AppsV1Api().listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null);
@@ -654,6 +658,14 @@ public final class Util {
 		int readyReplicas = Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
 
 		if (readyReplicas != replicas) {
+			LOG.info("ready replicas not yet same as replicas");
+			return false;
+		}
+
+		int pods = new CoreV1Api().listNamespacedPod(namespace, null, null, null, null, labelSelector(podLabels), null,
+				null, null, null, null).getItems().size();
+
+		if (pods != replicas) {
 			LOG.info("number of pods not yet stabilized");
 			return false;
 		}
