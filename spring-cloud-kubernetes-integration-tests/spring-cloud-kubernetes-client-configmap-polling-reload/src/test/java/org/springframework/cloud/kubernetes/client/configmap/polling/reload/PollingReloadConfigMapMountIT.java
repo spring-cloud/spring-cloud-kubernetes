@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -113,6 +114,11 @@ class PollingReloadConfigMapMountIT {
 			util.deleteAndWait(NAMESPACE, configMap, null);
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
+
+	}
+
+	@Test
+	public void test() {
 
 	}
 

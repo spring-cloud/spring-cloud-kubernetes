@@ -18,16 +18,19 @@ package org.springframework.cloud.kubernetes.client.configmap.event.reload;
 
 import java.util.Map;
 
+import org.testcontainers.containers.Container;
+import org.testcontainers.k3s.K3sContainer;
+
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 
 /**
  * @author wind57
  */
-final class ConfigMapEventReloadITUtil {
+final class K8sClientReloadITUtil {
 
 	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-k8s-client-reload");
 
-	private ConfigMapEventReloadITUtil() {
+	private K8sClientReloadITUtil() {
 
 	}
 
@@ -185,7 +188,7 @@ final class ConfigMapEventReloadITUtil {
 								"name": "spring-k8s-client-reload",
 								"image": "image_name_here",
 								"livenessProbe": {
-								"failureThreshold": 3,
+									"failureThreshold": 3,
 									"httpGet": {
 										"path": "/actuator/health/liveness",
 										"port": 8080,
@@ -227,6 +230,80 @@ final class ConfigMapEventReloadITUtil {
 			}
 						""";
 
+	private static final String BODY_FIVE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"volumes": [
+								{
+									"configMap": {
+										"defaultMode": 420,
+										"name": "poll-reload-as-mount"
+									},
+									"name": "config-map-volume"
+								}
+							],
+							"containers": [{
+								"name": "spring-k8s-client-reload",
+								"image": "image_name_here",
+								"volumeMounts": [
+									{
+										"mountPath": "/tmp",
+										"name": "config-map-volume"
+									}
+								],
+								"livenessProbe": {
+									"failureThreshold": 3,
+									"httpGet": {
+										"path": "/actuator/health/liveness",
+										"port": 8080,
+										"scheme": "HTTP"
+									},
+									"periodSeconds": 10,
+									"successThreshold": 1,
+									"timeoutSeconds": 1
+								},
+								"readinessProbe": {
+									"failureThreshold": 3,
+									"httpGet": {
+										"path": "/actuator/health/readiness",
+										"port": 8080,
+										"scheme": "HTTP"
+									},
+									"periodSeconds": 10,
+									"successThreshold": 1,
+									"timeoutSeconds": 1
+								},
+								"env": [
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "mount"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "FALSE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	static void patchOne(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);
 	}
@@ -241,6 +318,27 @@ final class ConfigMapEventReloadITUtil {
 
 	static void patchFour(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_FOUR, POD_LABELS);
+	}
+
+	static void patchFive(String deploymentName, String namespace, String imageName) {
+		patchWithReplace(imageName, deploymentName, namespace, BODY_FIVE, POD_LABELS);
+	}
+
+	static String logs(String appLabelValue, K3sContainer k3sContainer) {
+		try {
+			String appPodName = k3sContainer
+					.execInContainer("sh", "-c",
+							"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'")
+					.getStdout();
+
+			Container.ExecResult execResult = k3sContainer.execInContainer("sh", "-c",
+					"kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 }

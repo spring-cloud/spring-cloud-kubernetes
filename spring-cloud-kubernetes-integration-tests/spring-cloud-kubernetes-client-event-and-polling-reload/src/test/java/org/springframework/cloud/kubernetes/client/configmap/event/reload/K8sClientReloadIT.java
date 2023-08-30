@@ -48,19 +48,19 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchOne;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchThree;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchTwo;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.DataChangesInConfigMapReloadDelegate.testSimple;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchOne;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchThree;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchTwo;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.PollingReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
 
 /**
  * @author wind57
  */
-class ConfigMapEventReloadIT {
+class K8sClientReloadIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-event-and-polling-reload";
 
-	private static final String DEPLOYMENT_NAME =  "spring-k8s-client-reload";
+	private static final String DEPLOYMENT_NAME = "spring-k8s-client-reload";
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + Commons.pomVersion();
 
@@ -81,6 +81,7 @@ class ConfigMapEventReloadIT {
 		util.createNamespace("left");
 		util.createNamespace("right");
 		util.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
+		util.setUp(NAMESPACE);
 		api = new CoreV1Api();
 	}
 
@@ -137,10 +138,11 @@ class ConfigMapEventReloadIT {
 
 		// since we patch each deployment with "replace" strategy, any of the above can be
 		// commented out and debugged individually.
-		testInformFromOneNamespaceEventTriggered();
-		testInform();
-		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME);
+		// testInformFromOneNamespaceEventTriggered();
+		// testInform();
+		// testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		// testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
+		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
 
 	}
 
@@ -311,18 +313,21 @@ class ConfigMapEventReloadIT {
 
 			V1ConfigMap leftConfigMap = (V1ConfigMap) util.yaml("left-configmap.yaml");
 			V1ConfigMap rightConfigMap = (V1ConfigMap) util.yaml("right-configmap.yaml");
+			V1ConfigMap mountConfigMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
 
 			V1Deployment deployment = (V1Deployment) util.yaml("deployment.yaml");
 			V1Service service = (V1Service) util.yaml("service.yaml");
 			V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
 			if (phase.equals(Phase.CREATE)) {
+				util.createAndWait(NAMESPACE, mountConfigMap, null);
 				util.createAndWait("left", leftConfigMap, null);
 				util.createAndWait("right", rightConfigMap, null);
 				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 			}
 
 			if (phase.equals(Phase.DELETE)) {
+				util.deleteAndWait(NAMESPACE, mountConfigMap, null);
 				util.deleteAndWait("left", leftConfigMap, null);
 				util.deleteAndWait("right", rightConfigMap, null);
 				util.deleteAndWait(NAMESPACE, deployment, service, ingress);

@@ -26,7 +26,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import org.junit.jupiter.api.Assertions;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -38,15 +37,14 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.ConfigMapEventReloadITUtil.patchFour;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.logs;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchFour;
 
 class DataChangesInConfigMapReloadDelegate {
 
 	private static final String NAMESPACE = "default";
 
 	private static final String LEFT_NAMESPACE = "left";
-
-	private static final K3sContainer K3S = Commons.container();
 
 	/**
 	 * <pre>
@@ -59,7 +57,7 @@ class DataChangesInConfigMapReloadDelegate {
 	 *     - then we change data inside the config map, and we must see the updated value
 	 * </pre>
 	 */
-	static void testSimple(String dockerImage, String deploymentName) {
+	static void testSimple(String dockerImage, String deploymentName, K3sContainer k3sContainer) {
 
 		patchFour(deploymentName, NAMESPACE, dockerImage);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
@@ -87,7 +85,7 @@ class DataChangesInConfigMapReloadDelegate {
 			return "left-initial".equals(innerResult);
 		});
 
-		String logs = logs(deploymentName);
+		String logs = logs(deploymentName, k3sContainer);
 		Assertions.assertTrue(logs.contains("ConfigMap left-configmap was updated in namespace left"));
 		Assertions.assertTrue(logs.contains("data in configmap has not changed, will not reload"));
 
@@ -106,20 +104,6 @@ class DataChangesInConfigMapReloadDelegate {
 			return "left-after-change".equals(innerResult);
 		});
 
-	}
-
-	private static String logs(String appLabelValue) {
-		try {
-			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-			return execResult.getStdout();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
 	}
 
 	private static WebClient.Builder builder() {
