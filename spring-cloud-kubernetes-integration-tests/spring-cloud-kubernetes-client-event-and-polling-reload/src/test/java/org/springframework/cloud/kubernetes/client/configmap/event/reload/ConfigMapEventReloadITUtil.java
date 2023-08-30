@@ -25,8 +25,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.nat
  */
 final class ConfigMapEventReloadITUtil {
 
-	private static final Map<String, String> POD_LABELS = Map.of("app",
-			"spring-cloud-kubernetes-client-configmap-event-reload");
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-k8s-client-reload");
 
 	private ConfigMapEventReloadITUtil() {
 

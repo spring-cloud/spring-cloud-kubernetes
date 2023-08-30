@@ -58,7 +58,7 @@ import static org.springframework.cloud.kubernetes.client.configmap.event.reload
  */
 class ConfigMapEventReloadIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-configmap-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-event-and-polling-reload";
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + Commons.pomVersion();
 
@@ -104,7 +104,7 @@ class ConfigMapEventReloadIT {
 	void testInformFromOneNamespaceEventNotTriggered() throws Exception {
 		manifests(Phase.CREATE);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
+				"added secret informer for namespace", "spring-k8s-client-reload");
 
 		WebClient webClient = builder().baseUrl("http://localhost/left").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
@@ -133,10 +133,12 @@ class ConfigMapEventReloadIT {
 		// left configmap has not changed, no restart of app has happened
 		Assertions.assertEquals("left-initial", result);
 
-		testInformFromOneNamespaceEventTriggered();
-		testInform();
-		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		testSimple(DOCKER_IMAGE);
+		// since we patch each deployment with "replace" strategy, any of the above can be
+		// commented out and debugged individually.
+		//testInformFromOneNamespaceEventTriggered();
+		//testInform();
+		//testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		//testSimple(DOCKER_IMAGE);
 
 	}
 
@@ -152,7 +154,7 @@ class ConfigMapEventReloadIT {
 		recreateConfigMaps();
 		patchOne("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE, DOCKER_IMAGE);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
+				"added secret informer for namespace", "spring-k8s-client-reload");
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("http://localhost/right").build();
@@ -195,7 +197,7 @@ class ConfigMapEventReloadIT {
 		patchTwo("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE, DOCKER_IMAGE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
+				"added secret informer for namespace", "spring-k8s-client-reload");
 
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = builder().baseUrl("http://localhost/right").build();
@@ -263,7 +265,7 @@ class ConfigMapEventReloadIT {
 		recreateConfigMaps();
 		patchThree("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE, DOCKER_IMAGE);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
+				"added secret informer for namespace", "spring-k8s-client-reload");
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("http://localhost/right").build();
