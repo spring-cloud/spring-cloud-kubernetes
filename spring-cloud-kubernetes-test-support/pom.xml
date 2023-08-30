@@ -13,9 +13,15 @@
 
 	<properties>
 		<awaitility.version>4.0.3</awaitility.version>
-		<testcontainers.version>1.18.0</testcontainers.version>
+		<testcontainers.version>1.19.0</testcontainers.version>
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-launcher</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -42,5 +48,25 @@
 		</dependency>
 
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>org.springframework.cloud.kubernetes.tests.discovery.TestsDiscovery</mainClass>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
