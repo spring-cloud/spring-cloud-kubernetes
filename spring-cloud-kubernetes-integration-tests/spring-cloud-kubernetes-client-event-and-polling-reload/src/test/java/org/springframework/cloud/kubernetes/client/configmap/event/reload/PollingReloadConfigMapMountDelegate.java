@@ -54,7 +54,7 @@ final class PollingReloadConfigMapMountDelegate {
 	 *       match the application name, in this specific test there is no such config map.
 	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
 	 *     	 '/tmp/application.properties'
-	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
+	 *       in this test. That is populated by the volumeMounts (see BODY_FIVE)
 	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
 	 *
 	 *     - we then change the config map content, wait for k8s to pick it up and replace them
@@ -64,11 +64,6 @@ final class PollingReloadConfigMapMountDelegate {
 	static void testPollingReloadConfigMapMount(String deploymentName, K3sContainer k3sContainer, Util util,
 			String imageName) throws Exception {
 
-		// these two already exist
-		V1ConfigMap leftConfigMap = (V1ConfigMap) util.yaml("left-configmap.yaml");
-		V1ConfigMap rightConfigMap = (V1ConfigMap) util.yaml("right-configmap.yaml");
-		util.deleteAndWait("left", leftConfigMap, null);
-		util.deleteAndWait("right", rightConfigMap, null);
 		patchFive(deploymentName, "default", imageName);
 
 		String logs = logs(deploymentName, k3sContainer);

@@ -34,7 +34,7 @@
 			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 		</dependency>
 
-		<!-- not bootstrap starter, because we want to be able to disable bootstrap per-test -->
+		<!-- not 'spring-cloud-starter-bootstrap', because we want to be able to disable bootstrap per-test -->
 		<!-- and ConditionalOnBootstrapEnabled has a @ConditionalOnClass on a Marker -->
 		<!-- that is present in bootstrap-starter, but not in this one -->
 		<dependency>
