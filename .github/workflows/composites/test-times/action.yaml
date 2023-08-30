@@ -47,7 +47,7 @@ runs:
 
     # save with the current run_id, but restore it without it. This means two things:
     # 1) if we re-run, cache will be available
-    # 2) if there is a new run, we restore as '${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-'
+    # 2) if there is a new run, we restore as '${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-'
     #    meaning there could be many of them already present and this is not an exact match
     #    github in this case will pick up the latest one, exactly what we want.
     - name: save test times in cache
@@ -55,4 +55,4 @@ runs:
       if: env.BASE_BRANCH != '2.1.x'
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-cloud-kubernetes-existing-test-times-cache-${{ github.run_id }}
+        key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
