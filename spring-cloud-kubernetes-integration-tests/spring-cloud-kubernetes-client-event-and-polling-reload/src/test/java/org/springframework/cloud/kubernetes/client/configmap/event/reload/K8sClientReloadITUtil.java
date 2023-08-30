@@ -16,10 +16,18 @@
 
 package org.springframework.cloud.kubernetes.client.configmap.event.reload;
 
+import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
+
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 
@@ -72,6 +80,10 @@ final class K8sClientReloadITUtil {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD",
 									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -119,6 +131,10 @@ final class K8sClientReloadITUtil {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD",
 									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -170,6 +186,10 @@ final class K8sClientReloadITUtil {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED",
 									"value": "FALSE"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -221,6 +241,10 @@ final class K8sClientReloadITUtil {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED",
 									"value": "FALSE"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -304,6 +328,80 @@ final class K8sClientReloadITUtil {
 			}
 						""";
 
+	private static final String BODY_SIX = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"volumes": [
+								{
+									"configMap": {
+										"defaultMode": 420,
+										"name": "poll-reload-as-mount"
+									},
+									"name": "config-map-volume"
+								}
+							],
+							"containers": [{
+								"name": "spring-k8s-client-reload",
+								"image": "image_name_here",
+								"volumeMounts": [
+									{
+										"mountPath": "/tmp",
+										"name": "config-map-volume"
+									}
+								],
+								"livenessProbe": {
+									"failureThreshold": 3,
+									"httpGet": {
+										"path": "/actuator/health/liveness",
+										"port": 8080,
+										"scheme": "HTTP"
+									},
+									"periodSeconds": 10,
+									"successThreshold": 1,
+									"timeoutSeconds": 1
+								},
+								"readinessProbe": {
+									"failureThreshold": 3,
+									"httpGet": {
+										"path": "/actuator/health/readiness",
+										"port": 8080,
+										"scheme": "HTTP"
+									},
+									"periodSeconds": 10,
+									"successThreshold": 1,
+									"timeoutSeconds": 1
+								},
+								"env": [
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "with-bootstrap"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	static void patchOne(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);
 	}
@@ -322,6 +420,18 @@ final class K8sClientReloadITUtil {
 
 	static void patchFive(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_FIVE, POD_LABELS);
+	}
+
+	static void patchSix(String deploymentName, String namespace, String imageName) {
+		patchWithReplace(imageName, deploymentName, namespace, BODY_SIX, POD_LABELS);
+	}
+
+	static WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	static RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(120, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 	static String logs(String appLabelValue, K3sContainer k3sContainer) {

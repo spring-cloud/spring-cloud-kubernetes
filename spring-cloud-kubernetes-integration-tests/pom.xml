@@ -69,6 +69,5 @@
         <module>spring-cloud-kubernetes-client-catalog-watcher</module>
 		<module>spring-cloud-kubernetes-client-discovery-it</module>
 		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
-        <module>spring-cloud-kubernetes-client-configmap-polling-reload</module>
     </modules>
 </project>

@@ -31,11 +31,14 @@ public class Controller {
 
 	private final RightWithLabelsProperties rightWithLabelsProperties;
 
+	private final ConfigMapProperties configMapProperties;
+
 	public Controller(LeftProperties leftProperties, RightProperties rightProperties,
-			RightWithLabelsProperties rightWithLabelsProperties) {
+			RightWithLabelsProperties rightWithLabelsProperties, ConfigMapProperties configMapProperties) {
 		this.leftProperties = leftProperties;
 		this.rightProperties = rightProperties;
 		this.rightWithLabelsProperties = rightWithLabelsProperties;
+		this.configMapProperties = configMapProperties;
 	}
 
 	@GetMapping("/left")
@@ -51,6 +54,11 @@ public class Controller {
 	@GetMapping("/with-label")
 	public String witLabel() {
 		return rightWithLabelsProperties.getValue();
+	}
+
+	@GetMapping("/mount")
+	public String key() {
+		return configMapProperties.getKey();
 	}
 
 }

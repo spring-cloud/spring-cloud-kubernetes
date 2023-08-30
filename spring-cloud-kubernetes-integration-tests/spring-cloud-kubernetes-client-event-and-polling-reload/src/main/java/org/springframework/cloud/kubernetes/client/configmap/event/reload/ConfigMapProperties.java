@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.configmap.polling.reload;
+package org.springframework.cloud.kubernetes.client.configmap.event.reload;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author wind57
  */
+@ConfigurationProperties("from.properties")
+public class ConfigMapProperties {
 
-@SpringBootApplication
-@EnableConfigurationProperties(ConfigMapProperties.class)
-public class ConfigMapApp {
+	private String key;
 
-	public static void main(String[] args) {
-		SpringApplication.run(ConfigMapApp.class, args);
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key1) {
+		this.key = key1;
 	}
 
 }

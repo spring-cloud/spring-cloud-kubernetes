@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.configmap.event.reload;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -27,20 +26,21 @@ import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.builder;
 import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.logs;
 import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchFour;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.retrySpec;
 
-class DataChangesInConfigMapReloadDelegate {
+/**
+ * @author wind57
+ */
+final class DataChangesInConfigMapReloadDelegate {
 
 	private static final String NAMESPACE = "default";
 
@@ -104,14 +104,6 @@ class DataChangesInConfigMapReloadDelegate {
 			return "left-after-change".equals(innerResult);
 		});
 
-	}
-
-	private static WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private static RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 	private static void replaceConfigMap(V1ConfigMap configMap) {

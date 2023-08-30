@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.configmap.event.reload;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
@@ -36,21 +35,21 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.BootstrapEnabledPollingReloadConfigMapMountDelegate.testBootstrapEnabledPollingReloadConfigMapMount;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.DataChangesInConfigMapReloadDelegate.testSimple;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.builder;
 import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchOne;
 import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchThree;
 import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchTwo;
+import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.retrySpec;
 import static org.springframework.cloud.kubernetes.client.configmap.event.reload.PollingReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
 
 /**
@@ -136,14 +135,19 @@ class K8sClientReloadIT {
 		// left configmap has not changed, no restart of app has happened
 		Assertions.assertEquals("left-initial", result);
 
-		// since we patch each deployment with "replace" strategy, any of the above can be
-		// commented out and debugged individually.
-		// testInformFromOneNamespaceEventTriggered();
-		// testInform();
-		// testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		// testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
-		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
+		testAllOther();
 
+	}
+
+	// since we patch each deployment with "replace" strategy, any of the above can be
+	// commented out and debugged individually.
+	private void testAllOther() throws Exception {
+		testInformFromOneNamespaceEventTriggered();
+		testInform();
+		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
+		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
+		testBootstrapEnabledPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
 	}
 
 	/**
@@ -338,14 +342,6 @@ class K8sClientReloadIT {
 			throw new RuntimeException(e);
 		}
 
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(120, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 	private static void replaceConfigMap(V1ConfigMap configMap, String name) throws ApiException {
