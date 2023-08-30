@@ -39,7 +39,7 @@ import org.springframework.test.context.support.TestPropertySourceUtils;
 /**
  * @author wind57
  */
-public class AbstractKubernetesProfileEnvironmentPostProcessorTest {
+public class KubernetesProfileEnvironmentPostProcessorTest {
 
 	private static final String FOUNT_IT = "foundIt";
 
