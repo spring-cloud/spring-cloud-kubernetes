@@ -42,8 +42,6 @@ import static org.springframework.cloud.kubernetes.client.configmap.event.reload
 
 class DataChangesInConfigMapReloadDelegate {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-configmap-event-reload";
-
 	private static final String NAMESPACE = "default";
 
 	private static final String LEFT_NAMESPACE = "left";
@@ -61,11 +59,11 @@ class DataChangesInConfigMapReloadDelegate {
 	 *     - then we change data inside the config map, and we must see the updated value
 	 * </pre>
 	 */
-	static void testSimple(String dockerImage) {
+	static void testSimple(String dockerImage, String deploymentName) {
 
-		patchFour("spring-cloud-kubernetes-client-configmap-deployment-event-reload", NAMESPACE, dockerImage);
+		patchFour(deploymentName, NAMESPACE, dockerImage);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
+				"added secret informer for namespace", deploymentName);
 
 		WebClient webClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
@@ -89,7 +87,7 @@ class DataChangesInConfigMapReloadDelegate {
 			return "left-initial".equals(innerResult);
 		});
 
-		String logs = logs();
+		String logs = logs(deploymentName);
 		Assertions.assertTrue(logs.contains("ConfigMap left-configmap was updated in namespace left"));
 		Assertions.assertTrue(logs.contains("data in configmap has not changed, will not reload"));
 
@@ -110,10 +108,10 @@ class DataChangesInConfigMapReloadDelegate {
 
 	}
 
-	private static String logs() {
+	private static String logs(String appLabelValue) {
 		try {
 			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+					"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'").getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
 			return execResult.getStdout();

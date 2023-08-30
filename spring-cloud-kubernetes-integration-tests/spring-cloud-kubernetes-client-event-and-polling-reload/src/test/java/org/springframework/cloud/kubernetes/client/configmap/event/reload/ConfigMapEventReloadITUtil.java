@@ -37,7 +37,7 @@ final class ConfigMapEventReloadITUtil {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-configmap-event-reload",
+								"name": "spring-k8s-client-reload",
 								"image": "image_name_here",
 								"livenessProbe": {
 								"failureThreshold": 3,
@@ -84,7 +84,7 @@ final class ConfigMapEventReloadITUtil {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-configmap-event-reload",
+								"name": "spring-k8s-client-reload",
 								"image": "image_name_here",
 								"livenessProbe": {
 									"failureThreshold": 3,
@@ -131,7 +131,7 @@ final class ConfigMapEventReloadITUtil {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-configmap-event-reload",
+								"name": "spring-k8s-client-reload",
 								"image": "image_name_here",
 								"livenessProbe": {
 								"failureThreshold": 3,
@@ -182,7 +182,7 @@ final class ConfigMapEventReloadITUtil {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-configmap-event-reload",
+								"name": "spring-k8s-client-reload",
 								"image": "image_name_here",
 								"livenessProbe": {
 								"failureThreshold": 3,

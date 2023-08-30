@@ -11,6 +11,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: spring-cloud-k8s-client-service-reload
+                name: spring-k8s-client-reload
                 port:
                   number: 8080

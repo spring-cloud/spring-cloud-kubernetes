@@ -2,13 +2,13 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: spring-cloud-k8s-client-service-reload
-  name: spring-cloud-k8s-client-service-reload
+    app: spring-k8s-client-reload
+  name: spring-k8s-client-reload
 spec:
   ports:
     - name: http
       port: 8080
       targetPort: 8080
   selector:
-    app: spring-cloud-k8s-client-service-reload
+    app: spring-k8s-client-reload
   type: ClusterIP

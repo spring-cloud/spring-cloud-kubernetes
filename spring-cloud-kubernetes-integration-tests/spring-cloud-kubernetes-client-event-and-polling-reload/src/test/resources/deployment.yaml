@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-k8s-client-deployment-reload
+  name: spring-k8s-client-reload
 spec:
   selector:
     matchLabels:
