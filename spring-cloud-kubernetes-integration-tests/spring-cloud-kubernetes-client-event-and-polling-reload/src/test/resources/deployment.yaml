@@ -31,3 +31,5 @@ spec:
               value: one
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD
               value: DEBUG
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "TRUE"
