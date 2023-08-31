@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.configmap.event.reload;
+package org.springframework.cloud.kubernetes.client.configmap.reload;
 
 import java.time.Duration;
 import java.util.Map;
@@ -43,14 +43,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.BootstrapEnabledPollingReloadConfigMapMountDelegate.testBootstrapEnabledPollingReloadConfigMapMount;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.DataChangesInConfigMapReloadDelegate.testSimple;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.builder;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchOne;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchThree;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchTwo;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.retrySpec;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.PollingReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.BootstrapEnabledPollingReloadConfigMapMountDelegate.testBootstrapEnabledPollingReloadConfigMapMount;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.DataChangesInConfigMapReloadDelegate.testSimple;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.builder;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchOne;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchThree;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchTwo;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.retrySpec;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.PollingReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
 
 /**
  * @author wind57

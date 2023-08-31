@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.configmap.event.reload;
+package org.springframework.cloud.kubernetes.client.configmap.reload;
 
 import java.time.Duration;
 import java.util.Map;
@@ -30,38 +30,36 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.builder;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchFive;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.retrySpec;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.builder;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchSix;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.retrySpec;
 
 /**
  * @author wind57
  */
-final class PollingReloadConfigMapMountDelegate {
+final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 
-	private PollingReloadConfigMapMountDelegate() {
-
-	}
+	private static final String NAMESPACE = "default";
 
 	/**
 	 * <pre>
-	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
+	 *     - we have bootstrap enabled, which means we will 'locate' property sources
 	 *       from config maps.
-	 *     - the property above means that at the moment we will be searching for config maps that only
-	 *       match the application name, in this specific test there is no such config map.
-	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
+	 *     - there are no explicit config maps to search for, but what we will also read,
+	 *     	 is 'spring.cloud.kubernetes.config.paths', which we have set to
 	 *     	 '/tmp/application.properties'
-	 *       in this test. That is populated by the volumeMounts (see BODY_FIVE)
+	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
 	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
 	 *
 	 *     - we then change the config map content, wait for k8s to pick it up and replace them
 	 *     - our polling will then detect that change, and trigger a reload.
 	 * </pre>
 	 */
-	static void testPollingReloadConfigMapMount(String deploymentName, K3sContainer k3sContainer, Util util,
-			String imageName) throws Exception {
+	static void testBootstrapEnabledPollingReloadConfigMapMount(String deploymentName, K3sContainer k3sContainer,
+			Util util, String imageName) throws Exception {
 
-		patchFive(deploymentName, "default", imageName);
+		recreateMountConfigMap(util);
+		patchSix(deploymentName, "default", imageName);
 
 		// (1)
 		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", k3sContainer,
@@ -83,12 +81,19 @@ final class PollingReloadConfigMapMountDelegate {
 		// our polling will detect that and restart the app
 		V1ConfigMap configMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
 		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
-		new CoreV1Api().replaceNamespacedConfigMap("poll-reload-as-mount", "default", configMap, null, null, null,
+		new CoreV1Api().replaceNamespacedConfigMap("poll-reload-as-mount", NAMESPACE, configMap, null, null, null,
 				null);
 
 		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
 
+	}
+
+	private static void recreateMountConfigMap(Util util) {
+		V1ConfigMap mountConfigMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
+
+		util.deleteAndWait("default", mountConfigMap, null);
+		util.createAndWait("default", mountConfigMap, null);
 	}
 
 }

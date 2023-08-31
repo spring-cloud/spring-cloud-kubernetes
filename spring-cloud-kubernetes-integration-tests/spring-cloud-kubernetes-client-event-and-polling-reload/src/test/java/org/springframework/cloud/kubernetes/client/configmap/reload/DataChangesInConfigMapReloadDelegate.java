@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.configmap.event.reload;
+package org.springframework.cloud.kubernetes.client.configmap.reload;
 
 import java.time.Duration;
 import java.util.Map;
@@ -32,10 +32,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.builder;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.logs;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.patchFour;
-import static org.springframework.cloud.kubernetes.client.configmap.event.reload.K8sClientReloadITUtil.retrySpec;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.builder;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.logs;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchFour;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.retrySpec;
 
 /**
  * @author wind57
