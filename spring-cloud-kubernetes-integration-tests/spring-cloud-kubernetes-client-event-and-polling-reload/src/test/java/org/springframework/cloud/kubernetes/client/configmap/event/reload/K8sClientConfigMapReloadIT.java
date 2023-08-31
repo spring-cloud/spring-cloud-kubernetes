@@ -55,7 +55,7 @@ import static org.springframework.cloud.kubernetes.client.configmap.event.reload
 /**
  * @author wind57
  */
-class K8sClientReloadIT {
+class K8sClientConfigMapReloadIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-event-and-polling-reload";
 
