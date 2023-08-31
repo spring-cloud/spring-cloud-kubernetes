@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.secrets.event.reload;
+package org.springframework.cloud.kubernetes.client.secrets.reload;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -33,29 +28,33 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.client.secrets.reload.DataChangesInSecretsReloadDelegate.testDataChangesInSecretsReload;
+import static org.springframework.cloud.kubernetes.client.secrets.reload.K8sClientSecretsReloadITUtil.builder;
+import static org.springframework.cloud.kubernetes.client.secrets.reload.K8sClientSecretsReloadITUtil.patchOne;
+import static org.springframework.cloud.kubernetes.client.secrets.reload.K8sClientSecretsReloadITUtil.retrySpec;
 
 /**
  * @author wind57
  */
-class SecretsEventReloadIT {
+class K8sClientSecretsReloadIT {
 
 	private static final String PROPERTY_URL = "http://localhost:80/key";
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-secrets-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-event-and-polling-reload";
 
 	private static final String NAMESPACE = "default";
+
+	private static final String DEPLOYMENT_NAME = "spring-k8s-client-reload";
+
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + Commons.pomVersion();
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -71,30 +70,39 @@ class SecretsEventReloadIT {
 		util = new Util(K3S);
 		coreV1Api = new CoreV1Api();
 		util.setUp(NAMESPACE);
+		configK8sClientIt(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
+		configK8sClientIt(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.systemPrune();
 	}
 
 	@Test
 	void testSecretReload() throws Exception {
-		configK8sClientIt(Phase.CREATE, false);
 		Commons.assertReloadLogStatements("added secret informer for namespace",
-				"added configmap informer for namespace", IMAGE_NAME);
+				"added configmap informer for namespace", DEPLOYMENT_NAME);
 		testSecretEventReload();
-		configK8sClientIt(Phase.DELETE, false);
+
+		testAllOther();
 	}
 
-	@Test
+	private void testAllOther() throws Exception {
+		recreateSecret();
+		patchOne(DEPLOYMENT_NAME, NAMESPACE, DOCKER_IMAGE);
+		testSecretReloadConfigDisabled();
+
+		recreateSecret();
+		patchOne(DEPLOYMENT_NAME, NAMESPACE, DOCKER_IMAGE);
+		testDataChangesInSecretsReload(K3S, DEPLOYMENT_NAME);
+	}
+
 	void testSecretReloadConfigDisabled() throws Exception {
-		configK8sClientIt(Phase.CREATE, true);
 		Commons.assertReloadLogStatements("added secret informer for namespace",
-				"added configmap informer for namespace", IMAGE_NAME);
+				"added configmap informer for namespace", DEPLOYMENT_NAME);
 		testSecretEventReload();
-		configK8sClientIt(Phase.DELETE, true);
 	}
 
 	void testSecretEventReload() throws Exception {
@@ -117,21 +125,17 @@ class SecretsEventReloadIT {
 						.retryWhen(retrySpec()).block().equals("after-change"));
 	}
 
-	private void configK8sClientIt(Phase phase, boolean configDisabled) {
-		V1Deployment deployment = (V1Deployment) util.yaml("deployment.yaml");
+	private void recreateSecret() {
+		V1Secret secret = (V1Secret) util.yaml("secret.yaml");
+		util.deleteAndWait(NAMESPACE, null, secret);
+		util.createAndWait(NAMESPACE, null, secret);
+	}
+
+	private static void configK8sClientIt(Phase phase) {
+		V1Deployment deployment = (V1Deployment) util.yaml("deployment-with-secret.yaml");
 		V1Service service = (V1Service) util.yaml("service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 		V1Secret secret = (V1Secret) util.yaml("secret.yaml");
-
-		List<V1EnvVar> envVars = new ArrayList<>(
-				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-						.orElse(List.of()));
-
-		if (configDisabled) {
-			V1EnvVar disableConfig = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIG_ENABLED").value("FALSE");
-			envVars.add(disableConfig);
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-		}
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
@@ -141,14 +145,6 @@ class SecretsEventReloadIT {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 			util.deleteAndWait(NAMESPACE, null, secret);
 		}
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(60, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 }
