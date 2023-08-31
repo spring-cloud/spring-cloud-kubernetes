@@ -3,14 +3,26 @@ description: maven-build-with-dry-run-for-tests
 runs:
   using: "composite"
   steps:
-    - name: maven-build-with-dry-run-for-tests
+
+    - name: run 'package' on the project
       shell: bash
       run: |
-          # find all the tests that are supposed to be run, but don't actually run them.
-          # this is achieved via: 'spring.cloud.k8s.skip.tests=true' in DisabledTestsCondition
-          ./mvnw test -B -Dskip.build.image=true -Dspring.cloud.k8s.skip.tests=true \
-                -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=error \
-                -T 1C -q > /tmp/tests.txt
+        ./mvnw install -B  \
+              -Dskip.build.image=true \
+              -DskipTests -DskipITs \
+              -T 1C -q
+
+    - name: find all classpath entries
+      shell: bash
+      run: |
+        ./mvnw -q exec:exec -Dexec.classpathScope="test" -Dexec.executable="echo" -Dexec.args="%classpath" | tr : "\n" > /tmp/deps.txt
+
+    - name: find all tests
+      shell: bash
+      run: |
+        cd spring-cloud-kubernetes-test-support
+        .././mvnw -q exec:java -Dexec.mainClass="org.springframework.cloud.kubernetes.tests.discovery.TestsDiscovery" > /tmp/tests.txt
+        cd ..
 
     - name: show result
       if: always()
