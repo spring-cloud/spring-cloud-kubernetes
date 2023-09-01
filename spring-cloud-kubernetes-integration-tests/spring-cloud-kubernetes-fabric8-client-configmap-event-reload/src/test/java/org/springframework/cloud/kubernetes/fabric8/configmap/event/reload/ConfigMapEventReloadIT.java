@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -295,7 +296,7 @@ class ConfigMapEventReloadIT {
 		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
 		InputStream rightWithLabelConfigMapStream = util.inputStream("right-configmap-with-label.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -312,11 +313,11 @@ class ConfigMapEventReloadIT {
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap leftConfigMap = client.configMaps().load(leftConfigMapStream).get();
-		ConfigMap rightConfigMap = client.configMaps().load(rightConfigMapStream).get();
-		ConfigMap rightWithLabelConfigMap = client.configMaps().load(rightWithLabelConfigMapStream).get();
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
+		ConfigMap leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
+		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
+		ConfigMap rightWithLabelConfigMap = Serialization.unmarshal(rightWithLabelConfigMapStream, ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait("left", leftConfigMap, null);
