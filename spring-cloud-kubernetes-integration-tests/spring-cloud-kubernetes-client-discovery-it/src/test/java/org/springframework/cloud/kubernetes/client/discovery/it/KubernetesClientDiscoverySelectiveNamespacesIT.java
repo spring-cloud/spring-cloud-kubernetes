@@ -126,7 +126,7 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 		// this tiny checks makes sure that blocking is enabled and reactive is disabled.
 		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
-		Commons.waitForLogStatement(REACTIVE_PUBLISH, K3S, IMAGE_NAME);
+		Assertions.assertFalse(logs().contains(REACTIVE_PUBLISH));
 
 		blockingCheck();
 
@@ -153,8 +153,8 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 			K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that reactive is enabled and blocking is disabled.
-		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
 		Commons.waitForLogStatement(REACTIVE_PUBLISH, K3S, IMAGE_NAME);
+		Assertions.assertFalse(logs().contains(BLOCKING_PUBLISH));
 
 		reactiveCheck();
 
@@ -330,6 +330,20 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 		// we only care about namespace here, as all other fields are tested in various
 		// other tests.
 		Assertions.assertEquals(serviceInstance.getNamespace(), "a");
+	}
+
+	private String logs() {
+		try {
+			String appPodName = K3S.execInContainer("sh", "-c",
+				"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	private WebClient.Builder builder() {
