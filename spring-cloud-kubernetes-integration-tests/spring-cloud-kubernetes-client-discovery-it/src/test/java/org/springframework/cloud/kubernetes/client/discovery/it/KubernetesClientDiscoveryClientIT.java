@@ -35,7 +35,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -234,7 +233,6 @@ class KubernetesClientDiscoveryClientIT {
 		Commons.waitForLogStatement("reading pod in namespace : default", K3S, IMAGE_NAME);
 		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
 		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
-
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
