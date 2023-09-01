@@ -103,7 +103,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		util.busybox(NAMESPACE, Phase.CREATE);
 
-		Assertions.assertTrue(logs().contains("serviceSharedInformer will use namespace : default"));
+		Commons.waitForLogStatement("serviceSharedInformer will use namespace : default", K3S, IMAGE_NAME);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 
@@ -181,7 +181,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForAllNamespaces(DEPLOYMENT_NAME, NAMESPACE);
 
-		Assertions.assertTrue(logs().contains("serviceSharedInformer will use all-namespaces"));
+		Commons.waitForLogStatement("serviceSharedInformer will use all-namespaces", K3S, IMAGE_NAME);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
@@ -229,11 +229,12 @@ class KubernetesClientDiscoveryClientIT {
 
 		// first check that wiremock service is present in both namespaces a and b
 		assertServicePresentInNamespaces(List.of("a", "b"), "service-wiremock", "service-wiremock");
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("reading pod in namespace : default"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("reading pod in namespace : default", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
+
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
@@ -386,21 +387,6 @@ class KubernetesClientDiscoveryClientIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
-	}
-
-	private String logs() {
-		try {
-			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-			return execResult.getStdout();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-
 	}
 
 	private void assertServicePresentInNamespaces(List<String> namespaces, String value, String serviceName) {
