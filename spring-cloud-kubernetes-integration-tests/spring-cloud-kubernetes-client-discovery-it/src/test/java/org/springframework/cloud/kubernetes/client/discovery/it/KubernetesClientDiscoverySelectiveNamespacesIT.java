@@ -113,16 +113,13 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(1)
 	void testOneNamespaceBlockingOnly() {
 
-		Commons.waitForLogStatement("using selective namespaces : [a]",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : a",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a",
-			K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is enabled and reactive is disabled.
 		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
@@ -143,14 +140,11 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
 
-		Commons.waitForLogStatement("using selective namespaces : [a]",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : a",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a",
-			K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that reactive is enabled and blocking is disabled.
 		Commons.waitForLogStatement(REACTIVE_PUBLISH, K3S, IMAGE_NAME);
@@ -172,14 +166,12 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactive(DEPLOYMENT_NAME, NAMESPACE);
 
 		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : a",
-			K3S, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a",
-			K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking and reactive is enabled.
 		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
@@ -335,7 +327,7 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	private String logs() {
 		try {
 			String appPodName = K3S.execInContainer("sh", "-c",
-				"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
 			return execResult.getStdout();

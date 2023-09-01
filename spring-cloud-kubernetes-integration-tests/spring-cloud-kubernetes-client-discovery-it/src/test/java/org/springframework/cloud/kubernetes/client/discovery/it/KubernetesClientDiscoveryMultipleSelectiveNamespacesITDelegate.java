@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.junit.jupiter.api.Assertions;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -30,6 +29,7 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -55,20 +55,15 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 
 		Commons.waitForLogStatement("using selective namespaces : [a, b]", container, IMAGE_NAME);
 		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
-			container, IMAGE_NAME);
+				container, IMAGE_NAME);
 		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
-			container, IMAGE_NAME);
+				container, IMAGE_NAME);
 		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : a",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : b",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b",
-			container, IMAGE_NAME);
-
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : b", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b", container, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is enabled and reactive is disabled.
 		Commons.waitForLogStatement(BLOCKING_PUBLISH, container, IMAGE_NAME);
@@ -87,17 +82,13 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 
 		Commons.waitForLogStatement("using selective namespaces : [a, b]", container, IMAGE_NAME);
 		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
-			container, IMAGE_NAME);
+				container, IMAGE_NAME);
 		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : a",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : b",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b",
-			container, IMAGE_NAME);
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : b", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b", container, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is disabled and reactive is enabled.
 		Commons.waitForLogStatement(REACTIVE_PUBLISH, container, IMAGE_NAME);
@@ -116,17 +107,13 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 
 		Commons.waitForLogStatement("using selective namespaces : [a, b]", container, IMAGE_NAME);
 		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
-			container, IMAGE_NAME);
+				container, IMAGE_NAME);
 		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : a",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for services) in namespace : b",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a",
-			container, IMAGE_NAME);
-		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b",
-			container, IMAGE_NAME);
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : b", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b", container, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is enabled and reactive is enabled.
 		Commons.waitForLogStatement(BLOCKING_PUBLISH, container, IMAGE_NAME);
