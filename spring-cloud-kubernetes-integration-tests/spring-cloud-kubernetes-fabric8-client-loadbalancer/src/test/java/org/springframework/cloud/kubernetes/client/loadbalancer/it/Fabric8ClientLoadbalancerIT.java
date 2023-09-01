@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -134,7 +135,7 @@ public class Fabric8ClientLoadbalancerIT {
 		InputStream ingressStream = util
 				.inputStream("spring-cloud-kubernetes-fabric8-client-loadbalancer-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_LOADBALANCER_MODE")
@@ -142,8 +143,8 @@ public class Fabric8ClientLoadbalancerIT {
 		envVars.add(activeProfileProperty);
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).item();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
