@@ -94,4 +94,5 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	protected abstract SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
 			NormalizedSource normalizedSource);
+
 }

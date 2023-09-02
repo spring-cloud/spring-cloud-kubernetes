@@ -28,7 +28,9 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -228,7 +230,7 @@ class Fabric8DiscoveryPodMetadataIT {
 		InputStream discoveryServiceStream = util.inputStream("fabric8-discovery-service.yaml");
 		InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -241,19 +243,18 @@ class Fabric8DiscoveryPodMetadataIT {
 						.withValue("DEBUG").build());
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-		Service externalServiceName = client.services().load(externalNameServiceStream).item();
-		Service discoveryService = client.services().load(discoveryServiceStream).item();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		Service externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
+		Service discoveryService = Serialization.unmarshal(discoveryServiceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
+		ClusterRoleBinding clusterRoleBinding = Serialization.unmarshal(getAdminRole(), ClusterRoleBinding.class);
 		if (phase.equals(Phase.CREATE)) {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item())
-					.create();
+			client.rbac().clusterRoleBindings().resource(clusterRoleBinding).create();
 			util.createAndWait(NAMESPACE, IMAGE_NAME, deployment, discoveryService, ingress, true);
 			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
 		}
 		else {
-			client.rbac().clusterRoleBindings().resource(client.rbac().clusterRoleBindings().load(getAdminRole()).item())
-					.delete();
+			client.rbac().clusterRoleBindings().resource(clusterRoleBinding).delete();
 			util.deleteAndWait(NAMESPACE, deployment, discoveryService, ingress);
 			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
 		}

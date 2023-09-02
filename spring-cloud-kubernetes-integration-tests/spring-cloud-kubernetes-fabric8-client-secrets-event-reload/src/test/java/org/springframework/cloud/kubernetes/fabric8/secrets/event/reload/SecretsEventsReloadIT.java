@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -146,11 +147,10 @@ class SecretsEventsReloadIT {
 		InputStream serviceStream = util.inputStream("service.yaml");
 		InputStream ingressStream = util.inputStream("ingress.yaml");
 		InputStream secretStream = util.inputStream("secret.yaml");
-
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
-		Service service = client.services().load(serviceStream).item();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
-		Secret secret = client.secrets().load(secretStream).item();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
+		Secret secret = Serialization.unmarshal(secretStream, Secret.class);
 
 		if (configMapsDisabled) {
 			List<EnvVar> envVars = new ArrayList<>(

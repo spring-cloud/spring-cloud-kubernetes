@@ -84,4 +84,5 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	public Collection<PropertySource<?>> locateCollection(Environment environment) {
 		return PropertySourceLocator.super.locateCollection(environment);
 	}
+
 }
