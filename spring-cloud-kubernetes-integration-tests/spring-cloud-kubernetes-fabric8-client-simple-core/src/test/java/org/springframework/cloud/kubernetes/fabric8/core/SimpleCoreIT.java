@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -91,10 +92,9 @@ class SimpleCoreIT {
 		InputStream deploymentStream = util.inputStream("simple-core-deployment.yaml");
 		InputStream serviceStream = util.inputStream("simple-core-service.yaml");
 		InputStream ingressStream = util.inputStream("simple-core-ingress.yaml");
-
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
-		Service service = client.services().load(serviceStream).item();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);

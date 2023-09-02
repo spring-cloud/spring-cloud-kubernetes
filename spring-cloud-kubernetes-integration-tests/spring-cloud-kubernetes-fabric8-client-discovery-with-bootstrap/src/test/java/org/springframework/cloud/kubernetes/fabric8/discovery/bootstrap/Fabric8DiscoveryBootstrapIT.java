@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -109,7 +110,8 @@ class Fabric8DiscoveryBootstrapIT {
 			InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
 			InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-			Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+
+			Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
 			List<EnvVar> existing = new ArrayList<>(
 					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -120,8 +122,8 @@ class Fabric8DiscoveryBootstrapIT {
 							.withValue("TRACE").build());
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
-			Service service = client.services().load(serviceStream).item();
-			Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+			Service service = Serialization.unmarshal(serviceStream, Service.class);
+			Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 			if (phase.equals(Phase.CREATE)) {
 				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);

@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -111,7 +112,7 @@ public class BootstrapEnabledPollingReloadConfigMapMountIT {
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
 		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
-		ConfigMap configMap = client.configMaps().load(configMapStream).item();
+		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
@@ -127,10 +128,10 @@ public class BootstrapEnabledPollingReloadConfigMapMountIT {
 		InputStream ingressStream = util.inputStream("ingress.yaml");
 		InputStream configMapStream = util.inputStream("mount/configmap-mount.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
-		Service service = client.services().load(serviceStream).item();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
-		ConfigMap configMap = client.configMaps().load(configMapStream).item();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
+		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
