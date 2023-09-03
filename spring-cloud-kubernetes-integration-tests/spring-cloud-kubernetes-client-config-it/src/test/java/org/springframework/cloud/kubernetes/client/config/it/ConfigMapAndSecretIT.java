@@ -17,8 +17,6 @@
 package org.springframework.cloud.kubernetes.client.config.it;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -26,13 +24,10 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1EnvVar;
-import io.kubernetes.client.openapi.models.V1EnvVarBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,11 +44,35 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 
 /**
  * @author Ryan Baxter
  */
 class ConfigMapAndSecretIT {
+
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-client-config-it");
+
+	private static final String BODY = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-config-it-deployment",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_RELOAD_MODE",
+									"value": "POLLING"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
 
 	private static final String PROPERTY_URL = "http://localhost:80/myProperty";
 
@@ -64,6 +83,8 @@ class ConfigMapAndSecretIT {
 	private static final String NAMESPACE = "default";
 
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-config-it";
+
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + APP_NAME + ":" + Commons.pomVersion();
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -83,24 +104,22 @@ class ConfigMapAndSecretIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
+		configK8sClientIt(Phase.DELETE);
 		Commons.cleanUp(K8S_CONFIG_CLIENT_IT_SERVICE_NAME, K3S);
 		Commons.systemPrune();
 	}
 
-	@AfterEach
-	void after() {
-		configK8sClientIt(false, Phase.DELETE);
-	}
-
 	@Test
 	void testConfigMapAndSecretWatchRefresh() {
-		configK8sClientIt(false, Phase.CREATE);
+		configK8sClientIt(Phase.CREATE);
 		testConfigMapAndSecretRefresh();
+
+		testConfigMapAndSecretPollingRefresh();
 	}
 
-	@Test
 	void testConfigMapAndSecretPollingRefresh() {
-		configK8sClientIt(true, Phase.CREATE);
+		recreateConfigMapAndSecret();
+		patchForPollingReload();
 		testConfigMapAndSecretRefresh();
 	}
 
@@ -149,18 +168,25 @@ class ConfigMapAndSecretIT {
 				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
-	private static void configK8sClientIt(boolean pooling, Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("spring-cloud-kubernetes-client-config-it-deployment.yaml");
+	void recreateConfigMapAndSecret() {
+		try {
+			coreV1Api.deleteNamespacedConfigMap("spring-cloud-kubernetes-client-config-it", NAMESPACE,
+				null, null, null, null, null, null);
+			coreV1Api.deleteNamespacedSecret("spring-cloud-kubernetes-client-config-it", NAMESPACE,
+				null, null, null, null, null, null);
 
-		if (pooling) {
-			V1EnvVar one = new V1EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_RELOAD_MODE").withValue("polling")
-					.build();
-			List<V1EnvVar> existing = new ArrayList<>(
-					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-			existing.add(one);
-			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
+			V1ConfigMap configMap = (V1ConfigMap) util.yaml("spring-cloud-kubernetes-client-config-it-configmap.yaml");
+			V1Secret secret = (V1Secret) util.yaml("spring-cloud-kubernetes-client-config-it-secret.yaml");
+			util.createAndWait(NAMESPACE, configMap, secret);
 		}
+		catch (ApiException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
+	private static void configK8sClientIt(Phase phase) {
+
+		V1Deployment deployment = (V1Deployment) util.yaml("spring-cloud-kubernetes-client-config-it-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("spring-cloud-kubernetes-client-config-it-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("spring-cloud-kubernetes-client-config-it-ingress.yaml");
 
@@ -183,6 +209,11 @@ class ConfigMapAndSecretIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	private static void patchForPollingReload() {
+		patchWithReplace(ConfigMapAndSecretIT.DOCKER_IMAGE, ConfigMapAndSecretIT.APP_NAME + "-deployment",
+				ConfigMapAndSecretIT.NAMESPACE, BODY, POD_LABELS);
 	}
 
 }

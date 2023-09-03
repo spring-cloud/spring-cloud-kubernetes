@@ -92,30 +92,6 @@ jobs:
           echo "number_of_matrix_instances=${{ env.NUMBER_OF_MATRIX_INSTANCES }}" >> $GITHUB_OUTPUT
           echo "matrix_array=${{ env.MATRIX_ARRAY }}" >> $GITHUB_OUTPUT
 
-      - name: build controllers project
-        uses: ./.github/workflows/composites/build-controllers-project
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: build integration tests project
-        uses: ./.github/workflows/composites/build-integration-tests-project
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: save controller docker images
-        uses: ./.github/workflows/composites/save-controller-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: save integration tests docker images
-        uses: ./.github/workflows/composites/save-integration-tests-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: echo saved images
-        uses: ./.github/workflows/composites/echo-saved-images
-        if: env.BASE_BRANCH != '2.1.x'
-
-      - name: upload docker images
-        uses: ./.github/workflows/composites/upload-docker-images
-        if: env.BASE_BRANCH != '2.1.x'
-
   test_when_cache_present:
     needs: [ build ]
     runs-on: ubuntu-latest
