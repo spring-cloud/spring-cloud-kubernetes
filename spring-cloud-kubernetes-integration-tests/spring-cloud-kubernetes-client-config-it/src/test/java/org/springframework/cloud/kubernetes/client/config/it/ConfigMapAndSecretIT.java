@@ -51,6 +51,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.nat
  */
 class ConfigMapAndSecretIT {
 
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-client-config-it");
+
 	private static final String BODY = """
 			{
 				"spec": {
@@ -211,7 +213,7 @@ class ConfigMapAndSecretIT {
 
 	private static void patchForPollingReload() {
 		patchWithReplace(ConfigMapAndSecretIT.DOCKER_IMAGE, ConfigMapAndSecretIT.APP_NAME + "-deployment",
-				ConfigMapAndSecretIT.NAMESPACE, BODY);
+				ConfigMapAndSecretIT.NAMESPACE, BODY, POD_LABELS);
 	}
 
 }
