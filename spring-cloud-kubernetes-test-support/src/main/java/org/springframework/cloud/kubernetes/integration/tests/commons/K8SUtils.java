@@ -69,7 +69,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Ryan Baxter

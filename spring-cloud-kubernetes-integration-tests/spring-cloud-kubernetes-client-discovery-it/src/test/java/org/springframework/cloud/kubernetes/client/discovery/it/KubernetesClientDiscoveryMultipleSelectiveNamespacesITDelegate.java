@@ -29,6 +29,7 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -52,20 +53,21 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 	 */
 	void testTwoNamespacesBlockingOnly(K3sContainer container) {
 
-		String logs = logs(container);
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : b"));
+		Commons.waitForLogStatement("using selective namespaces : [a, b]", container, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]",
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : b", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b", container, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is enabled and reactive is disabled.
-		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertFalse(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(BLOCKING_PUBLISH, container, IMAGE_NAME);
+		Assertions.assertFalse(logs(container).contains(REACTIVE_PUBLISH));
 
 		blockingCheck();
 
@@ -78,20 +80,19 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 	 */
 	void testTwoNamespaceReactiveOnly(K3sContainer container) {
 
-		String logs = logs(container);
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : b"));
+		Commons.waitForLogStatement("using selective namespaces : [a, b]", container, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]",
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : b", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b", container, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is disabled and reactive is enabled.
-		Assertions.assertFalse(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(REACTIVE_PUBLISH, container, IMAGE_NAME);
+		Assertions.assertFalse(logs(container).contains(BLOCKING_PUBLISH));
 
 		reactiveCheck();
 
@@ -104,20 +105,19 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 	 */
 	void testTwoNamespacesBothBlockingAndReactive(K3sContainer container) {
 
-		String logs = logs(container);
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a, b]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : b"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : b"));
+		Commons.waitForLogStatement("using selective namespaces : [a, b]", container, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a, b]",
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a, b]",
+				container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : b", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", container, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : b", container, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is enabled and reactive is enabled.
-		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(BLOCKING_PUBLISH, container, IMAGE_NAME);
+		Assertions.assertTrue(logs(container).contains(REACTIVE_PUBLISH));
 
 		blockingCheck();
 		reactiveCheck();
