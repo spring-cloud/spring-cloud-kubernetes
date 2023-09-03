@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mockStatic;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
-				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true", "debug=true" },
+				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true" },
 		classes = { KubernetesConfigServerApplication.class })
 public class ConfigDataConfigServerIntegrationTest extends ConfigServerIntegrationTest {
 

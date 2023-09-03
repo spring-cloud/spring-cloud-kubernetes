@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -219,8 +220,8 @@ class Fabric8CatalogWatchWithNamespacesIT {
 		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
 		Deployment deployment = useEndpointSlices
-				? client.apps().deployments().load(endpointSlicesDeploymentStream).get()
-				: client.apps().deployments().load(endpointsDeploymentStream).get();
+				? Serialization.unmarshal(endpointSlicesDeploymentStream, Deployment.class)
+				: Serialization.unmarshal(endpointsDeploymentStream, Deployment.class);
 
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -233,8 +234,8 @@ class Fabric8CatalogWatchWithNamespacesIT {
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, null, deployment, service,

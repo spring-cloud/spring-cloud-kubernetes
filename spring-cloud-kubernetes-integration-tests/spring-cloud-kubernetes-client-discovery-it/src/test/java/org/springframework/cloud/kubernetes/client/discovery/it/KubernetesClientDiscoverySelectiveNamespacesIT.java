@@ -113,18 +113,17 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(1)
 	void testOneNamespaceBlockingOnly() {
 
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is enabled and reactive is disabled.
-		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertFalse(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
+		Assertions.assertFalse(logs().contains(REACTIVE_PUBLISH));
 
 		blockingCheck();
 
@@ -141,18 +140,15 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
 
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that reactive is enabled and blocking is disabled.
-		Assertions.assertFalse(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(REACTIVE_PUBLISH, K3S, IMAGE_NAME);
+		Assertions.assertFalse(logs().contains(BLOCKING_PUBLISH));
 
 		reactiveCheck();
 
@@ -169,18 +165,17 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactive(DEPLOYMENT_NAME, NAMESPACE);
 
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking and reactive is enabled.
-		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
+		Commons.waitForLogStatement(REACTIVE_PUBLISH, K3S, IMAGE_NAME);
 
 		blockingCheck();
 		reactiveCheck();

@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.reload;
 
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
-				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true",
-				"spring.cloud.bootstrap.enabled=true" },
-		classes = { KubernetesConfigServerApplication.class })
-public class BootstrapConfigServerIntegrationTest extends ConfigServerIntegrationTest {
+@ConfigurationProperties("from.properties")
+public class SecretsProperties {
+
+	private String key;
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
 
 }
