@@ -22,13 +22,11 @@ runs:
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
 
-    - name: download docker images
-      uses: ./.github/workflows/composites/download-docker-images
-      if: env.BASE_BRANCH != '2.1.x'
+    - name: build controllers project
+      uses: ./.github/workflows/composites/build-controllers-project
 
-    - name: load docker images into local repo
-      uses: ./.github/workflows/composites/load-docker-images
-      if: env.BASE_BRANCH != '2.1.x'
+    - name: build integration tests project
+      uses: ./.github/workflows/composites/build-integration-tests-project
 
     - name: download tests
       uses: actions/download-artifact@v3
