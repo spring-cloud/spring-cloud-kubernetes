@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -110,14 +111,14 @@ class ConfigMapAndSecretIT {
 	}
 
 	@Test
-	void testConfigMapAndSecretWatchRefresh() {
+	void testConfigMapAndSecretWatchRefresh() throws Exception {
 		configK8sClientIt(Phase.CREATE);
 		testConfigMapAndSecretRefresh();
 
 		testConfigMapAndSecretPollingRefresh();
 	}
 
-	void testConfigMapAndSecretPollingRefresh() {
+	void testConfigMapAndSecretPollingRefresh() throws Exception {
 		recreateConfigMapAndSecret();
 		patchForPollingReload();
 		testConfigMapAndSecretRefresh();
@@ -129,13 +130,14 @@ class ConfigMapAndSecretIT {
 	 *     - replace the above and assert we get the new values.
 	 * </pre>
 	 */
-	void testConfigMapAndSecretRefresh() {
+	void testConfigMapAndSecretRefresh() throws Exception {
 
 		WebClient.Builder builder = builder();
 		WebClient propertyClient = builder.baseUrl(PROPERTY_URL).build();
 
-		await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
-				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
+		await().timeout(Duration.ofSeconds(120)).ignoreException(WebClientResponseException.BadGateway.class)
+			.pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
+			.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
 
 		WebClient secretClient = builder.baseUrl(SECRET_URL).build();
 		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
@@ -146,34 +148,24 @@ class ConfigMapAndSecretIT {
 		Map<String, String> data = configMap.getData();
 		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
 		configMap.data(data);
-		try {
-			coreV1Api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null, null);
-		}
-		catch (ApiException e) {
-			throw new RuntimeException(e);
-		}
+		coreV1Api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null, null);
 		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
 				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-unit-test"));
 		V1Secret v1Secret = (V1Secret) util.yaml("spring-cloud-kubernetes-client-config-it-secret.yaml");
 		Map<String, byte[]> secretData = v1Secret.getData();
 		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
 		v1Secret.setData(secretData);
-		try {
-			coreV1Api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null, null);
-		}
-		catch (ApiException e) {
-			throw new RuntimeException(e);
-		}
+		coreV1Api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null, null);
 		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> secretClient
 				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
 	void recreateConfigMapAndSecret() {
 		try {
-			coreV1Api.deleteNamespacedConfigMap("spring-cloud-kubernetes-client-config-it", NAMESPACE,
-				null, null, null, null, null, null);
-			coreV1Api.deleteNamespacedSecret("spring-cloud-kubernetes-client-config-it", NAMESPACE,
-				null, null, null, null, null, null);
+			coreV1Api.deleteNamespacedConfigMap("spring-cloud-kubernetes-client-config-it", NAMESPACE, null, null, null,
+					null, null, null);
+			coreV1Api.deleteNamespacedSecret("spring-cloud-kubernetes-client-config-it", NAMESPACE, null, null, null,
+					null, null, null);
 
 			V1ConfigMap configMap = (V1ConfigMap) util.yaml("spring-cloud-kubernetes-client-config-it-configmap.yaml");
 			V1Secret secret = (V1Secret) util.yaml("spring-cloud-kubernetes-client-config-it-secret.yaml");
