@@ -95,7 +95,7 @@ class KubernetesClientDiscoveryFilterITDelegate {
 	 *     As such, both services are found via 'getInstances' call.
 	 * </pre>
 	 */
-	void filterMatchesBothNamespacesViaThePredicate(Util util) {
+	void filterMatchesBothNamespacesViaThePredicate() {
 
 		// patch the deployment to change what namespaces are take into account
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
