@@ -31,7 +31,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -43,6 +42,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.native_cli
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
@@ -136,8 +136,8 @@ class ConfigMapAndSecretIT {
 		WebClient propertyClient = builder.baseUrl(PROPERTY_URL).build();
 
 		await().timeout(Duration.ofSeconds(120)).ignoreException(WebClientResponseException.BadGateway.class)
-			.pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
-			.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
+				.pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient.method(HttpMethod.GET).retrieve()
+						.bodyToMono(String.class).block().equals("from-config-map"));
 
 		WebClient secretClient = builder.baseUrl(SECRET_URL).build();
 		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
