@@ -28,7 +28,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.builder;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.retrySpec;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.waitForLogStatement;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
 
 /**
  * @author wind57
