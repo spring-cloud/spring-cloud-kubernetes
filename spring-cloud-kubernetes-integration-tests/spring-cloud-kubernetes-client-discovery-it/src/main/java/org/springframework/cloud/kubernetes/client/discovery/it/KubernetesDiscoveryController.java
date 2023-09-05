@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.it;
 
+import java.util.List;
+
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
@@ -38,8 +41,8 @@ public class KubernetesDiscoveryController {
 	}
 
 	@GetMapping("/http/services")
-	public Flux<String> services() {
-		return discoveryClient.getServices();
+	public Mono<List<String>> services() {
+		return discoveryClient.getServices().collectList();
 	}
 
 	@GetMapping("/http/service/{serviceId}")

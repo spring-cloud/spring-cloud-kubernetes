@@ -36,9 +36,13 @@ public class DiscoveryApplicationListener implements ApplicationListener<Instanc
 
 	@Override
 	public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
-		V1Pod pod = (V1Pod) ((RegisteredEventSource) event.getSource()).pod();
-		LOG.info(() -> "received InstanceRegisteredEvent from pod with 'app' label value : "
-				+ pod.getMetadata().getLabels().get("app"));
+
+		Object source = event.getSource();
+		if (source instanceof RegisteredEventSource registeredEventSource) {
+			V1Pod pod = (V1Pod) registeredEventSource.pod();
+			LOG.info(() -> "received InstanceRegisteredEvent from pod with 'app' label value : "
+					+ pod.getMetadata().getLabels().get("app"));
+		}
 	}
 
 }
