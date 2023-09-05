@@ -70,6 +70,8 @@ class KubernetesClientDiscoveryClientIT {
 
 	private static final String NAMESPACE_B_UAT = "b-uat";
 
+	private static final String DISCOVERY_SERVER_APP_NAME = "spring-cloud-kubernetes-discoveryserver";
+
 	private static Util util;
 
 	private static final K3sContainer K3S = Commons.container();
@@ -77,19 +79,31 @@ class KubernetesClientDiscoveryClientIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
+
+		Commons.validateImage(DISCOVERY_SERVER_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
+
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
 		manifests(Phase.CREATE);
+		discoveryServer(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
 		manifests(Phase.DELETE);
+		discoveryServer(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.systemPrune();
+	}
+
+	@Test
+	@Order(0)
+	void testHttpDiscoveryClient() {
+		HttpDiscoveryClientDelegate.testHttpDiscoveryClient();
 	}
 
 	/**
@@ -377,6 +391,20 @@ class KubernetesClientDiscoveryClientIT {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 
+	}
+
+	private static void discoveryServer(Phase phase) {
+		V1Deployment deployment = (V1Deployment) util
+				.yaml("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
+		V1Service service = (V1Service) util.yaml("server/spring-cloud-kubernetes-discoveryserver-service.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("server/spring-cloud-kubernetes-discoveryserver-ingress.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+		}
+		else {
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+		}
 	}
 
 	private WebClient.Builder builder() {

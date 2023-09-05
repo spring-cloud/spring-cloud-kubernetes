@@ -6,3 +6,13 @@ management:
     web:
       exposure:
         include: "*"
+
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+  cloud:
+    kubernetes:
+      discovery:
+        discoveryServerUrl: http://spring-cloud-kubernetes-discoveryserver

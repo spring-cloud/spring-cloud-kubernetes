@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: spring-cloud-kubernetes-discoveryserver
+  name: spring-cloud-kubernetes-discoveryserver
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8761
+  selector:
+    app: spring-cloud-kubernetes-discoveryserver
+  type: ClusterIP
