@@ -350,6 +350,48 @@ final class KubernetesClientDiscoveryClientUtils {
 			}
 						""";
 
+	private static final String BODY_THIRTEEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-discoveryserver",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
+									"value": "TRUE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_FOURTEEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "a"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private KubernetesClientDiscoveryClientUtils() {
 
 	}
@@ -403,6 +445,14 @@ final class KubernetesClientDiscoveryClientUtils {
 
 	static void patchForUATNamespacesTests(String image, String deploymentName, String namespace) {
 		patchWithReplace(image, deploymentName, namespace, BODY_TWELVE, POD_LABELS);
+	}
+
+	static void patchForAllNamespacesDiscoveryServer(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_THIRTEEN, POD_LABELS);
+	}
+
+	static void patchForANamespace(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_FOURTEEN, POD_LABELS);
 	}
 
 }

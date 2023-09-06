@@ -36,7 +36,6 @@ public class KubernetesDiscoveryController {
 	private final ReactiveDiscoveryClient discoveryClient;
 
 	public KubernetesDiscoveryController(ReactiveDiscoveryClient discoveryClient) {
-		System.out.println(" ====== " + discoveryClient.getClass().getName());
 		this.discoveryClient = discoveryClient;
 	}
 

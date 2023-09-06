@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -50,6 +51,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.client.discovery.it.KubernetesClientDiscoveryClientUtils.patchForANamespace;
+import static org.springframework.cloud.kubernetes.client.discovery.it.KubernetesClientDiscoveryClientUtils.patchForAllNamespacesDiscoveryServer;
+
 /**
  * @author wind57
  */
@@ -74,6 +78,8 @@ class KubernetesClientDiscoveryClientIT {
 
 	private static Util util;
 
+	private static RbacAuthorizationV1Api rbacApi;
+
 	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
@@ -86,6 +92,7 @@ class KubernetesClientDiscoveryClientIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
+		rbacApi = new RbacAuthorizationV1Api();
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
 		manifests(Phase.CREATE);
@@ -106,12 +113,23 @@ class KubernetesClientDiscoveryClientIT {
 		HttpDiscoveryClientDelegate.testHttpDiscoveryClient();
 	}
 
+	@Test
+	@Order(1)
+	void testHttpDiscoveryClientNamespaces() {
+		patchForAllNamespacesDiscoveryServer(
+				"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
+		patchForANamespace("docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-client-discovery-deployment-it", NAMESPACE);
+		HttpDiscoveryClientFilterNamespaceDelegate.testDiscoveryClient();
+	}
+
 	/**
 	 * Three services are deployed in the default namespace. We do not configure any
 	 * explicit namespace and 'default' must be picked-up.
 	 */
-	@Test
-	@Order(1)
+	//@Test
+	@Order(2)
 	void testSimple() {
 
 		util.busybox(NAMESPACE, Phase.CREATE);
@@ -183,8 +201,8 @@ class KubernetesClientDiscoveryClientIT {
 	 *     Our discovery searches in all namespaces, thus finds them both.
 	 * </pre>
 	 */
-	@Test
-	@Order(2)
+	//@Test
+	@Order(3)
 	void testAllNamespaces() {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
@@ -232,8 +250,8 @@ class KubernetesClientDiscoveryClientIT {
 	 *     Only service in namespace-a is found.
 	 * </pre>
 	 */
-	@Test
-	@Order(3)
+	//@Test
+	@Order(4)
 	void testSpecificNamespace() {
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
 		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
@@ -287,8 +305,8 @@ class KubernetesClientDiscoveryClientIT {
 		util.deleteNamespace(NAMESPACE_B);
 	}
 
-	@Test
-	@Order(4)
+	//@Test
+	@Order(5)
 	void testSimplePodMetadata() {
 		util.setUp(NAMESPACE);
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
@@ -296,8 +314,8 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryPodMetadataITDelegate().testSimple();
 	}
 
-	@Test
-	@Order(5)
+	//@Test
+	@Order(6)
 	void filterMatchesOneNamespaceViaThePredicate() {
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
@@ -315,8 +333,8 @@ class KubernetesClientDiscoveryClientIT {
 	 *     As such, both services are found via 'getInstances' call.
 	 * </pre>
 	 */
-	@Test
-	@Order(6)
+	//@Test
+	@Order(7)
 	void filterMatchesBothNamespacesViaThePredicate() {
 
 		// patch the deployment to change what namespaces are take into account
@@ -325,8 +343,8 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate();
 	}
 
-	@Test
-	@Order(7)
+	//@Test
+	@Order(8)
 	void testBlockingConfiguration() {
 
 		// filter tests are done, clean-up a bit to prepare everything for health tests
@@ -338,8 +356,8 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
 	}
 
-	@Test
-	@Order(8)
+	//@Test
+	@Order(9)
 	void testReactiveConfiguration() {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
@@ -347,8 +365,8 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(K3S);
 	}
 
-	@Test
-	@Order(9)
+	//@Test
+	@Order(10)
 	void testDefaultConfiguration() {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
