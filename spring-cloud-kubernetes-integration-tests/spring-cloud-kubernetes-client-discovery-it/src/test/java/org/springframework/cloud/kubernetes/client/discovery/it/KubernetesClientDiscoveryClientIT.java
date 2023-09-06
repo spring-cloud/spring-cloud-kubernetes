@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
+import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -78,8 +79,6 @@ class KubernetesClientDiscoveryClientIT {
 
 	private static Util util;
 
-	private static RbacAuthorizationV1Api rbacApi;
-
 	private static final K3sContainer K3S = Commons.container();
 
 	@BeforeAll
@@ -92,9 +91,13 @@ class KubernetesClientDiscoveryClientIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		rbacApi = new RbacAuthorizationV1Api();
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
+
+		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util
+				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
+		new RbacAuthorizationV1Api().createClusterRoleBinding(clusterRole, null, null, null, null);
+
 		manifests(Phase.CREATE);
 		discoveryServer(Phase.CREATE);
 	}
@@ -128,7 +131,7 @@ class KubernetesClientDiscoveryClientIT {
 	 * Three services are deployed in the default namespace. We do not configure any
 	 * explicit namespace and 'default' must be picked-up.
 	 */
-	//@Test
+	// @Test
 	@Order(2)
 	void testSimple() {
 
@@ -201,7 +204,7 @@ class KubernetesClientDiscoveryClientIT {
 	 *     Our discovery searches in all namespaces, thus finds them both.
 	 * </pre>
 	 */
-	//@Test
+	// @Test
 	@Order(3)
 	void testAllNamespaces() {
 		util.createNamespace(NAMESPACE_A);
@@ -250,7 +253,7 @@ class KubernetesClientDiscoveryClientIT {
 	 *     Only service in namespace-a is found.
 	 * </pre>
 	 */
-	//@Test
+	// @Test
 	@Order(4)
 	void testSpecificNamespace() {
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
@@ -305,7 +308,7 @@ class KubernetesClientDiscoveryClientIT {
 		util.deleteNamespace(NAMESPACE_B);
 	}
 
-	//@Test
+	// @Test
 	@Order(5)
 	void testSimplePodMetadata() {
 		util.setUp(NAMESPACE);
@@ -314,7 +317,7 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryPodMetadataITDelegate().testSimple();
 	}
 
-	//@Test
+	// @Test
 	@Order(6)
 	void filterMatchesOneNamespaceViaThePredicate() {
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
@@ -333,7 +336,7 @@ class KubernetesClientDiscoveryClientIT {
 	 *     As such, both services are found via 'getInstances' call.
 	 * </pre>
 	 */
-	//@Test
+	// @Test
 	@Order(7)
 	void filterMatchesBothNamespacesViaThePredicate() {
 
@@ -343,7 +346,7 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate();
 	}
 
-	//@Test
+	// @Test
 	@Order(8)
 	void testBlockingConfiguration() {
 
@@ -356,7 +359,7 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
 	}
 
-	//@Test
+	// @Test
 	@Order(9)
 	void testReactiveConfiguration() {
 
@@ -365,7 +368,7 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(K3S);
 	}
 
-	//@Test
+	// @Test
 	@Order(10)
 	void testDefaultConfiguration() {
 
