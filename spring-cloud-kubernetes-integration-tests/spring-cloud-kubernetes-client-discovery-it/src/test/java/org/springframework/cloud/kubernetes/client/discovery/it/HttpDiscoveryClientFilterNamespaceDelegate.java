@@ -50,6 +50,13 @@ final class HttpDiscoveryClientFilterNamespaceDelegate {
 
 	private static void testLoadBalancer() {
 
+		//TODO wind57
+		WebClient.Builder one = builder();
+		WebClient health = one.baseUrl("http://localhost:80//actuator/health").build();
+		String healthResult = health.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+			.retryWhen(retrySpec()).block();
+		System.out.println(healthResult);
+
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/http/services").build();
 

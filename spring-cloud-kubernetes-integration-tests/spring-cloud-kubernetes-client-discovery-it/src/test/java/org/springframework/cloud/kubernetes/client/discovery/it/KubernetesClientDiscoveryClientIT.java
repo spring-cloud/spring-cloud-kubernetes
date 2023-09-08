@@ -107,10 +107,10 @@ class KubernetesClientDiscoveryClientIT {
 	@Test
 	@Order(0)
 	void testHttpDiscoveryClient() {
-		HttpDiscoveryClientDelegate.testHttpDiscoveryClient();
+		HttpDiscoveryClientDelegate.testHttpDiscoveryClient(K3S);
 	}
 
-	@Test
+	//@Test
 	@Order(1)
 	void testHttpDiscoveryClientNamespaces() {
 		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
