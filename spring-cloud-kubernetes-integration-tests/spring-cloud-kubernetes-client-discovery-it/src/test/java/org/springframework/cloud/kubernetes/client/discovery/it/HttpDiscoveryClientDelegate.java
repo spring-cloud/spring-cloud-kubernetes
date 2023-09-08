@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.it;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Objects;
@@ -58,18 +57,22 @@ final class HttpDiscoveryClientDelegate {
 
 		try {
 			String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
-				.retryWhen(retrySpec()).block();
+					.retryWhen(retrySpec()).block();
 			assertThat(Arrays.stream(result).anyMatch("spring-cloud-kubernetes-discoveryserver"::equalsIgnoreCase))
-				.isTrue();
-		} catch(Exception e) {
+					.isTrue();
+		}
+		catch (Exception e) {
 			try {
 				String appPodName = container.execInContainer("sh", "-c",
-					"kubectl get pods -l app=spring-cloud-kubernetes-client-discovery-it" + " -o=name --no-headers | tr -d '\n'").getStdout();
+						"kubectl get pods -l app=spring-cloud-kubernetes-client-discovery-it"
+								+ " -o=name --no-headers | tr -d '\n'")
+						.getStdout();
 				Container.ExecResult execResult = container.execInContainer("sh", "-c",
-					"kubectl logs " + appPodName.trim());
+						"kubectl logs " + appPodName.trim());
 				String ok = execResult.getStdout();
 				System.out.println(ok);
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				throw new RuntimeException(ex);
 			}
 		}
@@ -82,20 +85,24 @@ final class HttpDiscoveryClientDelegate {
 
 		try {
 			String healthResult = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+					.retryWhen(retrySpec()).block();
 			System.out.println("1111111 " + healthResult);
 			Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
 					"$.components.reactiveDiscoveryClients.components.['Reactive Kubernetes Discovery Client'].status")
-				.isEqualTo("UP");
-		} catch(Exception e) {
+					.isEqualTo("UP");
+		}
+		catch (Exception e) {
 			try {
 				String appPodName = container.execInContainer("sh", "-c",
-					"kubectl get pods -l app=spring-cloud-kubernetes-client-discovery-it" + " -o=name --no-headers | tr -d '\n'").getStdout();
+						"kubectl get pods -l app=spring-cloud-kubernetes-client-discovery-it"
+								+ " -o=name --no-headers | tr -d '\n'")
+						.getStdout();
 				Container.ExecResult execResult = container.execInContainer("sh", "-c",
-					"kubectl logs " + appPodName.trim());
+						"kubectl logs " + appPodName.trim());
 				String ok = execResult.getStdout();
 				System.out.println(ok);
-			} catch (Exception ex) {
+			}
+			catch (Exception ex) {
 				throw new RuntimeException(ex);
 			}
 		}
@@ -107,7 +114,7 @@ final class HttpDiscoveryClientDelegate {
 	}
 
 	private static RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		return Retry.fixedDelay(15, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 }
