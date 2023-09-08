@@ -50,7 +50,7 @@ final class HttpDiscoveryClientDelegate {
 
 	private static void testLoadBalancer() {
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl("http://localhost/http/services").build();
+		WebClient serviceClient = builder.baseUrl("http://localhost:80/http/services").build();
 
 		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
 				.retryWhen(retrySpec()).block();
@@ -61,7 +61,7 @@ final class HttpDiscoveryClientDelegate {
 
 	private static void testHealth() {
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl("http://localhost/actuator/health").build();
+		WebClient serviceClient = builder.baseUrl("http://localhost:80/actuator/health").build();
 
 		String healthResult = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();

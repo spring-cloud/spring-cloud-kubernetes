@@ -24,8 +24,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
-import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -94,10 +92,6 @@ class KubernetesClientDiscoveryClientIT {
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
 
-		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util
-				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
-		new RbacAuthorizationV1Api().createClusterRoleBinding(clusterRole, null, null, null, null);
-
 		manifests(Phase.CREATE);
 		discoveryServer(Phase.CREATE);
 	}
@@ -119,6 +113,12 @@ class KubernetesClientDiscoveryClientIT {
 	@Test
 	@Order(1)
 	void testHttpDiscoveryClientNamespaces() {
+		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
+
 		patchForAllNamespacesDiscoveryServer(
 				"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
 				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);

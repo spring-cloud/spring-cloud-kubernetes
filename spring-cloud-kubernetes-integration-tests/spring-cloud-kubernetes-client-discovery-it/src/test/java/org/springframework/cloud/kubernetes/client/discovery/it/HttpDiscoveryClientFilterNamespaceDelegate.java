@@ -51,14 +51,14 @@ final class HttpDiscoveryClientFilterNamespaceDelegate {
 	private static void testLoadBalancer() {
 
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl("http://localhost/http/services").build();
+		WebClient serviceClient = builder.baseUrl("http://localhost:80/http/services").build();
 
 		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
 				.retryWhen(retrySpec()).block();
 		assertThat(result).containsAnyOf("service-wiremock");
 
 		// ServiceInstance
-		WebClient serviceInstanceClient = builder.baseUrl("http://localhost/service/service-wiremock").build();
+		WebClient serviceInstanceClient = builder.baseUrl("http://localhost:80/service/service-wiremock").build();
 		List<KubernetesServiceInstance> serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<KubernetesServiceInstance>>() {
 				}).retryWhen(retrySpec()).block();

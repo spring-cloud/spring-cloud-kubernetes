@@ -617,7 +617,7 @@ public final class Util {
 	private boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
 		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null);
-		if (deployments.getItems().size() < 1) {
+		if (deployments.getItems().isEmpty()) {
 			fail("No deployments with the name " + deploymentName);
 		}
 		V1Deployment deployment = deployments.getItems().get(0);
