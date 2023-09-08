@@ -45,7 +45,7 @@ To see the list of all Kubernetes related configuration properties please check 
 
 == Building
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/4.0.x/docs/src/main/asciidoc/building.adoc[]
 
 === Building Docker Images On ARM64
 
@@ -62,7 +62,7 @@ For example:
 
 == Contributing
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/4.0.x/docs/src/main/asciidoc/contributing.adoc[]
 
 == AOT and native image support
 
