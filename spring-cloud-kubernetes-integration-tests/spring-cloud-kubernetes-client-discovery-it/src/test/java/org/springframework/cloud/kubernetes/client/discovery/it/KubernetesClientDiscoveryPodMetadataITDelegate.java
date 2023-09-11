@@ -50,9 +50,10 @@ class KubernetesClientDiscoveryPodMetadataITDelegate {
 
 				}).retryWhen(retrySpec()).block();
 
-		Assertions.assertEquals(servicesResult.size(), 2);
+		Assertions.assertEquals(servicesResult.size(), 3);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
+		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-discoveryserver"));
 
 		WebClient ourServiceClient = builder()
 				.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-client-discovery-it").build();

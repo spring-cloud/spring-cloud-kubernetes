@@ -392,6 +392,31 @@ final class KubernetesClientDiscoveryClientUtils {
 			}
 						""";
 
+	private static final String BODY_FIFTEEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-client-discovery",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private KubernetesClientDiscoveryClientUtils() {
 
 	}
@@ -453,6 +478,10 @@ final class KubernetesClientDiscoveryClientUtils {
 
 	static void patchForANamespace(String image, String deploymentName, String namespace) {
 		patchWithReplace(image, deploymentName, namespace, BODY_FOURTEEN, POD_LABELS);
+	}
+
+	static void patchWithDebugLogs(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_FIFTEEN, POD_LABELS);
 	}
 
 }

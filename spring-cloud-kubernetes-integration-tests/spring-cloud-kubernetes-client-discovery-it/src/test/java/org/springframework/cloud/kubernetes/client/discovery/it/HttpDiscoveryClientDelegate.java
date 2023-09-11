@@ -21,8 +21,6 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import org.assertj.core.api.Assertions;
-import org.testcontainers.containers.Container;
-import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
@@ -45,68 +43,31 @@ final class HttpDiscoveryClientDelegate {
 
 	}
 
-	static void testHttpDiscoveryClient(K3sContainer container) {
-		testLoadBalancer(container);
-		testHealth(container);
+	static void testHttpDiscoveryClient() {
+		testLoadBalancer();
+		testHealth();
 	}
 
-	private static void testLoadBalancer(K3sContainer container) {
+	private static void testLoadBalancer() {
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/http/services").build();
 
-		try {
-			String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
-					.retryWhen(retrySpec()).block();
-			assertThat(Arrays.stream(result).anyMatch("spring-cloud-kubernetes-discoveryserver"::equalsIgnoreCase))
-					.isTrue();
-		}
-		catch (Exception e) {
-			try {
-				String appPodName = container.execInContainer("sh", "-c",
-						"kubectl get pods -l app=spring-cloud-kubernetes-client-discovery-it"
-								+ " -o=name --no-headers | tr -d '\n'")
-						.getStdout();
-				Container.ExecResult execResult = container.execInContainer("sh", "-c",
-						"kubectl logs " + appPodName.trim());
-				String ok = execResult.getStdout();
-				System.out.println(ok);
-			}
-			catch (Exception ex) {
-				throw new RuntimeException(ex);
-			}
-		}
-
+		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
+				.retryWhen(retrySpec()).block();
+		assertThat(Arrays.stream(result).anyMatch("spring-cloud-kubernetes-discoveryserver"::equalsIgnoreCase))
+				.isTrue();
 	}
 
-	private static void testHealth(K3sContainer container) {
+	private static void testHealth() {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/actuator/health").build();
 
-		try {
-			String healthResult = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
-			System.out.println("1111111 " + healthResult);
-			Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-					"$.components.reactiveDiscoveryClients.components.['Reactive Kubernetes Discovery Client'].status")
-					.isEqualTo("UP");
-		}
-		catch (Exception e) {
-			try {
-				String appPodName = container.execInContainer("sh", "-c",
-						"kubectl get pods -l app=spring-cloud-kubernetes-client-discovery-it"
-								+ " -o=name --no-headers | tr -d '\n'")
-						.getStdout();
-				Container.ExecResult execResult = container.execInContainer("sh", "-c",
-						"kubectl logs " + appPodName.trim());
-				String ok = execResult.getStdout();
-				System.out.println(ok);
-			}
-			catch (Exception ex) {
-				throw new RuntimeException(ex);
-			}
-		}
-
+		String healthResult = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
+				"$.components.reactiveDiscoveryClients.components.['Reactive Kubernetes Discovery Client'].status")
+				.isEqualTo("UP");
 	}
 
 	private static WebClient.Builder builder() {

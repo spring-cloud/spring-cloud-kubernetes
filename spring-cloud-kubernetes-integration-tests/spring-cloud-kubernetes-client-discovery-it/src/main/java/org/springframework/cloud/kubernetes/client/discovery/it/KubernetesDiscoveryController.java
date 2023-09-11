@@ -21,6 +21,7 @@ import java.util.List;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,8 +36,8 @@ public class KubernetesDiscoveryController {
 
 	private final ReactiveDiscoveryClient discoveryClient;
 
-	public KubernetesDiscoveryController(ReactiveDiscoveryClient discoveryClient) {
-		this.discoveryClient = discoveryClient;
+	public KubernetesDiscoveryController(ObjectProvider<ReactiveDiscoveryClient> discoveryClient) {
+		this.discoveryClient = discoveryClient.getIfAvailable();
 	}
 
 	@GetMapping("/http/services")

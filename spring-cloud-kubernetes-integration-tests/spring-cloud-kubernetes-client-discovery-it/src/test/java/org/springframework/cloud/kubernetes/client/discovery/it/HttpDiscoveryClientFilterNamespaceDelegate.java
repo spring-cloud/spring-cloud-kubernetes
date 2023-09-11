@@ -18,16 +18,16 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
+import org.assertj.core.api.Assertions;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -38,6 +38,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 final class HttpDiscoveryClientFilterNamespaceDelegate {
+
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(HttpDiscoveryClientDelegate.class);
 
 	private HttpDiscoveryClientFilterNamespaceDelegate() {
 
@@ -69,21 +71,15 @@ final class HttpDiscoveryClientFilterNamespaceDelegate {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void testHealth() {
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
+		WebClient serviceClient = builder.baseUrl("http://localhost:80/actuator/health").build();
 
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> health = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
-				.block();
-
-		Map<String, Object> components = (Map<String, Object>) health.get("components");
-
-		Map<String, Object> discoveryComposite = (Map<String, Object>) components.get("discoveryComposite");
-		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
+		String healthResult = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
+				"$.components.reactiveDiscoveryClients.components.['Reactive Kubernetes Discovery Client'].status")
+				.isEqualTo("UP");
 	}
 
 	private static WebClient.Builder builder() {

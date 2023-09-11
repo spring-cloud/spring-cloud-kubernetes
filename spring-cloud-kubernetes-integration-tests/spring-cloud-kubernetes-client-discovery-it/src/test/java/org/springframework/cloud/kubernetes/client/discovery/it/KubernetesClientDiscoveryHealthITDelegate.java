@@ -19,22 +19,19 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Assertions;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.boot.test.json.BasicJsonTester;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -64,11 +61,12 @@ class KubernetesClientDiscoveryHealthITDelegate {
 	 */
 	void testBlockingConfiguration(K3sContainer container) {
 
-		assertLogStatement(container, "Will publish InstanceRegisteredEvent from blocking implementation");
-		assertLogStatement(container, "publishing InstanceRegisteredEvent");
-		assertLogStatement(container, "Discovery Client has been initialized");
-		assertLogStatement(container,
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+		Commons.waitForLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", container,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("publishing InstanceRegisteredEvent", container, IMAGE_NAME);
+		Commons.waitForLogStatement("Discovery Client has been initialized", container, IMAGE_NAME);
+		Commons.waitForLogStatement("received InstanceRegisteredEvent from pod with 'app' label value : "
+				+ "spring-cloud-kubernetes-client-discovery-it", container, IMAGE_NAME);
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -102,11 +100,12 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 
-		assertLogStatement(container, "Will publish InstanceRegisteredEvent from reactive implementation");
-		assertLogStatement(container, "publishing InstanceRegisteredEvent");
-		assertLogStatement(container, "Discovery Client has been initialized");
-		assertLogStatement(container,
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+		Commons.waitForLogStatement("Will publish InstanceRegisteredEvent from reactive implementation", container,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("publishing InstanceRegisteredEvent", container, IMAGE_NAME);
+		Commons.waitForLogStatement("Discovery Client has been initialized", container, IMAGE_NAME);
+		Commons.waitForLogStatement("received InstanceRegisteredEvent from pod with 'app' label value "
+				+ ": spring-cloud-kubernetes-client-discovery-it", container, IMAGE_NAME);
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -145,11 +144,12 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 
-		assertLogStatement(container, "Will publish InstanceRegisteredEvent from blocking implementation");
-		assertLogStatement(container, "publishing InstanceRegisteredEvent");
-		assertLogStatement(container, "Discovery Client has been initialized");
-		assertLogStatement(container,
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+		Commons.waitForLogStatement("Will publish InstanceRegisteredEvent from blocking implementation", container,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("publishing InstanceRegisteredEvent", container, IMAGE_NAME);
+		Commons.waitForLogStatement("Discovery Client has been initialized", container, IMAGE_NAME);
+		Commons.waitForLogStatement("received InstanceRegisteredEvent from pod with 'app' label value : "
+				+ "spring-cloud-kubernetes-client-discovery-it", container, IMAGE_NAME);
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 		WebClient infoClient = builder().baseUrl("http://localhost/actuator/info").build();
@@ -246,26 +246,6 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
-	}
-
-	private void assertLogStatement(K3sContainer container, String message) {
-		try {
-			String appPodName = container.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(1)).atMost(20, TimeUnit.SECONDS)
-					.until(() -> {
-						Container.ExecResult execResult = container.execInContainer("sh", "-c",
-								"kubectl logs " + appPodName.trim());
-						String ok = execResult.getStdout();
-						return ok.contains(message);
-					});
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-
 	}
 
 }

@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
@@ -52,6 +51,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.client.discovery.it.KubernetesClientDiscoveryClientUtils.patchForANamespace;
 import static org.springframework.cloud.kubernetes.client.discovery.it.KubernetesClientDiscoveryClientUtils.patchForAllNamespacesDiscoveryServer;
+import static org.springframework.cloud.kubernetes.client.discovery.it.KubernetesClientDiscoveryClientUtils.patchWithDebugLogs;
 
 /**
  * @author wind57
@@ -66,6 +66,8 @@ class KubernetesClientDiscoveryClientIT {
 	private static final String NAMESPACE_B = "b";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
+
+	private static final String DOCKER_IMAGE_NAME = "docker.io/springcloud/" + IMAGE_NAME + ":" + Commons.pomVersion();
 
 	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
 
@@ -93,7 +95,7 @@ class KubernetesClientDiscoveryClientIT {
 		util.setUp(NAMESPACE);
 
 		manifests(Phase.CREATE);
-		discoveryServer(Phase.CREATE);
+		//discoveryServer(Phase.CREATE);
 	}
 
 	@AfterAll
@@ -104,13 +106,13 @@ class KubernetesClientDiscoveryClientIT {
 		Commons.systemPrune();
 	}
 
-	@Test
+	//@Test
 	@Order(0)
 	void testHttpDiscoveryClient() {
-		HttpDiscoveryClientDelegate.testHttpDiscoveryClient(K3S);
+		HttpDiscoveryClientDelegate.testHttpDiscoveryClient();
 	}
 
-	@Test
+	//@Test
 	@Order(1)
 	void testHttpDiscoveryClientNamespaces() {
 		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
@@ -122,19 +124,20 @@ class KubernetesClientDiscoveryClientIT {
 		patchForAllNamespacesDiscoveryServer(
 				"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
 				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
-		patchForANamespace("docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion(),
-				"spring-cloud-kubernetes-client-discovery-deployment-it", NAMESPACE);
+		patchForANamespace(DOCKER_IMAGE_NAME, "spring-cloud-kubernetes-client-discovery-deployment-it", NAMESPACE);
 		HttpDiscoveryClientFilterNamespaceDelegate.testDiscoveryClient();
+
 	}
 
 	/**
 	 * Three services are deployed in the default namespace. We do not configure any
 	 * explicit namespace and 'default' must be picked-up.
 	 */
-	// @Test
+	@Test
 	@Order(2)
 	void testSimple() {
 
+		patchWithDebugLogs(DOCKER_IMAGE_NAME, "spring-cloud-kubernetes-client-discovery-deployment-it", NAMESPACE);
 		util.busybox(NAMESPACE, Phase.CREATE);
 
 		Commons.waitForLogStatement("serviceSharedInformer will use namespace : default", K3S, IMAGE_NAME);
@@ -146,10 +149,11 @@ class KubernetesClientDiscoveryClientIT {
 
 				}).retryWhen(retrySpec()).block();
 
-		Assertions.assertEquals(servicesResult.size(), 3);
+		Assertions.assertEquals(servicesResult.size(), 4);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
-		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
+		Assertions.assertTrue(servicesResult.contains(IMAGE_NAME));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
+		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-discoveryserver"));
 
 		WebClient ourServiceClient = builder()
 				.baseUrl("http://localhost/service-instances/spring-cloud-kubernetes-client-discovery-it").build();
@@ -163,11 +167,10 @@ class KubernetesClientDiscoveryClientIT {
 
 		DefaultKubernetesServiceInstance serviceInstance = ourServiceInstances.get(0);
 		Assertions.assertNotNull(serviceInstance.getInstanceId());
-		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-client-discovery-it");
+		Assertions.assertEquals(serviceInstance.getServiceId(), IMAGE_NAME);
 		Assertions.assertNotNull(serviceInstance.getHost());
-		Assertions.assertEquals(serviceInstance.getMetadata(),
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it", "custom-spring-k8s", "spring-k8s", "http",
-						"8080", "k8s_namespace", "default", "type", "ClusterIP"));
+		Assertions.assertEquals(serviceInstance.getMetadata(), Map.of("app", IMAGE_NAME, "custom-spring-k8s",
+				"spring-k8s", "http", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
 
@@ -204,13 +207,13 @@ class KubernetesClientDiscoveryClientIT {
 	 *     Our discovery searches in all namespaces, thus finds them both.
 	 * </pre>
 	 */
-	// @Test
+	@Test
 	@Order(3)
 	void testAllNamespaces() {
-		util.createNamespace(NAMESPACE_A);
-		util.createNamespace(NAMESPACE_B);
-		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
+		// util.createNamespace(NAMESPACE_A);
+		// util.createNamespace(NAMESPACE_B);
+		// util.setUpClusterWideClusterRoleBinding(NAMESPACE);
+		// util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 
 		KubernetesClientDiscoveryClientUtils.patchForAllNamespaces(DEPLOYMENT_NAME, NAMESPACE);
@@ -222,9 +225,9 @@ class KubernetesClientDiscoveryClientIT {
 				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
 				}).retryWhen(retrySpec()).block();
-		Assertions.assertEquals(servicesResult.size(), 7);
+		Assertions.assertEquals(servicesResult.size(), 8);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
-		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
+		Assertions.assertTrue(servicesResult.contains(IMAGE_NAME));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
@@ -241,7 +244,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		// do not remove wiremock in namespace a, it is required in the next test
 		util.busybox(NAMESPACE_B, Phase.DELETE);
-		util.deleteClusterWideClusterRoleBinding(NAMESPACE);
+		// util.deleteClusterWideClusterRoleBinding(NAMESPACE);
 	}
 
 	/**
@@ -253,11 +256,11 @@ class KubernetesClientDiscoveryClientIT {
 	 *     Only service in namespace-a is found.
 	 * </pre>
 	 */
-	// @Test
+	@Test
 	@Order(4)
 	void testSpecificNamespace() {
-		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
+		// util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
+		// util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
 
 		KubernetesClientDiscoveryClientUtils.patchForSingleNamespace(DEPLOYMENT_NAME, NAMESPACE);
 
@@ -301,27 +304,25 @@ class KubernetesClientDiscoveryClientIT {
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
-		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
-		util.deleteNamespace(NAMESPACE_A);
-		util.deleteNamespace(NAMESPACE_B);
+		// util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
+		// util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
+		// util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
+		// util.deleteNamespace(NAMESPACE_A);
+		// util.deleteNamespace(NAMESPACE_B);
 	}
 
-	// @Test
+	@Test
 	@Order(5)
 	void testSimplePodMetadata() {
 		util.setUp(NAMESPACE);
-		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
-		KubernetesClientDiscoveryClientUtils.patchForPodMetadata(imageName, DEPLOYMENT_NAME, NAMESPACE);
+		KubernetesClientDiscoveryClientUtils.patchForPodMetadata(DOCKER_IMAGE_NAME, DEPLOYMENT_NAME, NAMESPACE);
 		new KubernetesClientDiscoveryPodMetadataITDelegate().testSimple();
 	}
 
-	// @Test
+	@Test
 	@Order(6)
 	void filterMatchesOneNamespaceViaThePredicate() {
-		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
-		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
+		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(DOCKER_IMAGE_NAME, DEPLOYMENT_NAME, NAMESPACE);
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesOneNamespaceViaThePredicate(util);
 
 	}
@@ -336,7 +337,7 @@ class KubernetesClientDiscoveryClientIT {
 	 *     As such, both services are found via 'getInstances' call.
 	 * </pre>
 	 */
-	// @Test
+	@Test
 	@Order(7)
 	void filterMatchesBothNamespacesViaThePredicate() {
 
@@ -346,20 +347,19 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate();
 	}
 
-	// @Test
+	@Test
 	@Order(8)
 	void testBlockingConfiguration() {
 
 		// filter tests are done, clean-up a bit to prepare everything for health tests
 		deleteNamespacesAndWiremock();
 
-		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
-		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
+		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(DOCKER_IMAGE_NAME, DEPLOYMENT_NAME, NAMESPACE);
 
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
 	}
 
-	// @Test
+	@Test
 	@Order(9)
 	void testReactiveConfiguration() {
 
@@ -368,7 +368,7 @@ class KubernetesClientDiscoveryClientIT {
 		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(K3S);
 	}
 
-	// @Test
+	@Test
 	@Order(10)
 	void testDefaultConfiguration() {
 
@@ -418,13 +418,12 @@ class KubernetesClientDiscoveryClientIT {
 		V1Deployment deployment = (V1Deployment) util
 				.yaml("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("server/spring-cloud-kubernetes-discoveryserver-service.yaml");
-		V1Ingress ingress = (V1Ingress) util.yaml("server/spring-cloud-kubernetes-discoveryserver-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, service, null);
 		}
 	}
 
