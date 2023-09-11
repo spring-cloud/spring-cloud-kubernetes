@@ -52,6 +52,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.nat
  */
 class ConfigMapAndSecretIT {
 
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-client-config-it");
+
 	private static final String BODY = """
 			{
 				"spec": {
@@ -134,9 +136,8 @@ class ConfigMapAndSecretIT {
 		WebClient propertyClient = builder.baseUrl(PROPERTY_URL).build();
 
 		await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2))
-			.ignoreException(WebClientResponseException.BadGateway.class)
-			.until(() -> propertyClient
-			.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
+				.ignoreException(WebClientResponseException.BadGateway.class).until(() -> propertyClient
+						.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
 
 		WebClient secretClient = builder.baseUrl(SECRET_URL).build();
 		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
@@ -206,7 +207,7 @@ class ConfigMapAndSecretIT {
 
 	private static void patchForPollingReload() {
 		patchWithReplace(ConfigMapAndSecretIT.DOCKER_IMAGE, ConfigMapAndSecretIT.APP_NAME + "-deployment",
-				ConfigMapAndSecretIT.NAMESPACE, BODY);
+				ConfigMapAndSecretIT.NAMESPACE, BODY, POD_LABELS);
 	}
 
 }
