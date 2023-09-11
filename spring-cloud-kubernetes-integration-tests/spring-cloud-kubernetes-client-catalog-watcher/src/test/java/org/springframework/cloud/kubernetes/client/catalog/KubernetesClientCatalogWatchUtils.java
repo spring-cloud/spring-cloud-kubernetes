@@ -16,12 +16,17 @@
 
 package org.springframework.cloud.kubernetes.client.catalog;
 
+import java.util.Map;
+
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 
 /**
  * @author wind57
  */
 final class KubernetesClientCatalogWatchUtils {
+
+	private static final Map<String, String> POD_LABELS = Map.of("app",
+			"spring-cloud-kubernetes-client-catalog-watcher");
 
 	private KubernetesClientCatalogWatchUtils() {
 
@@ -119,15 +124,15 @@ final class KubernetesClientCatalogWatchUtils {
 						""";
 
 	static void patchForEndpointSlices(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE);
+		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);
 	}
 
 	static void patchForEndpointsNamespaces(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, BODY_TWO);
+		patchWithReplace(imageName, deploymentName, namespace, BODY_TWO, POD_LABELS);
 	}
 
 	static void patchForEndpointSlicesNamespaces(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, BODY_THREE);
+		patchWithReplace(imageName, deploymentName, namespace, BODY_THREE, POD_LABELS);
 	}
 
 }
