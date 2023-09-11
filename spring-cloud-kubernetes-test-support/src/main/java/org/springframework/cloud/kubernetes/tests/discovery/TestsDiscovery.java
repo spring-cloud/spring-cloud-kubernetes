@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
@@ -57,12 +58,15 @@ public class TestsDiscovery {
 		LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
 				.selectors(DiscoverySelectors.selectClasspathRoots(paths)).build();
 
-		Launcher launcher = LauncherFactory.openSession().getLauncher();
-		TestPlan testPlan = launcher.discover(request);
-		testPlan.getRoots().stream().flatMap(x -> testPlan.getChildren(x).stream())
-				.map(TestIdentifier::getLegacyReportingName).sorted().forEach(test -> {
-					System.out.println("spring.cloud.k8s.test.to.run -> " + test);
-				});
+		try (LauncherSession session = LauncherFactory.openSession()) {
+			Launcher launcher = session.getLauncher();
+			TestPlan testPlan = launcher.discover(request);
+			testPlan.getRoots().stream().flatMap(x -> testPlan.getChildren(x).stream())
+					.map(TestIdentifier::getLegacyReportingName).sorted().forEach(test -> {
+						System.out.println("spring.cloud.k8s.test.to.run -> " + test);
+					});
+		}
+
 	}
 
 	private static void replaceClassloader(List<URL> classpathURLs) {
@@ -73,7 +77,9 @@ public class TestsDiscovery {
 
 	// /tmp/deps.txt are created by the pipeline
 	private static List<String> entireClasspath() throws Exception {
-		return Files.lines(Paths.get("/tmp/deps.txt")).distinct().collect(Collectors.toList());
+		try (Stream<String> lines = Files.lines(Paths.get("/tmp/deps.txt"))) {
+			return lines.distinct().collect(Collectors.toList());
+		}
 	}
 
 	private static URL toURL(URI uri) {
