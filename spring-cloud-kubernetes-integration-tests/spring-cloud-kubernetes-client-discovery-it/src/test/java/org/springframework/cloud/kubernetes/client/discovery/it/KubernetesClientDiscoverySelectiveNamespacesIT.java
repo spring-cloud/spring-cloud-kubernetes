@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.discovery.it;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -114,18 +113,17 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(1)
 	void testOneNamespaceBlockingOnly() {
 
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking is enabled and reactive is disabled.
-		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertFalse(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
+		Assertions.assertFalse(logs().contains(REACTIVE_PUBLISH));
 
 		blockingCheck();
 
@@ -141,21 +139,16 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	void testOneNamespaceReactiveOnly() {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that reactive is enabled and blocking is disabled.
-		Assertions.assertFalse(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(REACTIVE_PUBLISH, K3S, IMAGE_NAME);
+		Assertions.assertFalse(logs().contains(BLOCKING_PUBLISH));
 
 		reactiveCheck();
 
@@ -171,21 +164,18 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	void testOneNamespaceBothBlockingAndReactive() {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactive(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]"));
-		Assertions.assertTrue(
-				logs.contains("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesMissing : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("ConditionalOnSelectiveNamespacesPresent : found selective namespaces : [a]", K3S,
+				IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		// this tiny checks makes sure that blocking and reactive is enabled.
-		Assertions.assertTrue(logs.contains(BLOCKING_PUBLISH));
-		Assertions.assertTrue(logs.contains(REACTIVE_PUBLISH));
+		Commons.waitForLogStatement(BLOCKING_PUBLISH, K3S, IMAGE_NAME);
+		Commons.waitForLogStatement(REACTIVE_PUBLISH, K3S, IMAGE_NAME);
 
 		blockingCheck();
 		reactiveCheck();
@@ -209,8 +199,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(4)
 	void testTwoNamespacesBlockingOnly() {
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesBlockingOnly(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate().testTwoNamespacesBlockingOnly(K3S);
 	}
 
@@ -230,8 +218,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(5)
 	void testTwoNamespacesReactiveOnly() {
 		KubernetesClientDiscoveryClientUtils.patchForReactiveOnly(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate().testTwoNamespaceReactiveOnly(K3S);
 	}
 
@@ -251,8 +237,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	@Order(6)
 	void testTwoNamespacesBothBlockingAndReactive() {
 		KubernetesClientDiscoveryClientUtils.patchToAddBlockingSupport(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate()
 				.testTwoNamespacesBothBlockingAndReactive(K3S);
 	}
