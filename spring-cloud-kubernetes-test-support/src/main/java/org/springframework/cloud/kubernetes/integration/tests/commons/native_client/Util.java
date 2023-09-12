@@ -438,6 +438,18 @@ public final class Util {
 
 	}
 
+	public void configWatcher(Phase phase) {
+
+		V1Deployment deployment = (V1Deployment) yaml("config-watcher/deployment.yaml");
+		V1Service service = (V1Service) yaml("config-watcher/service.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait("default", deployment.getMetadata().getName(), deployment, service, null, true);
+		} else {
+			deleteAndWait("default", deployment, service, null);
+		}
+	}
+
 	public static void patchWithMerge(String deploymentName, String namespace, String patchBody,
 			Map<String, String> podLabels) {
 		try {
