@@ -445,7 +445,8 @@ public final class Util {
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait("default", deployment.getMetadata().getName(), deployment, service, null, true);
-		} else {
+		}
+		else {
 			deleteAndWait("default", deployment, service, null);
 		}
 	}
