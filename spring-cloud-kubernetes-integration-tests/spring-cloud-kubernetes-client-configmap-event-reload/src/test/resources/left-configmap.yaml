@@ -4,4 +4,4 @@ metadata:
   name: left-configmap
   namespace: left
 data:
-  left.value: left-initial
+  left.value: "left-initial"

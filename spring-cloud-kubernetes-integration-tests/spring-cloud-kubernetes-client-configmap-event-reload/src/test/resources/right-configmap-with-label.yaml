@@ -6,4 +6,4 @@ metadata:
   labels:
     spring.cloud.kubernetes.config.informer.enabled: true
 data:
-  right.with.label.value: right-with-label-initial
+  right.with.label.value: "right-with-label-initial"

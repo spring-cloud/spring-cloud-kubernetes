@@ -99,8 +99,6 @@ class KubernetesClientDiscoveryFilterITDelegate {
 
 		// patch the deployment to change what namespaces are take into account
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
