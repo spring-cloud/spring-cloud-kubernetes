@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.catalog;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -27,7 +28,10 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -44,17 +48,28 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
+import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointSlicesNamespaces;
+import static org.springframework.cloud.kubernetes.client.catalog.KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
 
 /**
  * @author wind57
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class KubernetesClientCatalogWatchIT {
 
 	private static final String APP_NAME = "spring-cloud-kubernetes-client-catalog-watcher";
 
 	private static final String NAMESPACE = "default";
 
+	private static final String NAMESPACE_A = "namespacea";
+
+	private static final String NAMESPACE_B = "namespaceb";
+
 	private static final K3sContainer K3S = Commons.container();
+
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + APP_NAME + ":" + Commons.pomVersion();
 
 	private static Util util;
 
@@ -65,10 +80,15 @@ class KubernetesClientCatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
+		app(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
+		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE_A, NAMESPACE_B));
+		util.deleteNamespace(NAMESPACE_A);
+		util.deleteNamespace(NAMESPACE_B);
+		app(Phase.DELETE);
 		Commons.systemPrune();
 	}
 
@@ -86,31 +106,35 @@ class KubernetesClientCatalogWatchIT {
 	 * </pre>
 	 */
 	@Test
-	void testCatalogWatchWithEndpoints() throws Exception {
-		app(false, Phase.CREATE);
-		assertLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch");
+	@Order(1)
+	void testCatalogWatchWithEndpoints() {
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch", K3S, APP_NAME);
 		test();
-		app(false, Phase.DELETE);
 	}
 
 	@Test
-	void testCatalogWatchWithEndpointSlices() throws Exception {
-		app(true, Phase.CREATE);
-		assertLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch");
+	@Order(2)
+	void testCatalogWatchWithEndpointSlices() {
+		patchForEndpointSlices(APP_NAME, NAMESPACE, DOCKER_IMAGE);
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", K3S, APP_NAME);
 		test();
-		app(true, Phase.DELETE);
+
+		testCatalogWatchWithEndpointsNamespaces();
 	}
 
-	/**
-	 * we log in debug mode the type of the StateGenerator we use, be that Endpoints or
-	 * EndpointSlices. Here we make sure that in the test we actually use the correct
-	 * type.
-	 */
-	private void assertLogStatement(String log) throws Exception {
-		String appPodName = K3S.execInContainer("kubectl", "get", "pods", "-l",
-				"app=spring-cloud-kubernetes-client-catalog-watcher", "-o=name", "--no-headers").getStdout();
-		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-		Assertions.assertTrue(allLogs.contains(log));
+	void testCatalogWatchWithEndpointsNamespaces() {
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE_A, NAMESPACE_B));
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
+		patchForEndpointsNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces();
+
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
+		patchForEndpointSlicesNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces();
 	}
 
 	/**
@@ -131,7 +155,11 @@ class KubernetesClientCatalogWatchIT {
 			// we get 3 pods as input, but because they are sorted by name in the catalog
 			// watcher implementation
 			// we will get the first busybox instances here.
+
 			if (result != null) {
+				if (result.size() != 3) {
+					return false;
+				}
 				holder[0] = result.get(0);
 				holder[1] = result.get(1);
 				return true;
@@ -184,10 +212,8 @@ class KubernetesClientCatalogWatchIT {
 
 	}
 
-	private static void app(boolean useEndpointSlices, Phase phase) {
-		V1Deployment deployment = useEndpointSlices
-				? (V1Deployment) util.yaml("app/watcher-endpoint-slices-deployment.yaml")
-				: (V1Deployment) util.yaml("app/watcher-endpoints-deployment.yaml");
+	private static void app(Phase phase) {
+		V1Deployment deployment = (V1Deployment) util.yaml("app/watcher-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("app/watcher-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("app/watcher-ingress.yaml");
 
