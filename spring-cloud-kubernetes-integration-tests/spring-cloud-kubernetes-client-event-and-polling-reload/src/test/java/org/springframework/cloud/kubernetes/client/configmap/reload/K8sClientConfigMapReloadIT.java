@@ -148,6 +148,7 @@ class K8sClientConfigMapReloadIT {
 		testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
 		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
 		testBootstrapEnabledPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
+
 	}
 
 	/**
