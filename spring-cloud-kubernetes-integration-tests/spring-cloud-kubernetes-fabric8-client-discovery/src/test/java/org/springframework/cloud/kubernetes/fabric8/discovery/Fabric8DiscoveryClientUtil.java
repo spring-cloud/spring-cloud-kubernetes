@@ -19,15 +19,12 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.time.Duration;
 import java.util.Objects;
 
-import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -267,23 +264,6 @@ final class Fabric8DiscoveryClientUtil {
 
 	static RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
-	}
-
-	static void waitForLogStatement(String message, K3sContainer k3sContainer, String imageName) {
-		try {
-			String appPodName = k3sContainer.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + imageName + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-			await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(2)).until(() -> {
-				String execResult = k3sContainer.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim())
-						.getStdout();
-				return execResult.contains(message);
-			});
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
 	}
 
 }
