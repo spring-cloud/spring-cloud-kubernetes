@@ -4,4 +4,4 @@ metadata:
   name: right-configmap
   namespace: right
 data:
-  right.value: right-initial
+  right.value: "right-initial"

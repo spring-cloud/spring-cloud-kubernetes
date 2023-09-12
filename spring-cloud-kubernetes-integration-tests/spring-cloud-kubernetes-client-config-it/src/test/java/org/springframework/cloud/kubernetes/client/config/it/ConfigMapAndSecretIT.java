@@ -42,6 +42,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.native_cli
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
@@ -50,6 +51,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.nat
  * @author Ryan Baxter
  */
 class ConfigMapAndSecretIT {
+
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-client-config-it");
 
 	private static final String BODY = """
 			{
@@ -108,14 +111,14 @@ class ConfigMapAndSecretIT {
 	}
 
 	@Test
-	void testConfigMapAndSecretWatchRefresh() {
+	void testConfigMapAndSecretWatchRefresh() throws Exception {
 		configK8sClientIt(Phase.CREATE);
 		testConfigMapAndSecretRefresh();
 
 		testConfigMapAndSecretPollingRefresh();
 	}
 
-	void testConfigMapAndSecretPollingRefresh() {
+	void testConfigMapAndSecretPollingRefresh() throws Exception {
 		recreateConfigMapAndSecret();
 		patchForPollingReload();
 		testConfigMapAndSecretRefresh();
@@ -127,13 +130,14 @@ class ConfigMapAndSecretIT {
 	 *     - replace the above and assert we get the new values.
 	 * </pre>
 	 */
-	void testConfigMapAndSecretRefresh() {
+	void testConfigMapAndSecretRefresh() throws Exception {
 
 		WebClient.Builder builder = builder();
 		WebClient propertyClient = builder.baseUrl(PROPERTY_URL).build();
 
-		await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
-				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
+		await().timeout(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(2))
+				.ignoreException(WebClientResponseException.BadGateway.class).until(() -> propertyClient
+						.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-config-map"));
 
 		WebClient secretClient = builder.baseUrl(SECRET_URL).build();
 		String secret = secretClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
@@ -144,34 +148,26 @@ class ConfigMapAndSecretIT {
 		Map<String, String> data = configMap.getData();
 		data.replace("application.yaml", data.get("application.yaml").replace("from-config-map", "from-unit-test"));
 		configMap.data(data);
-		try {
-			coreV1Api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null, null);
-		}
-		catch (ApiException e) {
-			throw new RuntimeException(e);
-		}
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> propertyClient
-				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-unit-test"));
+		coreV1Api.replaceNamespacedConfigMap(APP_NAME, NAMESPACE, configMap, null, null, null, null);
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+				.ignoreException(WebClientResponseException.BadGateway.class).until(() -> propertyClient
+						.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("from-unit-test"));
 		V1Secret v1Secret = (V1Secret) util.yaml("spring-cloud-kubernetes-client-config-it-secret.yaml");
 		Map<String, byte[]> secretData = v1Secret.getData();
 		secretData.replace("my.config.mySecret", "p455w1rd".getBytes());
 		v1Secret.setData(secretData);
-		try {
-			coreV1Api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null, null);
-		}
-		catch (ApiException e) {
-			throw new RuntimeException(e);
-		}
-		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2)).until(() -> secretClient
-				.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
+		coreV1Api.replaceNamespacedSecret(APP_NAME, NAMESPACE, v1Secret, null, null, null, null);
+		await().timeout(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(2))
+				.ignoreException(WebClientResponseException.BadGateway.class).until(() -> secretClient
+						.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
 	void recreateConfigMapAndSecret() {
 		try {
-			coreV1Api.deleteNamespacedConfigMap("spring-cloud-kubernetes-client-config-it", NAMESPACE,
-				null, null, null, null, null, null);
-			coreV1Api.deleteNamespacedSecret("spring-cloud-kubernetes-client-config-it", NAMESPACE,
-				null, null, null, null, null, null);
+			coreV1Api.deleteNamespacedConfigMap("spring-cloud-kubernetes-client-config-it", NAMESPACE, null, null, null,
+					null, null, null);
+			coreV1Api.deleteNamespacedSecret("spring-cloud-kubernetes-client-config-it", NAMESPACE, null, null, null,
+					null, null, null);
 
 			V1ConfigMap configMap = (V1ConfigMap) util.yaml("spring-cloud-kubernetes-client-config-it-configmap.yaml");
 			V1Secret secret = (V1Secret) util.yaml("spring-cloud-kubernetes-client-config-it-secret.yaml");
@@ -211,7 +207,7 @@ class ConfigMapAndSecretIT {
 
 	private static void patchForPollingReload() {
 		patchWithReplace(ConfigMapAndSecretIT.DOCKER_IMAGE, ConfigMapAndSecretIT.APP_NAME + "-deployment",
-				ConfigMapAndSecretIT.NAMESPACE, BODY);
+				ConfigMapAndSecretIT.NAMESPACE, BODY, POD_LABELS);
 	}
 
 }
