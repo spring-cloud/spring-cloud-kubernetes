@@ -53,6 +53,12 @@ runs:
         
         sort -t' '  -nk2 $temp_dir/tests-with-times.txt >> $temp_dir/tests-with-times-sorted.txt
         
+        echo '--------------------------------------------------------------'
+        cat $temp_dir/tests-with-times-sorted.txt
+        echo '--------------------------------------------------------------'
+        cat $temp_dir/tests-without-times.txt
+        echo '--------------------------------------------------------------'
+        
         sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' $temp_dir/tests-with-times-sorted.txt)
         sum_of_all_tests_as_int=$(printf "%.0f\n" "$sum_of_all_tests")
         echo "sum of all tests : $sum_of_all_tests_as_int"
