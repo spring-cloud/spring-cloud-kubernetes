@@ -5,18 +5,28 @@ runs:
 
   steps:
 
+    - name: download tests with times
+      if: env.BASE_BRANCH != '2.1.x'
+      uses: actions/download-artifact@v3
+      with:
+        name: tests-with-times-sorted.txt
+        path: /tmp/tests-with-times-sorted.txt
+
+    - name: download tests without times
+      if: env.BASE_BRANCH != '2.1.x'
+      uses: actions/download-artifact@v3
+      with:
+        name: tests-without-times.txt
+        path: /tmp/tests-without-times.txt
+
     - name: split tests into known times and un-known times
       shell: bash
       run: |
         
-        temp_dir=$(mktemp -d)
-        echo ${{ env.TESTS_TO_RUN_WITH_TIMES }} >> $temp_dir/tests-with-times-sorted.txt
-        echo ${{ env.TESTS_TO_RUN_WITHOUT_TIMES }} >> $temp_dir/tests-without-times.txt
-        
         echo "------------------------------------------------------------------------------"
-        cat $temp_dir/tests-with-times-sorted.txt
+        cat /tmp/tests-with-times-sorted.txt
         echo "------------------------------------------------------------------------------"
-        cat $temp_dir/tests-without-times.txt
+        cat /tmp/tests-without-times.txt
         echo "------------------------------------------------------------------------------"
         
         ############################################################################################################
@@ -37,7 +47,7 @@ runs:
         # this test needs to be taken in 'tests_to_take_in_current_iteration', thus:
         # tests_to_take_in_current_iteration=testC; also next_sum becomes 3sec
         # we then drop this line from /tmp/sorted.txt because we have already processed it 
-        # ('sed -i "" "${j}d" $temp_dir/tests-with-times-sorted.txt')
+        # ('sed -i "" "${j}d" /tmp/tests-with-times-sorted.txt')
         # we also decrement j, since we removed one line from the file
 
         # we then take testB, add its time to next_sum, thus next_sum = 5 sec, but now the time is NOT < 3.1 sec
@@ -55,7 +65,7 @@ runs:
         average_time_per_instance=${{ env.AVERAGE_TIME_PER_INSTANCE }}
         echo "average time per instance $average_time_per_instance"
   
-        number_of_lines_in_file=$(grep -c ^ $temp_dir/tests-with-times-sorted.txt)
+        number_of_lines_in_file=$(grep -c ^ /tmpr/tests-with-times-sorted.txt)
         echo "number of lines in fine : $number_of_lines_in_file"
         tests_to_run_in_current_index=''
   
@@ -65,7 +75,7 @@ runs:
             tests_to_take_in_current_iteration=''
             for ((j=$number_of_lines_in_file; j>0; j--)) ; do
   
-              current_line_in_file=$(awk "NR == ${j}" $temp_dir/tests-with-times-sorted.txt)
+              current_line_in_file=$(awk "NR == ${j}" /tmp/tests-with-times-sorted.txt)
               current_test_time=$(echo $current_line_in_file | awk '{print $2}')
               current_test_time=$(printf "%.0f\n" "$current_test_time")
               current_test_name=$(echo $current_line_in_file | awk '{print $1}')
@@ -81,7 +91,7 @@ runs:
                       tests_to_take_in_current_iteration="$tests_to_take_in_current_iteration,$current_test_name"
                   fi
   
-                  sed -i "${j}d" $temp_dir/tests-with-times-sorted.txt
+                  sed -i "${j}d" /tmp/tests-with-times-sorted.txt
                   number_of_lines_in_file=$(( $number_of_lines_in_file-1 ))
                   continue
               fi
@@ -113,7 +123,7 @@ runs:
         if [[ ${CURRENT_INDEX} = ${NUMBER_OF_JOBS} ]]; then
           echo "last index spotted"
           
-          if [ ! -f $temp_dir/tests-without-times.txt ]; then
+          if [ ! -f /tmp/tests-without-times.txt ]; then
             echo "no tests outside cache found"
            
             if [ -z "$tests_to_run_in_current_index" ]; then
@@ -122,7 +132,7 @@ runs:
             fi
         
           else 
-            TESTS_WITHOUT_TIMES=($(cat $temp_dir/tests-without-times.txt))
+            TESTS_WITHOUT_TIMES=($(cat /tmp/tests-without-times.txt))
         
             for test in "${TESTS_WITHOUT_TIMES[@]}"; do
               if [[ -z "$tests_to_run_in_current_index" ]]; then

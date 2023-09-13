@@ -104,6 +104,17 @@ runs:
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
         echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_json)" >> $GITHUB_ENV
         echo "MATRIX_ARRAY=$(echo $matrix_array_json)" >> $GITHUB_ENV
-        echo "TESTS_TO_RUN_WITH_TIMES=$(cat $temp_dir/tests-with-times-sorted.txt)" >> $GITHUB_ENV
-        echo "TESTS_TO_RUN_WITHOUT_TIMES=$(cat $temp_dir/tests-without-times.txt)" >> $GITHUB_ENV
         echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
+        
+
+    - name: upload test with times
+      uses: actions/upload-artifact@v3
+      with:
+        name: tests-with-times-sorted.txt
+        path: $temp_dir/tests-with-times-sorted.txt
+
+    - name: upload test without times
+      uses: actions/upload-artifact@v3
+      with:
+        name: tests-without-times.txt
+        path: $temp_dir/tests-without-times.txt
