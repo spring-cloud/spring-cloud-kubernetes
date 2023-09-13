@@ -18,19 +18,20 @@ runs:
 
   steps:
 
-    - name: download tests
-      uses: actions/download-artifact@v3
+    - name: restore test times cache
+      uses: actions/cache/restore@v3
       with:
-        name: tests.txt
-        path: /tmp
+        path: /tmp/sorted.txt
+        key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-
+
+    - name: show cached test times
+      shell: bash
+      run: cat /tmp/sorted.txt
 
     - name: compute matrix steps
       shell: bash
       run: |
-        
-        echo "==============================================================="
-        cat /tmp/tests.txt
-        echo "==============================================================="
         
         PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
         
