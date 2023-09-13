@@ -21,7 +21,7 @@ runs:
       shell: bash
       run: |
         cd spring-cloud-kubernetes-test-support
-        .././mvnw -q exec:java -Dexec.mainClass="org.springframework.cloud.kubernetes.tests.discovery.TestsDiscovery" > /tmp/tests.txt
+        .././mvnw -q exec:java -Prun-on-github-actions -Dexec.mainClass="org.springframework.cloud.kubernetes.tests.discovery.TestsDiscovery" > /tmp/tests.txt
         cd ..
 
     - name: show result
