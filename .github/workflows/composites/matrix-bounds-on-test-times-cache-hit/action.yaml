@@ -24,28 +24,29 @@ runs:
         
         PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
         
-        echo "========================================="
-        echo "${PLAIN_TEST_CLASSNAMES[@]}"
-        echo "========================================="
-        
         temp_dir=$(mktemp -d)
         
+        #######################################################################################################
+        ### split into tests that we know the running times for and in tests that we do not know the times for. 
+        #######################################################################################################
         for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
         
-          test_in_cache=$(grep "$test " /tmp/sorted.txt || true)
-          if [[ -z "$test_in_cache" ]]; then
-            echo "unknown test (for our cache) : $test"
+          found_test=$(grep "$test " /tmp/sorted.txt || true)
+          if [[ -z "found_test" ]]; then
+            echo found_test >> $temp_dir/tests-without-times.txt
           else
-            echo $test_in_cache >> $temp_dir/tests-with-times.txt
+            echo found_test >> $temp_dir/tests-with-times.txt
           fi
         
         done
         
-        sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' $temp_dir/tests-with-times.txt)
+        sort -t' '  -nk2 $temp_dir/tests-with-times.txt >> $temp_dir/tests-with-times-sorted.txt
+        
+        sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' $temp_dir/tests-with-times-sorted.txt)
         sum_of_all_tests_as_int=$(printf "%.0f\n" "$sum_of_all_tests")
         echo "sum of all tests : $sum_of_all_tests_as_int"
         
-        max_test_time=$(tail -1 $temp_dir/tests-with-times.txt | awk '{print $2}')
+        max_test_time=$(tail -1 $temp_dir/tests-with-times-sorted.txt | awk '{print $2}')
         max_test_time_as_int=$(printf "%.0f\n" "$max_test_time")
         echo "max test time : $max_test_time_as_int"
         
@@ -71,6 +72,7 @@ runs:
         
         matrix_array+=']'
         
+        echo "********************************************************************************************************"
         echo "number of instances : $number_of_instances_as_array"
         echo "average time per instance : $average_time_per_instance"
         echo "matrix_array : $matrix_array"
@@ -85,5 +87,6 @@ runs:
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
         echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_json)" >> $GITHUB_ENV
         echo "MATRIX_ARRAY=$(echo $matrix_array_json)" >> $GITHUB_ENV
-
-
+        echo "TESTS_TO_RUN_WITH_TIMES=$(cat $temp_dir/tests-with-times-sorted.txt)" >> $GITHUB_ENV
+        echo "TESTS_TO_RUN_WITHOUT_TIMES=$(cat $temp_dir/tests-without-times.txt)" >> $GITHUB_ENV
+        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV

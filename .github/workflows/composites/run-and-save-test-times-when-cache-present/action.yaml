@@ -18,39 +18,16 @@ runs:
     - name: split tests into known times and un-known times
       shell: bash
       run: |
-        ############################################################################################################
-        ############################################################################################################
-        ############################################################################################################
-        
-        #  1. Get all existing tests and place them in PLAIN_TEST_CLASSNAMES
-        #  2. Get all test times from the existing cache : /tmp/sorted.txt
-        #  3. Split tests from PLAIN_TEST_CLASSNAMES into two files depending if we already know their running times
-        #     or not : tests-without-times.txt and tests-with-times.txt
-        
-        ############################################################################################################
-        ############################################################################################################
-        ############################################################################################################
-        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
-        
-        echo "${PLAIN_TEST_CLASSNAMES[@]}"
         
         temp_dir=$(mktemp -d)
+        echo ${{ env.TESTS_TO_RUN_WITH_TIMES }} >> $temp_dir/tests-with-times-sorted.txt
+        echo ${{ env.TESTS_TO_RUN_WITHOUT_TIMES }} >> $temp_dir/tests-without-times.txt
         
-        for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
-        
-          find_test_in_sorted=$(grep "$test " /tmp/sorted.txt || true)
-          if [[ -z "$find_test_in_sorted" ]]; then
-            echo $test >> $temp_dir/tests-without-times.txt
-          else
-            echo $find_test_in_sorted >> $temp_dir/tests-with-times.txt
-          fi
-  
-        done
-        
-        echo "tests with times:"
-        cat $temp_dir/tests-with-times.txt
-        
-        sort -t' '  -nk2 $temp_dir/tests-with-times.txt >> $temp_dir/tests-with-times-sorted.txt
+        echo "------------------------------------------------------------------------------"
+        cat $temp_dir/tests-with-times-sorted.txt
+        echo "------------------------------------------------------------------------------"
+        cat $temp_dir/tests-without-times.txt
+        echo "------------------------------------------------------------------------------"
         
         ############################################################################################################
         ############################################################################################################
@@ -81,19 +58,11 @@ runs:
         
         # we repeat the process again and now tests_to_take_in_current_iteration=testB,testA because their cumulative 
         # sum will be 3 sec and it's < 3.1 sec.
-        
-        sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' $temp_dir/tests-with-times-sorted.txt)
-        sum_of_all_tests_as_int=$(printf "%.0f\n" "$sum_of_all_tests")
-        echo "sum of all tests : $sum_of_all_tests_as_int"
-  
-        max_test_time=$(tail -1 $temp_dir/tests-with-times-sorted.txt | awk '{print $2}')
-        max_test_time_as_int=$(printf "%.0f\n" "$max_test_time")
-        echo "max test time : $max_test_time_as_int"
   
         number_of_instances=${NUMBER_OF_JOBS}
         echo "number of instances $number_of_instances"
   
-        average_time_per_instance=$((  sum_of_all_tests_as_int / number_of_instances  ))
+        average_time_per_instance=${{ env.AVERAGE_TIME_PER_INSTANCE }}
         echo "average time per instance $average_time_per_instance"
   
         number_of_lines_in_file=$(grep -c ^ $temp_dir/tests-with-times-sorted.txt)
