@@ -42,11 +42,11 @@ runs:
         #######################################################################################################
         for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
         
-          found_test=$(grep "$test " /tmp/sorted.txt || true)
-          if [[ -z "found_test" ]]; then
-            echo found_test >> $temp_dir/tests-without-times.txt
+          find_test_in_sorted=$(grep "$test " /tmp/sorted.txt || true)
+          if [[ -z "$find_test_in_sorted" ]]; then
+            echo $test >> $temp_dir/tests-without-times.txt
           else
-            echo found_test >> $temp_dir/tests-with-times.txt
+            echo $find_test_in_sorted >> $temp_dir/tests-with-times.txt
           fi
         
         done
