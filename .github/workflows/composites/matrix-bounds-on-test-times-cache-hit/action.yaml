@@ -18,9 +18,19 @@ runs:
 
   steps:
 
+    - name: download tests
+      uses: actions/download-artifact@v3
+      with:
+        name: tests.txt
+        path: /tmp
+
     - name: compute matrix steps
       shell: bash
       run: |
+        
+        echo "==============================================================="
+        cat /tmp/tests.txt
+        echo "==============================================================="
         
         PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
         
