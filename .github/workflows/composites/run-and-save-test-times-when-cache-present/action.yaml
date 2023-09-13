@@ -10,14 +10,14 @@ runs:
       uses: actions/download-artifact@v3
       with:
         name: tests-with-times-sorted.txt
-        path: /tmp/tests-with-times-sorted.txt
+        path: /tmp/
 
     - name: download tests without times
       if: env.BASE_BRANCH != '2.1.x'
       uses: actions/download-artifact@v3
       with:
         name: tests-without-times.txt
-        path: /tmp/tests-without-times.txt
+        path: /tmp/
 
     - name: split tests into known times and un-known times
       shell: bash
