@@ -93,6 +93,8 @@ jobs:
           echo "number_of_matrix_instances=${{ env.NUMBER_OF_MATRIX_INSTANCES }}" >> $GITHUB_OUTPUT
           echo "matrix_array=${{ env.MATRIX_ARRAY }}" >> $GITHUB_OUTPUT
           echo "average_time_per_instance=${{ env.AVERAGE_TIME_PER_INSTANCE }}" >> $GITHUB_OUTPUT
+          echo "average_time_per_instance : $average_time_per_instance"
+          echo "average_time_per_instance : ${{ env.AVERAGE_TIME_PER_INSTANCE }}"
 
   test_when_cache_present:
     needs: [ build ]
