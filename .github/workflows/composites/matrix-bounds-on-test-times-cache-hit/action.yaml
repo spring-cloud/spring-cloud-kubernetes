@@ -53,7 +53,8 @@ runs:
         
         # this is a work-around for the fact that 'actions/download-artifact@v3' does not support
         # something like: 'ignore if downloaded file is missing'. 
-        if [[ ! -f /tmp/tests-without-times.txt ]]; touch /tmp/tests-without-times.txt; fi
+        # so unless we create a dummy file for upload, download will fail
+        if [[ ! -f /tmp/tests-without-times.txt ]]; then touch /tmp/tests-without-times.txt; fi
         
         echo '--------------------------------------------------------------'
         cat /tmp/tests-with-times-sorted.txt
