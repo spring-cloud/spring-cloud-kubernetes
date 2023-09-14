@@ -23,7 +23,7 @@ jobs:
       test_times_cache_present: ${{ steps.test_times_cache_present_init.outputs.test_times_cache_present }}
       number_of_matrix_instances: ${{ steps.test_times_cache_present_init.outputs.number_of_matrix_instances }}
       matrix_array: ${{ steps.test_times_cache_present_init.outputs.matrix_array }}
-      average_time_per_instance: ${{ steps.test_times_cache_present_init.average_time_per_instance }}
+      average_time_per_instance: ${{ steps.test_times_cache_present_init.outputs.average_time_per_instance }}
     steps:
 
       - name: checkout project
