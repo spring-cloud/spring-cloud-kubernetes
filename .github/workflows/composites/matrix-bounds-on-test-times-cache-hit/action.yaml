@@ -51,11 +51,16 @@ runs:
         
         sort -t' '  -nk2 /tmp/tests-with-times.txt >> /tmp/tests-with-times-sorted.txt
         
+        # this is a work-around for the fact that 'actions/download-artifact@v3' does not support
+        # something like: 'ignore if downloaded file is missing'. 
+        if [[ ! -f /tmp/tests-without-times.txt ]]; touch /tmp/tests-without-times.txt; fi
+        
         echo '--------------------------------------------------------------'
         cat /tmp/tests-with-times-sorted.txt
         echo '--------------------------------------------------------------'
-        if [[ -f /tmp/tests-without-times.txt ]]; then cat /tmp/tests-without-times.txt; fi
+        cat /tmp/tests-without-times.txt
         echo '--------------------------------------------------------------'
+        
         
         sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' /tmp/tests-with-times-sorted.txt)
         sum_of_all_tests_as_int=$(printf "%.0f\n" "$sum_of_all_tests")

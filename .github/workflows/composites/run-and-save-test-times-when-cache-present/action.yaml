@@ -16,12 +16,10 @@ runs:
       if: env.BASE_BRANCH != '2.1.x'
       uses: actions/download-artifact@v3
       with:
-        if-no-files-found: warn
         name: tests-without-times.txt
         path: /tmp/
 
     - name: split tests into known times and un-known times
-      if: always()
       shell: bash
       run: |
         
