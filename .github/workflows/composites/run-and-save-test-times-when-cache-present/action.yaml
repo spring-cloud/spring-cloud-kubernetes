@@ -62,7 +62,7 @@ runs:
         number_of_instances=${NUMBER_OF_JOBS}
         echo "number of instances $number_of_instances"
   
-        average_time_per_instance=${{ env.AVERAGE_TIME_PER_INSTANCE }}
+        average_time_per_instance=${AVERAGE_TIME_PER_INSTANCE}
         echo "average time per instance $average_time_per_instance"
   
         number_of_lines_in_file=$(grep -c ^ /tmpr/tests-with-times-sorted.txt)

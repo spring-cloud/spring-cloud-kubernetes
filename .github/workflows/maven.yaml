@@ -98,7 +98,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
-      AVERAGE_TIME_PER_INSTANCE: "${{ fromJSON(needs.build.outputs.average_time_per_instance) }}"
     # only run this one if there is a previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'true'
     timeout-minutes: 60
@@ -108,6 +107,7 @@ jobs:
       matrix:
         current_index: [ "${{ fromJSON(needs.build.outputs.matrix_array) }}" ]
         number_of_jobs: [ "${{ fromJSON(needs.build.outputs.number_of_matrix_instances) }}" ]
+        average_time_per_instance: [ "${{ fromJSON(needs.build.outputs.average_time_per_instance) }}" ]
 
     steps:
 
@@ -140,6 +140,7 @@ jobs:
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
+          AVERAGE_TIME_PER_INSTANCE: ${{ matrix.average_time_per_instance }}
 
   test_when_cache_missing:
     needs: [ build ]
