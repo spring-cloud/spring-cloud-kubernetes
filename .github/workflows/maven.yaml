@@ -107,7 +107,7 @@ jobs:
       fail-fast: true
       matrix:
         current_index: [ "${{ fromJSON(needs.build.outputs.matrix_array) }}" ]
-        number_of_jobs: [ "${{ fromJSON(needs.build.outputs.number_of_matrix_instances) }}" ]
+        #number_of_jobs: [ "${{ fromJSON(needs.build.outputs.number_of_matrix_instances) }}" ]
         average_time_per_instance: [ "${{ fromJSON(needs.build.outputs.average_time_per_instance) }}" ]
 
     steps:

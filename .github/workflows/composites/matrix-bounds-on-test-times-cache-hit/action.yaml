@@ -73,10 +73,10 @@ runs:
         number_of_instances_as_array+=']'
         
         average_time_per_instance=$((  sum_of_all_tests_as_int / $number_of_instances ))
-        average_time_per_instance_as_array=()
-        average_time_per_instance_as_array+='['
-        average_time_per_instance_as_array+=$average_time_per_instance
-        average_time_per_instance_as_array+=']'
+        average_time_per_instance_array=()
+        average_time_per_instance_array+='['
+        average_time_per_instance_array+=$average_time_per_instance
+        average_time_per_instance_array+=']'
         
         matrix_array=()
         matrix_array+='['
@@ -102,13 +102,13 @@ runs:
         matrix_array_json=$(jq -r -c . <<< $matrix_array)
         echo "matrix_array_json : $matrix_array_json"
         
-        average_time_per_instance_as_json=$(jq -r -c . <<< $average_time_per_instance_as_array)
-        echo "average_time_per_instance_as_json : $average_time_per_instance_as_json"
+        average_time_per_instance_json=$(jq -r -c . <<< $average_time_per_instance_array)
+        echo "average_time_per_instance_json : $average_time_per_instance_json"
 
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
         echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_json)" >> $GITHUB_ENV
         echo "MATRIX_ARRAY=$(echo $matrix_array_json)" >> $GITHUB_ENV
-        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance_as_json)" >> $GITHUB_ENV
+        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance_json)" >> $GITHUB_ENV
 
     - name: upload test with times
       uses: actions/upload-artifact@v3
