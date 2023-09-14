@@ -21,6 +21,7 @@ runs:
         path: /tmp/
 
     - name: split tests into known times and un-known times
+      if: always()
       shell: bash
       run: |
         
