@@ -65,7 +65,7 @@ runs:
         average_time_per_instance=${AVERAGE_TIME_PER_INSTANCE}
         echo "average time per instance $average_time_per_instance"
   
-        number_of_lines_in_file=$(grep -c ^ /tmpr/tests-with-times-sorted.txt)
+        number_of_lines_in_file=$(grep -c ^ /tmp/tests-with-times-sorted.txt)
         echo "number of lines in fine : $number_of_lines_in_file"
         tests_to_run_in_current_index=''
   
