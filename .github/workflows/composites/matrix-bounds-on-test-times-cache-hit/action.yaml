@@ -73,7 +73,11 @@ runs:
         number_of_instances_as_array+=']'
         
         average_time_per_instance=$((  sum_of_all_tests_as_int / $number_of_instances ))
-        echo "average time per instance $average_time_per_instance"
+        average_time_per_instance_as_array=()
+        average_time_per_instance_as_array+='['
+        average_time_per_instance_as_array+=$average_time_per_instance
+        average_time_per_instance_as_array+=']'
+        echo "average_time_per_instance_as_array: $average_time_per_instance_as_array"
         
         matrix_array=()
         matrix_array+='['
@@ -102,7 +106,7 @@ runs:
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
         echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_json)" >> $GITHUB_ENV
         echo "MATRIX_ARRAY=$(echo $matrix_array_json)" >> $GITHUB_ENV
-        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
+        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance_as_array)" >> $GITHUB_ENV
         
 
     - name: upload test with times
