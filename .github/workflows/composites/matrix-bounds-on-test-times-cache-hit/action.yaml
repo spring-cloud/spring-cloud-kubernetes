@@ -54,7 +54,7 @@ runs:
         echo '--------------------------------------------------------------'
         cat /tmp/tests-with-times-sorted.txt
         echo '--------------------------------------------------------------'
-        cat /tmp/tests-without-times.txt
+        if [[ -f /tmp/tests-without-times.txt ]]; then cat /tmp/tests-without-times.txt; fi
         echo '--------------------------------------------------------------'
         
         sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' /tmp/tests-with-times-sorted.txt)
