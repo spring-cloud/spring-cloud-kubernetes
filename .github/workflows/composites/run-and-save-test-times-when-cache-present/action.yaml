@@ -168,7 +168,7 @@ runs:
             for i in "${sliced_array[@]}"; do
               
               # can be present in the last index as 'none,testA,testB'
-              if [[ "$i" -eq "none" ]]; then
+              if [[ "$i" == "none" ]]; then
                 echo "skipping 'none'"
               else
                 filename="${i}.txt"
