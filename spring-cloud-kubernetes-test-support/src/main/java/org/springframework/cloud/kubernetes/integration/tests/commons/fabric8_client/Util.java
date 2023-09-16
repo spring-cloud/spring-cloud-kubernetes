@@ -263,21 +263,17 @@ public final class Util {
 	public void wiremock(String namespace, String path, Phase phase) {
 		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
-		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
 
 		if (phase.equals(Phase.CREATE)) {
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			ingress.getMetadata().setNamespace(namespace);
-			ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
-			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
+			createAndWait(namespace, "wiremock", deployment, service, null, false);
 		}
 		else {
-			deleteAndWait(namespace, deployment, service, ingress);
+			deleteAndWait(namespace, deployment, service, null);
 		}
 
 	}
