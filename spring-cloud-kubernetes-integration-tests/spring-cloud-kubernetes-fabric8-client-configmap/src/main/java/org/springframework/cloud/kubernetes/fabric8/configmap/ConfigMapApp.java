@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  */
 
 @SpringBootApplication
-@EnableConfigurationProperties(ConfigMapProperties.class)
+@EnableConfigurationProperties({ ConfigMapProperties.class, GreetingProperties.class })
 public class ConfigMapApp {
 
 	public static void main(String[] args) {

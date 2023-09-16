@@ -62,9 +62,9 @@ public class TestsDiscovery {
 			Launcher launcher = session.getLauncher();
 			TestPlan testPlan = launcher.discover(request);
 			testPlan.getRoots().stream().flatMap(x -> testPlan.getChildren(x).stream())
-				.map(TestIdentifier::getLegacyReportingName).sorted().forEach(test -> {
-					System.out.println("spring.cloud.k8s.test.to.run -> " + test);
-				});
+					.map(TestIdentifier::getLegacyReportingName).sorted().forEach(test -> {
+						System.out.println("spring.cloud.k8s.test.to.run -> " + test);
+					});
 		}
 
 	}

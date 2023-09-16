@@ -27,13 +27,21 @@ public class ConfigMapController {
 
 	private final ConfigMapProperties properties;
 
-	public ConfigMapController(ConfigMapProperties properties) {
+	private final GreetingProperties greetingProperties;
+
+	public ConfigMapController(ConfigMapProperties properties, GreetingProperties greetingProperties) {
 		this.properties = properties;
+		this.greetingProperties = greetingProperties;
 	}
 
 	@GetMapping("/key1")
 	public String key1() {
 		return properties.getKey1();
+	}
+
+	@GetMapping("/greeting")
+	public String message() {
+		return greetingProperties.message();
 	}
 
 }
