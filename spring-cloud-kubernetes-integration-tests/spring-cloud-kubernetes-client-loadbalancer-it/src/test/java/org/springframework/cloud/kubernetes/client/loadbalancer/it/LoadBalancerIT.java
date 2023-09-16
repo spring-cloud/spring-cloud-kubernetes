@@ -23,15 +23,16 @@ import java.util.Objects;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.boot.test.json.BasicJsonTester;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -40,8 +41,6 @@ import reactor.util.retry.RetryBackoffSpec;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -53,6 +52,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.nat
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class LoadBalancerIT {
+
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(LoadBalancerIT.class);
 
 	private static final String BODY_FOR_MERGE = """
 			{
@@ -132,15 +133,11 @@ class LoadBalancerIT {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl(SERVICE_URL).build();
 
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> result = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
-				.block();
-
-		Assertions.assertTrue(result.containsKey("mappings"));
-		Assertions.assertTrue(result.containsKey("meta"));
-
+		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$.mappings")
+			.isEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathNumberValue("$.meta.total")
+			.isEqualTo(0);
 	}
 
 	private static void loadbalancerIt(Phase phase) {
