@@ -32,12 +32,12 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.boot.test.json.BasicJsonTester;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
@@ -134,10 +134,9 @@ class LoadBalancerIT {
 		WebClient serviceClient = builder.baseUrl(SERVICE_URL).build();
 
 		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
-		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$.mappings")
-			.isEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$.mappings").isEmpty();
 		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathNumberValue("$.meta.total")
-			.isEqualTo(0);
+				.isEqualTo(0);
 	}
 
 	private static void loadbalancerIt(Phase phase) {
