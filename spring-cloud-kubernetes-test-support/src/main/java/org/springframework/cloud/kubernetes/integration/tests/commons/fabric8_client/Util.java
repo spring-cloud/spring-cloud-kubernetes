@@ -260,6 +260,7 @@ public final class Util {
 		});
 	}
 
+	@Deprecated(forRemoval = true)
 	public void wiremock(String namespace, String path, Phase phase) {
 		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
@@ -277,6 +278,38 @@ public final class Util {
 			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
 		}
 		else {
+			deleteAndWait(namespace, deployment, service, ingress);
+		}
+
+	}
+
+	public void wiremock(String namespace, String path, Phase phase, boolean withIngress) {
+		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
+		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
+		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
+
+		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
+		Service service = client.services().load(serviceStream).get();
+		Ingress ingress = null;
+
+		if (phase.equals(Phase.CREATE)) {
+
+			if (withIngress) {
+				ingress = client.network().v1().ingresses().load(ingressStream).get();
+				ingress.getMetadata().setNamespace(namespace);
+				ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
+			}
+
+			deployment.getMetadata().setNamespace(namespace);
+			service.getMetadata().setNamespace(namespace);
+			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
+		}
+		else {
+
+			if (withIngress) {
+				ingress = client.network().v1().ingresses().load(ingressStream).get();
+			}
+
 			deleteAndWait(namespace, deployment, service, ingress);
 		}
 
