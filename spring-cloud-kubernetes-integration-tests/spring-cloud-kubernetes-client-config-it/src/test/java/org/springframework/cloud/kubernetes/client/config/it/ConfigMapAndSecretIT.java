@@ -162,7 +162,7 @@ class ConfigMapAndSecretIT {
 						.method(HttpMethod.GET).retrieve().bodyToMono(String.class).block().equals("p455w1rd"));
 	}
 
-	void recreateConfigMapAndSecret() {
+	private void recreateConfigMapAndSecret() {
 		try {
 			coreV1Api.deleteNamespacedConfigMap("spring-cloud-kubernetes-client-config-it", NAMESPACE, null, null, null,
 					null, null, null);

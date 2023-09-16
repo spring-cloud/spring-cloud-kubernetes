@@ -18,15 +18,56 @@ runs:
 
   steps:
 
+    - name: restore test times cache
+      uses: actions/cache/restore@v3
+      with:
+        path: /tmp/sorted.txt
+        key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-
+
+    - name: show cached test times
+      shell: bash
+      run: cat /tmp/sorted.txt
+
     - name: compute matrix steps
       shell: bash
       run: |
         
-        sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' /tmp/sorted.txt)
+        PLAIN_TEST_CLASSNAMES=($(cat /tmp/tests.txt | grep -o 'spring.cloud.k8s.test.to.run -> org.*' | awk '{print $3}'))
+        
+        #######################################################################################################
+        ### split into tests that we know the running times for and in tests that we do not know the times for. 
+        #######################################################################################################
+        for test in "${PLAIN_TEST_CLASSNAMES[@]}"; do
+        
+          find_test_in_sorted=$(grep "$test " /tmp/sorted.txt || true)
+          if [[ -z "$find_test_in_sorted" ]]; then
+            echo $test >> /tmp/tests-without-times.txt
+          else
+            echo $find_test_in_sorted >> /tmp/tests-with-times.txt
+          fi
+        
+        done
+        
+        sort -t' '  -nk2 /tmp/tests-with-times.txt >> /tmp/tests-with-times-sorted.txt
+        
+        # this is a work-around for the fact that 'actions/download-artifact@v3' does not support
+        # something like: 'ignore if downloaded file is missing'. 
+        # so unless we create a dummy file for upload, download will fail
+        if [[ ! -f /tmp/tests-without-times.txt ]]; then touch /tmp/tests-without-times.txt; fi
+        
+        echo '--------------------------------------------------------------'
+        cat /tmp/tests-with-times-sorted.txt
+        echo '--------------------------------------------------------------'
+        cat /tmp/tests-without-times.txt
+        echo '--------------------------------------------------------------'
+        
+        
+        sum_of_all_tests=$(awk -F' ' '{sum+=$2;} END{print sum;}' /tmp/tests-with-times-sorted.txt)
         sum_of_all_tests_as_int=$(printf "%.0f\n" "$sum_of_all_tests")
         echo "sum of all tests : $sum_of_all_tests_as_int"
         
-        max_test_time=$(tail -1 /tmp/sorted.txt | awk '{print $2}')
+        max_test_time=$(tail -1 /tmp/tests-with-times-sorted.txt | awk '{print $2}')
         max_test_time_as_int=$(printf "%.0f\n" "$max_test_time")
         echo "max test time : $max_test_time_as_int"
         
@@ -38,7 +79,10 @@ runs:
         number_of_instances_as_array+=']'
         
         average_time_per_instance=$((  sum_of_all_tests_as_int / $number_of_instances ))
-        echo "average time per instance $average_time_per_instance"
+        average_time_per_instance_array=()
+        average_time_per_instance_array+='['
+        average_time_per_instance_array+=$average_time_per_instance
+        average_time_per_instance_array+=']'
         
         matrix_array=()
         matrix_array+='['
@@ -52,8 +96,9 @@ runs:
         
         matrix_array+=']'
         
+        echo "********************************************************************************************************"
         echo "number of instances : $number_of_instances_as_array"
-        echo "average time per instance : $average_time_per_instance"
+        echo "average_time_per_instance_as_array: $average_time_per_instance_as_array"
         echo "matrix_array : $matrix_array"
         echo "********************************************************************************************************"
         
@@ -62,10 +107,23 @@ runs:
         
         matrix_array_json=$(jq -r -c . <<< $matrix_array)
         echo "matrix_array_json : $matrix_array_json"
+        
+        average_time_per_instance_json=$(jq -r -c . <<< $average_time_per_instance_array)
+        echo "average_time_per_instance_json : $average_time_per_instance_json"
 
         echo "TEST_TIMES_CACHE_PRESENT=true" >> $GITHUB_ENV
         echo "NUMBER_OF_MATRIX_INSTANCES=$(echo $number_of_instances_json)" >> $GITHUB_ENV
         echo "MATRIX_ARRAY=$(echo $matrix_array_json)" >> $GITHUB_ENV
-        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance)" >> $GITHUB_ENV
+        echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance_json)" >> $GITHUB_ENV
 
+    - name: upload test with times
+      uses: actions/upload-artifact@v3
+      with:
+        name: tests-with-times-sorted.txt
+        path: /tmp/tests-with-times-sorted.txt
 
+    - name: upload test without times
+      uses: actions/upload-artifact@v3
+      with:
+        name: tests-without-times.txt
+        path: /tmp/tests-without-times.txt
