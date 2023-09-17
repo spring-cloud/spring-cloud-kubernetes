@@ -261,7 +261,7 @@ public final class Util {
 	}
 
 	public void wiremock(String namespace, String path, Phase phase) {
-		wiremock(namespace, path, phase, false);
+		wiremock(namespace, path, phase, true);
 	}
 
 	public void wiremock(String namespace, String path, Phase phase, boolean withIngress) {
