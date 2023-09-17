@@ -71,7 +71,31 @@ class DiscoveryClientIT {
 			}
 						""";
 
+	private static final String BODY_TWO = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-discoveryserver",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
+									"value": "TRUE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-discoveryclient-it");
+
+	private static final Map<String, String> POD_LABELS_DISCOVERY =
+			Map.of("app", "spring-cloud-kubernetes-discoveryserver");
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(DiscoveryClientIT.class);
 
@@ -143,6 +167,11 @@ class DiscoveryClientIT {
 				"docker.io/springcloud/spring-cloud-kubernetes-discoveryclient-it:" + Commons.pomVersion(),
 				"spring-cloud-kubernetes-discoveryclient-it-deployment",
 				NAMESPACE);
+		patchForAllNamespaces(
+				"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryserver-deployment",
+				NAMESPACE
+		);
 		testNamespaceDiscoveryClient();
 	}
 
@@ -207,6 +236,10 @@ class DiscoveryClientIT {
 
 	static void patchForNamespaceFilter(String image, String deploymentName, String namespace) {
 		patchWithReplace(image, deploymentName, namespace, BODY_ONE, POD_LABELS);
+	}
+
+	static void patchForAllNamespaces(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_TWO, POD_LABELS_DISCOVERY);
 	}
 
 }
