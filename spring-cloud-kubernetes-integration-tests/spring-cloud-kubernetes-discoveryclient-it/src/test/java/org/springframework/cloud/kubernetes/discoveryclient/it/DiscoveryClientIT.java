@@ -17,8 +17,11 @@
 package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
 
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
+import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -39,10 +42,36 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.discoveryclient.it.DiscoveryClientFilterNamespaceDelegate.testNamespaceDiscoveryClient;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
+
 /**
  * @author Ryan Baxter
  */
 class DiscoveryClientIT {
+
+	private static final String BODY_ONE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-discoveryclient-it",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "left"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-discoveryclient-it");
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(DiscoveryClientIT.class);
 
@@ -51,6 +80,10 @@ class DiscoveryClientIT {
 	private static final String SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME = "spring-cloud-kubernetes-discoveryclient-it";
 
 	private static final String NAMESPACE = "default";
+
+	private static final String NAMESPACE_LEFT = "left";
+
+	private static final String NAMESPACE_RIGHT = "right";
 
 	private static final K3sContainer K3S = Commons.container();
 
@@ -65,8 +98,21 @@ class DiscoveryClientIT {
 
 		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
+
+		util.createNamespace(NAMESPACE_LEFT);
+		util.createNamespace(NAMESPACE_RIGHT);
+
+		RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
+		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util
+				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
+		rbacApi.createClusterRoleBinding(clusterRole, null, null, null, null);
+
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE, false);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE, false);
+
 		discoveryServer(Phase.CREATE);
 
 	}
@@ -75,6 +121,12 @@ class DiscoveryClientIT {
 	static void afterAll() throws Exception {
 		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.DELETE, false);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE, false);
+
+		util.deleteNamespace(NAMESPACE_LEFT);
+		util.deleteNamespace(NAMESPACE_RIGHT);
 
 		discoveryServer(Phase.DELETE);
 		discoveryIt(Phase.DELETE);
@@ -86,6 +138,12 @@ class DiscoveryClientIT {
 		discoveryIt(Phase.CREATE);
 		testLoadBalancer();
 		testHealth();
+
+		patchForNamespaceFilter(
+				"docker.io/springcloud/spring-cloud-kubernetes-discoveryclient-it:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryclient-it-deployment",
+				NAMESPACE);
+		testNamespaceDiscoveryClient();
 	}
 
 	private void testLoadBalancer() {
@@ -145,6 +203,10 @@ class DiscoveryClientIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	static void patchForNamespaceFilter(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_ONE, POD_LABELS);
 	}
 
 }

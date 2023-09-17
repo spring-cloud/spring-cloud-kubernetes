@@ -87,13 +87,13 @@ class ActuatorRefreshMultipleNamespacesIT {
 	@BeforeEach
 	void setup() {
 		configWatcher(Phase.CREATE);
-		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.CREATE);
+		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.CREATE, true);
 	}
 
 	@AfterEach
 	void after() {
 		configWatcher(Phase.DELETE);
-		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.DELETE);
+		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.DELETE, true);
 	}
 
 	/**
