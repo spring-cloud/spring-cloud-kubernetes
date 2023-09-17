@@ -55,8 +55,8 @@ class KubernetesClientDiscoveryFilterITDelegate {
 		util.createNamespace(NAMESPACE_A_UAT);
 		util.createNamespace(NAMESPACE_B_UAT);
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A_UAT, NAMESPACE_B_UAT));
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE);
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 

@@ -82,12 +82,12 @@ public class Fabric8ClientLoadbalancerIT {
 
 	@BeforeEach
 	void beforeEach() {
-		util.wiremock(NAMESPACE, "/", Phase.CREATE, false);
+		util.wiremock(NAMESPACE, "/", Phase.CREATE);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.wiremock(NAMESPACE, "/", Phase.DELETE, false);
+		util.wiremock(NAMESPACE, "/", Phase.DELETE);
 	}
 
 	@Test

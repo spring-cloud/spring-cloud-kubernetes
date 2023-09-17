@@ -105,15 +105,15 @@ class DiscoveryClientFilterNamespaceIT {
 
 	@AfterEach
 	void afterEach() {
-		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.DELETE, false);
-		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE, false);
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.DELETE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE);
 		discoveryIt(Phase.DELETE);
 	}
 
 	@Test
 	void testDiscoveryClient() {
-		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE, false);
-		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE, false);
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE);
 		discoveryIt(Phase.CREATE);
 
 		testLoadBalancer();

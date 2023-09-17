@@ -97,32 +97,32 @@ class Fabric8DiscoveryPodMetadataIT {
 		util.setUp(NAMESPACE);
 
 		manifests(Phase.CREATE);
-		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 		util.busybox(NAMESPACE, Phase.CREATE);
 
 		util.createNamespace(NAMESPACE_A_UAT);
 		util.createNamespace(NAMESPACE_B_UAT);
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE);
 
 		util.createNamespace(NAMESPACE_LEFT);
 		util.createNamespace(NAMESPACE_RIGHT);
-		util.wiremock(NAMESPACE_LEFT, "/wiremock", Phase.CREATE, false);
-		util.wiremock(NAMESPACE_RIGHT, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_LEFT, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock", Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
-		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		util.busybox(NAMESPACE, Phase.DELETE);
 
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
 		util.deleteNamespace(NAMESPACE_A_UAT);
 		util.deleteNamespace(NAMESPACE_B_UAT);
 
-		util.wiremock(NAMESPACE_LEFT, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_RIGHT, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_LEFT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock", Phase.DELETE);
 		util.deleteNamespace(NAMESPACE_LEFT);
 		util.deleteNamespace(NAMESPACE_RIGHT);
 

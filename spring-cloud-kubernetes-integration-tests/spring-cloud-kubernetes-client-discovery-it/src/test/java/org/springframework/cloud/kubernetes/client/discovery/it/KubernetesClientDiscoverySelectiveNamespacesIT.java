@@ -84,9 +84,9 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A, NAMESPACE_B));
-		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE, false);
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
 		manifests(Phase.CREATE);
 	}
 
@@ -94,9 +94,9 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	static void afterAll() throws Exception {
 		Commons.cleanUp(IMAGE_NAME, K3S);
 
-		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
 		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A, NAMESPACE_B));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);

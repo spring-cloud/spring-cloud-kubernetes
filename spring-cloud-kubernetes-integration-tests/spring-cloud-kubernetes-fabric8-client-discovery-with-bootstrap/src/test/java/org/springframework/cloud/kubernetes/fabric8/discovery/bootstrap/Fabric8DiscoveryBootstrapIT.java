@@ -73,12 +73,12 @@ class Fabric8DiscoveryBootstrapIT {
 		util.setUp(NAMESPACE);
 
 		manifests(Phase.CREATE);
-		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 	}
 
 	@AfterAll
 	static void after() throws Exception {
-		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.systemPrune();

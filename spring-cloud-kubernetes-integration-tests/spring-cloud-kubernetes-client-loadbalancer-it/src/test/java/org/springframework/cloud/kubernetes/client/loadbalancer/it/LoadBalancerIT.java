@@ -75,12 +75,12 @@ class LoadBalancerIT {
 
 	@BeforeEach
 	void setup() {
-		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.CREATE);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE);
 	}
 
 	@Test

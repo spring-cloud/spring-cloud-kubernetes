@@ -175,7 +175,7 @@ class KubernetesClientDiscoveryClientIT {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
 		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 
 		KubernetesClientDiscoveryClientUtils.patchForAllNamespaces(DEPLOYMENT_NAME, NAMESPACE);
@@ -222,7 +222,7 @@ class KubernetesClientDiscoveryClientIT {
 	@Order(3)
 	void testSpecificNamespace() {
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
 
 		KubernetesClientDiscoveryClientUtils.patchForSingleNamespace(DEPLOYMENT_NAME, NAMESPACE);
 
@@ -266,8 +266,8 @@ class KubernetesClientDiscoveryClientIT {
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
 		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
@@ -343,8 +343,8 @@ class KubernetesClientDiscoveryClientIT {
 	}
 
 	private void deleteNamespacesAndWiremock() {
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
 		util.deleteNamespace(NAMESPACE_A_UAT);
 		util.deleteNamespace(NAMESPACE_B_UAT);
 	}
