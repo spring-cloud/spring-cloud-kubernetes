@@ -17,13 +17,12 @@
 package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,21 +31,20 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Ryan Baxter
  */
 class DiscoveryClientIT {
+
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(DiscoveryClientIT.class);
 
 	private static final String DISCOVERY_SERVER_APP_NAME = "spring-cloud-kubernetes-discoveryserver";
 
@@ -94,28 +92,23 @@ class DiscoveryClientIT {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/services").build();
 
-		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
-				.retryWhen(retrySpec()).block();
-		assertThat(Arrays.stream(result).anyMatch("spring-cloud-kubernetes-discoveryserver"::equalsIgnoreCase))
-				.isTrue();
+		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
 
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
+				.extractingJsonPathArrayValue("$")
+				.contains("spring-cloud-kubernetes-discoveryserver");
 	}
 
-	@SuppressWarnings("unchecked")
 	void testHealth() {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
 
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> health = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
+		String health = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
-		Map<String, Object> components = (Map<String, Object>) health.get("components");
-
-		Map<String, Object> discoveryComposite = (Map<String, Object>) components.get("discoveryComposite");
-		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(health))
+				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 	}
 
 	private static void discoveryIt(Phase phase) {

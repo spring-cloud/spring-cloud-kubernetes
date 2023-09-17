@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
@@ -29,6 +28,7 @@ import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1EnvVarBuilder;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,22 +38,20 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
-import org.springframework.cloud.kubernetes.discovery.KubernetesServiceInstance;
+import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author mbialkowski1
  */
 class DiscoveryClientFilterNamespaceIT {
+
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(DiscoveryClientFilterNamespaceIT.class);
 
 	private static final String DISCOVERY_SERVER_APP_NAME = "spring-cloud-kubernetes-discoveryserver";
 
@@ -124,39 +122,38 @@ class DiscoveryClientFilterNamespaceIT {
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/services").build();
-
-		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
+		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
-		assertThat(result).containsAnyOf("service-wiremock");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
+				.extractingJsonPathArrayValue("$")
+				.contains("service-wiremock");
 
 		// ServiceInstance
 		WebClient serviceInstanceClient = builder
 				.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock").build();
-		List<KubernetesServiceInstance> serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<KubernetesServiceInstance>>() {
-				}).retryWhen(retrySpec()).block();
+		String serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(String.class).retryWhen(retrySpec()).block();
 
-		assertThat(serviceInstances).isNotNull();
-		assertThat(serviceInstances.size()).isEqualTo(1);
-		assertThat(serviceInstances.get(0).getNamespace()).isEqualTo(NAMESPACE_LEFT);
+		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances))
+				.extractingJsonPathStringValue("$.[0].serviceId")
+				.isEqualTo("service-wiremock");
 
+		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances))
+				.extractingJsonPathStringValue("$.[0].namespace")
+				.isEqualTo(NAMESPACE_LEFT);
 	}
 
-	@SuppressWarnings("unchecked")
 	void testHealth() {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
 
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> health = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
-				.block();
+		String health = serviceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(String.class).retryWhen(retrySpec()).block();
 
-		Map<String, Object> components = (Map<String, Object>) health.get("components");
-
-		Map<String, Object> discoveryComposite = (Map<String, Object>) components.get("discoveryComposite");
-		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(health))
+				.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+				.isEqualTo("UP");
 	}
 
 	private void discoveryIt(Phase phase) {
