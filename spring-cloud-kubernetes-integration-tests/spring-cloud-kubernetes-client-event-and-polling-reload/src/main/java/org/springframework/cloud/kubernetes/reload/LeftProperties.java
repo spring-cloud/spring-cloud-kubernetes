@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.secrets.event.reload;
+package org.springframework.cloud.kubernetes.reload;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author wind57
  */
+@ConfigurationProperties("left")
+public class LeftProperties {
 
-@SpringBootApplication
-@EnableConfigurationProperties(SecretsProperties.class)
-public class SecretsApp {
+	private String value;
 
-	public static void main(String[] args) {
-		SpringApplication.run(SecretsApp.class, args);
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 }

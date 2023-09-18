@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.configmap.reload;
+package org.springframework.cloud.kubernetes.reload;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author wind57
  */
-@SpringBootApplication
-@EnableConfigurationProperties({ LeftProperties.class, RightProperties.class, RightWithLabelsProperties.class,
-		ConfigMapProperties.class })
-public class App {
+@ConfigurationProperties("right")
+public class RightProperties {
 
-	public static void main(String[] args) {
-		SpringApplication.run(App.class, args);
+	private String value;
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 
 }

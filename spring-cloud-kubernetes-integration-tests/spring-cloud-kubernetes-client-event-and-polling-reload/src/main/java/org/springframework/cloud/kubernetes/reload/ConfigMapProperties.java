@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.secrets.event.reload;
+package org.springframework.cloud.kubernetes.reload;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author wind57
  */
 @ConfigurationProperties("from.properties")
-public class SecretsProperties {
+public class ConfigMapProperties {
 
 	private String key;
 
@@ -30,8 +30,8 @@ public class SecretsProperties {
 		return key;
 	}
 
-	public void setKey(String key) {
-		this.key = key;
+	public void setKey(String key1) {
+		this.key = key1;
 	}
 
 }
