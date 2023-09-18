@@ -420,23 +420,8 @@ public final class Util {
 						.getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
-	@Deprecated(forRemoval = true)
 	public void wiremock(String namespace, String path, Phase phase) {
-		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
-		V1Service service = (V1Service) yaml("wiremock/wiremock-service.yaml");
-		V1Ingress ingress = (V1Ingress) yaml("wiremock/wiremock-ingress.yaml");
-
-		if (phase.equals(Phase.CREATE)) {
-			deployment.getMetadata().setNamespace(namespace);
-			service.getMetadata().setNamespace(namespace);
-			ingress.getMetadata().setNamespace(namespace);
-			ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
-			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
-		}
-		else {
-			deleteAndWait(namespace, deployment, service, ingress);
-		}
-
+		wiremock(namespace, path, phase, true);
 	}
 
 	public void wiremock(String namespace, String path, Phase phase, boolean withIngress) {
