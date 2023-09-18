@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.loadbalancer.it;
+package org.springframework.cloud.kubernetes.client.reactive.discovery.it;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
@@ -46,11 +47,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author Ryan Baxter
  */
-class LoadBalancerIT {
+class ReactiveDiscoveryClientIT {
 
-	private static final String SERVICE_URL = "http://localhost:80/loadbalancer-it/service";
+	private static final String HEALTH_URL = "http://localhost:80/reactive-discovery-it/actuator/health";
 
-	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-client-loadbalancer-it";
+	private static final String SERVICES_URL = "http://localhost:80/reactive-discovery-it/services";
+
+	private static final String SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME = "spring-cloud-kubernetes-client-reactive-discoveryclient-it";
 
 	private static final String NAMESPACE = "default";
 
@@ -61,15 +64,15 @@ class LoadBalancerIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		Commons.validateImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
+		Commons.validateImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		Commons.cleanUp(SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME, K3S);
+		Commons.cleanUp(SPRING_CLOUD_K8S_REACTIVE_DISCOVERY_APP_NAME, K3S);
 		Commons.systemPrune();
 	}
 
@@ -79,46 +82,54 @@ class LoadBalancerIT {
 	}
 
 	@AfterEach
-	void afterEach() {
+	void after() {
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE, false);
+		reactiveDiscoveryIt(Phase.DELETE);
 	}
 
 	@Test
-	void testLoadBalancerServiceMode() {
-		loadbalancerIt(false, Phase.CREATE);
+	void testReactiveDiscoveryClient() {
+		reactiveDiscoveryIt(Phase.CREATE);
 		testLoadBalancer();
-		loadbalancerIt(false, Phase.DELETE);
+		testHealth();
 	}
 
-	@Test
-	void testLoadBalancerPodMode() {
-		loadbalancerIt(true, Phase.CREATE);
-		testLoadBalancer();
-		loadbalancerIt(true, Phase.DELETE);
+	@SuppressWarnings("unchecked")
+	private void testHealth() {
+
+		WebClient.Builder builder = builder();
+		WebClient serviceClient = builder.baseUrl(HEALTH_URL).build();
+		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> health = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
+				.block();
+
+		Map<String, Object> components = (Map<String, Object>) health.get("components");
+
+		Assertions.assertTrue(components.containsKey("reactiveDiscoveryClients"));
+		Map<String, Object> discoveryComposite = (Map<String, Object>) components.get("discoveryComposite");
+		Assertions.assertEquals(discoveryComposite.get("status"), "UP");
 	}
 
 	private void testLoadBalancer() {
 
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl(SERVICE_URL).build();
+		WebClient serviceClient = builder.baseUrl(SERVICES_URL).build();
+		String servicesResponse = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
 
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> result = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
-				.block();
-
-		Assertions.assertTrue(result.containsKey("mappings"));
-		Assertions.assertTrue(result.containsKey("meta"));
-
+		Assertions
+				.assertTrue(Arrays.stream(servicesResponse.split(",")).anyMatch("service-wiremock"::equalsIgnoreCase));
 	}
 
-	private void loadbalancerIt(boolean podBased, Phase phase) {
-		V1Deployment deployment = podBased
-				? (V1Deployment) util.yaml("spring-cloud-kubernetes-client-loadbalancer-pod-it-deployment.yaml")
-				: (V1Deployment) util.yaml("spring-cloud-kubernetes-client-loadbalancer-service-it-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("spring-cloud-kubernetes-client-loadbalancer-it-service.yaml");
-		V1Ingress ingress = (V1Ingress) util.yaml("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
+	private void reactiveDiscoveryIt(Phase phase) {
+		V1Deployment deployment = (V1Deployment) util
+				.yaml("spring-cloud-kubernetes-client-reactive-discoveryclient-it-deployment.yaml");
+		V1Service service = (V1Service) util
+				.yaml("spring-cloud-kubernetes-client-reactive-discoveryclient-it-service.yaml");
+		V1Ingress ingress = (V1Ingress) util
+				.yaml("spring-cloud-kubernetes-client-reactive-discoveryclient-it-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
