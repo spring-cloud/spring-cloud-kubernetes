@@ -22,9 +22,7 @@ import java.util.Map;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.junit.jupiter.api.Assertions;
-import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -45,34 +43,23 @@ final class PollingReloadConfigMapMountDelegate {
 
 	/**
 	 * <pre>
-	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
+	 *     - we have "spring.config.import: kubernetes:,configtree:/tmp/", which means we will 'locate' property sources
 	 *       from config maps.
 	 *     - the property above means that at the moment we will be searching for config maps that only
 	 *       match the application name, in this specific test there is no such config map.
-	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
-	 *     	 '/tmp/application.properties'
-	 *       in this test. That is populated by the volumeMounts (see BODY_FIVE)
-	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
+	 *     - what we will also read, is /tmp directory according to configtree rules.
+	 *       As such, a property "props.key" (see deployment-mount.yaml) will be in environment.
 	 *
-	 *     - we then change the config map content, wait for k8s to pick it up and replace them
-	 *     - our polling will then detect that change, and trigger a reload.
+	 *     - we then change the config map content, wait for configuration watcher to pick up the change
+	 *       and schedule a refresh event, based on http.
 	 * </pre>
 	 */
-	static void testPollingReloadConfigMapMount(String deploymentName, K3sContainer k3sContainer, Util util,
-			String imageName) throws Exception {
+	static void testPollingReloadConfigMapMount(String deploymentName, Util util, String imageName) throws Exception {
 
 		patchFive(deploymentName, "default", imageName);
 
-		// (1)
-		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", k3sContainer,
-				deploymentName);
-
-		// (2)
-		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", k3sContainer,
-				deploymentName);
-
 		// (3)
-		WebClient webClient = builder().baseUrl("http://localhost/mount").build();
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
@@ -82,7 +69,7 @@ final class PollingReloadConfigMapMountDelegate {
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
 		V1ConfigMap configMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
-		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
+		configMap.setData(Map.of("data", "from.properties=as-mount-changed"));
 		new CoreV1Api().replaceNamespacedConfigMap("poll-reload-as-mount", "default", configMap, null, null, null,
 				null);
 

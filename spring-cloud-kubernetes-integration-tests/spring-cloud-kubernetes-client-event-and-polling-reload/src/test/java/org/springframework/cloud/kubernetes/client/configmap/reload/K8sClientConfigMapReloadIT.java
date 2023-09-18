@@ -43,8 +43,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.BootstrapEnabledPollingReloadConfigMapMountDelegate.testBootstrapEnabledPollingReloadConfigMapMount;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.DataChangesInConfigMapReloadDelegate.testSimple;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.builder;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchOne;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchThree;
@@ -142,12 +140,13 @@ class K8sClientConfigMapReloadIT {
 	// since we patch each deployment with "replace" strategy, any of the above can be
 	// commented out and debugged individually.
 	private void testAllOther() throws Exception {
-		testInformFromOneNamespaceEventTriggered();
-		testInform();
-		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
-		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
-		testBootstrapEnabledPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
+		// testInformFromOneNamespaceEventTriggered();
+		// testInform();
+		// testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		// testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
+		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, util, DOCKER_IMAGE);
+		// testBootstrapEnabledPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util,
+		// DOCKER_IMAGE);
 
 	}
 

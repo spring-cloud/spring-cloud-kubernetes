@@ -263,7 +263,13 @@ final class K8sClientReloadITUtil {
 								{
 									"configMap": {
 										"defaultMode": 420,
-										"name": "poll-reload-as-mount"
+										"name": "poll-reload-as-mount",
+										"items": [
+											{
+												"key": "from.properties",
+												"path": "key"
+											}
+										]
 									},
 									"name": "config-map-volume"
 								}
@@ -273,7 +279,7 @@ final class K8sClientReloadITUtil {
 								"image": "image_name_here",
 								"volumeMounts": [
 									{
-										"mountPath": "/tmp",
+										"mountPath": "/tmp/props",
 										"name": "config-map-volume"
 									}
 								],
@@ -347,7 +353,7 @@ final class K8sClientReloadITUtil {
 								"image": "image_name_here",
 								"volumeMounts": [
 									{
-										"mountPath": "/tmp",
+										"mountPath": "/tmp/props",
 										"name": "config-map-volume"
 									}
 								],

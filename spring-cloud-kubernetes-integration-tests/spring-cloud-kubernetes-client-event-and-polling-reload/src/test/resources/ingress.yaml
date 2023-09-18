@@ -1,11 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-<<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/fabric8-client-configmap-polling-and-import-reload/src/test/resources/ingress.yaml
-  name: fabric8-client-configmap-ingress-polling-and-import-reload
-========
   name: spring-k8s-client-ingress-reload
->>>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-client-event-and-polling-reload/src/test/resources/ingress.yaml
   namespace: default
 spec:
   rules:
@@ -15,10 +11,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-<<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/fabric8-client-configmap-polling-and-import-reload/src/test/resources/ingress.yaml
-                name: fabric8-client-configmap-polling-and-import-reload
-========
                 name: spring-k8s-client-reload
->>>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-client-event-and-polling-reload/src/test/resources/ingress.yaml
                 port:
                   number: 8080
