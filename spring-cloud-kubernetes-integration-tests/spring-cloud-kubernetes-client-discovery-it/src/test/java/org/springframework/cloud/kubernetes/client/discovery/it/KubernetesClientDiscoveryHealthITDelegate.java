@@ -99,7 +99,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 	 * We assert for logs and call '/health' endpoint to see that blocking discovery
 	 * client was initialized.
 	 */
-	void testReactiveConfiguration(Util util, K3sContainer container) {
+	void testReactiveConfiguration(K3sContainer container) {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 
