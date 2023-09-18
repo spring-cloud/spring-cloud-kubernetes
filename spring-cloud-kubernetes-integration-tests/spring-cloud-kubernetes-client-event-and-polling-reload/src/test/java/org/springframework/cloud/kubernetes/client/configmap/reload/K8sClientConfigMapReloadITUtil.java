@@ -39,7 +39,6 @@ final class K8sClientConfigMapReloadITUtil {
 	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-k8s-client-reload");
 
 	private K8sClientConfigMapReloadITUtil() {
-
 	}
 
 	private static final String BODY_ONE = """

@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
 		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
 		<version>3.0.5-SNAPSHOT</version>
 	</parent>
-	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-kubernetes-client-event-and-polling-reload</artifactId>
 
@@ -25,17 +25,17 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
-		</dependency>
-
-		<!-- not 'spring-cloud-starter-bootstrap', because we want to be able to disable bootstrap per-test -->
+		<!-- not bootstrap starter, because we want to be able to disable bootstrap per-test -->
 		<!-- and ConditionalOnBootstrapEnabled has a @ConditionalOnClass on a Marker -->
 		<!-- that is present in bootstrap-starter, but not in this one -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 		</dependency>
 
 	</dependencies>
@@ -109,6 +109,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
 	</build>
 
 </project>
