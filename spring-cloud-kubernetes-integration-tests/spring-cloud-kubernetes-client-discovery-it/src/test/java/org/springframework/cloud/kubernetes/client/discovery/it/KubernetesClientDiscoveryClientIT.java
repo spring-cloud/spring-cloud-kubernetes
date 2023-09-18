@@ -330,7 +330,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 
-		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(util, K3S);
+		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(K3S);
 	}
 
 	@Test
