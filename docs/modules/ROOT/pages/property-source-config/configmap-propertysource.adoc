@@ -1,0 +1,572 @@
+[[configmap-propertysource]]
+= Using a `ConfigMap` `PropertySource`
+
+Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
+parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
+The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-fabric8-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
+during application startup and triggers hot reloading of beans or Spring context when changes are detected on
+observed `ConfigMap` instances.
+
+Everything that follows is explained mainly referring to examples using ConfigMaps, but the same stands for
+Secrets, i.e.: every feature is supported for both.
+
+The default behavior is to create a `Fabric8ConfigMapPropertySource` (or a `KubernetesClientConfigMapPropertySource`) based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
+your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
+`application.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
+
+However, more advanced configuration is possible where you can use multiple `ConfigMap` instances.
+The `spring.cloud.kubernetes.config.sources` list makes this possible.
+For example, you could define the following `ConfigMap` instances:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      config:
+        name: default-name
+        namespace: default-namespace
+        sources:
+         # Spring Cloud Kubernetes looks up a ConfigMap named c1 in namespace default-namespace
+         - name: c1
+         # Spring Cloud Kubernetes looks up a ConfigMap named default-name in whatever namespace n2
+         - namespace: n2
+         # Spring Cloud Kubernetes looks up a ConfigMap named c3 in namespace n3
+         - namespace: n3
+           name: c3
+----
+
+In the preceding example, if `spring.cloud.kubernetes.config.namespace` had not been set,
+the `ConfigMap` named `c1` would be looked up in the namespace that the application runs.
+See xref:property-source-config/namespace-resolution.adoc[Namespace resolution] to get a better understanding of how the namespace
+of the application is resolved.
+
+
+Any matching `ConfigMap` that is found is processed as follows:
+
+* Apply individual configuration properties.
+* Apply as `yaml` (or `properties`) the content of any property that is named by the value of `spring.application.name`
+  (if it's not present, by `application.yaml/properties`)
+* Apply as a properties file the content of the above name + each active profile.
+
+An example should make a lot more sense. Let's suppose that `spring.application.name=my-app` and that
+we have a single active profile called `k8s`. For a configuration as below:
+
+
+[source]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-app
+data:
+  my-app.yaml: |-
+    ...
+  my-app-k8s.yaml: |-
+    ..
+  my-app-dev.yaml: |-
+   ..
+  someProp: someValue
+----
+
+These is what we will end-up loading:
+
+ - `my-app.yaml` treated as a file
+ - `my-app-k8s.yaml` treated as a file
+ - `my-app-dev.yaml` _ignored_, since `dev` is _not_ an active profile
+ - `someProp: someValue` plain property
+
+The single exception to the aforementioned flow is when the `ConfigMap` contains a *single* key that indicates
+the file is a YAML or properties file. In that case, the name of the key does NOT have to be `application.yaml` or
+`application.properties` (it can be anything) and the value of the property is treated correctly.
+This features facilitates the use case where the `ConfigMap` was created by using something like the following:
+
+[source]
+----
+kubectl create configmap game-config --from-file=/path/to/app-config.yaml
+----
+
+Assume that we have a Spring Boot application named `demo` that uses the following properties to read its thread pool
+configuration.
+
+* `pool.size.core`
+* `pool.size.maximum`
+
+This can be externalized to config map in `yaml` format as follows:
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  pool.size.core: 1
+  pool.size.max: 16
+----
+
+Individual properties work fine for most cases. However, sometimes, embedded `yaml` is more convenient. In this case, we
+use a single property named `application.yaml` to embed our `yaml`, as follows:
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16
+----
+
+The following example also works:
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  custom-name.yaml: |-
+    pool:
+      size:
+        core: 1
+        max:16
+----
+
+You can also define the search to happen based on labels, for example:
+
+
+[source,yaml]
+----
+spring:
+  application:
+    name: labeled-configmap-with-prefix
+  cloud:
+    kubernetes:
+      config:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              letter: a
+----
+
+This will search for every configmap in namespace `spring-k8s` that has labels `{letter : a}`. The important
+thing to notice here is that unlike reading a configmap by name, this can result in _multiple_ config maps read.
+As usual, the same feature is supported for secrets.
+
+You can also configure Spring Boot applications differently depending on active profiles that are merged together
+when the `ConfigMap` is read. You can provide different property values for different profiles by using an
+`application.properties` or `application.yaml` property, specifying profile-specific values, each in their own document
+(indicated by the `---` sequence), as follows:
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+    ---
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+    ---
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+----
+
+In the preceding case, the configuration loaded into your Spring Application with the `development` profile is as follows:
+
+[source,yaml]
+----
+  greeting:
+    message: Say Hello to the Developers
+  farewell:
+    message: Say Goodbye to the Developers
+----
+
+However, if the `production` profile is active, the configuration becomes:
+
+[source,yaml]
+----
+  greeting:
+    message: Say Hello to the Ops
+  farewell:
+    message: Say Goodbye
+----
+
+If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
+
+Another option is to create a different config map per profile and spring boot will automatically fetch it based
+on active profiles
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello to the World
+    farewell:
+      message: Say Goodbye
+----
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-development
+data:
+  application.yml: |-
+    spring:
+      profiles: development
+    greeting:
+      message: Say Hello to the Developers
+    farewell:
+      message: Say Goodbye to the Developers
+----
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-production
+data:
+  application.yml: |-
+    spring:
+      profiles: production
+    greeting:
+      message: Say Hello to the Ops
+    farewell:
+      message: Say Goodbye
+----
+
+
+To tell Spring Boot which `profile` should be enabled see the https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.profiles[Spring Boot documentation].
+One option for activating a specific profile when deploying to Kubernetes is to launch your Spring Boot application with an environment variable that you can define in the PodSpec at the container specification.
+ Deployment resource file, as follows:
+
+[source,yaml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-name
+  labels:
+    app: deployment-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deployment-name
+  template:
+    metadata:
+      labels:
+        app: deployment-name
+	spec:
+		containers:
+		- name: container-name
+		  image: your-image
+		  env:
+		  - name: SPRING_PROFILES_ACTIVE
+			value: "development"
+----
+
+You could run into a situation where there are multiple configs maps that have the same property names. For example:
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-one
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from one
+----
+
+and
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-two
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from two
+----
+
+Depending on the order in which you place these in `bootstrap.yaml|properties`, you might end up with an un-expected result (the last config map wins). For example:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: cloud-k8s-app
+  cloud:
+    kubernetes:
+      config:
+        namespace: default-namespace
+        sources:
+         - name: config-map-two
+         - name: config-map-one
+----
+
+will result in property `greetings.message` being `Say Hello from one`.
+
+There is a way to change this default configuration by specifying `useNameAsPrefix`. For example:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: with-prefix
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            useNameAsPrefix: false
+          - name: config-map-two
+----
+
+Such a configuration will result in two properties being generated:
+
+ - `greetings.message` equal to `Say Hello from one`.
+
+ - `config-map-two.greetings.message` equal to `Say Hello from two`
+
+Notice that `spring.cloud.kubernetes.config.useNameAsPrefix` has a _lower_ priority than `spring.cloud.kubernetes.config.sources.useNameAsPrefix`.
+This allows you to set a "default" strategy for all sources, at the same time allowing to override only a few.
+
+If using the config map name is not an option, you can specify a different strategy, called : `explicitPrefix`. Since this is an _explicit_ prefix that
+you select, it can only be supplied to the `sources` level. At the same time it has a higher priority than `useNameAsPrefix`. Let's suppose we have a third config map with these entries:
+
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config-map-three
+data:
+  application.yml: |-
+    greeting:
+      message: Say Hello from three
+----
+
+A configuration like the one below:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: with-prefix
+  cloud:
+    kubernetes:
+      config:
+        useNameAsPrefix: true
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            useNameAsPrefix: false
+          - name: config-map-two
+            explicitPrefix: two
+          - name: config-map-three
+----
+
+will result in three properties being generated:
+
+ - `greetings.message` equal to `Say Hello from one`.
+
+ - `two.greetings.message` equal to `Say Hello from two`.
+
+ - `config-map-three.greetings.message` equal to `Say Hello from three`.
+
+The same way you configure a prefix for configmaps, you can do it for secrets also; both for secrets that are based on name
+and the ones based on labels. For example:
+
+[source.yaml]
+----
+spring:
+  application:
+    name: prefix-based-secrets
+  cloud:
+    kubernetes:
+      secrets:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              letter: a
+            useNameAsPrefix: false
+          - labels:
+              letter: b
+            explicitPrefix: two
+          - labels:
+              letter: c
+          - labels:
+              letter: d
+            useNameAsPrefix: true
+          - name: my-secret
+----
+
+The same processing rules apply when generating property source as for config maps. The only difference is that
+potentially, looking up secrets by labels can mean that we find more than one source. In such a case, prefix (if specified via `useNameAsPrefix`)
+will be the names of all secrets found for those particular labels.
+
+One more thing to bear in mind is that we support `prefix` per _source_, not per secret. The easiest way to explain this is via an example:
+
+[source.yaml]
+----
+spring:
+  application:
+    name: prefix-based-secrets
+  cloud:
+    kubernetes:
+      secrets:
+        enableApi: true
+        useNameAsPrefix: true
+        namespace: spring-k8s
+        sources:
+          - labels:
+              color: blue
+            useNameAsPrefix: true
+----
+
+Suppose that a query matching such a label will provide two secrets as a result: `secret-a` and `secret-b`.
+Both of these secrets have the same property name: `color=sea-blue` and `color=ocean-blue`. It is undefined which
+`color` will end-up as part of property sources, but the prefix for it will be `secret-a.secret-b`
+(concatenated sorted naturally, names of the secrets).
+
+If you need more fine-grained results, adding more labels to identify the secret uniquely would be an option.
+
+
+
+By default, besides reading the config map that is specified in the `sources` configuration, Spring will also try to read
+all properties from "profile aware" sources. The easiest way to explain this is via an example. Let's suppose your application
+enables a profile called "dev" and you have a configuration like the one below:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: spring-k8s
+  cloud:
+    kubernetes:
+      config:
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+----
+
+Besides reading the `config-map-one`, Spring will also try to read `config-map-one-dev`; in this particular order. Each active profile
+generates such a profile aware config map.
+
+Though your application should not be impacted by such a config map, it can be disabled if needed:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: spring-k8s
+  cloud:
+    kubernetes:
+      config:
+        includeProfileSpecificSources: false
+        namespace: default-namespace
+        sources:
+          - name: config-map-one
+            includeProfileSpecificSources: false
+----
+
+Notice that just like before, there are two levels where you can specify this property: for all config maps or
+for individual ones; the latter having a higher priority.
+
+NOTE: You should check the security configuration section. To access config maps from inside a pod you need to have the correct
+Kubernetes service accounts, roles and role bindings.
+
+Another option for using `ConfigMap` instances is to mount them into the Pod by running the Spring Cloud Kubernetes application
+and having Spring Cloud Kubernetes read them from the file system.
+
+NOTE: This feature is deprecated and will be removed in a future release (Use `spring.config.import` instead).
+This behavior is controlled by the `spring.cloud.kubernetes.config.paths` property. You can use it in
+addition to or instead of the mechanism described earlier.
+`spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
+
+```
+spring:
+  cloud:
+    kubernetes:
+      config:
+        paths:
+          - /tmp/application.properties
+          - /var/application.yaml
+```
+
+NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
+functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
+restart/redeploy the application.
+
+[#config-map-fail-fast]
+In some cases, your application may be unable to load some of your `ConfigMaps` using the Kubernetes API.
+If you want your application to fail the start-up process in such cases, you can set
+`spring.cloud.kubernetes.config.fail-fast=true` to make the application start-up fail with an Exception.
+
+[#config-map-retry]
+You can also make your application retry loading `ConfigMap` property sources on a failure. First, you need to
+set `spring.cloud.kubernetes.config.fail-fast=true`. Then you need to add `spring-retry` 
+and `spring-boot-starter-aop` to your classpath. You can configure retry properties such as
+the maximum number of attempts, backoff options like initial interval, multiplier, max interval by setting the
+`spring.cloud.kubernetes.config.retry.*` properties.
+
+NOTE: If you already have `spring-retry` and `spring-boot-starter-aop` on the classpath for some reason
+and want to enable fail-fast, but do not want retry to be enabled; you can disable retry for `ConfigMap` `PropertySources`
+by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
+
+.Properties:
+[options="header,footer"]
+|===
+| Name                                                    | Type      | Default                      | Description
+| `spring.cloud.kubernetes.config.enabled`                | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
+| `spring.cloud.kubernetes.config.name`                   | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
+| `spring.cloud.kubernetes.config.namespace`              | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
+| `spring.cloud.kubernetes.config.paths`                  | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
+| `spring.cloud.kubernetes.config.enableApi`              | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
+| `spring.cloud.kubernetes.config.fail-fast`              | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `ConfigMap`
+| `spring.cloud.kubernetes.config.retry.enabled`          | `Boolean` | `true`                       | Enable or disable config retry.
+| `spring.cloud.kubernetes.config.retry.initial-interval` | `Long`    | `1000`                       | Initial retry interval in milliseconds.
+| `spring.cloud.kubernetes.config.retry.max-attempts`     | `Integer` | `6`                          | Maximum number of attempts.
+| `spring.cloud.kubernetes.config.retry.max-interval`     | `Long`    | `2000`                       | Maximum interval for backoff.
+| `spring.cloud.kubernetes.config.retry.multiplier`       | `Double`  | `1.1`                        | Multiplier for next interval.
+|===
+

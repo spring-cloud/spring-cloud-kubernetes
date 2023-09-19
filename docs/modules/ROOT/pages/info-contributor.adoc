@@ -1,4 +1,6 @@
-== Info Contributor
+[[info-contributor]]
+= Info Contributor
+:page-section-summary-toc: 1
 
 Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
 Spring Boot's `/info` Acturator endpoint.

@@ -1,27 +1,26 @@
-[#spring-cloud-kubernetes-discoveryserver]
-## Spring Cloud Kubernetes Discovery Server
+[spring-cloud-kubernetes-discoveryserver]
+= Spring Cloud Kubernetes Discovery Server
 
 The Spring Cloud Kubernetes Discovery Server provides HTTP endpoints apps can use to gather information
 about services available within a Kubernetes cluster.  The Spring Cloud Kubernetes Discovery Server
 can be used by apps using the `spring-cloud-starter-kubernetes-discoveryclient` to provide data to
 the `DiscoveryClient` implementation provided by that starter.
 
-### Permissions
+## Permissions
 The Spring Cloud Discovery server uses
 the Kubernetes API server to get data about Service and Endpoint resrouces so it needs list, watch, and
 get permissions to use those endpoints.  See the below sample Kubernetes deployment YAML for an
 examlpe of how to configure the Service Account on Kubernetes.
 
 
-### Endpoints
+## Endpoints
 There are three endpoints exposed by the server.
 
-#### `/apps`
+### `/apps`
 
 A `GET` request sent to `/apps` will return a JSON array of available services.  Each item contains
 the name of the Kubernetes service and service instance information.  Below is a sample response.
 
-====
 [source,json]
 ----
 [
@@ -67,14 +66,12 @@ the name of the Kubernetes service and service instance information.  Below is a
    }
 ]
 ----
-====
 
-#### `/apps/{name}`
+### `/apps/\{name}`
 
-A `GET` request to `/apps/{name}` can be used to get instance data for all instances of a given
+A `GET` request to `/apps/\{name}` can be used to get instance data for all instances of a given
 service.  Below is a sample response when a `GET` request is made to `/apps/kubernetes`.
 
-====
 [source,json]
 ----
 [
@@ -95,14 +92,12 @@ service.  Below is a sample response when a `GET` request is made to `/apps/kube
      }
 ]
 ----
-====
 
-#### `/app/{name}/{instanceid}`
+### `/app/\{name}/\{instanceid}`
 
-A `GET` request made to `/app/{name}/{instanceid}` will return the instance data for a specific
+A `GET` request made to `/app/\{name}/\{instanceid}` will return the instance data for a specific
 instance of a given service.  Below is a sample response when a `GET` request is made to `/app/kubernetes/1234`.
 
-====
 [source,json]
 ----
  {
@@ -121,9 +116,8 @@ instance of a given service.  Below is a sample response when a `GET` request is
     "scheme":"http"
  }
 ----
-====
 
-### Deployment YAML
+## Deployment YAML
 
 An image of the Spring Cloud Discovery Server is hosted on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-discoveryserver[Docker Hub].
 However, if you need to customize the discovery server behavior or prefer to build the image yourself you can easily build your own
@@ -131,7 +125,6 @@ image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main
 
 Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
 
-====
 [source,yaml]
 ----
 ---
@@ -211,4 +204,3 @@ items:
 
 
 ----
-====

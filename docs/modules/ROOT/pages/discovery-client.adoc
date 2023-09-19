@@ -1,4 +1,5 @@
-== DiscoveryClient for Kubernetes
+[[discoveryclient-for-kubernetes]]
+= DiscoveryClient for Kubernetes
 
 This project provides an implementation of https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java[Discovery Client]
 for https://kubernetes.io[Kubernetes].
@@ -10,7 +11,6 @@ DiscoveryClient can also find services of type `ExternalName` (see https://kuber
 
 This is something that you get for free by adding the following dependency inside your project:
 
-====
 HTTP Based `DiscoveryClient`
 [source,xml]
 ----
@@ -19,12 +19,10 @@ HTTP Based `DiscoveryClient`
     <artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
 </dependency>
 ----
-====
 
 NOTE: `spring-cloud-starter-kubernetes-discoveryclient` is designed to be used with the
-<<spring-cloud-kubernetes-discoveryserver, Spring Cloud Kubernetes DiscoveryServer>>.
+xref:spring-cloud-kubernetes-discoveryserver.adoc#spring-cloud-kubernetes-discoveryserver[Spring Cloud Kubernetes DiscoveryServer].
 
-====
 Fabric8 Kubernetes Client
 [source,xml]
 ----
@@ -33,9 +31,7 @@ Fabric8 Kubernetes Client
     <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 </dependency>
 ----
-====
 
-====
 Kubernetes Java Client
 [source,xml]
 ----
@@ -44,11 +40,9 @@ Kubernetes Java Client
     <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
 </dependency>
 ----
-====
 
 To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class, as the following example shows:
 
-====
 [source,java]
 ----
 @SpringBootApplication
@@ -59,46 +53,37 @@ public class Application {
   }
 }
 ----
-====
 
 Then you can inject the client in your code simply by autowiring it, as the following example shows:
 
-====
 [source,java]
 ----
 @Autowired
 private DiscoveryClient discoveryClient;
 ----
-====
 
 You can choose to enable `DiscoveryClient` from all namespaces by setting the following property in `application.properties`:
 
-====
 [source]
 ----
 spring.cloud.kubernetes.discovery.all-namespaces=true
 ----
-====
 
 To discover services and endpoints only from specified namespaces you should set property `all-namespaces` to `false` and set the following property in `application.properties` (in this example namespaces are: `ns1` and `ns2`).
 
-====
 [source]
 ----
 spring.cloud.kubernetes.discovery.namespaces[0]=ns1
 spring.cloud.kubernetes.discovery.namespaces[1]=ns2
 ----
-====
 
 To discover service endpoint addresses that are not marked as "ready" by the kubernetes api server, you can set the following property in `application.properties` (default: false):
 
-====
 [source]
 ----
 spring.cloud.kubernetes.discovery.include-not-ready-addresses=true
 ----
 NOTE: This might be useful when discovering services for monitoring purposes, and would enable inspecting the `/health` endpoint of not-ready service instances.
-====
 
 If your service exposes multiple ports, you will need to specify which port the `DiscoveryClient` should use.
 The `DiscoveryClient` will choose the port using the following logic.
@@ -122,12 +107,10 @@ As said before, if you want to get the list of `ServiceInstance` to also include
 
 If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
 
-====
 [source]
 ----
 spring.cloud.kubernetes.discovery.enabled=false
 ----
-====
 
 Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
 this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
@@ -155,7 +138,7 @@ spring:
           - namespace-b
 ```
 
-- we will use: xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] if the above two paths are not taken.
+- we will use: xref:property-source-config/namespace-resolution.adoc[Namespace Resolution] if the above two paths are not taken.
 
 In order to enable this functionality you need to add
 `@EnableScheduling` on a configuration class in your application.

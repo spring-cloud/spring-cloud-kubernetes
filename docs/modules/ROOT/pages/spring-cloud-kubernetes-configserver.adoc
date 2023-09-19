@@ -1,5 +1,5 @@
-[#spring-cloud-kubernetes-configserver]
-## Spring Cloud Kubernetes Config Server
+[spring-cloud-kubernetes-configserver]
+= Spring Cloud Kubernetes Config Server
 
 The Spring Cloud Kubernetes Config Server, is based on https://spring.io/projects/spring-cloud-config[Spring Cloud Config Server] and adds an https://docs.spring.io/spring-cloud-config/docs/current/reference/html/#_environment_repository[environment repository] for Kubernetes
 https://kubernetes.io/docs/concepts/configuration/configmap/[Config Maps] and https://kubernetes.io/docs/concepts/configuration/secret/[Secrets].
@@ -11,17 +11,17 @@ A default image is located on https://hub.docker.com/r/springcloud/spring-cloud-
 the code and image yourself.  However, if you need to customize the config server behavior or prefer to build the image yourself you can easily build your own
 image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver[source code on GitHub] and use that.
 
-### Configuration
+## Configuration
 
-#### Enabling The Kubernetes Environment Repository
+### Enabling The Kubernetes Environment Repository
 To enable the Kubernetes environment repository the `kubernetes` profile must be included in the list of active profiles.
 You may activate other profiles as well to use other environment repository implementations.
 
-#### Config Map and Secret PropertySources
+### Config Map and Secret PropertySources
 By default, only Config Map data will be fetched.  To enable Secrets as well you will need to set `spring.cloud.kubernetes.secrets.enableApi=true`.
 You can disable the Config Map `PropertySource` by setting `spring.cloud.kubernetes.config.enableApi=false`.
 
-#### Fetching Config Map and Secret Data From Additional Namespaces
+### Fetching Config Map and Secret Data From Additional Namespaces
 By default, the Kubernetes environment repository will only fetch Config Map and Secrets from the namespace in which it is deployed.
 If you want to include data from other namespaces you can set `spring.cloud.kubernetes.configserver.config-map-namespaces` and/or `spring.cloud.kubernetes.configserver.secrets-namespaces` to a comma separated
 list of namespace values.
@@ -29,15 +29,14 @@ list of namespace values.
 NOTE: If you set `spring.cloud.kubernetes.configserver.config-map-namespaces` and/or `spring.cloud.kubernetes.configserver.secrets-namespaces`
 you will need to include the namespace in which the Config Server is deployed in order to continue to fetch Config Map and Secret data from that namespace.
 
-#### Kubernetes Access Controls
+### Kubernetes Access Controls
 The Kubernetes Config Server uses the Kubernetes API server to fetch Config Map and Secret data.  In order for it to do that
 it needs ability to `get` and `list` Config Map and Secrets (depending on what you enable/disable).
 
-### Deployment Yaml
+## Deployment Yaml
 
 Below is a sample deployment, service and permissions configuration you can use to deploy a basic Config Server to Kubernetes.
 
-====
 [source,yaml]
 ----
 ---
@@ -119,4 +118,3 @@ items:
             - containerPort: 8888
 
 ----
-====

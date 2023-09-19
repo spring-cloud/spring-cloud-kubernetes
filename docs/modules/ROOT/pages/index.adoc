@@ -1,0 +1,1 @@
+include::spring-cloud-kubernetes.adoc[Introduction]

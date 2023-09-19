@@ -1,4 +1,5 @@
-== Starters
+[[starters]]
+= Starters
 
 Starters are convenient dependency descriptors you can include in your
 application. Include a starter to get the dependencies and Spring Boot
@@ -49,8 +50,8 @@ resolves service names to Kubernetes Services.
 </dependency>
 ----
 | Load application properties from Kubernetes
-<<configmap-propertysource,ConfigMaps>> and <<Secrets PropertySource,Secrets>>.
-<<propertysource-reload,Reload>> application properties when a ConfigMap or
+xref:property-source-config/configmap-propertysource.adoc[ConfigMaps] and <<Secrets PropertySource,Secrets>>.
+xref:property-source-config/propertysource-reload.adoc[Reload] application properties when a ConfigMap or
 Secret changes.
 
 | [source,xml]

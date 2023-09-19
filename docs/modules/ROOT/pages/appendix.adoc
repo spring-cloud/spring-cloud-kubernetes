@@ -1,7 +1,8 @@
 :numbered!:
 [appendix]
 [[common-application-properties]]
-== Common application properties
+= Common application properties
+:page-section-summary-toc: 1
 
 include::_attributes.adoc[]
 
@@ -11,4 +12,4 @@ This appendix provides a list of common {project-full-name} properties and refer
 NOTE: Property contributions can come from additional jar files on your classpath, so you should not consider this an exhaustive list.
 Also, you can define your own properties.
 
-include::_configprops.adoc[]
+include::partial$_configprops.adoc[]
