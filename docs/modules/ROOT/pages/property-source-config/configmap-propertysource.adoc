@@ -18,7 +18,6 @@ However, more advanced configuration is possible where you can use multiple `Con
 The `spring.cloud.kubernetes.config.sources` list makes this possible.
 For example, you could define the following `ConfigMap` instances:
 
-====
 [source,yaml]
 ----
 spring:
@@ -38,7 +37,6 @@ spring:
          - namespace: n3
            name: c3
 ----
-====
 
 In the preceding example, if `spring.cloud.kubernetes.config.namespace` had not been set,
 the `ConfigMap` named `c1` would be looked up in the namespace that the application runs.
@@ -57,7 +55,6 @@ An example should make a lot more sense. Let's suppose that `spring.application.
 we have a single active profile called `k8s`. For a configuration as below:
 
 
-====
 [source]
 ----
 kind: ConfigMap
@@ -73,7 +70,6 @@ data:
    ..
   someProp: someValue
 ----
-====
 
 These is what we will end-up loading:
 
@@ -87,12 +83,10 @@ the file is a YAML or properties file. In that case, the name of the key does NO
 `application.properties` (it can be anything) and the value of the property is treated correctly.
 This features facilitates the use case where the `ConfigMap` was created by using something like the following:
 
-====
 [source]
 ----
 kubectl create configmap game-config --from-file=/path/to/app-config.yaml
 ----
-====
 
 Assume that we have a Spring Boot application named `demo` that uses the following properties to read its thread pool
 configuration.
@@ -102,7 +96,6 @@ configuration.
 
 This can be externalized to config map in `yaml` format as follows:
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -113,12 +106,10 @@ data:
   pool.size.core: 1
   pool.size.max: 16
 ----
-====
 
 Individual properties work fine for most cases. However, sometimes, embedded `yaml` is more convenient. In this case, we
 use a single property named `application.yaml` to embed our `yaml`, as follows:
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -132,11 +123,9 @@ data:
         core: 1
         max:16
 ----
-====
 
 The following example also works:
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -150,12 +139,10 @@ data:
         core: 1
         max:16
 ----
-====
 
 You can also define the search to happen based on labels, for example:
 
 
-====
 [source,yaml]
 ----
 spring:
@@ -171,7 +158,6 @@ spring:
           - labels:
               letter: a
 ----
-====
 
 This will search for every configmap in namespace `spring-k8s` that has labels `{letter : a}`. The important
 thing to notice here is that unlike reading a configmap by name, this can result in _multiple_ config maps read.
@@ -182,7 +168,6 @@ when the `ConfigMap` is read. You can provide different property values for diff
 `application.properties` or `application.yaml` property, specifying profile-specific values, each in their own document
 (indicated by the `---` sequence), as follows:
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -208,11 +193,9 @@ data:
     greeting:
       message: Say Hello to the Ops
 ----
-====
 
 In the preceding case, the configuration loaded into your Spring Application with the `development` profile is as follows:
 
-====
 [source,yaml]
 ----
   greeting:
@@ -220,11 +203,9 @@ In the preceding case, the configuration loaded into your Spring Application wit
   farewell:
     message: Say Goodbye to the Developers
 ----
-====
 
 However, if the `production` profile is active, the configuration becomes:
 
-====
 [source,yaml]
 ----
   greeting:
@@ -232,14 +213,12 @@ However, if the `production` profile is active, the configuration becomes:
   farewell:
     message: Say Goodbye
 ----
-====
 
 If both profiles are active, the property that appears last within the `ConfigMap` overwrites any preceding values.
 
 Another option is to create a different config map per profile and spring boot will automatically fetch it based
 on active profiles
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -253,8 +232,6 @@ data:
     farewell:
       message: Say Goodbye
 ----
-====
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -270,8 +247,6 @@ data:
     farewell:
       message: Say Goodbye to the Developers
 ----
-====
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -287,14 +262,12 @@ data:
     farewell:
       message: Say Goodbye
 ----
-====
 
 
 To tell Spring Boot which `profile` should be enabled see the https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.profiles[Spring Boot documentation].
 One option for activating a specific profile when deploying to Kubernetes is to launch your Spring Boot application with an environment variable that you can define in the PodSpec at the container specification.
  Deployment resource file, as follows:
 
-====
 [source,yaml]
 ----
 apiVersion: apps/v1
@@ -320,11 +293,9 @@ spec:
 		  - name: SPRING_PROFILES_ACTIVE
 			value: "development"
 ----
-====
 
 You could run into a situation where there are multiple configs maps that have the same property names. For example:
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -336,11 +307,9 @@ data:
     greeting:
       message: Say Hello from one
 ----
-====
 
 and
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -352,11 +321,9 @@ data:
     greeting:
       message: Say Hello from two
 ----
-====
 
 Depending on the order in which you place these in `bootstrap.yaml|properties`, you might end up with an un-expected result (the last config map wins). For example:
 
-====
 [source,yaml]
 ----
 spring:
@@ -370,13 +337,11 @@ spring:
          - name: config-map-two
          - name: config-map-one
 ----
-====
 
 will result in property `greetings.message` being `Say Hello from one`.
 
 There is a way to change this default configuration by specifying `useNameAsPrefix`. For example:
 
-====
 [source,yaml]
 ----
 spring:
@@ -392,7 +357,6 @@ spring:
             useNameAsPrefix: false
           - name: config-map-two
 ----
-====
 
 Such a configuration will result in two properties being generated:
 
@@ -407,7 +371,6 @@ If using the config map name is not an option, you can specify a different strat
 you select, it can only be supplied to the `sources` level. At the same time it has a higher priority than `useNameAsPrefix`. Let's suppose we have a third config map with these entries:
 
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -419,11 +382,9 @@ data:
     greeting:
       message: Say Hello from three
 ----
-====
 
 A configuration like the one below:
 
-====
 [source,yaml]
 ----
 spring:
@@ -441,7 +402,6 @@ spring:
             explicitPrefix: two
           - name: config-map-three
 ----
-====
 
 will result in three properties being generated:
 
@@ -454,7 +414,6 @@ will result in three properties being generated:
 The same way you configure a prefix for configmaps, you can do it for secrets also; both for secrets that are based on name
 and the ones based on labels. For example:
 
-====
 [source.yaml]
 ----
 spring:
@@ -480,7 +439,6 @@ spring:
             useNameAsPrefix: true
           - name: my-secret
 ----
-====
 
 The same processing rules apply when generating property source as for config maps. The only difference is that
 potentially, looking up secrets by labels can mean that we find more than one source. In such a case, prefix (if specified via `useNameAsPrefix`)
@@ -488,7 +446,6 @@ will be the names of all secrets found for those particular labels.
 
 One more thing to bear in mind is that we support `prefix` per _source_, not per secret. The easiest way to explain this is via an example:
 
-====
 [source.yaml]
 ----
 spring:
@@ -505,7 +462,6 @@ spring:
               color: blue
             useNameAsPrefix: true
 ----
-====
 
 Suppose that a query matching such a label will provide two secrets as a result: `secret-a` and `secret-b`.
 Both of these secrets have the same property name: `color=sea-blue` and `color=ocean-blue`. It is undefined which
@@ -520,7 +476,6 @@ By default, besides reading the config map that is specified in the `sources` co
 all properties from "profile aware" sources. The easiest way to explain this is via an example. Let's suppose your application
 enables a profile called "dev" and you have a configuration like the one below:
 
-====
 [source,yaml]
 ----
 spring:
@@ -533,14 +488,12 @@ spring:
         sources:
           - name: config-map-one
 ----
-====
 
 Besides reading the `config-map-one`, Spring will also try to read `config-map-one-dev`; in this particular order. Each active profile
 generates such a profile aware config map.
 
 Though your application should not be impacted by such a config map, it can be disabled if needed:
 
-====
 [source,yaml]
 ----
 spring:
@@ -555,7 +508,6 @@ spring:
           - name: config-map-one
             includeProfileSpecificSources: false
 ----
-====
 
 Notice that just like before, there are two levels where you can specify this property: for all config maps or
 for individual ones; the latter having a higher priority.

@@ -8,7 +8,6 @@ it will watch all configmaps/secrets from the namespace that will be computed us
 On the other hand, you can define a more fine-grained approach. For example, you can specify the namespaces where
 changes will be monitored:
 
-====
 [source,yaml]
 ----
 spring:
@@ -23,13 +22,11 @@ spring:
         namespaces:
           - my-namespace
 ----
-====
 
 Such a configuration will make the app watch changes only in the `my-namespace` namespace. Mind that this will
 watch _all_ configmaps/secrets (depending on which one you enable). If you want an even more fine-grained approach,
 you can enable "label-filtering". First we need to enable such support via : `enable-reload-filtering: true`
 
-====
 [source,yaml]
 ----
 spring:
@@ -46,7 +43,6 @@ spring:
         monitoring-config-maps: true
         enable-reload-filtering: true
 ----
-====
 
 What this will do, is watch configmaps/secrets that only have the `spring.cloud.kubernetes.config.informer.enabled: true` label.
 

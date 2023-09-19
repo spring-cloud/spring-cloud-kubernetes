@@ -4,7 +4,6 @@
 Finding an application namespace happens on a best-effort basis. There are some steps that we iterate in order
 to find it. The easiest and most common one, is to specify it in the proper configuration, for example:
 
-====
 [source,yaml]
 ----
 spring:
@@ -24,7 +23,6 @@ spring:
          - namespace: c
            name: d
 ----
-====
 
 Remember that the same can be done for config maps. If such a namespace is not specified, it will be read (in this order):
 

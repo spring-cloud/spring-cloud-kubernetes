@@ -1,5 +1,5 @@
-[#spring-cloud-kubernetes-configuration-watcher]
-## Spring Cloud Kubernetes Configuration Watcher
+[spring-cloud-kubernetes-configuration-watcher]
+= Spring Cloud Kubernetes Configuration Watcher
 
 Kubernetes provides the ability to https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume[mount a ConfigMap or Secret as a volume]
 in the container of your application.  When the contents of the ConfigMap or Secret changes, the https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically[mounted volume will be updated with those changes].
@@ -20,11 +20,10 @@ Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to 
 1.  Over HTTP in which case the application being notified must of the `/refresh` actuator endpoint exposed and accessible from within the cluster
 2.  Using Spring Cloud Bus, in which case you will need a message broker deployed to your custer for the application to use.
 
-### Deployment YAML
+## Deployment YAML
 
 Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
 
-====
 [source,yaml]
 ----
 ---
@@ -103,12 +102,11 @@ items:
             - containerPort: 8888
 
 ----
-====
 
 The Service Account and associated Role Binding is important for Spring Cloud Kubernetes Configuration to work properly.
 The controller needs access to read data about ConfigMaps, Pods, Services, Endpoints and Secrets in the Kubernetes cluster.
 
-### Monitoring ConfigMaps and Secrets
+## Monitoring ConfigMaps and Secrets
 
 Spring Cloud Kubernetes Configuration Watcher will react to changes in ConfigMaps with a label of `spring.cloud.kubernetes.config` with the value `true`
 or any Secret with a label of `spring.cloud.kubernetes.secret` with the value `true`.  If the ConfigMap or Secret does not have either of those labels
@@ -127,7 +125,6 @@ that specifies the names of applications that will receive a notification when c
 
 For example:
 
-====
 [source,yaml]
 ----
 kind: ConfigMap
@@ -139,21 +136,19 @@ metadata:
   annotations:
     spring.cloud.kubernetes.configmap.apps: "app-a, app-b"
 ----
-====
 
-### HTTP Implementation
+## HTTP Implementation
 
 The HTTP implementation is what is used by default.  When this implementation is used Spring Cloud Kubernetes Configuration Watcher and a
 change to a ConfigMap or Secret occurs then the HTTP implementation will use the Spring Cloud Kubernetes Discovery Client to fetch all
 instances of the application which match the name of the ConfigMap or Secret and send an HTTP POST request to the application's actuator
 `/refresh` endpoint.  By default it will send the post request to `/actuator/refresh` using the port registered in the discovery client.
 
-#### Non-Default Management Port and Actuator Path
+### Non-Default Management Port and Actuator Path
 
 If the application is using a non-default actuator path and/or using a different port for the management endpoints, the Kubernetes service for the application
 can add an annotation called `boot.spring.io/actuator` and set its value to the path and port used by the application.  For example
 
-====
 [source,yaml]
 ----
 apiVersion: v1
@@ -172,24 +167,22 @@ spec:
   selector:
     app: config-map-demo
 ----
-====
 
 
 Another way you can choose to configure the actuator path and/or management port is by setting
 `spring.cloud.kubernetes.configuration.watcher.actuatorPath` and `spring.cloud.kubernetes.configuration.watcher.actuatorPort`.
 
-### Messaging Implementation
+## Messaging Implementation
 
 The messaging implementation can be enabled by setting profile to either `bus-amqp` (RabbitMQ) or `bus-kafka` (Kafka) when the Spring Cloud Kubernetes Configuration Watcher
 application is deployed to Kubernetes.
 
-### Configuring RabbitMQ
+## Configuring RabbitMQ
 
 When the `bus-amqp` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
 instance you would like to use as well as any credentials necessary to authenticate.  This can be done
 by setting the standard Spring RabbitMQ properties, for example
 
-====
 [source,yaml]
 ----
 spring:
@@ -198,14 +191,12 @@ spring:
     password: password
     host: rabbitmq
 ----
-====
 
-### Configuring Kafka
+## Configuring Kafka
 
 When the `bus-kafka` profile is enabled you will need to configure Spring Kafka to point it to the location of the Kafka Broker
 instance you would like to use.  This can be done by setting the standard Spring Kafka properties, for example
 
-====
 [source,yaml]
 ----
 spring:
@@ -213,4 +204,3 @@ spring:
     producer:
       bootstrap-servers: localhost:9092
 ----
-====

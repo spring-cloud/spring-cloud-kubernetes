@@ -1,6 +1,6 @@
-name: PROJECT_WITHOUT_SPRING
+name: cloud-kubernetes
 version: true
-title: PROJECT_NAME
+title: Spring Cloud Kubernetes
 nav:
   - modules/ROOT/nav.adoc
 ext:

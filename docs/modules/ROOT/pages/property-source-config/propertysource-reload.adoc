@@ -40,7 +40,6 @@ and that a replication controller or replica set is configured to restart the po
 
 Assuming that the reload feature is enabled with default settings (`refresh` mode), the following bean is refreshed when the config map changes:
 
-====
 [java, source]
 ----
 @Configuration
@@ -53,11 +52,9 @@ public class MyConfig {
 
 }
 ----
-====
 
 To see that changes effectively happen, you can create another bean that prints the message periodically, as follows
 
-====
 [source,java]
 ----
 @Component
@@ -72,11 +69,9 @@ public class MyBean {
     }
 }
 ----
-====
 
 You can change the message printed by the application by using a `ConfigMap`, as follows:
 
-====
 [source,yaml]
 ----
 apiVersion: v1
@@ -87,7 +82,6 @@ data:
   application.properties: |-
     bean.message=Hello World!
 ----
-====
 
 Any change to the property named `bean.message` in the `ConfigMap` associated with the pod is reflected in the
 output. More generally speaking, changes associated to properties prefixed with the value defined by the `prefix`
