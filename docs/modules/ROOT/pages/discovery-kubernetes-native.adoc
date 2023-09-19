@@ -1,5 +1,6 @@
 [[kubernetes-native-service-discovery]]
 = Kubernetes native service discovery
+:page-section-summary-toc: 1
 
 Kubernetes itself is capable of (server side) service discovery (see: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services).
 Using native kubernetes service discovery ensures compatibility with additional tooling, such as Istio (https://istio.io), a service mesh that is capable of load balancing, circuit breaker, failover, and much more.

@@ -1,5 +1,6 @@
 [[service-registry-implementation]]
 = Service Registry Implementation
+:page-section-summary-toc: 1
 
 In Kubernetes service registration is controlled by the platform, the application itself does not control
 registration as it may do in other platforms.  For this reason using `spring.cloud.service-registry.auto-registration.enabled`
