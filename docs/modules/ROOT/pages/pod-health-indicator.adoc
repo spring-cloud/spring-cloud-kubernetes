@@ -1,3 +1,4 @@
+[[pod-health-indicator]]
 == Pod Health Indicator
 
 Spring Boot uses https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthEndpoint.java[`HealthIndicator`] to expose info about the health of an application.

@@ -1,3 +1,4 @@
+[[kubernetes-propertysource-implementations]]
 == Kubernetes PropertySource implementations
 
 The most common approach to configuring your Spring Boot application is to create an `application.properties` or `application.yaml` or
@@ -634,6 +635,7 @@ by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 | `spring.cloud.kubernetes.config.retry.multiplier`       | `Double`  | `1.1`                        | Multiplier for next interval.
 |===
 
+[[secrets-propertysource]]
 === Secrets PropertySource
 
 Kubernetes has the notion of https://kubernetes.io/docs/concepts/configuration/secret/[Secrets] for storing
@@ -872,6 +874,7 @@ Failure to find a namespace from the above steps will result in an Exception bei
 
 If, for whatever reason, you enabled both configmaps and secrets, and there is a common property between them, the value from the ConfigMap will have a higher precedence. That is: it will override whatever values are found in secrets.
 
+[[propertysource-reload]]
 === `PropertySource` Reload
 
 WARNING:  This functionality has been deprecated in the 2020.0 release.  Please see

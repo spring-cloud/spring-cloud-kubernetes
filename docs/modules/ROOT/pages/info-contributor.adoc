@@ -1,3 +1,4 @@
+[[info-contributor]]
 == Info Contributor
 
 Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to

@@ -1,3 +1,4 @@
+[[kubernetes-native-service-discovery]]
 == Kubernetes native service discovery
 
 Kubernetes itself is capable of (server side) service discovery (see: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services).

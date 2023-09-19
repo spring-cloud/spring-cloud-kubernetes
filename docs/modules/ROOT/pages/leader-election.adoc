@@ -1,3 +1,4 @@
+[[leader-election]]
 == Leader Election
 The Spring Cloud Kubernetes leader election mechanism implements the leader election API of Spring Integration using a Kubernetes ConfigMap.
 

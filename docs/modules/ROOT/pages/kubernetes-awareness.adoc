@@ -1,3 +1,4 @@
+[[kubernetes-ecosystem-awareness]]
 == Kubernetes Ecosystem Awareness
 
 All features described earlier in this guide work equally well, regardless of whether your application is running inside
@@ -20,18 +21,21 @@ you will have to set `spring.main.cloud-platform` should be set in `bootstrap.{p
 (or the profile specific one).  Also note that these properties: `spring.cloud.kubernetes.config.enabled` and `spring.cloud.kubernetes.secrets.enabled`
 will only take effect when set in `bootstrap.{properties|yml}` when you have `spring-cloud-starter-bootstrap` on your classpath or are setting `spring.cloud.bootstrap.enabled=true`.
 
+[[breaking-changes-in-3-0-x]]
 === Breaking Changes In 3.0.x
 
 In versions of Spring Cloud Kubernetes prior to `3.0.x`, Kubernetes awareness was implemented using `spring.cloud.kubernetes.enabled` property. This
 property was removed and is un-supported. Instead, we use Spring Boot API: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/autoconfigure/condition/ConditionalOnCloudPlatform.html[ConditionalOnCloudPlatform].
 If it is needed to explicitly enable or disable this awareness, use `spring.main.cloud-platform=NONE/KUBERNETES`.
 
+[[kubernetes-profile-autoconfiguration]]
 === Kubernetes Profile Autoconfiguration
 
 When the application runs as a pod inside Kubernetes, a Spring profile named `kubernetes` automatically gets activated.
 This lets you customize the configuration, to define beans that are applied when the Spring Boot application is deployed
 within the Kubernetes platform (for example, different development and production configuration).
 
+[[istio-awareness]]
 === Istio Awareness
 
 When you include the `spring-cloud-kubernetes-fabric8-istio` module in the application classpath, a new profile is added to the application,

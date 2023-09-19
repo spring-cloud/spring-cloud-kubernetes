@@ -1,3 +1,4 @@
+[[service-registry-implementation]]
 == Service Registry Implementation
 
 In Kubernetes service registration is controlled by the platform, the application itself does not control
