@@ -94,8 +94,8 @@ class DiscoveryClientIT {
 
 	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-discoveryclient-it");
 
-	private static final Map<String, String> POD_LABELS_DISCOVERY =
-			Map.of("app", "spring-cloud-kubernetes-discoveryserver");
+	private static final Map<String, String> POD_LABELS_DISCOVERY = Map.of("app",
+			"spring-cloud-kubernetes-discoveryserver");
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(DiscoveryClientIT.class);
 
@@ -165,13 +165,9 @@ class DiscoveryClientIT {
 
 		patchForNamespaceFilter(
 				"docker.io/springcloud/spring-cloud-kubernetes-discoveryclient-it:" + Commons.pomVersion(),
-				"spring-cloud-kubernetes-discoveryclient-it-deployment",
-				NAMESPACE);
-		patchForAllNamespaces(
-				"docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
-				"spring-cloud-kubernetes-discoveryserver-deployment",
-				NAMESPACE
-		);
+				"spring-cloud-kubernetes-discoveryclient-it-deployment", NAMESPACE);
+		patchForAllNamespaces("docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
 		testNamespaceDiscoveryClient();
 	}
 
@@ -182,8 +178,7 @@ class DiscoveryClientIT {
 		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
-				.extractingJsonPathArrayValue("$")
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$")
 				.contains("spring-cloud-kubernetes-discoveryserver");
 	}
 

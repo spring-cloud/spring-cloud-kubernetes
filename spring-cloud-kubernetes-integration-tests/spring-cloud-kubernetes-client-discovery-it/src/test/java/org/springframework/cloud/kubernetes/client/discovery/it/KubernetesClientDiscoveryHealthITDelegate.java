@@ -156,8 +156,8 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
-		String infoResult = infoClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(retrySpec()).block();
+		String infoResult = infoClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");

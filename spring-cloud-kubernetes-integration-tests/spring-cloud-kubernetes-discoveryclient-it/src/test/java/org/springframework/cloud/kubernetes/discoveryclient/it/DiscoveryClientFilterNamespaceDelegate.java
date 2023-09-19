@@ -34,7 +34,8 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 final class DiscoveryClientFilterNamespaceDelegate {
 
-	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(DiscoveryClientFilterNamespaceDelegate.class);
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(
+			DiscoveryClientFilterNamespaceDelegate.class);
 
 	static void testNamespaceDiscoveryClient() {
 		testLoadBalancer();
@@ -45,25 +46,22 @@ final class DiscoveryClientFilterNamespaceDelegate {
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/services").build();
-		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
-				.extractingJsonPathArrayValue("$")
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$")
 				.contains("service-wiremock");
 
 		// ServiceInstance
 		WebClient serviceInstanceClient = builder
 				.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock").build();
-		String serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block();
+		String serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances))
-				.extractingJsonPathStringValue("$.[0].serviceId")
+		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances)).extractingJsonPathStringValue("$.[0].serviceId")
 				.isEqualTo("service-wiremock");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances))
-				.extractingJsonPathStringValue("$.[0].namespace")
+		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances)).extractingJsonPathStringValue("$.[0].namespace")
 				.isEqualTo("left");
 	}
 
@@ -71,12 +69,11 @@ final class DiscoveryClientFilterNamespaceDelegate {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
 
-		String health = serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block();
+		String health = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(health))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status")
-				.isEqualTo("UP");
+				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 	}
 
 	private static WebClient.Builder builder() {
