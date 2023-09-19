@@ -23,7 +23,7 @@ HTTP Based `DiscoveryClient`
 ====
 
 NOTE: `spring-cloud-starter-kubernetes-discoveryclient` is designed to be used with the
-<<spring-cloud-kubernetes-discoveryserver, Spring Cloud Kubernetes DiscoveryServer>>.
+xref:spring-cloud-kubernetes-discoveryserver.adoc#spring-cloud-kubernetes-discoveryserver[Spring Cloud Kubernetes DiscoveryServer].
 
 ====
 Fabric8 Kubernetes Client
@@ -156,7 +156,7 @@ spring:
           - namespace-b
 ```
 
-- we will use: xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] if the above two paths are not taken.
+- we will use: xref:property-source-config/namespace-resolution.adoc[Namespace Resolution] if the above two paths are not taken.
 
 In order to enable this functionality you need to add
 `@EnableScheduling` on a configuration class in your application.

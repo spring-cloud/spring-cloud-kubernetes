@@ -42,7 +42,7 @@ spring:
 
 In the preceding example, if `spring.cloud.kubernetes.config.namespace` had not been set,
 the `ConfigMap` named `c1` would be looked up in the namespace that the application runs.
-See <<namespace-resolution,Namespace resolution>> to get a better understanding of how the namespace
+See xref:property-source-config/namespace-resolution.adoc[Namespace resolution] to get a better understanding of how the namespace
 of the application is resolved.
 
 

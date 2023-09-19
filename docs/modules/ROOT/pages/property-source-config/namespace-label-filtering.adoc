@@ -1,7 +1,7 @@
 [[namespace-label-filtering]]
 = Reload namespace and label filtering
 
-By default, a namespace chosen using the steps outlined in <<namespace-resolution,Namespace resolution>> will be used to listen to changes
+By default, a namespace chosen using the steps outlined in xref:property-source-config/namespace-resolution.adoc[Namespace resolution] will be used to listen to changes
 in configmaps and secrets. i.e.: if you do not tell reload what namespaces and configmaps/secrets to watch for,
 it will watch all configmaps/secrets from the namespace that will be computed using the above algorithm.
 
