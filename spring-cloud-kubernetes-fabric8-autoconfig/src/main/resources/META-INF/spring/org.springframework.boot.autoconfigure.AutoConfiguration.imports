@@ -1,2 +1,0 @@
-org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration
-org.springframework.cloud.kubernetes.fabric8.Fabric8ActuatorConfiguration

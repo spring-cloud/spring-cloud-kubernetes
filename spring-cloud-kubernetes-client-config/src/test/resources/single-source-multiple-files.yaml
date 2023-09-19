@@ -1,9 +1,0 @@
-spring:
-  application:
-    name: fruit
-  cloud:
-    kubernetes:
-      config:
-        namespace: spring-k8s
-        sources:
-          - name: my-configmap

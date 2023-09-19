@@ -1,2 +1,0 @@
-releaser.maven.build-command: ./scripts/integration-tests.sh
-releaser.maven.deploy-command: ./scripts/deploy.sh {{systemProps}}

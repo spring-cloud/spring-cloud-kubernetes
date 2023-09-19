@@ -1,6 +1,0 @@
-spring:
-  config:
-    activate:
-      on-profile: development
-bean:
-  greeting: "Hello ConfigMap Active Profile Name, %s!"

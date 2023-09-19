@@ -1,2 +1,0 @@
-org.springframework.boot.env.EnvironmentPostProcessor=\
-org.springframework.cloud.kubernetes.client.profile.KubernetesClientProfileEnvironmentPostProcessor
