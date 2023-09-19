@@ -1,5 +1,6 @@
 [[leader-election]]
-== Leader Election
+= Leader Election
+
 The Spring Cloud Kubernetes leader election mechanism implements the leader election API of Spring Integration using a Kubernetes ConfigMap.
 
 Multiple application instances compete for leadership, but leadership will only be granted to one.

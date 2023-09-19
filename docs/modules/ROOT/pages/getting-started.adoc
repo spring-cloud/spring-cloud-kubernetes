@@ -1,5 +1,5 @@
 [[starters]]
-== Starters
+= Starters
 
 Starters are convenient dependency descriptors you can include in your
 application. Include a starter to get the dependencies and Spring Boot

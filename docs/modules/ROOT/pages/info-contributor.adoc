@@ -1,5 +1,5 @@
 [[info-contributor]]
-== Info Contributor
+= Info Contributor
 
 Spring Cloud Kubernetes includes an `InfoContributor` which adds Pod information to
 Spring Boot's `/info` Acturator endpoint.

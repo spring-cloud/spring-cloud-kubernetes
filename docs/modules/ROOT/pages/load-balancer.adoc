@@ -1,5 +1,6 @@
 [[loadbalancer-for-kubernetes]]
-== LoadBalancer for Kubernetes
+= LoadBalancer for Kubernetes
+
 This project includes Spring Cloud Load Balancer for load balancing based on Kubernetes Endpoints and provides implementation of load balancer based on Kubernetes Service.
 To include it to your project add the following dependency.
 ====

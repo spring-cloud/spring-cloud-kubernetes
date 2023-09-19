@@ -1,5 +1,5 @@
 [[kubernetes-propertysource-implementations]]
-== Kubernetes PropertySource implementations
+= Kubernetes PropertySource implementations
 
 The most common approach to configuring your Spring Boot application is to create an `application.properties` or `application.yaml` or
 an `application-profile.properties` or `application-profile.yaml` file that contains key-value pairs that provide customization values to your
@@ -16,7 +16,7 @@ you can either add `spring-cloud-starter-bootstrap` to your application's classp
 as an environment variable.
 
 [[configmap-propertysource]]
-=== Using a `ConfigMap` `PropertySource`
+== Using a `ConfigMap` `PropertySource`
 
 Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
@@ -636,7 +636,7 @@ by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 |===
 
 [[secrets-propertysource]]
-=== Secrets PropertySource
+== Secrets PropertySource
 
 Kubernetes has the notion of https://kubernetes.io/docs/concepts/configuration/secret/[Secrets] for storing
 sensitive data such as passwords, OAuth tokens, and so on. This project provides integration with `Secrets` to make secrets
@@ -831,7 +831,7 @@ You can find an example of an application that uses secrets (though it has not b
 https://github.com/fabric8-quickstarts/spring-boot-camel-config[spring-boot-camel-config]
 
 [[namespace-resolution]]
-=== Namespace resolution
+== Namespace resolution
 Finding an application namespace happens on a best-effort basis. There are some steps that we iterate in order
 to find it. The easiest and most common one, is to specify it in the proper configuration, for example:
 
@@ -870,12 +870,12 @@ such a method. This, in turn, could be configured via environment properties. Fo
 Failure to find a namespace from the above steps will result in an Exception being raised.
 
 [[order_of_configMaps_and_secrets]]
-=== Order of ConfigMaps and Secrets
+== Order of ConfigMaps and Secrets
 
 If, for whatever reason, you enabled both configmaps and secrets, and there is a common property between them, the value from the ConfigMap will have a higher precedence. That is: it will override whatever values are found in secrets.
 
 [[propertysource-reload]]
-=== `PropertySource` Reload
+== `PropertySource` Reload
 
 WARNING:  This functionality has been deprecated in the 2020.0 release.  Please see
 the <<spring-cloud-kubernetes-configuration-watcher>> controller for an alternative way
@@ -982,7 +982,7 @@ It requires the same role as the monitored property source.
 This means, for example, that using polling on file-mounted secret sources does not require particular privileges.
 
 [[namespace-label-filtering]]
-=== Reload namespace and label filtering
+== Reload namespace and label filtering
 By default, a namespace chosen using the steps outlined in <<namespace-resolution,Namespace resolution>> will be used to listen to changes
 in configmaps and secrets. i.e.: if you do not tell reload what namespaces and configmaps/secrets to watch for,
 it will watch all configmaps/secrets from the namespace that will be computed using the above algorithm.

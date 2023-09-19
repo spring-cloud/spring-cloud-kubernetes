@@ -1,5 +1,5 @@
 [[examples]]
-== Examples
+= Examples
 
 Spring Cloud Kubernetes tries to make it transparent for your applications to consume Kubernetes Native Services by
 following the Spring Cloud interfaces.
