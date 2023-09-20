@@ -420,9 +420,6 @@ public final class Util {
 						.getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
-	/**
-	 * deploy wiremock without ingress.
-	 */
 	public void wiremock(String namespace, String path, Phase phase) {
 		wiremock(namespace, path, phase, true);
 	}

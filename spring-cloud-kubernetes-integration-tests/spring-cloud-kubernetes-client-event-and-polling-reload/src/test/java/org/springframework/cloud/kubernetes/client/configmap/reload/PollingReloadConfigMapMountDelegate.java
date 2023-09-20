@@ -30,9 +30,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.builder;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchFive;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.retrySpec;
 
 /**
  * @author wind57
@@ -58,11 +55,13 @@ final class PollingReloadConfigMapMountDelegate {
 	 */
 	static void testPollingReloadConfigMapMount(String deploymentName, Util util, String imageName) throws Exception {
 
-		patchFive(deploymentName, "default", imageName);
+		K8sClientConfigMapReloadITUtil.patchFive(deploymentName, "default", imageName);
 
 		// (3)
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		WebClient webClient = K8sClientConfigMapReloadITUtil.builder().baseUrl("http://localhost/key").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(
+						K8sClientConfigMapReloadITUtil.retrySpec()
+				)
 				.block();
 
 		// we first read the initial value from the configmap
@@ -86,8 +85,9 @@ final class PollingReloadConfigMapMountDelegate {
 		new CoreV1Api().replaceNamespacedConfigMap("poll-reload-as-mount", "default", configMap, null, null, null,
 				null);
 
-		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
+		await().timeout(Duration.ofSeconds(180))
+				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+						.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block().equals("as-mount-changed"));
 
 	}
 
