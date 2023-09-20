@@ -71,7 +71,7 @@ class DiscoveryClientFilterNamespaceIT {
 
 	private static RbacAuthorizationV1Api rbacApi;
 
-	private static V1ClusterRoleBinding clusterRole;
+	private static V1ClusterRoleBinding clusterRoleBinding;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -85,19 +85,20 @@ class DiscoveryClientFilterNamespaceIT {
 
 		util = new Util(K3S);
 		rbacApi = new RbacAuthorizationV1Api();
-		clusterRole = (V1ClusterRoleBinding) util
+		clusterRoleBinding = (V1ClusterRoleBinding) util
 				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
 		util.createNamespace(NAMESPACE_LEFT);
 		util.createNamespace(NAMESPACE_RIGHT);
 		util.setUp(NAMESPACE);
 
-		rbacApi.createClusterRoleBinding(clusterRole, null, null, null, null);
+		rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
 		discoveryServer(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		rbacApi.deleteClusterRoleBinding(clusterRole.getMetadata().getName(), null, null, null, null, null, null);
+		rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null, null,
+				null);
 		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 		discoveryServer(Phase.DELETE);
