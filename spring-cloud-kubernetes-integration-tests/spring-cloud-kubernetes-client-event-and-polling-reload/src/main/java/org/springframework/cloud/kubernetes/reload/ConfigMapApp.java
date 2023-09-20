@@ -24,15 +24,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @author wind57
  */
 @SpringBootApplication
-<<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-client-event-and-polling-reload/src/main/java/org/springframework/cloud/kubernetes/reload/ConfigMapApp.java
-@EnableConfigurationProperties({ ConfigMapProperties.class, LeftProperties.class, RightProperties.class,
-		RightWithLabelsProperties.class })
-public class ConfigMapApp {
-========
 @EnableConfigurationProperties({ LeftProperties.class, RightProperties.class, RightWithLabelsProperties.class,
 		ConfigMapProperties.class, SecretsProperties.class })
-public class App {
->>>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-client-event-and-polling-reload/src/main/java/org/springframework/cloud/kubernetes/reload/App.java
+public class ConfigMapApp {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ConfigMapApp.class, args);

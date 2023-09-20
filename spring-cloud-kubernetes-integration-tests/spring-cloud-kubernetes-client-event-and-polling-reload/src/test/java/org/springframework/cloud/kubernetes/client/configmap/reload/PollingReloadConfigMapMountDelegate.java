@@ -59,10 +59,8 @@ final class PollingReloadConfigMapMountDelegate {
 
 		// (3)
 		WebClient webClient = K8sClientConfigMapReloadITUtil.builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(
-						K8sClientConfigMapReloadITUtil.retrySpec()
-				)
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
