@@ -113,6 +113,10 @@ class DiscoveryClientIT {
 
 	private static Util util;
 
+	private static RbacAuthorizationV1Api rbacApi;
+
+	private static V1ClusterRoleBinding clusterRoleBinding;
+
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
@@ -124,15 +128,15 @@ class DiscoveryClientIT {
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		util = new Util(K3S);
+		rbacApi = new RbacAuthorizationV1Api();
 		util.setUp(NAMESPACE);
 
 		util.createNamespace(NAMESPACE_LEFT);
 		util.createNamespace(NAMESPACE_RIGHT);
 
-		RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
-		V1ClusterRoleBinding clusterRole = (V1ClusterRoleBinding) util
+		clusterRoleBinding = (V1ClusterRoleBinding) util
 				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
-		rbacApi.createClusterRoleBinding(clusterRole, null, null, null, null);
+		rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
 
 		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE, false);
 		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE, false);
@@ -143,6 +147,8 @@ class DiscoveryClientIT {
 
 	@AfterAll
 	static void afterAll() throws Exception {
+		rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null, null,
+				null);
 		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
