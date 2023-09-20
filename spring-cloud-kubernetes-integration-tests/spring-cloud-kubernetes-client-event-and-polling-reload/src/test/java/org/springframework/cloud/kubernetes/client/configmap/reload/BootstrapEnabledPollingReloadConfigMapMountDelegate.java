@@ -30,9 +30,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.builder;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchSix;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.retrySpec;
 
 /**
  * @author wind57
@@ -59,7 +56,7 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 			Util util, String imageName) throws Exception {
 
 		recreateMountConfigMap(util);
-		patchSix(deploymentName, "default", imageName);
+		K8sClientConfigMapReloadITUtil.patchSix(deploymentName, "default", imageName);
 
 		// (1)
 		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", k3sContainer,
@@ -70,9 +67,9 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 				deploymentName);
 
 		// (3)
-		WebClient webClient = builder().baseUrl("http://localhost/mount").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		WebClient webClient = K8sClientConfigMapReloadITUtil.builder().baseUrl("http://localhost/mount").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
@@ -84,8 +81,9 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 		new CoreV1Api().replaceNamespacedConfigMap("poll-reload-as-mount", NAMESPACE, configMap, null, null, null,
 				null);
 
-		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
+		await().timeout(Duration.ofSeconds(180))
+				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+						.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block().equals("as-mount-changed"));
 
 	}
 

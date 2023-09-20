@@ -308,7 +308,7 @@ class KubernetesClientDiscoveryClientIT {
 		// patch the deployment to change what namespaces are take into account
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
 
-		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate(util);
+		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate();
 	}
 
 	@Test
@@ -330,7 +330,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 
-		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(util, K3S);
+		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(K3S);
 	}
 
 	@Test
@@ -339,7 +339,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
 
-		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(util, K3S);
+		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(K3S);
 	}
 
 	private void deleteNamespacesAndWiremock() {
