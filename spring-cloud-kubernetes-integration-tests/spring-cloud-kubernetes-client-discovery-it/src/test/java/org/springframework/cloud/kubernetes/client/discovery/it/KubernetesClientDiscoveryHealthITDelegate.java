@@ -156,8 +156,8 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(retrySpec()).block();
-		String infoResult = infoClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-			.retryWhen(retrySpec()).block();
+		String infoResult = infoClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
@@ -188,55 +188,56 @@ class KubernetesClientDiscoveryHealthITDelegate {
 	}
 
 	private void assertHealth(String healthResult) {
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.status").isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.status").isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.details.hostIp").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.details.hostIp").isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathBooleanValue(
-			"$.components.kubernetes.details.inside").isEqualTo(true);
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathBooleanValue("$.components.kubernetes.details.inside").isEqualTo(true);
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.details.labels.app").isEqualTo("spring-cloud-kubernetes-client-discovery-it");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.details.labels.app")
+				.isEqualTo("spring-cloud-kubernetes-client-discovery-it");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.details.namespace").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.details.namespace").isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.details.nodeName").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.details.nodeName").isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.details.podIp").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.details.podIp").isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.details.podName").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.details.podName").isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-			"$.components.kubernetes.details.serviceAccount").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+				.extractingJsonPathStringValue("$.components.kubernetes.details.serviceAccount").isNotEmpty();
 	}
 
 	private void assertInfo(String infoResult) {
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue(
-			"$.kubernetes.hostIp").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.hostIp")
+				.isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathBooleanValue(
-			"$.kubernetes.inside").isEqualTo(true);
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathBooleanValue("$.kubernetes.inside")
+				.isEqualTo(true);
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue(
-			"$.kubernetes.namespace").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
+				.extractingJsonPathStringValue("$.kubernetes.namespace").isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue(
-			"$.kubernetes.nodeName").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.nodeName")
+				.isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue(
-			"$.kubernetes.podIp").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.podIp")
+				.isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue(
-			"$.kubernetes.podName").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.podName")
+				.isNotEmpty();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue(
-			"$.kubernetes.serviceAccount").isNotEmpty();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
+				.extractingJsonPathStringValue("$.kubernetes.serviceAccount").isNotEmpty();
 	}
 
 	private WebClient.Builder builder() {
