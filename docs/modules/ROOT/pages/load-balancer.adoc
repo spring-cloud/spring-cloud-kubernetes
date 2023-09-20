@@ -1,0 +1,36 @@
+[[loadbalancer-for-kubernetes]]
+= LoadBalancer for Kubernetes
+
+This project includes Spring Cloud Load Balancer for load balancing based on Kubernetes Endpoints and provides implementation of load balancer based on Kubernetes Service.
+To include it to your project add the following dependency.
+Fabric8 Implementation
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-loadbalancer</artifactId>
+</dependency>
+----
+
+Kubernetes Java Client Implementation
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-loadbalancer</artifactId>
+</dependency>
+----
+
+To enable load balancing based on Kubernetes Service name use the following property. Then load balancer would try to call application using address, for example `service-a.default.svc.cluster.local`
+[source]
+----
+spring.cloud.kubernetes.loadbalancer.mode=SERVICE
+----
+
+To enabled load balancing across all namespaces use the following property. Property from `spring-cloud-kubernetes-discovery` module is respected.
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+
+If a service needs to be accessed over HTTPS you need to add a label or annotation to your service definition with the name `secured` and the value `true` and the load balancer will then use HTTPS to make requests to the service.

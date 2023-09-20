@@ -1,0 +1,18 @@
+[[kubernetes-propertysource-implementations]]
+= Kubernetes PropertySource implementations
+:page-section-summary-toc: 1
+
+The most common approach to configuring your Spring Boot application is to create an `application.properties` or `application.yaml` or
+an `application-profile.properties` or `application-profile.yaml` file that contains key-value pairs that provide customization values to your
+application or Spring Boot starters. You can override these properties by specifying system properties or environment
+variables.
+
+To enable this functionality you need to set `spring.config.import=kubernetes:` in your application's configuration properties.
+Currently you can not specify a ConfigMap or Secret to load using `spring.config.import`, by default Spring Cloud Kubernetes
+will load a ConfigMap and/or Secret based on the `spring.application.name` property.  If `spring.application.name` is not set it will
+load a ConfigMap and/or Secret with the name `application`.
+
+If you would like to load Kubernetes ``PropertySource``s during the bootstrap phase like it worked prior to the 3.0.x release
+you can either add `spring-cloud-starter-bootstrap` to your application's classpath or set `spring.cloud.bootstrap.enabled=true`
+as an environment variable.
+
