@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.reload;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -59,6 +63,16 @@ public class Controller {
 	@GetMapping("/key-no-mount")
 	public String keyNoMount() {
 		return configMapProperties.getKey();
+	}
+
+	@GetMapping("/debug")
+	public String debug() {
+		try {
+			return Files.readAllLines(Paths.get("/tmp/props/key")).get(0);
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

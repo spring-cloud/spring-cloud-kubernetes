@@ -342,7 +342,13 @@ final class K8sClientConfigMapReloadITUtil {
 								{
 									"configMap": {
 										"defaultMode": 420,
-										"name": "poll-reload-as-mount"
+										"name": "poll-reload-as-mount",
+										"items": [
+											{
+												"key": "from.properties",
+												"path": "key"
+											}
+										]
 									},
 									"name": "config-map-volume"
 								}

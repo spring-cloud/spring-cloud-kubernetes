@@ -53,7 +53,7 @@ final class ReloadConfigMapMountDelegate {
 	 *       and schedule a refresh event, based on http.
 	 * </pre>
 	 */
-	static void testPollingReloadConfigMapMount(String deploymentName, Util util, String imageName) throws Exception {
+	static void testReloadConfigMapMount(String deploymentName, Util util, String imageName) throws Exception {
 
 		K8sClientConfigMapReloadITUtil.patchFive(deploymentName, "default", imageName);
 
@@ -67,7 +67,7 @@ final class ReloadConfigMapMountDelegate {
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
 		V1ConfigMap configMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
-		configMap.setData(Map.of("data", "from.properties=as-mount-changed"));
+		configMap.setData(Map.of("from.properties", "as-mount-changed"));
 		// add label so that configuration-watcher picks this up
 		Map<String, String> existingLabels = new HashMap<>(
 				Optional.ofNullable(configMap.getMetadata().getLabels()).orElse(Map.of()));

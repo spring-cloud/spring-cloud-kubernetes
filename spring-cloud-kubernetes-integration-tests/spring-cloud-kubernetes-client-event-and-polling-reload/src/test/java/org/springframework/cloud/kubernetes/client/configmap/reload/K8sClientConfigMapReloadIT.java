@@ -43,12 +43,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.BootstrapEnabledReloadConfigMapMountDelegate.testBootstrapEnabledReloadConfigMapMount;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.builder;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchOne;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchThree;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchTwo;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.retrySpec;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.ReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
 
 /**
  * @author wind57
@@ -154,9 +154,8 @@ class K8sClientConfigMapReloadIT {
 		// testInform();
 		// testInformFromOneNamespaceEventTriggeredSecretsDisabled();
 		// testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
-		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, util, DOCKER_IMAGE);
-		// testBootstrapEnabledPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util,
-		// DOCKER_IMAGE);
+		// testReloadConfigMapMount(DEPLOYMENT_NAME, util, DOCKER_IMAGE);
+		testBootstrapEnabledReloadConfigMapMount(DEPLOYMENT_NAME, util, DOCKER_IMAGE);
 
 	}
 
