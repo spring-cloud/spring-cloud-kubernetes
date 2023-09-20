@@ -1,0 +1,75 @@
+[[starters]]
+= Starters
+
+Starters are convenient dependency descriptors you can include in your
+application. Include a starter to get the dependencies and Spring Boot
+auto-configuration for a feature set.  Starters that begin with `spring-cloud-starter-kubernetes-fabric8`
+provide implementations using the https://github.com/fabric8io/kubernetes-client[Fabric8 Kubernetes Java Client].
+Starters that begin with
+`spring-cloud-starter-kubernetes-client` provide implementations using the https://github.com/kubernetes-client/java[Kubernetes Java Client].
+
+[cols="a,d"]
+|===
+| Starter | Features
+
+| [source,xml]
+.Fabric8 Dependency
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+</dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
+</dependency>
+----
+| <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
+resolves service names to Kubernetes Services.
+
+| [source,xml]
+.Fabric8 Dependency
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-config</artifactId>
+</dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-config</artifactId>
+</dependency>
+----
+| Load application properties from Kubernetes
+xref:property-source-config/configmap-propertysource.adoc[ConfigMaps] and <<Secrets PropertySource,Secrets>>.
+xref:property-source-config/propertysource-reload.adoc[Reload] application properties when a ConfigMap or
+Secret changes.
+
+| [source,xml]
+.Fabric8 Dependency
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8-all</artifactId>
+</dependency>
+----
+
+[source,xml]
+.Kubernetes Client Dependency
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client-all</artifactId>
+</dependency>
+----
+| All Spring Cloud Kubernetes features.
+|===

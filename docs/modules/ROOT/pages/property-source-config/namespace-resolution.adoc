@@ -1,0 +1,38 @@
+[[namespace-resolution]]
+= Namespace resolution
+
+Finding an application namespace happens on a best-effort basis. There are some steps that we iterate in order
+to find it. The easiest and most common one, is to specify it in the proper configuration, for example:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: app
+  cloud:
+    kubernetes:
+      secrets:
+        name: secret
+        namespace: default
+        sources:
+         # Spring Cloud Kubernetes looks up a Secret named 'a' in namespace 'default'
+         - name: a
+         # Spring Cloud Kubernetes looks up a Secret named 'secret' in namespace 'b'
+         - namespace: b
+         # Spring Cloud Kubernetes looks up a Secret named 'd' in namespace 'c'
+         - namespace: c
+           name: d
+----
+
+Remember that the same can be done for config maps. If such a namespace is not specified, it will be read (in this order):
+
+1. from property `spring.cloud.kubernetes.client.namespace`
+2. from a String residing in a file denoted by `spring.cloud.kubernetes.client.serviceAccountNamespacePath` property
+3. from a String residing in `/var/run/secrets/kubernetes.io/serviceaccount/namespace` file
+(kubernetes default namespace path)
+4. from a designated client method call (for example fabric8's : `KubernetesClient::getNamespace`), if the client provides
+such a method. This, in turn, could be configured via environment properties. For example fabric8 client can be configured via
+"KUBERNETES_NAMESPACE" property; consult the client documentation for exact details.
+
+Failure to find a namespace from the above steps will result in an Exception being raised.
+

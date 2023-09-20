@@ -1,0 +1,158 @@
+[[discoveryclient-for-kubernetes]]
+= DiscoveryClient for Kubernetes
+
+This project provides an implementation of https://github.com/spring-cloud/spring-cloud-commons/blob/master/spring-cloud-commons/src/main/java/org/springframework/cloud/client/discovery/DiscoveryClient.java[Discovery Client]
+for https://kubernetes.io[Kubernetes].
+This client lets you query Kubernetes endpoints (see https://kubernetes.io/docs/user-guide/services/[services]) by name.
+A service is typically exposed by the Kubernetes API server as a collection of endpoints that represent `http` and `https` addresses and that a client can
+access from a Spring Boot application running as a pod.
+
+DiscoveryClient can also find services of type `ExternalName` (see https://kubernetes.io/docs/concepts/services-networking/service/#externalname[ExternalName services]). At the moment, external name support type of services is only available if the following property  `spring.cloud.kubernetes.discovery.include-external-name-services` is set to `true` and only in the `fabric8` implementation. In a later release, support will be added for the kubernetes native client also.
+
+This is something that you get for free by adding the following dependency inside your project:
+
+HTTP Based `DiscoveryClient`
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
+</dependency>
+----
+
+NOTE: `spring-cloud-starter-kubernetes-discoveryclient` is designed to be used with the
+xref:spring-cloud-kubernetes-discoveryserver.adoc#spring-cloud-kubernetes-discoveryserver[Spring Cloud Kubernetes DiscoveryServer].
+
+Fabric8 Kubernetes Client
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+</dependency>
+----
+
+Kubernetes Java Client
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
+</dependency>
+----
+
+To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class, as the following example shows:
+
+[source,java]
+----
+@SpringBootApplication
+@EnableDiscoveryClient
+public class Application {
+  public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
+}
+----
+
+Then you can inject the client in your code simply by autowiring it, as the following example shows:
+
+[source,java]
+----
+@Autowired
+private DiscoveryClient discoveryClient;
+----
+
+You can choose to enable `DiscoveryClient` from all namespaces by setting the following property in `application.properties`:
+
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+
+To discover services and endpoints only from specified namespaces you should set property `all-namespaces` to `false` and set the following property in `application.properties` (in this example namespaces are: `ns1` and `ns2`).
+
+[source]
+----
+spring.cloud.kubernetes.discovery.namespaces[0]=ns1
+spring.cloud.kubernetes.discovery.namespaces[1]=ns2
+----
+
+To discover service endpoint addresses that are not marked as "ready" by the kubernetes api server, you can set the following property in `application.properties` (default: false):
+
+[source]
+----
+spring.cloud.kubernetes.discovery.include-not-ready-addresses=true
+----
+NOTE: This might be useful when discovering services for monitoring purposes, and would enable inspecting the `/health` endpoint of not-ready service instances.
+
+If your service exposes multiple ports, you will need to specify which port the `DiscoveryClient` should use.
+The `DiscoveryClient` will choose the port using the following logic.
+
+1. If the service has a label `primary-port-name` it will use the port with the name specified in the label's value.
+2. If no label is present, then the port name specified in `spring.cloud.kubernetes.discovery.primary-port-name` will be used.
+3. If neither of the above are specified it will use the port named `https`.
+4. If none of the above conditions are met it will use the port named `http`.
+5. As a last resort it wil pick the first port in the list of ports.
+
+WARNING:  The last option may result in non-deterministic behaviour.
+Please make sure to configure your service and/or application accordingly.
+
+By default all of the ports and their names will be added to the metadata of the `ServiceInstance`.
+
+As said before, if you want to get the list of `ServiceInstance` to also include the `ExternalName` type services, you need to enable that support via: `spring.cloud.kubernetes.discovery.include-external-name-services=true`. As such, when calling `DiscoveryClient::getInstances` those will be returned also. You can distinguish between `ExternalName` and any other types by inspecting `ServiceInstance::getMetadata` and lookup for a field called `type`. This will be the type of the service returned : `ExternalName`/`ClusterIP`, etc.
+
+`ServiceInstance` can include the labels and annotations of specific pods from the underlying service instance. To obtain such information, you need to also enable:
+
+`spring.cloud.kubernetes.discovery.metadata.add-pod-labels=true` and/or `spring.cloud.kubernetes.discovery.metadata.add-pod-annotations=true`. At the moment, such functionality is present only in the fabric8 client implementation, but will be added to the kubernetes native client in a later release.
+
+If, for any reason, you need to disable the `DiscoveryClient`, you can set the following property in `application.properties`:
+
+[source]
+----
+spring.cloud.kubernetes.discovery.enabled=false
+----
+
+Some Spring Cloud components use the `DiscoveryClient` in order to obtain information about the local service instance. For
+this to work, you need to align the Kubernetes service name with the `spring.application.name` property.
+
+NOTE:  `spring.application.name` has no effect as far as the name registered for the application within Kubernetes
+
+Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
+`DiscoveryClient` implementation accordingly. By "watch" we mean that we will publish a heartbeat event every `spring.cloud.kubernetes.discovery.catalog-services-watch-delay`
+milliseconds (by default it is `30000`). The heartbeat event will contain the target references (and their namespaces of the addresses of all endpoints
+(for the exact details of what will get returned you can take a look inside `KubernetesCatalogWatch`). This is an implementation detail, and listeners of the heartbeat event
+should not rely on the details. Instead, they should see if there are differences between two subsequent heartbeats via `equals` method. We will take care to return a correct implementation that adheres to the equals contract.
+The endpoints will be queried in either :
+
+ - all namespaces (enabled via `spring.cloud.kubernetes.discovery.all-namespaces=true`)
+
+ - specific namespaces (enabled via `spring.cloud.kubernetes.discovery.namespaces`), for example:
+
+```
+spring:
+  cloud:
+    kubernetes:
+      discovery:
+        namespaces:
+          - namespace-a
+          - namespace-b
+```
+
+- we will use: xref:property-source-config/namespace-resolution.adoc[Namespace Resolution] if the above two paths are not taken.
+
+In order to enable this functionality you need to add
+`@EnableScheduling` on a configuration class in your application.
+
+By default, we use the `Endpoints`(see https://kubernetes.io/docs/concepts/services-networking/service/#endpoints) API to find out the current state of services. There is another way though, via `EndpointSlices` (https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/). Such support can be enabled via a property: `spring.cloud.kubernetes.discovery.use-endpoint-slices=true` (by default it is `false`). Of course, your cluster has to support it also. As a matter of fact, if you enable this property, but your cluster does not support it, we will fail starting the application. If you decide to enable such support, you also need proper Role/ClusterRole set-up. For example:
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: namespace-reader
+rules:
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+```

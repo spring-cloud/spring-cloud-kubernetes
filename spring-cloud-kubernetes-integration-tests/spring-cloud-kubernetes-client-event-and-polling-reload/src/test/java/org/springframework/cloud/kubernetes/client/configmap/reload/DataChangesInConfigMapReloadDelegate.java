@@ -32,10 +32,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.builder;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.logs;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.patchFour;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientReloadITUtil.retrySpec;
 
 /**
  * @author wind57
@@ -59,13 +55,14 @@ final class DataChangesInConfigMapReloadDelegate {
 	 */
 	static void testSimple(String dockerImage, String deploymentName, K3sContainer k3sContainer) {
 
-		patchFour(deploymentName, NAMESPACE, dockerImage);
+		K8sClientConfigMapReloadITUtil.patchFour(deploymentName, NAMESPACE, dockerImage);
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", deploymentName);
 
-		WebClient webClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		WebClient webClient = K8sClientConfigMapReloadITUtil.builder().baseUrl("http://localhost/" + LEFT_NAMESPACE)
+				.build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block();
 
 		// we first read the initial value from the left-configmap
 		Assertions.assertEquals("left-initial", result);
@@ -79,13 +76,14 @@ final class DataChangesInConfigMapReloadDelegate {
 		replaceConfigMap(configMap);
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
+			WebClient innerWebClient = K8sClientConfigMapReloadITUtil.builder()
+					.baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+					.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block();
 			return "left-initial".equals(innerResult);
 		});
 
-		String logs = logs(deploymentName, k3sContainer);
+		String logs = K8sClientConfigMapReloadITUtil.logs(deploymentName, k3sContainer);
 		Assertions.assertTrue(logs.contains("ConfigMap left-configmap was updated in namespace left"));
 		Assertions.assertTrue(logs.contains("data in configmap has not changed, will not reload"));
 
@@ -98,9 +96,10 @@ final class DataChangesInConfigMapReloadDelegate {
 		replaceConfigMap(configMap);
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
+			WebClient innerWebClient = K8sClientConfigMapReloadITUtil.builder()
+					.baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+					.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block();
 			return "left-after-change".equals(innerResult);
 		});
 

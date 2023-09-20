@@ -84,3 +84,9 @@ crashlytics-build.properties
 .vscode/
 .java-version
 *Dockerfile
+
+node
+node_modules
+build
+package.json
+package-lock.json
