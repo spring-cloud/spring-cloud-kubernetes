@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.client.configmap.reload;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -70,6 +72,17 @@ final class PollingReloadConfigMapMountDelegate {
 		// our polling will detect that and restart the app
 		V1ConfigMap configMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
 		configMap.setData(Map.of("data", "from.properties=as-mount-changed"));
+		// add label so that configuration-watcher picks this up
+		Map<String, String> existingLabels = new HashMap<>(
+				Optional.ofNullable(configMap.getMetadata().getLabels()).orElse(Map.of()));
+		existingLabels.put("spring.cloud.kubernetes.config", "true");
+		configMap.getMetadata().setLabels(existingLabels);
+
+		// add annotation for which app to send the http event to
+		Map<String, String> existingAnnotations = new HashMap<>(
+				Optional.ofNullable(configMap.getMetadata().getAnnotations()).orElse(Map.of()));
+		existingAnnotations.put("spring.cloud.kubernetes.configmap.apps", "spring-k8s-client-reload");
+		configMap.getMetadata().setAnnotations(existingAnnotations);
 		new CoreV1Api().replaceNamespacedConfigMap("poll-reload-as-mount", "default", configMap, null, null, null,
 				null);
 

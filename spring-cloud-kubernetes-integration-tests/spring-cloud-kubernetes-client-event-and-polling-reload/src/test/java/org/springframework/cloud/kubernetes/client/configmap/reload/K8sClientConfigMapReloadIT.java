@@ -55,6 +55,8 @@ import static org.springframework.cloud.kubernetes.client.configmap.reload.Polli
  */
 class K8sClientConfigMapReloadIT {
 
+	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
+
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-event-and-polling-reload";
 
 	private static final String DEPLOYMENT_NAME = "spring-k8s-client-reload";
@@ -72,13 +74,19 @@ class K8sClientConfigMapReloadIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
+
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+
 		util = new Util(K3S);
 		util.createNamespace("left");
 		util.createNamespace("right");
 		util.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
 		util.setUp(NAMESPACE);
+		util.configWatcher(Phase.CREATE);
 		api = new CoreV1Api();
 	}
 
@@ -88,7 +96,9 @@ class K8sClientConfigMapReloadIT {
 		manifests(Phase.DELETE);
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
+		util.configWatcher(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
+		Commons.cleanUp(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
 		Commons.systemPrune();
 	}
 
