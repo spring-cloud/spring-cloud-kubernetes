@@ -1,0 +1,120 @@
+[spring-cloud-kubernetes-configserver]
+= Spring Cloud Kubernetes Config Server
+
+The Spring Cloud Kubernetes Config Server, is based on https://spring.io/projects/spring-cloud-config[Spring Cloud Config Server] and adds an https://docs.spring.io/spring-cloud-config/docs/current/reference/html/#_environment_repository[environment repository] for Kubernetes
+https://kubernetes.io/docs/concepts/configuration/configmap/[Config Maps] and https://kubernetes.io/docs/concepts/configuration/secret/[Secrets].
+
+This is component is completely optional.  However, it allows you to continue to leverage configuration
+you may have stored in existing environment repositories (Git, SVN, Vault, etc) with applications that you are running on Kubernetes.
+
+A default image is located on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-configserver[Docker Hub] which will allow you to easily get a Config Server deployed on Kubernetes without building
+the code and image yourself.  However, if you need to customize the config server behavior or prefer to build the image yourself you can easily build your own
+image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver[source code on GitHub] and use that.
+
+## Configuration
+
+### Enabling The Kubernetes Environment Repository
+To enable the Kubernetes environment repository the `kubernetes` profile must be included in the list of active profiles.
+You may activate other profiles as well to use other environment repository implementations.
+
+### Config Map and Secret PropertySources
+By default, only Config Map data will be fetched.  To enable Secrets as well you will need to set `spring.cloud.kubernetes.secrets.enableApi=true`.
+You can disable the Config Map `PropertySource` by setting `spring.cloud.kubernetes.config.enableApi=false`.
+
+### Fetching Config Map and Secret Data From Additional Namespaces
+By default, the Kubernetes environment repository will only fetch Config Map and Secrets from the namespace in which it is deployed.
+If you want to include data from other namespaces you can set `spring.cloud.kubernetes.configserver.config-map-namespaces` and/or `spring.cloud.kubernetes.configserver.secrets-namespaces` to a comma separated
+list of namespace values.
+
+NOTE: If you set `spring.cloud.kubernetes.configserver.config-map-namespaces` and/or `spring.cloud.kubernetes.configserver.secrets-namespaces`
+you will need to include the namespace in which the Config Server is deployed in order to continue to fetch Config Map and Secret data from that namespace.
+
+### Kubernetes Access Controls
+The Kubernetes Config Server uses the Kubernetes API server to fetch Config Map and Secret data.  In order for it to do that
+it needs ability to `get` and `list` Config Map and Secrets (depending on what you enable/disable).
+
+## Deployment Yaml
+
+Below is a sample deployment, service and permissions configuration you can use to deploy a basic Config Server to Kubernetes.
+
+[source,yaml]
+----
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configserver
+      name: spring-cloud-kubernetes-configserver
+    spec:
+      ports:
+        - name: http
+          port: 8888
+          targetPort: 8888
+      selector:
+        app: spring-cloud-kubernetes-configserver
+      type: ClusterIP
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configserver
+      name: spring-cloud-kubernetes-configserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configserver
+      name: spring-cloud-kubernetes-configserver:view
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: namespace-reader
+    subjects:
+      - kind: ServiceAccount
+        name: spring-cloud-kubernetes-configserver
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: default
+      name: namespace-reader
+    rules:
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["configmaps", "secrets"]
+        verbs: ["get", "list"]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: spring-cloud-kubernetes-configserver-deployment
+    spec:
+      selector:
+        matchLabels:
+          app: spring-cloud-kubernetes-configserver
+      template:
+        metadata:
+          labels:
+            app: spring-cloud-kubernetes-configserver
+        spec:
+          serviceAccount: spring-cloud-kubernetes-configserver
+          containers:
+          - name: spring-cloud-kubernetes-configserver
+            image: springcloud/spring-cloud-kubernetes-configserver
+            imagePullPolicy: IfNotPresent
+            env:
+                - name: SPRING_PROFILES_INCLUDE
+                  value: "kubernetes"
+            readinessProbe:
+              httpGet:
+                port: 8888
+                path: /actuator/health/readiness
+            livenessProbe:
+              httpGet:
+                port: 8888
+                path: /actuator/health/liveness
+            ports:
+            - containerPort: 8888
+
+----
