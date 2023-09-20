@@ -11,6 +11,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: spring-k8s-client-reload
+                name: fabric8-client-configmap-polling-and-import-reload
                 port:
                   number: 8080

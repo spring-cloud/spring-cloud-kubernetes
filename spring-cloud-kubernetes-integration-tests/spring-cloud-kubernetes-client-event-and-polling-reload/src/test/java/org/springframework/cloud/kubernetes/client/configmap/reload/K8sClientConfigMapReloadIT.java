@@ -48,7 +48,7 @@ import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sCl
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchThree;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchTwo;
 import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.retrySpec;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.PollingReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
+import static org.springframework.cloud.kubernetes.client.configmap.reload.ReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
 
 /**
  * @author wind57

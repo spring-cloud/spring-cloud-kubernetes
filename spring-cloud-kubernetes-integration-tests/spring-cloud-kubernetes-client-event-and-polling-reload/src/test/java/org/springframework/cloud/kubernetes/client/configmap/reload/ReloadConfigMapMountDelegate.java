@@ -34,9 +34,9 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author wind57
  */
-final class PollingReloadConfigMapMountDelegate {
+final class ReloadConfigMapMountDelegate {
 
-	private PollingReloadConfigMapMountDelegate() {
+	private ReloadConfigMapMountDelegate() {
 
 	}
 
@@ -57,8 +57,7 @@ final class PollingReloadConfigMapMountDelegate {
 
 		K8sClientConfigMapReloadITUtil.patchFive(deploymentName, "default", imageName);
 
-		// (3)
-		WebClient webClient = K8sClientConfigMapReloadITUtil.builder().baseUrl("http://localhost/key").build();
+		WebClient webClient = K8sClientConfigMapReloadITUtil.builder().baseUrl("http://localhost/key-no-mount").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block();
 

@@ -56,7 +56,7 @@ public class Controller {
 		return rightWithLabelsProperties.getValue();
 	}
 
-	@GetMapping("/key")
+	@GetMapping("/key-no-mount")
 	public String keyNoMount() {
 		return configMapProperties.getKey();
 	}

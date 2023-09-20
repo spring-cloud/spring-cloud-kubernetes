@@ -26,10 +26,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootApplication
 @EnableConfigurationProperties({ LeftProperties.class, RightProperties.class, RightWithLabelsProperties.class,
 		ConfigMapProperties.class, SecretsProperties.class })
-public class ConfigMapApp {
+public class App {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ConfigMapApp.class, args);
+		SpringApplication.run(App.class, args);
 	}
 
 }
