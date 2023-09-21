@@ -10,7 +10,7 @@ runs:
         ./mvnw install -B  \
               -Dskip.build.image=true \
               -DskipTests -DskipITs \
-              -T -U 1C -q
+              -U -T 1C -q
 
     - name: find all classpath entries
       shell: bash
