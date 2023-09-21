@@ -35,7 +35,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -103,7 +102,7 @@ class KubernetesClientDiscoveryClientIT {
 
 		util.busybox(NAMESPACE, Phase.CREATE);
 
-		Assertions.assertTrue(logs().contains("serviceSharedInformer will use namespace : default"));
+		Commons.waitForLogStatement("serviceSharedInformer will use namespace : default", K3S, IMAGE_NAME);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 
@@ -176,14 +175,12 @@ class KubernetesClientDiscoveryClientIT {
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
 		util.setUpClusterWideClusterRoleBinding(NAMESPACE);
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.CREATE, false);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 
 		KubernetesClientDiscoveryClientUtils.patchForAllNamespaces(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
-		Assertions.assertTrue(logs().contains("serviceSharedInformer will use all-namespaces"));
+		Commons.waitForLogStatement("serviceSharedInformer will use all-namespaces", K3S, IMAGE_NAME);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
@@ -225,19 +222,17 @@ class KubernetesClientDiscoveryClientIT {
 	@Order(3)
 	void testSpecificNamespace() {
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.CREATE, false);
 
 		KubernetesClientDiscoveryClientUtils.patchForSingleNamespace(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		// first check that wiremock service is present in both namespaces a and b
 		assertServicePresentInNamespaces(List.of("a", "b"), "service-wiremock", "service-wiremock");
-		String logs = logs();
-		Assertions.assertTrue(logs.contains("using selective namespaces : [a]"));
-		Assertions.assertTrue(logs.contains("reading pod in namespace : default"));
-		Assertions.assertTrue(logs.contains("registering lister (for services) in namespace : a"));
-		Assertions.assertTrue(logs.contains("registering lister (for endpoints) in namespace : a"));
+
+		Commons.waitForLogStatement("using selective namespaces : [a]", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("reading pod in namespace : default", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for services) in namespace : a", K3S, IMAGE_NAME);
+		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
@@ -271,8 +266,8 @@ class KubernetesClientDiscoveryClientIT {
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
-		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE);
-		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_A, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_B, "/wiremock", Phase.DELETE, false);
 		util.deleteClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A));
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
@@ -284,8 +279,6 @@ class KubernetesClientDiscoveryClientIT {
 		util.setUp(NAMESPACE);
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForPodMetadata(imageName, DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryPodMetadataITDelegate().testSimple();
 	}
 
@@ -294,8 +287,6 @@ class KubernetesClientDiscoveryClientIT {
 	void filterMatchesOneNamespaceViaThePredicate() {
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesOneNamespaceViaThePredicate(util);
 
 	}
@@ -316,10 +307,8 @@ class KubernetesClientDiscoveryClientIT {
 
 		// patch the deployment to change what namespaces are take into account
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
-		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate(util);
+		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesBothNamespacesViaThePredicate();
 	}
 
 	@Test
@@ -331,8 +320,6 @@ class KubernetesClientDiscoveryClientIT {
 
 		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);
 	}
@@ -342,10 +329,8 @@ class KubernetesClientDiscoveryClientIT {
 	void testReactiveConfiguration() {
 
 		KubernetesClientDiscoveryClientUtils.patchForReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
-		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(util, K3S);
+		new KubernetesClientDiscoveryHealthITDelegate().testReactiveConfiguration(K3S);
 	}
 
 	@Test
@@ -353,15 +338,13 @@ class KubernetesClientDiscoveryClientIT {
 	void testDefaultConfiguration() {
 
 		KubernetesClientDiscoveryClientUtils.patchForBlockingAndReactiveHealth(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
-		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(util, K3S);
+		new KubernetesClientDiscoveryHealthITDelegate().testDefaultConfiguration(K3S);
 	}
 
 	private void deleteNamespacesAndWiremock() {
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE);
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE, false);
 		util.deleteNamespace(NAMESPACE_A_UAT);
 		util.deleteNamespace(NAMESPACE_B_UAT);
 	}
@@ -402,21 +385,6 @@ class KubernetesClientDiscoveryClientIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
-	}
-
-	private String logs() {
-		try {
-			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-			return execResult.getStdout();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-
 	}
 
 	private void assertServicePresentInNamespaces(List<String> namespaces, String value, String serviceName) {

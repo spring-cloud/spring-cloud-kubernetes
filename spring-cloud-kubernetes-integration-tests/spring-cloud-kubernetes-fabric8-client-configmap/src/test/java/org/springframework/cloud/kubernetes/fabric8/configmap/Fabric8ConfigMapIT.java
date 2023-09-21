@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -76,11 +77,14 @@ class Fabric8ConfigMapIT {
 	@Test
 	void test() {
 		WebClient client = builder().baseUrl("http://localhost/key1").build();
-
 		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
-
 		Assertions.assertEquals("value1", result);
+
+		client = builder().baseUrl("http://localhost/greeting").build();
+		String greetingResult = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		Assertions.assertEquals("Hello From kubernetes profile", greetingResult);
 	}
 
 	private static void manifests(Phase phase) {
@@ -90,10 +94,10 @@ class Fabric8ConfigMapIT {
 		InputStream ingressStream = util.inputStream("fabric8-ingress.yaml");
 		InputStream configMapStream = util.inputStream("fabric8-configmap.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
-		ConfigMap configMap = client.configMaps().load(configMapStream).get();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
+		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, configMap, null);

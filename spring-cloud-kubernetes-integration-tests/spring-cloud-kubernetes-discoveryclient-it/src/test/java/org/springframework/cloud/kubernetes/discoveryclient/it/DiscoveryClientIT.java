@@ -17,13 +17,15 @@
 package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
+import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
+import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,21 +34,70 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.discoveryclient.it.DiscoveryClientFilterNamespaceDelegate.testNamespaceDiscoveryClient;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
 
 /**
  * @author Ryan Baxter
  */
 class DiscoveryClientIT {
+
+	private static final String BODY_ONE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-discoveryclient-it",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "left"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final String BODY_TWO = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-discoveryserver",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
+									"value": "TRUE"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-discoveryclient-it");
+
+	private static final Map<String, String> POD_LABELS_DISCOVERY = Map.of("app",
+			"spring-cloud-kubernetes-discoveryserver");
+
+	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(DiscoveryClientIT.class);
 
 	private static final String DISCOVERY_SERVER_APP_NAME = "spring-cloud-kubernetes-discoveryserver";
 
@@ -54,9 +105,17 @@ class DiscoveryClientIT {
 
 	private static final String NAMESPACE = "default";
 
+	private static final String NAMESPACE_LEFT = "left";
+
+	private static final String NAMESPACE_RIGHT = "right";
+
 	private static final K3sContainer K3S = Commons.container();
 
 	private static Util util;
+
+	private static RbacAuthorizationV1Api rbacApi;
+
+	private static V1ClusterRoleBinding clusterRoleBinding;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -67,16 +126,37 @@ class DiscoveryClientIT {
 
 		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+
 		util = new Util(K3S);
+		rbacApi = new RbacAuthorizationV1Api();
 		util.setUp(NAMESPACE);
+
+		util.createNamespace(NAMESPACE_LEFT);
+		util.createNamespace(NAMESPACE_RIGHT);
+
+		clusterRoleBinding = (V1ClusterRoleBinding) util
+				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
+		rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
+
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE, false);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.CREATE, false);
+
 		discoveryServer(Phase.CREATE);
 
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
+		rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null, null,
+				null);
 		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+
+		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.DELETE, false);
+		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE, false);
+
+		util.deleteNamespace(NAMESPACE_LEFT);
+		util.deleteNamespace(NAMESPACE_RIGHT);
 
 		discoveryServer(Phase.DELETE);
 		discoveryIt(Phase.DELETE);
@@ -88,34 +168,35 @@ class DiscoveryClientIT {
 		discoveryIt(Phase.CREATE);
 		testLoadBalancer();
 		testHealth();
+
+		patchForNamespaceFilter(
+				"docker.io/springcloud/spring-cloud-kubernetes-discoveryclient-it:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryclient-it-deployment", NAMESPACE);
+		patchForAllNamespaces("docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
+		testNamespaceDiscoveryClient();
 	}
 
 	private void testLoadBalancer() {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/services").build();
 
-		String[] result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String[].class)
-				.retryWhen(retrySpec()).block();
-		assertThat(Arrays.stream(result).anyMatch("spring-cloud-kubernetes-discoveryserver"::equalsIgnoreCase))
-				.isTrue();
+		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
 
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$")
+				.contains("spring-cloud-kubernetes-discoveryserver");
 	}
 
-	@SuppressWarnings("unchecked")
 	void testHealth() {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
 
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Map.class, String.class, Object.class);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> health = (Map<String, Object>) serviceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType())).retryWhen(retrySpec())
+		String health = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
-		Map<String, Object> components = (Map<String, Object>) health.get("components");
-
-		Map<String, Object> discoveryComposite = (Map<String, Object>) components.get("discoveryComposite");
-		assertThat(discoveryComposite.get("status")).isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(health))
+				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 	}
 
 	private static void discoveryIt(Phase phase) {
@@ -152,6 +233,14 @@ class DiscoveryClientIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	static void patchForNamespaceFilter(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_ONE, POD_LABELS);
+	}
+
+	static void patchForAllNamespaces(String image, String deploymentName, String namespace) {
+		patchWithReplace(image, deploymentName, namespace, BODY_TWO, POD_LABELS_DISCOVERY);
 	}
 
 }

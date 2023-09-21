@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +32,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.api.model.rbac.Role;
@@ -38,6 +40,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +50,7 @@ import org.testcontainers.k3s.K3sContainer;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
@@ -256,22 +261,36 @@ public final class Util {
 	}
 
 	public void wiremock(String namespace, String path, Phase phase) {
+		wiremock(namespace, path, phase, true);
+	}
+
+	public void wiremock(String namespace, String path, Phase phase, boolean withIngress) {
 		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
 		Service service = client.services().load(serviceStream).get();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).get();
+		Ingress ingress = null;
 
 		if (phase.equals(Phase.CREATE)) {
+
+			if (withIngress) {
+				ingress = client.network().v1().ingresses().load(ingressStream).get();
+				ingress.getMetadata().setNamespace(namespace);
+				ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
+			}
+
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			ingress.getMetadata().setNamespace(namespace);
-			ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
 			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
 		}
 		else {
+
+			if (withIngress) {
+				ingress = client.network().v1().ingresses().load(ingressStream).get();
+			}
+
 			deleteAndWait(namespace, deployment, service, ingress);
 		}
 
@@ -363,6 +382,50 @@ public final class Util {
 			LOG.error("Error waiting for ingress");
 			e.printStackTrace();
 		}
+
+	}
+
+	public void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody,
+			Map<String, String> labels) {
+		String body = patchBody.replace("image_name_here", imageName);
+
+		client.apps().deployments().inNamespace(namespace).withName(deploymentName)
+				.patch(PatchContext.of(PatchType.JSON_MERGE), body);
+
+		waitForDeploymentAfterPatch(deploymentName, namespace, labels);
+	}
+
+	private void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
+		try {
+			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(3)).atMost(60, TimeUnit.SECONDS)
+					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	private boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
+
+		DeploymentList deployments = client.apps().deployments().inNamespace(namespace).list();
+
+		if (deployments.getItems().isEmpty()) {
+			fail("No deployment with name " + deploymentName);
+		}
+
+		Deployment deployment = deployments.getItems().get(0);
+		// if no replicas are defined, it means only 1 is needed
+		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
+
+		int numberOfPods = client.pods().inNamespace(namespace).withLabels(labels).list().getItems().size();
+
+		if (numberOfPods != replicas) {
+			LOG.info("number of pods not yet stabilized");
+			return false;
+		}
+
+		return replicas == Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
 
 	}
 

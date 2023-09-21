@@ -55,8 +55,8 @@ class KubernetesClientDiscoveryFilterITDelegate {
 		util.createNamespace(NAMESPACE_A_UAT);
 		util.createNamespace(NAMESPACE_B_UAT);
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A_UAT, NAMESPACE_B_UAT));
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE);
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE, false);
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
@@ -95,12 +95,10 @@ class KubernetesClientDiscoveryFilterITDelegate {
 	 *     As such, both services are found via 'getInstances' call.
 	 * </pre>
 	 */
-	void filterMatchesBothNamespacesViaThePredicate(Util util) {
+	void filterMatchesBothNamespacesViaThePredicate() {
 
 		// patch the deployment to change what namespaces are take into account
 		KubernetesClientDiscoveryClientUtils.patchForTwoNamespacesMatchViaThePredicate(DEPLOYMENT_NAME, NAMESPACE);
-		util.waitForDeploymentAfterPatch(DEPLOYMENT_NAME, NAMESPACE,
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it"));
 
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
