@@ -8,7 +8,7 @@ runs:
       run: |
         
         cd spring-cloud-kubernetes-test-support
-        .././mvnw clean install -U
+        .././mvnw clean install
         cd ..
         
         cd spring-cloud-kubernetes-integration-tests
