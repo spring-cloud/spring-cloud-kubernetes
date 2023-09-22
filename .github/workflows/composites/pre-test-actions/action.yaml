@@ -25,14 +25,14 @@ runs:
     - name: build controllers project
       uses: ./.github/workflows/composites/build-controllers-project
 
-#    - name: build integration tests project
-#      uses: ./.github/workflows/composites/build-integration-tests-project
-#
-#    - name: download tests
-#      uses: actions/download-artifact@v3
-#      with:
-#        name: tests.txt
-#        path: /tmp
+    - name: build integration tests project
+      uses: ./.github/workflows/composites/build-integration-tests-project
+
+    - name: download tests
+      uses: actions/download-artifact@v3
+      with:
+        name: tests.txt
+        path: /tmp
 
 
 
