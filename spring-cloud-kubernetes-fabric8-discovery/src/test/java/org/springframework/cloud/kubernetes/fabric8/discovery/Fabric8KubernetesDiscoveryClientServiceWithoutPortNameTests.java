@@ -70,8 +70,7 @@ class Fabric8KubernetesDiscoveryClientServiceWithoutPortNameTests {
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true);
 		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(mockClient, properties,
-			new ServicePortSecureResolver(properties), new KubernetesNamespaceProvider(null),
-			a -> true);
+				new ServicePortSecureResolver(properties), new KubernetesNamespaceProvider(null), a -> true);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertEquals(serviceInstances.size(), 1);

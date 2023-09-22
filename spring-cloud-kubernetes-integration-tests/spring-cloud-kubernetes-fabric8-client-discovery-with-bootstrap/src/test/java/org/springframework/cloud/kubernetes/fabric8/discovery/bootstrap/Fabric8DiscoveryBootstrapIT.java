@@ -110,7 +110,6 @@ class Fabric8DiscoveryBootstrapIT {
 			InputStream serviceStream = util.inputStream("fabric8-discovery-service.yaml");
 			InputStream ingressStream = util.inputStream("fabric8-discovery-ingress.yaml");
 
-
 			Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
 			List<EnvVar> existing = new ArrayList<>(
