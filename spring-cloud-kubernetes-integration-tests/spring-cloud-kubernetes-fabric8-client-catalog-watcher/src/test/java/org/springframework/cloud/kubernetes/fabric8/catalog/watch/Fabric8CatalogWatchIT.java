@@ -47,6 +47,8 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.patchForEndpointSlices;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
  * @author wind57
@@ -57,9 +59,11 @@ class Fabric8CatalogWatchIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
 
-	private static KubernetesClient client;
+	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + pomVersion();
+
+	private static final K3sContainer K3S = Commons.container();
 
 	private static Util util;
 
@@ -67,16 +71,19 @@ class Fabric8CatalogWatchIT {
 	static void beforeAll() throws Exception {
 		K3S.start();
 		util = new Util(K3S);
-		client = util.client();
+		KubernetesClient client = util.client();
 
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
+
+		app(Phase.CREATE);
 
 		util.setUp(NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAll() {
+		app(Phase.DELETE);
 		Commons.systemPrune();
 	}
 
@@ -95,18 +102,16 @@ class Fabric8CatalogWatchIT {
 	 */
 	@Test
 	void testCatalogWatchWithEndpoints() throws Exception {
-		app(false, Phase.CREATE);
 		assertLogStatement("stateGenerator is of type: Fabric8EndpointsCatalogWatch");
 		test();
-		app(false, Phase.DELETE);
+
+		testCatalogWatchWithEndpointSlices();
 	}
 
-	@Test
 	void testCatalogWatchWithEndpointSlices() throws Exception {
-		app(true, Phase.CREATE);
+		patchForEndpointSlices(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		assertLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
 		test();
-		app(true, Phase.DELETE);
 	}
 
 	/**
@@ -143,6 +148,9 @@ class Fabric8CatalogWatchIT {
 			// watcher implementation
 			// we will get the first busybox instances here.
 			if (result != null) {
+				if (result.size() != 3) {
+					return false;
+				}
 				holder[0] = result.get(0);
 				holder[1] = result.get(1);
 				return true;
@@ -195,16 +203,13 @@ class Fabric8CatalogWatchIT {
 
 	}
 
-	private static void app(boolean useEndpointSlices, Phase phase) {
+	private static void app(Phase phase) {
 
 		InputStream endpointsDeploymentStream = util.inputStream("app/watcher-endpoints-deployment.yaml");
-		InputStream endpointSlicesDeploymentStream = util.inputStream("app/watcher-endpoint-slices-deployment.yaml");
 		InputStream serviceStream = util.inputStream("app/watcher-service.yaml");
 		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
-		Deployment deployment = useEndpointSlices
-				? Serialization.unmarshal(endpointSlicesDeploymentStream, Deployment.class)
-				: Serialization.unmarshal(endpointsDeploymentStream, Deployment.class);
+		Deployment deployment = Serialization.unmarshal(endpointsDeploymentStream, Deployment.class);
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
 		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
