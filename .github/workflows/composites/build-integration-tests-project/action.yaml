@@ -13,5 +13,5 @@ runs:
         
         cd spring-cloud-kubernetes-integration-tests
         # build the images, but dont run the tests
-        .././mvnw -T 1C clean install -DskipTests
+        .././mvnw -T 1C clean install -nsu -DskipTests
         cd ..
