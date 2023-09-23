@@ -12,8 +12,4 @@ runs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-cache-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-
-    - name: show path
-      shell: bash
-      run: ls ~/.m2/repository/org/springframework/cloud/spring-cloud-kubernetes-fabric8-discovery/3.1.0-SNAPSHOT
         
