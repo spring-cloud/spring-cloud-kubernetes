@@ -4,10 +4,6 @@ runs:
   using: "composite"
   steps:
 
-    - name: show path
-      shell: bash
-      run: ls ~/.m2/repository/org/springframework/cloud/spring-cloud-kubernetes-fabric8-discovery/3.1.0-SNAPSHOT
-
     - name: build integration tests project without tests
       shell: bash
       run: |
