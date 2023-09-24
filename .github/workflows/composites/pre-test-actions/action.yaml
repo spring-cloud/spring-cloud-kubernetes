@@ -22,6 +22,11 @@ runs:
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
 
+    - name: build project
+      shell: bash
+      run: | 
+        ./mvnw install -B -Dskip.build.image=true -DskipTests -DskipITs -U -T 1C -q
+
     - name: build controllers project
       uses: ./.github/workflows/composites/build-controllers-project
 
