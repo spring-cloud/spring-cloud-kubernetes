@@ -15,6 +15,7 @@ runs:
         echo "==================================="
         ls ~/.m2/repository/org/springframework/cloud/spring-cloud-kubernetes-fabric8-discovery/3.1.0-SNAPSHOT
         echo "==================================="
+        less ~/.m2/settings.xml
         
         cd spring-cloud-kubernetes-integration-tests
         # build the images, but dont run the tests
