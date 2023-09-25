@@ -25,7 +25,9 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_cl
  */
 final class Fabric8CatalogWatchUtil {
 
-	private static final Map<String, String> POD_LABELS = Map.of();
+	private static final Map<String, String> POD_LABELS = Map.of(
+		"app", "spring-cloud-kubernetes-fabric8-client-catalog-watcher"
+	);
 
 	private Fabric8CatalogWatchUtil() {
 
@@ -37,24 +39,16 @@ final class Fabric8CatalogWatchUtil {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-fabric8-client-discovery",
+								"name": "spring-cloud-kubernetes-fabric8-client-catalog-watcher",
 								"image": "image_name_here",
 								"env": [
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY",
-									"value": "DEBUG"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_CLIENT_DISCOVERY_HEALTH",
-									"value": "DEBUG"
-								},
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
 									"value": "DEBUG"
 								},
 								{
-									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
-									"value": "FALSE"
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
+									"value": "TRUE"
 								}
 								]
 							}]

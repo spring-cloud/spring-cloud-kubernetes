@@ -24,12 +24,10 @@ import java.util.Objects;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -70,26 +68,19 @@ class Fabric8CatalogWatchIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		util = new Util(K3S);
-		KubernetesClient client = util.client();
-
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
-		app(Phase.CREATE);
-
+		util = new Util(K3S);
 		util.setUp(NAMESPACE);
+		util.busybox(NAMESPACE, Phase.CREATE);
+		app(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
 		app(Phase.DELETE);
 		Commons.systemPrune();
-	}
-
-	@BeforeEach
-	void beforeEach() {
-		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 
 	/**
@@ -108,9 +99,13 @@ class Fabric8CatalogWatchIT {
 		testCatalogWatchWithEndpointSlices();
 	}
 
-	void testCatalogWatchWithEndpointSlices() throws Exception {
+	void testCatalogWatchWithEndpointSlices() {
+		util.busybox(NAMESPACE, Phase.CREATE);
 		patchForEndpointSlices(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
-		assertLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
+		Commons.waitForLogStatement(
+			"stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch",
+			K3S, IMAGE_NAME
+		);
 		test();
 	}
 
