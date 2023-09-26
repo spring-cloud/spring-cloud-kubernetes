@@ -7,6 +7,14 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
+        
+        
+    # temporary workaround for an error in free disk space action
+    # https://github.com/jlumbroso/free-disk-space/issues/14
+    - name: Update Package List and Remove Dotnet
+      shell: bash
+      run: |
+        sudo apt-get update
 
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@main
