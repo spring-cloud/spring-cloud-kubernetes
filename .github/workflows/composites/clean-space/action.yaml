@@ -3,9 +3,6 @@ description: clean space
 runs:
   using: "composite"
   steps:
-    - name: gcloud
-      shell: bash
-      run: gcloud info
 
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@main
