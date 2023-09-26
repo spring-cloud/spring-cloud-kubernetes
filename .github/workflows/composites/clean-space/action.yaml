@@ -10,6 +10,9 @@ runs:
         gcloud_sdk_root=$(gcloud info --format='value(installation.sdk_root)')
         gcloud_global_config=$(gcloud info --format='value(config.paths.global_config_dir)')
         
+        echo "will remove directory : $gcloud_sdk_root"
+        echo "will remove directory : $gcloud_global_config"
+        
         sudo rm -fr $gcloud_sdk_root
         sudo rm -fr $gcloud_global_config
 
