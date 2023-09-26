@@ -8,6 +8,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
+        gcloud info
         sudo apt-get remove -y google-cloud-sdk
 
     - name: gcloud
