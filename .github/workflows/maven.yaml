@@ -29,9 +29,6 @@ jobs:
       - name: checkout project
         uses: actions/checkout@v2
 
-      - name: clean space
-        uses: ./.github/workflows/composites/clean-space
-
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
