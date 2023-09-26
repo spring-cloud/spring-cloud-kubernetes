@@ -4,6 +4,15 @@ runs:
   using: "composite"
   steps:
 
+    - name: manually remove gcloud
+      shell: bash
+      run: |
+        gcloud_sdk_root=$(gcloud info --format='value(installation.sdk_root)')
+        gcloud_global_config=$(gcloud info --format='value(config.paths.global_config_dir)')
+        
+        sudo rm -fr $gcloud_sdk_root
+        sudo rm -fr $gcloud_global_config
+
     - name: same as 'large-packages' but without 'google-cloud-sdk'
       shell: bash
       run: | 
