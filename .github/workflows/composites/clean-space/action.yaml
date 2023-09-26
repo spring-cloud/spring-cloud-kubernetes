@@ -5,7 +5,9 @@ runs:
   steps:
     - name: gcloud
       shell: bash
-      run: gcloud info
+      run: | 
+        sudo apt-get update
+        gcloud info
 
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@main
