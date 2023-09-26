@@ -11,7 +11,7 @@ runs:
         gcloud info
         sudo apt-get remove -y google-cloud-sdk
 
-    - name: gcloud
+    - name: same as 'large-packages' but without 'google-cloud-sdk'
       shell: bash
       run: | 
         sudo apt-get remove -y '^dotnet-.*'
