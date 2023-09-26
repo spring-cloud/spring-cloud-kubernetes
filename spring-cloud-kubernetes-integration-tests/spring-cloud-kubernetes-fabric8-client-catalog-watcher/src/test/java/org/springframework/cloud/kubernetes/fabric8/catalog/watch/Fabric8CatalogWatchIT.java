@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -30,9 +30,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -41,12 +38,13 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_cl
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.patchForEndpointSlices;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.retrySpec;
 
 /**
  * @author wind57
@@ -56,6 +54,10 @@ class Fabric8CatalogWatchIT {
 	private static final String APP_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
 
 	private static final String NAMESPACE = "default";
+
+	private static final String NAMESPACE_A = "namespacea";
+
+	private static final String NAMESPACE_B = "namespaceb";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
 
@@ -72,13 +74,23 @@ class Fabric8CatalogWatchIT {
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
 
 		util = new Util(K3S);
+
+		util.createNamespace(NAMESPACE_A);
+		util.createNamespace(NAMESPACE_B);
+
 		util.setUp(NAMESPACE);
+		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE, NAMESPACE_A, NAMESPACE_B));
 		util.busybox(NAMESPACE, Phase.CREATE);
+
 		app(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
+
+		util.deleteNamespace(NAMESPACE_A);
+		util.deleteNamespace(NAMESPACE_B);
+
 		app(Phase.DELETE);
 		Commons.systemPrune();
 	}
@@ -93,7 +105,7 @@ class Fabric8CatalogWatchIT {
 	 */
 	@Test
 	void testCatalogWatchWithEndpoints() throws Exception {
-		assertLogStatement("stateGenerator is of type: Fabric8EndpointsCatalogWatch");
+		assertLogStatement();
 		test();
 
 		testCatalogWatchWithEndpointSlices();
@@ -102,10 +114,7 @@ class Fabric8CatalogWatchIT {
 	void testCatalogWatchWithEndpointSlices() {
 		util.busybox(NAMESPACE, Phase.CREATE);
 		patchForEndpointSlices(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
-		Commons.waitForLogStatement(
-			"stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch",
-			K3S, IMAGE_NAME
-		);
+		Commons.waitForLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch", K3S, IMAGE_NAME);
 		test();
 	}
 
@@ -114,13 +123,13 @@ class Fabric8CatalogWatchIT {
 	 * EndpointSlices. Here we make sure that in the test we actually use the correct
 	 * type.
 	 */
-	private void assertLogStatement(String log) throws Exception {
+	private void assertLogStatement() throws Exception {
 		String appPodName = K3S
 				.execInContainer("kubectl", "get", "pods", "-l",
 						"app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
 				.getStdout();
 		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-		Assertions.assertTrue(allLogs.contains(log));
+		Assertions.assertTrue(allLogs.contains("stateGenerator is of type: Fabric8EndpointsCatalogWatch"));
 	}
 
 	/**
@@ -215,14 +224,6 @@ class Fabric8CatalogWatchIT {
 			util.deleteAndWait(Fabric8CatalogWatchIT.NAMESPACE, deployment, service, ingress);
 		}
 
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

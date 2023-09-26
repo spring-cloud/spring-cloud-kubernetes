@@ -21,7 +21,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -30,10 +29,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -55,13 +51,13 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author wind57
  */
-class Fabric8CatalogWatchWithNamespacesIT {
+final class Fabric8CatalogWatchWithNamespacesDelegate {
+
+	private Fabric8CatalogWatchWithNamespacesDelegate() {
+
+	}
 
 	private static final String APP_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
-
-	private static final String NAMESPACE_A = "namespacea";
-
-	private static final String NAMESPACE_B = "namespaceb";
 
 	private static final String NAMESPACE_DEFAULT = "default";
 
@@ -71,33 +67,6 @@ class Fabric8CatalogWatchWithNamespacesIT {
 
 	private static Util util;
 
-	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S.start();
-		util = new Util(K3S);
-		client = util.client();
-
-		Commons.validateImage(APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
-
-		util.createNamespace(NAMESPACE_A);
-		util.createNamespace(NAMESPACE_B);
-
-		util.setUpClusterWide(NAMESPACE_DEFAULT, Set.of(NAMESPACE_DEFAULT, NAMESPACE_A, NAMESPACE_B));
-	}
-
-	@BeforeEach
-	void beforeEach() {
-		util.busybox(NAMESPACE_A, Phase.CREATE);
-		util.busybox(NAMESPACE_B, Phase.CREATE);
-	}
-
-	@AfterAll
-	static void afterAll() {
-		util.deleteNamespace(NAMESPACE_A);
-		util.deleteNamespace(NAMESPACE_B);
-		Commons.systemPrune();
-	}
 
 	/**
 	 * <pre>
@@ -215,13 +184,10 @@ class Fabric8CatalogWatchWithNamespacesIT {
 	private static void app(boolean useEndpointSlices, Phase phase) {
 
 		InputStream endpointsDeploymentStream = util.inputStream("app/watcher-endpoints-deployment.yaml");
-		InputStream endpointSlicesDeploymentStream = util.inputStream("app/watcher-endpoint-slices-deployment.yaml");
 		InputStream serviceStream = util.inputStream("app/watcher-service.yaml");
 		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
 
-		Deployment deployment = useEndpointSlices
-				? Serialization.unmarshal(endpointSlicesDeploymentStream, Deployment.class)
-				: Serialization.unmarshal(endpointsDeploymentStream, Deployment.class);
+		Deployment deployment = Serialization.unmarshal(endpointsDeploymentStream, Deployment.class);
 
 		List<EnvVar> envVars = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
@@ -238,11 +204,10 @@ class Fabric8CatalogWatchWithNamespacesIT {
 		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, null, deployment, service,
-					ingress, true);
+			util.createAndWait(NAMESPACE_DEFAULT, null, deployment, service, ingress, true);
 		}
 		else {
-			util.deleteAndWait(Fabric8CatalogWatchWithNamespacesIT.NAMESPACE_DEFAULT, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE_DEFAULT, deployment, service, ingress);
 		}
 
 	}

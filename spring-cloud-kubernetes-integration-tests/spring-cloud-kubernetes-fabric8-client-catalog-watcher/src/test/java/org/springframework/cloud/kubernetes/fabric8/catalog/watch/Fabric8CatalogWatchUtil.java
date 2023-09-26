@@ -16,18 +16,24 @@
 
 package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 
+import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 /**
  * @author wind57
  */
 final class Fabric8CatalogWatchUtil {
 
-	private static final Map<String, String> POD_LABELS = Map.of(
-		"app", "spring-cloud-kubernetes-fabric8-client-catalog-watcher"
-	);
+	private static final Map<String, String> POD_LABELS = Map.of("app",
+			"spring-cloud-kubernetes-fabric8-client-catalog-watcher");
 
 	private Fabric8CatalogWatchUtil() {
 
@@ -60,6 +66,14 @@ final class Fabric8CatalogWatchUtil {
 
 	static void patchForEndpointSlices(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_ONE, POD_LABELS);
+	}
+
+	static WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	static RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
