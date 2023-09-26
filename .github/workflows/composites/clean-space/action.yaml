@@ -4,6 +4,9 @@ runs:
   using: "composite"
   steps:
 
+    ### this is supposed to be simpler, but it's a work-around for:
+    ### https://github.com/jlumbroso/free-disk-space/issues/14
+
     - name: manually remove gcloud
       shell: bash
       run: |
