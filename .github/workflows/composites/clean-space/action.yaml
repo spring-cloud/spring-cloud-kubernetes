@@ -3,11 +3,11 @@ description: clean space
 runs:
   using: "composite"
   steps:
-    - name: apt-update
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get remove -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+#    - name: apt-update
+#      shell: bash
+#      run: |
+#        sudo apt-get update
+#        sudo apt-get remove -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
 
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@main
