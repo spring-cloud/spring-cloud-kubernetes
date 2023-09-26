@@ -6,12 +6,13 @@ runs:
 
     - name: remove google-cloud-sdk
       shell: bash
-      run: sudo apt-get remove -y google-cloud-sdk
+      run: |
+        sudo apt-get update
+        sudo apt-get remove -y google-cloud-sdk
 
     - name: gcloud
       shell: bash
       run: | 
-        sudo apt-get update
         sudo apt-get remove -y '^dotnet-.*'
         sudo apt-get remove -y '^llvm-.*'
         sudo apt-get remove -y 'php.*'
