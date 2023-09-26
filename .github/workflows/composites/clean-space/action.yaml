@@ -13,7 +13,7 @@ runs:
         sudo apt-get remove -y 'php.*'
         sudo apt-get remove -y '^mongodb-.*'
         sudo apt-get remove -y '^mysql-.*'
-        sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+        sudo apt-get remove -y azure-cli google-cloud-sdk google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
         sudo apt-get clean
 
     - name: Free Disk Space
