@@ -149,7 +149,6 @@ runs:
         
         ./mvnw -s .settings.xml \
               -DtestsToRun=${tests_to_run_in_current_index} \
-              -DUNIQUE_PER_MATRIX_STEP=${CURRENT_INDEX} \
               -e clean install \
               -P 'sonar, run-on-github-actions' -nsu --batch-mode \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
