@@ -20,12 +20,13 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
+
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author wind57
@@ -64,8 +65,84 @@ final class Fabric8CatalogWatchUtil {
 			}
 						""";
 
+	static final String BODY_TWO = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-catalog-watcher",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
+									"value": "FALSE"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "namespacea"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1",
+									"value": "default"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
+	static final String BODY_THREE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-catalog-watcher",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
+									"value": "TRUE"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
+									"value": "namespacea"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1",
+									"value": "default"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	static void patchForEndpointSlices(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_ONE, POD_LABELS);
+	}
+
+	static void patchForNamespaceFilterAndEndpoints(Util util, String dockerImage, String deploymentName,
+			String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_TWO, POD_LABELS);
+	}
+
+	static void patchForNamespaceFilterAndEndpointSlices(Util util, String dockerImage, String deploymentName,
+			String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_THREE, POD_LABELS);
 	}
 
 	static WebClient.Builder builder() {

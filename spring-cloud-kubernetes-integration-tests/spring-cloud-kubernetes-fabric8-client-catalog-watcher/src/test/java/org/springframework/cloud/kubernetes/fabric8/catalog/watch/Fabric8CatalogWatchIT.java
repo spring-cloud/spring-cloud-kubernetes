@@ -41,23 +41,23 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.patchForEndpointSlices;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.patchForEndpointSlices;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.patchForNamespaceFilterAndEndpointSlices;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.patchForNamespaceFilterAndEndpoints;
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.retrySpec;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
  * @author wind57
  */
 class Fabric8CatalogWatchIT {
 
-	private static final String APP_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
-
 	private static final String NAMESPACE = "default";
 
-	private static final String NAMESPACE_A = "namespacea";
+	public static final String NAMESPACE_A = "namespacea";
 
-	private static final String NAMESPACE_B = "namespaceb";
+	public static final String NAMESPACE_B = "namespaceb";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
 
@@ -70,8 +70,8 @@ class Fabric8CatalogWatchIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		Commons.validateImage(APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
 
@@ -109,6 +109,8 @@ class Fabric8CatalogWatchIT {
 		test();
 
 		testCatalogWatchWithEndpointSlices();
+		testCatalogWatchWithNamespaceFilterAndEndpoints();
+		testCatalogWatchWithNamespaceFilterAndEndpointSlices();
 	}
 
 	void testCatalogWatchWithEndpointSlices() {
@@ -116,6 +118,22 @@ class Fabric8CatalogWatchIT {
 		patchForEndpointSlices(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		Commons.waitForLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch", K3S, IMAGE_NAME);
 		test();
+	}
+
+	void testCatalogWatchWithNamespaceFilterAndEndpoints() {
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
+		patchForNamespaceFilterAndEndpoints(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		Fabric8CatalogWatchWithNamespacesDelegate.testCatalogWatchWithNamespaceFilterAndEndpoints(K3S, IMAGE_NAME,
+				util);
+	}
+
+	void testCatalogWatchWithNamespaceFilterAndEndpointSlices() {
+		util.busybox(NAMESPACE_A, Phase.CREATE);
+		util.busybox(NAMESPACE_B, Phase.CREATE);
+		patchForNamespaceFilterAndEndpointSlices(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		Fabric8CatalogWatchWithNamespacesDelegate.testCatalogWatchWithNamespaceFilterAndEndpointSlices(K3S, IMAGE_NAME,
+				util);
 	}
 
 	/**
@@ -202,7 +220,7 @@ class Fabric8CatalogWatchIT {
 			return false;
 		});
 
-		Assertions.assertTrue(afterDelete[0].endpointName().contains(APP_NAME));
+		Assertions.assertTrue(afterDelete[0].endpointName().contains(IMAGE_NAME));
 		Assertions.assertEquals("default", afterDelete[0].namespace());
 
 	}

@@ -16,25 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 
-import java.io.InputStream;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -43,10 +29,13 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_cl
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchIT.NAMESPACE_A;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchIT.NAMESPACE_B;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchUtil.retrySpec;
 
 /**
  * @author wind57
@@ -59,15 +48,6 @@ final class Fabric8CatalogWatchWithNamespacesDelegate {
 
 	private static final String APP_NAME = "spring-cloud-kubernetes-fabric8-client-catalog-watcher";
 
-	private static final String NAMESPACE_DEFAULT = "default";
-
-	private static final K3sContainer K3S = Commons.container();
-
-	private static KubernetesClient client;
-
-	private static Util util;
-
-
 	/**
 	 * <pre>
 	 *     - we deploy one busybox service with 2 replica pods in namespace namespacea
@@ -78,34 +58,16 @@ final class Fabric8CatalogWatchWithNamespacesDelegate {
 	 *     - assert that we receive only spring-cloud-kubernetes-fabric8-client-catalog-watcher pod
 	 * </pre>
 	 */
-	@Test
-	void testCatalogWatchWithEndpoints() throws Exception {
-		app(false, Phase.CREATE);
-		assertLogStatement("stateGenerator is of type: Fabric8EndpointsCatalogWatch");
-		test();
-		app(false, Phase.DELETE);
+	static void testCatalogWatchWithNamespaceFilterAndEndpoints(K3sContainer container, String imageName, Util util) {
+		Commons.waitForLogStatement("stateGenerator is of type: Fabric8EndpointsCatalogWatch", container, imageName);
+		test(util);
 	}
 
-	@Test
-	void testCatalogWatchWithEndpointSlices() throws Exception {
-		app(true, Phase.CREATE);
-		assertLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
-		test();
-		app(true, Phase.DELETE);
-	}
-
-	/**
-	 * we log in debug mode the type of the StateGenerator we use, be that Endpoints or
-	 * EndpointSlices. Here we make sure that in the test we actually use the correct
-	 * type.
-	 */
-	private void assertLogStatement(String log) throws Exception {
-		String appPodName = K3S
-				.execInContainer("kubectl", "get", "pods", "-l",
-						"app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
-				.getStdout();
-		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-		Assertions.assertTrue(allLogs.contains(log));
+	static void testCatalogWatchWithNamespaceFilterAndEndpointSlices(K3sContainer container, String imageName,
+			Util util) {
+		Commons.waitForLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch", container,
+				imageName);
+		test(util);
 	}
 
 	/**
@@ -113,7 +75,7 @@ final class Fabric8CatalogWatchWithNamespacesDelegate {
 	 * different.
 	 */
 	@SuppressWarnings("unchecked")
-	private void test() {
+	private static void test(Util util) {
 
 		WebClient client = builder().baseUrl("http://localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
@@ -179,45 +141,6 @@ final class Fabric8CatalogWatchWithNamespacesDelegate {
 		Assertions.assertTrue(afterDelete[0].endpointName().contains(APP_NAME));
 		Assertions.assertEquals("default", afterDelete[0].namespace());
 
-	}
-
-	private static void app(boolean useEndpointSlices, Phase phase) {
-
-		InputStream endpointsDeploymentStream = util.inputStream("app/watcher-endpoints-deployment.yaml");
-		InputStream serviceStream = util.inputStream("app/watcher-service.yaml");
-		InputStream ingressStream = util.inputStream("app/watcher-ingress.yaml");
-
-		Deployment deployment = Serialization.unmarshal(endpointsDeploymentStream, Deployment.class);
-
-		List<EnvVar> envVars = new ArrayList<>(
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		EnvVar namespaceAEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-				.withValue(NAMESPACE_A).build();
-		EnvVar namespaceDefaultEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1")
-				.withValue(NAMESPACE_DEFAULT).build();
-		envVars.add(namespaceAEnvVar);
-		envVars.add(namespaceDefaultEnvVar);
-
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		Service service = Serialization.unmarshal(serviceStream, Service.class);
-		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE_DEFAULT, null, deployment, service, ingress, true);
-		}
-		else {
-			util.deleteAndWait(NAMESPACE_DEFAULT, deployment, service, ingress);
-		}
-
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
