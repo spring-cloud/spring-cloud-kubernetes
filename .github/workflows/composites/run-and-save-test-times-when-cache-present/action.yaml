@@ -147,7 +147,7 @@ runs:
         
         echo "will run tests : $tests_to_run_in_current_index"
         
-        ./mvnw -X -s .settings.xml \
+        ./mvnw -s .settings.xml \
               -DtestsToRun=${tests_to_run_in_current_index} \
               -DUNIQUE_PER_MATRIX_STEP=${CURRENT_INDEX} \
               -e clean install \
