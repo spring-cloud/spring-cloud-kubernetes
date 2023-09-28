@@ -59,15 +59,16 @@ runs:
            echo "version of java: $version"
         
            ./mvnw -s .settings.xml \
-           -DtestsToRun=${TEST_ARG[@]} \
-           -e clean install \
-           -P 'sonar, run-on-github-actions'  -nsu --batch-mode \
-           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-           -Dhttp.keepAlive=false \
-           -Dmaven.wagon.http.pool=false \
-           -Dmaven.wagon.http.retryHandler.class=standard \
-           -Dmaven.wagon.http.retryHandler.count=3 \
-           -Dskip.build.image=true          
+                -DtestsToRun=${TEST_ARG[@]} \
+                -D CURRENT_INSTANCE=${CURRENT_INDEX} \
+                -e clean install \
+                -P 'sonar, run-on-github-actions'  -nsu --batch-mode \
+                -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+                -Dhttp.keepAlive=false \
+                -Dmaven.wagon.http.pool=false \
+                -Dmaven.wagon.http.retryHandler.class=standard \
+                -Dmaven.wagon.http.retryHandler.count=3 \
+                -Dskip.build.image=true          
         fi
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
