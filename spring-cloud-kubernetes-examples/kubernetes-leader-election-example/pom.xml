@@ -76,9 +76,6 @@
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.1.2</version>
-				<configuration>
-					<reportsDirectory>${project.build.directory}/surefire-reports/${UNIQUE_PER_MATRIX_STEP}</reportsDirectory>
-				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-failsafe-plugin</artifactId>
