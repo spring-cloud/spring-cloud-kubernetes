@@ -3,10 +3,33 @@ description: clean space
 runs:
   using: "composite"
   steps:
-    - name: apt-update
+
+    ### this is supposed to be simpler, but it's a work-around for:
+    ### https://github.com/jlumbroso/free-disk-space/issues/14
+
+    - name: manually remove gcloud
       shell: bash
       run: |
-        sudo apt-get update
+        gcloud_sdk_root=$(gcloud info --format='value(installation.sdk_root)')
+        gcloud_global_config=$(gcloud info --format='value(config.paths.global_config_dir)')
+        
+        echo "will remove directory : $gcloud_sdk_root"
+        echo "will remove directory : $gcloud_global_config"
+        
+        sudo rm -fr $gcloud_sdk_root
+        sudo rm -fr $gcloud_global_config
+
+    - name: same as 'large-packages' but without 'google-cloud-sdk'
+      shell: bash
+      run: | 
+        sudo apt-get remove -y '^dotnet-.*'
+        sudo apt-get remove -y '^llvm-.*'
+        sudo apt-get remove -y 'php.*'
+        sudo apt-get remove -y '^mongodb-.*'
+        sudo apt-get remove -y '^mysql-.*'
+        sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
+        sudo apt-get autoremove -y
+        sudo apt-get clean
 
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@main
@@ -15,5 +38,5 @@ runs:
         android: true
         dotnet: true
         haskell: true
-        large-packages: true
+        large-packages: false
         swap-storage: true
