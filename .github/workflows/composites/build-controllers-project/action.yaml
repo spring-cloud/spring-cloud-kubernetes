@@ -5,6 +5,8 @@ runs:
   steps:
     - name: build controllers project
       shell: bash
+      env:
+        CURRENT_INDEX: ${{ matrix.current_index }}
       run: |
         cd spring-cloud-kubernetes-controllers
         .././mvnw -DCURRENT_INSTANCE=${CURRENT_INDEX} -T 1C -U clean install
