@@ -4,25 +4,6 @@ runs:
   using: "composite"
   steps:
 
-    ### this is supposed to be simpler, but it's a work-around for:
-    ### https://github.com/jlumbroso/free-disk-space/issues/14
-
-    - name: manually remove gcloud
-      shell: bash
-      run: sudo apt-get remove google-cloud-cli
-
-    - name: same as 'large-packages' but without 'google-cloud-sdk'
-      shell: bash
-      run: | 
-        sudo apt-get remove -y '^dotnet-.*'
-        sudo apt-get remove -y '^llvm-.*'
-        sudo apt-get remove -y 'php.*'
-        sudo apt-get remove -y '^mongodb-.*'
-        sudo apt-get remove -y '^mysql-.*'
-        sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri
-        sudo apt-get autoremove -y
-        sudo apt-get clean
-
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@main
       with:
@@ -30,5 +11,5 @@ runs:
         android: true
         dotnet: true
         haskell: true
-        large-packages: false
+        large-packages: true
         swap-storage: true
