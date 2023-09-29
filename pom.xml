@@ -62,14 +62,13 @@
 	</scm>
 
 	<properties>
+		<CURRENT_INSTANCE>one</CURRENT_INSTANCE>
 		<!-- Dependency Versions -->
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>4.0.5-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>4.0.5-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>4.0.1</spring-cloud-bus.version>
 		<spring-cloud-contract.version>4.0.5-SNAPSHOT</spring-cloud-contract.version>
-
-		<maven-surefire-plugin.version>3.1.0</maven-surefire-plugin.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
@@ -205,8 +204,18 @@
 					<includes>
 						<include>${testsToRun}</include>
 					</includes>
+					<reportsDirectory>${project.build.directory}/surefire-reports/${CURRENT_INSTANCE}</reportsDirectory>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<reportsDirectory>${project.build.directory}/failsafe-reports/${CURRENT_INSTANCE}</reportsDirectory>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
