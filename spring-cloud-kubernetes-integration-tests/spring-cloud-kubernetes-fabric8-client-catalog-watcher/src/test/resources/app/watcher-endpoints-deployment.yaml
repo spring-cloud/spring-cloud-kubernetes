@@ -28,6 +28,6 @@ spec:
             - containerPort: 8080
           env:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY
-              value: DEBUG
+              value: "DEBUG"
             - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES
-              value: false
+              value: "FALSE"
