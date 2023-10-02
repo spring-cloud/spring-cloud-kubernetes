@@ -158,7 +158,15 @@ public final class Commons {
 			Files.copy(imageStream, imagePath);
 			// import image with ctr. this works because TEMP_FOLDER is mounted in the
 			// container
-			container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + tarName + ".tar");
+			await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+				Container.ExecResult result = container.execInContainer("ctr", "i", "import",
+						TEMP_FOLDER + "/" + tarName + ".tar");
+				boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
+				if (!noErrors) {
+					LOG.info("error is : " + result.getStderr());
+				}
+				return noErrors;
+			});
 		}
 
 	}
