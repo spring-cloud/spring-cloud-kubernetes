@@ -414,7 +414,8 @@ public final class Util {
 			fail("No deployment with name " + deploymentName);
 		}
 
-		Deployment deployment = deployments.getItems().get(0);
+		Deployment deployment = deployments.getItems().stream()
+				.filter(x -> x.getMetadata().getName().equals(deploymentName)).findFirst().orElseThrow();
 		// if no replicas are defined, it means only 1 is needed
 		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
 
