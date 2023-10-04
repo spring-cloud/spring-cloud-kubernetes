@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-cloud-kubernetes-fabric8-client-configmap-deployment-event-reload
+  name: spring-cloud-kubernetes-fabric8-client-configmap-event-reload
 spec:
   selector:
     matchLabels:
@@ -28,4 +28,6 @@ spec:
             - containerPort: 8080
           env:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_CONFIG_RELOAD
-              value: DEBUG
+              value: "DEBUG"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "one"
