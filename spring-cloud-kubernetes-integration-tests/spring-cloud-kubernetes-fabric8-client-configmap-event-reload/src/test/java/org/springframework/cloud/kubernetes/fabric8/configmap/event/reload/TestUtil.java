@@ -42,10 +42,6 @@ final class TestUtil {
 									"value": "DEBUG"
 								},
 								{
-									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
-									"value": "TRUE"
-								},
-								{
 									"name": "SPRING_PROFILES_ACTIVE",
 									"value": "two"
 								}
@@ -71,10 +67,6 @@ final class TestUtil {
 									"value": "DEBUG"
 								},
 								{
-									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
-									"value": "TRUE"
-								},
-								{
 									"name": "SPRING_PROFILES_ACTIVE",
 									"value": "three"
 								}
@@ -98,10 +90,6 @@ final class TestUtil {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
 									"value": "DEBUG"
-								},
-								{
-									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
-									"value": "TRUE"
 								},
 								{
 									"name": "SPRING_PROFILES_ACTIVE",
