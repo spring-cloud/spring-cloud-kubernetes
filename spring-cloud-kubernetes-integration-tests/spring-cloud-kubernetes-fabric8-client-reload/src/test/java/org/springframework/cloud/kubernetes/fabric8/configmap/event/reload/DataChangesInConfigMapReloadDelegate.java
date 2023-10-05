@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -33,16 +32,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.logs;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.replaceConfigMap;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
 
 final class DataChangesInConfigMapReloadDelegate {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
 	private static final String LEFT_NAMESPACE = "left";
-
-	private static final K3sContainer K3S = Commons.container();
 
 	/**
 	 * <pre>
@@ -55,7 +53,7 @@ final class DataChangesInConfigMapReloadDelegate {
 	 *     - then we change data inside the config map, and we must see the updated value
 	 * </pre>
 	 */
-	static void testDataChangesInConfigMap(KubernetesClient client) {
+	static void testDataChangesInConfigMap(KubernetesClient client, K3sContainer container, String appLabelValue) {
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -81,7 +79,7 @@ final class DataChangesInConfigMapReloadDelegate {
 			return "left-initial".equals(innerResult);
 		});
 
-		String logs = logs();
+		String logs = logs(container, appLabelValue);
 		Assertions.assertTrue(logs.contains("ConfigMap left-configmap was updated in namespace left"));
 		Assertions.assertTrue(logs.contains("data in configmap has not changed, will not reload"));
 
@@ -100,20 +98,6 @@ final class DataChangesInConfigMapReloadDelegate {
 			return "left-after-change".equals(innerResult);
 		});
 
-	}
-
-	private static String logs() {
-		try {
-			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
-
-			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-			return execResult.getStdout();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
 	}
 
 }

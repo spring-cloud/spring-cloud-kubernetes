@@ -143,6 +143,7 @@ class ConfigMapEventReloadIT {
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
 		testDataChangesInConfigMap();
 		testConfigMapPollingReload();
+		testConfigMapMountPollingReload();
 	}
 
 	/**
@@ -303,13 +304,16 @@ class ConfigMapEventReloadIT {
 	void testDataChangesInConfigMap() {
 		reCreateConfigMaps(util, client);
 		patchFour(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
-		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client);
+		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client, K3S, IMAGE_NAME);
 	}
 
 	void testConfigMapPollingReload() {
-
 		patchFive(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		ConfigMapPollingReloadDelegate.testConfigMapPollingReload(client);
+	}
+
+	void testConfigMapMountPollingReload() {
+		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util, K3S, IMAGE_NAME);
 	}
 
 	private static void manifests(Phase phase) {

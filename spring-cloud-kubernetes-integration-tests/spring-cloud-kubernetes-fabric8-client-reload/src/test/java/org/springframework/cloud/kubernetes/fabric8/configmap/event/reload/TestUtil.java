@@ -24,6 +24,8 @@ import java.util.Objects;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import org.testcontainers.containers.Container;
+import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
@@ -172,6 +174,31 @@ final class TestUtil {
 			}
 						""";
 
+	private static final String BODY_SIX = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "mount"
+								},
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "mount"
+								},
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private TestUtil() {
 
 	}
@@ -211,12 +238,29 @@ final class TestUtil {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FIVE, POD_LABELS);
 	}
 
+	static void patchSix(Util util, String dockerImage, String deploymentName, String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SIX, POD_LABELS);
+	}
+
 	static WebClient.Builder builder() {
 		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
 	}
 
 	static RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
+	}
+
+	static String logs(K3sContainer container, String appLabelValue) {
+		try {
+			String appPodName = container.execInContainer("sh", "-c",
+				"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = container.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
