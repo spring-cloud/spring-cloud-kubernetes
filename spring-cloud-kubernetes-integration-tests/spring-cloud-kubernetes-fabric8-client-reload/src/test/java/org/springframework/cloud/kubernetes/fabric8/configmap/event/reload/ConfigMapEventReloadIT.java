@@ -140,7 +140,6 @@ class ConfigMapEventReloadIT {
 		testInformFromOneNamespaceEventTriggered();
 		testInform();
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-
 		testDataChangesInConfigMap();
 	}
 
