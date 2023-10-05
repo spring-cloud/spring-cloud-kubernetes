@@ -37,8 +37,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 final class TestUtil {
 
-	private static final Map<String, String> POD_LABELS = Map.of("app",
-			"spring-cloud-kubernetes-fabric8-client-configmap-event-reload");
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-fabric8-client-reload");
 
 	private static final String BODY_ONE = """
 			{
@@ -152,6 +151,27 @@ final class TestUtil {
 			}
 						""";
 
+	private static final String BODY_FIVE = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "no-mount"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private TestUtil() {
 
 	}
@@ -185,6 +205,10 @@ final class TestUtil {
 
 	static void patchFour(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FOUR, POD_LABELS);
+	}
+
+	static void patchFive(Util util, String dockerImage, String deploymentName, String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FIVE, POD_LABELS);
 	}
 
 	static WebClient.Builder builder() {

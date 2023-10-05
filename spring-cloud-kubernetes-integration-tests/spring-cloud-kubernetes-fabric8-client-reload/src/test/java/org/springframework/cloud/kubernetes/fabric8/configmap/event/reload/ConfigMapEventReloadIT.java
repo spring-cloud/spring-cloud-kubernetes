@@ -43,6 +43,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchFive;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchFour;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchOne;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchThree;
@@ -57,7 +58,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
  */
 class ConfigMapEventReloadIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-event-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + pomVersion();
 
@@ -141,6 +142,7 @@ class ConfigMapEventReloadIT {
 		testInform();
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
 		testDataChangesInConfigMap();
+		testConfigMapPollingReload();
 	}
 
 	/**
@@ -304,6 +306,12 @@ class ConfigMapEventReloadIT {
 		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client);
 	}
 
+	void testConfigMapPollingReload() {
+
+		patchFive(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		ConfigMapPollingReloadDelegate.testConfigMapPollingReload(client);
+	}
+
 	private static void manifests(Phase phase) {
 
 		InputStream deploymentStream = util.inputStream("deployment.yaml");
@@ -312,6 +320,7 @@ class ConfigMapEventReloadIT {
 		InputStream leftConfigMapStream = util.inputStream("left-configmap.yaml");
 		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
 		InputStream rightWithLabelConfigMapStream = util.inputStream("right-configmap-with-label.yaml");
+		InputStream configMapAsStream = util.inputStream("configmap.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
@@ -320,17 +329,20 @@ class ConfigMapEventReloadIT {
 		ConfigMap leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
 		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
 		ConfigMap rightWithLabelConfigMap = Serialization.unmarshal(rightWithLabelConfigMapStream, ConfigMap.class);
+		ConfigMap configMap = Serialization.unmarshal(configMapAsStream, ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait("left", leftConfigMap, null);
 			util.createAndWait("right", rightConfigMap, null);
 			util.createAndWait("right", rightWithLabelConfigMap, null);
+			util.createAndWait(NAMESPACE, configMap, null);
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
 			util.deleteAndWait("left", leftConfigMap, null);
 			util.deleteAndWait("right", rightConfigMap, null);
 			util.deleteAndWait("right", rightWithLabelConfigMap, null);
+			util.deleteAndWait(NAMESPACE, configMap, null);
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 

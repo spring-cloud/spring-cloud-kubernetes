@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.polling.reload;
+package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

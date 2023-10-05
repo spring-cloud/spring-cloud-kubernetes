@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: spring-cloud-kubernetes-fabric8-client-configmap-ingress-event-reload
+  name: spring-cloud-kubernetes-fabric8-client-reload-ingress
   namespace: default
 spec:
   rules:
@@ -11,6 +11,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: spring-cloud-kubernetes-fabric8-client-configmap-event-reload
+                name: spring-cloud-kubernetes-fabric8-client-reload
                 port:
                   number: 8080
