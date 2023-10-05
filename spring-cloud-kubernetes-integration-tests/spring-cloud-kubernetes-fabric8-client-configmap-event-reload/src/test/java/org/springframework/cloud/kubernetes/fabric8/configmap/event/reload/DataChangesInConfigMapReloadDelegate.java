@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -34,10 +33,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -53,7 +49,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 
-class DataChangesInConfigMapReloadIT {
+final class DataChangesInConfigMapReloadDelegate {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-event-reload";
 
@@ -67,26 +63,6 @@ class DataChangesInConfigMapReloadIT {
 
 	private static KubernetesClient client;
 
-	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S.start();
-		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-
-		util = new Util(K3S);
-		client = util.client();
-
-		util.createNamespace(LEFT_NAMESPACE);
-		util.setUpClusterWide(NAMESPACE, Set.of(LEFT_NAMESPACE));
-	}
-
-	@AfterAll
-	static void afterAll() throws Exception {
-		util.deleteNamespace(LEFT_NAMESPACE);
-		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
-	}
-
 	/**
 	 * <pre>
 	 *     - configMap with no labels and data: left.value = left-initial exists in namespace left
@@ -98,9 +74,7 @@ class DataChangesInConfigMapReloadIT {
 	 *     - then we change data inside the config map, and we must see the updated value
 	 * </pre>
 	 */
-	@Test
-	void testSimple() {
-		manifests(Phase.CREATE);
+	static void testDataChangesInConfigMap() {
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -145,50 +119,9 @@ class DataChangesInConfigMapReloadIT {
 			return "left-after-change".equals(innerResult);
 		});
 
-		manifests(Phase.DELETE);
 	}
 
-	private static void manifests(Phase phase) {
-
-		InputStream deploymentStream = util.inputStream("deployment.yaml");
-		InputStream serviceStream = util.inputStream("service.yaml");
-		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream configmapAsStream = util.inputStream("left-configmap.yaml");
-
-		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
-
-		List<EnvVar> envVars = new ArrayList<>(
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
-		EnvVar activeProfileProperty = new EnvVarBuilder().withName("SPRING_PROFILES_ACTIVE").withValue("one").build();
-		envVars.add(activeProfileProperty);
-
-		EnvVar secretsDisabledEnvVar = new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED")
-				.withValue("FALSE").build();
-
-		EnvVar debugLevel = new EnvVarBuilder()
-				.withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD").withName("DEBUG")
-				.build();
-		envVars.add(debugLevel);
-
-		envVars.add(secretsDisabledEnvVar);
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		Service service = Serialization.unmarshal(serviceStream, Service.class);
-		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
-		ConfigMap configMap = Serialization.unmarshal(configmapAsStream, ConfigMap.class);
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(LEFT_NAMESPACE, configMap, null);
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
-		}
-		else {
-			util.deleteAndWait(LEFT_NAMESPACE, configMap, null);
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
-		}
-
-	}
-
-	private String logs() {
+	private static String logs() {
 		try {
 			String appPodName = K3S.execInContainer("sh", "-c",
 					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
@@ -202,11 +135,11 @@ class DataChangesInConfigMapReloadIT {
 		}
 	}
 
-	private WebClient.Builder builder() {
+	private static WebClient.Builder builder() {
 		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
 	}
 
-	private RetryBackoffSpec retrySpec() {
+	private static RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 

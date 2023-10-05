@@ -107,6 +107,39 @@ final class TestUtil {
 			}
 						""";
 
+	private static final String BODY_FOUR = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_CONFIG_RELOAD",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "one"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED",
+									"value": "FALSE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private TestUtil() {
 
 	}
@@ -121,6 +154,10 @@ final class TestUtil {
 
 	static void patchThree(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_THREE, POD_LABELS);
+	}
+
+	static void patchFour(Util util, String dockerImage, String deploymentName, String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FOUR, POD_LABELS);
 	}
 
 }

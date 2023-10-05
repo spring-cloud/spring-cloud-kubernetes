@@ -47,6 +47,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchFour;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchOne;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchThree;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchTwo;
@@ -140,6 +141,8 @@ class ConfigMapEventReloadIT {
 		testInformFromOneNamespaceEventTriggered();
 		testInform();
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+
+		testDataChangesInConfigMap();
 	}
 
 	/**
@@ -295,6 +298,12 @@ class ConfigMapEventReloadIT {
 		});
 		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
 
+	}
+
+	void testDataChangesInConfigMap() {
+		reCreate();
+		patchFour(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap();
 	}
 
 	private static void manifests(Phase phase) {
