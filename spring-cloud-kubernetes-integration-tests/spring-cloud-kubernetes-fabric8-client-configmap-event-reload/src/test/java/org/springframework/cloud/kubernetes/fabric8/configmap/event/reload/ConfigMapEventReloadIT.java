@@ -254,52 +254,48 @@ class ConfigMapEventReloadIT {
 		Assertions.assertEquals("right-after-change", rightResult);
 	}
 
-	 /**
-	  * <pre>
-	  * - there are two namespaces : left and right
-	  * - each of the namespaces has one configmap
-	  * - secrets are disabled
-	  * - we watch the "right" namespace and make a change in the configmap in the same
-	  namespace
-	  * - as such, event is triggered and we see the updated value
-	  * </pre>
-	  */
-	 void testInformFromOneNamespaceEventTriggeredSecretsDisabled() {
+	/**
+	 * <pre>
+	 * - there are two namespaces : left and right
+	 * - each of the namespaces has one configmap
+	 * - secrets are disabled
+	 * - we watch the "right" namespace and make a change in the configmap in the same
+	 * namespace
+	 * - as such, event is triggered and we see the updated value
+	 * </pre>
+	 */
+	void testInformFromOneNamespaceEventTriggeredSecretsDisabled() {
 
-		 reCreate();
-		 patchThree(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		reCreate();
+		patchThree(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
-		 Commons.assertReloadLogStatements("added configmap informer for namespace",
-			 "added secret informer for namespace", IMAGE_NAME);
+		Commons.assertReloadLogStatements("added configmap informer for namespace",
+				"added secret informer for namespace", IMAGE_NAME);
 
-		 // read the value from the right-configmap
-		 WebClient webClient = builder().baseUrl("http://localhost/right").build();
-		 String result =
-			 webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				 .block();
-		 Assertions.assertEquals("right-initial", result);
+		// read the value from the right-configmap
+		WebClient webClient = builder().baseUrl("http://localhost/right").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		Assertions.assertEquals("right-initial", result);
 
-		 // then deploy a new version of right-configmap
-		 ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-			 .withMetadata(new
-				 ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
-			 .withData(Map.of("right.value", "right-after-change")).build();
+		// then deploy a new version of right-configmap
+		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
+				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+				.withData(Map.of("right.value", "right-after-change")).build();
 
-		 replaceConfigMap(rightConfigMapAfterChange);
+		replaceConfigMap(rightConfigMapAfterChange);
 
-		 String[] resultAfterChange = new String[1];
-		 await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(()
-			 -> {
-			 WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
-			 String innerResult =
-				 innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					 .retryWhen(retrySpec()).block();
-			 resultAfterChange[0] = innerResult;
-			 return innerResult != null;
-		 });
-		 Assertions.assertEquals("right-after-change", resultAfterChange[0]);
+		String[] resultAfterChange = new String[1];
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
+			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+					.retryWhen(retrySpec()).block();
+			resultAfterChange[0] = innerResult;
+			return innerResult != null;
+		});
+		Assertions.assertEquals("right-after-change", resultAfterChange[0]);
 
-	 }
+	}
 
 	private static void manifests(Phase phase) {
 
