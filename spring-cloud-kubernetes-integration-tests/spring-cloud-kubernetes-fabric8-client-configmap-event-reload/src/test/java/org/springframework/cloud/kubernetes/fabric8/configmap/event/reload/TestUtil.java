@@ -94,6 +94,10 @@ final class TestUtil {
 								{
 									"name": "SPRING_PROFILES_ACTIVE",
 									"value": "two"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED",
+									"value": "FALSE"
 								}
 								]
 							}]
