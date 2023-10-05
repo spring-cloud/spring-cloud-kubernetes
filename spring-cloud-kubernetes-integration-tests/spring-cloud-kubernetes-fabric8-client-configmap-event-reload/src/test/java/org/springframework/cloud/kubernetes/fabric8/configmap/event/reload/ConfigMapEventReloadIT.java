@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -35,21 +34,21 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchOne;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchThree;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchTwo;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.reCreateConfigMaps;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.replaceConfigMap;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
@@ -125,7 +124,7 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(rightConfigMapAfterChange);
+		replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		webClient = builder().baseUrl("http://localhost/left").build();
 
@@ -153,7 +152,7 @@ class ConfigMapEventReloadIT {
 	 */
 	void testInformFromOneNamespaceEventTriggered() {
 
-		reCreate();
+		reCreateConfigMaps(util, client);
 		patchOne(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
@@ -170,7 +169,7 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(rightConfigMapAfterChange);
+		replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
@@ -195,7 +194,7 @@ class ConfigMapEventReloadIT {
 	 */
 	void testInform() {
 
-		reCreate();
+		reCreateConfigMaps(util, client);
 		patchTwo(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
@@ -218,7 +217,7 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(rightConfigMapAfterChange);
+		replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		// nothing changes in our app, because we are watching only labeled configmaps
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(30)).until(() -> {
@@ -233,7 +232,7 @@ class ConfigMapEventReloadIT {
 						new ObjectMetaBuilder().withNamespace("right").withName("right-configmap-with-label").build())
 				.withData(Map.of("right.with.label.value", "right-with-label-after-change")).build();
 
-		replaceConfigMap(rightWithLabelConfigMapAfterChange);
+		replaceConfigMap(client, rightWithLabelConfigMapAfterChange, "right");
 
 		// since we have changed a labeled configmap, app will restart and pick up the new
 		// value
@@ -266,7 +265,7 @@ class ConfigMapEventReloadIT {
 	 */
 	void testInformFromOneNamespaceEventTriggeredSecretsDisabled() {
 
-		reCreate();
+		reCreateConfigMaps(util, client);
 		patchThree(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
@@ -283,7 +282,7 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(rightConfigMapAfterChange);
+		replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
@@ -327,29 +326,6 @@ class ConfigMapEventReloadIT {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
-	}
-
-	private void reCreate() {
-		InputStream leftConfigMapStream = util.inputStream("left-configmap.yaml");
-		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
-
-		ConfigMap leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
-		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
-
-		replaceConfigMap(leftConfigMap);
-		replaceConfigMap(rightConfigMap);
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
-	}
-
-	private static void replaceConfigMap(ConfigMap configMap) {
-		client.configMaps().inNamespace("right").resource(configMap).createOrReplace();
 	}
 
 }
