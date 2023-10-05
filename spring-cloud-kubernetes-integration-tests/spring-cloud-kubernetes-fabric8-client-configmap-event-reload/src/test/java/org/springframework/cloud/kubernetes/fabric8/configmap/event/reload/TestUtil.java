@@ -16,9 +16,21 @@
 
 package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
 
+import java.io.InputStream;
+import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
+
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author wind57
@@ -144,6 +156,21 @@ final class TestUtil {
 
 	}
 
+	static void reCreateConfigMaps(Util util, KubernetesClient client) {
+		InputStream leftConfigMapStream = util.inputStream("left-configmap.yaml");
+		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
+
+		ConfigMap leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
+		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
+
+		replaceConfigMap(client, leftConfigMap, "left");
+		replaceConfigMap(client, rightConfigMap, "right");
+	}
+
+	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {
+		client.configMaps().inNamespace(namespace).resource(configMap).createOrReplace();
+	}
+
 	static void patchOne(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_ONE, POD_LABELS);
 	}
@@ -158,6 +185,14 @@ final class TestUtil {
 
 	static void patchFour(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FOUR, POD_LABELS);
+	}
+
+	static WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	static RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 }
