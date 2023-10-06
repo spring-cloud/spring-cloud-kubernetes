@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
+package org.springframework.cloud.kubernetes.fabric8.reload;
 
 import java.time.Duration;
 import java.util.Map;
@@ -31,10 +31,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.logs;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.replaceConfigMap;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.logs;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.replaceConfigMap;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.retrySpec;
 
 final class DataChangesInConfigMapReloadDelegate {
 

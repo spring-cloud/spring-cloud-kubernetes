@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
+package org.springframework.cloud.kubernetes.fabric8.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -32,17 +32,19 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
 
-final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
+/**
+ * @author wind57
+ */
+final class ConfigMapMountPollingReloadDelegate {
 
 	/**
 	 * <pre>
-	 *     - we have bootstrap enabled, which means we will 'locate' property sources
+	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
 	 *       from config maps.
-	 *     - there are no explicit config maps to search for, but what we will also read,
-	 *     	 is 'spring.cloud.kubernetes.config.paths', which we have set to
+	 *     - the property above means that at the moment we will be searching for config maps that only
+	 *       match the application name, in this specific test there is no such config map.
+	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
 	 *     	 '/tmp/application.properties'
 	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
 	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
@@ -51,7 +53,7 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 	 *     - our polling will then detect that change, and trigger a reload.
 	 * </pre>
 	 */
-	static void testPollingReloadConfigMapWithBootstrap(KubernetesClient client, Util util, K3sContainer container,
+	static void testConfigMapMountPollingReload(KubernetesClient client, Util util, K3sContainer container,
 			String appLabelValue) {
 		// (1)
 		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", container, appLabelValue);
@@ -59,8 +61,8 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", container,
 				appLabelValue);
 		// (3)
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
 				.block();
 
 		// we first read the initial value from the configmap
@@ -74,7 +76,7 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
 		await().timeout(Duration.ofSeconds(360)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("as-mount-changed"));
+				.bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block().equals("as-mount-changed"));
 
 	}
 

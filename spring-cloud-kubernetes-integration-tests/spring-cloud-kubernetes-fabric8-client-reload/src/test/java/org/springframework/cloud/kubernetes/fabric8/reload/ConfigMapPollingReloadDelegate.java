@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
+package org.springframework.cloud.kubernetes.fabric8.reload;
 
 import java.time.Duration;
 import java.util.Map;
@@ -30,8 +30,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
 
 /**
  * @author wind57
@@ -39,8 +37,8 @@ import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reloa
 final class ConfigMapPollingReloadDelegate {
 
 	static void testConfigMapPollingReload(KubernetesClient client) {
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
 				.block();
 
 		// we first read the initial value from the configmap
@@ -55,7 +53,7 @@ final class ConfigMapPollingReloadDelegate {
 		client.configMaps().inNamespace("default").resource(map).createOrReplace();
 
 		await().ignoreException(HttpServerErrorException.BadGateway.class).timeout(Duration.ofSeconds(120))
-				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
 						.block().equals("after-change"));
 
 	}

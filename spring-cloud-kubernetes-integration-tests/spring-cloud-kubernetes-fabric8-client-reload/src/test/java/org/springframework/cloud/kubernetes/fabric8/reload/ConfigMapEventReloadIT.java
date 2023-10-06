@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.configmap.event.reload;
+package org.springframework.cloud.kubernetes.fabric8.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -42,17 +42,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchFive;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchFour;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchOne;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchSeven;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchSix;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchThree;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchTwo;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.reCreateConfigMaps;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.replaceConfigMap;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
@@ -112,16 +101,16 @@ class ConfigMapEventReloadIT {
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
-		WebClient webClient = builder().baseUrl("http://localhost/left").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/left").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
 				.block();
 
 		// we first read the initial value from the left-configmap
 		Assertions.assertEquals("left-initial", result);
 
 		// then read the value from the right-configmap
-		webClient = builder().baseUrl("http://localhost/right").build();
-		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
+		webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
+		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
@@ -129,14 +118,14 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(client, rightConfigMapAfterChange, "right");
+		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
-		webClient = builder().baseUrl("http://localhost/left").build();
+		webClient = TestUtil.builder().baseUrl("http://localhost/left").build();
 
 		WebClient finalWebClient = webClient;
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(30)).until(() -> {
 			String innerResult = finalWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+					.retryWhen(TestUtil.retrySpec()).block();
 			// left configmap has not changed, no restart of app has happened
 			return "left-initial".equals(innerResult);
 		});
@@ -161,15 +150,15 @@ class ConfigMapEventReloadIT {
 	 */
 	void testInformFromOneNamespaceEventTriggered() {
 
-		reCreateConfigMaps(util, client);
-		patchOne(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.patchOne(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
 		// read the value from the right-configmap
-		WebClient webClient = builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
 				.block();
 		Assertions.assertEquals("right-initial", result);
 
@@ -178,13 +167,13 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(client, rightConfigMapAfterChange, "right");
+		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
+			WebClient innerWebClient = TestUtil.builder().baseUrl("http://localhost/right").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+					.retryWhen(TestUtil.retrySpec()).block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
@@ -203,22 +192,22 @@ class ConfigMapEventReloadIT {
 	 */
 	void testInform() {
 
-		reCreateConfigMaps(util, client);
-		patchTwo(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.patchTwo(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
 		// read the initial value from the right-configmap
-		WebClient rightWebClient = builder().baseUrl("http://localhost/right").build();
+		WebClient rightWebClient = TestUtil.builder().baseUrl("http://localhost/right").build();
 		String rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-initial", rightResult);
 
 		// then read the initial value from the right-with-label-configmap
-		WebClient rightWithLabelWebClient = builder().baseUrl("http://localhost/with-label").build();
+		WebClient rightWithLabelWebClient = TestUtil.builder().baseUrl("http://localhost/with-label").build();
 		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-with-label-initial", rightWithLabelResult);
 
 		// then deploy a new version of right-configmap
@@ -226,12 +215,12 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(client, rightConfigMapAfterChange, "right");
+		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		// nothing changes in our app, because we are watching only labeled configmaps
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(30)).until(() -> {
 			String innerRightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+					.retryWhen(TestUtil.retrySpec()).block();
 			return "right-initial".equals(innerRightResult);
 		});
 
@@ -241,15 +230,15 @@ class ConfigMapEventReloadIT {
 						new ObjectMetaBuilder().withNamespace("right").withName("right-configmap-with-label").build())
 				.withData(Map.of("right.with.label.value", "right-with-label-after-change")).build();
 
-		replaceConfigMap(client, rightWithLabelConfigMapAfterChange, "right");
+		TestUtil.replaceConfigMap(client, rightWithLabelConfigMapAfterChange, "right");
 
 		// since we have changed a labeled configmap, app will restart and pick up the new
 		// value
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/with-label").build();
+			WebClient innerWebClient = TestUtil.builder().baseUrl("http://localhost/with-label").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+					.retryWhen(TestUtil.retrySpec()).block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
@@ -257,7 +246,7 @@ class ConfigMapEventReloadIT {
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
-		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
 				.block();
 		Assertions.assertEquals("right-after-change", rightResult);
 	}
@@ -274,15 +263,15 @@ class ConfigMapEventReloadIT {
 	 */
 	void testInformFromOneNamespaceEventTriggeredSecretsDisabled() {
 
-		reCreateConfigMaps(util, client);
-		patchThree(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.patchThree(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
 		// read the value from the right-configmap
-		WebClient webClient = builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
 				.block();
 		Assertions.assertEquals("right-initial", result);
 
@@ -291,13 +280,13 @@ class ConfigMapEventReloadIT {
 				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 				.withData(Map.of("right.value", "right-after-change")).build();
 
-		replaceConfigMap(client, rightConfigMapAfterChange, "right");
+		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
+			WebClient innerWebClient = TestUtil.builder().baseUrl("http://localhost/right").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+					.retryWhen(TestUtil.retrySpec()).block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
@@ -306,25 +295,25 @@ class ConfigMapEventReloadIT {
 	}
 
 	void testDataChangesInConfigMap() {
-		reCreateConfigMaps(util, client);
-		patchFour(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.patchFour(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client, K3S, IMAGE_NAME);
 	}
 
 	void testConfigMapPollingReload() {
-		patchFive(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.patchFive(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		ConfigMapPollingReloadDelegate.testConfigMapPollingReload(client);
 	}
 
 	void testConfigMapMountPollingReload() {
-		reCreateConfigMaps(util, client);
-		patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util, K3S, IMAGE_NAME);
 	}
 
 	void testPollingReloadConfigMapWithBootstrap() {
-		reCreateConfigMaps(util, client);
-		patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		BootstrapEnabledPollingReloadConfigMapMountDelegate.testPollingReloadConfigMapWithBootstrap(client, util, K3S,
 				IMAGE_NAME);
 		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client, K3S, IMAGE_NAME);
