@@ -116,7 +116,7 @@ public final class Commons {
 			LOG.info("appPodName : ->" + appPodName + "<-");
 			// we issue a pollDelay to let the logs sync in, otherwise the results are not
 			// going to be correctly asserted
-			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(240))
+			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(120))
 					.until(() -> {
 
 						Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
