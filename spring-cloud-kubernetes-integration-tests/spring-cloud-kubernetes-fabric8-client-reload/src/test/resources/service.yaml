@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: spring-cloud-kubernetes-fabric8-client-reload
+  name: spring-cloud-kubernetes-fabric8-client-reload
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: spring-cloud-kubernetes-fabric8-client-reload
+  type: ClusterIP
