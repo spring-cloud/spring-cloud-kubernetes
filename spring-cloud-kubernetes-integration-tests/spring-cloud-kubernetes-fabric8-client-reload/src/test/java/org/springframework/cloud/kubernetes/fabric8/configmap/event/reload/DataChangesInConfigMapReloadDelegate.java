@@ -24,6 +24,10 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
+<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
+=======
+import org.testcontainers.containers.Container;
+>>>>>>> 3.0.x:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-configmap-event-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -32,16 +36,28 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
+<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.logs;
+=======
+>>>>>>> 3.0.x:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-configmap-event-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.replaceConfigMap;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
 
 final class DataChangesInConfigMapReloadDelegate {
 
+<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
 	private static final String LEFT_NAMESPACE = "left";
 
+=======
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-configmap-event-reload";
+
+	private static final String LEFT_NAMESPACE = "left";
+
+	private static final K3sContainer K3S = Commons.container();
+
+>>>>>>> 3.0.x:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-configmap-event-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 	/**
 	 * <pre>
 	 *     - configMap with no labels and data: left.value = left-initial exists in namespace left
@@ -53,7 +69,11 @@ final class DataChangesInConfigMapReloadDelegate {
 	 *     - then we change data inside the config map, and we must see the updated value
 	 * </pre>
 	 */
+<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 	static void testDataChangesInConfigMap(KubernetesClient client, K3sContainer container, String appLabelValue) {
+=======
+	static void testDataChangesInConfigMap(KubernetesClient client) {
+>>>>>>> 3.0.x:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-configmap-event-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
 				"added secret informer for namespace", IMAGE_NAME);
 
@@ -79,7 +99,11 @@ final class DataChangesInConfigMapReloadDelegate {
 			return "left-initial".equals(innerResult);
 		});
 
+<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 		String logs = logs(container, appLabelValue);
+=======
+		String logs = logs();
+>>>>>>> 3.0.x:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-configmap-event-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 		Assertions.assertTrue(logs.contains("ConfigMap left-configmap was updated in namespace left"));
 		Assertions.assertTrue(logs.contains("data in configmap has not changed, will not reload"));
 
@@ -100,4 +124,21 @@ final class DataChangesInConfigMapReloadDelegate {
 
 	}
 
+<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
+=======
+	private static String logs() {
+		try {
+			String appPodName = K3S.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+>>>>>>> 3.0.x:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-configmap-event-reload/src/test/java/org/springframework/cloud/kubernetes/fabric8/configmap/event/reload/DataChangesInConfigMapReloadDelegate.java
 }
