@@ -47,7 +47,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-class ConfigMapEventReloadIT {
+class Fabric8EventReloadIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
@@ -130,12 +130,12 @@ class ConfigMapEventReloadIT {
 			return "left-initial".equals(innerResult);
 		});
 
-		//testInformFromOneNamespaceEventTriggered();
-		//testInform();
-		//testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		//testDataChangesInConfigMap();
-		//testConfigMapPollingReload();
-		//testConfigMapMountPollingReload();
+		testInformFromOneNamespaceEventTriggered();
+		testInform();
+		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		testDataChangesInConfigMap();
+		testConfigMapPollingReload();
+		testConfigMapMountPollingReload();
 		testPollingReloadConfigMapWithBootstrap();
 	}
 
