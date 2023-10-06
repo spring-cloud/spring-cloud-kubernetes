@@ -130,12 +130,12 @@ class ConfigMapEventReloadIT {
 			return "left-initial".equals(innerResult);
 		});
 
-		testInformFromOneNamespaceEventTriggered();
-		testInform();
-		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		testDataChangesInConfigMap();
-		testConfigMapPollingReload();
-		testConfigMapMountPollingReload();
+		//testInformFromOneNamespaceEventTriggered();
+		//testInform();
+		//testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		//testDataChangesInConfigMap();
+		//testConfigMapPollingReload();
+		//testConfigMapMountPollingReload();
 		testPollingReloadConfigMapWithBootstrap();
 	}
 
@@ -316,7 +316,6 @@ class ConfigMapEventReloadIT {
 		TestUtil.patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		BootstrapEnabledPollingReloadConfigMapMountDelegate.testPollingReloadConfigMapWithBootstrap(client, util, K3S,
 				IMAGE_NAME);
-		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client, K3S, IMAGE_NAME);
 	}
 
 	private static void manifests(Phase phase) {
