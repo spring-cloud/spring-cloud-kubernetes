@@ -44,7 +44,7 @@ final class ConfigMapPollingReloadDelegate {
 				.block();
 
 		// we first read the initial value from the configmap
-		Assertions.assertEquals("initial", result);
+		Assertions.assertEquals("as-mount-initial", result);
 
 		// then deploy a new version of configmap
 		// since we poll and have reload in place, the new property must be visible
@@ -54,9 +54,9 @@ final class ConfigMapPollingReloadDelegate {
 
 		client.configMaps().inNamespace("default").resource(map).createOrReplace();
 
-		await().ignoreException(HttpServerErrorException.BadGateway.class)
-				.timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
+		await().ignoreException(HttpServerErrorException.BadGateway.class).timeout(Duration.ofSeconds(120))
+				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+						.block().equals("after-change"));
 
 	}
 

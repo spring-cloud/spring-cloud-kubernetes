@@ -200,7 +200,22 @@ final class TestUtil {
 				"spec": {
 					"template": {
 						"spec": {
+							"volumes": [
+								{
+									"configMap": {
+										"defaultMode": 420,
+										"name": "poll-reload"
+									},
+									"name": "config-map-volume"
+								}
+							],
 							"containers": [{
+								"volumeMounts": [
+									{
+										"mountPath": "/tmp",
+										"name": "config-map-volume"
+									}
+								],
 								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
 								"image": "image_name_here",
 								"env": [
@@ -232,6 +247,58 @@ final class TestUtil {
 			}
 						""";
 
+	private static final String BODY_SEVEN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"volumes": [
+								{
+									"configMap": {
+										"defaultMode": 420,
+										"name": "poll-reload"
+									},
+									"name": "config-map-volume"
+								}
+							],
+							"containers": [{
+								"volumeMounts": [
+									{
+										"mountPath": "/tmp",
+										"name": "config-map-volume"
+									}
+								],
+								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "with-bootstrap"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS",
+									"value": "DEBUG"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private TestUtil() {
 
 	}
@@ -239,12 +306,15 @@ final class TestUtil {
 	static void reCreateConfigMaps(Util util, KubernetesClient client) {
 		InputStream leftConfigMapStream = util.inputStream("left-configmap.yaml");
 		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
+		InputStream configMapStream = util.inputStream("configmap.yaml");
 
 		ConfigMap leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
 		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
+		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 
 		replaceConfigMap(client, leftConfigMap, "left");
 		replaceConfigMap(client, rightConfigMap, "right");
+		replaceConfigMap(client, configMap, "default");
 	}
 
 	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {
@@ -273,6 +343,10 @@ final class TestUtil {
 
 	static void patchSix(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SIX, POD_LABELS);
+	}
+
+	static void patchSeven(Util util, String dockerImage, String deploymentName, String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SEVEN, POD_LABELS);
 	}
 
 	static WebClient.Builder builder() {

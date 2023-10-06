@@ -35,18 +35,14 @@ import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.builder;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
 
-/**
- * @author wind57
- */
-final class ConfigMapMountPollingReloadDelegate {
+final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 
 	/**
 	 * <pre>
-	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
+	 *     - we have bootstrap enabled, which means we will 'locate' property sources
 	 *       from config maps.
-	 *     - the property above means that at the moment we will be searching for config maps that only
-	 *       match the application name, in this specific test there is no such config map.
-	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
+	 *     - there are no explicit config maps to search for, but what we will also read,
+	 *     	 is 'spring.cloud.kubernetes.config.paths', which we have set to
 	 *     	 '/tmp/application.properties'
 	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
 	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
@@ -55,7 +51,7 @@ final class ConfigMapMountPollingReloadDelegate {
 	 *     - our polling will then detect that change, and trigger a reload.
 	 * </pre>
 	 */
-	static void testConfigMapMountPollingReload(KubernetesClient client, Util util, K3sContainer container,
+	static void testPollingReloadConfigMapWithBootstrap(KubernetesClient client, Util util, K3sContainer container,
 			String appLabelValue) {
 		// (1)
 		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", container, appLabelValue);

@@ -46,9 +46,10 @@ import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reloa
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchFive;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchFour;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchOne;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchSeven;
+import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchSix;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchThree;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchTwo;
-import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.patchSix;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.reCreateConfigMaps;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.replaceConfigMap;
 import static org.springframework.cloud.kubernetes.fabric8.configmap.event.reload.TestUtil.retrySpec;
@@ -140,12 +141,13 @@ class ConfigMapEventReloadIT {
 			return "left-initial".equals(innerResult);
 		});
 
-		//testInformFromOneNamespaceEventTriggered();
-		//testInform();
-		//testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		//testDataChangesInConfigMap();
-		//testConfigMapPollingReload();
+		testInformFromOneNamespaceEventTriggered();
+		testInform();
+		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		testDataChangesInConfigMap();
+		testConfigMapPollingReload();
 		testConfigMapMountPollingReload();
+		testPollingReloadConfigMapWithBootstrap();
 	}
 
 	/**
@@ -315,8 +317,16 @@ class ConfigMapEventReloadIT {
 	}
 
 	void testConfigMapMountPollingReload() {
+		reCreateConfigMaps(util, client);
 		patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util, K3S, IMAGE_NAME);
+	}
+
+	void testPollingReloadConfigMapWithBootstrap() {
+		reCreateConfigMaps(util, client);
+		patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		BootstrapEnabledPollingReloadConfigMapMountDelegate.testPollingReloadConfigMapWithBootstrap(client, util, K3S,
+				IMAGE_NAME);
 	}
 
 	private static void manifests(Phase phase) {
