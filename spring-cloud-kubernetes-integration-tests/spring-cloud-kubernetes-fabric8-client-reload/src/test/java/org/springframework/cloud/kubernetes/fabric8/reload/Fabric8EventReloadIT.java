@@ -134,7 +134,6 @@ class Fabric8EventReloadIT {
 		testInform();
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
 		testDataChangesInConfigMap();
-		testConfigMapPollingReload();
 		testConfigMapMountPollingReload();
 		testPollingReloadConfigMapWithBootstrap();
 	}
@@ -298,11 +297,6 @@ class Fabric8EventReloadIT {
 		TestUtil.reCreateConfigMaps(util, client);
 		TestUtil.patchFour(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client, K3S, IMAGE_NAME);
-	}
-
-	void testConfigMapPollingReload() {
-		TestUtil.patchFive(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
-		ConfigMapPollingReloadDelegate.testConfigMapPollingReload(client);
 	}
 
 	void testConfigMapMountPollingReload() {

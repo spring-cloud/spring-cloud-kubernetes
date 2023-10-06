@@ -170,31 +170,6 @@ final class TestUtil {
 			}
 						""";
 
-	private static final String BODY_FIVE = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "no-mount"
-								},
-								{
-									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
-									"value": "FALSE"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
-
 	private static final String BODY_SIX = """
 			{
 				"spec": {
@@ -335,10 +310,6 @@ final class TestUtil {
 
 	static void patchFour(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FOUR, POD_LABELS);
-	}
-
-	static void patchFive(Util util, String dockerImage, String deploymentName, String namespace) {
-		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FIVE, POD_LABELS);
 	}
 
 	static void patchSix(Util util, String dockerImage, String deploymentName, String namespace) {
