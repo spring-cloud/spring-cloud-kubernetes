@@ -48,7 +48,6 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>spring-cloud-kubernetes-fabric8-client-configmap</module>
 		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
 		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
