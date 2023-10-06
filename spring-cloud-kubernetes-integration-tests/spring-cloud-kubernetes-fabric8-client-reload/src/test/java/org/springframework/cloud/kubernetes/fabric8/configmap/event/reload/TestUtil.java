@@ -39,7 +39,8 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 final class TestUtil {
 
-	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-fabric8-client-reload");
+	private static final Map<String, String> POD_LABELS = Map.of("app",
+			"spring-cloud-kubernetes-fabric8-client-reload");
 
 	private static final String BODY_ONE = """
 			{
@@ -57,6 +58,10 @@ final class TestUtil {
 								{
 									"name": "SPRING_PROFILES_ACTIVE",
 									"value": "two"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -82,6 +87,10 @@ final class TestUtil {
 								{
 									"name": "SPRING_PROFILES_ACTIVE",
 									"value": "three"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -111,6 +120,10 @@ final class TestUtil {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED",
 									"value": "FALSE"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -144,6 +157,10 @@ final class TestUtil {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD",
 									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -165,6 +182,10 @@ final class TestUtil {
 								{
 									"name": "SPRING_PROFILES_ACTIVE",
 									"value": "no-mount"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "FALSE"
 								}
 								]
 							}]
@@ -188,9 +209,21 @@ final class TestUtil {
 									"value": "mount"
 								},
 								{
-									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "mount"
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "FALSE"
 								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS",
+									"value": "DEBUG"
+								}
 								]
 							}]
 						}
@@ -252,10 +285,13 @@ final class TestUtil {
 
 	static String logs(K3sContainer container, String appLabelValue) {
 		try {
-			String appPodName = container.execInContainer("sh", "-c",
-				"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'").getStdout();
+			String appPodName = container
+					.execInContainer("sh", "-c",
+							"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'")
+					.getStdout();
 
-			Container.ExecResult execResult = container.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			Container.ExecResult execResult = container.execInContainer("sh", "-c",
+					"kubectl logs " + appPodName.trim());
 			return execResult.getStdout();
 		}
 		catch (Exception e) {

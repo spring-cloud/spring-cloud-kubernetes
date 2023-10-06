@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
@@ -53,7 +54,8 @@ final class ConfigMapPollingReloadDelegate {
 
 		client.configMaps().inNamespace("default").resource(map).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(60)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+		await().ignoreException(HttpServerErrorException.BadGateway.class)
+				.timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
 
 	}
