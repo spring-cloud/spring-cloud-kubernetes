@@ -1,0 +1,67 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.kubernetes.fabric8.reload;
+
+import java.time.Duration;
+import java.util.Base64;
+import java.util.Map;
+
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.Assertions;
+
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.retrySpec;
+
+/**
+ * @author wind57
+ */
+final class SecretsEventsReloadDelegate {
+
+	static void testSecretReload(KubernetesClient client, String appLabelValue) {
+		Commons.assertReloadLogStatements("added secret informer for namespace",
+				"added configmap informer for namespace", appLabelValue);
+		WebClient webClient = builder().baseUrl("http://localhost/key-from-secret").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+
+		// we first read the initial value from the secret
+		Assertions.assertEquals("initial", result);
+
+		// then deploy a new version of the secret
+		// since we poll and have reload in place, the new property must be visible
+		Secret secret = new SecretBuilder()
+				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.secret.properties.key=after-change".getBytes())))
+				.build();
+
+		client.secrets().inNamespace("default").resource(secret).createOrReplace();
+
+		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
+
+	}
+
+}

@@ -299,11 +299,32 @@ final class TestUtil {
 			}
 						""";
 
+	private static final String BODY_EIGHT = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "SPRING_PROFILES_ACTIVE",
+									"value": "with-secret"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	private TestUtil() {
 
 	}
 
-	static void reCreateConfigMaps(Util util, KubernetesClient client) {
+	static void reCreateSources(Util util, KubernetesClient client) {
 		InputStream leftConfigMapStream = util.inputStream("left-configmap.yaml");
 		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
 		InputStream configMapStream = util.inputStream("configmap.yaml");
@@ -347,6 +368,10 @@ final class TestUtil {
 
 	static void patchSeven(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SEVEN, POD_LABELS);
+	}
+
+	static void patchEight(Util util, String dockerImage, String deploymentName, String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_EIGHT, POD_LABELS);
 	}
 
 	static WebClient.Builder builder() {
