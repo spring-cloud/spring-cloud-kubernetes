@@ -25,8 +25,8 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
-
 import org.testcontainers.k3s.K3sContainer;
+
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -54,25 +54,25 @@ final class SecretsEventsReloadDelegate {
 	 */
 	static void testSecretReload(KubernetesClient client, K3sContainer container, String appLabelValue) {
 		Commons.assertReloadLogStatements("added secret informer for namespace",
-			"added configmap informer for namespace", appLabelValue);
+				"added configmap informer for namespace", appLabelValue);
 
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-			.block();
+				.block();
 		Assertions.assertEquals("initial", result);
 
 		Secret secret = new SecretBuilder()
-			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace("default")
-				.withName("event-reload").build())
-			.withData(Map.of("application.properties",
-				Base64.getEncoder().encodeToString("from.properties.key=initial".getBytes())))
-			.build();
+				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace("default")
+						.withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.properties.key=initial".getBytes())))
+				.build();
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+					.retryWhen(retrySpec()).block();
 			return "initial".equals(innerResult);
 		});
 
@@ -82,17 +82,17 @@ final class SecretsEventsReloadDelegate {
 
 		// change data
 		secret = new SecretBuilder()
-			.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
-			.withData(Map.of("application.properties",
-				Base64.getEncoder().encodeToString("from.properties.key=initial-changed".getBytes())))
-			.build();
+				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
+				.withData(Map.of("application.properties",
+						Base64.getEncoder().encodeToString("from.properties.key=initial-changed".getBytes())))
+				.build();
 
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+					.retryWhen(retrySpec()).block();
 			return "initial-changed".equals(innerResult);
 		});
 

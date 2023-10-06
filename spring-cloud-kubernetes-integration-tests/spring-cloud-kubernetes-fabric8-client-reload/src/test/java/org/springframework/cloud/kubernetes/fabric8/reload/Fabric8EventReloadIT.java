@@ -132,13 +132,13 @@ class Fabric8EventReloadIT {
 			return "left-initial".equals(innerResult);
 		});
 
-		// testInformFromOneNamespaceEventTriggered();
-		// testInform();
-		// testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		// testDataChangesInConfigMap();
-		// testConfigMapPollingReload();
-		// testConfigMapMountPollingReload();
-		// testPollingReloadConfigMapWithBootstrap();
+		testInformFromOneNamespaceEventTriggered();
+		testInform();
+		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		testDataChangesInConfigMap();
+		testConfigMapPollingReload();
+		testConfigMapMountPollingReload();
+		testPollingReloadConfigMapWithBootstrap();
 		testSecretReload();
 	}
 
@@ -323,7 +323,7 @@ class Fabric8EventReloadIT {
 
 	void testSecretReload() {
 		TestUtil.patchEight(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
-		SecretsEventsReloadDelegate.testSecretReload(client, IMAGE_NAME);
+		SecretsEventsReloadDelegate.testSecretReload(client, K3S, IMAGE_NAME);
 	}
 
 	private static void manifests(Phase phase) {
