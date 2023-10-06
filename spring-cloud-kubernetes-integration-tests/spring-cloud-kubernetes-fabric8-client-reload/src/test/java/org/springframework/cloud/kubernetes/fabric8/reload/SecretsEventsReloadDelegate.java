@@ -26,12 +26,14 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
 
+import org.testcontainers.k3s.K3sContainer;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.logs;
 import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.retrySpec;
 
 /**
@@ -39,28 +41,60 @@ import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.retry
  */
 final class SecretsEventsReloadDelegate {
 
-	static void testSecretReload(KubernetesClient client, String appLabelValue) {
+	/**
+	 * <pre>
+	 *     - secret with no labels and data: from.properties.key = initial exists in namespace default
+	 *     - we assert that we can read it correctly first, by invoking localhost/key.
+	 *
+	 *     - then we change the secret by adding a label, this in turn does not
+	 *       change the result of localhost/key, because the data has not changed.
+	 *
+	 *     - then we change data inside the secret, and we must see the updated value.
+	 * </pre>
+	 */
+	static void testSecretReload(KubernetesClient client, K3sContainer container, String appLabelValue) {
 		Commons.assertReloadLogStatements("added secret informer for namespace",
-				"added configmap informer for namespace", appLabelValue);
-		WebClient webClient = builder().baseUrl("http://localhost/key-from-secret").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+			"added configmap informer for namespace", appLabelValue);
 
-		// we first read the initial value from the secret
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("initial", result);
 
-		// then deploy a new version of the secret
-		// since we poll and have reload in place, the new property must be visible
 		Secret secret = new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
-				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.secret.properties.key=after-change".getBytes())))
-				.build();
+			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace("default")
+				.withName("event-reload").build())
+			.withData(Map.of("application.properties",
+				Base64.getEncoder().encodeToString("from.properties.key=initial".getBytes())))
+			.build();
+		client.secrets().inNamespace("default").resource(secret).createOrReplace();
+
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
+			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+			return "initial".equals(innerResult);
+		});
+
+		String logs = logs(container, appLabelValue);
+		Assertions.assertTrue(logs.contains("Secret event-reload was updated in namespace default"));
+		Assertions.assertTrue(logs.contains("data in secret has not changed, will not reload"));
+
+		// change data
+		secret = new SecretBuilder()
+			.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
+			.withData(Map.of("application.properties",
+				Base64.getEncoder().encodeToString("from.properties.key=initial-changed".getBytes())))
+			.build();
 
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(120)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(retrySpec()).block().equals("after-change"));
+		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
+			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+			return "initial-changed".equals(innerResult);
+		});
 
 	}
 
