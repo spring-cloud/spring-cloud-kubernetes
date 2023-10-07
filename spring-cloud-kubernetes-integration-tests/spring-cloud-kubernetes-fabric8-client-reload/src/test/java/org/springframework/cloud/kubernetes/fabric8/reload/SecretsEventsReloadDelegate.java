@@ -33,7 +33,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.builder;
-import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.logs;
 import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.retrySpec;
 
 /**
@@ -43,7 +42,7 @@ final class SecretsEventsReloadDelegate {
 
 	/**
 	 * <pre>
-	 *     - secret with no labels and data: from.properties.key = initial exists in namespace default
+	 *     - secret with no labels and data: from.secret.properties.key = secret-initial exists in namespace default
 	 *     - we assert that we can read it correctly first, by invoking localhost/key.
 	 *
 	 *     - then we change the secret by adding a label, this in turn does not
@@ -56,44 +55,45 @@ final class SecretsEventsReloadDelegate {
 		Commons.assertReloadLogStatements("added secret informer for namespace",
 				"added configmap informer for namespace", appLabelValue);
 
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		WebClient webClient = builder().baseUrl("http://localhost/key-from-secret").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
-		Assertions.assertEquals("initial", result);
+		Assertions.assertEquals("secret-initial", result);
 
 		Secret secret = new SecretBuilder()
 				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace("default")
 						.withName("event-reload").build())
 				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.properties.key=initial".getBytes())))
+						Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial".getBytes())))
 				.build();
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key-from-secret").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
-			return "initial".equals(innerResult);
+			return "secret-initial".equals(innerResult);
 		});
 
-		String logs = logs(container, appLabelValue);
-		Assertions.assertTrue(logs.contains("Secret event-reload was updated in namespace default"));
-		Assertions.assertTrue(logs.contains("data in secret has not changed, will not reload"));
+		Commons.waitForLogStatement("Secret event-reload was updated in namespace default",
+			container, appLabelValue);
+		Commons.waitForLogStatement("data in secret has not changed, will not reload",
+			container, appLabelValue);
 
 		// change data
 		secret = new SecretBuilder()
 				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
 				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.properties.key=initial-changed".getBytes())))
+						Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
 				.build();
 
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
-			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
+			WebClient innerWebClient = builder().baseUrl("http://localhost/key-from-secret").build();
 			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 					.retryWhen(retrySpec()).block();
-			return "initial-changed".equals(innerResult);
+			return "secret-initial-changed".equals(innerResult);
 		});
 
 	}
