@@ -304,13 +304,13 @@ class Fabric8EventReloadIT {
 
 	void testConfigMapMountPollingReload() {
 		TestUtil.reCreateSources(util, client);
-		TestUtil.patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.patchFive(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util, K3S, IMAGE_NAME);
 	}
 
 	void testPollingReloadConfigMapWithBootstrap() {
 		TestUtil.reCreateSources(util, client);
-		TestUtil.patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		BootstrapEnabledPollingReloadConfigMapMountDelegate.testPollingReloadConfigMapWithBootstrap(client, util, K3S,
 				IMAGE_NAME);
 	}
