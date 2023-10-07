@@ -102,15 +102,16 @@ class Fabric8EventReloadIT {
 				"added secret informer for namespace", IMAGE_NAME);
 
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/left").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 
 		// we first read the initial value from the left-configmap
 		Assertions.assertEquals("left-initial", result);
 
 		// then read the value from the right-configmap
 		webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block();
+		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
+				.block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
@@ -158,8 +159,8 @@ class Fabric8EventReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
@@ -246,8 +247,8 @@ class Fabric8EventReloadIT {
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
-		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-after-change", rightResult);
 	}
 
@@ -271,8 +272,8 @@ class Fabric8EventReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap

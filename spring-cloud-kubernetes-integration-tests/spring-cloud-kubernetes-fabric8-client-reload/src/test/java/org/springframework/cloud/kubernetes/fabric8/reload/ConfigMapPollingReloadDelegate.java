@@ -38,8 +38,8 @@ final class ConfigMapPollingReloadDelegate {
 
 	static void testConfigMapPollingReload(KubernetesClient client) {
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
@@ -53,8 +53,8 @@ final class ConfigMapPollingReloadDelegate {
 		client.configMaps().inNamespace("default").resource(map).createOrReplace();
 
 		await().ignoreException(HttpServerErrorException.BadGateway.class).timeout(Duration.ofSeconds(120))
-				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-						.block().equals("after-change"));
+				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+						.retryWhen(TestUtil.retrySpec()).block().equals("after-change"));
 
 	}
 
