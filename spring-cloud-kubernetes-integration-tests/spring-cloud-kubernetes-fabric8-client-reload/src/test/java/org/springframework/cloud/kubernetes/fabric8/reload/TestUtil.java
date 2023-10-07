@@ -170,7 +170,7 @@ final class TestUtil {
 			}
 						""";
 
-	private static final String BODY_SIX = """
+	private static final String BODY_FIVE = """
 			{
 				"spec": {
 					"template": {
@@ -222,7 +222,7 @@ final class TestUtil {
 			}
 						""";
 
-	private static final String BODY_SEVEN = """
+	private static final String BODY_SIX = """
 			{
 				"spec": {
 					"template": {
@@ -312,12 +312,12 @@ final class TestUtil {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FOUR, POD_LABELS);
 	}
 
-	static void patchSix(Util util, String dockerImage, String deploymentName, String namespace) {
-		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SIX, POD_LABELS);
+	static void patchFive(Util util, String dockerImage, String deploymentName, String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_FIVE, POD_LABELS);
 	}
 
-	static void patchSeven(Util util, String dockerImage, String deploymentName, String namespace) {
-		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SEVEN, POD_LABELS);
+	static void patchSix(Util util, String dockerImage, String deploymentName, String namespace) {
+		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SIX, POD_LABELS);
 	}
 
 	static WebClient.Builder builder() {
