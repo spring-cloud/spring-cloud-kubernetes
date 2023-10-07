@@ -188,6 +188,7 @@ class KubernetesClientDiscoveryClientIT {
 
 				}).retryWhen(retrySpec()).block();
 		Assertions.assertEquals(servicesResult.size(), 7);
+		System.out.println("==== servicesResult : " + servicesResult);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
