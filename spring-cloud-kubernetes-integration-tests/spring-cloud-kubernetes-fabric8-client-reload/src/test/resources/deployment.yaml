@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+<<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/fabric8-client-configmap-polling-and-import-reload/src/test/resources/deployment.yaml
+  name: fabric8-client-configmap-deployment-polling-and-import-reload
+spec:
+  selector:
+    matchLabels:
+      app: fabric8-client-configmap-polling-and-import-reload
+  template:
+    metadata:
+      labels:
+        app: fabric8-client-configmap-polling-and-import-reload
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+        - name: fabric8-client-configmap-polling-and-import-reload
+          image: docker.io/springcloud/fabric8-client-configmap-polling-and-import-reload
+========
+  name: spring-cloud-kubernetes-fabric8-client-reload
+spec:
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-fabric8-client-reload
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-fabric8-client-reload
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+        - name: spring-cloud-kubernetes-fabric8-client-reload
+          image: docker.io/springcloud/spring-cloud-kubernetes-fabric8-client-reload
+>>>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/resources/deployment.yaml
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_CONFIG_RELOAD
+              value: "DEBUG"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "one"
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "TRUE"

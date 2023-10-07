@@ -48,13 +48,10 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>spring-cloud-kubernetes-fabric8-client-configmap</module>
 		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
 		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
-		<module>fabric8-client-configmap-polling-and-import-reload</module>
-		<module>spring-cloud-kubernetes-fabric8-client-secrets-event-reload</module>
-		<module>spring-cloud-kubernetes-fabric8-client-configmap-event-reload</module>
+		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
 
 		<module>spring-cloud-kubernetes-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
