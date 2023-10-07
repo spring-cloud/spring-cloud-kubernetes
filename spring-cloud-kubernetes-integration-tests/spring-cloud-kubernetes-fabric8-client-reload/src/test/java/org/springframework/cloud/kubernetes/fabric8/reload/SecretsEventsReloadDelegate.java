@@ -75,16 +75,15 @@ final class SecretsEventsReloadDelegate {
 			return "secret-initial".equals(innerResult);
 		});
 
-		Commons.waitForLogStatement("Secret event-reload was updated in namespace default",
-			container, appLabelValue);
-		Commons.waitForLogStatement("data in secret has not changed, will not reload",
-			container, appLabelValue);
+		Commons.waitForLogStatement("Secret event-reload was updated in namespace default", container, appLabelValue);
+		Commons.waitForLogStatement("data in secret has not changed, will not reload", container, appLabelValue);
 
 		// change data
 		secret = new SecretBuilder()
 				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
 				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
+						Base64.getEncoder()
+								.encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
 				.build();
 
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
