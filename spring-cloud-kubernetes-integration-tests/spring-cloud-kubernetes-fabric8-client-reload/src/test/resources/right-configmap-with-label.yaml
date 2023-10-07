@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: right-configmap-with-label
+  namespace: right
+  labels:
+    spring.cloud.kubernetes.config.informer.enabled: true
+data:
+  right.with.label.value: "right-with-label-initial"
