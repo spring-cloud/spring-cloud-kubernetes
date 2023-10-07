@@ -24,6 +24,7 @@ import java.util.Set;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -102,15 +103,16 @@ class Fabric8EventReloadIT {
 				"added secret informer for namespace", IMAGE_NAME);
 
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/left").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 
 		// we first read the initial value from the left-configmap
 		Assertions.assertEquals("left-initial", result);
 
 		// then read the value from the right-configmap
 		webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block();
+		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
+				.block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
@@ -136,6 +138,7 @@ class Fabric8EventReloadIT {
 		testDataChangesInConfigMap();
 		testConfigMapMountPollingReload();
 		testPollingReloadConfigMapWithBootstrap();
+		testSecretReload();
 	}
 
 	/**
@@ -149,7 +152,7 @@ class Fabric8EventReloadIT {
 	 */
 	void testInformFromOneNamespaceEventTriggered() {
 
-		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.reCreateSources(util, client);
 		TestUtil.patchOne(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
@@ -157,8 +160,8 @@ class Fabric8EventReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
@@ -191,7 +194,7 @@ class Fabric8EventReloadIT {
 	 */
 	void testInform() {
 
-		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.reCreateSources(util, client);
 		TestUtil.patchTwo(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
@@ -245,8 +248,8 @@ class Fabric8EventReloadIT {
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
-		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-after-change", rightResult);
 	}
 
@@ -262,7 +265,7 @@ class Fabric8EventReloadIT {
 	 */
 	void testInformFromOneNamespaceEventTriggeredSecretsDisabled() {
 
-		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.reCreateSources(util, client);
 		TestUtil.patchThree(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 
 		Commons.assertReloadLogStatements("added configmap informer for namespace",
@@ -270,8 +273,8 @@ class Fabric8EventReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec()).block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
@@ -294,22 +297,27 @@ class Fabric8EventReloadIT {
 	}
 
 	void testDataChangesInConfigMap() {
-		TestUtil.reCreateConfigMaps(util, client);
+		TestUtil.reCreateSources(util, client);
 		TestUtil.patchFour(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		DataChangesInConfigMapReloadDelegate.testDataChangesInConfigMap(client, K3S, IMAGE_NAME);
 	}
 
 	void testConfigMapMountPollingReload() {
-		TestUtil.reCreateConfigMaps(util, client);
-		TestUtil.patchFive(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateSources(util, client);
+		TestUtil.patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util, K3S, IMAGE_NAME);
 	}
 
 	void testPollingReloadConfigMapWithBootstrap() {
-		TestUtil.reCreateConfigMaps(util, client);
-		TestUtil.patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.reCreateSources(util, client);
+		TestUtil.patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		BootstrapEnabledPollingReloadConfigMapMountDelegate.testPollingReloadConfigMapWithBootstrap(client, util, K3S,
 				IMAGE_NAME);
+	}
+
+	void testSecretReload() {
+		TestUtil.patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		SecretsEventsReloadDelegate.testSecretReload(client, K3S, IMAGE_NAME);
 	}
 
 	private static void manifests(Phase phase) {
@@ -321,6 +329,7 @@ class Fabric8EventReloadIT {
 		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
 		InputStream rightWithLabelConfigMapStream = util.inputStream("right-configmap-with-label.yaml");
 		InputStream configMapAsStream = util.inputStream("configmap.yaml");
+		InputStream secretAsStream = util.inputStream("secret.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
@@ -330,19 +339,20 @@ class Fabric8EventReloadIT {
 		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
 		ConfigMap rightWithLabelConfigMap = Serialization.unmarshal(rightWithLabelConfigMapStream, ConfigMap.class);
 		ConfigMap configMap = Serialization.unmarshal(configMapAsStream, ConfigMap.class);
+		Secret secret = Serialization.unmarshal(secretAsStream, Secret.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait("left", leftConfigMap, null);
 			util.createAndWait("right", rightConfigMap, null);
 			util.createAndWait("right", rightWithLabelConfigMap, null);
-			util.createAndWait(NAMESPACE, configMap, null);
+			util.createAndWait(NAMESPACE, configMap, secret);
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
 			util.deleteAndWait("left", leftConfigMap, null);
 			util.deleteAndWait("right", rightConfigMap, null);
 			util.deleteAndWait("right", rightWithLabelConfigMap, null);
-			util.deleteAndWait(NAMESPACE, configMap, null);
+			util.deleteAndWait(NAMESPACE, configMap, secret);
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
