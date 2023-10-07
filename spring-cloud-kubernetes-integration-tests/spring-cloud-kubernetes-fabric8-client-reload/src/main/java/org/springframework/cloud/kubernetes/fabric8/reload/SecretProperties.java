@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.secrets.event.reload;
+package org.springframework.cloud.kubernetes.fabric8.reload;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author wind57
  */
-@RestController
-public class SecretsController {
+@ConfigurationProperties("from.secret.properties")
+public class SecretProperties {
 
-	private final SecretsProperties properties;
+	private String key;
 
-	public SecretsController(SecretsProperties properties) {
-		this.properties = properties;
+	public String getKey() {
+		return key;
 	}
 
-	@GetMapping("/key")
-	public String key() {
-		return properties.getKey();
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 }
