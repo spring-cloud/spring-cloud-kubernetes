@@ -9,7 +9,7 @@
 		<version>3.0.5-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>spring-cloud-kubernetes-client-event-and-polling-reload</artifactId>
+	<artifactId>spring-cloud-kubernetes-k8s-client-reload</artifactId>
 
 	<dependencies>
 		<dependency>

@@ -48,7 +48,7 @@ class K8sClientSecretsReloadIT {
 
 	private static final String PROPERTY_URL = "http://localhost:80/key";
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-event-and-polling-reload";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-reload";
 
 	private static final String NAMESPACE = "default";
 

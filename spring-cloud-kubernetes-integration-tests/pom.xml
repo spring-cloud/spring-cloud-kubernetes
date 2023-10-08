@@ -49,17 +49,20 @@
 
 	<modules>
 		<module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
+		<module>spring-cloud-kubernetes-k8s-client-catalog-watcher</module>
+
 		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
+		<module>spring-cloud-kubernetes-k8s-client-discovery</module>
+
 		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
+		<module>spring-cloud-kubernetes-k8s-client-reload</module>
+
 		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
 		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 
-		<module>spring-cloud-kubernetes-k8s-client-catalog-watcher</module>
-		<module>spring-cloud-kubernetes-k8s-client-discovery</module>
 		<module>spring-cloud-kubernetes-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
 		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
-        <module>spring-cloud-kubernetes-client-event-and-polling-reload</module>
         <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
     </modules>
