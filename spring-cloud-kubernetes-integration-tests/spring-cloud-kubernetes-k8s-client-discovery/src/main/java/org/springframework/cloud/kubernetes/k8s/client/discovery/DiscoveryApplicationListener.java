@@ -14,30 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.k8s.client.discovery;
 
-import io.fabric8.kubernetes.api.model.Pod;
+import io.kubernetes.client.openapi.models.V1Pod;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.stereotype.Component;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
 
 /**
  * @author wind57
  */
 @Component
-public class Fabric8ApplicationDiscoveryListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
+public class DiscoveryApplicationListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(Fabric8ApplicationDiscoveryListener.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(DiscoveryApplicationListener.class));
 
 	@Override
 	public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
-		Pod pod = (Pod) ((KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) event.getSource())
-				.pod();
+		V1Pod pod = (V1Pod) ((RegisteredEventSource) event.getSource()).pod();
 		LOG.info(() -> "received InstanceRegisteredEvent from pod with 'app' label value : "
 				+ pod.getMetadata().getLabels().get("app"));
 	}

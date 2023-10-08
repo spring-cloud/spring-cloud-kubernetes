@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
 import java.util.List;
 
@@ -26,8 +26,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.builder;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtil.retrySpec;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.builder;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.retrySpec;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
 
 /**

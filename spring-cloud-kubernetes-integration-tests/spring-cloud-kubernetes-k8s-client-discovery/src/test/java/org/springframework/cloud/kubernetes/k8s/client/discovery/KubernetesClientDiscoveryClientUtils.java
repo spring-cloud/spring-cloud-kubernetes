@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.discovery.it;
+package org.springframework.cloud.kubernetes.k8s.client.discovery;
 
 import java.util.Map;
 
