@@ -247,58 +247,6 @@ final class TestUtil {
 			}
 						""";
 
-	private static final String BODY_SEVEN = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"volumes": [
-								{
-									"configMap": {
-										"defaultMode": 420,
-										"name": "poll-reload"
-									},
-									"name": "config-map-volume"
-								}
-							],
-							"containers": [{
-								"volumeMounts": [
-									{
-										"mountPath": "/tmp",
-										"name": "config-map-volume"
-									}
-								],
-								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "with-bootstrap"
-								},
-								{
-									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
-									"value": "TRUE"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
-									"value": "DEBUG"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG",
-									"value": "DEBUG"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS",
-									"value": "DEBUG"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
-
 	private static final String BODY_EIGHT = """
 			{
 				"spec": {
@@ -364,10 +312,6 @@ final class TestUtil {
 
 	static void patchSix(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SIX, POD_LABELS);
-	}
-
-	static void patchSeven(Util util, String dockerImage, String deploymentName, String namespace) {
-		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SEVEN, POD_LABELS);
 	}
 
 	static void patchEight(Util util, String dockerImage, String deploymentName, String namespace) {

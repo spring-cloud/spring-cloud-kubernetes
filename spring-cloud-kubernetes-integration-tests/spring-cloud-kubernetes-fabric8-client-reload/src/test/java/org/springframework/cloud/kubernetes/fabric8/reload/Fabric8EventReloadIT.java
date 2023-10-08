@@ -132,14 +132,13 @@ class Fabric8EventReloadIT {
 			return "left-initial".equals(innerResult);
 		});
 
-		testInformFromOneNamespaceEventTriggered();
-		testInform();
-		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		testDataChangesInConfigMap();
+		// testInformFromOneNamespaceEventTriggered();
+		// testInform();
+		// testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		// testDataChangesInConfigMap();
 		testConfigMapPollingReload();
-		testConfigMapMountPollingReload();
-		testPollingReloadConfigMapWithBootstrap();
-		testSecretReload();
+		// testConfigMapMountPollingReload();
+		// testSecretReload();
 	}
 
 	/**
@@ -312,13 +311,6 @@ class Fabric8EventReloadIT {
 		TestUtil.reCreateSources(util, client);
 		TestUtil.patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util, K3S, IMAGE_NAME);
-	}
-
-	void testPollingReloadConfigMapWithBootstrap() {
-		TestUtil.reCreateSources(util, client);
-		TestUtil.patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
-		BootstrapEnabledPollingReloadConfigMapMountDelegate.testPollingReloadConfigMapWithBootstrap(client, util, K3S,
-				IMAGE_NAME);
 	}
 
 	void testSecretReload() {

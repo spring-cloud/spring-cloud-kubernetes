@@ -1,22 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-<<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/fabric8-client-configmap-polling-and-import-reload/src/test/resources/deployment.yaml
-  name: fabric8-client-configmap-deployment-polling-and-import-reload
-spec:
-  selector:
-    matchLabels:
-      app: fabric8-client-configmap-polling-and-import-reload
-  template:
-    metadata:
-      labels:
-        app: fabric8-client-configmap-polling-and-import-reload
-    spec:
-      serviceAccountName: spring-cloud-kubernetes-serviceaccount
-      containers:
-        - name: fabric8-client-configmap-polling-and-import-reload
-          image: docker.io/springcloud/fabric8-client-configmap-polling-and-import-reload
-========
   name: spring-cloud-kubernetes-fabric8-client-reload
 spec:
   selector:
@@ -31,7 +15,6 @@ spec:
       containers:
         - name: spring-cloud-kubernetes-fabric8-client-reload
           image: docker.io/springcloud/spring-cloud-kubernetes-fabric8-client-reload
->>>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/test/resources/deployment.yaml
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:

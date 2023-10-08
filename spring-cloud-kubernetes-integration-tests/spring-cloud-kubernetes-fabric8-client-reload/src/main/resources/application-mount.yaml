@@ -9,9 +9,6 @@ spring:
         strategy: shutdown
         mode: polling
         period: 5000
-      config:
-        paths:
-          - /tmp/application.properties
   config:
     import: "kubernetes:"
 
