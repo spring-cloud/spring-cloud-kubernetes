@@ -65,7 +65,7 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 	private static final String NAMESPACE_B = "b";
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-discovery";
 
 	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
 

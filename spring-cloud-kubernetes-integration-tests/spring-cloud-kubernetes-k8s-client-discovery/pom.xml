@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-kubernetes-client-discovery-it</artifactId>
+	<artifactId>spring-cloud-kubernetes-k8s-client-discovery</artifactId>
 
 	<dependencies>
 		<dependency>
