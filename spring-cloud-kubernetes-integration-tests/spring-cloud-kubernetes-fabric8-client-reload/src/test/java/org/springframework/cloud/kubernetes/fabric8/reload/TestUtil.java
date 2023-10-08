@@ -204,7 +204,13 @@ final class TestUtil {
 								{
 									"configMap": {
 										"defaultMode": 420,
-										"name": "poll-reload"
+										"name": "poll-reload-configtree",
+										"items": [
+											{
+												"key": "from.properties",
+												"path": "key"
+											}
+										]
 									},
 									"name": "config-map-volume"
 								}
@@ -212,7 +218,7 @@ final class TestUtil {
 							"containers": [{
 								"volumeMounts": [
 									{
-										"mountPath": "/tmp",
+										"mountPath": "/tmp/props",
 										"name": "config-map-volume"
 									}
 								],
@@ -221,7 +227,7 @@ final class TestUtil {
 								"env": [
 								{
 									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "mount"
+									"value": "configtree"
 								},
 								{
 									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
@@ -276,14 +282,17 @@ final class TestUtil {
 		InputStream leftConfigMapStream = util.inputStream("left-configmap.yaml");
 		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
 		InputStream configMapStream = util.inputStream("configmap.yaml");
+		InputStream configMapMountStream = util.inputStream("configmap-configtree.yaml");
 
 		ConfigMap leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
 		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
 		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
+		ConfigMap configMapMount = Serialization.unmarshal(configMapMountStream, ConfigMap.class);
 
 		replaceConfigMap(client, leftConfigMap, "left");
 		replaceConfigMap(client, rightConfigMap, "right");
 		replaceConfigMap(client, configMap, "default");
+		replaceConfigMap(client, configMapMount, "default");
 	}
 
 	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {

@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author wind57
  */
-@ConfigurationProperties("props")
+@ConfigurationProperties("from.properties")
 public class ConfigMapProperties {
 
 	private String key;

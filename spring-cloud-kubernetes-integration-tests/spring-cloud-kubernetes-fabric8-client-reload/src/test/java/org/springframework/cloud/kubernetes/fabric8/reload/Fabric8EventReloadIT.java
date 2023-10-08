@@ -50,6 +50,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
  */
 class Fabric8EventReloadIT {
 
+	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
+
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + pomVersion();
@@ -65,8 +67,12 @@ class Fabric8EventReloadIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
+
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
 		client = util.client();
@@ -75,6 +81,7 @@ class Fabric8EventReloadIT {
 		util.createNamespace("right");
 		util.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
 		util.setUp(NAMESPACE);
+		util.configWatcher(Phase.CREATE);
 
 		manifests(Phase.CREATE);
 	}
@@ -83,6 +90,7 @@ class Fabric8EventReloadIT {
 	static void afterAll() throws Exception {
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
+		util.configWatcher(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
 		Commons.systemPrune();
 
@@ -132,13 +140,13 @@ class Fabric8EventReloadIT {
 			return "left-initial".equals(innerResult);
 		});
 
-		// testInformFromOneNamespaceEventTriggered();
-		// testInform();
-		// testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		// testDataChangesInConfigMap();
+		testInformFromOneNamespaceEventTriggered();
+		testInform();
+		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+		testDataChangesInConfigMap();
 		testConfigMapPollingReload();
-		// testConfigMapMountPollingReload();
-		// testSecretReload();
+		testConfigMapMountPollingReload();
+		testSecretReload();
 	}
 
 	/**
@@ -310,7 +318,7 @@ class Fabric8EventReloadIT {
 	void testConfigMapMountPollingReload() {
 		TestUtil.reCreateSources(util, client);
 		TestUtil.patchSix(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
-		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util, K3S, IMAGE_NAME);
+		ConfigMapMountPollingReloadDelegate.testConfigMapMountPollingReload(client, util);
 	}
 
 	void testSecretReload() {

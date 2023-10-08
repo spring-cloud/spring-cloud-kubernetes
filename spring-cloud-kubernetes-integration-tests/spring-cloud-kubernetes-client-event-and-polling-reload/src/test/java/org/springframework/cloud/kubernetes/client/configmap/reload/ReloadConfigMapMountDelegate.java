@@ -47,7 +47,7 @@ final class ReloadConfigMapMountDelegate {
 	 *     - the property above means that at the moment we will be searching for config maps that only
 	 *       match the application name, in this specific test there is no such config map.
 	 *     - what we will also read, is /tmp directory according to configtree rules.
-	 *       As such, a property "props.key" (see deployment-mount.yaml) will be in environment.
+	 *       As such, a property "props.key" (see K8sClientConfigMapReloadITUtil::BODY_FIVE) will be in environment.
 	 *
 	 *     - we then change the config map content, wait for configuration watcher to pick up the change
 	 *       and schedule a refresh event, based on http.

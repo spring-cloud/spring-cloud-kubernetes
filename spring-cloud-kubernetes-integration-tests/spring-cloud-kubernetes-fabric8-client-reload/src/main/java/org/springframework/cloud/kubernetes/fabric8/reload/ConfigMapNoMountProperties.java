@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,19 @@
 
 package org.springframework.cloud.kubernetes.fabric8.reload;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * @author wind57
- */
-@SpringBootApplication
-@EnableConfigurationProperties({ LeftProperties.class, RightProperties.class, RightWithLabelsProperties.class,
-		ConfigMapProperties.class, SecretProperties.class, ConfigMapNoMountProperties.class })
-public class App {
+@ConfigurationProperties("props")
+public class ConfigMapNoMountProperties {
 
-	public static void main(String[] args) {
-		SpringApplication.run(App.class, args);
+	private String key;
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 }

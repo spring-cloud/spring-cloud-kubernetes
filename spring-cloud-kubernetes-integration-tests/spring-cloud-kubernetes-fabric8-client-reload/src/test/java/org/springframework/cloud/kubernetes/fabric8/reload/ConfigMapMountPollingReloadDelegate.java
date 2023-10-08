@@ -18,20 +18,21 @@ package org.springframework.cloud.kubernetes.fabric8.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.Assertions;
-import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.replaceConfigMap;
 
 /**
  * @author wind57
@@ -40,28 +41,19 @@ final class ConfigMapMountPollingReloadDelegate {
 
 	/**
 	 * <pre>
-	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
+	 *     - we have "spring.config.import: kubernetes:,configtree:/tmp/", which means we will 'locate' property sources
 	 *       from config maps.
 	 *     - the property above means that at the moment we will be searching for config maps that only
 	 *       match the application name, in this specific test there is no such config map.
-	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
-	 *     	 '/tmp/application.properties'
-	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
-	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
+	 *     - what we will also read, is /tmp directory according to configtree rules.
+	 *       As such, a property "props.key" (see TestUtil::BODY_SIX) will be in environment.
 	 *
-	 *     - we then change the config map content, wait for k8s to pick it up and replace them
-	 *     - our polling will then detect that change, and trigger a reload.
+	 *     - we then change the config map content, wait for configuration watcher to pick up the change
+	 *       and schedule a refresh event, based on http.
 	 * </pre>
 	 */
-	static void testConfigMapMountPollingReload(KubernetesClient client, Util util, K3sContainer container,
-			String appLabelValue) {
-		// (1)
-		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", container, appLabelValue);
-		// (2)
-		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", container,
-				appLabelValue);
-		// (3)
-		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key").build();
+	static void testConfigMapMountPollingReload(KubernetesClient client, Util util) {
+		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key-no-mount").build();
 		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
 				.retryWhen(TestUtil.retrySpec()).block();
 
@@ -70,12 +62,24 @@ final class ConfigMapMountPollingReloadDelegate {
 
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		InputStream configMapStream = util.inputStream("configmap.yaml");
-		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
-		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
-		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
+		InputStream configMapMountStream = util.inputStream("configmap-configtree.yaml");
+		ConfigMap configMapMount = Serialization.unmarshal(configMapMountStream, ConfigMap.class);
+		configMapMount.setData(Map.of("from.properties", "as-mount-changed"));
+		// add label so that configuration-watcher picks this up
+		Map<String, String> existingLabels = new HashMap<>(
+				Optional.ofNullable(configMapMount.getMetadata().getLabels()).orElse(Map.of()));
+		existingLabels.put("spring.cloud.kubernetes.config", "true");
+		configMapMount.getMetadata().setLabels(existingLabels);
 
-		await().timeout(Duration.ofSeconds(360)).until(() -> webClient.method(HttpMethod.GET).retrieve()
+		// add annotation for which app to send the http event to
+		Map<String, String> existingAnnotations = new HashMap<>(
+				Optional.ofNullable(configMapMount.getMetadata().getAnnotations()).orElse(Map.of()));
+		existingAnnotations.put("spring.cloud.kubernetes.configmap.apps",
+				"spring-cloud-kubernetes-fabric8-client-reload");
+		configMapMount.getMetadata().setAnnotations(existingAnnotations);
+		replaceConfigMap(client, configMapMount, "default");
+
+		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block().equals("as-mount-changed"));
 
 	}
