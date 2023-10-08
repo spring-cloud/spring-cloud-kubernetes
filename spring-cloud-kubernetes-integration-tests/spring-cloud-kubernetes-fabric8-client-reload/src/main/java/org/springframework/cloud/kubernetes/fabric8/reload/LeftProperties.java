@@ -26,25 +26,12 @@ public class LeftProperties {
 
 	private String value;
 
-<<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/fabric8-client-configmap-polling-and-import-reload/src/main/java/org/springframework/cloud/kubernetes/fabric8/configmap/polling/reload/ConfigMapController.java
-	private final ConfigMapPropertiesNoMount propertiesNoMount;
-
-	public ConfigMapController(ConfigMapProperties properties, ConfigMapPropertiesNoMount propertiesNoMount) {
-		this.properties = properties;
-		this.propertiesNoMount = propertiesNoMount;
-========
 	public String getValue() {
 		return value;
->>>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/main/java/org/springframework/cloud/kubernetes/fabric8/reload/LeftProperties.java
 	}
 
 	public void setValue(String value) {
 		this.value = value;
-	}
-
-	@GetMapping("/key-no-mount")
-	public String keyNoMount() {
-		return propertiesNoMount.getKey();
 	}
 
 }

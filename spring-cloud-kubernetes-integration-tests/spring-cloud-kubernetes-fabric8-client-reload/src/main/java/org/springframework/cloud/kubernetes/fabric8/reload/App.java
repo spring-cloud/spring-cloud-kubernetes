@@ -24,14 +24,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @author wind57
  */
 @SpringBootApplication
-<<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/fabric8-client-configmap-polling-and-import-reload/src/main/java/org/springframework/cloud/kubernetes/fabric8/configmap/polling/reload/ConfigMapApp.java
-@EnableConfigurationProperties({ ConfigMapProperties.class, ConfigMapPropertiesNoMount.class })
-public class ConfigMapApp {
-========
 @EnableConfigurationProperties({ LeftProperties.class, RightProperties.class, RightWithLabelsProperties.class,
 		ConfigMapProperties.class, SecretProperties.class })
 public class App {
->>>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-fabric8-client-reload/src/main/java/org/springframework/cloud/kubernetes/fabric8/reload/App.java
 
 	public static void main(String[] args) {
 		SpringApplication.run(App.class, args);
