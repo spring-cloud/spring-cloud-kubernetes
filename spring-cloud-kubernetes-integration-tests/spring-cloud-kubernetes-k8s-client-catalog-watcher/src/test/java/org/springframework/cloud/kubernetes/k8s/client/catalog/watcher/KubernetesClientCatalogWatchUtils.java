@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.catalog;
+package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher;
 
 import java.util.Map;
 
