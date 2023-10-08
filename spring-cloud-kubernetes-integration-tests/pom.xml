@@ -48,12 +48,16 @@
 	</dependencyManagement>
 
 	<modules>
+
+		<!-- catalog-watcher -->
 		<module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
 		<module>spring-cloud-kubernetes-k8s-client-catalog-watcher</module>
 
+		<!-- discovery client -->
 		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
 		<module>spring-cloud-kubernetes-k8s-client-discovery</module>
 
+		<!-- reload via plain reload/paths/configtree and catalog watcher -->
 		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
 		<module>spring-cloud-kubernetes-k8s-client-reload</module>
 
