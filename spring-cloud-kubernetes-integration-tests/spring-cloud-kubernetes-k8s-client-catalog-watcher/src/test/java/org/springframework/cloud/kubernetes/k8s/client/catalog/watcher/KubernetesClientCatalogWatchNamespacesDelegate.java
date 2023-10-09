@@ -47,8 +47,6 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 
 	}
 
-	private static final String APP_NAME = "spring-cloud-kubernetes-client-catalog-watcher";
-
 	private static final String NAMESPACE_A = "namespacea";
 
 	private static final String NAMESPACE_B = "namespaceb";
@@ -67,13 +65,13 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 	 *     - assert that we receive only spring-cloud-kubernetes-client-catalog-watcher pod
 	 * </pre>
 	 */
-	static void testCatalogWatchWithEndpointsNamespaces() {
-		waitForLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch", K3S, APP_NAME);
+	static void testCatalogWatchWithEndpointsNamespaces(String deploymentName) {
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch", K3S, deploymentName);
 		testForNamespacesFilter();
 	}
 
-	static void testCatalogWatchWithEndpointSlicesNamespaces() {
-		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", K3S, APP_NAME);
+	static void testCatalogWatchWithEndpointSlicesNamespaces(String deploymentName) {
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", K3S, deploymentName);
 		testForNamespacesFilter();
 	}
 
