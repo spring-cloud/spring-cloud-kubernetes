@@ -129,12 +129,12 @@ class KubernetesClientCatalogWatchIT {
 		util.busybox(NAMESPACE_A, Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 		patchForEndpointsNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces();
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces(APP_NAME);
 
 		util.busybox(NAMESPACE_A, Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 		patchForEndpointSlicesNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces();
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces(APP_NAME);
 	}
 
 	/**
