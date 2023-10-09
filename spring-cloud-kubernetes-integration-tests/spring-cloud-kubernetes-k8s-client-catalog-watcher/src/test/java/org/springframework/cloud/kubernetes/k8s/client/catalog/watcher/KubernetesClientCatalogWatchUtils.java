@@ -38,7 +38,7 @@ final class KubernetesClientCatalogWatchUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-catalog-watcher",
+								"name": "spring-cloud-kubernetes-k8s-client-catalog-watcher",
 								"image": "image_name_here",
 								"env": [
 								{
@@ -63,7 +63,7 @@ final class KubernetesClientCatalogWatchUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-catalog-watcher",
+								"name": "spring-cloud-kubernetes-k8s-client-catalog-watcher",
 								"image": "image_name_here",
 								"env": [
 								{
@@ -96,7 +96,7 @@ final class KubernetesClientCatalogWatchUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-catalog-watcher",
+								"name": "spring-cloud-kubernetes-k8s-client-catalog-watcher",
 								"image": "image_name_here",
 								"env": [
 								{
