@@ -48,10 +48,10 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointSlicesNamespaces;
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
 
 /**
  * @author wind57
