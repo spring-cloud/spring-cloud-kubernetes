@@ -26,7 +26,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.nat
  */
 final class KubernetesClientDiscoveryClientUtils {
 
-	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-client-discovery-it");
+	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-k8s-client-discovery");
 
 	// patch the filter so that it matches both namespaces
 	private static final String BODY_ONE = """
@@ -35,7 +35,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_FILTER",
 									"value": "#root.metadata.namespace matches '^.*uat$'"
@@ -53,7 +53,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY",
@@ -96,7 +96,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [{
 									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
 									"value": "TRUE"
@@ -117,7 +117,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"image": "image_name_here",
 								"env": [
 								{
@@ -151,7 +151,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
 									"value": "TRUE"
@@ -170,7 +170,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
@@ -194,7 +194,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"image": "image_name_here",
 								"env": [
 								{
@@ -231,7 +231,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [
 								{
 									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
@@ -255,7 +255,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [
 								{
 									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
@@ -279,7 +279,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1",
@@ -303,7 +303,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"env": [
 								{
 									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
@@ -323,7 +323,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-discovery",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery",
 								"image": "image_name_here",
 								"env": [
 								{
