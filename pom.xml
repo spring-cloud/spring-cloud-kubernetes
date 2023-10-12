@@ -65,8 +65,9 @@
 		<!-- in our github actions run, we save surefire/failsafe reports in a path that looks like this: -->
 		<!-- surefire-report/1/... , where "1" (and other numbers like this) are the index of the github matrix -->
 		<!-- where this is running. When outside the github actions, for example locally/jenkins, we will simply store -->
-		<!-- the reports in a directory: "surefire-reports/one/..." -->
-		<CURRENT_INSTANCE>one</CURRENT_INSTANCE>
+		<!-- the reports in a directory: "surefire-reports/..." -->
+		<surefire-reports-directory>surefire-reports</surefire-reports-directory>
+		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>4.1.0-SNAPSHOT</spring-cloud-commons.version>
@@ -208,7 +209,7 @@
 					<includes>
 						<include>${testsToRun}</include>
 					</includes>
-					<reportsDirectory>${project.build.directory}/surefire-reports/${CURRENT_INSTANCE}</reportsDirectory>
+					<reportsDirectory>${project.build.directory}/${surefire-reports-directory}</reportsDirectory>
 				</configuration>
 			</plugin>
 
@@ -216,7 +217,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration>
-					<reportsDirectory>${project.build.directory}/failsafe-reports/${CURRENT_INSTANCE}</reportsDirectory>
+					<reportsDirectory>${project.build.directory}/${failsafe-reports-directory}</reportsDirectory>
 				</configuration>
 			</plugin>
 
