@@ -47,8 +47,6 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
-
 	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-k8s-client-discovery";
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(
@@ -68,7 +66,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		assertLogStatement(container, "publishing InstanceRegisteredEvent");
 		assertLogStatement(container, "Discovery Client has been initialized");
 		assertLogStatement(container,
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-k8s-client-discovery");
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -84,7 +82,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
@@ -106,7 +104,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		assertLogStatement(container, "publishing InstanceRegisteredEvent");
 		assertLogStatement(container, "Discovery Client has been initialized");
 		assertLogStatement(container,
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-k8s-client-discovery");
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
@@ -121,7 +119,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
@@ -133,7 +131,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 				}).retryWhen(retrySpec()).block();
 
-		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-client-discovery-it");
+		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-k8s-client-discovery");
 		Assertions.assertThat(servicesResult).contains("kubernetes");
 
 	}
@@ -149,7 +147,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		assertLogStatement(container, "publishing InstanceRegisteredEvent");
 		assertLogStatement(container, "Discovery Client has been initialized");
 		assertLogStatement(container,
-				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-client-discovery-it");
+				"received InstanceRegisteredEvent from pod with 'app' label value : spring-cloud-kubernetes-k8s-client-discovery");
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 		WebClient infoClient = builder().baseUrl("http://localhost/actuator/info").build();
@@ -169,7 +167,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
@@ -180,7 +178,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-client-discovery-it", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
 
 		// assert health/info also
 		assertHealth(healthResult);
@@ -199,7 +197,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.kubernetes.details.labels.app")
-				.isEqualTo("spring-cloud-kubernetes-client-discovery-it");
+				.isEqualTo("spring-cloud-kubernetes-k8s-client-discovery");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.kubernetes.details.namespace").isNotEmpty();
@@ -251,7 +249,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 	private void assertLogStatement(K3sContainer container, String message) {
 		try {
 			String appPodName = container.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+					"kubectl get pods -l app=" + DEPLOYMENT_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
 
 			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(1)).atMost(20, TimeUnit.SECONDS)
 					.until(() -> {

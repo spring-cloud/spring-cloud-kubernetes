@@ -113,11 +113,11 @@ class KubernetesClientDiscoveryClientIT {
 
 		Assertions.assertEquals(servicesResult.size(), 3);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
-		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
+		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-k8s-client-discovery"));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
 
 		WebClient ourServiceClient = builder()
-				.baseUrl("http://localhost/service-instances/spring-cloud-kubernetes-client-discovery-it").build();
+				.baseUrl("http://localhost/service-instances/spring-cloud-kubernetes-k8s-client-discovery").build();
 
 		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
@@ -128,10 +128,10 @@ class KubernetesClientDiscoveryClientIT {
 
 		DefaultKubernetesServiceInstance serviceInstance = ourServiceInstances.get(0);
 		Assertions.assertNotNull(serviceInstance.getInstanceId());
-		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-client-discovery-it");
+		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-k8s-client-discovery");
 		Assertions.assertNotNull(serviceInstance.getHost());
 		Assertions.assertEquals(serviceInstance.getMetadata(),
-				Map.of("app", "spring-cloud-kubernetes-client-discovery-it", "custom-spring-k8s", "spring-k8s", "http",
+				Map.of("app", "spring-cloud-kubernetes-k8s-client-discovery", "custom-spring-k8s", "spring-k8s", "http",
 						"8080", "k8s_namespace", "default", "type", "ClusterIP"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
@@ -189,7 +189,7 @@ class KubernetesClientDiscoveryClientIT {
 				}).retryWhen(retrySpec()).block();
 		Assertions.assertEquals(servicesResult.size(), 7);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
-		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
+		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-k8s-client-discovery"));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
@@ -277,7 +277,7 @@ class KubernetesClientDiscoveryClientIT {
 	@Order(4)
 	void testSimplePodMetadata() {
 		util.setUp(NAMESPACE);
-		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
+		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-k8s-client-discovery:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForPodMetadata(imageName, DEPLOYMENT_NAME, NAMESPACE);
 		new KubernetesClientDiscoveryPodMetadataITDelegate().testSimple();
 	}
@@ -285,7 +285,7 @@ class KubernetesClientDiscoveryClientIT {
 	@Test
 	@Order(5)
 	void filterMatchesOneNamespaceViaThePredicate() {
-		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
+		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-k8s-client-discovery:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForUATNamespacesTests(imageName, DEPLOYMENT_NAME, NAMESPACE);
 		new KubernetesClientDiscoveryFilterITDelegate().filterMatchesOneNamespaceViaThePredicate(util);
 
@@ -318,7 +318,7 @@ class KubernetesClientDiscoveryClientIT {
 		// filter tests are done, clean-up a bit to prepare everything for health tests
 		deleteNamespacesAndWiremock();
 
-		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-client-discovery-it:" + Commons.pomVersion();
+		String imageName = "docker.io/springcloud/spring-cloud-kubernetes-k8s-client-discovery:" + Commons.pomVersion();
 		KubernetesClientDiscoveryClientUtils.patchForBlockingHealth(imageName, DEPLOYMENT_NAME, NAMESPACE);
 
 		new KubernetesClientDiscoveryHealthITDelegate().testBlockingConfiguration(K3S);

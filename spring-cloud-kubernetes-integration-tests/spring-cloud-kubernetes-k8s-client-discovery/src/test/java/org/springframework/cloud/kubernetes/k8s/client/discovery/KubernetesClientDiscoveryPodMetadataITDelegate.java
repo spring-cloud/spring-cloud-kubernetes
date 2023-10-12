@@ -52,10 +52,10 @@ class KubernetesClientDiscoveryPodMetadataITDelegate {
 
 		Assertions.assertEquals(servicesResult.size(), 2);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
-		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-client-discovery-it"));
+		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-k8s-client-discovery"));
 
 		WebClient ourServiceClient = builder()
-				.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-client-discovery-it").build();
+				.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-k8s-client-discovery").build();
 
 		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
@@ -66,11 +66,11 @@ class KubernetesClientDiscoveryPodMetadataITDelegate {
 
 		DefaultKubernetesServiceInstance serviceInstance = ourServiceInstances.get(0);
 		Assertions.assertNotNull(serviceInstance.getInstanceId());
-		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-client-discovery-it");
+		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-k8s-client-discovery");
 		Assertions.assertNotNull(serviceInstance.getHost());
 		Assertions.assertEquals(serviceInstance.getMetadata(),
 				Map.of("http", "8080", "k8s_namespace", "default", "type", "ClusterIP", "label-app",
-						"spring-cloud-kubernetes-client-discovery-it", "annotation-custom-spring-k8s", "spring-k8s"));
+						"spring-cloud-kubernetes-k8s-client-discovery", "annotation-custom-spring-k8s", "spring-k8s"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
 
