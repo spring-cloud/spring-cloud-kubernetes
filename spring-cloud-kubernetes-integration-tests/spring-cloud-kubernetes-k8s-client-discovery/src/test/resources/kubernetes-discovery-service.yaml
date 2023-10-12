@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: spring-cloud-kubernetes-k8s-client-discovery
+  annotations:
+    custom-spring-k8s: spring-k8s
+  name: spring-cloud-kubernetes-k8s-client-discovery
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: spring-cloud-kubernetes-k8s-client-discovery
+  type: ClusterIP
