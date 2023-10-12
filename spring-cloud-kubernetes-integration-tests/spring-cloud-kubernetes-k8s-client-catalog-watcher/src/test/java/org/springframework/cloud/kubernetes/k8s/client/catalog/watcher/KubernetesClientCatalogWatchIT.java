@@ -49,9 +49,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
-import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
-import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointSlicesNamespaces;
-import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces;
 
 /**
  * @author wind57
@@ -130,12 +127,12 @@ class KubernetesClientCatalogWatchIT {
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 
 		KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces();
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces(APP_NAME);
 
 		util.busybox(NAMESPACE_A, Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 		KubernetesClientCatalogWatchUtils.patchForEndpointSlicesNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces();
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces(APP_NAME);
 	}
 
 	/**
