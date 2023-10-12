@@ -49,6 +49,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.waitForLogStatement;
+import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointSlices;
+import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointSlicesNamespaces;
+import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces;
 
 /**
  * @author wind57
@@ -125,6 +128,7 @@ class KubernetesClientCatalogWatchIT {
 		util.setUpClusterWide(NAMESPACE, Set.of(NAMESPACE_A, NAMESPACE_B));
 		util.busybox(NAMESPACE_A, Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
+
 		KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
 		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces();
 

@@ -44,7 +44,7 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 
 	private static final String REACTIVE_PUBLISH = "Will publish InstanceRegisteredEvent from reactive implementation";
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-discovery";
 
 	/**
 	 * Deploy wiremock in 3 namespaces: default, a, b. Search in selective namespaces 'a'

@@ -2,13 +2,22 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+<<<<<<< HEAD
     app: spring-cloud-kubernetes-client-catalog-watcher-service
   name: spring-cloud-kubernetes-client-catalog-watcher-service
+=======
+    app: spring-cloud-kubernetes-k8s-client-catalog-watcher-service
+  name: spring-cloud-kubernetes-k8s-client-catalog-watcher-service
+>>>>>>> 3.0.x
 spec:
   ports:
     - name: http
       port: 8080
       targetPort: 8080
   selector:
+<<<<<<< HEAD
     app: spring-cloud-kubernetes-client-catalog-watcher
+=======
+    app: spring-cloud-kubernetes-k8s-client-catalog-watcher
+>>>>>>> 3.0.x
   type: ClusterIP
