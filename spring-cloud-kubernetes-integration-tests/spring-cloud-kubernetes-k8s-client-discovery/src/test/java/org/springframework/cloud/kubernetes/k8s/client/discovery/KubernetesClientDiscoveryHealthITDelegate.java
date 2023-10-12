@@ -49,7 +49,7 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-discovery-it";
 
-	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-k8s-client-discovery";
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(
 			KubernetesClientDiscoveryHealthITDelegate.class);

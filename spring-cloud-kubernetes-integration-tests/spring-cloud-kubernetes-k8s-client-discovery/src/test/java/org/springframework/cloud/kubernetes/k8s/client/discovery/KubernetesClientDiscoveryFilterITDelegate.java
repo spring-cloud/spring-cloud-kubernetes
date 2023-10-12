@@ -47,7 +47,7 @@ class KubernetesClientDiscoveryFilterITDelegate {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-k8s-client-discovery";
 
 	void filterMatchesOneNamespaceViaThePredicate(Util util) {
 

@@ -64,7 +64,7 @@ class KubernetesClientDiscoveryClientIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-discovery";
 
-	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-client-discovery-deployment-it";
+	private static final String DEPLOYMENT_NAME = "spring-cloud-kubernetes-k8s-client-discovery";
 
 	private static final String NAMESPACE_A_UAT = "a-uat";
 
