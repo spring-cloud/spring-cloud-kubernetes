@@ -77,7 +77,7 @@ final class ConfigMapMountPollingReloadDelegate {
 		existingAnnotations.put("spring.cloud.kubernetes.configmap.apps",
 				"spring-cloud-kubernetes-fabric8-client-reload");
 		configMapMount.getMetadata().setAnnotations(existingAnnotations);
-		replaceConfigMap(client, configMapMount, "default");
+		TestUtil.replaceConfigMap(client, configMapMount, "default");
 
 		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block().equals("as-mount-changed"));
