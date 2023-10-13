@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-kubernetes-k8s-client-discovery
+spec:
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-k8s-client-discovery
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-k8s-client-discovery
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+        - name: spring-cloud-kubernetes-k8s-client-discovery
+          image: docker.io/springcloud/spring-cloud-kubernetes-k8s-client-discovery
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            initialDelaySeconds: 15
+            periodSeconds: 2
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            initialDelaySeconds: 15
+            periodSeconds: 2
+            failureThreshold: 5
+          ports:
+            - containerPort: 8080

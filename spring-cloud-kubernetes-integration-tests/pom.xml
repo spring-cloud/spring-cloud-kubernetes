@@ -48,21 +48,27 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
+
+		<!-- catalog-watcher -->
+		<module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
+		<module>spring-cloud-kubernetes-k8s-client-catalog-watcher</module>
+
+		<!-- discovery client -->
 		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
-		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
+		<module>spring-cloud-kubernetes-k8s-client-discovery</module>
+
+		<!-- reload via plain reload/paths/configtree and catalog watcher -->
 		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
+		<module>spring-cloud-kubernetes-k8s-client-reload</module>
+
+		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
+		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 
 		<module>spring-cloud-kubernetes-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
 		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
-        <module>spring-cloud-kubernetes-client-event-and-polling-reload</module>
         <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
-        <module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
-        <module>spring-cloud-kubernetes-client-catalog-watcher</module>
-		<module>spring-cloud-kubernetes-client-discovery-it</module>
-		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
 
     </modules>
 </project>
