@@ -248,8 +248,10 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 	private void assertLogStatement(K3sContainer container, String message) {
 		try {
-			String appPodName = container.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + DEPLOYMENT_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+			String appPodName = container
+					.execInContainer("sh", "-c",
+							"kubectl get pods -l app=" + DEPLOYMENT_NAME + " -o=name --no-headers | tr -d '\n'")
+					.getStdout();
 
 			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(1)).atMost(20, TimeUnit.SECONDS)
 					.until(() -> {
