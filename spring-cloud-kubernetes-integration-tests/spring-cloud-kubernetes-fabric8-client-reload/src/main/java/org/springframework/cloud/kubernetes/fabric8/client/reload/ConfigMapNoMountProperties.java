@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.reload;
+package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
