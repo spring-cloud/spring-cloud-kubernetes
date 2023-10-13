@@ -322,7 +322,7 @@ class Fabric8EventReloadIT {
 	}
 
 	void testSecretReload() {
-		TestUtil.patchEight(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
+		TestUtil.patchSeven(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		SecretsEventsReloadDelegate.testSecretReload(client, K3S, IMAGE_NAME);
 	}
 
