@@ -98,7 +98,7 @@ jobs:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
     # only run this one if there is a previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'true'
-    timeout-minutes: 60
+    timeout-minutes: 120
 
     strategy:
       fail-fast: true
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
-    timeout-minutes: 60
+    timeout-minutes: 120
     # only run this one if there is no previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'false'
 
