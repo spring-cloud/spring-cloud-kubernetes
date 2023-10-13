@@ -149,7 +149,8 @@ runs:
         
         ./mvnw -s .settings.xml \
               -DtestsToRun=${tests_to_run_in_current_index} \
-              -DCURRENT_INSTANCE=${CURRENT_INDEX} \
+              -Dsurefire-reports-directory=surefire-reports/${CURRENT_INDEX} \
+              -Dfailsafe-reports-directory=failsafe-reports/${CURRENT_INDEX} \
               -e clean install \
               -P sonar -nsu --batch-mode \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
