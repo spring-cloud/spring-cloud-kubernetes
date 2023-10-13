@@ -32,7 +32,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.reload.TestUtil.replaceConfigMap;
 
 /**
  * @author wind57
