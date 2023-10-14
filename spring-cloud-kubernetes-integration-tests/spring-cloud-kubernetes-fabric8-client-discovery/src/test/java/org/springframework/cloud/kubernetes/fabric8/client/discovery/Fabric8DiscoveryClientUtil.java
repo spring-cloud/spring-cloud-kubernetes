@@ -51,6 +51,10 @@ final class Fabric8DiscoveryClientUtil {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_INCLUDEEXTERNALNAMESERVICES",
 									"value": "TRUE"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -84,6 +88,10 @@ final class Fabric8DiscoveryClientUtil {
 								{
 									"name": "SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED",
 									"value": "FALSE"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -125,6 +133,10 @@ final class Fabric8DiscoveryClientUtil {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
 									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -162,6 +174,10 @@ final class Fabric8DiscoveryClientUtil {
 								{
 									"name": "SPRING_CLOUD_DISCOVERY_BLOCKING_ENABLED",
 									"value": "FALSE"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -195,6 +211,10 @@ final class Fabric8DiscoveryClientUtil {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
 									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -228,6 +248,10 @@ final class Fabric8DiscoveryClientUtil {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
 									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -249,6 +273,10 @@ final class Fabric8DiscoveryClientUtil {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
 									"value": "namespace-left"
+								},
+								{
+									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
