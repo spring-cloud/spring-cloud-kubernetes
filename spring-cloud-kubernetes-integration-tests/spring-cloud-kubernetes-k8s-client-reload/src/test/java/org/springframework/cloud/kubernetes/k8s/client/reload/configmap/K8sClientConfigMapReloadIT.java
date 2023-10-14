@@ -43,37 +43,21 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-client-event-and-polling-reload/src/test/java/org/springframework/cloud/kubernetes/client/configmap/reload/K8sClientConfigMapReloadIT.java
-import static org.springframework.cloud.kubernetes.client.configmap.reload.DataChangesInConfigMapReloadDelegate.testSimple;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.builder;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchOne;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchThree;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.patchTwo;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.K8sClientConfigMapReloadITUtil.retrySpec;
-import static org.springframework.cloud.kubernetes.client.configmap.reload.ReloadConfigMapMountDelegate.testReloadConfigMapMount;
-=======
-import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.BootstrapEnabledPollingReloadConfigMapMountDelegate.testBootstrapEnabledPollingReloadConfigMapMount;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.DataChangesInConfigMapReloadDelegate.testSimple;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.builder;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.patchOne;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.patchThree;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.patchTwo;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.retrySpec;
-import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.PollingReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
->>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-k8s-client-reload/src/test/java/org/springframework/cloud/kubernetes/k8s/client/reload/configmap/K8sClientConfigMapReloadIT.java
 
 /**
  * @author wind57
  */
 class K8sClientConfigMapReloadIT {
 
-<<<<<<< HEAD:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-client-event-and-polling-reload/src/test/java/org/springframework/cloud/kubernetes/client/configmap/reload/K8sClientConfigMapReloadIT.java
 	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-client-event-and-polling-reload";
-=======
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-reload";
->>>>>>> main:spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-k8s-client-reload/src/test/java/org/springframework/cloud/kubernetes/k8s/client/reload/configmap/K8sClientConfigMapReloadIT.java
 
 	private static final String DEPLOYMENT_NAME = "spring-k8s-client-reload";
 
@@ -170,7 +154,7 @@ class K8sClientConfigMapReloadIT {
 		testInform();
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
 		testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
-		testReloadConfigMapMount(DEPLOYMENT_NAME, util, DOCKER_IMAGE);
+		ReloadConfigMapMountDelegate.testReloadConfigMapMount(DEPLOYMENT_NAME, util, DOCKER_IMAGE);
 
 	}
 
