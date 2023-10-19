@@ -61,7 +61,6 @@
 		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
 		<module>spring-cloud-kubernetes-k8s-client-reload</module>
 
-		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
 		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 
 		<module>spring-cloud-kubernetes-discoveryclient-it</module>
