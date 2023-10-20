@@ -56,7 +56,7 @@ class DiscoveryClientIT {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-discoveryclient-it",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery-server",
 								"image": "image_name_here",
 								"env": [
 								{
@@ -77,7 +77,7 @@ class DiscoveryClientIT {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-discoveryserver",
+								"name": "spring-cloud-kubernetes-k8s-client-discovery-server",
 								"image": "image_name_here",
 								"env": [
 								{
@@ -92,7 +92,8 @@ class DiscoveryClientIT {
 			}
 						""";
 
-	private static final Map<String, String> POD_LABELS = Map.of("app", "spring-cloud-kubernetes-discoveryclient-it");
+	private static final Map<String, String> POD_LABELS = Map.of("app",
+			"spring-cloud-kubernetes-k8s-client-discovery-server");
 
 	private static final Map<String, String> POD_LABELS_DISCOVERY = Map.of("app",
 			"spring-cloud-kubernetes-discoveryserver");
@@ -101,7 +102,7 @@ class DiscoveryClientIT {
 
 	private static final String DISCOVERY_SERVER_APP_NAME = "spring-cloud-kubernetes-discoveryserver";
 
-	private static final String SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME = "spring-cloud-kubernetes-discoveryclient-it";
+	private static final String SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME = "spring-cloud-kubernetes-k8s-client-discovery-server";
 
 	private static final String NAMESPACE = "default";
 
@@ -170,8 +171,8 @@ class DiscoveryClientIT {
 		testHealth();
 
 		patchForNamespaceFilter(
-				"docker.io/springcloud/spring-cloud-kubernetes-discoveryclient-it:" + Commons.pomVersion(),
-				"spring-cloud-kubernetes-discoveryclient-it-deployment", NAMESPACE);
+				"docker.io/springcloud/spring-cloud-kubernetes-k8s-client-discovery-server:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-k8s-client-discovery-server-deployment", NAMESPACE);
 		patchForAllNamespaces("docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
 				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
 		testNamespaceDiscoveryClient();
