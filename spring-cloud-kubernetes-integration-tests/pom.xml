@@ -61,9 +61,12 @@
 		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
 		<module>spring-cloud-kubernetes-k8s-client-reload</module>
 
+		<!-- discovery using discovery server -->
+		<!-- since discovery controller is based on k8s-client, we do not have a fabric8 module -->
+		<module>spring-cloud-kubernetes-k8s-client-discovery-server</module>
+
 		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
 
-		<module>spring-cloud-kubernetes-discoveryclient-it</module>
 		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
 		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
         <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
