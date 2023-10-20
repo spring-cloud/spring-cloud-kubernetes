@@ -26,3 +26,6 @@ spec:
               path: /actuator/health/liveness
           ports:
             - containerPort: 8080
+          env:
+            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
+              value: "FALSE"

@@ -52,6 +52,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.BODY_FIVE;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.BODY_FOUR;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.BODY_ONE;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.BODY_ONE_WITH_BOOTSTRAP;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.BODY_SEVEN;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.BODY_SIX;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryClientUtil.BODY_THREE;
@@ -175,6 +176,7 @@ class Fabric8DiscoveryPodMetadataIT {
 
 	private void testAllOther() {
 		testAllServices();
+		testAllServicesWithBootstrap();
 		testExternalNameServiceInstance();
 		testBlockingConfiguration();
 		testDefaultConfiguration();
@@ -187,6 +189,12 @@ class Fabric8DiscoveryPodMetadataIT {
 	private void testAllServices() {
 		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE, Map.of("app", IMAGE_NAME));
 		Fabric8DiscoveryDelegate.testAllServices();
+	}
+
+	private void testAllServicesWithBootstrap() {
+		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE_WITH_BOOTSTRAP,
+				Map.of("app", IMAGE_NAME));
+		Fabric8DiscoveryBoostrapDelegate.testAllServicesWithBootstrap();
 	}
 
 	private void testExternalNameServiceInstance() {
