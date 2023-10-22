@@ -78,12 +78,12 @@ class ActuatorRefreshIT {
 
 	@BeforeEach
 	void setup() {
-		util.wiremock(NAMESPACE, "/", Phase.CREATE);
+		util.wiremock(NAMESPACE, WIREMOCK_PATH, Phase.CREATE);
 	}
 
 	@AfterEach
 	void after() {
-		util.wiremock(NAMESPACE, "/", Phase.DELETE);
+		util.wiremock(NAMESPACE, WIREMOCK_PATH, Phase.DELETE);
 	}
 
 	/*

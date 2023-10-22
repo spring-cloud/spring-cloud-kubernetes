@@ -1,16 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: it-ingress
+  name: kafka-ingress
   namespace: default
 spec:
   rules:
     - http:
         paths:
-          - path: /it
+          - path: /kafka
             pathType: Prefix
             backend:
               service:
-                name: spring-cloud-kubernetes-configuration-watcher-it
+                name: kafka-service
                 port:
-                  number: 8080
+                  number: 9092
+
