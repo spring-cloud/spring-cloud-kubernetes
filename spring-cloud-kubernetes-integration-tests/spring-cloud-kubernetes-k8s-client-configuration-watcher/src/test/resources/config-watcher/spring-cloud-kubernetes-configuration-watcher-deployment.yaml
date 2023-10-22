@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-cloud-kubernetes-configuration-watcher-deployment
+  name: spring-cloud-kubernetes-configuration-watcher
 spec:
   selector:
     matchLabels:

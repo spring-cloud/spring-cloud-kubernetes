@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
@@ -156,7 +157,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	@Test
 	void testSecretActuatorRefreshMultipleNamespaces() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
-		await().timeout(Duration.ofSeconds(60))
+		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketException.class)
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
 								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
@@ -197,7 +198,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 		V1ConfigMap configMap = (V1ConfigMap) util
 				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 		V1Deployment deployment = (V1Deployment) util
-				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-http-deployment.yaml");
+				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
 
 		List<V1EnvVar> envVars = List.of(
 				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0").value(LEFT_NAMESPACE),
