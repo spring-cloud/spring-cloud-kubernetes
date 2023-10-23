@@ -33,9 +33,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -73,28 +71,20 @@ class ActuatorRefreshMultipleNamespacesIT {
 		util = new Util(K3S);
 		util.createNamespace(LEFT_NAMESPACE);
 		util.createNamespace(RIGHT_NAMESPACE);
+		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.CREATE);
 		util.setUpClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
+		configWatcher(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
+		configWatcher(Phase.DELETE);
+		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.DELETE);
 		util.deleteClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
 		util.deleteNamespace(LEFT_NAMESPACE);
 		util.deleteNamespace(RIGHT_NAMESPACE);
 		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Commons.systemPrune();
-	}
-
-	@BeforeEach
-	void setup() {
-		configWatcher(Phase.CREATE);
-		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.CREATE);
-	}
-
-	@AfterEach
-	void after() {
-		configWatcher(Phase.DELETE);
-		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.DELETE);
 	}
 
 	/**
@@ -140,8 +130,8 @@ class ActuatorRefreshMultipleNamespacesIT {
 				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
 		WireMock.verify(WireMock.exactly(2), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
-		util.deleteAndWait(LEFT_NAMESPACE, leftConfigMap, null);
-		util.deleteAndWait(RIGHT_NAMESPACE, rightConfigMap, null);
+		testSecretActuatorRefreshMultipleNamespaces();
+
 	}
 
 	/**
@@ -154,9 +144,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 *     - same as above for the secret-right.
 	 * </pre>
 	 */
-	@Test
 	void testSecretActuatorRefreshMultipleNamespaces() {
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketException.class)
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
@@ -187,14 +175,11 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 		await().atMost(Duration.ofSeconds(30)).until(
 				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
-		WireMock.verify(WireMock.exactly(2), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
-
-		util.deleteAndWait(LEFT_NAMESPACE, null, leftSecret);
-		util.deleteAndWait(RIGHT_NAMESPACE, null, rightSecret);
+		WireMock.verify(WireMock.exactly(4), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
 	}
 
-	private void configWatcher(Phase phase) {
+	private static void configWatcher(Phase phase) {
 		V1ConfigMap configMap = (V1ConfigMap) util
 				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 		V1Deployment deployment = (V1Deployment) util
