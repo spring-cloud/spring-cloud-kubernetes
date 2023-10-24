@@ -240,13 +240,13 @@ public final class Commons {
 	/**
 	 * the assumption is that there is only a single pod that is 'Running'.
 	 */
-	public static void waitForLogStatement(String message, K3sContainer k3sContainer, String imageName) {
+	public static void waitForLogStatement(String message, K3sContainer k3sContainer, String appLabelValue) {
 		try {
 
 			await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(4)).until(() -> {
 
 				String appPodName = k3sContainer.execInContainer("sh", "-c",
-						"kubectl get pods -l app=" + imageName
+						"kubectl get pods -l app=" + appLabelValue
 								+ " -o custom-columns=POD:metadata.name,STATUS:status.phase"
 								+ " | grep -i 'running' | awk '{print $1}' | tr -d '\n' ")
 						.getStdout();
