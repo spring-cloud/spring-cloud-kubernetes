@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.loadbalancer.it;
+package org.springframework.cloud.kubernetes.k8s.client.loadbalancer;
 
 import java.util.List;
 import java.util.Map;
@@ -38,18 +38,18 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootApplication
 @RestController
-public class KubernetesClientLoadBalancerApplicationIt {
+public class KubernetesClientLoadBalancerApplication {
 
 	private static final String URL = "http://service-wiremock/__admin/mappings";
 
 	private final DiscoveryClient discoveryClient;
 
-	public KubernetesClientLoadBalancerApplicationIt(DiscoveryClient discoveryClien) {
+	public KubernetesClientLoadBalancerApplication(DiscoveryClient discoveryClien) {
 		this.discoveryClient = discoveryClien;
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(KubernetesClientLoadBalancerApplicationIt.class, args);
+		SpringApplication.run(KubernetesClientLoadBalancerApplication.class, args);
 	}
 
 	@Bean
