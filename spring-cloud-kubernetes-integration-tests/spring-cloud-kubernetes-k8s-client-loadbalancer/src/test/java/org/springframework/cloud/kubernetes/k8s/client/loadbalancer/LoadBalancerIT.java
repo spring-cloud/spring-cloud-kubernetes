@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.loadbalancer.it;
+package org.springframework.cloud.kubernetes.k8s.client.loadbalancer;
 
-import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Ingress;
@@ -34,8 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -61,7 +57,7 @@ class LoadBalancerIT {
 					"template": {
 						"spec": {
 							"containers": [{
-								"name": "spring-cloud-kubernetes-client-loadbalancer-it",
+								"name": "spring-cloud-kubernetes-k8s-client-loadbalancer",
 								"env": [
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_LOADBALANCER_MODE",
@@ -76,11 +72,12 @@ class LoadBalancerIT {
 						""";
 
 	private static final Map<String, String> POD_LABELS = Map.of("app",
-			"spring-cloud-kubernetes-client-loadbalancer-it");
+			"spring-cloud-kubernetes-k8s-client-loadbalancer");
 
 	private static final String SERVICE_URL = "http://localhost:80/loadbalancer-it/service";
 
-	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-client-loadbalancer-it";
+	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME =
+		"spring-cloud-kubernetes-k8s-client-loadbalancer";
 
 	private static final String NAMESPACE = "default";
 
@@ -124,7 +121,7 @@ class LoadBalancerIT {
 	@Test
 	@Order(2)
 	void testLoadBalancerServiceMode() {
-		patchForServiceMode("spring-cloud-kubernetes-client-loadbalancer-it-deployment", NAMESPACE);
+		patchForServiceMode();
 		testLoadBalancer();
 	}
 
@@ -141,9 +138,9 @@ class LoadBalancerIT {
 
 	private static void loadbalancerIt(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util
-				.yaml("spring-cloud-kubernetes-client-loadbalancer-pod-it-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("spring-cloud-kubernetes-client-loadbalancer-it-service.yaml");
-		V1Ingress ingress = (V1Ingress) util.yaml("spring-cloud-kubernetes-client-loadbalancer-it-ingress.yaml");
+				.yaml("spring-cloud-kubernetes-k8s-client-loadbalancer-deployment.yaml");
+		V1Service service = (V1Service) util.yaml("spring-cloud-kubernetes-k8s-client-loadbalancer-service.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("spring-cloud-kubernetes-k8s-client-loadbalancer-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
@@ -157,12 +154,9 @@ class LoadBalancerIT {
 		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
 	}
 
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
-	}
-
-	private static void patchForServiceMode(String deploymentName, String namespace) {
-		patchWithMerge(deploymentName, namespace, BODY_FOR_MERGE, POD_LABELS);
+	private static void patchForServiceMode() {
+		patchWithMerge("spring-cloud-kubernetes-k8s-client-loadbalancer", LoadBalancerIT.NAMESPACE,
+				BODY_FOR_MERGE, POD_LABELS);
 	}
 
 }
