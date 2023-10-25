@@ -13,9 +13,9 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>app-a</module>
-		<module>app-b</module>
-		<module>test-app</module>
+		<module>rabbitmq-secret-app-a</module>
+		<module>rabbitmq-secret-app-b</module>
+		<module>rabbitmq-secret-test-app</module>
 	</modules>
 
 </project>

@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: app-a
-          image: docker.io/springcloud/app-a
+          image: docker.io/springcloud/rabbitmq-secret-app-a
           imagePullPolicy: IfNotPresent
           env:
             - name: SPRING_PROFILES_ACTIVE
