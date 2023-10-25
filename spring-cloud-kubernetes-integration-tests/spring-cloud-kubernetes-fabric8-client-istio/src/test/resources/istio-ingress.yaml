@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spring-cloud-kubernetes-fabric8-client-istio
+  namespace: istio-test
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-cloud-kubernetes-fabric8-client-istio
+                port:
+                  number: 8080
