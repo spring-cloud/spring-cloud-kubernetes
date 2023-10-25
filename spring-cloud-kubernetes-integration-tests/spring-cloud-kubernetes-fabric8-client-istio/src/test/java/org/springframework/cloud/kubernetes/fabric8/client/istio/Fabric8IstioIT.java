@@ -24,7 +24,6 @@ import java.util.Objects;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -57,8 +56,6 @@ class Fabric8IstioIT {
 
 	private static final String ISTIO_PILOT = "istio/pilot";
 
-	private static KubernetesClient client;
-
 	private static Util util;
 
 	private static K3sContainer K3S;
@@ -68,7 +65,6 @@ class Fabric8IstioIT {
 		K3S = Commons.container();
 		K3S.start();
 		util = new Util(K3S);
-		client = util.client();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
