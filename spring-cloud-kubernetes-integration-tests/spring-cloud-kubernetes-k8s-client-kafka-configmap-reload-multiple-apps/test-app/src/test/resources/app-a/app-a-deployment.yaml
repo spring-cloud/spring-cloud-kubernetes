@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: app-a
-          image: docker.io/springcloud/spring-cloud-kubernetes-client-configuration-watcher-configmap-app-a
+          image: docker.io/springcloud/app-a
           imagePullPolicy: IfNotPresent
           env:
             - name: SPRING_PROFILES_ACTIVE
