@@ -9,13 +9,13 @@
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</artifactId>
+	<artifactId>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload-multiple-apps</artifactId>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>spring-cloud-kubernetes-client-configuration-watcher-secrets-app-a</module>
-		<module>spring-cloud-kubernetes-client-configuration-watcher-secrets-app-b</module>
-		<module>spring-cloud-kubernetes-client-configuration-watcher-secrets-test-app</module>
+		<module>app-a</module>
+		<module>app-b</module>
+		<module>test-app</module>
 	</modules>
 
 </project>

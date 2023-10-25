@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-a-deployment
+  name: app-b-deployment
 spec:
   selector:
     matchLabels:
-      app: app-a
+      app: app-b
   template:
     metadata:
       labels:
-        app: app-a
+        app: app-b
     spec:
       containers:
-        - name: app-a
-          image: docker.io/springcloud/spring-cloud-kubernetes-client-configuration-watcher-secrets-app-a
+        - name: app-b
+          image: docker.io/springcloud/app-b
           imagePullPolicy: IfNotPresent
           env:
             - name: SPRING_PROFILES_ACTIVE
@@ -22,11 +22,11 @@ spec:
               value: rabbitmq-service
           readinessProbe:
             httpGet:
-              port: 8080
+              port: 8081
               path: /actuator/health/readiness
           livenessProbe:
             httpGet:
-              port: 8080
+              port: 8081
               path: /actuator/health/liveness
           ports:
-            - containerPort: 8080
+            - containerPort: 8081
