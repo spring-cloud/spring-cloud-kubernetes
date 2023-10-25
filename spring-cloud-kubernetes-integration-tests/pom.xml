@@ -71,7 +71,9 @@
 		<!-- configuration watcher is based on k8s-client, there's no fabric8 counterpart -->
 		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
 
-		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
+		<!-- at the moment we have no integration test for the fabric8 client, only k8s native client -->
+		<module>spring-cloud-kubernetes-k8s-client-loadbalancer</module>
+
         <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
     </modules>

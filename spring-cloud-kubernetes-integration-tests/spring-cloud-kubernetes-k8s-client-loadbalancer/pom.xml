@@ -9,7 +9,7 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-kubernetes-client-loadbalancer-it</artifactId>
+	<artifactId>spring-cloud-kubernetes-k8s-client-loadbalancer</artifactId>
 
 	<dependencies>
 		<dependency>

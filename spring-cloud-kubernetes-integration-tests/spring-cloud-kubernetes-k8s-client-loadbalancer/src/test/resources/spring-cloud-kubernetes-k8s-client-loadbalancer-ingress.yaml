@@ -11,7 +11,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: spring-cloud-kubernetes-client-loadbalancer-it
+                name: spring-cloud-kubernetes-k8s-client-loadbalancer
                 port:
                   number: 8080
 
