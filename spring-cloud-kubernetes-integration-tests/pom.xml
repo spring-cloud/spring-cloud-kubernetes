@@ -74,7 +74,8 @@
 		<!-- at the moment we have no integration test for the fabric8 client, only k8s native client -->
 		<module>spring-cloud-kubernetes-k8s-client-loadbalancer</module>
 
-        <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
+		<!-- config watcher reload, using kafka and configmap -->
+        <module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload-multiple-apps</module>
         <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
     </modules>
 </project>
