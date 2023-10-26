@@ -79,5 +79,6 @@
 
 		<!-- config watcher reload, using rabbitmq and secret -->
         <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload-multiple-apps</module>
+
     </modules>
 </project>
