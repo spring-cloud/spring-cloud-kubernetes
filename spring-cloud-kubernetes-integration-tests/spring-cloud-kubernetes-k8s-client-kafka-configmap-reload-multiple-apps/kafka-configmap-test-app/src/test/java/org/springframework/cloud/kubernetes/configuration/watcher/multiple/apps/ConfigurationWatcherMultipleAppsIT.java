@@ -49,9 +49,9 @@ import static org.awaitility.Awaitility.await;
  */
 class ConfigurationWatcherMultipleAppsIT {
 
-	private static final String CONFIG_WATCHER_APP_A_IMAGE = "spring-cloud-kubernetes-client-configuration-watcher-configmap-app-a";
+	private static final String CONFIG_WATCHER_APP_A_IMAGE = "kafka-configmap-app-a";
 
-	private static final String CONFIG_WATCHER_APP_B_IMAGE = "spring-cloud-kubernetes-client-configuration-watcher-configmap-app-b";
+	private static final String CONFIG_WATCHER_APP_B_IMAGE = "kafka-configmap-app-b";
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
