@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-kubernetes-fabric8-client-istio
+spec:
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-fabric8-client-istio
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-fabric8-client-istio
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-istio-serviceaccount
+      containers:
+        - name: spring-cloud-kubernetes-fabric8-client-istio
+          image: docker.io/springcloud/spring-cloud-kubernetes-fabric8-client-istio
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_CLIENT_ISTIO
+              value: "DEBUG"
