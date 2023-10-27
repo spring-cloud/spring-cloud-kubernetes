@@ -67,18 +67,29 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-
 		<plugins>
-			<!-- no need to build an image for this integration test -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
+				<executions>
+					<execution>
+						<id>build-image</id>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>repackage</id>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
-
 	</build>
 
 </project>

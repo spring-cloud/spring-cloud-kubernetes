@@ -40,14 +40,28 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
+		<!-- no need to build image for this module -->
 		<plugins>
-			<!-- no need to build an image for this module -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
+				<executions>
+					<execution>
+						<id>build-image</id>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>repackage</id>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
