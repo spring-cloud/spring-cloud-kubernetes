@@ -1,2 +1,2 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.fabric8.istio.IstioBootstrapConfiguration
+org.springframework.cloud.kubernetes.fabric8.client.istio.IstioBootstrapConfiguration

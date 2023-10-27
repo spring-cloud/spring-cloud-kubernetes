@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: it-ingress
+  namespace: default
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /loadbalancer-it/
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-cloud-kubernetes-k8s-client-loadbalancer
+                port:
+                  number: 8080
+
+
+
