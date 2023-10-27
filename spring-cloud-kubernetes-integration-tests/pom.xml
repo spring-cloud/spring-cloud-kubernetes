@@ -61,15 +61,24 @@
 		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
 		<module>spring-cloud-kubernetes-k8s-client-reload</module>
 
+		<!-- at the moment there is no k8s native client support for istio -->
+		<module>spring-cloud-kubernetes-fabric8-client-istio</module>
+
 		<!-- discovery using discovery server -->
 		<!-- since discovery controller is based on k8s-client, we do not have a fabric8 module -->
 		<module>spring-cloud-kubernetes-k8s-client-discovery-server</module>
 
-		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
+		<!-- configuration watcher is based on k8s-client, there's no fabric8 counterpart -->
+		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
 
-		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
-		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
-        <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
-        <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
+		<!-- at the moment we have no integration test for the fabric8 client, only k8s native client -->
+		<module>spring-cloud-kubernetes-k8s-client-loadbalancer</module>
+
+		<!-- config watcher reload, using kafka and configmap -->
+        <module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload-multiple-apps</module>
+
+		<!-- config watcher reload, using rabbitmq and secret -->
+        <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload-multiple-apps</module>
+
     </modules>
 </project>

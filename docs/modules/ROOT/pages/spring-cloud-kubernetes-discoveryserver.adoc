@@ -8,9 +8,9 @@ the `DiscoveryClient` implementation provided by that starter.
 
 ## Permissions
 The Spring Cloud Discovery server uses
-the Kubernetes API server to get data about Service and Endpoint resrouces so it needs list, watch, and
+the Kubernetes API server to get data about Service and Endpoint resources so it needs list, watch, and
 get permissions to use those endpoints.  See the below sample Kubernetes deployment YAML for an
-examlpe of how to configure the Service Account on Kubernetes.
+example of how to configure the Service Account on Kubernetes.
 
 
 ## Endpoints
