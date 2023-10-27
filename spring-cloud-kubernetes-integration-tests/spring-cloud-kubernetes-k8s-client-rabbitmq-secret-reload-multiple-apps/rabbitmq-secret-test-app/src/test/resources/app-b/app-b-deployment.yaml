@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-b-deployment
+spec:
+  selector:
+    matchLabels:
+      app: app-b
+  template:
+    metadata:
+      labels:
+        app: app-b
+    spec:
+      containers:
+        - name: app-b
+          image: docker.io/springcloud/rabbitmq-secret-app-b
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: bus-amqp
+            - name: SPRING_RABBITMQ_HOST
+              value: rabbitmq-service
+          readinessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/readiness
+          livenessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/liveness
+          ports:
+            - containerPort: 8081
