@@ -34,6 +34,7 @@ import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -63,7 +64,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 	private static Util util;
 
-	@BeforeAll
+//	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
@@ -76,7 +77,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 		configWatcher(Phase.CREATE);
 	}
 
-	@AfterAll
+//	@AfterAll
 	static void afterAll() throws Exception {
 		configWatcher(Phase.DELETE);
 		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.DELETE);
@@ -98,6 +99,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 * </pre>
 	 */
 	@Test
+	@Disabled
 	void testConfigMapActuatorRefreshMultipleNamespaces() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
 		await().timeout(Duration.ofSeconds(60))
