@@ -76,7 +76,8 @@ class LoadBalancerIT {
 
 	private static final String SERVICE_URL = "http://localhost:80/loadbalancer-it/service";
 
-	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-k8s-client-loadbalancer";
+	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME =
+		"spring-cloud-kubernetes-k8s-client-loadbalancer";
 
 	private static final String NAMESPACE = "default";
 
@@ -154,8 +155,8 @@ class LoadBalancerIT {
 	}
 
 	private static void patchForServiceMode() {
-		patchWithMerge("spring-cloud-kubernetes-k8s-client-loadbalancer", LoadBalancerIT.NAMESPACE, BODY_FOR_MERGE,
-				POD_LABELS);
+		patchWithMerge("spring-cloud-kubernetes-k8s-client-loadbalancer", LoadBalancerIT.NAMESPACE,
+				BODY_FOR_MERGE, POD_LABELS);
 	}
 
 }
