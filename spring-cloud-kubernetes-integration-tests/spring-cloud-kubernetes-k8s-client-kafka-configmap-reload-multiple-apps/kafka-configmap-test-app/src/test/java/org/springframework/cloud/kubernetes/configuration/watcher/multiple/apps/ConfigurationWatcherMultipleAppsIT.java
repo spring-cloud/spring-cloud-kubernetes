@@ -91,7 +91,6 @@ class ConfigurationWatcherMultipleAppsIT {
 
 	@BeforeEach
 	void setup() {
-		util.zookeeper(NAMESPACE, Phase.CREATE);
 		util.kafka(NAMESPACE, Phase.CREATE);
 		appA(Phase.CREATE);
 		appB(Phase.CREATE);
@@ -100,7 +99,6 @@ class ConfigurationWatcherMultipleAppsIT {
 
 	@AfterEach
 	void afterEach() {
-		util.zookeeper(NAMESPACE, Phase.DELETE);
 		util.kafka(NAMESPACE, Phase.DELETE);
 		appA(Phase.DELETE);
 		appB(Phase.DELETE);
