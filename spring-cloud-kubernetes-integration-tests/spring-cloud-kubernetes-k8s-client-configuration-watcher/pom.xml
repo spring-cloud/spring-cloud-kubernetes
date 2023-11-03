@@ -67,37 +67,29 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-
 		<plugins>
-
-			<!-- ignore plain tests (in the 'test' phase), so that we could build the image first, see above -->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<skipTests>true</skipTests>
+					<skip>true</skip>
 				</configuration>
-			</plugin>
-
-			<!-- run tests in the 'integration-tests' phase, one that is after 'package' (where we build the image) -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
 				<executions>
 					<execution>
-						<goals>
-							<goal>integration-test</goal>
-						</goals>
+						<id>build-image</id>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+					<execution>
+						<id>repackage</id>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<includes>
-						<include>${testsToRun}</include>
-					</includes>
-				</configuration>
 			</plugin>
 		</plugins>
-
 	</build>
 
 </project>
