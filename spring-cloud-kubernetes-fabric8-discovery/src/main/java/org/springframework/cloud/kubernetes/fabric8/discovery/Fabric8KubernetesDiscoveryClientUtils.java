@@ -79,7 +79,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			LOG.debug(() -> "discovering endpoints in namespaces : " + properties.namespaces());
 			List<Endpoints> inner = new ArrayList<>(properties.namespaces().size());
 			properties.namespaces().forEach(namespace -> inner.addAll(filteredEndpoints(
-				client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceName)));
+					client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceName)));
 			endpoints = inner;
 		}
 		else if (properties.allNamespaces()) {
