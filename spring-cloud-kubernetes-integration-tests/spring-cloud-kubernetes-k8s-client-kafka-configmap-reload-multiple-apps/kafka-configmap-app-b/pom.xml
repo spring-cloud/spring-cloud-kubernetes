@@ -40,38 +40,6 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-
-		<plugins>
-
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
-				</configuration>
-				<executions>
-					<execution>
-						<id>build-image</id>
-						<configuration>
-							<skip>${skip.build.image}</skip>
-						</configuration>
-						<phase>package</phase>
-						<goals>
-							<goal>build-image</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>repackage</id>
-						<phase>package</phase>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-		</plugins>
-
 	</build>
 
 </project>

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-start-config-script
+data:
+  kafka_start.sh: |
+    #!/bin/sh
+    sed -i '/KAFKA_ZOOKEEPER_CONNECT/d' /etc/confluent/docker/configure
+    sed -i 's/cub zk-ready/echo ignore zk-ready/' /etc/confluent/docker/ensure
+    KAFKA_CLUSTER_ID="$(kafka-storage random-uuid)"
+    echo "kafka-storage format --ignore-formatted -t $KAFKA_CLUSTER_ID -c /etc/kafka/kafka.properties" >> /etc/confluent/docker/ensure
+    /etc/confluent/docker/run
