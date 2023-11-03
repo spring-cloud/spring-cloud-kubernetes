@@ -232,11 +232,14 @@ public final class Util {
 	public void kafka(String namespace, Phase phase) {
 		V1Deployment deployment = (V1Deployment) yaml("kafka/kafka-deployment.yaml");
 		V1Service service = (V1Service) yaml("kafka/kafka-service.yaml");
+		V1ConfigMap configMap = (V1ConfigMap) yaml("kafka/kafka-configmap-startup-script.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, configMap, null);
 			createAndWait(namespace, "kafka", deployment, service, null, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
+			deleteAndWait(namespace, configMap, null);
 			deleteAndWait(namespace, deployment, service, null);
 		}
 	}
@@ -247,18 +250,6 @@ public final class Util {
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "rabbitmq", deployment, service, null, false);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait(namespace, deployment, service, null);
-		}
-	}
-
-	public void zookeeper(String namespace, Phase phase) {
-		V1Deployment deployment = (V1Deployment) yaml("zookeeper/zookeeper-deployment.yaml");
-		V1Service service = (V1Service) yaml("zookeeper/zookeeper-service.yaml");
-
-		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "zookeeper", deployment, service, null, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait(namespace, deployment, service, null);
