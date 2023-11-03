@@ -24,10 +24,11 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
@@ -60,7 +61,7 @@ class ActuatorRefreshIT {
 
 	private static Util util;
 
-	// @BeforeAll
+	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
@@ -71,7 +72,7 @@ class ActuatorRefreshIT {
 		configWatcher(Phase.CREATE);
 	}
 
-	// @AfterAll
+	@AfterAll
 	static void afterAll() throws Exception {
 		configWatcher(Phase.DELETE);
 		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
@@ -97,7 +98,6 @@ class ActuatorRefreshIT {
 	 */
 	// curl <WIREMOCK_POD_IP>:8080/__admin/mappings
 	@Test
-	@Disabled
 	void testActuatorRefresh() {
 
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
