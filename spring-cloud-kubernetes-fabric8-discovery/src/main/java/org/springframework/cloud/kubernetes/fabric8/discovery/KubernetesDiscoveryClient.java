@@ -187,7 +187,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	@Override
 	public List<String> getServices() {
-		return adapter.apply(client).stream().map(s -> s.getMetadata().getName()).distinct().toList();
+		List<String> services = adapter.apply(client).stream().map(s -> s.getMetadata().getName()).distinct().toList();
+		LOG.debug(() -> "will return services : " + services);
+		return services;
 	}
 
 	@Deprecated(forRemoval = true)
