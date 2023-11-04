@@ -113,13 +113,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Objects.requireNonNull(serviceId);
 
-		List<EndpointSubsetNS> subsetsNS = getEndPointsList(serviceId).stream()
-				.map(Fabric8KubernetesDiscoveryClientUtils::subsetsFromEndpoints).toList();
+		List<Endpoints> allEndpoints = getEndPointsList(serviceId).stream().toList();
 
 		List<ServiceInstance> instances = new ArrayList<>();
-		for (EndpointSubsetNS es : subsetsNS) {
-			// subsetsNS are only those that matched the serviceId
-			instances.addAll(serviceInstances(es, serviceId));
+		for (Endpoints endpoints : allEndpoints) {
+			// endpoints are only those that matched the serviceId
+			instances.addAll(serviceInstances(endpoints, serviceId));
 		}
 
 		if (properties.includeExternalNameServices()) {
@@ -148,15 +147,15 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId, adapter.filter());
 	}
 
-	private List<ServiceInstance> serviceInstances(EndpointSubsetNS es, String serviceId) {
+	private List<ServiceInstance> serviceInstances(Endpoints endpoints, String serviceId) {
 
-		List<EndpointSubset> subsets = es.endpointSubset();
+		List<EndpointSubset> subsets = endpoints.getSubsets();
 		if (subsets.isEmpty()) {
 			LOG.debug(() -> "serviceId : " + serviceId + " does not have any subsets");
 			return List.of();
 		}
 
-		String namespace = es.namespace();
+		String namespace = endpoints.getMetadata().getNamespace();
 		List<ServiceInstance> instances = new ArrayList<>();
 
 		Service service = client.services().inNamespace(namespace).withName(serviceId).get();

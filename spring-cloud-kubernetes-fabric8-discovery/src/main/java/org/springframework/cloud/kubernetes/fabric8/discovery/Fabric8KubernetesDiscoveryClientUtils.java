@@ -65,10 +65,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	}
 
-	static EndpointSubsetNS subsetsFromEndpoints(Endpoints endpoints) {
-		return new EndpointSubsetNS(endpoints.getMetadata().getNamespace(), endpoints.getSubsets());
-	}
-
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
 			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName,
 			Predicate<Service> filter) {
