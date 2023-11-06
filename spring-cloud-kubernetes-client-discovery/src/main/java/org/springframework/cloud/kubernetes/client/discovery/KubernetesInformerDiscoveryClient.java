@@ -152,8 +152,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		List<ServiceInstance> instances = new ArrayList<>();
 
 		List<V1Endpoints> allEndpoints = endpointsListers.stream()
-				.map(endpointsLister -> endpointsLister.get(serviceId)).filter(Objects::nonNull)
-				.filter(one -> service.getMetadata().getNamespace().equals(one.getMetadata().getNamespace())).toList();
+				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace())
+					.get(serviceId)).filter(Objects::nonNull).toList();
 
 		for (V1Endpoints endpoints : allEndpoints) {
 			List<V1EndpointSubset> subsets = endpoints.getSubsets();
