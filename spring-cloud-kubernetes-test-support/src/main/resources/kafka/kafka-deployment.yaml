@@ -25,7 +25,7 @@ spec:
         - name: kafka-start-config-script
           configMap:
               name: kafka-start-config-script
-              defaultMode: 0744
+              defaultMode: 0755
       containers:
         - name: kafka-start-config-script
           volumeMounts:
