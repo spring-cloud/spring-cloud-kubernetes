@@ -32,7 +32,7 @@ spec:
             - name: kafka-start-config-script
               mountPath: /tmp
           command:
-            - /tmp/./kafka_start.sh
+            - /tmp/kafka_start.sh
           image: confluentinc/cp-kafka:7.2.1
           ports:
             - containerPort: 9092
