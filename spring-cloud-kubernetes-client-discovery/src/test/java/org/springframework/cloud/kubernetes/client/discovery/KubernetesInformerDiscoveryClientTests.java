@@ -250,7 +250,7 @@ class KubernetesInformerDiscoveryClientTests {
 	}
 
 	@Test
-	void instanceWithoutPortsShouldBeSkipped() {
+	void instanceWithoutPortsWillNotBeSkipped() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_PORTS);
 
@@ -258,7 +258,11 @@ class KubernetesInformerDiscoveryClientTests {
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null,
 				KubernetesDiscoveryProperties.DEFAULT);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(
+			new DefaultKubernetesServiceInstance(
+				null, "test-svc-1", "1.1.1.1", 0, Map.of("k8s_namespace", "namespace1", "type", "ClusterIP"),
+				false, "namespace1", null)
+		);
 	}
 
 	@Test
@@ -272,9 +276,9 @@ class KubernetesInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 				.containsOnly(
 						new DefaultKubernetesServiceInstance(
-								"", "test-svc-1", "1.1.1.1", 443, Map.of("http", "80", "primary-port-name", "https",
-										"https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-								false, "namespace1", null));
+								null, "test-svc-1", "1.1.1.1", 443, Map.of("port.http", "80", "primary-port-name",
+								"https", "port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+								true, "namespace1", null));
 	}
 
 	@Test
@@ -346,9 +350,9 @@ class KubernetesInformerDiscoveryClientTests {
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new DefaultKubernetesServiceInstance("", "test-svc-1", "1.1.1.1", 80,
-						Map.of("http", "80", "tcp", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-						"namespace1", null));
+				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
+						Map.of("port.http", "80", "port.tcp", "443", "k8s_namespace", "namespace1",
+							"type", "ClusterIP"), false, "namespace1", null));
 	}
 
 	@Test
