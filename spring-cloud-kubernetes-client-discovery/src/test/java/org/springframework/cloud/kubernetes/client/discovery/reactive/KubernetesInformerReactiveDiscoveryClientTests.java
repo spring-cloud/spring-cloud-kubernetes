@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -128,8 +129,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
-				.expectNext(new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080,
-						Map.of("type", "ClusterIP", "<unset>", "8080", "k8s_namespace", "namespace1"), false,
+				.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
+						Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
 						"namespace1", null))
 				.expectComplete().verify();
 
@@ -149,8 +150,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
-				.expectNext(new DefaultKubernetesServiceInstance("", "test-svc-1", "2.2.2.2", 8080,
-						Map.of("type", "ClusterIP", "<unset>", "8080", "k8s_namespace", "namespace1"), false,
+				.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
+						Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
 						"namespace1", null))
 				.expectComplete().verify();
 
@@ -237,9 +238,11 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		boolean allNamespaces = true;
 
 		V1Service serviceXNamespaceA = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"));
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		V1Service serviceXNamespaceB = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"));
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		serviceCache.add(serviceXNamespaceA);
 		serviceCache.add(serviceXNamespaceB);
 
@@ -286,9 +289,11 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		boolean allNamespaces = true;
 
 		V1Service serviceXNamespaceA = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"));
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		V1Service serviceXNamespaceB = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"));
+				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		serviceCache.add(serviceXNamespaceA);
 		serviceCache.add(serviceXNamespaceB);
 

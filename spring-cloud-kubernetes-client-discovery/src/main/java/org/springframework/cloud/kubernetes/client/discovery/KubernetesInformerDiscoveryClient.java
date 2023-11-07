@@ -53,6 +53,7 @@ import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDi
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 
 /**
  * @author Min Kim
@@ -143,8 +144,29 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 				.filter(scv -> scv.getMetadata() != null).filter(svc -> serviceId.equals(svc.getMetadata().getName()))
 				.filter(scv -> matchesServiceLabels(scv, properties)).filter(filter).toList();
 
-		return services.stream().flatMap(service -> serviceInstances(service, serviceId).stream()).toList();
+		List<ServiceInstance> serviceInstances =
+			services.stream().flatMap(service -> serviceInstances(service, serviceId).stream()).toList();
 
+		if (properties.includeExternalNameServices()) {
+			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
+			List<Service> services = services(properties, client, namespaceProvider,
+				s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
+				"fabric8-discovery");
+			for (Service service : services) {
+				ServiceMetadata serviceMetadata = serviceMetadata(service);
+				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
+					properties);
+
+				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
+				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
+
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
+					supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
+				instances.add(externalNameServiceInstance);
+			}
+		}
+
+		return serviceInstances;
 	}
 
 	private List<ServiceInstance> serviceInstances(V1Service service, String serviceId) {
