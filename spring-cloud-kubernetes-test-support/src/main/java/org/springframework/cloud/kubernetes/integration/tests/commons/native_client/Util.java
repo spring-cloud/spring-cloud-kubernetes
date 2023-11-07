@@ -41,6 +41,7 @@ import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1DeploymentCondition;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
@@ -625,10 +626,27 @@ public final class Util {
 			fail("No deployments with the name " + deploymentName);
 		}
 		V1Deployment deployment = deployments.getItems().get(0);
-		Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
-		LOG.info("Available replicas for " + deploymentName + ": "
-				+ (availableReplicas == null ? 0 : availableReplicas));
-		return availableReplicas != null && availableReplicas >= 1;
+		if (deployment.getStatus() != null) {
+			Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
+			logDeploymentConditions(deployment.getStatus().getConditions());
+			LOG.info("Available replicas for " + deploymentName + ": "
+					+ (availableReplicas == null ? 0 : availableReplicas));
+			return availableReplicas != null && availableReplicas >= 1;
+		}
+		else {
+			return false;
+		}
+	}
+
+	private void logDeploymentConditions(List<V1DeploymentCondition> conditions) {
+		if (conditions != null) {
+			for (V1DeploymentCondition condition : conditions) {
+				LOG.info("Deployment Condition Type: " + condition.getType());
+				LOG.info("Deployment Condition Status: " + condition.getStatus());
+				LOG.info("Deployment Condition Message: " + condition.getMessage());
+				LOG.info("Deployment Condition Reason: " + condition.getReason());
+			}
+		}
 	}
 
 	private static void waitForDeploymentAfterPatch(String deploymentName, String namespace,
