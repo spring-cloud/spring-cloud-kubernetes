@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -42,7 +43,9 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAnd
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.externalName;
 import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.nonExternalName;
+import static org.springframework.cloud.kubernetes.client.discovery.K8sPodLabelsAndAnnotationsSupplier.externalName;
 import static org.springframework.cloud.kubernetes.client.discovery.K8sPodLabelsAndAnnotationsSupplier.nonExternalName;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.endpointSubsetsPortData;
@@ -140,29 +143,29 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Objects.requireNonNull(serviceId, "serviceId must be provided");
 
-		List<V1Service> services = serviceListers.stream().flatMap(x -> x.list().stream())
+		List<V1Service> allServices = serviceListers.stream().flatMap(x -> x.list().stream())
 				.filter(scv -> scv.getMetadata() != null).filter(svc -> serviceId.equals(svc.getMetadata().getName()))
-				.filter(scv -> matchesServiceLabels(scv, properties)).filter(filter).toList();
+				.filter(scv -> matchesServiceLabels(scv, properties)).toList();
 
-		List<ServiceInstance> serviceInstances =
-			services.stream().flatMap(service -> serviceInstances(service, serviceId).stream()).toList();
+		List<ServiceInstance> serviceInstances = allServices.stream().filter(filter)
+				.flatMap(service -> serviceInstances(service, serviceId).stream())
+				.collect(Collectors.toCollection(ArrayList::new));
 
 		if (properties.includeExternalNameServices()) {
 			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
-			List<Service> services = services(properties, client, namespaceProvider,
-				s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
-				"fabric8-discovery");
-			for (Service service : services) {
+			List<V1Service> externalNameServices = allServices.stream().filter(s -> s.getSpec() != null)
+					.filter(s -> EXTERNAL_NAME.equals(s.getSpec().getType())).toList();
+			for (V1Service service : externalNameServices) {
 				ServiceMetadata serviceMetadata = serviceMetadata(service);
 				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
-					properties);
+						properties);
 
-				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
-				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = externalName();
+				K8sInstanceIdHostPodNameSupplier supplierOne = externalName(service);
+				K8sPodLabelsAndAnnotationsSupplier supplierTwo = externalName();
 
 				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
-					supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
-				instances.add(externalNameServiceInstance);
+						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
+				serviceInstances.add(externalNameServiceInstance);
 			}
 		}
 
@@ -174,8 +177,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		List<ServiceInstance> instances = new ArrayList<>();
 
 		List<V1Endpoints> allEndpoints = endpointsListers.stream()
-				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace())
-					.get(serviceId)).filter(Objects::nonNull).toList();
+				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace()).get(serviceId))
+				.filter(Objects::nonNull).toList();
 
 		for (V1Endpoints endpoints : allEndpoints) {
 			List<V1EndpointSubset> subsets = endpoints.getSubsets();

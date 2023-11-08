@@ -136,11 +136,10 @@ class KubernetesInformerDiscoveryClientTests {
 
 		assertThat(discoveryClient.getInstances("test-svc-1").toArray()).isEmpty();
 		assertThat(discoveryClient.getInstances("test-svc-3").toArray())
-				.containsOnly(
-						new DefaultKubernetesServiceInstance(
-								null, "test-svc-3", "2.2.2.2", 8080, Map.of("spring", "true", "port.<unset>", "8080", "k8s",
-										"true", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-								false, "namespace1", null));
+				.containsOnly(new DefaultKubernetesServiceInstance(
+						null, "test-svc-3", "2.2.2.2", 8080, Map.of("spring", "true", "port.<unset>", "8080", "k8s",
+								"true", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+						false, "namespace1", null));
 	}
 
 	@Test
@@ -258,11 +257,9 @@ class KubernetesInformerDiscoveryClientTests {
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null,
 				KubernetesDiscoveryProperties.DEFAULT);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(
-			new DefaultKubernetesServiceInstance(
-				null, "test-svc-1", "1.1.1.1", 0, Map.of("k8s_namespace", "namespace1", "type", "ClusterIP"),
-				false, "namespace1", null)
-		);
+		assertThat(discoveryClient.getInstances("test-svc-1"))
+				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 0,
+						Map.of("k8s_namespace", "namespace1", "type", "ClusterIP"), false, "namespace1", null));
 	}
 
 	@Test
@@ -273,12 +270,10 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(
-						new DefaultKubernetesServiceInstance(
-								null, "test-svc-1", "1.1.1.1", 443, Map.of("port.http", "80", "primary-port-name",
-								"https", "port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-								true, "namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(
+				null, "test-svc-1", "1.1.1.1", 443, Map.of("port.http", "80", "primary-port-name", "https",
+						"port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+				true, "namespace1", null));
 	}
 
 	@Test
@@ -291,11 +286,10 @@ class KubernetesInformerDiscoveryClientTests {
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(
-						new DefaultKubernetesServiceInstance(
-								null, "test-svc-1", "1.1.1.1", 80, Map.of("port.tcp1", "80", "primary-port-name", "oops",
-										"port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-								false, "namespace1", null));
+				.containsOnly(new DefaultKubernetesServiceInstance(
+						null, "test-svc-1", "1.1.1.1", 80, Map.of("port.tcp1", "80", "primary-port-name", "oops",
+								"port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+						false, "namespace1", null));
 	}
 
 	@Test
@@ -306,10 +300,10 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 443,
-						Map.of("port.http", "80", "port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"), true,
-						"namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(null,
+				"test-svc-1", "1.1.1.1", 443,
+				Map.of("port.http", "80", "port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+				true, "namespace1", null));
 	}
 
 	@Test
@@ -321,10 +315,10 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
-						Map.of("port.tcp1", "80", "port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-						"namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(null,
+				"test-svc-1", "1.1.1.1", 80,
+				Map.of("port.tcp1", "80", "port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+				false, "namespace1", null));
 	}
 
 	@Test
@@ -335,10 +329,10 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 443,
-						Map.of("port.http", "80", "port.https", "443",
-							"k8s_namespace", "namespace1", "type", "ClusterIP"), true, "namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(null,
+				"test-svc-1", "1.1.1.1", 443,
+				Map.of("port.http", "80", "port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+				true, "namespace1", null));
 	}
 
 	@Test
@@ -349,10 +343,10 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
-						Map.of("port.http", "80", "port.tcp", "443", "k8s_namespace", "namespace1",
-							"type", "ClusterIP"), false, "namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(null,
+				"test-svc-1", "1.1.1.1", 80,
+				Map.of("port.http", "80", "port.tcp", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
+				"namespace1", null));
 	}
 
 	@Test
@@ -364,10 +358,10 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, NOT_ALL_NAMESPACES);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-				.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
-						Map.of("port.tcp1", "80", "port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-						"namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(null,
+				"test-svc-1", "1.1.1.1", 80,
+				Map.of("port.tcp1", "80", "port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+				false, "namespace1", null));
 	}
 
 	@Test
