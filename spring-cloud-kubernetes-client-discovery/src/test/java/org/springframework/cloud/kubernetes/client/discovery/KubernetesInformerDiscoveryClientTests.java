@@ -21,16 +21,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
+import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
+import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
+import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
+import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
+import io.kubernetes.client.openapi.models.V1ObjectReferenceBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -492,6 +511,82 @@ class KubernetesInformerDiscoveryClientTests {
 		assertThat(serviceInstances.size()).isEqualTo(2);
 		assertThat(serviceInstances.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
 		assertThat(serviceInstances.get(1).getMetadata().get("k8s_namespace")).isEqualTo("namespaceB");
+	}
+
+	@Test
+	void testExternalNameService() {
+		V1Service externalNameService = new V1ServiceBuilder()
+			.withSpec(new V1ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring-b").build())
+			.withNewMetadata().withLabels(Map.of("label-key", "label-value")).withAnnotations(Map.of("abc", "def"))
+			.withName("blue-service").withNamespace("b").endMetadata().build();
+
+		V1Endpoints endpoints = new V1EndpointsBuilder()
+			.withMetadata(new V1ObjectMeta().namespace("irrelevant")).build();
+
+		Lister<V1Service> serviceLister = setupServiceLister(externalNameService);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpoints);
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
+			"labels-prefix-", true, "annotations-prefix-", true, "ports-prefix");
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
+			60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+			SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+
+		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
+		Assertions.assertEquals(result.size(), 1);
+		DefaultKubernetesServiceInstance externalNameServiceInstance = (DefaultKubernetesServiceInstance) result.get(0);
+		Assertions.assertEquals(externalNameServiceInstance.getServiceId(), "blue-service");
+		Assertions.assertEquals(externalNameServiceInstance.getHost(), "k8s-spring-b");
+		Assertions.assertEquals(externalNameServiceInstance.getPort(), -1);
+		Assertions.assertFalse(externalNameServiceInstance.isSecure());
+		Assertions.assertEquals(externalNameServiceInstance.getUri().toASCIIString(), "k8s-spring-b");
+		Assertions.assertEquals(externalNameServiceInstance.getMetadata(), Map.of("k8s_namespace", "b",
+			"labels-prefix-label-key", "label-value", "annotations-prefix-abc", "def", "type", "ExternalName"));
+	}
+
+	@Test
+	void testPodMetadata() {
+		V1Service nonExternalNameService = new V1ServiceBuilder()
+			.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").build()).withNewMetadata()
+			.withName("blue-service").withNamespace("a").endMetadata().build();
+
+		V1Endpoints endpoints = new V1EndpointsBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("blue-service").withNamespace("a").build())
+			.withSubsets(new V1EndpointSubsetBuilder().withPorts(new CoreV1EndpointPortBuilder().withPort(8080).build())
+				.withAddresses(new V1EndpointAddressBuilder().withIp("127.0.0.1")
+					.withTargetRef(new V1ObjectReferenceBuilder().withKind("Pod").withName("my-pod").build())
+					.build())
+				.build())
+			.build();
+
+		Lister<V1Service> serviceLister = setupServiceLister(nonExternalNameService);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpoints);
+
+//		client.pods().inNamespace("a").resource(new PodBuilder().withMetadata(new ObjectMetaBuilder().withName("my-pod")
+//			.withLabels(Map.of("a", "b")).withAnnotations(Map.of("c", "d")).build()).build()).create();
+
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
+			"labels-prefix-", true, "annotations-prefix-", true, "ports-prefix", true, true);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("a", "b"), true,
+			60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+			SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+
+		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
+		Assertions.assertEquals(result.size(), 1);
+		DefaultKubernetesServiceInstance serviceInstance = (DefaultKubernetesServiceInstance) result.get(0);
+		Assertions.assertEquals(serviceInstance.getServiceId(), "blue-service");
+		Assertions.assertEquals(serviceInstance.getHost(), "127.0.0.1");
+		Assertions.assertEquals(serviceInstance.getPort(), 8080);
+		Assertions.assertFalse(serviceInstance.isSecure());
+		Assertions.assertEquals(serviceInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
+		Assertions.assertEquals(serviceInstance.getMetadata(),
+			Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
+		Assertions.assertEquals(serviceInstance.podMetadata().get("labels"), Map.of("a", "b"));
+		Assertions.assertEquals(serviceInstance.podMetadata().get("annotations"), Map.of("c", "d"));
 	}
 
 	private Lister<V1Service> setupServiceLister(V1Service... services) {
