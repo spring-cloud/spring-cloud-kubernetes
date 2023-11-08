@@ -58,7 +58,8 @@ public class KubernetesClientSecretsCache implements SecretsCache {
 			try {
 				b[0] = true;
 				return strippedSecrets(coreV1Api
-						.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null)
+						.listNamespacedSecret(namespace, null, null, null, null,
+							null, null, null, null, null, null, null)
 						.getItems());
 			}
 			catch (ApiException apiException) {

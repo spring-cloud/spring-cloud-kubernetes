@@ -125,7 +125,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			factories.add(factory);
 			informer = factory.sharedIndexInformerFor(
 					(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMapCall(namespace, null, null, null,
-							null, filter[0], null, params.resourceVersion, null, params.timeoutSeconds, params.watch,
+							null, filter[0], null, params.resourceVersion, null, null, params.timeoutSeconds, params.watch,
 							null),
 					V1ConfigMap.class, V1ConfigMapList.class);
 

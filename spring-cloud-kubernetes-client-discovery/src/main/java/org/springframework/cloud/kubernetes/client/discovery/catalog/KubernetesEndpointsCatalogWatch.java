@@ -91,7 +91,7 @@ final class KubernetesEndpointsCatalogWatch
 	private List<V1Endpoints> endpoints(CoreV1Api client, Map<String, String> labels) {
 		try {
 			return client.listEndpointsForAllNamespaces(null, null, null, labelSelector(labels), null, null, null, null,
-					null, null).getItems();
+					null, null, null).getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in all namespaces");
@@ -102,7 +102,7 @@ final class KubernetesEndpointsCatalogWatch
 	private List<V1Endpoints> namespacedEndpoints(CoreV1Api client, String namespace, Map<String, String> labels) {
 		try {
 			return client.listNamespacedEndpoints(namespace, null, null, null, null, labelSelector(labels), null, null,
-					null, null, null).getItems();
+					null, null, null, null).getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in namespace " + namespace);
