@@ -211,8 +211,7 @@ public class K8SUtils {
 
 	public boolean isReplicationControllerReady(String name, String namespace) throws ApiException {
 		V1ReplicationControllerList controllerList = api.listNamespacedReplicationController(namespace, null, null,
-				null, "metadata.name=" + name, null, null, null, null,
-			null, null, null);
+				null, "metadata.name=" + name, null, null, null, null, null, null, null);
 		if (controllerList.getItems().size() < 1) {
 			fail("Replication controller with name " + name + "could not be found");
 		}
@@ -281,8 +280,7 @@ public class K8SUtils {
 
 	public boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
 		V1DeploymentList deployments = appsApi.listNamespacedDeployment(namespace, null, null, null,
-				"metadata.name=" + deploymentName, null, null, null, null,
-			null, null, null);
+				"metadata.name=" + deploymentName, null, null, null, null, null, null, null);
 		if (deployments.getItems().size() < 1) {
 			fail("No deployments with the name " + deploymentName);
 		}
@@ -315,9 +313,8 @@ public class K8SUtils {
 		api.deleteNamespace(name, null, null, null, null, null, null);
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS)
-				.until(() -> api.listNamespace(null, null, null, null,
-						null, null, null, null, null, null, null).getItems()
-						.stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
+				.until(() -> api.listNamespace(null, null, null, null, null, null, null, null, null, null, null)
+						.getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
 	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) throws Exception {
@@ -388,8 +385,8 @@ public class K8SUtils {
 	 */
 	public void cleanUpWiremock(String namespace) throws Exception {
 		appsApi.deleteCollectionNamespacedDeployment(namespace, null, null, null,
-				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null,
-			null, null, null, null, null, null, null);
+				"metadata.name=" + WIREMOCK_DEPLOYMENT_NAME, null, null, null, null, null, null, null, null, null,
+				null);
 
 		api.deleteNamespacedService(WIREMOCK_APP_NAME, namespace, null, null, null, null, null, null);
 		networkingApi.deleteNamespacedIngress("wiremock-ingress", namespace, null, null, null, null, null, null);
