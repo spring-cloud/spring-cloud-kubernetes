@@ -72,8 +72,7 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 			}
 			else {
 				services = coreV1Api.listNamespacedService(getNamespace(), null, null, null,
-						"metadata.name=" + this.getServiceId(), null, null, null,
-					null, null, null, null).getItems();
+						"metadata.name=" + this.getServiceId(), null, null, null, null, null, null, null).getItems();
 			}
 			services.forEach(service -> result.add(mapper.map(service)));
 		}
