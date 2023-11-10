@@ -83,8 +83,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
-				Map.of(80, "http", 5555, ""));
+		setup(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -103,8 +102,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
-				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
+		setup(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -124,8 +122,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
-				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
+		setup(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -145,8 +142,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -166,8 +162,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -187,8 +182,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "test", Map.of("l1", "v1"),
-				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+		setup(serviceId, "test", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -208,8 +202,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
-				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -229,8 +222,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
-				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
+		setup(serviceId, "ns", Map.of("l1", "la1"), Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -239,8 +231,8 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 				entry("p_<unset>", "5555"));
 	}
 
-	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,
-			Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
+	private void setup(String serviceId, String namespace, Map<String, String> labels, Map<String, String> annotations,
+			Map<Integer, String> ports) {
 
 		V1Service service = new V1ServiceBuilder()
 				.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(ports)).build())
