@@ -73,29 +73,32 @@ class KubernetesDiscoveryClientServiceWithoutPortNameTests {
 	void testDiscoveryWithoutAServicePortName() {
 
 		V1Endpoints endpoints = new V1EndpointsBuilder()
-			.withSubsets(new V1EndpointSubsetBuilder().withPorts(new CoreV1EndpointPortBuilder().withPort(8080).build())
-				.withAddresses(new V1EndpointAddressBuilder().withIp("127.0.0.1").build()).build())
-			.withMetadata(new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
-			.build();
+				.withSubsets(
+						new V1EndpointSubsetBuilder().withPorts(new CoreV1EndpointPortBuilder().withPort(8080).build())
+								.withAddresses(new V1EndpointAddressBuilder().withIp("127.0.0.1").build()).build())
+				.withMetadata(
+						new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
+				.build();
 		endpointsCache.add(endpoints);
 
 		V1Service service = new V1ServiceBuilder()
-			.withSpec(new V1ServiceSpecBuilder().withPorts(new V1ServicePortBuilder().withPort(8080).build()).build())
-			.withMetadata(new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
-			.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").build()).build();
+				.withSpec(
+						new V1ServiceSpecBuilder().withPorts(new V1ServicePortBuilder().withPort(8080).build()).build())
+				.withMetadata(
+						new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
+				.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").build()).build();
 		servicesCache.add(service);
 
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-			true);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-			endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertEquals(serviceInstances.size(), 1);
 		Assertions.assertEquals(serviceInstances.get(0).getMetadata(),
-			Map.of("port.<unset>", "8080", "k8s_namespace", "spring-k8s", "type", "ClusterIP"));
+				Map.of("port.<unset>", "8080", "k8s_namespace", "spring-k8s", "type", "ClusterIP"));
 	}
 
 }

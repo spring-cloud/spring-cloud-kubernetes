@@ -98,9 +98,19 @@ class KubernetesClientDiscoveryClientIT {
 	 */
 	@Test
 	@Order(1)
-	void testSimple() {
+	void testSimple() throws Exception {
 
 		util.busybox(NAMESPACE, Phase.CREATE);
+
+		// find both pods
+		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+				.getStdout().split("\n");
+		// add a label to first pod
+		K3S.execInContainer("sh", "-c",
+				"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
+		// add annotation to the second pod
+		K3S.execInContainer("sh", "-c",
+				"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
 
 		Commons.waitForLogStatement("serviceSharedInformer will use namespace : default", K3S, IMAGE_NAME);
 
@@ -131,8 +141,8 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-k8s-client-discovery");
 		Assertions.assertNotNull(serviceInstance.getHost());
 		Assertions.assertEquals(serviceInstance.getMetadata(),
-				Map.of("app", "spring-cloud-kubernetes-k8s-client-discovery", "custom-spring-k8s", "spring-k8s", "http",
-						"8080", "k8s_namespace", "default", "type", "ClusterIP"));
+				Map.of("app", "spring-cloud-kubernetes-k8s-client-discovery", "custom-spring-k8s", "spring-k8s",
+					"port.http", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
 
@@ -144,6 +154,26 @@ class KubernetesClientDiscoveryClientIT {
 				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(busyBoxServiceInstances.size(), 2);
+
+		DefaultKubernetesServiceInstance withCustomLabel = busyBoxServiceInstances.stream()
+				.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
+		Assertions.assertNotNull(withCustomLabel.getInstanceId());
+		Assertions.assertNotNull(withCustomLabel.getHost());
+		Assertions.assertEquals(withCustomLabel.getMetadata(),
+				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		Assertions.assertTrue(withCustomLabel.podMetadata().get("labels").entrySet().stream()
+				.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
+
+		DefaultKubernetesServiceInstance withCustomAnnotation = busyBoxServiceInstances.stream()
+				.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
+		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
+		Assertions.assertNotNull(withCustomAnnotation.getHost());
+		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
+				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		Assertions.assertTrue(withCustomAnnotation.podMetadata().get("annotations").entrySet().stream().anyMatch(
+				x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
 
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
@@ -370,8 +400,16 @@ class KubernetesClientDiscoveryClientIT {
 			V1EnvVar debugLevelForClient = new V1EnvVar()
 					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT").value("DEBUG");
 
+			V1EnvVar addLabels = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODLABELS")
+					.value("TRUE");
+
+			V1EnvVar addAnnotations = new V1EnvVar()
+					.name("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODANNOTATIONS").value("TRUE");
+
 			envVars.add(debugLevel);
 			envVars.add(debugLevelForClient);
+			envVars.add(addLabels);
+			envVars.add(addAnnotations);
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
