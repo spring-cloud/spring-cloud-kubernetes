@@ -81,7 +81,7 @@ class KubernetesClientDiscoveryFilterITDelegate {
 		Assertions.assertEquals(first.getPort(), 8080);
 		Assertions.assertEquals(first.getNamespace(), "a-uat");
 		Assertions.assertEquals(first.getMetadata(),
-				Map.of("app", "service-wiremock", "http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
 	}
 
@@ -125,7 +125,7 @@ class KubernetesClientDiscoveryFilterITDelegate {
 		Assertions.assertEquals(first.getPort(), 8080);
 		Assertions.assertEquals(first.getNamespace(), "a-uat");
 		Assertions.assertEquals(first.getMetadata(),
-				Map.of("app", "service-wiremock", "http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
 		DefaultKubernetesServiceInstance second = sorted.get(1);
 		Assertions.assertEquals(second.getServiceId(), "service-wiremock");
@@ -133,7 +133,7 @@ class KubernetesClientDiscoveryFilterITDelegate {
 		Assertions.assertEquals(second.getPort(), 8080);
 		Assertions.assertEquals(second.getNamespace(), "b-uat");
 		Assertions.assertEquals(second.getMetadata(),
-				Map.of("app", "service-wiremock", "http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 
 	}
 

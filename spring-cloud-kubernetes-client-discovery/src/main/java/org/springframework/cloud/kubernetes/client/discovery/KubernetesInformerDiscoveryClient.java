@@ -35,6 +35,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -81,7 +82,9 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	private final CoreV1Api coreV1Api;
+	// should be constructor injected in a future release
+	@Autowired
+	private CoreV1Api coreV1Api;
 
 	@Deprecated(forRemoval = true)
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
@@ -95,7 +98,6 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.properties = properties;
 		filter = filter(properties);
 		servicePortSecureResolver = new ServicePortSecureResolver(properties);
-		coreV1Api = new CoreV1Api();
 	}
 
 	public KubernetesInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
@@ -109,7 +111,6 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.properties = properties;
 		filter = filter(properties);
 		servicePortSecureResolver = new ServicePortSecureResolver(properties);
-		coreV1Api = new CoreV1Api();
 	}
 
 	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
@@ -131,7 +132,6 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.properties = properties;
 		filter = filter(properties);
 		servicePortSecureResolver = new ServicePortSecureResolver(properties);
-		coreV1Api = new CoreV1Api();
 	}
 
 	@Override
