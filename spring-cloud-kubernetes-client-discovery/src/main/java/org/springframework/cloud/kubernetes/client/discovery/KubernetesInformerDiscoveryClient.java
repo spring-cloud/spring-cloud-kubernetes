@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
@@ -35,7 +36,6 @@ import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -82,9 +82,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	// should be constructor injected in a future release
-	@Autowired
-	private CoreV1Api coreV1Api;
+	private final CoreV1Api coreV1Api;
 
 	@Deprecated(forRemoval = true)
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
@@ -98,6 +96,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.properties = properties;
 		filter = filter(properties);
 		servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		coreV1Api = new CoreV1Api(Configuration.getDefaultApiClient());
 	}
 
 	public KubernetesInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
@@ -111,6 +110,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.properties = properties;
 		filter = filter(properties);
 		servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		coreV1Api = new CoreV1Api(Configuration.getDefaultApiClient());
 	}
 
 	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
@@ -132,6 +132,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.properties = properties;
 		filter = filter(properties);
 		servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		coreV1Api = new CoreV1Api(Configuration.getDefaultApiClient());
 	}
 
 	@Override

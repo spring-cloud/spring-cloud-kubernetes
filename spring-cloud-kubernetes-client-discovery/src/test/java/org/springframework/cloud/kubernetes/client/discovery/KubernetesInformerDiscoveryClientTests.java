@@ -568,7 +568,6 @@ class KubernetesInformerDiscoveryClientTests {
 		WireMock.configureFor("localhost", server.port());
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + server.port()).build();
 		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
-		apiClient.setDebugging(true);
 
 		V1Pod pod = new V1PodBuilder().withNewMetadata().withName("my-pod").withLabels(Map.of("a", "b"))
 				.withAnnotations(Map.of("c", "d")).endMetadata().build();
