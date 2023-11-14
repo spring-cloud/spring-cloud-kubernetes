@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.Test;
 
@@ -52,13 +53,13 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = KubernetesClientLoadBalancerPodModeTests.App.class)
-public class KubernetesClientLoadBalancerPodModeTests {
+class KubernetesClientLoadBalancerPodModeTests {
 
 	@Autowired
 	private RestTemplate restTemplate;
 
 	@Test
-	public void testLoadBalancer() {
+	void testLoadBalancer() {
 		String resp = restTemplate.getForObject("http://servicea-wiremock", String.class);
 		assertThat(resp).isEqualTo("hello");
 	}
@@ -67,12 +68,17 @@ public class KubernetesClientLoadBalancerPodModeTests {
 	static class App {
 
 		@Bean
-		public ApiClient apiClient() {
+		CoreV1Api coreV1Api(ApiClient apiClient) {
+			return new CoreV1Api(apiClient);
+		}
+
+		@Bean
+		ApiClient apiClient() {
 			return new ClientBuilder().build();
 		}
 
 		@Bean
-		public BlockingLoadBalancerClient blockingLoadBalancerClient() {
+		BlockingLoadBalancerClient blockingLoadBalancerClient() {
 			BlockingLoadBalancerClient client = mock(BlockingLoadBalancerClient.class);
 			try {
 				ClientHttpResponse response = new MockClientHttpResponse("hello".getBytes(), HttpStatus.OK);
@@ -87,14 +93,14 @@ public class KubernetesClientLoadBalancerPodModeTests {
 		}
 
 		@Bean
-		public KubernetesNamespaceProvider kubernetesNamespaceProvider() {
+		KubernetesNamespaceProvider kubernetesNamespaceProvider() {
 			KubernetesNamespaceProvider provider = mock(KubernetesNamespaceProvider.class);
 			when(provider.getNamespace()).thenReturn("test");
 			return provider;
 		}
 
 		@Bean
-		public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient() {
+		KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient() {
 			KubernetesInformerDiscoveryClient client = mock(KubernetesInformerDiscoveryClient.class);
 			ServiceInstance instance = new DefaultServiceInstance("servicea-wiremock1", "servicea-wiremock", "fake",
 					8888, false);

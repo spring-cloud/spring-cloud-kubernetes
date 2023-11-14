@@ -44,8 +44,8 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentCondition;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
 import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1LoadBalancerIngress;
-import io.kubernetes.client.openapi.models.V1LoadBalancerStatus;
+import io.kubernetes.client.openapi.models.V1IngressLoadBalancerIngress;
+import io.kubernetes.client.openapi.models.V1IngressLoadBalancerStatus;
 import io.kubernetes.client.openapi.models.V1NamespaceBuilder;
 import io.kubernetes.client.openapi.models.V1Role;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
@@ -116,20 +116,25 @@ public final class Util {
 			@Nullable V1Ingress ingress, boolean changeVersion) {
 		try {
 
-			String imageFromDeployment = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			if (changeVersion) {
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
-						.setImage(imageFromDeployment + ":" + pomVersion());
-			}
-			else {
-				String[] image = imageFromDeployment.split(":", 2);
-				pullImage(image[0], image[1], container);
-				loadImage(image[0], image[1], name, container);
+			coreV1Api.createNamespacedService(namespace, service, null, null, null, null);
+
+			if (deployment != null) {
+				String imageFromDeployment = deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+						.getImage();
+				if (changeVersion) {
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+							.setImage(imageFromDeployment + ":" + pomVersion());
+				}
+				else {
+					String[] image = imageFromDeployment.split(":", 2);
+					pullImage(image[0], image[1], container);
+					loadImage(image[0], image[1], name, container);
+				}
+
+				appsV1Api.createNamespacedDeployment(namespace, deployment, null, null, null, null);
+				waitForDeployment(namespace, deployment);
 			}
 
-			appsV1Api.createNamespacedDeployment(namespace, deployment, null, null, null, null);
-			coreV1Api.createNamespacedService(namespace, service, null, null, null, null);
-			waitForDeployment(namespace, deployment);
 			if (ingress != null) {
 				networkingV1Api.createNamespacedIngress(namespace, ingress, null, null, null, null);
 				waitForIngress(namespace, ingress);
@@ -193,20 +198,27 @@ public final class Util {
 
 	public void deleteAndWait(String namespace, V1Deployment deployment, V1Service service,
 			@Nullable V1Ingress ingress) {
-		String deploymentName = deploymentName(deployment);
+
+		if (deployment != null) {
+			try {
+				String deploymentName = deploymentName(deployment);
+				Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace, null)
+						.getSpec().getTemplate().getMetadata().getLabels();
+				appsV1Api.deleteNamespacedDeployment(deploymentName, namespace, null, null, null, null, null, null);
+				coreV1Api.deleteCollectionNamespacedPod(namespace, null, null, null, null, null,
+						labelSelector(podLabels), null, null, null, null, null, null, null, null);
+				waitForDeploymentToBeDeleted(deploymentName, namespace);
+				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+
+		}
+
 		String serviceName = serviceName(service);
 		try {
-
-			Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace, null)
-					.getSpec().getTemplate().getMetadata().getLabels();
-
-			appsV1Api.deleteNamespacedDeployment(deploymentName, namespace, null, null, null, null, null, null);
 			coreV1Api.deleteNamespacedService(serviceName, namespace, null, null, null, null, null, null);
-			coreV1Api.deleteCollectionNamespacedPod(namespace, null, null, null, null, null, labelSelector(podLabels),
-					null, null, null, null, null, null, null);
-			waitForDeploymentToBeDeleted(deploymentName, namespace);
-			waitForDeploymentPodsToBeDeleted(podLabels, namespace);
-
 			if (ingress != null) {
 				String ingressName = ingressName(ingress);
 				networkingV1Api.deleteNamespacedIngress(ingressName, namespace, null, null, null, null, null, null);
@@ -408,7 +420,7 @@ public final class Util {
 		}
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS)
-				.until(() -> coreV1Api.listNamespace(null, null, null, null, null, null, null, null, null, null)
+				.until(() -> coreV1Api.listNamespace(null, null, null, null, null, null, null, null, null, null, null)
 						.getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
@@ -541,7 +553,7 @@ public final class Util {
 		String ingressName = ingressName(ingress);
 		await().timeout(Duration.ofSeconds(90)).pollInterval(Duration.ofSeconds(3)).until(() -> {
 			try {
-				V1LoadBalancerStatus status = networkingV1Api.readNamespacedIngress(ingressName, namespace, null)
+				V1IngressLoadBalancerStatus status = networkingV1Api.readNamespacedIngress(ingressName, namespace, null)
 						.getStatus().getLoadBalancer();
 
 				if (status == null) {
@@ -549,7 +561,7 @@ public final class Util {
 					return false;
 				}
 
-				List<V1LoadBalancerIngress> loadBalancerIngress = status.getIngress();
+				List<V1IngressLoadBalancerIngress> loadBalancerIngress = status.getIngress();
 				if (loadBalancerIngress == null) {
 					LOG.info("ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
 					return false;
@@ -592,7 +604,7 @@ public final class Util {
 		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
 				int currentNumberOfPods = coreV1Api.listNamespacedPod(namespace, null, null, null, null,
-						labelSelector(labels), null, null, null, null, null).getItems().size();
+						labelSelector(labels), null, null, null, null, null, null).getItems().size();
 				return currentNumberOfPods == 0;
 			}
 			catch (ApiException e) {
@@ -621,7 +633,7 @@ public final class Util {
 
 	private boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
 		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
-				"metadata.name=" + deploymentName, null, null, null, null, null, null);
+				"metadata.name=" + deploymentName, null, null, null, null, null, null, null);
 		if (deployments.getItems().isEmpty()) {
 			fail("No deployments with the name " + deploymentName);
 		}
@@ -669,7 +681,7 @@ public final class Util {
 			Map<String, String> podLabels) throws ApiException {
 
 		V1DeploymentList deployments = new AppsV1Api().listNamespacedDeployment(namespace, null, null, null,
-				"metadata.name=" + deploymentName, null, null, null, null, null, null);
+				"metadata.name=" + deploymentName, null, null, null, null, null, null, null);
 		if (deployments.getItems().isEmpty()) {
 			fail("No deployment with name " + deploymentName);
 		}
@@ -685,7 +697,7 @@ public final class Util {
 		}
 
 		int pods = new CoreV1Api().listNamespacedPod(namespace, null, null, null, null, labelSelector(podLabels), null,
-				null, null, null, null).getItems().size();
+				null, null, null, null, null).getItems().size();
 
 		if (pods != replicas) {
 			LOG.info("number of pods not yet stabilized");
