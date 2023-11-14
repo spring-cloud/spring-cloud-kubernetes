@@ -25,14 +25,14 @@ spec:
         - name: kafka-start-config-script
           configMap:
               name: kafka-start-config-script
-              defaultMode: 0744
+              defaultMode: 0755
       containers:
         - name: kafka-start-config-script
           volumeMounts:
             - name: kafka-start-config-script
               mountPath: /tmp
           command:
-            - /tmp/./kafka_start.sh
+            - /tmp/kafka_start.sh
           image: confluentinc/cp-kafka:7.2.1
           ports:
             - containerPort: 9092

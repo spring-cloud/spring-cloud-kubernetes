@@ -17,43 +17,47 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.externalName;
+import static org.springframework.cloud.kubernetes.client.discovery.K8sInstanceIdHostPodNameSupplier.nonExternalName;
+import static org.springframework.cloud.kubernetes.client.discovery.K8sPodLabelsAndAnnotationsSupplier.externalName;
+import static org.springframework.cloud.kubernetes.client.discovery.K8sPodLabelsAndAnnotationsSupplier.nonExternalName;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.addresses;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.endpointSubsetsPortData;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.filter;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.postConstruct;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTP;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.HTTPS;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PRIMARY_PORT_NAME_LABEL_KEY;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SECURED;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 
 /**
  * @author Min Kim
@@ -76,6 +80,13 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private final Predicate<V1Service> filter;
 
+	private final ServicePortSecureResolver servicePortSecureResolver;
+
+	// visible only for testing and
+	// must be constructor injected in a future release
+	@Autowired
+	CoreV1Api coreV1Api;
+
 	@Deprecated(forRemoval = true)
 	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
 			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
@@ -87,6 +98,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
 		this.properties = properties;
 		filter = filter(properties);
+		servicePortSecureResolver = new ServicePortSecureResolver(properties);
 	}
 
 	public KubernetesInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
@@ -99,6 +111,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
 		this.properties = properties;
 		filter = filter(properties);
+		servicePortSecureResolver = new ServicePortSecureResolver(properties);
 	}
 
 	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
@@ -119,6 +132,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 		this.properties = properties;
 		filter = filter(properties);
+		servicePortSecureResolver = new ServicePortSecureResolver(properties);
 	}
 
 	@Override
@@ -130,104 +144,76 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Objects.requireNonNull(serviceId, "serviceId must be provided");
 
-		List<V1Service> services = serviceListers.stream().flatMap(x -> x.list().stream())
+		List<V1Service> allServices = serviceListers.stream().flatMap(x -> x.list().stream())
 				.filter(scv -> scv.getMetadata() != null).filter(svc -> serviceId.equals(svc.getMetadata().getName()))
-				.filter(scv -> matchesServiceLabels(scv, properties)).filter(filter).toList();
-		return services.stream().flatMap(service -> getServiceInstanceDetails(service, serviceId)).toList();
-	}
+				.filter(scv -> matchesServiceLabels(scv, properties)).toList();
 
-	private Stream<ServiceInstance> getServiceInstanceDetails(V1Service service, String serviceId) {
-		Map<String, String> serviceMetadata = serviceMetadata(properties, service, serviceId);
+		List<ServiceInstance> serviceInstances = allServices.stream().filter(filter)
+				.flatMap(service -> serviceInstances(service, serviceId).stream())
+				.collect(Collectors.toCollection(ArrayList::new));
 
-		List<V1Endpoints> endpoints = endpointsListers.stream()
-				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace())
-						.get(service.getMetadata().getName()))
-				.filter(Objects::nonNull).filter(ep -> ep.getSubsets() != null).toList();
+		if (properties.includeExternalNameServices()) {
+			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
+			List<V1Service> externalNameServices = allServices.stream().filter(s -> s.getSpec() != null)
+					.filter(s -> EXTERNAL_NAME.equals(s.getSpec().getType())).toList();
+			for (V1Service service : externalNameServices) {
+				ServiceMetadata serviceMetadata = serviceMetadata(service);
+				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
+						properties);
 
-		Optional<String> discoveredPrimaryPortName = Optional.empty();
-		if (service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-			discoveredPrimaryPortName = Optional
-					.ofNullable(service.getMetadata().getLabels().get(PRIMARY_PORT_NAME_LABEL_KEY));
-		}
-		final String primaryPortName = discoveredPrimaryPortName.orElse(properties.primaryPortName());
+				K8sInstanceIdHostPodNameSupplier supplierOne = externalName(service);
+				K8sPodLabelsAndAnnotationsSupplier supplierTwo = externalName();
 
-		final boolean secured = isSecured(service);
-
-		return endpoints.stream()
-				.flatMap(ep -> ep.getSubsets().stream()
-						.filter(subset -> subset.getPorts() != null && subset.getPorts().size() > 0) // safeguard
-						.flatMap(subset -> {
-							Map<String, String> metadata = new HashMap<>(serviceMetadata);
-							List<CoreV1EndpointPort> endpointPorts = subset.getPorts();
-							if (properties.metadata() != null && properties.metadata().addPorts()) {
-								endpointPorts.forEach(p -> metadata.put(
-										StringUtils.hasText(p.getName()) ? p.getName() : UNSET_PORT_NAME,
-										Integer.toString(p.getPort())));
-							}
-							List<V1EndpointAddress> addresses = subset.getAddresses();
-							if (addresses == null) {
-								addresses = new ArrayList<>();
-							}
-							if (properties.includeNotReadyAddresses()
-									&& !CollectionUtils.isEmpty(subset.getNotReadyAddresses())) {
-								addresses.addAll(subset.getNotReadyAddresses());
-							}
-
-							final int port = findEndpointPort(endpointPorts, primaryPortName, serviceId);
-							return addresses.stream()
-									.map(addr -> new DefaultKubernetesServiceInstance(
-											addr.getTargetRef() != null ? addr.getTargetRef().getUid() : "", serviceId,
-											addr.getIp(), port, metadata, secured, service.getMetadata().getNamespace(),
-											// TODO find out how to get cluster name
-											// possibly from
-											// KubeConfig
-											null));
-						}));
-	}
-
-	private static boolean isSecured(V1Service service) {
-		Optional<String> securedOpt = Optional.empty();
-		if (service.getMetadata() != null && service.getMetadata().getAnnotations() != null) {
-			securedOpt = Optional.ofNullable(service.getMetadata().getAnnotations().get(SECURED));
-		}
-		if (!securedOpt.isPresent() && service.getMetadata() != null && service.getMetadata().getLabels() != null) {
-			securedOpt = Optional.ofNullable(service.getMetadata().getLabels().get(SECURED));
-		}
-		return Boolean.parseBoolean(securedOpt.orElse("false"));
-	}
-
-	private int findEndpointPort(List<CoreV1EndpointPort> endpointPorts, String primaryPortName, String serviceId) {
-		if (endpointPorts.size() == 1) {
-			return endpointPorts.get(0).getPort();
-		}
-		else {
-			Map<String, Integer> ports = endpointPorts.stream().filter(p -> StringUtils.hasText(p.getName()))
-					.collect(Collectors.toMap(CoreV1EndpointPort::getName, CoreV1EndpointPort::getPort));
-			// This oneliner is looking for a port with a name equal to the primary port
-			// name specified in the service label
-			// or in spring.cloud.kubernetes.discovery.primary-port-name, equal to https,
-			// or equal to http.
-			// In case no port has been found return -1 to log a warning and fall back to
-			// the first port in the list.
-			int discoveredPort = ports.getOrDefault(primaryPortName,
-					ports.getOrDefault(HTTPS, ports.getOrDefault(HTTP, -1)));
-
-			if (discoveredPort == -1) {
-				if (StringUtils.hasText(primaryPortName)) {
-					LOG.warn(() -> "Could not find a port named '" + primaryPortName
-							+ "', 'https', or 'http' for service '" + serviceId + "'.");
-				}
-				else {
-					LOG.warn(() -> "Could not find a port named 'https' or 'http' for service '" + serviceId + "'.");
-				}
-				LOG.warn(
-						() -> "Make sure that either the primary-port-name label has been added to the service, or that spring.cloud.kubernetes.discovery.primary-port-name has been configured.");
-				LOG.warn(() -> "Alternatively name the primary port 'https' or 'http'");
-				LOG.warn(() -> "An incorrect configuration may result in non-deterministic behaviour.");
-				discoveredPort = endpointPorts.get(0).getPort();
+				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
+						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
+				serviceInstances.add(externalNameServiceInstance);
 			}
-			return discoveredPort;
 		}
+
+		return serviceInstances;
+	}
+
+	private List<ServiceInstance> serviceInstances(V1Service service, String serviceId) {
+
+		List<ServiceInstance> instances = new ArrayList<>();
+
+		List<V1Endpoints> allEndpoints = endpointsListers.stream()
+				.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace()).get(serviceId))
+				.filter(Objects::nonNull).toList();
+
+		for (V1Endpoints endpoints : allEndpoints) {
+			List<V1EndpointSubset> subsets = endpoints.getSubsets();
+			if (subsets == null || subsets.isEmpty()) {
+				LOG.debug(() -> "serviceId : " + serviceId + " does not have any subsets");
+			}
+			else {
+				ServiceMetadata serviceMetadata = serviceMetadata(service);
+				Map<String, Integer> portsData = endpointSubsetsPortData(subsets);
+				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(portsData, serviceMetadata,
+						properties);
+
+				for (V1EndpointSubset endpointSubset : subsets) {
+
+					Map<String, Integer> endpointsPortData = endpointSubsetsPortData(List.of(endpointSubset));
+					ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, serviceMetadata, properties);
+
+					List<V1EndpointAddress> addresses = addresses(endpointSubset, properties);
+					for (V1EndpointAddress endpointAddress : addresses) {
+
+						K8sInstanceIdHostPodNameSupplier supplierOne = nonExternalName(endpointAddress, service);
+						K8sPodLabelsAndAnnotationsSupplier supplierTwo = nonExternalName(coreV1Api,
+								service.getMetadata().getNamespace());
+
+						ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, serviceMetadata,
+								supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
+						instances.add(serviceInstance);
+					}
+				}
+
+			}
+		}
+
+		return instances;
 	}
 
 	@Override
