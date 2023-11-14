@@ -55,9 +55,8 @@ final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			try {
 				b[0] = true;
-				return strippedConfigMaps(coreV1Api
-						.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null)
-						.getItems());
+				return strippedConfigMaps(coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null, null,
+						null, null, null, null, null, null).getItems());
 			}
 			catch (ApiException apiException) {
 				throw new RuntimeException(apiException.getResponseBody(), apiException);

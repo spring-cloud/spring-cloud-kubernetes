@@ -98,9 +98,19 @@ class KubernetesClientDiscoveryClientIT {
 	 */
 	@Test
 	@Order(1)
-	void testSimple() {
+	void testSimple() throws Exception {
 
 		util.busybox(NAMESPACE, Phase.CREATE);
+
+		// find both pods
+		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+				.getStdout().split("\n");
+		// add a label to first pod
+		K3S.execInContainer("sh", "-c",
+				"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
+		// add annotation to the second pod
+		K3S.execInContainer("sh", "-c",
+				"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
 
 		Commons.waitForLogStatement("serviceSharedInformer will use namespace : default", K3S, IMAGE_NAME);
 
@@ -111,10 +121,11 @@ class KubernetesClientDiscoveryClientIT {
 
 				}).retryWhen(retrySpec()).block();
 
-		Assertions.assertEquals(servicesResult.size(), 3);
+		Assertions.assertEquals(servicesResult.size(), 4);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-k8s-client-discovery"));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
+		Assertions.assertTrue(servicesResult.contains("external-name-service"));
 
 		WebClient ourServiceClient = builder()
 				.baseUrl("http://localhost/service-instances/spring-cloud-kubernetes-k8s-client-discovery").build();
@@ -131,8 +142,8 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-k8s-client-discovery");
 		Assertions.assertNotNull(serviceInstance.getHost());
 		Assertions.assertEquals(serviceInstance.getMetadata(),
-				Map.of("app", "spring-cloud-kubernetes-k8s-client-discovery", "custom-spring-k8s", "spring-k8s", "http",
-						"8080", "k8s_namespace", "default", "type", "ClusterIP"));
+				Map.of("app", "spring-cloud-kubernetes-k8s-client-discovery", "custom-spring-k8s", "spring-k8s",
+						"port.http", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
 
@@ -144,6 +155,26 @@ class KubernetesClientDiscoveryClientIT {
 				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(busyBoxServiceInstances.size(), 2);
+
+		DefaultKubernetesServiceInstance withCustomLabel = busyBoxServiceInstances.stream()
+				.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
+		Assertions.assertNotNull(withCustomLabel.getInstanceId());
+		Assertions.assertNotNull(withCustomLabel.getHost());
+		Assertions.assertEquals(withCustomLabel.getMetadata(),
+				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		Assertions.assertTrue(withCustomLabel.podMetadata().get("labels").entrySet().stream()
+				.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
+
+		DefaultKubernetesServiceInstance withCustomAnnotation = busyBoxServiceInstances.stream()
+				.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
+		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
+		Assertions.assertNotNull(withCustomAnnotation.getHost());
+		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
+				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		Assertions.assertTrue(withCustomAnnotation.podMetadata().get("annotations").entrySet().stream().anyMatch(
+				x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
 
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
@@ -165,6 +196,8 @@ class KubernetesClientDiscoveryClientIT {
 	 *     - config server is enabled for all namespaces
 	 *     - wiremock service is deployed in namespace-a
 	 *     - busybox service is deployed in namespace-b
+	 *     - external-name-service is deployed in namespace "default" and such a service type is requested,
+	 *       thus found also.
 	 *
 	 *     Our discovery searches in all namespaces, thus finds them both.
 	 * </pre>
@@ -187,11 +220,12 @@ class KubernetesClientDiscoveryClientIT {
 				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
 				}).retryWhen(retrySpec()).block();
-		Assertions.assertEquals(servicesResult.size(), 7);
+		Assertions.assertEquals(servicesResult.size(), 8);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-k8s-client-discovery"));
 		Assertions.assertTrue(servicesResult.contains("busybox-service"));
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
+		Assertions.assertTrue(servicesResult.contains("external-name-service"));
 
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
@@ -203,6 +237,23 @@ class KubernetesClientDiscoveryClientIT {
 				}).retryWhen(retrySpec()).block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
+
+		// test ExternalName fields
+		WebClient externalNameClient = builder().baseUrl("http://localhost/service-instances/external-name-service")
+				.build();
+		List<DefaultKubernetesServiceInstance> externalNameServices = externalNameClient.method(HttpMethod.GET)
+				.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+
+				}).retryWhen(retrySpec()).block();
+		DefaultKubernetesServiceInstance externalNameService = externalNameServices.get(0);
+		Assertions.assertNotNull(externalNameService.getInstanceId());
+		Assertions.assertEquals(externalNameService.getHost(), "spring.io");
+		Assertions.assertEquals(externalNameService.getPort(), -1);
+		Assertions.assertEquals(externalNameService.getMetadata(),
+				Map.of("k8s_namespace", "default", "type", "ExternalName"));
+		Assertions.assertFalse(externalNameService.isSecure());
+		Assertions.assertEquals(externalNameService.getUri().toASCIIString(), "spring.io");
+		Assertions.assertEquals(externalNameService.getScheme(), "http");
 
 		// do not remove wiremock in namespace a, it is required in the next test
 		util.busybox(NAMESPACE_B, Phase.DELETE);
@@ -352,10 +403,12 @@ class KubernetesClientDiscoveryClientIT {
 	private static void manifests(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("kubernetes-discovery-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("kubernetes-discovery-service.yaml");
+		V1Service externalNameService = (V1Service) util.yaml("external-name-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("kubernetes-discovery-ingress.yaml");
 
 		if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, null, externalNameService, null);
 			return;
 		}
 
@@ -366,15 +419,27 @@ class KubernetesClientDiscoveryClientIT {
 							.orElse(List.of()));
 			V1EnvVar debugLevel = new V1EnvVar()
 					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
+			V1EnvVar commonsLevel = new V1EnvVar()
+					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
 
 			V1EnvVar debugLevelForClient = new V1EnvVar()
 					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT").value("DEBUG");
 
+			V1EnvVar addLabels = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODLABELS")
+					.value("TRUE");
+
+			V1EnvVar addAnnotations = new V1EnvVar()
+					.name("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODANNOTATIONS").value("TRUE");
+
 			envVars.add(debugLevel);
 			envVars.add(debugLevelForClient);
+			envVars.add(addLabels);
+			envVars.add(addAnnotations);
+			envVars.add(commonsLevel);
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, null, externalNameService, null, true);
 		}
 
 	}

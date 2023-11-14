@@ -185,7 +185,10 @@ public final class DiscoveryClientUtils {
 		if (!EXTERNAL_NAME.equals(serviceMetadata.get(SERVICE_TYPE))) {
 			if (properties.metadata().addPodLabels() || properties.metadata().addPodAnnotations()) {
 
+				LOG.debug(() -> "Pod labels/annotations were requested");
+
 				if (podName != null) {
+					LOG.debug(() -> "getting labels/annotation for pod: " + podName);
 					PodLabelsAndAnnotations both = podLabelsAndMetadata.apply(podName);
 					Map<String, Map<String, String>> result = new HashMap<>();
 					if (properties.metadata().addPodLabels() && !both.labels().isEmpty()) {

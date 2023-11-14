@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.client.discovery;
 
-import java.util.List;
-
-import io.fabric8.kubernetes.api.model.EndpointSubset;
+import io.kubernetes.client.informer.SharedInformerFactory;
 
 /**
- * @author Haytham Mohamed
- **/
-record EndpointSubsetNS(String namespace, List<EndpointSubset> endpointSubset) {
+ * @author wind57
+ */
+final class SharedInformerFactoryStub extends SharedInformerFactory {
+
+	@Override
+	public void startAllRegisteredInformers() {
+
+	}
+
 }
