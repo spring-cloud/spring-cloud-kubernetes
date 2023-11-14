@@ -73,7 +73,7 @@ class ConfigServerBootstrapperTests {
 							"instanceId": "uid2",
 							"serviceId": "spring-cloud-kubernetes-configserver",
 							"host": "localhost",
-							"port":" %s,
+							"port": "%s",
 							"uri": "%s",
 							"secure":false,
 							"metadata":{"spring": "true", "http": "8080", "k8s": "true"},
