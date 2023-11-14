@@ -20,6 +20,7 @@ import java.util.Collections;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -90,6 +91,11 @@ public class KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 
 	@Configuration(proxyBeanMethods = false)
 	protected static class EnvironmentKnobbler {
+
+		@Bean
+		CoreV1Api coreV1Api(ApiClient apiClient) {
+			return new CoreV1Api(apiClient);
+		}
 
 		@Bean
 		ApiClient apiClient() {
