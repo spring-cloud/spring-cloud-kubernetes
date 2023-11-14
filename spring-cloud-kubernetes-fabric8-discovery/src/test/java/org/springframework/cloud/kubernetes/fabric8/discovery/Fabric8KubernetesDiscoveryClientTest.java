@@ -382,7 +382,7 @@ class Fabric8KubernetesDiscoveryClientTest {
 	}
 
 	@Test
-	void instanceWithoutPortsShouldBeSkipped() {
+	void instanceWithoutSubsetsShouldBeSkipped() {
 		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint1").withNamespace("test")
 				.withLabels(Collections.emptyMap()).endMetadata().build();
 

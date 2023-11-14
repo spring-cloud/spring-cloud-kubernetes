@@ -22,48 +22,17 @@ import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
-import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 /**
  * @author wind57
  */
-@ExtendWith(OutputCaptureExtension.class)
 class KubernetesDiscoveryClientUtilsTests {
-
-	@Test
-	void testSubsetsFromEndpointsEmptySubsets() {
-		Endpoints endpoints = new EndpointsBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("non-default").build()).build();
-		EndpointSubsetNS result = Fabric8KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.endpointSubset(), List.of());
-		Assertions.assertEquals(result.namespace(), "non-default");
-	}
-
-	@Test
-	void testSubsetsFromEndpointsNonEmptySubsets() {
-		Endpoints endpoints = new EndpointsBuilder().withSubsets((List<EndpointSubset>) null)
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").build())
-				.withSubsets(
-						new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build()).build())
-				.build();
-		EndpointSubsetNS result = Fabric8KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.endpointSubset().size(), 1);
-		Assertions.assertEquals(result.endpointSubset().get(0).getPorts().get(0).getPort(), 8080);
-		Assertions.assertEquals(result.namespace(), "default");
-	}
 
 	/**
 	 * <pre>

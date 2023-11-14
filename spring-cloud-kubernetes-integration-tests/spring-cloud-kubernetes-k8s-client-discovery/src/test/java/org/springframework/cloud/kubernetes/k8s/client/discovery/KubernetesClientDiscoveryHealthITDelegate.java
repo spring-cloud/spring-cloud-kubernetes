@@ -41,6 +41,10 @@ import static org.awaitility.Awaitility.await;
  */
 class KubernetesClientDiscoveryHealthITDelegate {
 
+	KubernetesClientDiscoveryHealthITDelegate() {
+
+	}
+
 	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status";
 
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
@@ -82,7 +86,8 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+						"external-name-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
@@ -119,7 +124,8 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+						"external-name-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
@@ -167,7 +173,8 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathArrayValue(
 						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+						"external-name-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
 				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
@@ -178,7 +185,8 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes");
+				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+						"external-name-service");
 
 		// assert health/info also
 		assertHealth(healthResult);

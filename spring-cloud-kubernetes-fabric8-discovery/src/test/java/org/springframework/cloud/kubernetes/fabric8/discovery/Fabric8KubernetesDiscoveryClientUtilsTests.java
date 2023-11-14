@@ -392,7 +392,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 				new EndpointSubsetBuilder()
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
-		Map<String, Integer> portsData = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetsPortData(endpointSubsets);
+		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
 		Assertions.assertEquals(portsData.size(), 2);
 		Assertions.assertEquals(portsData.get("https"), 8080);
 		Assertions.assertEquals(portsData.get("<unset>"), 8081);
@@ -406,7 +406,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 				new EndpointSubsetBuilder()
 						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
 
-		Map<String, Integer> portsData = Fabric8KubernetesDiscoveryClientUtils.endpointSubsetsPortData(endpointSubsets);
+		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
 		Assertions.assertEquals(portsData.size(), 2);
 		Assertions.assertEquals(portsData.get("https"), 8080);
 		Assertions.assertEquals(portsData.get("http"), 8081);
