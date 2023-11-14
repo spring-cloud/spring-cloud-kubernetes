@@ -98,7 +98,7 @@ public class KubernetesClientLoadBalancerServiceModeTests {
 			try {
 				when(coreV1Api.listNamespacedService(eq("default"), eq(null), eq(null), eq(null),
 						eq("metadata.name=servicea-wiremock"), eq(null), eq(null), eq(null), eq(null), eq(null),
-						eq(null))).thenReturn(SERVICE_LIST);
+						eq(null), eq(null))).thenReturn(SERVICE_LIST);
 			}
 			catch (ApiException e) {
 				e.printStackTrace();

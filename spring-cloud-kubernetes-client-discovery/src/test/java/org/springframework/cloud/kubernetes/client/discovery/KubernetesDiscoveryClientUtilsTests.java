@@ -17,10 +17,16 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
+import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
@@ -32,6 +38,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.endpointSubsetsPortData;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.matchesServiceLabels;
 
 /**
@@ -159,6 +166,139 @@ class KubernetesDiscoveryClientUtilsTests {
 		Assertions.assertTrue(result);
 		Assertions.assertTrue(output.getOut().contains("Service labels from properties : {a=b}"));
 		Assertions.assertTrue(output.getOut().contains("Service labels from service : {a=b, c=d}"));
+	}
+
+	@Test
+	void testPortsDataOne() {
+		List<V1EndpointSubset> endpointSubsets = List.of(
+				new V1EndpointSubsetBuilder()
+						.withPorts(new CoreV1EndpointPortBuilder().withPort(8081).withName("").build()).build(),
+				new V1EndpointSubsetBuilder()
+						.withPorts(new CoreV1EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+
+		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
+		Assertions.assertEquals(portsData.size(), 2);
+		Assertions.assertEquals(portsData.get("https"), 8080);
+		Assertions.assertEquals(portsData.get("<unset>"), 8081);
+	}
+
+	@Test
+	void testPortsDataTwo() {
+		List<V1EndpointSubset> endpointSubsets = List.of(
+				new V1EndpointSubsetBuilder()
+						.withPorts(new CoreV1EndpointPortBuilder().withPort(8081).withName("http").build()).build(),
+				new V1EndpointSubsetBuilder()
+						.withPorts(new CoreV1EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+
+		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
+		Assertions.assertEquals(portsData.size(), 2);
+		Assertions.assertEquals(portsData.get("https"), 8080);
+		Assertions.assertEquals(portsData.get("http"), 8081);
+	}
+
+	@Test
+	void endpointSubsetPortsDataWithoutPorts() {
+		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder().build();
+		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
+
+		Assertions.assertEquals(result.size(), 0);
+	}
+
+	@Test
+	void endpointSubsetPortsDataSinglePort() {
+		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
+				.withPorts(new CoreV1EndpointPortBuilder().withName("name").withPort(80).build()).build();
+		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
+
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("name"), 80);
+	}
+
+	@Test
+	void endpointSubsetPortsDataSinglePortNoName() {
+		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
+				.withPorts(new CoreV1EndpointPortBuilder().withPort(80).build()).build();
+		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
+
+		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertEquals(result.get("<unset>"), 80);
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses are empty
+	 *      - not ready addresses are not included
+	 * </pre>
+	 */
+	@Test
+	void testEmptyAddresses() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder().build();
+		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 0);
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses are not included
+	 * </pre>
+	 */
+	@Test
+	void testReadyAddressesOnly() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
+				.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
+						new V1EndpointAddressBuilder().withHostname("two").build())
+				.build();
+		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 2);
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses has a single entry, but we do not take it
+	 * </pre>
+	 */
+	@Test
+	void testReadyAddressesTakenNotReadyAddressesNotTaken() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
+				.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
+						new V1EndpointAddressBuilder().withHostname("two").build())
+				.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build()).build();
+		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 2);
+		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
+		Assertions.assertEquals(hostNames, List.of("one", "two"));
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses has a single entry, but we do not take it
+	 * </pre>
+	 */
+	@Test
+	void testBothAddressesTaken() {
+		boolean includeNotReadyAddresses = true;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
+				.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
+						new V1EndpointAddressBuilder().withHostname("two").build())
+				.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build()).build();
+		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertEquals(addresses.size(), 3);
+		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
+		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
 	}
 
 	// preserve order for testing reasons

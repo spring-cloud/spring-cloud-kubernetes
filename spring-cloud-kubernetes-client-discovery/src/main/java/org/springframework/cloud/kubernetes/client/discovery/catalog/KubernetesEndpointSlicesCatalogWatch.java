@@ -81,7 +81,7 @@ final class KubernetesEndpointSlicesCatalogWatch
 	private List<V1EndpointSlice> endpointSlices(DiscoveryV1Api api, Map<String, String> labels) {
 		try {
 			return api.listEndpointSliceForAllNamespaces(null, null, null, labelSelector(labels), null, null, null,
-					null, null, null).getItems();
+					null, null, null, null).getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoint slices in all namespaces");
@@ -93,7 +93,7 @@ final class KubernetesEndpointSlicesCatalogWatch
 			Map<String, String> labels) {
 		try {
 			return api.listNamespacedEndpointSlice(namespace, null, null, null, null, labelSelector(labels), null, null,
-					null, null, null).getItems();
+					null, null, null, null).getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoint slices in namespace " + namespace);

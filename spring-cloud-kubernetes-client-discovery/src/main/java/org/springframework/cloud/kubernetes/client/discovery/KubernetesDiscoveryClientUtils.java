@@ -17,15 +17,19 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.time.Duration;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
@@ -33,14 +37,15 @@ import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
+import org.springframework.util.CollectionUtils;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NAMESPACE_METADATA_KEY;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.SERVICE_TYPE;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author wind57
@@ -80,40 +85,6 @@ final class KubernetesDiscoveryClientUtils {
 
 		return serviceLabels.entrySet().containsAll(propertiesServiceLabels.entrySet());
 
-	}
-
-	/**
-	 * This adds the following metadata. <pre>
-	 *     - labels (if requested)
-	 *     - annotations (if requested)
-	 *     - metadata
-	 *     - service type
-	 * </pre>
-	 */
-	static Map<String, String> serviceMetadata(KubernetesDiscoveryProperties properties, V1Service service,
-			String serviceId) {
-
-		Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = properties.metadata();
-		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
-					metadataProps.labelsPrefix());
-			LOG.debug(() -> "Adding labels metadata: " + labelMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(labelMetadata);
-		}
-		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
-					metadataProps.annotationsPrefix());
-			LOG.debug(() -> "Adding annotations metadata: " + annotationMetadata + " for serviceId: " + serviceId);
-			serviceMetadata.putAll(annotationMetadata);
-		}
-
-		serviceMetadata.put(NAMESPACE_METADATA_KEY,
-				Optional.ofNullable(service.getMetadata()).map(V1ObjectMeta::getNamespace).orElse(null));
-		serviceMetadata.put(SERVICE_TYPE,
-				Optional.ofNullable(service.getSpec()).map(V1ServiceSpec::getType).orElse(null));
-
-		return serviceMetadata;
 	}
 
 	static Predicate<V1Service> filter(KubernetesDiscoveryProperties properties) {
@@ -157,6 +128,40 @@ final class KubernetesDiscoveryClientUtils {
 					+ " services), discovery client is now available");
 		}
 
+	}
+
+	static ServiceMetadata serviceMetadata(V1Service service) {
+		V1ObjectMeta metadata = service.getMetadata();
+		V1ServiceSpec serviceSpec = service.getSpec();
+		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), serviceSpec.getType(),
+				metadata.getLabels(), metadata.getAnnotations());
+	}
+
+	/**
+	 * a service is allowed to have a single port defined without a name.
+	 */
+	static Map<String, Integer> endpointSubsetsPortData(List<V1EndpointSubset> endpointSubsets) {
+		return endpointSubsets.stream()
+				.flatMap(endpointSubset -> Optional.ofNullable(endpointSubset.getPorts()).orElse(List.of()).stream())
+				.collect(Collectors.toMap(
+						endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
+						CoreV1EndpointPort::getPort));
+	}
+
+	static List<V1EndpointAddress> addresses(V1EndpointSubset endpointSubset,
+			KubernetesDiscoveryProperties properties) {
+		List<V1EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses()).map(ArrayList::new)
+				.orElse(new ArrayList<>());
+
+		if (properties.includeNotReadyAddresses()) {
+			List<V1EndpointAddress> notReadyAddresses = endpointSubset.getNotReadyAddresses();
+			if (CollectionUtils.isEmpty(notReadyAddresses)) {
+				return addresses;
+			}
+			addresses.addAll(notReadyAddresses);
+		}
+
+		return addresses;
 	}
 
 }

@@ -144,7 +144,7 @@ final class KubernetesClientDiscoveryClientUtils {
 			}
 						""";
 
-	// patch to include all namespaces
+	// patch to include all namespaces + external name services
 	private static final String BODY_FIVE = """
 			{
 				"spec": {
@@ -152,10 +152,16 @@ final class KubernetesClientDiscoveryClientUtils {
 						"spec": {
 							"containers": [{
 								"name": "spring-cloud-kubernetes-k8s-client-discovery",
-								"env": [{
-									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
-									"value": "TRUE"
-								}]
+								"env": [
+									{
+										"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
+										"value": "TRUE"
+									},
+									{
+										"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_INCLUDEEXTERNALNAMESERVICES",
+										"value": "TRUE"
+									}
+								]
 							}]
 						}
 					}
@@ -373,6 +379,7 @@ final class KubernetesClientDiscoveryClientUtils {
 	}
 
 	// add SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES=TRUE
+	// and SPRING_CLOUD_KUBERNETES_DISCOVERY_INCLUDEEXTERNALNAMESERVICES=TRUE
 	static void patchForAllNamespaces(String deploymentName, String namespace) {
 		patchWithMerge(deploymentName, namespace, BODY_FIVE, POD_LABELS);
 	}
