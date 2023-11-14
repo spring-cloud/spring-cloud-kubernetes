@@ -48,7 +48,7 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
  * have "type: ExternalName" in their spec.
  */
 // @formatter:off
-@ConfigurationProperties("spring.cloud.kubernetes.discovery")
+@ConfigurationProperties(KubernetesDiscoveryProperties.PREFIX)
 public record KubernetesDiscoveryProperties(
 		@DefaultValue("true") boolean enabled, boolean allNamespaces,
 		@DefaultValue Set<String> namespaces,
@@ -62,6 +62,8 @@ public record KubernetesDiscoveryProperties(
 		boolean useEndpointSlices,
 		boolean includeExternalNameServices) {
 // @formatter:on
+
+	public static final String PREFIX = "spring.cloud.kubernetes.discovery";
 
 	@ConstructorBinding
 	public KubernetesDiscoveryProperties {

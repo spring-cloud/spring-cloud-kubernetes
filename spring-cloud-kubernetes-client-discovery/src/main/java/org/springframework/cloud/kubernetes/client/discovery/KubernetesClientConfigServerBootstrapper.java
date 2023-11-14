@@ -46,7 +46,6 @@ import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServe
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
-import org.springframework.util.ClassUtils;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
 
@@ -57,7 +56,7 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		if (!ClassUtils.isPresent("org.springframework.cloud.config.client.ConfigServerInstanceProvider", null)) {
+		if (hasConfigServerInstanceProvider()) {
 			return;
 		}
 		// We need to pass a lambda here rather than create a new instance of
