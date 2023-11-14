@@ -28,6 +28,7 @@ import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
@@ -567,7 +568,6 @@ class KubernetesInformerDiscoveryClientTests {
 		server.start();
 		WireMock.configureFor("localhost", server.port());
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + server.port()).build();
-		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
 
 		V1Pod pod = new V1PodBuilder().withNewMetadata().withName("my-pod").withLabels(Map.of("a", "b"))
 				.withAnnotations(Map.of("c", "d")).endMetadata().build();
@@ -582,6 +582,7 @@ class KubernetesInformerDiscoveryClientTests {
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+		discoveryClient.coreV1Api = new CoreV1Api(apiClient);
 
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertEquals(result.size(), 1);
