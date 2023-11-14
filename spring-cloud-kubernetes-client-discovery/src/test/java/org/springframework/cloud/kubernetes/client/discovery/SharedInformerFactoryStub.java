@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD:spring-cloud-kubernetes-fabric8-discovery/src/main/java/org/springframework/cloud/kubernetes/fabric8/discovery/EndpointSubsetNS.java
- * Copyright 2012-2023 the original author or authors.
-=======
  * Copyright 2013-2023 the original author or authors.
->>>>>>> main:spring-cloud-kubernetes-client-discovery/src/test/java/org/springframework/cloud/kubernetes/client/discovery/SharedInformerFactoryStub.java
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

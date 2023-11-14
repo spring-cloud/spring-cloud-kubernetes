@@ -25,9 +25,6 @@ import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
@@ -58,31 +55,6 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	@AfterEach
 	void afterEach() {
 		client.services().inAnyNamespace().delete();
-	}
-
-	@Test
-	void testSubsetsFromEndpointsEmptySubsets() {
-		Endpoints endpoints = new EndpointsBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("non-default").build()).build();
-		EndpointSubsetNS result = Fabric8KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.endpointSubset(), List.of());
-		Assertions.assertEquals(result.namespace(), "non-default");
-	}
-
-	@Test
-	void testSubsetsFromEndpointsNonEmptySubsets() {
-		Endpoints endpoints = new EndpointsBuilder().withSubsets((List<EndpointSubset>) null)
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").build())
-				.withSubsets(
-						new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build()).build())
-				.build();
-		EndpointSubsetNS result = Fabric8KubernetesDiscoveryClientUtils.subsetsFromEndpoints(endpoints);
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.endpointSubset().size(), 1);
-		Assertions.assertEquals(result.endpointSubset().get(0).getPorts().get(0).getPort(), 8080);
-		Assertions.assertEquals(result.namespace(), "default");
-
 	}
 
 	/*
