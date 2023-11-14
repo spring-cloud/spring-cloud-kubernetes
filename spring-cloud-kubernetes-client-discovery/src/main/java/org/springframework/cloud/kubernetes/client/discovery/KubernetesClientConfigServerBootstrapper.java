@@ -95,9 +95,9 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 					.getInstances(serviceId);
 		}
 
-		protected KubernetesConfigServerInstanceProvider getInstanceProvider(
-				KubernetesDiscoveryProperties discoveryProperties, KubernetesClientProperties clientProperties,
-				BootstrapContext context, Binder binder, BindHandler bindHandler, Log log) {
+		private KubernetesConfigServerInstanceProvider getInstanceProvider(
+			KubernetesDiscoveryProperties discoveryProperties, KubernetesClientProperties clientProperties,
+			BootstrapContext context, Binder binder, BindHandler bindHandler, Log log) {
 			if (context.isRegistered(KubernetesInformerDiscoveryClient.class)) {
 				KubernetesInformerDiscoveryClient client = context.get(KubernetesInformerDiscoveryClient.class);
 				return client::getInstances;
@@ -115,12 +115,12 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 
 				String namespace = getInformerNamespace(kubernetesNamespaceProvider, discoveryProperties);
 				SharedInformerFactory sharedInformerFactory = new SharedInformerFactory(apiClient);
-				final GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(
+				GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(
 						V1Service.class, V1ServiceList.class, "", "v1", "services", apiClient);
 				SharedIndexInformer<V1Service> serviceSharedIndexInformer = sharedInformerFactory
 						.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, namespace);
 				Lister<V1Service> serviceLister = new Lister<>(serviceSharedIndexInformer.getIndexer());
-				final GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
+				GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
 						V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 				SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer = sharedInformerFactory
 						.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
