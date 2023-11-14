@@ -116,20 +116,25 @@ public final class Util {
 			@Nullable V1Ingress ingress, boolean changeVersion) {
 		try {
 
-			String imageFromDeployment = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-			if (changeVersion) {
-				deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
-						.setImage(imageFromDeployment + ":" + pomVersion());
-			}
-			else {
-				String[] image = imageFromDeployment.split(":", 2);
-				pullImage(image[0], image[1], container);
-				loadImage(image[0], image[1], name, container);
+			coreV1Api.createNamespacedService(namespace, service, null, null, null, null);
+
+			if (deployment != null) {
+				String imageFromDeployment = deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+						.getImage();
+				if (changeVersion) {
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+							.setImage(imageFromDeployment + ":" + pomVersion());
+				}
+				else {
+					String[] image = imageFromDeployment.split(":", 2);
+					pullImage(image[0], image[1], container);
+					loadImage(image[0], image[1], name, container);
+				}
+
+				appsV1Api.createNamespacedDeployment(namespace, deployment, null, null, null, null);
+				waitForDeployment(namespace, deployment);
 			}
 
-			appsV1Api.createNamespacedDeployment(namespace, deployment, null, null, null, null);
-			coreV1Api.createNamespacedService(namespace, service, null, null, null, null);
-			waitForDeployment(namespace, deployment);
 			if (ingress != null) {
 				networkingV1Api.createNamespacedIngress(namespace, ingress, null, null, null, null);
 				waitForIngress(namespace, ingress);
@@ -193,20 +198,27 @@ public final class Util {
 
 	public void deleteAndWait(String namespace, V1Deployment deployment, V1Service service,
 			@Nullable V1Ingress ingress) {
-		String deploymentName = deploymentName(deployment);
+
+		if (deployment != null) {
+			try {
+				String deploymentName = deploymentName(deployment);
+				Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace, null)
+						.getSpec().getTemplate().getMetadata().getLabels();
+				appsV1Api.deleteNamespacedDeployment(deploymentName, namespace, null, null, null, null, null, null);
+				coreV1Api.deleteCollectionNamespacedPod(namespace, null, null, null, null, null,
+						labelSelector(podLabels), null, null, null, null, null, null, null, null);
+				waitForDeploymentToBeDeleted(deploymentName, namespace);
+				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+
+		}
+
 		String serviceName = serviceName(service);
 		try {
-
-			Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace, null)
-					.getSpec().getTemplate().getMetadata().getLabels();
-
-			appsV1Api.deleteNamespacedDeployment(deploymentName, namespace, null, null, null, null, null, null);
 			coreV1Api.deleteNamespacedService(serviceName, namespace, null, null, null, null, null, null);
-			coreV1Api.deleteCollectionNamespacedPod(namespace, null, null, null, null, null, labelSelector(podLabels),
-					null, null, null, null, null, null, null, null);
-			waitForDeploymentToBeDeleted(deploymentName, namespace);
-			waitForDeploymentPodsToBeDeleted(podLabels, namespace);
-
 			if (ingress != null) {
 				String ingressName = ingressName(ingress);
 				networkingV1Api.deleteNamespacedIngress(ingressName, namespace, null, null, null, null, null, null);

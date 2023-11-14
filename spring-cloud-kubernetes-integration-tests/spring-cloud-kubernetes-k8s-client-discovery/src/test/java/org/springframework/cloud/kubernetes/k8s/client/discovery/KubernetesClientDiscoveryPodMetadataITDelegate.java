@@ -50,9 +50,10 @@ class KubernetesClientDiscoveryPodMetadataITDelegate {
 
 				}).retryWhen(retrySpec()).block();
 
-		Assertions.assertEquals(servicesResult.size(), 2);
+		Assertions.assertEquals(servicesResult.size(), 3);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-k8s-client-discovery"));
+		Assertions.assertTrue(servicesResult.contains("external-name-service"));
 
 		WebClient ourServiceClient = builder()
 				.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-k8s-client-discovery").build();
@@ -69,7 +70,7 @@ class KubernetesClientDiscoveryPodMetadataITDelegate {
 		Assertions.assertEquals(serviceInstance.getServiceId(), "spring-cloud-kubernetes-k8s-client-discovery");
 		Assertions.assertNotNull(serviceInstance.getHost());
 		Assertions.assertEquals(serviceInstance.getMetadata(),
-				Map.of("http", "8080", "k8s_namespace", "default", "type", "ClusterIP", "label-app",
+				Map.of("port.http", "8080", "k8s_namespace", "default", "type", "ClusterIP", "label-app",
 						"spring-cloud-kubernetes-k8s-client-discovery", "annotation-custom-spring-k8s", "spring-k8s"));
 		Assertions.assertEquals(serviceInstance.getPort(), 8080);
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
