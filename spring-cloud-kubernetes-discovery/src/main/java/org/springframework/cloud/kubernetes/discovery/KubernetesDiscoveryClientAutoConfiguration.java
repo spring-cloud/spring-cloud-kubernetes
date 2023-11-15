@@ -50,6 +50,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @ConditionalOnKubernetesDiscoveryEnabled
 @EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
 		KubernetesDiscoveryClientProperties.class })
+@Deprecated(forRemoval = true)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
