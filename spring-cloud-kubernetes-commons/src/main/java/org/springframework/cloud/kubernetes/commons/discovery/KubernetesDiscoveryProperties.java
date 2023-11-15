@@ -63,6 +63,9 @@ public record KubernetesDiscoveryProperties(
 		boolean includeExternalNameServices) {
 // @formatter:on
 
+	/**
+	 * Prefix of the properties.
+	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.discovery";
 
 	@ConstructorBinding
