@@ -33,7 +33,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerBootstrapper;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerInstanceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Ryan Baxter
@@ -42,7 +41,7 @@ class ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		if (!ClassUtils.isPresent("org.springframework.cloud.config.client.ConfigServerInstanceProvider", null)) {
+		if (hasConfigServerInstanceProvider()) {
 			return;
 		}
 		// We need to pass a lambda here rather than create a new instance of

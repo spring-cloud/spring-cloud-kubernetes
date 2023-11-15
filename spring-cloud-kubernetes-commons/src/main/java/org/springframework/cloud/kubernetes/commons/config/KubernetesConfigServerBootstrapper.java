@@ -37,7 +37,7 @@ public abstract class KubernetesConfigServerBootstrapper implements BootstrapReg
 
 	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(Binder binder,
 			BindHandler bindHandler) {
-		return binder.bind("spring.cloud.kubernetes.discovery", Bindable.of(KubernetesDiscoveryProperties.class),
+		return binder.bind(KubernetesDiscoveryProperties.PREFIX, Bindable.of(KubernetesDiscoveryProperties.class),
 				bindHandler).orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
 	}
 
