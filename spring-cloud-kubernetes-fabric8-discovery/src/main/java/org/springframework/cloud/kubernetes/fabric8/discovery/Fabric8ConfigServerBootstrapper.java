@@ -36,7 +36,6 @@ import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServe
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Ryan Baxter
@@ -45,7 +44,7 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		if (!ClassUtils.isPresent("org.springframework.cloud.config.client.ConfigServerInstanceProvider", null)) {
+		if (hasConfigServerInstanceProvider()) {
 			return;
 		}
 		// We need to pass a lambda here rather than create a new instance of
