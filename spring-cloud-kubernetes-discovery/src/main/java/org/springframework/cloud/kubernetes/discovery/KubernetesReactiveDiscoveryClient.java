@@ -29,7 +29,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
-	private WebClient webClient;
+	private final WebClient webClient;
 
 	public KubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
 			KubernetesDiscoveryClientProperties properties) {
