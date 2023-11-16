@@ -32,9 +32,9 @@ import org.springframework.web.client.RestTemplate;
  */
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
-	private RestTemplate rest;
+	private final RestTemplate rest;
 
-	private KubernetesDiscoveryClientProperties properties;
+	private final KubernetesDiscoveryClientProperties properties;
 
 	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
 		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
