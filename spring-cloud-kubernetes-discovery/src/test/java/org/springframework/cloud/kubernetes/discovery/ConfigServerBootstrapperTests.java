@@ -69,19 +69,19 @@ class ConfigServerBootstrapperTests {
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
 		String APPS_NAME = """
-								[{
-									"instanceId": "uid2",
-									"serviceId": "spring-cloud-kubernetes-configserver",
-									"host": "localhost",
-									"port": "%s",
-									"uri": "%s",
-									"secure":false,
-									"metadata":{"spring": "true", "http": "8080", "k8s": "true"},
-									"namespace": "namespace1",
-									"cluster": null,
-									"scheme":"http"
-					}]
-				""".formatted(wireMockServer.port(), wireMockServer.baseUrl());
+						[{
+							"instanceId": "uid2",
+							"serviceId": "spring-cloud-kubernetes-configserver",
+							"host": "localhost",
+							"port": "%s",
+							"uri": "%s",
+							"secure":false,
+							"metadata":{"spring": "true", "http": "8080", "k8s": "true"},
+							"namespace": "namespace1",
+							"cluster": null,
+							"scheme":"http"
+			}]
+		""".formatted(wireMockServer.port(), wireMockServer.baseUrl());
 
 		System.out.println(APPS_NAME);
 

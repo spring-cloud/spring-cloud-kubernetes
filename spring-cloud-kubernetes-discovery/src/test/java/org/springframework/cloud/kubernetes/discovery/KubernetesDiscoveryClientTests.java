@@ -46,54 +46,54 @@ import static org.assertj.core.api.Assertions.assertThat;
 class KubernetesDiscoveryClientTests {
 
 	private static final String APPS = """
+		[{
+			"name": "test-svc-1",
+			"serviceInstances":
 				[{
-					"name": "test-svc-1",
-					"serviceInstances":
-						[{
-							"instanceId": "uid1",
-							"serviceId": "test-svc-1",
-							"host": "2.2.2.2",
-							"port": 8080,
-							"uri": "http://2.2.2.2:8080",
-							"secure": false,
-							"metadata":{"http": "8080"},
-							"namespace": "namespace1",
-							"cluster": null,
-							"scheme": "http"
-						}]
-					},
-					{
-						"name": "test-svc-3",
-						"serviceInstances":
-							[{
-								"instanceId": "uid2",
-								"serviceId": "test-svc-3",
-								"host": "2.2.2.2",
-								"port": 8080,
-								"uri": "http://2.2.2.2:8080",
-								"secure": false,
-								"metadata": {"spring": "true", "http": "8080", "k8s": "true"},
-								"namespace": "namespace2",
-								"cluster":null,
-								"scheme":"http"
-							}]
-						}]
-			""";
-
-	private static final String APPS_NAME = """
-				[{
-					"instanceId": "uid2",
-					"serviceId": "test-svc-3",
+					"instanceId": "uid1",
+					"serviceId": "test-svc-1",
 					"host": "2.2.2.2",
 					"port": 8080,
 					"uri": "http://2.2.2.2:8080",
 					"secure": false,
-					"metadata": {"spring": "true", "http": "8080", "k8s": "true"},
-					"namespace": "namespace2",
+					"metadata":{"http": "8080"},
+					"namespace": "namespace1",
 					"cluster": null,
 					"scheme": "http"
 				}]
-			""";
+			},
+			{
+				"name": "test-svc-3",
+				"serviceInstances":
+					[{
+						"instanceId": "uid2",
+						"serviceId": "test-svc-3",
+						"host": "2.2.2.2",
+						"port": 8080,
+						"uri": "http://2.2.2.2:8080",
+						"secure": false,
+						"metadata": {"spring": "true", "http": "8080", "k8s": "true"},
+						"namespace": "namespace2",
+						"cluster":null,
+						"scheme":"http"
+					}]
+				}]
+	""";
+
+	private static final String APPS_NAME = """
+		[{
+			"instanceId": "uid2",
+			"serviceId": "test-svc-3",
+			"host": "2.2.2.2",
+			"port": 8080,
+			"uri": "http://2.2.2.2:8080",
+			"secure": false,
+			"metadata": {"spring": "true", "http": "8080", "k8s": "true"},
+			"namespace": "namespace2",
+			"cluster": null,
+			"scheme": "http"
+		}]
+	""";
 
 	private static WireMockServer wireMockServer;
 

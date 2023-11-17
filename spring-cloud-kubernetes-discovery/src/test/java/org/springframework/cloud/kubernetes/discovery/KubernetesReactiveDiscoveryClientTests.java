@@ -39,41 +39,25 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 class KubernetesReactiveDiscoveryClientTests {
 
 	private static final String APPS = """
-			[{
-				"name": "test-svc-1",
-				"serviceInstances":
-					[{
-						"instanceId": "uid1",
-						"serviceId": "test-svc-1",
-						"host": "2.2.2.2",
-						"port": 8080,
-						"uri": "http://2.2.2.2:8080",
-						"secure": false,
-						"metadata": {"http":"8080"},
-						"namespace": "namespace1",
-						"cluster": null,
-						"scheme": "http"
-					}]
-			},
-			{
-				"name": "test-svc-3",
-				"serviceInstances":
-					[{
-						"instanceId": "uid2",
-						"serviceId": "test-svc-3",
-						"host": "2.2.2.2",
-						"port": 8080,
-						"uri": "http://2.2.2.2:8080",
-						"secure": false,
-						"metadata": {"spring": "true", "http": "8080", "k8s": "true"},
-						"namespace": "namespace1",
-						"cluster": null,
-						"scheme": "http"
-					}]
-			}]
-			""";
-
-	private static final String APPS_NAME = """
+		[{
+			"name": "test-svc-1",
+			"serviceInstances":
+				[{
+					"instanceId": "uid1",
+					"serviceId": "test-svc-1",
+					"host": "2.2.2.2",
+					"port": 8080,
+					"uri": "http://2.2.2.2:8080",
+					"secure": false,
+					"metadata": {"http":"8080"},
+					"namespace": "namespace1",
+					"cluster": null,
+					"scheme": "http"
+				}]
+		},
+		{
+			"name": "test-svc-3",
+			"serviceInstances":
 				[{
 					"instanceId": "uid2",
 					"serviceId": "test-svc-3",
@@ -86,7 +70,23 @@ class KubernetesReactiveDiscoveryClientTests {
 					"cluster": null,
 					"scheme": "http"
 				}]
-			""";
+		}]
+		""";
+
+	private static final String APPS_NAME = """
+		[{
+			"instanceId": "uid2",
+			"serviceId": "test-svc-3",
+			"host": "2.2.2.2",
+			"port": 8080,
+			"uri": "http://2.2.2.2:8080",
+			"secure": false,
+			"metadata": {"spring": "true", "http": "8080", "k8s": "true"},
+			"namespace": "namespace1",
+			"cluster": null,
+			"scheme": "http"
+		}]
+	""";
 
 	private static WireMockServer wireMockServer;
 
