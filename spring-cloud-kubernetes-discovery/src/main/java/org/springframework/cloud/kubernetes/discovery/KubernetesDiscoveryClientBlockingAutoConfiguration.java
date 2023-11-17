@@ -65,9 +65,10 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
-	InitializingBean indicatorInitializer(ApplicationEventPublisher applicationEventPublisher) {
+	InitializingBean indicatorInitializer(ApplicationEventPublisher applicationEventPublisher,
+			ApplicationContext applicationContext) {
 		return () -> applicationEventPublisher
-				.publishEvent(new InstanceRegisteredEvent<>("", null));
+				.publishEvent(new InstanceRegisteredEvent<>(applicationContext.getId(), null));
 
 	}
 
