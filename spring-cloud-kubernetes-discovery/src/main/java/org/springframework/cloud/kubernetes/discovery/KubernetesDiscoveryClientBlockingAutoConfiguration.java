@@ -27,7 +27,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
@@ -57,7 +56,7 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
-	DiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
+	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
 			KubernetesDiscoveryClientProperties properties) {
 		return new KubernetesDiscoveryClient(restTemplate, properties);
 	}
@@ -67,8 +66,9 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	InitializingBean indicatorInitializer(ApplicationEventPublisher applicationEventPublisher,
 			ApplicationContext applicationContext) {
-		return () -> applicationEventPublisher
+		InitializingBean bean = () -> applicationEventPublisher
 				.publishEvent(new InstanceRegisteredEvent<>(applicationContext.getId(), null));
+		return bean;
 
 	}
 
