@@ -36,7 +36,9 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
-					ReactiveCommonsClientAutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class));
+					ReactiveCommonsClientAutoConfiguration.class,
+					KubernetesDiscoveryClientReactiveAutoConfiguration.class,
+					KubernetesDiscoveryClientBlockingAutoConfiguration.class));
 
 	@Test
 	void shouldWorkWithDefaults() {
