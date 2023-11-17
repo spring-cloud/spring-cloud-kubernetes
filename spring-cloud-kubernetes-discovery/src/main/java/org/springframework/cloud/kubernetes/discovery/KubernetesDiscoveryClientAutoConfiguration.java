@@ -43,6 +43,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author Ryan Baxter
+ * @deprecated in favor of {@link KubernetesDiscoveryClientBlockingAutoConfiguration} and
+ * {@link KubernetesDiscoveryClientReactiveAutoConfiguration}
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled

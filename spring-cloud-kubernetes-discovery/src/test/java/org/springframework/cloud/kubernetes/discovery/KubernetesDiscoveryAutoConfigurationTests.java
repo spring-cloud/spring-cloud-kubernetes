@@ -61,7 +61,7 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void kubernetesDiscoveryDisabled() {
 		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.kubernetes.discovery.enabled=false");
+				"spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(RestTemplate.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
@@ -100,8 +100,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void reactiveDisabledBlockingEnabledWebClientPresent() {
 		setupWithFilteredClassLoader(WebClient.class, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.discovery.reactive.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+				"spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(RestTemplate.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
@@ -122,8 +122,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void reactiveDisabledBlockingEnabledWebClientMissing() {
 		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.discovery.reactive.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+				"spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(RestTemplate.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
@@ -144,8 +144,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void reactiveDisabledBlockingEnabledWebClientMissingHealthIndicatorMissing() {
 		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.discovery.reactive.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+				"spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(RestTemplate.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
@@ -165,9 +165,9 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void blockingHealthIndicatorDisabled() {
 		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.discovery.reactive.enabled=true",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver",
-			"spring.cloud.discovery.client.health-indicator.enabled=false");
+				"spring.cloud.discovery.reactive.enabled=true",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver",
+				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(RestTemplate.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
@@ -188,8 +188,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void reactiveEnabledBlockingEnabledWebClientPresent() {
 		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.discovery.reactive.enabled=true",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+				"spring.cloud.discovery.reactive.enabled=true",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(RestTemplate.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
@@ -210,8 +210,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void reactiveEnabledBlockingEnabledWebClientMissing() {
 		setupWithFilteredClassLoader(WebClient.class, "spring.main.cloud-platform=KUBERNETES",
-			"spring.cloud.discovery.reactive.enabled=true",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+				"spring.cloud.discovery.reactive.enabled=true",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(RestTemplate.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
