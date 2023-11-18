@@ -39,11 +39,12 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author wind57
  */
-@Configuration(proxyBeanMethods = false)
-@ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+//@Configuration(proxyBeanMethods = false)
+//@ConditionalOnDiscoveryEnabled
+//@ConditionalOnKubernetesDiscoveryEnabled
+//@ConditionalOnBlockingDiscoveryEnabled
+//@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+	dadasdsa replace with single annotation in all 3 places and place it in commond
 @EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
 		KubernetesDiscoveryClientProperties.class })
 class KubernetesDiscoveryClientBlockingAutoConfiguration {
