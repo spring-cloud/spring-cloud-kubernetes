@@ -83,8 +83,6 @@ class ConfigServerBootstrapperTests {
 					}]
 				""".formatted(wireMockServer.port(), wireMockServer.baseUrl());
 
-		System.out.println(APPS_NAME);
-
 		stubFor(get("/apps/spring-cloud-kubernetes-configserver").willReturn(
 				aResponse().withStatus(200).withBody(APPS_NAME).withHeader("content-type", "application/json")));
 		Environment environment = new Environment("test", "default");
