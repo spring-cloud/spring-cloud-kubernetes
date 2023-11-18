@@ -46,12 +46,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 class KubernetesDiscoveryClientReactiveAutoConfiguration {
 
 	@Bean
-	@ConditionalOnMissingBean(WebClient.Builder.class)
+	@ConditionalOnMissingBean
 	WebClient.Builder webClientBuilder() {
 		return WebClient.builder();
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
 			KubernetesDiscoveryClientProperties properties) {
 		return new KubernetesReactiveDiscoveryClient(webClientBuilder, properties);
