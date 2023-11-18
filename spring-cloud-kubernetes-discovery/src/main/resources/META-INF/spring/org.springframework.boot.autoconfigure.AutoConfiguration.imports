@@ -1,1 +1,2 @@
-org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientAutoConfiguration
+org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientBlockingAutoConfiguration
+org.springframework.cloud.kubernetes.discovery.KubernetesDiscoveryClientReactiveAutoConfiguration
