@@ -19,17 +19,13 @@ package org.springframework.cloud.kubernetes.discovery;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
-import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -39,11 +35,9 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author wind57
  */
+
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@ConditionalOnSpringCloudKubernetesBlockingDiscovery
 @EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
 		KubernetesDiscoveryClientProperties.class })
 class KubernetesDiscoveryClientBlockingAutoConfiguration {
