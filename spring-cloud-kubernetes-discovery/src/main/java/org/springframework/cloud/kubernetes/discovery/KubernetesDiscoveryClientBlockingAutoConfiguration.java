@@ -48,13 +48,14 @@ import org.springframework.web.client.RestTemplate;
 class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
+	@ConditionalOnMissingBean
 	@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
-	@ConditionalOnMissingBean(RestTemplate.class)
 	RestTemplate restTemplate() {
 		return new RestTemplateBuilder().build();
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
 	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
 			KubernetesDiscoveryClientProperties properties) {
