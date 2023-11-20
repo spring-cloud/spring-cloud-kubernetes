@@ -21,10 +21,10 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
@@ -42,6 +42,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
 		KubernetesDiscoveryClientProperties.class })
@@ -49,14 +50,12 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
 	RestTemplate restTemplate() {
 		return new RestTemplateBuilder().build();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
 	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
 			KubernetesDiscoveryClientProperties properties) {
 		return new KubernetesDiscoveryClient(restTemplate, properties);
