@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -34,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.core.log.LogAccessor;
 
 /**
  * Auto configuration for discovery clients.
@@ -48,9 +46,6 @@ import org.springframework.core.log.LogAccessor;
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
 @Import(KubernetesDiscoveryClientHealthConfiguration.class)
 public class KubernetesDiscoveryClientAutoConfiguration {
-
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesDiscoveryClientAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
