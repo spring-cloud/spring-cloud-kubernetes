@@ -253,19 +253,19 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 		if (phase.equals(Phase.CREATE)) {
 			List<V1EnvVar> envVars = new ArrayList<>(
-				Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-					.orElse(List.of()));
+					Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
+							.orElse(List.of()));
 			V1EnvVar debugLevel = new V1EnvVar()
-				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
+					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
 
 			V1EnvVar debugLevelCommons = new V1EnvVar()
-				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
+					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
 
 			V1EnvVar selectiveNamespaceA = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-				.value(NAMESPACE_A);
+					.value(NAMESPACE_A);
 
 			V1EnvVar disableReactiveEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED")
-				.value("FALSE");
+					.value("FALSE");
 			envVars.add(disableReactiveEnvVar);
 
 			envVars.add(debugLevel);

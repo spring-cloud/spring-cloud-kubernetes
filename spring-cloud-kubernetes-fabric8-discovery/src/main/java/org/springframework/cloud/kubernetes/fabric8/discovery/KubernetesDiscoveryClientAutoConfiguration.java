@@ -24,8 +24,8 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
@@ -67,4 +67,5 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, null,
 				new ServicePortSecureResolver(properties));
 	}
+
 }
