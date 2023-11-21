@@ -122,12 +122,12 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	@Test
 	void reactiveDisabledBlockingEnabledWebClientMissing() {
 		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.discovery.reactive.enabled=false", "spring.cloud.discovery.blocking.enabled=false",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(RestTemplate.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
-			assertThat(context).getBean("indicatorInitializer").isNotNull();
+			assertThat(context).getBean("indicatorInitializer").isNull();
 
 			assertThat(context).doesNotHaveBean(WebClient.Builder.class);
 			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
@@ -147,8 +147,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.discovery.reactive.enabled=false",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
-			assertThat(context).doesNotHaveBean(RestTemplate.class);
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean("indicatorInitializer");
 
 			assertThat(context).doesNotHaveBean(WebClient.Builder.class);
@@ -169,8 +169,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).doesNotHaveBean(RestTemplate.class);
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean("indicatorInitializer");
 
 			assertThat(context).hasSingleBean(WebClient.Builder.class);
@@ -191,8 +191,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.discovery.reactive.enabled=true",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
-			assertThat(context).doesNotHaveBean(RestTemplate.class);
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).getBean("indicatorInitializer").isNotNull();
 
 			assertThat(context).hasSingleBean(WebClient.Builder.class);
@@ -220,6 +220,48 @@ class KubernetesDiscoveryAutoConfigurationTests {
 			assertThat(context).doesNotHaveBean(WebClient.Builder.class);
 			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
 			assertThat(context).getBean("kubernetesReactiveDiscoveryClientHealthIndicator").isNull();
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     '@ConditionalOnBlockingDiscoveryEnabled' is not matched.
+	 * </pre>
+	 */
+	@Test
+	void testBlockingDisabled() {
+		setupWithFilteredClassLoader(WebClient.class, "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.discovery.reactive.enabled=true", "spring.cloud.discovery.blocking.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(RestTemplate.class);
+			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).getBean("indicatorInitializer").isNull();
+
+			assertThat(context).doesNotHaveBean(WebClient.Builder.class);
+			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
+			assertThat(context).getBean("kubernetesReactiveDiscoveryClientHealthIndicator").isNull();
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - WebClient is on the classpath (this is asserted via the presence of beans that come
+	 *       from the reactive auto-configuration)
+	 *     - This has no impact of the creation of the blocking discovery client
+	 * </pre>
+	 */
+	@Test
+	void testFor1426Issue() {
+		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.discovery.reactive.enabled=true", "spring.cloud.discovery.blocking.enabled=true",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		applicationContextRunner.run(context -> {
+			// blocking client is present
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+
+			// reactive client is present
+			assertThat(context).hasSingleBean(KubernetesReactiveDiscoveryClient.class);
 		});
 	}
 
