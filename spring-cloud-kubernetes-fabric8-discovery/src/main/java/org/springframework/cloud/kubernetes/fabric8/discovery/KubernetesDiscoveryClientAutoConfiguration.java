@@ -19,16 +19,14 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
-import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
@@ -72,8 +70,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnClass({ HealthIndicator.class })
-	@ConditionalOnDiscoveryHealthIndicatorEnabled
+	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
