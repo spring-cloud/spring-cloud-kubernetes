@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
