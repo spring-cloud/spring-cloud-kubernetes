@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import org.springframework.cloud.kubernetes.commons.PodUtils;
-
 import java.util.function.Supplier;
+
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 
 /**
  * @author wind57
@@ -38,4 +38,5 @@ final class KubernetesDiscoveryPodUtils implements PodUtils<Object> {
 		// so safe to return true here.
 		return true;
 	}
+
 }

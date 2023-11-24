@@ -60,8 +60,8 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
-	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-			PodUtils<?> podUtils, ApplicationEventPublisher applicationEventPublisher) {
+	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(PodUtils<?> podUtils,
+			ApplicationEventPublisher applicationEventPublisher) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 
 	}
