@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -137,7 +138,7 @@ class KubernetesDiscoveryClientTests {
 
 	@ParameterizedTest
 	@MethodSource("servicesFilteredByNamespacesSource")
-	void getServicesFilteredByNamespaces(List<String> namespaces, List<String> expectedServices) {
+	void getServicesFilteredByNamespaces(Set<String> namespaces, List<String> expectedServices) {
 		RestTemplate rest = new RestTemplateBuilder().build();
 		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
 		properties.setNamespaces(namespaces);
@@ -155,7 +156,7 @@ class KubernetesDiscoveryClientTests {
 
 	@ParameterizedTest
 	@MethodSource("instancesFilteredByNamespacesSource")
-	void getInstancesFilteredByNamespaces(List<String> namespaces, String serviceId, List<String> expectedInstances) {
+	void getInstancesFilteredByNamespaces(Set<String> namespaces, String serviceId, List<String> expectedInstances) {
 		RestTemplate rest = new RestTemplateBuilder().build();
 		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
 		properties.setNamespaces(namespaces);

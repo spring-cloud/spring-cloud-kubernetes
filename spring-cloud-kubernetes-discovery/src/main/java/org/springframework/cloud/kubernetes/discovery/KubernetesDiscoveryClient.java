@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -36,6 +37,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final boolean emptyNamespaces;
 
+	private final Set<String> namespaces;
+
 	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
 		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
@@ -43,6 +46,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 		this.rest = rest;
 		this.properties = properties;
 		this.emptyNamespaces = properties.getNamespaces().isEmpty();
+		this.namespaces = properties.getNamespaces();
 	}
 
 	@Override
@@ -71,7 +75,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	private boolean matchNamespaces(KubernetesServiceInstance kubernetesServiceInstance) {
-		return emptyNamespaces || properties.getNamespaces().contains(kubernetesServiceInstance.getNamespace());
+		return emptyNamespaces || namespaces.contains(kubernetesServiceInstance.getNamespace());
 	}
 
 	private boolean matchNamespaces(Service service) {
