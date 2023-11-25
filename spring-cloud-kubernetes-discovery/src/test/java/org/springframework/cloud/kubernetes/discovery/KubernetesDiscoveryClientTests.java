@@ -147,13 +147,6 @@ class KubernetesDiscoveryClientTests {
 		assertThat(discoveryClient.getServices()).containsExactlyInAnyOrderElementsOf(expectedServices);
 	}
 
-	static Stream<Arguments> servicesFilteredByNamespacesSource() {
-		return Stream.of(Arguments.of(List.of(), List.of("test-svc-1", "test-svc-3")),
-				Arguments.of(List.of("namespace1", "namespace2"), List.of("test-svc-1", "test-svc-3")),
-				Arguments.of(List.of("namespace1"), List.of("test-svc-1")),
-				Arguments.of(List.of("namespace2", "does-not-exist"), List.of("test-svc-3")));
-	}
-
 	@ParameterizedTest
 	@MethodSource("instancesFilteredByNamespacesSource")
 	void getInstancesFilteredByNamespaces(Set<String> namespaces, String serviceId, List<String> expectedInstances) {
@@ -166,10 +159,17 @@ class KubernetesDiscoveryClientTests {
 				.containsExactlyInAnyOrderElementsOf(expectedInstances);
 	}
 
-	static Stream<Arguments> instancesFilteredByNamespacesSource() {
-		return Stream.of(Arguments.of(List.of(), "test-svc-3", List.of("uid2")),
-				Arguments.of(List.of("namespace1"), "test-svc-3", List.of()),
-				Arguments.of(List.of("namespace2"), "test-svc-3", List.of("uid2")));
+	private static Stream<Arguments> servicesFilteredByNamespacesSource() {
+		return Stream.of(Arguments.of(Set.of(), List.of("test-svc-1", "test-svc-3")),
+			Arguments.of(Set.of("namespace1", "namespace2"), List.of("test-svc-1", "test-svc-3")),
+			Arguments.of(Set.of("namespace1"), List.of("test-svc-1")),
+			Arguments.of(Set.of("namespace2", "does-not-exist"), List.of("test-svc-3")));
+	}
+
+	private static Stream<Arguments> instancesFilteredByNamespacesSource() {
+		return Stream.of(Arguments.of(Set.of(), "test-svc-3", List.of("uid2")),
+				Arguments.of(Set.of("namespace1"), "test-svc-3", List.of()),
+				Arguments.of(Set.of("namespace2"), "test-svc-3", List.of("uid2")));
 	}
 
 }
