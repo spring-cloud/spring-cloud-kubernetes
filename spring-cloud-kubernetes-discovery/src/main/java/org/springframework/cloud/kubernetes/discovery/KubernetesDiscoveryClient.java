@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -39,8 +40,19 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final Set<String> namespaces;
 
+	@Deprecated(forRemoval = true)
 	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
 		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
+			throw new DiscoveryServerUrlInvalidException();
+		}
+		this.rest = rest;
+		this.properties = properties;
+		this.emptyNamespaces = properties.getNamespaces().isEmpty();
+		this.namespaces = properties.getNamespaces();
+	}
+
+	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+		if (!StringUtils.hasText(kubernetesDiscoveryProperties.discoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
 		this.rest = rest;
