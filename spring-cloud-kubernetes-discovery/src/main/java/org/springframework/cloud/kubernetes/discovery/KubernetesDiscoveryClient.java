@@ -68,8 +68,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
-		KubernetesServiceInstance[] responseBody = rest.getForEntity(
-				discoveryServerUrl + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
+		KubernetesServiceInstance[] responseBody = rest
+				.getForEntity(discoveryServerUrl + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
 		if (responseBody != null && responseBody.length > 0) {
 			return Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
 		}

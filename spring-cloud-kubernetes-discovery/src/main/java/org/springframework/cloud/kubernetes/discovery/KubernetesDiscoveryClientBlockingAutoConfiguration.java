@@ -37,8 +37,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
-@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
-		KubernetesDiscoveryProperties.class })
+@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class, KubernetesDiscoveryProperties.class })
 class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
