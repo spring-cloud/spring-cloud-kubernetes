@@ -34,11 +34,11 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final RestTemplate rest;
 
-	private final KubernetesDiscoveryClientProperties properties;
-
 	private final boolean emptyNamespaces;
 
 	private final Set<String> namespaces;
+
+	private final String discoveryServerUrl;
 
 	@Deprecated(forRemoval = true)
 	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
@@ -46,19 +46,19 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 			throw new DiscoveryServerUrlInvalidException();
 		}
 		this.rest = rest;
-		this.properties = properties;
 		this.emptyNamespaces = properties.getNamespaces().isEmpty();
 		this.namespaces = properties.getNamespaces();
+		this.discoveryServerUrl = properties.getDiscoveryServerUrl();
 	}
 
-	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+	KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
 		if (!StringUtils.hasText(kubernetesDiscoveryProperties.discoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
 		this.rest = rest;
-		this.properties = properties;
-		this.emptyNamespaces = properties.getNamespaces().isEmpty();
-		this.namespaces = properties.getNamespaces();
+		this.emptyNamespaces = kubernetesDiscoveryProperties.namespaces().isEmpty();
+		this.namespaces = kubernetesDiscoveryProperties.namespaces();
+		this.discoveryServerUrl = kubernetesDiscoveryProperties.discoveryServerUrl();
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		KubernetesServiceInstance[] responseBody = rest.getForEntity(
-				properties.getDiscoveryServerUrl() + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
+				discoveryServerUrl + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
 		if (responseBody != null && responseBody.length > 0) {
 			return Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
 		}
@@ -78,7 +78,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		Service[] services = rest.getForEntity(properties.getDiscoveryServerUrl() + "/apps", Service[].class).getBody();
+		Service[] services = rest.getForEntity(discoveryServerUrl + "/apps", Service[].class).getBody();
 		if (services != null && services.length > 0) {
 			return Arrays.stream(services).filter(this::matchNamespaces).map(Service::getName)
 					.collect(Collectors.toList());
