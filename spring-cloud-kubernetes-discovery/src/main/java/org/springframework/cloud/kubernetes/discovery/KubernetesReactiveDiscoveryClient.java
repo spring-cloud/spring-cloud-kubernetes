@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 

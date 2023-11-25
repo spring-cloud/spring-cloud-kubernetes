@@ -34,8 +34,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnSpringCloudKubernetesReactiveDiscovery
-@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
-		KubernetesDiscoveryProperties.class })
+@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class, KubernetesDiscoveryProperties.class })
 class KubernetesDiscoveryClientReactiveAutoConfiguration {
 
 	@Bean
