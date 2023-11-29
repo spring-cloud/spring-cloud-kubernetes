@@ -44,8 +44,7 @@ class ReactiveDiscoveryHealthPublishedEventTest {
 	private static boolean caught;
 
 	// blocking client is not present, as such the blocking auto-configuration was not
-	// picked up,
-	// therefor the health event comes from the reactive one.
+	// picked up, therefor the health event comes from the reactive one.
 	@Autowired
 	private ObjectProvider<KubernetesDiscoveryClient> discoveryClients;
 
