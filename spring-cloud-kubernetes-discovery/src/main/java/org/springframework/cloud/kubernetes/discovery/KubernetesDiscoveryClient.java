@@ -34,12 +34,15 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final KubernetesDiscoveryClientProperties properties;
 
+	private final boolean emptyNamespaces;
+
 	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
 		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
 		this.rest = rest;
 		this.properties = properties;
+		this.emptyNamespaces = properties.getNamespaces().isEmpty();
 	}
 
 	@Override
@@ -68,10 +71,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	private boolean matchNamespaces(KubernetesServiceInstance kubernetesServiceInstance) {
-		if (properties.getNamespaces().isEmpty()) {
-			return true;
-		}
-		return properties.getNamespaces().contains(kubernetesServiceInstance.getNamespace());
+		return emptyNamespaces || properties.getNamespaces().contains(kubernetesServiceInstance.getNamespace());
 	}
 
 	private boolean matchNamespaces(Service service) {
