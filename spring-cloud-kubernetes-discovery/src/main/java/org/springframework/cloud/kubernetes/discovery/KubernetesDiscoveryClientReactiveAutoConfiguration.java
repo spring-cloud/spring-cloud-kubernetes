@@ -63,7 +63,7 @@ class KubernetesDiscoveryClientReactiveAutoConfiguration {
 	@Bean
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
 	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
-		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
