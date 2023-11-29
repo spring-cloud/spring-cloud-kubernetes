@@ -63,7 +63,6 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(PodUtils<?> podUtils,
 			ApplicationEventPublisher applicationEventPublisher) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
-
 	}
 
 }
