@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -35,7 +34,7 @@ public class KubernetesDiscoveryClientProperties {
 	 * If set then only the services and endpoints matching these namespaces will be
 	 * fetched from the Kubernetes API server.
 	 */
-	private List<String> namespaces = new ArrayList<>();
+	private List<String> namespaces = List.of();
 
 	public String getDiscoveryServerUrl() {
 		return discoveryServerUrl;
