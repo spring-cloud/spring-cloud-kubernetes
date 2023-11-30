@@ -33,6 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.web.client.RestTemplate;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -114,8 +115,9 @@ class KubernetesDiscoveryClientTests {
 	@Test
 	void getInstances() {
 		RestTemplate rest = new RestTemplateBuilder().build();
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
+				wireMockServer.baseUrl());
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(rest, properties);
 		assertThat(discoveryClient.getServices()).contains("test-svc-1", "test-svc-3");
 	}
@@ -123,8 +125,9 @@ class KubernetesDiscoveryClientTests {
 	@Test
 	void getServices() {
 		RestTemplate rest = new RestTemplateBuilder().build();
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
+				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
+				wireMockServer.baseUrl());
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(rest, properties);
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("spring", "true");
@@ -140,9 +143,9 @@ class KubernetesDiscoveryClientTests {
 	@MethodSource("servicesFilteredByNamespacesSource")
 	void getServicesFilteredByNamespaces(Set<String> namespaces, List<String> expectedServices) {
 		RestTemplate rest = new RestTemplateBuilder().build();
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setNamespaces(namespaces);
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, namespaces, true, 60,
+				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
+				wireMockServer.baseUrl());
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(rest, properties);
 		assertThat(discoveryClient.getServices()).containsExactlyInAnyOrderElementsOf(expectedServices);
 	}
@@ -151,9 +154,9 @@ class KubernetesDiscoveryClientTests {
 	@MethodSource("instancesFilteredByNamespacesSource")
 	void getInstancesFilteredByNamespaces(Set<String> namespaces, String serviceId, List<String> expectedInstances) {
 		RestTemplate rest = new RestTemplateBuilder().build();
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setNamespaces(namespaces);
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, namespaces, true, 60,
+				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
+				wireMockServer.baseUrl());
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(rest, properties);
 		assertThat(discoveryClient.getInstances(serviceId)).map(ServiceInstance::getInstanceId)
 				.containsExactlyInAnyOrderElementsOf(expectedInstances);
@@ -161,9 +164,9 @@ class KubernetesDiscoveryClientTests {
 
 	private static Stream<Arguments> servicesFilteredByNamespacesSource() {
 		return Stream.of(Arguments.of(Set.of(), List.of("test-svc-1", "test-svc-3")),
-			Arguments.of(Set.of("namespace1", "namespace2"), List.of("test-svc-1", "test-svc-3")),
-			Arguments.of(Set.of("namespace1"), List.of("test-svc-1")),
-			Arguments.of(Set.of("namespace2", "does-not-exist"), List.of("test-svc-3")));
+				Arguments.of(Set.of("namespace1", "namespace2"), List.of("test-svc-1", "test-svc-3")),
+				Arguments.of(Set.of("namespace1"), List.of("test-svc-1")),
+				Arguments.of(Set.of("namespace2", "does-not-exist"), List.of("test-svc-3")));
 	}
 
 	private static Stream<Arguments> instancesFilteredByNamespacesSource() {

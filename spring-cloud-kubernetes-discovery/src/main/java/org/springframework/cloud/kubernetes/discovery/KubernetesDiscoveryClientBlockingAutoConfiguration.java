@@ -24,6 +24,7 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +36,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
-@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
-		KubernetesDiscoveryClientProperties.class })
+@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class, KubernetesDiscoveryProperties.class })
 class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
@@ -48,7 +48,7 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
-			KubernetesDiscoveryClientProperties properties) {
+			KubernetesDiscoveryProperties properties) {
 		return new KubernetesDiscoveryClient(restTemplate, properties);
 	}
 
