@@ -22,7 +22,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author Ryan Baxter
+ * @deprecated use
+ * {@link org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties}
+ * instead.
  */
+@Deprecated(forRemoval = true)
 @ConfigurationProperties("spring.cloud.kubernetes.discovery")
 public class KubernetesDiscoveryClientProperties {
 
