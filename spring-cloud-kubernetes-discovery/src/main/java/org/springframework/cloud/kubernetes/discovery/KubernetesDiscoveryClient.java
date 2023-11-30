@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -32,17 +33,20 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final RestTemplate rest;
 
-	private final KubernetesDiscoveryClientProperties properties;
-
 	private final boolean emptyNamespaces;
+
+	private final Set<String> namespaces;
+
+	private final String discoveryServerUrl;
 
 	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
 		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
 		this.rest = rest;
-		this.properties = properties;
 		this.emptyNamespaces = properties.getNamespaces().isEmpty();
+		this.namespaces = properties.getNamespaces();
+		this.discoveryServerUrl = properties.getDiscoveryServerUrl();
 	}
 
 	@Override
@@ -53,7 +57,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		KubernetesServiceInstance[] responseBody = rest.getForEntity(
-				properties.getDiscoveryServerUrl() + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
+				discoveryServerUrl + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
 		if (responseBody != null && responseBody.length > 0) {
 			return Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
 		}
@@ -62,7 +66,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<String> getServices() {
-		Service[] services = rest.getForEntity(properties.getDiscoveryServerUrl() + "/apps", Service[].class).getBody();
+		Service[] services = rest.getForEntity(discoveryServerUrl + "/apps", Service[].class).getBody();
 		if (services != null && services.length > 0) {
 			return Arrays.stream(services).filter(this::matchNamespaces).map(Service::getName)
 					.collect(Collectors.toList());
@@ -71,14 +75,12 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	private boolean matchNamespaces(KubernetesServiceInstance kubernetesServiceInstance) {
-		return emptyNamespaces || properties.getNamespaces().contains(kubernetesServiceInstance.getNamespace());
+		return emptyNamespaces || namespaces.contains(kubernetesServiceInstance.getNamespace());
 	}
 
 	private boolean matchNamespaces(Service service) {
-		if (service.getServiceInstances().isEmpty()) {
-			return true;
-		}
-		return service.getServiceInstances().stream().anyMatch(this::matchNamespaces);
+		return service.getServiceInstances().isEmpty() ||
+			service.getServiceInstances().stream().anyMatch(this::matchNamespaces);
 	}
 
 }
