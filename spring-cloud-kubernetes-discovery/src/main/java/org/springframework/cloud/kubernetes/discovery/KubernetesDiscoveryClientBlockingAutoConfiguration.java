@@ -16,16 +16,15 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.ApplicationContext;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,13 +53,16 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
-	InitializingBean indicatorInitializer(ApplicationEventPublisher applicationEventPublisher,
-			ApplicationContext applicationContext) {
-		InitializingBean bean = () -> applicationEventPublisher
-				.publishEvent(new InstanceRegisteredEvent<>(applicationContext.getId(), null));
-		return bean;
+	@ConditionalOnMissingBean
+	PodUtils<?> kubernetesDiscoveryPodUtils() {
+		return new KubernetesDiscoveryPodUtils();
+	}
 
+	@Bean
+	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
+	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(PodUtils<?> podUtils,
+			ApplicationEventPublisher applicationEventPublisher) {
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 }
