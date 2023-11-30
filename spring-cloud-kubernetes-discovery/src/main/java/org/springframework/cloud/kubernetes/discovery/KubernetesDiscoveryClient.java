@@ -91,8 +91,8 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	}
 
 	private boolean matchNamespaces(Service service) {
-		return service.getServiceInstances().isEmpty() ||
-			service.getServiceInstances().stream().anyMatch(this::matchNamespaces);
+		return service.getServiceInstances().isEmpty()
+				|| service.getServiceInstances().stream().anyMatch(this::matchNamespaces);
 	}
 
 }
