@@ -80,8 +80,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<String> getServices() {
 		Service[] services = rest.getForEntity(discoveryServerUrl + "/apps", Service[].class).getBody();
 		if (services != null && services.length > 0) {
-			return Arrays.stream(services).filter(this::matchNamespaces).map(Service::getName)
-					.collect(Collectors.toList());
+			return Arrays.stream(services).filter(this::matchNamespaces).map(Service::getName).toList();
 		}
 		return List.of();
 	}
