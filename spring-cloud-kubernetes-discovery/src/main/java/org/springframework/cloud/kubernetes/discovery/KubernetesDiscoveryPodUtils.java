@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,27 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.List;
+import java.util.function.Supplier;
+
+import org.springframework.cloud.kubernetes.commons.PodUtils;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-public class Service {
+final class KubernetesDiscoveryPodUtils implements PodUtils<Object> {
 
-	private String name;
-
-	private List<KubernetesServiceInstance> serviceInstances = List.of();
-
-	public Service() {
+	@Override
+	public Supplier<Object> currentPod() {
+		// we don't really have a way to get the pod here
+		return () -> null;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public List<KubernetesServiceInstance> getServiceInstances() {
-		return serviceInstances;
-	}
-
-	public void setServiceInstances(List<KubernetesServiceInstance> serviceInstances) {
-		this.serviceInstances = serviceInstances;
+	@Override
+	public boolean isInsideKubernetes() {
+		// this bean is used in a config that is annotated
+		// with @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES),
+		// so safe to return true here.
+		return true;
 	}
 
 }
