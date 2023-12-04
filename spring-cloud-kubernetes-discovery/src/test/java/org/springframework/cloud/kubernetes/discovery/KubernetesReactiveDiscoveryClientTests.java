@@ -19,11 +19,13 @@ package org.springframework.cloud.kubernetes.discovery;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import reactor.test.StepVerifier;
 
 import org.springframework.web.reactive.function.client.WebClient;
@@ -105,19 +107,21 @@ class KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void getInstances() {
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			false, false, wireMockServer.baseUrl());
 		KubernetesReactiveDiscoveryClient discoveryClient = new KubernetesReactiveDiscoveryClient(WebClient.builder(),
-				properties);
+			discoveryProperties);
 		StepVerifier.create(discoveryClient.getServices()).expectNext("test-svc-1", "test-svc-3").verifyComplete();
 	}
 
 	@Test
 	void getServices() {
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			false, false, wireMockServer.baseUrl());
 		KubernetesReactiveDiscoveryClient discoveryClient = new KubernetesReactiveDiscoveryClient(WebClient.builder(),
-				properties);
+			discoveryProperties);
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("spring", "true");
 		metadata.put("http", "8080");
