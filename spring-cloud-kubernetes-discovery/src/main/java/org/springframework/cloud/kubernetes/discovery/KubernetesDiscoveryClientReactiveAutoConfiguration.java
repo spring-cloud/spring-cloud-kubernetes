@@ -24,6 +24,7 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,8 +35,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnSpringCloudKubernetesReactiveDiscovery
-@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class,
-		KubernetesDiscoveryClientProperties.class })
+@EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class, KubernetesDiscoveryProperties.class })
 class KubernetesDiscoveryClientReactiveAutoConfiguration {
 
 	@Bean
@@ -47,7 +47,7 @@ class KubernetesDiscoveryClientReactiveAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
-			KubernetesDiscoveryClientProperties properties) {
+			KubernetesDiscoveryProperties properties) {
 		return new KubernetesReactiveDiscoveryClient(webClientBuilder, properties);
 	}
 
