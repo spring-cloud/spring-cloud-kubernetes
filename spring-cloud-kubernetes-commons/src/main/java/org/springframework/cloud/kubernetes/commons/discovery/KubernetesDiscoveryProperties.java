@@ -60,7 +60,8 @@ public record KubernetesDiscoveryProperties(
 		@DefaultValue Metadata metadata,
 		@DefaultValue("" + DEFAULT_ORDER) int order,
 		boolean useEndpointSlices,
-		boolean includeExternalNameServices) {
+		boolean includeExternalNameServices,
+		String discoveryServerUrl) {
 // @formatter:on
 
 	/**
@@ -80,7 +81,20 @@ public record KubernetesDiscoveryProperties(
 			@DefaultValue Map<String, String> serviceLabels, String primaryPortName, @DefaultValue Metadata metadata,
 			@DefaultValue("" + DEFAULT_ORDER) int order, boolean useEndpointSlices) {
 		this(enabled, allNamespaces, namespaces, waitCacheReady, cacheLoadingTimeoutSeconds, includeNotReadyAddresses,
-				filter, knownSecurePorts, serviceLabels, primaryPortName, metadata, order, useEndpointSlices, false);
+				filter, knownSecurePorts, serviceLabels, primaryPortName, metadata, order, useEndpointSlices, false,
+				null);
+	}
+
+	public KubernetesDiscoveryProperties(@DefaultValue("true") boolean enabled, boolean allNamespaces,
+			@DefaultValue Set<String> namespaces, @DefaultValue("true") boolean waitCacheReady,
+			@DefaultValue("60") long cacheLoadingTimeoutSeconds, boolean includeNotReadyAddresses, String filter,
+			@DefaultValue({ "443", "8443" }) Set<Integer> knownSecurePorts,
+			@DefaultValue Map<String, String> serviceLabels, String primaryPortName, @DefaultValue Metadata metadata,
+			@DefaultValue("" + DEFAULT_ORDER) int order, boolean useEndpointSlices,
+			boolean includeExternalNameServices) {
+		this(enabled, allNamespaces, namespaces, waitCacheReady, cacheLoadingTimeoutSeconds, includeNotReadyAddresses,
+				filter, knownSecurePorts, serviceLabels, primaryPortName, metadata, order, useEndpointSlices,
+				includeExternalNameServices, null);
 	}
 
 	/**
@@ -88,7 +102,7 @@ public record KubernetesDiscoveryProperties(
 	 */
 	public static final KubernetesDiscoveryProperties DEFAULT = new KubernetesDiscoveryProperties(true, false, Set.of(),
 			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
-			false);
+			false, null);
 
 	/**
 	 * @param addLabels include labels as metadata
