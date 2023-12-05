@@ -18,9 +18,11 @@ package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.util.List;
 
+import org.springframework.cloud.client.ServiceInstance;
+
 /**
  * Use for discovery service implementation.
  * @author wind57
  */
-public record Service(String name, List<DefaultKubernetesServiceInstance> serviceInstances) {
+public record Service(String name, List<ServiceInstance> serviceInstances) {
 }
