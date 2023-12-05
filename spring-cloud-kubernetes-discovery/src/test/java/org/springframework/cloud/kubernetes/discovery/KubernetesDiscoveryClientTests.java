@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,9 +133,8 @@ class KubernetesDiscoveryClientTests {
 		metadata.put("spring", "true");
 		metadata.put("http", "8080");
 		metadata.put("k8s", "true");
-		assertThat(discoveryClient.getInstances("test-svc-3"))
-				.contains(new DefaultKubernetesServiceInstance(
-					"uid2", "test-svc-3", "2.2.2.2", 8080, metadata, false,"namespace2", null, null));
+		assertThat(discoveryClient.getInstances("test-svc-3")).contains(new DefaultKubernetesServiceInstance("uid2",
+				"test-svc-3", "2.2.2.2", 8080, metadata, false, "namespace2", null, null));
 		assertThat(discoveryClient.getInstances("does-not-exist")).isEmpty();
 	}
 
