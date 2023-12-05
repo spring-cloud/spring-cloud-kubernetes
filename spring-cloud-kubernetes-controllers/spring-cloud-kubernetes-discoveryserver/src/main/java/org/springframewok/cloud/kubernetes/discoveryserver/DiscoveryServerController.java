@@ -16,6 +16,7 @@
 
 package org.springframewok.cloud.kubernetes.discoveryserver;
 
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -41,7 +42,8 @@ public class DiscoveryServerController {
 	@GetMapping("/apps")
 	public Flux<Service> apps() {
 		return reactiveDiscoveryClient.getServices().flatMap(service -> reactiveDiscoveryClient.getInstances(service)
-				.collectList().flatMap(serviceInstances -> Mono.just(new Service(service, serviceInstances))));
+				.collectList().flatMap(serviceInstances -> Mono.just(new Service(service,
+				serviceInstances.stream().map(x -> (DefaultKubernetesServiceInstance) x).toList()))));
 	}
 
 	@GetMapping("/apps/{name}")
