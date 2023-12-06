@@ -16,10 +16,14 @@
 
 package org.springframework.cloud.kubernetes.discoveryserver;
 
+import java.util.List;
+
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 
 /**
  * @author wind57
@@ -46,6 +50,10 @@ final class Util {
 			endpointsCache.add(ep);
 		}
 		return endpointsLister;
+	}
+
+	record InstanceForTest(String name, List<DefaultKubernetesServiceInstance> serviceInstances) {
+
 	}
 
 }
