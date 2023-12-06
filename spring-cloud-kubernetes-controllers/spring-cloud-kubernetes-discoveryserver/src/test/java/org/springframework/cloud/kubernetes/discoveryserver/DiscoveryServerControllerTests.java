@@ -23,7 +23,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframewok.cloud.kubernetes.discoveryserver.DiscoveryServerController;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 

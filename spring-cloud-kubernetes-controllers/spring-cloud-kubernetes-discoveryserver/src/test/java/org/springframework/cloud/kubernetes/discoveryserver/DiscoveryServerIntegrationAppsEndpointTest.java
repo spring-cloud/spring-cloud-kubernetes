@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.kubernetes.discoveryserver;
 
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -34,17 +36,18 @@ import io.kubernetes.client.openapi.models.V1ServiceStatus;
 import org.junit.jupiter.api.Test;
 
 import org.mockito.Mockito;
-import org.springframewok.cloud.kubernetes.discoveryserver.DiscoveryServerController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.reactive.HandleToReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.mockito.Mockito.mock;
@@ -101,17 +104,36 @@ class DiscoveryServerIntegrationAppsEndpointTest {
 			TEST_SERVICE_1.getMetadata().getName(), TEST_ENDPOINTS_1.getSubsets().get(0).getAddresses().get(0).getIp(),
 			TEST_ENDPOINTS_1.getSubsets().get(0).getPorts().get(0).getPort(), kubernetesServiceInstance1Metadata,
 			false, TEST_SERVICE_1.getMetadata().getNamespace(), null);
-		KubernetesServiceInstance kubernetesServiceInstance3 = new DefaultKubernetesServiceInstance(
+
+		KubernetesServiceInstance kubernetesServiceInstance2 = new DefaultKubernetesServiceInstance(
 			TEST_ENDPOINTS_2.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
 			TEST_SERVICE_2.getMetadata().getName(), TEST_ENDPOINTS_2.getSubsets().get(0).getAddresses().get(0).getIp(),
 			TEST_ENDPOINTS_2.getSubsets().get(0).getPorts().get(0).getPort(), kubernetesServiceInstance2Metadata,
 			false, TEST_SERVICE_2.getMetadata().getNamespace(), null);
 
-		webTestClient.get().uri("/apps").exchange().expectBodyList(DiscoveryServerController.Service.class).hasSize(2).contains(
-			new DiscoveryServerController.Service(TEST_SERVICE_1.getMetadata().getName(),
-				Collections.singletonList(kubernetesServiceInstance1)),
-			new DiscoveryServerController.Service(TEST_SERVICE_2.getMetadata().getName(),
-				Collections.singletonList(kubernetesServiceInstance3)));
+		ParameterizedTypeReference<List<DiscoveryServerController.Service>> reference =
+			new ParameterizedTypeReference<>() {
+				@Override
+				public Type getType() {
+					return super.getType();
+				}
+			};
+
+		webTestClient.get().uri("/apps").exchange()
+			.expectBody(reference).isEqualTo(
+				List.of(
+					new DiscoveryServerController.Service(TEST_SERVICE_1.getMetadata().getName(),
+						Collections.singletonList(kubernetesServiceInstance1)),
+					new DiscoveryServerController.Service(TEST_SERVICE_2.getMetadata().getName(),
+						Collections.singletonList(kubernetesServiceInstance2))
+			));
+
+			//.expectBodyList(DiscoveryServerController.Service.class)
+//			.hasSize(2).contains(
+//			new DiscoveryServerController.Service(TEST_SERVICE_1.getMetadata().getName(),
+//				Collections.singletonList(kubernetesServiceInstance1)),
+//			new DiscoveryServerController.Service(TEST_SERVICE_2.getMetadata().getName(),
+//				Collections.singletonList(kubernetesServiceInstance2)));
 	}
 
 	@TestConfiguration
@@ -126,7 +148,7 @@ class DiscoveryServerIntegrationAppsEndpointTest {
 
 		@Bean
 		KubernetesInformerReactiveDiscoveryClient discoveryClient() {
-			return new KubernetesInformerReactiveDiscoveryClient(kubernetesInformerDiscoveryClient());
+			return new HandleToReactiveDiscoveryClient(kubernetesInformerDiscoveryClient());
 		}
 
 		private KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient() {

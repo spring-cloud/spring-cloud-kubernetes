@@ -39,7 +39,6 @@ import io.kubernetes.client.openapi.models.V1ServiceStatus;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.Test;
 
-import org.springframewok.cloud.kubernetes.discoveryserver.DiscoveryServerController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
