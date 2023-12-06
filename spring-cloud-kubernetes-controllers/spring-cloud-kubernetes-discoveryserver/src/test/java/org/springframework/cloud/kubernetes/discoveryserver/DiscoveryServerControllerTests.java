@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframewok.cloud.kubernetes.discoveryserver;
+package org.springframework.cloud.kubernetes.discoveryserver;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframewok.cloud.kubernetes.discoveryserver.DiscoveryServerController;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 

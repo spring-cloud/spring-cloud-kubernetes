@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframewok.cloud.kubernetes.discoveryserver;
+package org.springframework.cloud.kubernetes.discoveryserver;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,11 +39,10 @@ import io.kubernetes.client.openapi.models.V1ServiceStatus;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.Test;
 
-import org.mockito.Mockito;
+import org.springframewok.cloud.kubernetes.discoveryserver.DiscoveryServerController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
@@ -61,7 +60,7 @@ import static org.mockito.Mockito.when;
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = DiscoveryServerIntegrationTests.TestConfig.class, properties = { "debug=true" })
+		classes = DiscoveryServerIntegrationTests.TestConfig.class)
 class DiscoveryServerIntegrationTests {
 
 	private static final V1Service TEST_SERVICE_1 = new V1Service()
@@ -181,12 +180,12 @@ class DiscoveryServerIntegrationTests {
 			return new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
 		}
 
-		@Bean
-		KubernetesInformerReactiveDiscoveryClient discoveryClient() {
-			KubernetesInformerReactiveDiscoveryClient discoveryClient =
-				Mockito.mock(KubernetesInformerReactiveDiscoveryClient.class);
-			return discoveryClient;
-		}
+//		@Bean
+//		KubernetesInformerReactiveDiscoveryClient discoveryClient() {
+//			KubernetesInformerReactiveDiscoveryClient discoveryClient =
+//				Mockito.mock(KubernetesInformerReactiveDiscoveryClient.class);
+//			return discoveryClient;
+//		}
 
 	}
 
