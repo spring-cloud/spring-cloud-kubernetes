@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframewok.cloud.kubernetes.discoveryserver;
+package org.springframework.cloud.kubernetes.discoveryserver;
 
 import java.util.Collections;
 import java.util.HashMap;
