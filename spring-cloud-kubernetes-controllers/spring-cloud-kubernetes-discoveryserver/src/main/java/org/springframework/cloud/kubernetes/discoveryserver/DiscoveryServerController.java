@@ -56,7 +56,7 @@ public class DiscoveryServerController {
 				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
 	}
 
-	private record Service(String name, List<ServiceInstance> serviceInstances) {
+	record Service(String name, List<ServiceInstance> serviceInstances) {
 
 	}
 
