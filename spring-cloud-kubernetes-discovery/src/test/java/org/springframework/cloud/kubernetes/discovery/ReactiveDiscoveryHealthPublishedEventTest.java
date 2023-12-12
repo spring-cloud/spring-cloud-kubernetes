@@ -24,9 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
 
 /**
  * test that asserts the type of published event for reactive discovery.
@@ -37,8 +38,10 @@ import org.springframework.context.annotation.Bean;
 		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
 				// disable blocking implementation
-				"spring.cloud.discovery.blocking.enabled=false" },
-		classes = ReactiveDiscoveryHealthPublishedEventTest.HealthEventListenerConfiguration.class)
+				"spring.cloud.discovery.blocking.enabled=false",
+				"spring.main.allow-bean-definition-overriding=true"},
+		classes = { ReactiveDiscoveryHealthPublishedEventTest.HealthEventListenerConfiguration.class,
+				App.class })
 class ReactiveDiscoveryHealthPublishedEventTest {
 
 	private static boolean caught;
@@ -69,10 +72,8 @@ class ReactiveDiscoveryHealthPublishedEventTest {
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
 			caught = true;
-			Assertions.assertTrue(event
-					.getSource() instanceof KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource);
-			KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource registeredEventSource = (KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) event
-					.getSource();
+            Assertions.assertInstanceOf(RegisteredEventSource.class, event.getSource());
+			RegisteredEventSource registeredEventSource = (RegisteredEventSource) event.getSource();
 			Assertions.assertTrue(registeredEventSource.inside());
 			Assertions.assertNull(registeredEventSource.pod());
 			Assertions.assertEquals(registeredEventSource.cloudPlatform(), "kubernetes");

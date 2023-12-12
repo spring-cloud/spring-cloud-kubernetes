@@ -34,8 +34,9 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  */
 @SpringBootTest(
 		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=http://example" },
-		classes = BlockingDiscoveryHealthPublishedEventTest.HealthEventListenerConfiguration.class)
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
+				"spring.main.allow-bean-definition-overriding=true"},
+		classes = { BlockingDiscoveryHealthPublishedEventTest.HealthEventListenerConfiguration.class, App.class })
 class BlockingDiscoveryHealthPublishedEventTest {
 
 	private static boolean caught;
@@ -60,7 +61,7 @@ class BlockingDiscoveryHealthPublishedEventTest {
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
 			caught = true;
-			Assertions.assertTrue(event.getSource() instanceof RegisteredEventSource);
+            Assertions.assertInstanceOf(RegisteredEventSource.class, event.getSource());
 			RegisteredEventSource registeredEventSource = (RegisteredEventSource) event.getSource();
 			Assertions.assertTrue(registeredEventSource.inside());
 			Assertions.assertNull(registeredEventSource.pod());
