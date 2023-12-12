@@ -71,8 +71,7 @@ class ReactiveDiscoveryHealthPublishedEventTest {
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
 			caught = true;
-            Assertions.assertInstanceOf(KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource.class,
-				event.getSource());
+            Assertions.assertInstanceOf(RegisteredEventSource.class, event.getSource());
 			RegisteredEventSource registeredEventSource = (RegisteredEventSource) event.getSource();
 			Assertions.assertTrue(registeredEventSource.inside());
 			Assertions.assertNull(registeredEventSource.pod());
