@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.discovery;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
@@ -45,6 +46,7 @@ class BlockingDiscoveryHealthPublishedEventTest {
 		Assertions.assertTrue(caught);
 	}
 
+	@SpringBootConfiguration
 	@TestConfiguration
 	static class HealthEventListenerConfiguration {
 
@@ -60,7 +62,7 @@ class BlockingDiscoveryHealthPublishedEventTest {
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
 			caught = true;
-			Assertions.assertTrue(event.getSource() instanceof RegisteredEventSource);
+            Assertions.assertInstanceOf(RegisteredEventSource.class, event.getSource());
 			RegisteredEventSource registeredEventSource = (RegisteredEventSource) event.getSource();
 			Assertions.assertTrue(registeredEventSource.inside());
 			Assertions.assertNull(registeredEventSource.pod());

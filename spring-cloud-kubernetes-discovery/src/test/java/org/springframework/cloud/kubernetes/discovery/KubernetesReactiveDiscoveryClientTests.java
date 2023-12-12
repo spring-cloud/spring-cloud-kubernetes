@@ -16,14 +16,16 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import reactor.test.StepVerifier;
 
 import org.springframework.web.reactive.function.client.WebClient;
@@ -105,8 +107,9 @@ class KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void getInstances() {
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
+			false, null, Set.of(), Map.of(), null, null, 0, false, false, wireMockServer.baseUrl());
+
 		KubernetesReactiveDiscoveryClient discoveryClient = new KubernetesReactiveDiscoveryClient(WebClient.builder(),
 				properties);
 		StepVerifier.create(discoveryClient.getServices()).expectNext("test-svc-1", "test-svc-3").verifyComplete();
@@ -114,19 +117,20 @@ class KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void getServices() {
-		KubernetesDiscoveryClientProperties properties = new KubernetesDiscoveryClientProperties();
-		properties.setDiscoveryServerUrl(wireMockServer.baseUrl());
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
+			false, null, Set.of(), Map.of(), null, null, 0, false, false, wireMockServer.baseUrl());
+
 		KubernetesReactiveDiscoveryClient discoveryClient = new KubernetesReactiveDiscoveryClient(WebClient.builder(),
 				properties);
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("spring", "true");
 		metadata.put("http", "8080");
 		metadata.put("k8s", "true");
+
 		StepVerifier.create(discoveryClient.getInstances("test-svc-3"))
-				.expectNext(new KubernetesServiceInstance("uid2", "test-svc-3", "2.2.2.2", 8080, false,
-						URI.create("http://2.2.2.2:8080"), metadata, "http", "namespace1"))
+				.expectNext(new DefaultKubernetesServiceInstance("uid2", "test-svc-3", "2.2.2.2", 8080,
+					metadata, false, "namespace1", null, null))
 				.verifyComplete();
-		StepVerifier.create(discoveryClient.getInstances("test-svc-3")).expectNextCount(0);
 	}
 
 }

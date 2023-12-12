@@ -28,6 +28,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
+
 /**
  * test that asserts the type of published event for reactive discovery.
  *
@@ -69,10 +71,9 @@ class ReactiveDiscoveryHealthPublishedEventTest {
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
 			caught = true;
-			Assertions.assertTrue(event
-					.getSource() instanceof KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource);
-			KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource registeredEventSource = (KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) event
-					.getSource();
+            Assertions.assertInstanceOf(KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource.class,
+				event.getSource());
+			RegisteredEventSource registeredEventSource = (RegisteredEventSource) event.getSource();
 			Assertions.assertTrue(registeredEventSource.inside());
 			Assertions.assertNull(registeredEventSource.pod());
 			Assertions.assertEquals(registeredEventSource.cloudPlatform(), "kubernetes");
