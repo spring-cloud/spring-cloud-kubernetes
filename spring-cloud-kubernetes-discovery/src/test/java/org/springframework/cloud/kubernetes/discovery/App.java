@@ -22,9 +22,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author wind57
  */
 @SpringBootApplication
-public class App {
+class App {
 
-	public static void main(String[] args) {
+	static void main(String[] args) {
 
 	}
 

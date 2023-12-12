@@ -16,69 +16,41 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
-
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
 
 /**
  * test that asserts the type of published event for reactive discovery.
  *
  * @author wind57
  */
-@SpringBootTest(
-		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
-				// disable blocking implementation
-				"spring.cloud.discovery.blocking.enabled=false",
-				"spring.main.allow-bean-definition-overriding=true"},
-		classes = { ReactiveDiscoveryHealthPublishedEventTest.HealthEventListenerConfiguration.class,
-				App.class })
+@SpringBootTest(properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
+		"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
+		// disable blocking implementation
+		"spring.cloud.discovery.blocking.enabled=false", "use.deprecated.reactive.client.auto.configuration=false",
+		"use.deprecated.blocking.client.auto.configuration=false" },
+		classes = { HealthEventListenerConfiguration.class, App.class })
 class ReactiveDiscoveryHealthPublishedEventTest {
-
-	private static boolean caught;
 
 	// blocking client is not present, as such the blocking auto-configuration was not
 	// picked up, therefor the health event comes from the reactive one.
 	@Autowired
 	private ObjectProvider<KubernetesDiscoveryClient> discoveryClients;
 
+	@AfterEach
+	void afterEach() {
+		HealthEventListenerConfiguration.caught = false;
+	}
+
 	@Test
 	void test() {
-		Assertions.assertTrue(caught);
+		Assertions.assertTrue(HealthEventListenerConfiguration.caught);
 		Assertions.assertNull(discoveryClients.getIfAvailable());
-	}
-
-	@TestConfiguration
-	static class HealthEventListenerConfiguration {
-
-		@Bean
-		ReactiveDiscoveryHealthPublishedEventTest.HealthEventListener healthEventListener() {
-			return new ReactiveDiscoveryHealthPublishedEventTest.HealthEventListener();
-		}
-
-	}
-
-	private static class HealthEventListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
-
-		@Override
-		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
-			caught = true;
-            Assertions.assertInstanceOf(RegisteredEventSource.class, event.getSource());
-			RegisteredEventSource registeredEventSource = (RegisteredEventSource) event.getSource();
-			Assertions.assertTrue(registeredEventSource.inside());
-			Assertions.assertNull(registeredEventSource.pod());
-			Assertions.assertEquals(registeredEventSource.cloudPlatform(), "kubernetes");
-		}
-
 	}
 
 }
