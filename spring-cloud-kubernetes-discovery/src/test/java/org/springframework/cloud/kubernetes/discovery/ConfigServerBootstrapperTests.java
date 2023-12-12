@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -117,7 +117,7 @@ class ConfigServerBootstrapperTests {
 	private String[] addDefaultEnv(String[] env) {
 		Set<String> set = new HashSet<>();
 		if (env != null) {
-			set.addAll(Arrays.asList(env));
+			set.addAll(List.of(env));
 		}
 		set.add("server.port=0");
 		set.add("spring.cloud.config.discovery.enabled=true");
