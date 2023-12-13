@@ -1366,9 +1366,22 @@ will only take effect when set in `bootstrap.{properties|yml}` when you have `sp
 
 === Breaking Changes In 3.0.x
 
-In versions of Spring Cloud Kubernetes prior to `3.0.x`, Kubernetes awareness was implemented using `spring.cloud.kubernetes.enabled` property. This
+ - In versions of Spring Cloud Kubernetes prior to `3.0.x`, Kubernetes awareness was implemented using `spring.cloud.kubernetes.enabled` property. This
 property was removed and is un-supported. Instead, we use Spring Boot API: https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/autoconfigure/condition/ConditionalOnCloudPlatform.html[ConditionalOnCloudPlatform].
 If it is needed to explicitly enable or disable this awareness, use `spring.main.cloud-platform=NONE/KUBERNETES`.
+
+ - Another breaking change is the additional `list` verb needed for loading configmaps/secrets. For example:
+
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-role
+rules:
+  - apiGroups: ["", "extensions", "apps", "discovery.k8s.io"]
+    resources: ["configmaps", "pods", "services", "endpoints", "secrets", "endpointslices"]
+    verbs: ["get", "list", "watch"]
+```
 
 === Kubernetes Profile Autoconfiguration
 
