@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,8 +30,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.config.environment.Environment;
@@ -97,11 +95,16 @@ class ConfigServerBootstrapperTests {
 						.withHeader("content-type", "application/json")));
 	}
 
+	@AfterEach
+	void afterEach() {
+		context.close();
+	}
+
 	@Test
 	void testBootstrapper() {
-		this.context = setup().run();
+		context = setup().run();
 		verify(1, getRequestedFor(urlEqualTo("/apps/spring-cloud-kubernetes-configserver")));
-		assertThat(this.context.getEnvironment().getProperty("hello")).isEqualTo("world");
+		assertThat(context.getEnvironment().getProperty("hello")).isEqualTo("world");
 	}
 
 	SpringApplicationBuilder setup(String... env) {
@@ -114,14 +117,14 @@ class ConfigServerBootstrapperTests {
 	private String[] addDefaultEnv(String[] env) {
 		Set<String> set = new HashSet<>();
 		if (env != null) {
-			set.addAll(Arrays.asList(env));
+			set.addAll(List.of(env));
 		}
-		set.add("spring.main.web-application-type=NONE");
 		set.add("server.port=0");
 		set.add("spring.cloud.config.discovery.enabled=true");
 		set.add("spring.config.import=optional:configserver:");
 		set.add("spring.cloud.config.discovery.service-id=spring-cloud-kubernetes-configserver");
 		set.add("spring.cloud.kubernetes.discovery.discoveryServerUrl=" + wireMockServer.baseUrl());
+		set.add("spring.main.web-application-type=NONE");
 		return set.toArray(new String[0]);
 	}
 
