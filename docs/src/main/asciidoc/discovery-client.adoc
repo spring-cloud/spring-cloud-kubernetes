@@ -122,7 +122,29 @@ Once namespaces have been configured, the next question to answer is what servic
 
 - Only take services that match certain service labels. This property is specified with: `spring.cloud.kubernetes.discovery.service-labels`. It accepts a `Map` and only those services that have such labels (as seen in `metadata.labels` in the service definition) will be taken into account.
 
-- The other option is to use https://docs.spring.io/spring-framework/reference/core/expressions.html[SpEL expression].
+- The other option is to use https://docs.spring.io/spring-framework/reference/core/expressions.html[SpEL expression]. This is denoted by the `spring.cloud.kubernetes.discovery.filter` property, and its value depends on the client that you chose. If you use the fabric8 client, this SpEL expression must be created against `io.fabric8.kubernetes.api.model.Service` class. One such example could be:
+
+[source]
+----
+spring.cloud.kubernetes.discovery.filter='#root.metadata.namespace matches "^.+A$"'
+----
+
+which tells discovery client to only get services that have the `metadata.namespace` that ends in upper case `A`.
+
+If your discovery client is based on k8s-native client, then the SpEL expression must be based on `io.kubernetes.client.openapi.models.V1Service` class. The same filter showed above would work here.
+
+If your discovery client is the http based one, then the SeEL expression has to be based on the same `io.kubernetes.client.openapi.models.V1Service` class, with the only distinction that this needs to be set as an env variable in the deployment yaml:
+
+
+----
+      containers:
+        - name: discovery-server
+          image: springcloud/spring-cloud-kubernetes-discoveryserver:3.0.5-SNAPSHOT
+          env:
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_FILTER
+              value: '#root.metadata.namespace matches "^.+A$"'
+----
+
 
 
 
