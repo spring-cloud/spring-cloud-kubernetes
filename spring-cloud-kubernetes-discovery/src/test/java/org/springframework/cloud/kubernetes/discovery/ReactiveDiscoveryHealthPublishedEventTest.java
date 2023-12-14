@@ -32,8 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
 		"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
 		// disable blocking implementation
-		"spring.cloud.discovery.blocking.enabled=false", "use.deprecated.reactive.client.auto.configuration=false",
-		"use.deprecated.blocking.client.auto.configuration=false" },
+		"spring.cloud.discovery.blocking.enabled=false" },
 		classes = { HealthEventListenerConfiguration.class, App.class })
 class ReactiveDiscoveryHealthPublishedEventTest {
 

@@ -22,7 +22,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -56,7 +55,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Deprecated(forRemoval = true)
 public class KubernetesDiscoveryClientAutoConfiguration {
 
-	@ConditionalOnProperty(value = "use.deprecated.blocking.client.auto.configuration", matchIfMissing = true)
 	@Configuration(proxyBeanMethods = false)
 	public static class Servlet {
 
@@ -86,7 +84,6 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 
 	}
 
-	@ConditionalOnProperty(value = "use.deprecated.reactive.client.auto.configuration", matchIfMissing = true)
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnReactiveDiscoveryEnabled
 	public static class Reactive {
