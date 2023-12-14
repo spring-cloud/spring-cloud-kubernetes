@@ -6,9 +6,36 @@ This client lets you query Kubernetes endpoints (see https://kubernetes.io/docs/
 A service is typically exposed by the Kubernetes API server as a collection of endpoints that represent `http` and `https` addresses and that a client can
 access from a Spring Boot application running as a pod.
 
-DiscoveryClient can also find services of type `ExternalName` (see https://kubernetes.io/docs/concepts/services-networking/service/#externalname[ExternalName services]). At the moment, external name support type of services is only available if the following property  `spring.cloud.kubernetes.discovery.include-external-name-services` is set to `true` and only in the `fabric8` implementation. In a later release, support will be added for the kubernetes native client also.
+DiscoveryClient can also find services of type `ExternalName` (see https://kubernetes.io/docs/concepts/services-networking/service/#externalname[ExternalName services]). At the moment, external name support type of services is only available if the following property  `spring.cloud.kubernetes.discovery.include-external-name-services` is set to `true` (it is `false` by default).
 
-This is something that you get for free by adding the following dependency inside your project:
+There are 3 types of discovery clients that we support:
+
+1.
+====
+Fabric8 Kubernetes Client
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
+</dependency>
+----
+====
+
+2.
+
+====
+Kubernetes Java Client
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
+</dependency>
+----
+====
+
+3.
 
 ====
 HTTP Based `DiscoveryClient`
@@ -23,28 +50,6 @@ HTTP Based `DiscoveryClient`
 
 NOTE: `spring-cloud-starter-kubernetes-discoveryclient` is designed to be used with the
 <<spring-cloud-kubernetes-discoveryserver, Spring Cloud Kubernetes DiscoveryServer>>.
-
-====
-Fabric8 Kubernetes Client
-[source,xml]
-----
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
-</dependency>
-----
-====
-
-====
-Kubernetes Java Client
-[source,xml]
-----
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
-</dependency>
-----
-====
 
 To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class, as the following example shows:
 
@@ -70,6 +75,77 @@ Then you can inject the client in your code simply by autowiring it, as the foll
 private DiscoveryClient discoveryClient;
 ----
 ====
+
+The first question you should ask yourself is _where_ a `DiscoveryClient` supposed to discover services. In the kubernetes world, this means what namespace(s). There are 3 options here:
+
+ - `selective namespaces`. For example:
+
+[source]
+----
+spring.cloud.kubernetes.discovery.namespaces[0]=ns1
+spring.cloud.kubernetes.discovery.namespaces[1]=ns2
+----
+
+Such a configuration makes discovery client only search for services in two namespaces `ns1` and `ns2`.
+
+ - `all-namespaces`.
+
+====
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces=true
+----
+====
+
+While such an option exists, this can be a burden on both kube-api and your application. It is very rare to need such a setting.
+
+ - `one namespace`. This is the default setting, if you do not specify any of the above. It works on the rules outlined in xref:property-source-config.adoc#namespace-resolution[Namespace Resolution].
+
+
+====
+NOTE: The above options work exactly as written for fabric8 and k8s clients. For the HTTP based client, you need to enable those options on the _server_. That can be achieved by setting them in `deployment.yaml` used to deploy the image in the cluster, using env variable(s).
+====
+
+For example:
+
+[source]
+----
+      containers:
+        - name: discovery-server
+          image: springcloud/spring-cloud-kubernetes-discoveryserver:3.0.5-SNAPSHOT
+          env:
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0
+              value: "namespace-a"
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 You can choose to enable `DiscoveryClient` from all namespaces by setting the following property in `application.properties`:
 
