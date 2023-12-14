@@ -97,7 +97,7 @@ spring.cloud.kubernetes.discovery.all-namespaces=true
 ----
 ====
 
-While such an option exists, this can be a burden on both kube-api and your application. It is very rare to need such a setting.
+While such an option exists, this can be a burden on both kube-api and your application. It is rare to need such a setting.
 
  - `one namespace`. This is the default setting, if you do not specify any of the above. It works on the rules outlined in xref:property-source-config.adoc#namespace-resolution[Namespace Resolution].
 
@@ -118,7 +118,11 @@ For example:
               value: "namespace-a"
 ----
 
+Once namespaces have been configured, the next question to answer is what services to discover. Think about it as what filter to apply. By default, no filtering is applied at all and all services are discovered. If you need to narrow what discovery client can find, you have two options:
 
+- Only take services that match certain service labels. This property is specified with: `spring.cloud.kubernetes.discovery.service-labels`. It accepts a `Map` and only those services that have such labels (as seen in `metadata.labels` in the service definition) will be taken into account.
+
+- The other option is to use https://docs.spring.io/spring-framework/reference/core/expressions.html[SpEL expression].
 
 
 
