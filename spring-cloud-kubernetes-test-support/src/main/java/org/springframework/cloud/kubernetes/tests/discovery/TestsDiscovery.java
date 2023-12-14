@@ -43,9 +43,10 @@ import org.junit.platform.launcher.core.LauncherFactory;
 public class TestsDiscovery {
 
 	public static void main(String[] args) throws Exception {
-		List<String> targetClasses = entireClasspath().stream().filter(x -> x.contains("target/classes")).toList();
+		List<String> classpathEntries = entireClasspath();
+		List<String> targetClasses = classpathEntries.stream().filter(x -> x.contains("target/classes")).toList();
 		List<String> targetTestClasses = targetClasses.stream().map(x -> x.replace("classes", "test-classes")).toList();
-		List<String> jars = entireClasspath().stream().filter(x -> x.contains(".jar")).toList();
+		List<String> jars = classpathEntries.stream().filter(x -> x.contains(".jar")).toList();
 
 		List<URL> urls = Stream.of(targetClasses, targetTestClasses, jars).flatMap(List::stream)
 				.map(x -> toURL(new File(x).toPath().toUri())).toList();
@@ -62,9 +63,9 @@ public class TestsDiscovery {
 			Launcher launcher = session.getLauncher();
 			TestPlan testPlan = launcher.discover(request);
 			testPlan.getRoots().stream().flatMap(x -> testPlan.getChildren(x).stream())
-					.map(TestIdentifier::getLegacyReportingName).sorted().forEach(test -> {
-						System.out.println("spring.cloud.k8s.test.to.run -> " + test);
-					});
+					.map(TestIdentifier::getLegacyReportingName).sorted().forEach(test ->
+						System.out.println("spring.cloud.k8s.test.to.run -> " + test)
+					);
 		}
 
 	}
@@ -75,7 +76,7 @@ public class TestsDiscovery {
 		Thread.currentThread().setContextClassLoader(classLoader);
 	}
 
-	// /tmp/deps.txt are created by the pipeline
+	// /tmp/deps.txt is created by the pipeline
 	private static List<String> entireClasspath() throws Exception {
 		try (Stream<String> lines = Files.lines(Paths.get("/tmp/deps.txt"))) {
 			return lines.distinct().collect(Collectors.toList());
