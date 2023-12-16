@@ -24,5 +24,8 @@ spec:
             httpGet:
               port: 8761
               path: /actuator/health/liveness
+          env:
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERYSERVER
+              value: "DEBUG"
           ports:
             - containerPort: 8761

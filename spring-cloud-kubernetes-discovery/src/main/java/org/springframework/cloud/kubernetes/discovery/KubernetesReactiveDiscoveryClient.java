@@ -38,14 +38,14 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
-		this.webClient = webClientBuilder.baseUrl(properties.getDiscoveryServerUrl()).build();
+		webClient = webClientBuilder.baseUrl(properties.getDiscoveryServerUrl()).build();
 	}
 
 	KubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder, KubernetesDiscoveryProperties properties) {
 		if (!StringUtils.hasText(properties.discoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
-		this.webClient = webClientBuilder.baseUrl(properties.discoveryServerUrl()).build();
+		webClient = webClientBuilder.baseUrl(properties.discoveryServerUrl()).build();
 	}
 
 	@Override
