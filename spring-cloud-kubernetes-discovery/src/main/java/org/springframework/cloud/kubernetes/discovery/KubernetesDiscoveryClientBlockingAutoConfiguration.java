@@ -41,15 +41,15 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	RestTemplate restTemplate() {
-		return new RestTemplateBuilder().build();
+	RestTemplateBuilder restTemplateBuilder() {
+		return new RestTemplateBuilder();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
+	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
 			KubernetesDiscoveryProperties properties) {
-		return new KubernetesDiscoveryClient(restTemplate, properties);
+		return new KubernetesDiscoveryClient(restTemplateBuilder.build(), properties);
 	}
 
 	@Bean

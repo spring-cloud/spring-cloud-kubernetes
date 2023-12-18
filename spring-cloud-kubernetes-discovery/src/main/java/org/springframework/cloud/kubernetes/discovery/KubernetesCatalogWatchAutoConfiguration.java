@@ -52,7 +52,7 @@ class KubernetesCatalogWatchAutoConfiguration {
 	// which is not always desirable.
 	@Bean
 	@ConditionalOnMissingBean
-	RestTemplateBuilder restTemplate() {
+	RestTemplateBuilder restTemplateBuilder() {
 		return new RestTemplateBuilder();
 	}
 
