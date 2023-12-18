@@ -62,6 +62,14 @@ class DiscoveryClientIT {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
 									"value": "left"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY",
+									"value": "3000"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERY",
+									"value": "DEBUG"
 								}
 								]
 							}]
@@ -83,6 +91,14 @@ class DiscoveryClientIT {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
 									"value": "TRUE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERYSERVER",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY",
+									"value": "3000"
 								}
 								]
 							}]
@@ -160,22 +176,22 @@ class DiscoveryClientIT {
 		util.deleteNamespace(NAMESPACE_RIGHT);
 
 		discoveryServer(Phase.DELETE);
-		discoveryIt(Phase.DELETE);
+		discoveryClient(Phase.DELETE);
 		Commons.systemPrune();
 	}
 
 	@Test
 	void testDiscoveryClient() {
-		discoveryIt(Phase.CREATE);
+		discoveryClient(Phase.CREATE);
 		testLoadBalancer();
 		testHealth();
 
+		patchForAllNamespaces("docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
 		patchForNamespaceFilter(
 				"docker.io/springcloud/spring-cloud-kubernetes-k8s-client-discovery-server:" + Commons.pomVersion(),
 				"spring-cloud-kubernetes-k8s-client-discovery-server-deployment", NAMESPACE);
-		patchForAllNamespaces("docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
-				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
-		testNamespaceDiscoveryClient();
+		testNamespaceDiscoveryClient(K3S);
 	}
 
 	private void testLoadBalancer() {
@@ -200,7 +216,7 @@ class DiscoveryClientIT {
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 	}
 
-	private static void discoveryIt(Phase phase) {
+	private static void discoveryClient(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util
 				.yaml("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("client/spring-cloud-kubernetes-discoveryclient-it-service.yaml");

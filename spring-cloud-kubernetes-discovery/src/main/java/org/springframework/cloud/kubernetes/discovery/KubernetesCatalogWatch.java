@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -28,8 +29,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE;
 
 /**
  * @author wind57
@@ -44,12 +48,12 @@ final class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private final AtomicReference<List<EndpointNameAndNamespace>> catalogState = new AtomicReference<>(List.of());
 
-	private final WebClient webClient;
+	private final RestTemplate restTemplate;
 
 	private ApplicationEventPublisher publisher;
 
-	KubernetesCatalogWatch(WebClient.Builder webClientBuilder, KubernetesDiscoveryProperties properties) {
-		webClient = webClientBuilder.baseUrl(properties.discoveryServerUrl()).build();
+	KubernetesCatalogWatch(RestTemplateBuilder builder, KubernetesDiscoveryProperties properties) {
+		this.restTemplate = builder.rootUri(properties.discoveryServerUrl()).build();
 	}
 
 	@Override
@@ -57,14 +61,14 @@ final class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 		this.publisher = publisher;
 	}
 
-	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
+	@Scheduled(fixedDelayString = "${" + CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE + "}")
 	public void catalogServicesWatch() {
 		try {
-			List<EndpointNameAndNamespace> currentState = webClient.get().uri("/state")
-					.exchangeToMono(clientResponse -> clientResponse.bodyToMono(TYPE)).block();
+			List<EndpointNameAndNamespace> currentState = restTemplate.exchange("/state", HttpMethod.GET, null, TYPE)
+					.getBody();
 
 			if (!catalogState.get().equals(currentState)) {
-				LOG.debug(() -> "Received update from kubernetes http client: " + currentState);
+				LOG.debug(() -> "Received update from kubernetes discovery http client: " + currentState);
 				publisher.publishEvent(new HeartbeatEvent(this, currentState));
 			}
 

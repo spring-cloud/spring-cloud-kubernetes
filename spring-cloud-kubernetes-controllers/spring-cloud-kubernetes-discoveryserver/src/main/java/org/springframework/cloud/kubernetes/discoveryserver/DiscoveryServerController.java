@@ -21,10 +21,8 @@ import java.util.List;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,11 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class DiscoveryServerController {
-
-	// in a future release, this one must be constructor injected
-	@Deprecated(forRemoval = true)
-	@Autowired
-	private HeartBeatListener heartBeatListener;
 
 	private final KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
@@ -61,11 +54,6 @@ public class DiscoveryServerController {
 	public Mono<ServiceInstance> appInstance(@PathVariable String name, @PathVariable String instanceId) {
 		return reactiveDiscoveryClient.getInstances(name)
 				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
-	}
-
-	@GetMapping("/state")
-	Mono<List<EndpointNameAndNamespace>> state() {
-		return Mono.defer(() -> Mono.just(heartBeatListener.lastState().get()));
 	}
 
 	record Service(String name, List<ServiceInstance> serviceInstances) {

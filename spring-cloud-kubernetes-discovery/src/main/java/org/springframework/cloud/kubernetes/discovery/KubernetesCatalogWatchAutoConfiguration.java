@@ -16,16 +16,23 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.CATALOG_WATCHER_DEFAULT_DELAY;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.CATALOG_WATCH_PROPERTY_NAME;
 
 /**
  * @author wind57
@@ -37,15 +44,31 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 class KubernetesCatalogWatchAutoConfiguration {
 
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesCatalogWatchAutoConfiguration.class));
+
+	// this has to be a RestTemplateBuilder and not a WebClientBuilder, otherwise
+	// we need the webflux dependency, and it might leak into client's dependencies
+	// which is not always desirable.
 	@Bean
 	@ConditionalOnMissingBean
-	WebClient.Builder webClientBuilder() {
-		return WebClient.builder();
+	RestTemplateBuilder restTemplate() {
+		return new RestTemplateBuilder();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	KubernetesCatalogWatch kubernetesCatalogWatch(WebClient.Builder builder, KubernetesDiscoveryProperties properties) {
+	KubernetesCatalogWatch kubernetesCatalogWatch(RestTemplateBuilder builder, KubernetesDiscoveryProperties properties,
+			Environment environment) {
+
+		String watchDelay = environment.getProperty(CATALOG_WATCH_PROPERTY_NAME);
+		if (watchDelay != null) {
+			LOG.debug("using delay : " + watchDelay);
+		}
+		else {
+			LOG.debug("using default watch delay : " + CATALOG_WATCHER_DEFAULT_DELAY);
+		}
+
 		return new KubernetesCatalogWatch(builder, properties);
 	}
 

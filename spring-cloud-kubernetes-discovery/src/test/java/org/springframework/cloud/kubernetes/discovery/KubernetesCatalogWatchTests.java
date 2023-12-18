@@ -28,11 +28,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -73,7 +73,7 @@ class KubernetesCatalogWatchTests {
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
 				wireMockServer.baseUrl());
 
-		KubernetesCatalogWatch catalogWatch = new KubernetesCatalogWatch(WebClient.builder(), properties);
+		KubernetesCatalogWatch catalogWatch = new KubernetesCatalogWatch(new RestTemplateBuilder(), properties);
 		catalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 
 		catalogWatch.catalogServicesWatch();
@@ -105,7 +105,7 @@ class KubernetesCatalogWatchTests {
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
 				wireMockServer.baseUrl());
 
-		KubernetesCatalogWatch catalogWatch = new KubernetesCatalogWatch(WebClient.builder(), properties);
+		KubernetesCatalogWatch catalogWatch = new KubernetesCatalogWatch(new RestTemplateBuilder(), properties);
 		catalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 
 		catalogWatch.catalogServicesWatch();
@@ -154,7 +154,7 @@ class KubernetesCatalogWatchTests {
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
 				wireMockServer.baseUrl());
 
-		KubernetesCatalogWatch catalogWatch = new KubernetesCatalogWatch(WebClient.builder(), properties);
+		KubernetesCatalogWatch catalogWatch = new KubernetesCatalogWatch(new RestTemplateBuilder(), properties);
 		catalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 
 		catalogWatch.catalogServicesWatch();
