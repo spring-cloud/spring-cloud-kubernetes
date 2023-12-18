@@ -16,16 +16,14 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * @author wind57
  */
-@SpringBootApplication
+@SpringBootConfiguration
+@EnableAutoConfiguration
 class App {
-
-	static void main(String[] args) {
-
-	}
 
 }
