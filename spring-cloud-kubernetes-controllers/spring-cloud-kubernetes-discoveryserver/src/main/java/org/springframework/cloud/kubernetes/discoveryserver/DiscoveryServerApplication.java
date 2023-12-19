@@ -14,37 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.discovery;
+package org.springframework.cloud.kubernetes.discoveryserver;
 
-import java.util.List;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
 /**
  * @author Ryan Baxter
  */
-@Deprecated(forRemoval = true)
-public class Service {
+@SpringBootApplication
+public class DiscoveryServerApplication {
 
-	private String name;
-
-	private List<KubernetesServiceInstance> serviceInstances = List.of();
-
-	public Service() {
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public List<KubernetesServiceInstance> getServiceInstances() {
-		return serviceInstances;
-	}
-
-	public void setServiceInstances(List<KubernetesServiceInstance> serviceInstances) {
-		this.serviceInstances = serviceInstances;
+	public static void main(String[] args) {
+		new SpringApplicationBuilder(DiscoveryServerApplication.class).run(args);
 	}
 
 }
