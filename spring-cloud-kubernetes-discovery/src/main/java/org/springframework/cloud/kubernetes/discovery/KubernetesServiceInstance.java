@@ -25,6 +25,7 @@ import org.springframework.cloud.client.ServiceInstance;
 /**
  * @author Ryan Baxter
  */
+@Deprecated(forRemoval = true)
 public class KubernetesServiceInstance implements ServiceInstance {
 
 	private String instanceId;

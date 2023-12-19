@@ -29,7 +29,7 @@ import reactor.test.StepVerifier;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.Service;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -40,26 +40,26 @@ import static org.mockito.Mockito.when;
  */
 class DiscoveryServerControllerTests {
 
-	private static final KubernetesServiceInstance SERVICE_A_INSTANCE_1 = new DefaultKubernetesServiceInstance(
+	private static final DefaultKubernetesServiceInstance SERVICE_A_INSTANCE_1 = new DefaultKubernetesServiceInstance(
 			"serviceAInstance1", "serviceAInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace1", null);
 
-	private static final KubernetesServiceInstance SERVICE_A_INSTANCE_2 = new DefaultKubernetesServiceInstance(
+	private static final DefaultKubernetesServiceInstance SERVICE_A_INSTANCE_2 = new DefaultKubernetesServiceInstance(
 			"serviceAInstance2", "serviceAInstance2", "2.2.2.2", 8080, Map.of(), false, "namespace1", null);
 
-	private static final KubernetesServiceInstance SERVICE_A_INSTANCE_3 = new DefaultKubernetesServiceInstance(
+	private static final DefaultKubernetesServiceInstance SERVICE_A_INSTANCE_3 = new DefaultKubernetesServiceInstance(
 			"serviceAInstance3", "serviceAInstance3", "2.2.2.2", 8080, Map.of(), false, "namespace2", null);
 
-	private static final KubernetesServiceInstance SERVICE_B_INSTANCE_1 = new DefaultKubernetesServiceInstance(
+	private static final DefaultKubernetesServiceInstance SERVICE_B_INSTANCE_1 = new DefaultKubernetesServiceInstance(
 			"serviceBInstance1", "serviceBInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace1", null);
 
-	private static final KubernetesServiceInstance SERVICE_C_INSTANCE_1 = new DefaultKubernetesServiceInstance(
+	private static final DefaultKubernetesServiceInstance SERVICE_C_INSTANCE_1 = new DefaultKubernetesServiceInstance(
 			"serviceCInstance1", "serviceCInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace2", null);
 
-	private static DiscoveryServerController.Service serviceA;
+	private static Service serviceA;
 
-	private static DiscoveryServerController.Service serviceB;
+	private static Service serviceB;
 
-	private static DiscoveryServerController.Service serviceC;
+	private static Service serviceC;
 
 	private static KubernetesInformerReactiveDiscoveryClient discoveryClient;
 
@@ -67,17 +67,17 @@ class DiscoveryServerControllerTests {
 	static void beforeAll() {
 		Flux<String> services = Flux.just("serviceA", "serviceB", "serviceC");
 
-		List<ServiceInstance> serviceAInstanceList = new ArrayList<>();
+		List<DefaultKubernetesServiceInstance> serviceAInstanceList = new ArrayList<>();
 		serviceAInstanceList.add(SERVICE_A_INSTANCE_1);
 		serviceAInstanceList.add(SERVICE_A_INSTANCE_2);
 		serviceAInstanceList.add(SERVICE_A_INSTANCE_3);
 
 		Flux<ServiceInstance> serviceAInstances = Flux.fromIterable(serviceAInstanceList);
 
-		List<ServiceInstance> serviceBInstanceList = Collections.singletonList(SERVICE_B_INSTANCE_1);
+		List<DefaultKubernetesServiceInstance> serviceBInstanceList = Collections.singletonList(SERVICE_B_INSTANCE_1);
 		Flux<ServiceInstance> serviceBInstances = Flux.fromIterable(serviceBInstanceList);
 
-		List<ServiceInstance> serviceCInstanceList = Collections.singletonList(SERVICE_C_INSTANCE_1);
+		List<DefaultKubernetesServiceInstance> serviceCInstanceList = Collections.singletonList(SERVICE_C_INSTANCE_1);
 		Flux<ServiceInstance> serviceCInstances = Flux.fromIterable(serviceCInstanceList);
 
 		discoveryClient = mock(KubernetesInformerReactiveDiscoveryClient.class);
@@ -87,9 +87,9 @@ class DiscoveryServerControllerTests {
 		when(discoveryClient.getInstances(eq("serviceC"))).thenReturn(serviceCInstances);
 		when(discoveryClient.getInstances(eq("serviceD"))).thenReturn(Flux.empty());
 
-		serviceA = new DiscoveryServerController.Service("serviceA", serviceAInstanceList);
-		serviceB = new DiscoveryServerController.Service("serviceB", serviceBInstanceList);
-		serviceC = new DiscoveryServerController.Service("serviceC", serviceCInstanceList);
+		serviceA = new Service("serviceA", serviceAInstanceList);
+		serviceB = new Service("serviceB", serviceBInstanceList);
+		serviceC = new Service("serviceC", serviceCInstanceList);
 
 	}
 

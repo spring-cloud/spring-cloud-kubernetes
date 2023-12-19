@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.kubernetes.discoveryserver;
 
-import java.util.List;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,8 +41,10 @@ public class DiscoveryServerController {
 
 	@GetMapping("/apps")
 	public Flux<Service> apps() {
-		return reactiveDiscoveryClient.getServices().flatMap(service -> reactiveDiscoveryClient.getInstances(service)
-				.collectList().flatMap(serviceInstances -> Mono.just(new Service(service, serviceInstances))));
+		return reactiveDiscoveryClient.getServices()
+				.flatMap(service -> reactiveDiscoveryClient.getInstances(service).collectList()
+						.flatMap(serviceInstances -> Mono.just(new Service(service,
+								serviceInstances.stream().map(x -> (DefaultKubernetesServiceInstance) x).toList()))));
 	}
 
 	@GetMapping("/apps/{name}")
@@ -54,10 +56,6 @@ public class DiscoveryServerController {
 	public Mono<ServiceInstance> appInstance(@PathVariable String name, @PathVariable String instanceId) {
 		return reactiveDiscoveryClient.getInstances(name)
 				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
-	}
-
-	record Service(String name, List<ServiceInstance> serviceInstances) {
-
 	}
 
 }
