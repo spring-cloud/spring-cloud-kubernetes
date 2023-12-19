@@ -21,6 +21,7 @@ import java.util.List;
 /**
  * @author Ryan Baxter
  */
+@Deprecated(forRemoval = true)
 public class Service {
 
 	private String name;
