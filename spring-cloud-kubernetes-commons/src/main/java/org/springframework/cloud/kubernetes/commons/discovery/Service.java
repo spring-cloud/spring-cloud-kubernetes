@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframewok.cloud.kubernetes.discoveryserver;
+package org.springframework.cloud.kubernetes.commons.discovery;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
+import java.util.List;
 
 /**
- * @author Ryan Baxter
+ * Use for discovery service implementation.
+ * @author wind57
  */
-@SpringBootApplication
-public class DiscoveryServerApplication {
-
-	public static void main(String[] args) {
-		new SpringApplicationBuilder(DiscoveryServerApplication.class).run(args);
-	}
-
+public record Service(String name, List<DefaultKubernetesServiceInstance> serviceInstances) {
 }
