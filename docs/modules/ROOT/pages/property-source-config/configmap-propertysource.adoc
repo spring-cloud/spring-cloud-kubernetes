@@ -10,9 +10,11 @@ observed `ConfigMap` instances.
 Everything that follows is explained mainly referring to examples using ConfigMaps, but the same stands for
 Secrets, i.e.: every feature is supported for both.
 
-The default behavior is to create a `Fabric8ConfigMapPropertySource` (or a `KubernetesClientConfigMapPropertySource`) based on a Kubernetes `ConfigMap` that has a `metadata.name` value of either the name of
-your Spring application (as defined by its `spring.application.name` property) or a custom name defined within the
-`application.properties` file under the following key: `spring.cloud.kubernetes.config.name`.
+The default behavior is to create a `Fabric8ConfigMapPropertySource` (or a `KubernetesClientConfigMapPropertySource`) based on a Kubernetes `ConfigMap` that has `metadata.name` of either:
+
+- value of `spring.cloud.kubernetes.config.name`
+- value of your Spring application (as defined by `spring.application.name` property)
+- the String literal `"application"`
 
 However, more advanced configuration is possible where you can use multiple `ConfigMap` instances.
 The `spring.cloud.kubernetes.config.sources` list makes this possible.
@@ -67,15 +69,18 @@ data:
   my-app-k8s.yaml: |-
     ..
   my-app-dev.yaml: |-
+    ..
+  not-my-app.yaml: |-
    ..
   someProp: someValue
 ----
 
-These is what we will end-up loading:
+This is what we will end-up loading:
 
  - `my-app.yaml` treated as a file
  - `my-app-k8s.yaml` treated as a file
  - `my-app-dev.yaml` _ignored_, since `dev` is _not_ an active profile
+ - `not-my-app.yaml` _ignored_, since it does not match `spring.application.name`
  - `someProp: someValue` plain property
 
 The single exception to the aforementioned flow is when the `ConfigMap` contains a *single* key that indicates

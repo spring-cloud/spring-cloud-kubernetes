@@ -23,7 +23,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -68,8 +70,9 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
-		KubernetesServiceInstance[] responseBody = rest
-				.getForEntity(discoveryServerUrl + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
+		DefaultKubernetesServiceInstance[] responseBody = rest
+				.getForEntity(discoveryServerUrl + "/apps/" + serviceId, DefaultKubernetesServiceInstance[].class)
+				.getBody();
 		if (responseBody != null && responseBody.length > 0) {
 			return Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
 		}
@@ -80,18 +83,18 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 	public List<String> getServices() {
 		Service[] services = rest.getForEntity(discoveryServerUrl + "/apps", Service[].class).getBody();
 		if (services != null && services.length > 0) {
-			return Arrays.stream(services).filter(this::matchNamespaces).map(Service::getName).toList();
+			return Arrays.stream(services).filter(this::matchNamespaces).map(Service::name).toList();
 		}
 		return List.of();
 	}
 
-	private boolean matchNamespaces(KubernetesServiceInstance kubernetesServiceInstance) {
+	private boolean matchNamespaces(DefaultKubernetesServiceInstance kubernetesServiceInstance) {
 		return emptyNamespaces || namespaces.contains(kubernetesServiceInstance.getNamespace());
 	}
 
 	private boolean matchNamespaces(Service service) {
-		return service.getServiceInstances().isEmpty()
-				|| service.getServiceInstances().stream().anyMatch(this::matchNamespaces);
+		return service.serviceInstances().isEmpty()
+				|| service.serviceInstances().stream().anyMatch(this::matchNamespaces);
 	}
 
 }
