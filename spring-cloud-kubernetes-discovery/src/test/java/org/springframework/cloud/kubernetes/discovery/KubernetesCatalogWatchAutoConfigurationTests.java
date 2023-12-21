@@ -33,7 +33,8 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	@Test
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com");
+				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com",
+				"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true");
 		applicationContextRunner.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatch.class));
 	}
 
@@ -41,7 +42,8 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	void discoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=true",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com");
+				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com",
+				"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true");
 		applicationContextRunner.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatch.class));
 	}
 
@@ -57,6 +59,7 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	void kubernetesDiscoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=true",
+				"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com");
 		applicationContextRunner.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatch.class));
 	}
@@ -66,7 +69,8 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com");
+				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com",
+				"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true");
 		applicationContextRunner.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatch.class));
 	}
 
@@ -77,7 +81,8 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	@Test
 	void disableBlockingAndReactive() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=false");
+				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
@@ -92,9 +97,26 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	@Test
 	void disableKubernetesDiscovery() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.enabled=false");
+				"spring.cloud.kubernetes.discovery.enabled=false",
+				"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
+			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled is false, as
+	 * such catalog watcher is not present.
+	 */
+	@Test
+	void disableHttpDiscoveryClientCatalogWatcher() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=true",
+				"spring.cloud.kubernetes.discovery.enabled=false",
+				"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesCatalogWatch.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
 		});

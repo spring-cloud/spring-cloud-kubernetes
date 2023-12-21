@@ -27,5 +27,7 @@ spec:
           env:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERYSERVER
               value: "DEBUG"
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY
+              value: "3000"
           ports:
             - containerPort: 8761

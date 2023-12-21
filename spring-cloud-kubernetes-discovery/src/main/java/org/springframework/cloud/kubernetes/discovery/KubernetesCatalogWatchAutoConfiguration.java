@@ -24,6 +24,7 @@ import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnHttpDiscoveryClientCatalogWatcherEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
@@ -40,6 +41,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesCatalogEnabled
+@ConditionalOnHttpDiscoveryClientCatalogWatcherEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 class KubernetesCatalogWatchAutoConfiguration {

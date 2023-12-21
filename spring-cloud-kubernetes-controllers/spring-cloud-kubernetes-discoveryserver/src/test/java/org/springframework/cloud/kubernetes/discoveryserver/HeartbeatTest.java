@@ -38,7 +38,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 /**
  * @author wind57
  */
-@SpringBootTest(classes = HeartbeatTest.TestConfig.class)
+@SpringBootTest(classes = HeartbeatTest.TestConfig.class,
+		properties = "spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true")
 @AutoConfigureWebTestClient
 class HeartbeatTest {
 

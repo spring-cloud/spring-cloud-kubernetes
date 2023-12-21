@@ -262,7 +262,28 @@ SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCH_ENABLED=FALSE
 
 The functionality of catalog watch works for all 3 discovery clients that we support, with some caveats that you need to be aware of in case of the http client.
 
-- The first thing is that this is only supported since version `3.0.6` and upwards.
+- The first is that this functionality is disabled by default, and it needs to be enabled in two places:
+
+ * in discovery server via an environment variable in the deployment manifest, for example:
++
+----
+containers:
+        - name: discovery-server
+          image: springcloud/spring-cloud-kubernetes-discoveryserver:3.0.5-SNAPSHOT
+          env:
+            - name: SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CLIENT_CATALOG_WATCHER_ENABLED
+              value: "TRUE"
+----
++
+
+* in discovery client, via a property in your `application.properties` for example:
++
+----
+spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true
+----
++
+
+- The second point is that this is only supported since version `3.0.6` and upwards.
 - Since http discovery has _two_ components : server and client, we strongly recommend to align versions between them, otherwise things might not work.
 - If you decide to disable catalog watcher, you need to disable it in both server and client.
 

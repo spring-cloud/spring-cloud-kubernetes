@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.discoveryclient.it;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
@@ -70,6 +71,10 @@ class DiscoveryClientIT {
 								{
 									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERY",
 									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CLIENT_CATALOG_WATCHER_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -99,6 +104,10 @@ class DiscoveryClientIT {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY",
 									"value": "3000"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CLIENT_CATALOG_WATCHER_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -203,6 +212,31 @@ class DiscoveryClientIT {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$")
 				.contains("spring-cloud-kubernetes-discoveryserver");
+
+		// since 'spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled'
+		// is false by default, we will not receive any heartbeat events,
+		// simply because there are no beans registered to provide that to us.
+		// We assert this by doing a call to our internal /state
+		// endpoint, waiting 10 seconds and doing it again. Since the watch delay is set
+		// to 3 seconds, if there would be proper events,
+		// we would get a result that is different from '[]'.
+
+		WebClient.Builder stateBuilder = builder();
+		WebClient client = stateBuilder.baseUrl("http://localhost:80/discoveryclient-it/state").build();
+		String stateResult = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(stateResult)).isEqualTo("[]");
+
+		try {
+			Thread.sleep(TimeUnit.SECONDS.toMillis(10));
+		}
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		String stateResultAfter10Seconds = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(stateResultAfter10Seconds)).isEqualTo("[]");
 	}
 
 	void testHealth() {

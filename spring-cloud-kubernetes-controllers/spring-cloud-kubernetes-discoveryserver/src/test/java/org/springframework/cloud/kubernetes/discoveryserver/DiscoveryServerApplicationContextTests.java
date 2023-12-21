@@ -34,7 +34,8 @@ import org.springframework.context.annotation.Bean;
 class DiscoveryServerApplicationContextTests {
 
 	@Nested
-	@SpringBootTest(classes = TestConfig.class)
+	@SpringBootTest(classes = TestConfig.class,
+			properties = "spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true")
 	class BothControllersPresent {
 
 		@Autowired
@@ -57,8 +58,57 @@ class DiscoveryServerApplicationContextTests {
 
 	@Nested
 	@SpringBootTest(classes = TestConfig.class,
-			properties = "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false")
-	class CatalogControllerNotPresent {
+			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
+					"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true" })
+	class CatalogControllerNotPresentOne {
+
+		@Autowired
+		private ObjectProvider<DiscoveryServerController> discoveryServerController;
+
+		@Autowired
+		private ObjectProvider<DiscoveryCatalogWatcherController> discoveryCatalogWatcherController;
+
+		@Autowired
+		private ObjectProvider<HeartBeatListener> heartBeatListener;
+
+		@Test
+		void test() {
+			Assertions.assertNotNull(discoveryServerController.getIfAvailable());
+			Assertions.assertNull(discoveryCatalogWatcherController.getIfAvailable());
+			Assertions.assertNull(heartBeatListener.getIfAvailable());
+		}
+
+	}
+
+	@Nested
+	@SpringBootTest(classes = TestConfig.class,
+			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=true",
+					"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=false" })
+	class CatalogControllerNotPresentTwo {
+
+		@Autowired
+		private ObjectProvider<DiscoveryServerController> discoveryServerController;
+
+		@Autowired
+		private ObjectProvider<DiscoveryCatalogWatcherController> discoveryCatalogWatcherController;
+
+		@Autowired
+		private ObjectProvider<HeartBeatListener> heartBeatListener;
+
+		@Test
+		void test() {
+			Assertions.assertNotNull(discoveryServerController.getIfAvailable());
+			Assertions.assertNull(discoveryCatalogWatcherController.getIfAvailable());
+			Assertions.assertNull(heartBeatListener.getIfAvailable());
+		}
+
+	}
+
+	@Nested
+	@SpringBootTest(classes = TestConfig.class,
+			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
+					"spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=false" })
+	class CatalogControllerNotPresentThree {
 
 		@Autowired
 		private ObjectProvider<DiscoveryServerController> discoveryServerController;
