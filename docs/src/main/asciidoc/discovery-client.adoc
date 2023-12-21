@@ -271,7 +271,7 @@ containers:
         - name: discovery-server
           image: springcloud/spring-cloud-kubernetes-discoveryserver:3.0.5-SNAPSHOT
           env:
-            - name: SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CLIENT_CATALOG_WATCHER_ENABLED
+            - name: SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CATALOG_WATCHER_ENABLED
               value: "TRUE"
 ----
 +
@@ -279,7 +279,7 @@ containers:
 * in discovery client, via a property in your `application.properties` for example:
 +
 ----
-spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled=true
+spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true
 ----
 +
 

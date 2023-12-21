@@ -73,7 +73,7 @@ class DiscoveryClientIT {
 									"value": "DEBUG"
 								},
 								{
-									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CLIENT_CATALOG_WATCHER_ENABLED",
+									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CATALOG_WATCHER_ENABLED",
 									"value": "TRUE"
 								}
 								]
@@ -106,7 +106,7 @@ class DiscoveryClientIT {
 									"value": "3000"
 								},
 								{
-									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CLIENT_CATALOG_WATCHER_ENABLED",
+									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CATALOG_WATCHER_ENABLED",
 									"value": "TRUE"
 								}
 								]

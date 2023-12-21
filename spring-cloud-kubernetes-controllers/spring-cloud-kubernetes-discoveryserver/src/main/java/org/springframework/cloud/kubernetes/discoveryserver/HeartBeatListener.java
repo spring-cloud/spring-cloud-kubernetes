@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnHttpDiscoveryClientCatalogWatcherEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnHttpDiscoveryCatalogWatcherEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.context.ApplicationListener;
@@ -40,7 +40,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  */
 @Component
 @ConditionalOnKubernetesCatalogEnabled
-@ConditionalOnHttpDiscoveryClientCatalogWatcherEnabled
+@ConditionalOnHttpDiscoveryCatalogWatcherEnabled
 class HeartBeatListener implements ApplicationListener<HeartbeatEvent> {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(HeartBeatListener.class));

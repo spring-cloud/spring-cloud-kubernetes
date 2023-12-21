@@ -35,8 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled",
-		matchIfMissing = false)
-public @interface ConditionalOnHttpDiscoveryClientCatalogWatcherEnabled {
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled", matchIfMissing = false)
+public @interface ConditionalOnHttpDiscoveryCatalogWatcherEnabled {
 
 }
