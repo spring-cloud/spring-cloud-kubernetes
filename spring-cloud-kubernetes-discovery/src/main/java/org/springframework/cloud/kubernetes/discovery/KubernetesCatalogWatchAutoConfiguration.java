@@ -18,14 +18,11 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnHttpDiscoveryCatalogWatcherEnabled;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogWatcherEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,10 +36,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @author wind57
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesCatalogEnabled
+@ConditionalOnKubernetesCatalogWatcherEnabled
 @ConditionalOnHttpDiscoveryCatalogWatcherEnabled
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 class KubernetesCatalogWatchAutoConfiguration {
 
