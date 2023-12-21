@@ -35,6 +35,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_GROUP;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_VERSION;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.ENDPOINT_SLICE;
@@ -66,7 +67,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 		this.publisher = publisher;
 	}
 
-	@Scheduled(fixedDelayString = "${spring.cloud.kubernetes.discovery.catalogServicesWatchDelay:30000}")
+	@Scheduled(fixedDelayString = "${" + CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE + "}")
 	public void catalogServicesWatch() {
 		try {
 
