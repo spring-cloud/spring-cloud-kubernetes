@@ -82,4 +82,20 @@ public final class KubernetesDiscoveryConstants {
 	 */
 	public static final String SECURED = "secured";
 
+	/**
+	 * catalog watch delay property name.
+	 */
+	public static final String CATALOG_WATCH_PROPERTY_NAME = "spring.cloud.kubernetes.discovery.catalogServicesWatchDelay";
+
+	/**
+	 * default delay for the configuration watcher.
+	 */
+	public static final String CATALOG_WATCHER_DEFAULT_DELAY = "30000";
+
+	/**
+	 * catalog watch delay property name with default value.
+	 */
+	public static final String CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE = CATALOG_WATCH_PROPERTY_NAME + ":"
+			+ CATALOG_WATCHER_DEFAULT_DELAY;
+
 }
