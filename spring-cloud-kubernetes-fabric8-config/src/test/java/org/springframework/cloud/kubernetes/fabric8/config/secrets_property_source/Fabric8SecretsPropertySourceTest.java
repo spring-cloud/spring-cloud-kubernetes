@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.fabric8.config.secrets_property_source;
 
 import java.util.Base64;
 
@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 
