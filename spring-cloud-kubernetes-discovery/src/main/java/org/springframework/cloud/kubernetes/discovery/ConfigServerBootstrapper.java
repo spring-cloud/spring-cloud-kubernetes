@@ -79,7 +79,7 @@ class ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 					.orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
 			KubernetesDiscoveryClientBlockingAutoConfiguration autoConfiguration = new KubernetesDiscoveryClientBlockingAutoConfiguration();
 			DiscoveryClient discoveryClient = autoConfiguration
-					.kubernetesDiscoveryClient(autoConfiguration.restTemplate(), kubernetesDiscoveryProperties);
+					.kubernetesDiscoveryClient(autoConfiguration.restTemplateBuilder(), kubernetesDiscoveryProperties);
 			return discoveryClient::getInstances;
 		}
 
