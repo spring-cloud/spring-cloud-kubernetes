@@ -17,14 +17,18 @@
 package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
+import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.boot.test.json.BasicJsonTester;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -34,12 +38,17 @@ import org.springframework.web.reactive.function.client.WebClient;
  */
 final class DiscoveryClientFilterNamespaceDelegate {
 
+	private DiscoveryClientFilterNamespaceDelegate() {
+
+	}
+
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(
 			DiscoveryClientFilterNamespaceDelegate.class);
 
-	static void testNamespaceDiscoveryClient() {
+	static void testNamespaceDiscoveryClient(K3sContainer container) {
 		testLoadBalancer();
 		testHealth();
+		testForHeartbeat(container);
 	}
 
 	private static void testLoadBalancer() {
@@ -74,6 +83,42 @@ final class DiscoveryClientFilterNamespaceDelegate {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(health))
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+	}
+
+	private static void testForHeartbeat(K3sContainer container) {
+
+		// 1. logs from discovery server
+		Commons.waitForLogStatement("using delay : 3000", container, "spring-cloud-kubernetes-discoveryserver");
+		Commons.waitForLogStatement("received heartbeat event", container, "spring-cloud-kubernetes-discoveryserver");
+		Commons.waitForLogStatement("state received :", container, "spring-cloud-kubernetes-discoveryserver");
+
+		// 2. logs from discovery client
+		Commons.waitForLogStatement("using delay : 3000", container,
+				"spring-cloud-kubernetes-k8s-client-discovery-server");
+		Commons.waitForLogStatement("state received : ", container,
+				"spring-cloud-kubernetes-k8s-client-discovery-server");
+
+		// 3. heartbeat listener message
+		WebClient.Builder builder = builder();
+		WebClient client = builder.baseUrl("http://localhost:80/discoveryclient-it/state").build();
+		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+
+		Condition<LinkedHashMap<String, String>> wireMockService = new Condition<>(
+				map -> map.entrySet().stream().anyMatch(en -> en.getValue().contains("service-wiremock-deployment")),
+				"");
+
+		Condition<LinkedHashMap<String, String>> discoveryServerService = new Condition<>(
+				map -> map.entrySet().stream()
+						.anyMatch(en -> en.getValue().contains("spring-cloud-kubernetes-k8s-client-discovery-server")),
+				"");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
+				.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]").areAtLeastOne(wireMockService);
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
+				.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]")
+				.areAtLeastOne(discoveryServerService);
 	}
 
 	private static WebClient.Builder builder() {

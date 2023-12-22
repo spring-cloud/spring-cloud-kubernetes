@@ -22,6 +22,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,13 +32,17 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Ryan Baxter
  */
 @SpringBootApplication
+@EnableScheduling
 @RestController
-public class KubernetesDiscoveryClientApplicationIt {
+class KubernetesDiscoveryClientApplicationIt {
 
 	private final DiscoveryClient discoveryClient;
 
-	public KubernetesDiscoveryClientApplicationIt(DiscoveryClient discoveryClient) {
+	private final HeartbeatListener heartbeatListener;
+
+	KubernetesDiscoveryClientApplicationIt(DiscoveryClient discoveryClient, HeartbeatListener heartbeatListener) {
 		this.discoveryClient = discoveryClient;
+		this.heartbeatListener = heartbeatListener;
 	}
 
 	public static void main(String[] args) {
@@ -44,13 +50,18 @@ public class KubernetesDiscoveryClientApplicationIt {
 	}
 
 	@GetMapping("/services")
-	public List<String> services() {
+	List<String> services() {
 		return discoveryClient.getServices();
 	}
 
 	@GetMapping("/service/{serviceId}")
-	public List<ServiceInstance> service(@PathVariable String serviceId) {
+	List<ServiceInstance> service(@PathVariable String serviceId) {
 		return discoveryClient.getInstances(serviceId);
+	}
+
+	@GetMapping("/state")
+	List<EndpointNameAndNamespace> state() {
+		return heartbeatListener.state.get();
 	}
 
 }

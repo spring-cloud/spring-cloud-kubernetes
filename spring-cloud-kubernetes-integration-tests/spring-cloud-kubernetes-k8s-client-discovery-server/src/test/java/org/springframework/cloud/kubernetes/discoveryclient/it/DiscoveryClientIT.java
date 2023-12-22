@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.discoveryclient.it;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
@@ -62,6 +63,18 @@ class DiscoveryClientIT {
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0",
 									"value": "left"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY",
+									"value": "3000"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERY",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CATALOG_WATCHER_ENABLED",
+									"value": "TRUE"
 								}
 								]
 							}]
@@ -82,6 +95,18 @@ class DiscoveryClientIT {
 								"env": [
 								{
 									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_ALL_NAMESPACES",
+									"value": "TRUE"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERYSERVER",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY",
+									"value": "3000"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CATALOG_WATCHER_ENABLED",
 									"value": "TRUE"
 								}
 								]
@@ -160,22 +185,22 @@ class DiscoveryClientIT {
 		util.deleteNamespace(NAMESPACE_RIGHT);
 
 		discoveryServer(Phase.DELETE);
-		discoveryIt(Phase.DELETE);
+		discoveryClient(Phase.DELETE);
 		Commons.systemPrune();
 	}
 
 	@Test
 	void testDiscoveryClient() {
-		discoveryIt(Phase.CREATE);
+		discoveryClient(Phase.CREATE);
 		testLoadBalancer();
 		testHealth();
 
+		patchForAllNamespaces("docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
+				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
 		patchForNamespaceFilter(
 				"docker.io/springcloud/spring-cloud-kubernetes-k8s-client-discovery-server:" + Commons.pomVersion(),
 				"spring-cloud-kubernetes-k8s-client-discovery-server-deployment", NAMESPACE);
-		patchForAllNamespaces("docker.io/springcloud/spring-cloud-kubernetes-discoveryserver:" + Commons.pomVersion(),
-				"spring-cloud-kubernetes-discoveryserver-deployment", NAMESPACE);
-		testNamespaceDiscoveryClient();
+		testNamespaceDiscoveryClient(K3S);
 	}
 
 	private void testLoadBalancer() {
@@ -187,6 +212,31 @@ class DiscoveryClientIT {
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$")
 				.contains("spring-cloud-kubernetes-discoveryserver");
+
+		// since 'spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled'
+		// is false by default, we will not receive any heartbeat events,
+		// simply because there are no beans registered to provide that to us.
+		// We assert this by doing a call to our internal /state
+		// endpoint, waiting 10 seconds and doing it again. Since the watch delay is set
+		// to 3 seconds, if there would be proper events,
+		// we would get a result that is different from '[]'.
+
+		WebClient.Builder stateBuilder = builder();
+		WebClient client = stateBuilder.baseUrl("http://localhost:80/discoveryclient-it/state").build();
+		String stateResult = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(stateResult)).isEqualTo("[]");
+
+		try {
+			Thread.sleep(TimeUnit.SECONDS.toMillis(10));
+		}
+		catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		String stateResultAfter10Seconds = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.retryWhen(retrySpec()).block();
+		Assertions.assertThat(BASIC_JSON_TESTER.from(stateResultAfter10Seconds)).isEqualTo("[]");
 	}
 
 	void testHealth() {
@@ -200,7 +250,7 @@ class DiscoveryClientIT {
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 	}
 
-	private static void discoveryIt(Phase phase) {
+	private static void discoveryClient(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util
 				.yaml("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("client/spring-cloud-kubernetes-discoveryclient-it-service.yaml");

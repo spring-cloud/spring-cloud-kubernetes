@@ -22,6 +22,7 @@ import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -103,7 +104,7 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.discovery.reactive.enabled=false",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(RestTemplateBuilder.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).getBean("indicatorInitializer").isNotNull();
 
@@ -147,7 +148,7 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.discovery.reactive.enabled=false",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(RestTemplateBuilder.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean("indicatorInitializer");
 
@@ -169,7 +170,7 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(RestTemplateBuilder.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean("indicatorInitializer");
 
@@ -191,7 +192,7 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.discovery.reactive.enabled=true",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(RestTemplateBuilder.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).getBean("indicatorInitializer").isNotNull();
 
@@ -213,7 +214,7 @@ class KubernetesDiscoveryAutoConfigurationTests {
 				"spring.cloud.discovery.reactive.enabled=true",
 				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(RestTemplate.class);
+			assertThat(context).hasSingleBean(RestTemplateBuilder.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).getBean("indicatorInitializer").isNotNull();
 
