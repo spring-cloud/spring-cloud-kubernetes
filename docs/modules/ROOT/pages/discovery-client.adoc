@@ -222,31 +222,62 @@ NOTE:  `spring.application.name` has no effect as far as the name registered for
 
 '''
 
-Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the
-`DiscoveryClient` implementation accordingly. By "watch" we mean that we will publish a heartbeat event every `spring.cloud.kubernetes.discovery.catalog-services-watch-delay`
-milliseconds (by default it is `30000`). The heartbeat event will contain the target references (and their namespaces of the addresses of all endpoints
+Spring Cloud Kubernetes can also watch the Kubernetes service catalog for changes and update the `DiscoveryClient` implementation accordingly. In order to enable this functionality you need to add
+`@EnableScheduling` on a configuration class in your application. By "watch", we mean that we will publish a heartbeat event every `spring.cloud.kubernetes.discovery.catalog-services-watch-delay`
+milliseconds (by default it is `30000`). For the http discovery server this must be an environment variable set in deployment yaml:
+
+----
+      containers:
+        - name: discovery-server
+          image: springcloud/spring-cloud-kubernetes-discoveryserver:3.0.5-SNAPSHOT
+          env:
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY
+              value: 3000
+----
+
+The heartbeat event will contain the target references (and their namespaces of the addresses of all endpoints
 (for the exact details of what will get returned you can take a look inside `KubernetesCatalogWatch`). This is an implementation detail, and listeners of the heartbeat event
 should not rely on the details. Instead, they should see if there are differences between two subsequent heartbeats via `equals` method. We will take care to return a correct implementation that adheres to the equals contract.
 The endpoints will be queried in either :
-- all namespaces (enabled via `spring.cloud.kubernetes.discovery.all-namespaces=true`)
+- `all-namespaces` (enabled via `spring.cloud.kubernetes.discovery.all-namespaces=true`)
 
-- specific namespaces (enabled via `spring.cloud.kubernetes.discovery.namespaces`), for example:
+- `selective namespaces` (enabled via `spring.cloud.kubernetes.discovery.namespaces`), for example:
+
+-  `one namespace` via xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] if the above two paths are not taken.
+
+NOTE: If, for any reasons, you want to disable catalog watcher, you need to set `spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false`. For the http discovery server, this needs to be an environment variable set in deployment for example:
 
 [source]
 ----
-spring:
-  cloud:
-    kubernetes:
-      discovery:
-        namespaces:
-          - namespace-a
-          - namespace-b
+SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCH_ENABLED=FALSE
 ----
 
-- we will use: xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] if the above two paths are not taken.
+The functionality of catalog watch works for all 3 discovery clients that we support, with some caveats that you need to be aware of in case of the http client.
 
-In order to enable this functionality you need to add
-`@EnableScheduling` on a configuration class in your application.
+- The first is that this functionality is disabled by default, and it needs to be enabled in two places:
+
+* in discovery server via an environment variable in the deployment manifest, for example:
++
+----
+containers:
+        - name: discovery-server
+          image: springcloud/spring-cloud-kubernetes-discoveryserver:3.0.5-SNAPSHOT
+          env:
+            - name: SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CATALOG_WATCHER_ENABLED
+              value: "TRUE"
+----
++
+
+* in discovery client, via a property in your `application.properties` for example:
++
+----
+spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true
+----
++
+
+- The second point is that this is only supported since version `3.0.6` and upwards.
+- Since http discovery has _two_ components : server and client, we strongly recommend to align versions between them, otherwise things might not work.
+- If you decide to disable catalog watcher, you need to disable it in both server and client.
 
 By default, we use the `Endpoints`(see https://kubernetes.io/docs/concepts/services-networking/service/#endpoints) API to find out the current state of services. There is another way though, via `EndpointSlices` (https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/). Such support can be enabled via a property: `spring.cloud.kubernetes.discovery.use-endpoint-slices=true` (by default it is `false`). Of course, your cluster has to support it also. As a matter of fact, if you enable this property, but your cluster does not support it, we will fail starting the application. If you decide to enable such support, you also need proper Role/ClusterRole set-up. For example:
 

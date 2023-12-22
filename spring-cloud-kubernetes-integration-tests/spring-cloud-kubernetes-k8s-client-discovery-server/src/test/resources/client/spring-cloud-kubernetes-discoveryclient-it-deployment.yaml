@@ -30,5 +30,8 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 2
             failureThreshold: 3
+          env:
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY
+              value: "3000"
           ports:
             - containerPort: 8080
