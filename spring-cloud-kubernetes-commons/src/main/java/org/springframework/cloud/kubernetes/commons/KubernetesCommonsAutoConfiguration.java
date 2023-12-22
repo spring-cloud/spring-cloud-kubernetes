@@ -16,10 +16,15 @@
 
 package org.springframework.cloud.kubernetes.commons;
 
+import org.springframework.boot.actuate.endpoint.SanitizableData;
+import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.PropertySource;
 
 /**
  * @author Ryan Baxter
@@ -28,5 +33,18 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties(KubernetesClientProperties.class)
 public class KubernetesCommonsAutoConfiguration {
+
+	@Bean
+	@ConditionalOnSanitizeSecrets
+	SanitizingFunction secretsPropertySourceSanitizingFunction() {
+		return data -> {
+			PropertySource<?> propertySource = data.getPropertySource();
+			if (propertySource instanceof SecretsPropertySource) {
+				return new SanitizableData(propertySource, data.getKey(), data.getValue())
+						.withValue(SanitizableData.SANITIZED_VALUE);
+			}
+			return data;
+		};
+	}
 
 }

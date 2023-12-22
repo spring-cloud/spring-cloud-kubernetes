@@ -16,32 +16,69 @@
 
 package org.springframework.cloud.kubernetes.commons;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		classes = KubernetesCommonsAutoConfigurationTests.App.class,
-		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
-				"spring.cloud.kubernetes.client.proxy-password=myproxypassword", "spring.cloud.config.enabled=false" })
 class KubernetesCommonsAutoConfigurationTests {
 
-	@Autowired
-	ConfigurableApplicationContext context;
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		classes = KubernetesCommonsAutoConfigurationTests.App.class,
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
+			"spring.cloud.kubernetes.client.proxy-password=myproxypassword", "spring.cloud.config.enabled=false" })
+	@Nested
+	class SanitizeFunctionNotPresent {
 
-	@Test
-	void beansAreCreated() {
-		assertThat(context.getBeansOfType(KubernetesClientProperties.class)).hasSize(1);
+		@Autowired
+		private ConfigurableApplicationContext context;
 
-		KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class).values()
+		@Autowired
+		private ObjectProvider<SanitizingFunction> sanitizingFunction;
+
+		@Test
+		void test() {
+			assertThat(context.getBeansOfType(KubernetesClientProperties.class)).hasSize(1);
+
+			KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class).values()
 				.stream().findFirst().get();
-		assertThat(properties.password()).isEqualTo("mypassword");
-		assertThat(properties.proxyPassword()).isEqualTo("myproxypassword");
+			assertThat(properties.password()).isEqualTo("mypassword");
+			assertThat(properties.proxyPassword()).isEqualTo("myproxypassword");
+			assertThat(sanitizingFunction.getIfAvailable()).isNull();
+		}
+	}
+
+	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		classes = KubernetesCommonsAutoConfigurationTests.App.class,
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
+			"spring.cloud.kubernetes.client.proxy-password=myproxypassword", "spring.cloud.config.enabled=false",
+			"spring.cloud.kubernetes.sanitize.secrets=true"})
+	@Nested
+	class SanitizeFunctionPresent {
+
+		@Autowired
+		private ConfigurableApplicationContext context;
+
+		@Autowired
+		private ObjectProvider<SanitizingFunction> sanitizingFunction;
+
+		@Test
+		void test() {
+			assertThat(context.getBeansOfType(KubernetesClientProperties.class)).hasSize(1);
+
+			KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class).values()
+				.stream().findFirst().get();
+			assertThat(properties.password()).isEqualTo("mypassword");
+			assertThat(properties.proxyPassword()).isEqualTo("myproxypassword");
+			assertThat(sanitizingFunction.getIfAvailable()).isNotNull();
+		}
 	}
 
 	@SpringBootApplication
