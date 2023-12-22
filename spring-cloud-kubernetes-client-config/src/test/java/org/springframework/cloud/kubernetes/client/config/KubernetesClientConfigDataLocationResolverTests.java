@@ -20,6 +20,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
 import org.springframework.boot.DefaultBootstrapContext;
@@ -28,6 +29,8 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
@@ -40,6 +43,7 @@ import org.springframework.mock.env.MockEnvironment;
 /**
  * @author wind57
  */
+@ExtendWith(OutputCaptureExtension.class)
 class KubernetesClientConfigDataLocationResolverTests {
 
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
@@ -136,7 +140,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 	 * these are not retryable beans.
 	 */
 	@Test
-	void testBothPresentExplicitly() {
+	void testBothPresentExplicitly(CapturedOutput capturedOutput) {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.config.enabled", "true");
 		environment.setProperty("spring.cloud.kubernetes.secrets.enabled", "true");
@@ -166,6 +170,10 @@ class KubernetesClientConfigDataLocationResolverTests {
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
 		Assertions.assertSame(KubernetesClientSecretsPropertySourceLocator.class,
 				secretsPropertySourceLocator.getClass());
+
+		Assertions.assertTrue(capturedOutput.getOut()
+				.contains("Could not create the Kubernetes ApiClient in a cluster environment, because connection port "
+						+ "was not provided."));
 	}
 
 	/*
