@@ -28,7 +28,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * @author wind57
@@ -41,15 +40,15 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	RestTemplate restTemplate() {
-		return new RestTemplateBuilder().build();
+	RestTemplateBuilder restTemplateBuilder() {
+		return new RestTemplateBuilder();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplate restTemplate,
+	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
 			KubernetesDiscoveryProperties properties) {
-		return new KubernetesDiscoveryClient(restTemplate, properties);
+		return new KubernetesDiscoveryClient(restTemplateBuilder.build(), properties);
 	}
 
 	@Bean
