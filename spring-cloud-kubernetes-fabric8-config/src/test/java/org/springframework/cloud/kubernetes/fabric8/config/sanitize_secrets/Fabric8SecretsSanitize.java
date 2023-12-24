@@ -34,7 +34,7 @@ abstract class Fabric8SecretsSanitize {
 
 	static void setUpBeforeClass(KubernetesClient mockClient) {
 
-		// Configure the kubernetes master url to point to the mock server
+		// Configure kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
@@ -43,13 +43,19 @@ abstract class Fabric8SecretsSanitize {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		Secret secret = new SecretBuilder().withNewMetadata().withName("sanitize-secret").endMetadata()
-				.addToData("sanitizeSecretName", Base64.getEncoder()
-					.encodeToString("sanitizeSecretValue".getBytes())).build();
+				.addToData("sanitize.sanitizeSecretName",
+						Base64.getEncoder().encodeToString("sanitizeSecretValue".getBytes()))
+				.build();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("sanitize-configmap")
-			.endMetadata().addToData("sanitizeSecretName", "value").build();
+		Secret secretTwo = new SecretBuilder().withNewMetadata().withName("sanitize-secret-two").endMetadata()
+				.addToData("sanitize.sanitizeSecretNameTwo",
+						Base64.getEncoder().encodeToString("sanitizeSecretValueTwo".getBytes()))
+				.build();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(secretTwo).create();
 
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("sanitize-configmap").endMetadata()
+				.addToData("sanitize.sanitizeConfigMapName", "sanitizeConfigMapValue").build();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 	}

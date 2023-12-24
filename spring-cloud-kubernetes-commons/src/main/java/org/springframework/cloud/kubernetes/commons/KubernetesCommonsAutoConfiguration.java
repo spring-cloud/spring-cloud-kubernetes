@@ -16,14 +16,18 @@
 
 package org.springframework.cloud.kubernetes.commons;
 
+import java.util.Collection;
+
 import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.PropertySource;
 
 /**
@@ -39,9 +43,31 @@ public class KubernetesCommonsAutoConfiguration {
 	SanitizingFunction secretsPropertySourceSanitizingFunction() {
 		return data -> {
 			PropertySource<?> propertySource = data.getPropertySource();
+			if (propertySource instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
+				PropertySource<?> source = bootstrapPropertySource.getDelegate();
+				if (source instanceof SecretsPropertySource) {
+					return new SanitizableData(propertySource, data.getKey(), data.getValue())
+							.withValue(SanitizableData.SANITIZED_VALUE);
+				}
+			}
+
 			if (propertySource instanceof SecretsPropertySource) {
 				return new SanitizableData(propertySource, data.getKey(), data.getValue())
 						.withValue(SanitizableData.SANITIZED_VALUE);
+			}
+
+			// at the moment, our structure is pretty simply, CompositePropertySource
+			// children can be SecretsPropertySource; i.e.: there is no recursion
+			// needed to get all children. If this structure changes, there are enough
+			// unit tests that will start failing.
+			if (propertySource instanceof CompositePropertySource compositePropertySource) {
+				Collection<PropertySource<?>> sources = compositePropertySource.getPropertySources();
+				for (PropertySource<?> one : sources) {
+					if (one.containsProperty(data.getKey()) && one instanceof SecretsPropertySource) {
+						return new SanitizableData(propertySource, data.getKey(), data.getValue())
+								.withValue(SanitizableData.SANITIZED_VALUE);
+					}
+				}
 			}
 			return data;
 		};
