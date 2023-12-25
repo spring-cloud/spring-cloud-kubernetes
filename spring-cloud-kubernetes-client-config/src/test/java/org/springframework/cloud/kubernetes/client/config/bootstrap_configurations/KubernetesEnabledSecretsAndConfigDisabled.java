@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.boostrap_configuration;
+package org.springframework.cloud.kubernetes.client.config.bootstrap_configurations;
 
 import org.junit.jupiter.api.Test;
 
