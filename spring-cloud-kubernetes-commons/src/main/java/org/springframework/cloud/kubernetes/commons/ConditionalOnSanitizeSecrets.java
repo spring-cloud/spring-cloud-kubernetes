@@ -35,7 +35,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.sanitize.secrets", matchIfMissing = false)
+@ConditionalOnProperty(value = ConditionalOnSanitizeSecrets.VALUE, matchIfMissing = false)
 public @interface ConditionalOnSanitizeSecrets {
+
+	/**
+	 * Conditional value to use.
+	 */
+	String VALUE = "spring.cloud.kubernetes.sanitize.secrets";
 
 }

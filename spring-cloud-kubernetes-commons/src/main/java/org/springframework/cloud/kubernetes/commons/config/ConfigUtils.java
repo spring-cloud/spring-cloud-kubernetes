@@ -62,13 +62,13 @@ public final class ConfigUtils {
 			PropertySource<?> source = bootstrapPropertySource.getDelegate();
 			if (source instanceof SecretsPropertySource) {
 				return new SanitizableData(propertySource, data.getKey(), data.getValue())
-					.withValue(SanitizableData.SANITIZED_VALUE);
+						.withValue(SanitizableData.SANITIZED_VALUE);
 			}
 		}
 
 		if (propertySource instanceof SecretsPropertySource) {
 			return new SanitizableData(propertySource, data.getKey(), data.getValue())
-				.withValue(SanitizableData.SANITIZED_VALUE);
+					.withValue(SanitizableData.SANITIZED_VALUE);
 		}
 
 		// at the moment, our structure is pretty simply, CompositePropertySource
@@ -80,7 +80,7 @@ public final class ConfigUtils {
 			for (PropertySource<?> one : sources) {
 				if (one.containsProperty(data.getKey()) && one instanceof SecretsPropertySource) {
 					return new SanitizableData(propertySource, data.getKey(), data.getValue())
-						.withValue(SanitizableData.SANITIZED_VALUE);
+							.withValue(SanitizableData.SANITIZED_VALUE);
 				}
 			}
 		}

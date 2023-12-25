@@ -20,10 +20,13 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnSanitizeSecrets;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
@@ -57,6 +60,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
 		KubernetesClient kubernetesClient = registerConfigAndClient(bootstrapContext, kubernetesClientProperties);
+		registerSanitizerFunction(resolverContext, bootstrapContext);
 
 		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new Fabric8ConfigMapPropertySourceLocator(
@@ -92,6 +96,16 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 		KubernetesClient kubernetesClient = new Fabric8AutoConfiguration().kubernetesClient(config);
 		registerSingle(bootstrapContext, KubernetesClient.class, kubernetesClient, "configKubernetesClient");
 		return kubernetesClient;
+	}
+
+	private void registerSanitizerFunction(ConfigDataLocationResolverContext resolverContext,
+			ConfigurableBootstrapContext bootstrapContext) {
+		Binder binder = resolverContext.getBinder();
+		boolean includeSanitizer = binder.bind(ConditionalOnSanitizeSecrets.VALUE, boolean.class).orElse(false);
+		if (includeSanitizer) {
+			SanitizingFunction sanitizingFunction = new Fabric8BootstrapConfiguration().sanitizingFunction();
+			registerSingle(bootstrapContext, SanitizingFunction.class, sanitizingFunction, "sanitizingFunction");
+		}
 	}
 
 	@Override
