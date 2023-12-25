@@ -20,17 +20,21 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
+import org.springframework.cloud.kubernetes.commons.ConditionalOnSanitizeSecrets;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigRetryDisabled;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesSecretsRetryDisabled;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
@@ -46,12 +50,19 @@ import org.springframework.core.env.Environment;
  * @author Ioannis Canellos
  */
 @Configuration(proxyBeanMethods = false)
-@Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
-@ConditionalOnClass({ ConfigMap.class, Secret.class })
-@AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnBootstrapEnabled
+@ConditionalOnClass({ ConfigMap.class, Secret.class })
+@Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
+@AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 public class Fabric8BootstrapConfiguration {
+
+	@Bean
+	@ConditionalOnSanitizeSecrets
+	@ConditionalOnMissingBean
+	SanitizingFunction sanitizingFunction() {
+		return ConfigUtils.sanitizingFunction();
+	}
 
 	@Bean
 	KubernetesNamespaceProvider provider(Environment env) {

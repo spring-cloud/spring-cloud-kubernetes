@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,7 +33,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.boot.actuate.endpoint.SanitizableData;
+import org.springframework.boot.actuate.endpoint.SanitizingFunction;
+import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
+import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -49,6 +55,37 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
 public final class ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
+
+	private static final SanitizingFunction SANITIZING_FUNCTION = data -> {
+		PropertySource<?> propertySource = data.getPropertySource();
+		if (propertySource instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
+			PropertySource<?> source = bootstrapPropertySource.getDelegate();
+			if (source instanceof SecretsPropertySource) {
+				return new SanitizableData(propertySource, data.getKey(), data.getValue())
+					.withValue(SanitizableData.SANITIZED_VALUE);
+			}
+		}
+
+		if (propertySource instanceof SecretsPropertySource) {
+			return new SanitizableData(propertySource, data.getKey(), data.getValue())
+				.withValue(SanitizableData.SANITIZED_VALUE);
+		}
+
+		// at the moment, our structure is pretty simply, CompositePropertySource
+		// children can be SecretsPropertySource; i.e.: there is no recursion
+		// needed to get all children. If this structure changes, there are enough
+		// unit tests that will start failing.
+		if (propertySource instanceof CompositePropertySource compositePropertySource) {
+			Collection<PropertySource<?>> sources = compositePropertySource.getPropertySources();
+			for (PropertySource<?> one : sources) {
+				if (one.containsProperty(data.getKey()) && one instanceof SecretsPropertySource) {
+					return new SanitizableData(propertySource, data.getKey(), data.getValue())
+						.withValue(SanitizableData.SANITIZED_VALUE);
+				}
+			}
+		}
+		return data;
+	};
 
 	private ConfigUtils() {
 	}
@@ -287,6 +324,10 @@ public final class ConfigUtils {
 		Map<String, String> result = CollectionUtils.newHashMap(map.size());
 		map.forEach((key, value) -> result.put(prefix + key, value));
 		return result;
+	}
+
+	public static SanitizingFunction sanitizingFunction() {
+		return SANITIZING_FUNCTION;
 	}
 
 	public static final class Prefix {
