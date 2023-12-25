@@ -27,7 +27,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * Stud data is in
- * {@link org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledConfigMapWithPrefixConfigurationStub}
+ * {@link org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.LabeledConfigMapWithPrefixConfigurationStub}
  *
  * @author wind57
  */
