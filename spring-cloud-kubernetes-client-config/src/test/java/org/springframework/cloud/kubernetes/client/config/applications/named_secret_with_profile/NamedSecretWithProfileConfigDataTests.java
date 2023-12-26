@@ -30,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedSecretWithProfileConfigurationStub.stubData;
+import static org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.NamedSecretWithProfileConfigurationStub.stubData;
 
 /**
  * @author wind57

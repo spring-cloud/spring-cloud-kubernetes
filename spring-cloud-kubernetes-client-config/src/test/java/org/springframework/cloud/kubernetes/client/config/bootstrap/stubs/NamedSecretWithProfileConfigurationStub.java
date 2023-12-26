@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.boostrap.stubs;
+package org.springframework.cloud.kubernetes.client.config.bootstrap.stubs;
 
 import java.util.Arrays;
 import java.util.Collections;
