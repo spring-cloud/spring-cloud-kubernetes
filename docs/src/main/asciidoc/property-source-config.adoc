@@ -804,6 +804,15 @@ NOTE: If you already have `spring-retry` and `spring-boot-starter-aop` on the cl
 and want to enable fail-fast, but do not want retry to be enabled; you can disable retry for `Secrets` `PropertySources`
 by setting `spring.cloud.kubernetes.secrets.retry.enabled=false`.
 
+Since data coming from Secrets is usually treated as sensitive, endpoints of the actuator `/env` and `/configprops` can be made to sanitize data, so that it is not displayed in plain text. In order to do that, you need to set:
+
+[source]
+----
+spring.cloud.kubernetes.sanitize.secrets=true
+----
+
+This setting is supported since `3.0.6` and upwards.
+
 .Properties:
 [options="header,footer"]
 |===
