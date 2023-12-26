@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.boostrap.stubs;
+package org.springframework.cloud.kubernetes.client.config.bootstrap.stubs;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -44,8 +44,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  */
 @Order(0)
 @Configuration
-@ConditionalOnProperty("labeled.config.map.with.prefix.stub")
-public class LabeledConfigMapWithPrefixConfigurationStub {
+@ConditionalOnProperty("single.source.multiple.files.stub")
+public class SingleSourceMultipleFilesConfigurationStub {
 
 	@Bean
 	public WireMockServer wireMock() {
@@ -59,42 +59,30 @@ public class LabeledConfigMapWithPrefixConfigurationStub {
 	public ApiClient apiClient(WireMockServer wireMockServer) {
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		io.kubernetes.client.openapi.Configuration.setDefaultApiClient(apiClient);
-		apiClient.setDebugging(true);
 		stubData();
 		return apiClient;
 	}
 
 	public static void stubData() {
 
-		V1ConfigMap one = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "a")).build())
-				.addToData(Collections.singletonMap("one.property", "one")).build();
+		Map<String, String> one = new HashMap<>();
+		one.put("fruit.type", "yummy");
+		one.put("fruit.properties", "cool.name=banana");
+		one.put("fruit-color.properties", "color.when.raw=green\ncolor.when.ripe=yellow");
 
-		V1ConfigMap two = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "b")).build())
-				.addToData(Collections.singletonMap("property", "two")).build();
+		// this is not taken, since "shape" is not an active profile
+		one.put("fruit-shape.properties", "shape.when.raw=small-sphere\nshape.when.ripe=bigger-sphere");
 
-		V1ConfigMap three = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "c")).build())
-				.addToData(Collections.singletonMap("property", "three")).build();
+		V1ConfigMap configMap = new V1ConfigMapBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("my-configmap").withNamespace("spring-k8s").build())
+				.addToData(one).build();
 
-		V1ConfigMap four = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-four").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "d")).build())
-				.addToData(Collections.singletonMap("property", "four")).build();
+		V1ConfigMapList allConfigMaps = new V1ConfigMapList();
+		allConfigMaps.addItemsItem(configMap);
 
 		// the actual stub for CoreV1Api calls
-		V1ConfigMapList configMapList = new V1ConfigMapList();
-		configMapList.addItemsItem(one);
-		configMapList.addItemsItem(two);
-		configMapList.addItemsItem(three);
-		configMapList.addItemsItem(four);
-
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 
 }
