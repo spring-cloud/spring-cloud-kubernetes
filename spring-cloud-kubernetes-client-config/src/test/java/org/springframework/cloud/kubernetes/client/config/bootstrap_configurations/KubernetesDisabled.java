@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.boostrap_configuration;
+package org.springframework.cloud.kubernetes.client.config.bootstrap_configurations;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,18 +27,20 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author wind57
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
-class KubernetesEnabled {
+		properties = { "kubernetes.informer.enabled=false", "kubernetes.manifests.enabled=false" })
+class KubernetesDisabled {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
-	void configAndSecretsBeansArePresent() {
-		assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
+	void configAndSecretsBeansAreNotPresent() {
+		assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(0);
+		assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(0);
 	}
 
 }
