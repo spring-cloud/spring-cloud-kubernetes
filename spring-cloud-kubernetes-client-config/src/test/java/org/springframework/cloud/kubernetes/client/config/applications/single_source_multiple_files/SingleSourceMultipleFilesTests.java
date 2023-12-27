@@ -29,7 +29,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  *
  * Stub for this test is here :
- * {@link org.springframework.cloud.kubernetes.client.config.boostrap.stubs.SingleSourceMultipleFilesConfigurationStub}
+ * {@link org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.SingleSourceMultipleFilesConfigurationStub}
  *
  * issue: https://github.com/spring-cloud/spring-cloud-kubernetes/issues/640
  *
