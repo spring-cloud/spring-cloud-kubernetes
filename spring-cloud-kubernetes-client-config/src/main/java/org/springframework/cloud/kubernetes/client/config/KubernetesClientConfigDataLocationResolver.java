@@ -21,13 +21,10 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
-import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnSanitizeSecrets;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
@@ -61,7 +58,6 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
 		CoreV1Api coreV1Api = registerClientAndCoreV1Api(bootstrapContext, kubernetesClientProperties);
-		registerSanitizerFunction(resolverContext, bootstrapContext);
 
 		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
@@ -98,16 +94,6 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 		bootstrapContext.registerIfAbsent(CoreV1Api.class, BootstrapRegistry.InstanceSupplier.of(coreV1Api));
 
 		return coreV1Api;
-	}
-
-	private void registerSanitizerFunction(ConfigDataLocationResolverContext resolverContext,
-			ConfigurableBootstrapContext bootstrapContext) {
-		Binder binder = resolverContext.getBinder();
-		boolean includeSanitizer = binder.bind(ConditionalOnSanitizeSecrets.VALUE, boolean.class).orElse(false);
-		if (includeSanitizer) {
-			SanitizingFunction sanitizingFunction = new KubernetesClientBootstrapConfiguration().sanitizingFunction();
-			registerSingle(bootstrapContext, SanitizingFunction.class, sanitizingFunction, "sanitizingFunction");
-		}
 	}
 
 	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {

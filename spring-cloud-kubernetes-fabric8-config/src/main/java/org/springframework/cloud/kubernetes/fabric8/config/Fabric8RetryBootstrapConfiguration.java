@@ -20,21 +20,17 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnSanitizeSecrets;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigOrSecretsRetryEnabled;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesConfigRetryEnabled;
 import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernetesSecretsRetryEnabled;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
@@ -55,13 +51,6 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnKubernetesConfigOrSecretsRetryEnabled
 @ConditionalOnBootstrapEnabled
 public class Fabric8RetryBootstrapConfiguration {
-
-	@Bean
-	@ConditionalOnSanitizeSecrets
-	@ConditionalOnMissingBean
-	SanitizingFunction sanitizingFunction() {
-		return ConfigUtils.sanitizingFunction();
-	}
 
 	@Bean
 	@ConditionalOnKubernetesConfigRetryEnabled

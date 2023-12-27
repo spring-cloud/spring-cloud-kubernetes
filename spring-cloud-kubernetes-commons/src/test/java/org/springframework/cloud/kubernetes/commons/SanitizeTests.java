@@ -26,7 +26,6 @@ import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.actuate.endpoint.Sanitizer;
 import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
@@ -38,11 +37,12 @@ import static org.springframework.boot.actuate.endpoint.SanitizableData.SANITIZE
 /**
  * @author wind57
  */
-class ConfigUtilsSanitizeTests {
+class SanitizeTests {
 
 	private static final boolean SHOW_UNSANITIZED = true;
 
-	private static final List<SanitizingFunction> SANITIZING_FUNCTIONS = List.of(ConfigUtils.sanitizingFunction());
+	private static final List<SanitizingFunction> SANITIZING_FUNCTIONS = List
+			.of(new KubernetesCommonsSanitizeAutoConfiguration().secretsPropertySourceSanitizingFunction());
 
 	@Test
 	void bootstrapPropertySourceNotSecrets() {
