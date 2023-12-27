@@ -29,7 +29,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledSecretWithPrefixConfigurationStub.stubData;
+import static org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.LabeledSecretWithPrefixConfigurationStub.stubData;
 
 /**
  * @author wind57
