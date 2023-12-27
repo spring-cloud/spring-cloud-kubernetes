@@ -46,11 +46,11 @@ import org.springframework.core.env.Environment;
  * @author Ioannis Canellos
  */
 @Configuration(proxyBeanMethods = false)
-@Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
-@ConditionalOnClass({ ConfigMap.class, Secret.class })
-@AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnBootstrapEnabled
+@ConditionalOnClass({ ConfigMap.class, Secret.class })
+@Import({ KubernetesCommonsAutoConfiguration.class, Fabric8AutoConfiguration.class })
+@AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 public class Fabric8BootstrapConfiguration {
 
 	@Bean
