@@ -25,7 +25,7 @@ import org.springframework.cloud.kubernetes.client.config.applications.named_con
 
 /**
  * The stub data for this test is in :
- * {@link org.springframework.cloud.kubernetes.client.config.boostrap.stubs.NamedConfigMapWithProfileConfigurationStub}
+ * {@link org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.NamedConfigMapWithProfileConfigurationStub}
  *
  * @author wind57
  */
