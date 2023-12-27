@@ -32,12 +32,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.SourcesOrderConfigurationStub.stubConfigMapData;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.SourcesOrderConfigurationStub.stubSecretsData;
+import static org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.SourcesOrderConfigurationStub.stubConfigMapData;
+import static org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.SourcesOrderConfigurationStub.stubSecretsData;
 
 /**
  * The stub data for this test is in :
- * {@link org.springframework.cloud.kubernetes.client.config.boostrap.stubs.SourcesOrderConfigurationStub}
+ * {@link org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.SourcesOrderConfigurationStub}
  *
  * @author wind57
  */

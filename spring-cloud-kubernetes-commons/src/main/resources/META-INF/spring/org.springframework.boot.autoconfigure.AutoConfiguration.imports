@@ -1,4 +1,5 @@
 org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration
+org.springframework.cloud.kubernetes.commons.KubernetesCommonsSanitizeAutoConfiguration
 org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadAutoConfiguration
 org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPropertiesAutoConfiguration
 org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration

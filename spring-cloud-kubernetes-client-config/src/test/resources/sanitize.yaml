@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: sanitize
+  cloud:
+    kubernetes:
+      secrets:
+        enableApi: true
+        sources:
+          - name: sanitize-secret
+            namespaces: test
+      config:
+        sources:
+          - name: sanitize-configmap
+            namespace: test
