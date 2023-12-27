@@ -54,6 +54,19 @@ SPRING_CLOUD_KUBERNETES_CONFIG_INFORMER_ENABLED=TRUE
 
 This will tell watcher to only monitor sources that have a label: `spring.cloud.kubernetes.config.informer.enabled=true`.
 
+One more important configuration, especially for configmaps and secrets that are mounted as volumes (via `spring.cloud.kubernetes.config.paths`/`spring.cloud.kubernetes.secrets.paths` or using `spring.config.import`) is:
+
+[source]
+----
+- name: SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY
+  value: "10000"
+----
+
+This tells how many milliseconds should we wait before firing the event from configuration watcher. This is important because kubernetes documentation says:
+
+> When a ConfigMap currently consumed in a volume is updated, projected keys are eventually updated as well.
+
+You need to "match" this _eventually_ part to that value in milliseconds on your cluster.
 
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
