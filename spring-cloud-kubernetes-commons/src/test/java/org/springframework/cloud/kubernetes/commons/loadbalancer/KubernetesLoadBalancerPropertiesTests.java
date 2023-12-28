@@ -17,13 +17,10 @@
 package org.springframework.cloud.kubernetes.commons.loadbalancer;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesMetadataTests;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,81 +31,36 @@ class KubernetesLoadBalancerPropertiesTests {
 
 	@Test
 	void testBindingWhenNoPropertiesProvided() {
-		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
-			.run(context -> {
-				KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
-				assertThat(props).isNotNull();
-				assertThat(props.metadata().labelsPrefix()).isNull();
-				assertThat(props.metadata().addPorts()).isTrue();
-				assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
-
-				assertThat(props.enabled()).isTrue();
-				assertThat(props.allNamespaces()).isFalse();
-				assertThat(props.namespaces()).isEmpty();
-				assertThat(props.waitCacheReady()).isTrue();
-				assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
-				assertThat(props.includeNotReadyAddresses()).isFalse();
-				assertThat(props.filter()).isNull();
-				assertThat(props.knownSecurePorts()).isEqualTo(Set.of(443, 8443));
-				assertThat(props.serviceLabels()).isEmpty();
-				assertThat(props.primaryPortName()).isNull();
-				assertThat(props.order()).isZero();
-				assertThat(props.useEndpointSlices()).isFalse();
-				assertThat(props.includeExternalNameServices()).isFalse();
-				assertThat(props.discoveryServerUrl()).isNull();
-			});
+		new ApplicationContextRunner().withUserConfiguration(KubernetesLoadBalancerPropertiesTests.Config.class)
+				.run(context -> {
+					KubernetesLoadBalancerProperties props = context.getBean(KubernetesLoadBalancerProperties.class);
+					assertThat(props).isNotNull();
+					assertThat(props.getEnabled()).isTrue();
+					assertThat(props.getMode()).isEqualTo(KubernetesLoadBalancerMode.POD);
+					assertThat(props.getClusterDomain()).isEqualTo("cluster.local");
+					assertThat(props.getPortName()).isEqualTo("http");
+				});
 	}
 
 	@Test
 	void testBindingWhenSomePropertiesProvided() {
-		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
-			.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter",
-				"spring.cloud.kubernetes.discovery.knownSecurePorts[0]=222",
-				"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix",
-				"spring.cloud.kubernetes.discovery.use-endpoint-slices=true",
-				"spring.cloud.kubernetes.discovery.namespaces[0]=ns1",
-				"spring.cloud.kubernetes.discovery.namespaces[1]=ns2",
-				"spring.cloud.kubernetes.discovery.include-external-name-services=true",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=http://example")
-			.run(context -> {
-				KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
-				assertThat(props).isNotNull();
-				assertThat(props.metadata().labelsPrefix()).isEqualTo("labelsPrefix");
-				assertThat(props.metadata().addPorts()).isTrue();
-				assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
-
-				assertThat(props.enabled()).isTrue();
-				assertThat(props.allNamespaces()).isFalse();
-				assertThat(props.namespaces()).containsExactlyInAnyOrder("ns1", "ns2");
-				assertThat(props.waitCacheReady()).isTrue();
-				assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
-				assertThat(props.includeNotReadyAddresses()).isFalse();
-				assertThat(props.filter()).isEqualTo("some-filter");
-				assertThat(props.knownSecurePorts()).isEqualTo(Set.of(222));
-				assertThat(props.serviceLabels()).isEmpty();
-				assertThat(props.primaryPortName()).isNull();
-				assertThat(props.order()).isZero();
-				assertThat(props.useEndpointSlices()).isTrue();
-				assertThat(props.includeExternalNameServices()).isTrue();
-				assertThat(props.discoveryServerUrl()).isEqualTo("http://example");
-			});
-	}
-
-	// when we do not specify metadata, @DefaultValue is going to be picked up
-	@Test
-	void metadataSetToNotNull() {
-		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
-			.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter").run(context -> {
-				KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
-				assertThat(props).isNotNull();
-				assertThat(props.metadata().labelsPrefix()).isNull();
-				assertThat(props.metadata().addPorts()).isTrue();
-				assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
-			});
+		new ApplicationContextRunner().withUserConfiguration(KubernetesLoadBalancerPropertiesTests.Config.class)
+				.withPropertyValues("spring.cloud.kubernetes.loadbalancer.enabled=false",
+						"spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
+						"spring.cloud.kubernetes.loadbalancer.clusterDomain=clusterDomain",
+						"spring.cloud.kubernetes.loadbalancer.portName=portName")
+				.run(context -> {
+					KubernetesLoadBalancerProperties props = context.getBean(KubernetesLoadBalancerProperties.class);
+					assertThat(props).isNotNull();
+					assertThat(props.getEnabled()).isFalse();
+					assertThat(props.getMode()).isEqualTo(KubernetesLoadBalancerMode.SERVICE);
+					assertThat(props.getClusterDomain()).isEqualTo("clusterDomain");
+					assertThat(props.getPortName()).isEqualTo("portName");
+				});
 	}
 
 	@Configuration
-	@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
+	@EnableConfigurationProperties(KubernetesLoadBalancerProperties.class)
 	static class Config {
 
 	}
