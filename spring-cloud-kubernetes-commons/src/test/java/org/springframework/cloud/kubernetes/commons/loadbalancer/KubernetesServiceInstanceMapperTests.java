@@ -16,17 +16,15 @@
 
 package org.springframework.cloud.kubernetes.commons.loadbalancer;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
@@ -35,27 +33,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class KubernetesServiceInstanceMapperTests {
 
 	private static final String SECURED_LABEL_MESSAGE = "Service has a true 'secured' label";
+
 	private static final String SECURED_ANNOTATION_MESSAGE = "Service has a true 'secured' annotation";
+
 	private static final String NAME_ENDS_IN_HTTPS_MESSAGE = "Service port name ends with 'https'";
+
 	private static final String PORT_ENDS_IN_443_MESSAGE = "Service port ends with '443'";
 
 	@Test
 	void testCreateHostWithNamespace() {
 		String namespace = "customNamespace";
 		String host = KubernetesServiceInstanceMapper.createHost("serviceName", namespace, "clusterDomain");
-		assertEquals("serviceName.customNamespace.svc.clusterDomain", host);
+		assertThat(host).isEqualTo("serviceName.customNamespace.svc.clusterDomain");
 	}
 
 	@Test
 	void testCreateHostWithEmptyNamespace() {
 		String host = KubernetesServiceInstanceMapper.createHost("serviceName", "", "clusterDomain");
-		assertEquals("serviceName.default.svc.clusterDomain", host);
+		assertThat(host).isEqualTo("serviceName.default.svc.clusterDomain");
 	}
 
 	@Test
 	void testCreateHostWithNullNamespace() {
 		String host = KubernetesServiceInstanceMapper.createHost("serviceName", null, "clusterDomain");
-		assertEquals("serviceName.default.svc.clusterDomain", host);
+		assertThat(host).isEqualTo("serviceName.default.svc.clusterDomain");
 	}
 
 	@Test
@@ -64,12 +65,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = Map.of();
 		String servicePortName = null;
 		Integer servicePort = null;
-		assertTrue(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isTrue();
 
-		assertTrue(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertFalse(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertFalse(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertFalse(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isTrue();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isFalse();
 	}
 
 	@Test
@@ -79,12 +81,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = Map.of("secured", "true");
 		String servicePortName = null;
 		Integer servicePort = null;
-		assertTrue(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isTrue();
 
-		assertFalse(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertTrue(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertFalse(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertFalse(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isTrue();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isFalse();
 	}
 
 	@Test
@@ -94,12 +97,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = Map.of("secured", "true");
 		String servicePortName = null;
 		Integer servicePort = null;
-		assertTrue(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isTrue();
 
-		assertFalse(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertTrue(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertFalse(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertFalse(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isTrue();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isFalse();
 	}
 
 	@Test
@@ -110,12 +114,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = null;
 		String servicePortName = null;
 		Integer servicePort = null;
-		assertFalse(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isFalse();
 
-		assertFalse(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertFalse(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertFalse(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertFalse(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isFalse();
 	}
 
 	@Test
@@ -126,13 +131,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = null;
 		String servicePortName = "abc_https_def";
 		Integer servicePort = null;
-		assertFalse(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isFalse();
 
-
-		assertFalse(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertFalse(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertFalse(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertFalse(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isFalse();
 	}
 
 	@Test
@@ -143,12 +148,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = null;
 		String servicePortName = "abc_https";
 		Integer servicePort = null;
-		assertTrue(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isTrue();
 
-		assertFalse(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertFalse(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertTrue(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertFalse(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isTrue();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isFalse();
 	}
 
 	@Test
@@ -159,12 +165,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = null;
 		String servicePortName = null;
 		Integer servicePort = 444;
-		assertFalse(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isFalse();
 
-		assertFalse(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertFalse(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertFalse(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertFalse(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isFalse();
 	}
 
 	@Test
@@ -175,12 +182,13 @@ class KubernetesServiceInstanceMapperTests {
 		Map<String, String> annotations = null;
 		String servicePortName = null;
 		Integer servicePort = 443;
-		assertTrue(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort));
+		assertThat(KubernetesServiceInstanceMapper.isSecure(labels, annotations, servicePortName, servicePort))
+				.isTrue();
 
-		assertFalse(output.getOut().contains(SECURED_LABEL_MESSAGE));
-		assertFalse(output.getOut().contains(SECURED_ANNOTATION_MESSAGE));
-		assertFalse(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE));
-		assertTrue(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE));
+		assertThat(output.getOut().contains(SECURED_LABEL_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(SECURED_ANNOTATION_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(NAME_ENDS_IN_HTTPS_MESSAGE)).isFalse();
+		assertThat(output.getOut().contains(PORT_ENDS_IN_443_MESSAGE)).isTrue();
 	}
 
 }

@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
@@ -31,6 +32,9 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ke
  */
 public interface KubernetesServiceInstanceMapper<T> {
 
+	/**
+	 * Logger instance.
+	 */
 	LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesServiceInstanceMapper.class));
 
 	KubernetesServiceInstance map(T service);
@@ -72,7 +76,7 @@ public interface KubernetesServiceInstanceMapper<T> {
 
 	private static boolean hasTrueSecuredValue(Map<String, String> input) {
 		if (input != null) {
-            return "true".equals(input.get("secured"));
+			return "true".equals(input.get("secured"));
 		}
 		return false;
 	}
