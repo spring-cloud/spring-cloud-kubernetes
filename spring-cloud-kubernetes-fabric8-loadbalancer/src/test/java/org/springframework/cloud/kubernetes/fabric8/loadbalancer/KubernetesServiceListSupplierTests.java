@@ -77,7 +77,7 @@ class KubernetesServiceListSupplierTests {
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
 		when(this.namespaceOperation.withName("test-service")).thenReturn(this.serviceResource);
 		when(this.serviceResource.get()).thenReturn(buildService("test-service", 8080));
-		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
+		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				KubernetesDiscoveryProperties.DEFAULT);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
@@ -98,7 +98,7 @@ class KubernetesServiceListSupplierTests {
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false);
-		KubernetesServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
+		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
 		assert instances != null;
