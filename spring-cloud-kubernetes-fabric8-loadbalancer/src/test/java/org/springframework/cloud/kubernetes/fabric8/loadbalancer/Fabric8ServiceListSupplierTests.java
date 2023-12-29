@@ -42,7 +42,7 @@ import org.springframework.mock.env.MockEnvironment;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-class KubernetesServiceListSupplierTests {
+class Fabric8ServiceListSupplierTests {
 
 	private final Environment environment =
 		new MockEnvironment().withProperty("loadbalancer.client.name", "test-service");
