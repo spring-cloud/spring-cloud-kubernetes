@@ -67,10 +67,8 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 			LogFactory.getLog(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class));
 
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
-	// namespaces
-	// as a list, instead of the incoming Set.
+	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	@ConditionalOnMissingBean
 	public List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties) {
 		List<String> selectiveNamespaces = properties.namespaces().stream().sorted().toList();
 		LOG.debug(() -> "using selective namespaces : " + selectiveNamespaces);
