@@ -46,16 +46,19 @@ class KubernetesClientInformerSelectiveNamespacesAutoConfigurationTests {
 
 	private static final String NAMESPACE_B = "b";
 
-	private static final String NAMESPACE_C = "C";
+	private static final String NAMESPACE_C = "c";
 
 	private static final String NAMESPACE_D = "d";
 
 	@Test
 	void testBeansCreates(CapturedOutput output) {
 
-		new ApplicationContextRunner().withPropertyValues("spring.cloud.discovery.enabled=true",
-				"spring.cloud.kubernetes.discovery.enabled=true", "spring.cloud.kubernetes.discovery.namespaces[0]=a",
-				"spring.cloud.kubernetes.discovery.namespaces[1]=b", "spring.main.cloud-platform=kubernetes")
+		new ApplicationContextRunner()
+				.withPropertyValues("spring.cloud.discovery.enabled=true",
+						"spring.cloud.kubernetes.discovery.enabled=true",
+						"spring.cloud.kubernetes.discovery.namespaces[0]=" + NAMESPACE_A,
+						"spring.cloud.kubernetes.discovery.namespaces[1]=" + NAMESPACE_B,
+						"spring.main.cloud-platform=kubernetes")
 				.withConfiguration(
 						AutoConfigurations.of(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
 				.withUserConfiguration(Config.class).run(context -> {
@@ -80,7 +83,7 @@ class KubernetesClientInformerSelectiveNamespacesAutoConfigurationTests {
 		assertThat(output.getOut().contains("registering lister (for services) in namespace : " + NAMESPACE_D))
 				.isFalse();
 
-		assertThat(output.getOut().contains("registering lister (for endpoints) in namespace : " + NAMESPACE_B))
+		assertThat(output.getOut().contains("registering lister (for endpoints) in namespace : " + NAMESPACE_A))
 				.isTrue();
 		assertThat(output.getOut().contains("registering lister (for endpoints) in namespace : " + NAMESPACE_B))
 				.isTrue();
@@ -102,7 +105,7 @@ class KubernetesClientInformerSelectiveNamespacesAutoConfigurationTests {
 
 		@Bean
 		List<String> namespaces() {
-			return List.of("c", "d");
+			return List.of(NAMESPACE_C, NAMESPACE_D);
 		}
 
 	}
