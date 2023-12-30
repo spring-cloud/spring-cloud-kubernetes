@@ -429,7 +429,7 @@ an `application-profile.properties` or `application-profile.yaml` file that cont
 application or Spring Boot starters. You can override these properties by specifying system properties or environment
 variables.
 
-To enable this functionality you need to set `spring.config.import=kubernetes:` in your application's configuration properties.
+To enable this functionality you need to set the `spring.config.import` application configuration property to `kubernetes:` (escape with quotes when using yaml eg. `"kubernetes:"`).
 Currently you can not specify a ConfigMap or Secret to load using `spring.config.import`, by default Spring Cloud Kubernetes
 will load a ConfigMap and/or Secret based on the `spring.application.name` property.  If `spring.application.name` is not set it will
 load a ConfigMap and/or Secret with the name `application`.
@@ -1228,6 +1228,15 @@ NOTE: If you already have `spring-retry` and `spring-boot-starter-aop` on the cl
 and want to enable fail-fast, but do not want retry to be enabled; you can disable retry for `Secrets` `PropertySources`
 by setting `spring.cloud.kubernetes.secrets.retry.enabled=false`.
 
+Since data coming from Secrets is usually treated as sensitive, endpoints of the actuator `/env` and `/configprops` can be made to sanitize data, so that it is not displayed in plain text. In order to do that, you need to set:
+
+[source]
+----
+spring.cloud.kubernetes.sanitize.secrets=true
+----
+
+This setting is supported since `3.0.6` and upwards.
+
 .Properties:
 [options="header,footer"]
 |===
@@ -1700,7 +1709,7 @@ registration as it may do in other platforms.  For this reason using `spring.clo
 or setting `@EnableDiscoveryClient(autoRegister=false)` will have no effect in Spring Cloud Kubernetes.
 
 [#spring-cloud-kubernetes-configuration-watcher]
-## Spring Cloud Kubernetes Configuration Watcher
+== Spring Cloud Kubernetes Configuration Watcher
 
 Kubernetes provides the ability to https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume[mount a ConfigMap or Secret as a volume]
 in the container of your application.  When the contents of the ConfigMap or Secret changes, the https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically[mounted volume will be updated with those changes].
@@ -1716,12 +1725,65 @@ The application is published as a container and is available on https://hub.dock
   However, if you need to customize the config watcher behavior or prefer to build the image yourself you can easily build your own
 image from the https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher[source code on GitHub] and use that.
 
+Another option to configure it is to provide some environment variables in the deployment.yaml used to deploy configuration watcher. Here are some important ones:
+
+[source]
+----
+
+env:
+  - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CONFIGURATION_WATCHER
+    value: DEBUG
+  - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD
+    value: DEBUG
+  - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD
+    value: DEBUG
+----
+
+These enable debug logging on the configuration watcher and are particular useful on the initial set-up, to be able to diagnose potential miss-configurations.
+
+[source]
+----
+env:
+  - name: SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0
+    value: "namespace-a"
+----
+
+This one lets watcher know where to search for secrets and configmaps. You have two options here: selective namespaces (the setting above) and a namespace chosen by xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] (this is the default option).
+Keep in mind that all these options require proper RBAC rules.
+
+Changes from configmaps/secrets will only trigger an event being fired from configuration watcher if that particular change came from a source that has a label: `spring.cloud.kubernetes.config=true` or `spring.cloud.kubernetes.secret=true`.
+
+To put it simpler, if you change a configmap (or secret), that does _not_ have the label above, configuration watcher will skip firing an event for it (if you enabled debug logging, this will be visible in logs).
+
+By default, configuration watcher will monitor all configmaps/secrets in the configured namespace(s). If you want to filter to watch only particular sources, you can do that by setting:
+
+[source]
+----
+SPRING_CLOUD_KUBERNETES_CONFIG_INFORMER_ENABLED=TRUE
+----
+
+This will tell watcher to only monitor sources that have a label: `spring.cloud.kubernetes.config.informer.enabled=true`.
+
+One more important configuration, especially for configmaps and secrets that are mounted as volumes (via `spring.cloud.kubernetes.config.paths`/`spring.cloud.kubernetes.secrets.paths` or using `spring.config.import`) is:
+
+[source]
+----
+- name: SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY
+  value: "10000"
+----
+
+This tells how many milliseconds should we wait before firing the event from configuration watcher. This is important because kubernetes documentation says:
+
+> When a ConfigMap currently consumed in a volume is updated, projected keys are eventually updated as well.
+
+You need to "match" this _eventually_ part to that value in milliseconds on your cluster.
+
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
-1.  Over HTTP in which case the application being notified must of the `/refresh` actuator endpoint exposed and accessible from within the cluster
+1.  Over HTTP, in which case the application being notified, must have the `/refresh` actuator endpoint exposed and accessible from within the cluster
 2.  Using Spring Cloud Bus, in which case you will need a message broker deployed to your custer for the application to use.
 
-### Deployment YAML
+=== Deployment YAML
 
 Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
 
@@ -1809,14 +1871,10 @@ items:
 The Service Account and associated Role Binding is important for Spring Cloud Kubernetes Configuration to work properly.
 The controller needs access to read data about ConfigMaps, Pods, Services, Endpoints and Secrets in the Kubernetes cluster.
 
-### Monitoring ConfigMaps and Secrets
+=== Monitoring ConfigMaps and Secrets
 
-Spring Cloud Kubernetes Configuration Watcher will react to changes in ConfigMaps with a label of `spring.cloud.kubernetes.config` with the value `true`
-or any Secret with a label of `spring.cloud.kubernetes.secret` with the value `true`.  If the ConfigMap or Secret does not have either of those labels
-or the values of those labels is not `true` then any changes will be ignored.
-
-If a change is made to a ConfigMap or Secret with valid labels then Spring Cloud Kubernetes Configuration Watcher will take the name of the ConfigMap or Secret
-and send a notification to the application with that name. This might not be enough for your use-case though, you could for example what to:
+If a change is made to a ConfigMap or Secret with valid labels (as detailed above), then Spring Cloud Kubernetes Configuration Watcher will take the name of the ConfigMap or Secret
+and send a notification to the application with that name. This might not be enough for your use-case though, you could for example want to:
 
 - bind a config-map to multiple applications, so that a change inside a single configmap triggers a refresh for many services
 - have profile based sources trigger events for your application
@@ -1842,14 +1900,14 @@ metadata:
 ----
 ====
 
-### HTTP Implementation
+=== HTTP Implementation
 
-The HTTP implementation is what is used by default.  When this implementation is used Spring Cloud Kubernetes Configuration Watcher and a
+The HTTP implementation is what is used by default.  When this implementation is used, Spring Cloud Kubernetes Configuration Watcher and a
 change to a ConfigMap or Secret occurs then the HTTP implementation will use the Spring Cloud Kubernetes Discovery Client to fetch all
 instances of the application which match the name of the ConfigMap or Secret and send an HTTP POST request to the application's actuator
-`/refresh` endpoint.  By default it will send the post request to `/actuator/refresh` using the port registered in the discovery client.
+`/refresh` endpoint.  By default, it will send the post request to `/actuator/refresh` using the port registered in the discovery client.
 
-#### Non-Default Management Port and Actuator Path
+==== Non-Default Management Port and Actuator Path
 
 If the application is using a non-default actuator path and/or using a different port for the management endpoints, the Kubernetes service for the application
 can add an annotation called `boot.spring.io/actuator` and set its value to the path and port used by the application.  For example
@@ -1879,12 +1937,12 @@ spec:
 Another way you can choose to configure the actuator path and/or management port is by setting
 `spring.cloud.kubernetes.configuration.watcher.actuatorPath` and `spring.cloud.kubernetes.configuration.watcher.actuatorPort`.
 
-### Messaging Implementation
+=== Messaging Implementation
 
 The messaging implementation can be enabled by setting profile to either `bus-amqp` (RabbitMQ) or `bus-kafka` (Kafka) when the Spring Cloud Kubernetes Configuration Watcher
 application is deployed to Kubernetes.
 
-### Configuring RabbitMQ
+=== Configuring RabbitMQ
 
 When the `bus-amqp` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
 instance you would like to use as well as any credentials necessary to authenticate.  This can be done
@@ -1901,7 +1959,7 @@ spring:
 ----
 ====
 
-### Configuring Kafka
+=== Configuring Kafka
 
 When the `bus-kafka` profile is enabled you will need to configure Spring Kafka to point it to the location of the Kafka Broker
 instance you would like to use.  This can be done by setting the standard Spring Kafka properties, for example
