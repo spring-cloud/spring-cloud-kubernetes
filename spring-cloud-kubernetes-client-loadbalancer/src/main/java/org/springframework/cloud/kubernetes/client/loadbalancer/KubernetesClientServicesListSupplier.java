@@ -48,9 +48,8 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	public KubernetesClientServicesListSupplier(Environment environment,
-			KubernetesServiceInstanceMapper<V1Service> mapper,
-			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+			KubernetesServiceInstanceMapper<V1Service> mapper, KubernetesDiscoveryProperties discoveryProperties,
+			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(environment, mapper, discoveryProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
