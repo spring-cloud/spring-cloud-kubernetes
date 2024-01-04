@@ -44,27 +44,27 @@ import static org.mockito.Mockito.when;
 
 class Fabric8ServiceListSupplierTests {
 
-	private final Environment environment =
-		new MockEnvironment().withProperty("loadbalancer.client.name", "test-service");
+	private final Environment environment = new MockEnvironment().withProperty("loadbalancer.client.name",
+			"test-service");
 
 	private final Fabric8ServiceInstanceMapper mapper = Mockito.mock(Fabric8ServiceInstanceMapper.class);
 
 	private final KubernetesClient client = Mockito.mock(KubernetesClient.class);
 
 	@SuppressWarnings("unchecked")
-	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation =
-		Mockito.mock(MixedOperation.class);
+	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
+			.mock(MixedOperation.class);
 
 	@SuppressWarnings("unchecked")
-	private final NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> namespaceOperation =
-		Mockito.mock(NonNamespaceOperation.class);
+	private final NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> namespaceOperation = Mockito
+			.mock(NonNamespaceOperation.class);
 
 	@SuppressWarnings("unchecked")
 	private final ServiceResource<Service> serviceResource = Mockito.mock(ServiceResource.class);
 
 	@SuppressWarnings("unchecked")
-	private final AnyNamespaceOperation<Service, ServiceList, ServiceResource<Service>> multiDeletable =
-		Mockito.mock(AnyNamespaceOperation.class);
+	private final AnyNamespaceOperation<Service, ServiceList, ServiceResource<Service>> multiDeletable = Mockito
+			.mock(AnyNamespaceOperation.class);
 
 	@Test
 	void testPositiveMatch() {
