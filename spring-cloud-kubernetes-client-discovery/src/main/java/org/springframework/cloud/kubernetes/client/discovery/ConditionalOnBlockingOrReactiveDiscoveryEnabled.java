@@ -39,12 +39,12 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnBlockingOrReactiveDiscoveryEnabled.OnBlockingOrReactiveEnabled.class)
+@Conditional(ConditionalOnBlockingOrReactiveDiscoveryEnabled.OnBlockingOrReactiveDiscoveryEnabled.class)
 public @interface ConditionalOnBlockingOrReactiveDiscoveryEnabled {
 
-	class OnBlockingOrReactiveEnabled extends AnyNestedCondition {
+	class OnBlockingOrReactiveDiscoveryEnabled extends AnyNestedCondition {
 
-		OnBlockingOrReactiveEnabled() {
+		OnBlockingOrReactiveDiscoveryEnabled() {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
