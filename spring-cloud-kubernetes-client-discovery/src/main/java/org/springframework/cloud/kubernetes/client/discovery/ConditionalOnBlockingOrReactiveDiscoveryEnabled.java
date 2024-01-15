@@ -49,12 +49,12 @@ public @interface ConditionalOnBlockingOrReactiveDiscoveryEnabled {
 		}
 
 		@ConditionalOnBlockingDiscoveryEnabled
-		static class OnBlockingEnabled {
+		static class OnBlockingDiscoveryEnabled {
 
 		}
 
 		@ConditionalOnReactiveDiscoveryEnabled
-		static class OnReactiveEnabled {
+		static class OnReactiveDiscoveryEnabled {
 
 		}
 
