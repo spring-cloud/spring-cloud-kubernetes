@@ -58,7 +58,7 @@ import static io.kubernetes.client.util.Namespaces.NAMESPACE_DEFAULT;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingOrReactiveEnabled
+@ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })

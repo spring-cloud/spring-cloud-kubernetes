@@ -56,7 +56,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingOrReactiveEnabled
+@ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })

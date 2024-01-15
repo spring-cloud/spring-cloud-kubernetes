@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,17 +33,14 @@ import org.springframework.context.annotation.Conditional;
  * {@link ConditionalOnBlockingDiscoveryEnabled} or
  * {@link ConditionalOnReactiveDiscoveryEnabled} matches.
  *
- * @deprecated in favor of {@link ConditionalOnBlockingOrReactiveDiscoveryEnabled}
- *
  * @author wind57
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnBlockingOrReactiveEnabled.OnBlockingOrReactiveEnabled.class)
-@Deprecated(forRemoval = true)
-public @interface ConditionalOnBlockingOrReactiveEnabled {
+@Conditional(ConditionalOnBlockingOrReactiveDiscoveryEnabled.OnBlockingOrReactiveEnabled.class)
+public @interface ConditionalOnBlockingOrReactiveDiscoveryEnabled {
 
 	class OnBlockingOrReactiveEnabled extends AnyNestedCondition {
 

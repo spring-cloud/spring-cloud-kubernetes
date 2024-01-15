@@ -56,7 +56,7 @@ import org.springframework.core.log.LogAccessor;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingOrReactiveEnabled
+@ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @Conditional(ConditionalOnSelectiveNamespacesPresent.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
