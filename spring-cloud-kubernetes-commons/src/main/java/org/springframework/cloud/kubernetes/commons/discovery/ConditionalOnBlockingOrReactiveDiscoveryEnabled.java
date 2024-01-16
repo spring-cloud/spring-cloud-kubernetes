@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -26,14 +26,12 @@ import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.context.annotation.Conditional;
 
 /**
  * Conditional that is resolved to active when either
  * {@link ConditionalOnBlockingDiscoveryEnabled} or
  * {@link ConditionalOnReactiveDiscoveryEnabled} matches.
- * @deprecated in favor of {@link ConditionalOnBlockingOrReactiveDiscoveryEnabled}
  *
  * @author wind57
  */
@@ -41,23 +39,22 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnBlockingOrReactiveEnabled.OnBlockingOrReactiveEnabled.class)
-@Deprecated(forRemoval = true)
-public @interface ConditionalOnBlockingOrReactiveEnabled {
+@Conditional(ConditionalOnBlockingOrReactiveDiscoveryEnabled.OnBlockingOrReactiveDiscoveryEnabled.class)
+public @interface ConditionalOnBlockingOrReactiveDiscoveryEnabled {
 
-	class OnBlockingOrReactiveEnabled extends AnyNestedCondition {
+	class OnBlockingOrReactiveDiscoveryEnabled extends AnyNestedCondition {
 
-		OnBlockingOrReactiveEnabled() {
+		OnBlockingOrReactiveDiscoveryEnabled() {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
 		@ConditionalOnBlockingDiscoveryEnabled
-		static class OnBlockingEnabled {
+		static class OnBlockingDiscoveryEnabled {
 
 		}
 
 		@ConditionalOnReactiveDiscoveryEnabled
-		static class OnReactiveEnabled {
+		static class OnReactiveDiscoveryEnabled {
 
 		}
 
