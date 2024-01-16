@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,9 +36,9 @@ import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadB
 class Fabric8ServiceInstanceMapperTests {
 
 	@Test
-	public void testMapperSimple() {
+	void testMapperSimple() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
-		Service service = buildService("test", "abc", 8080, null, new HashMap<>());
+		Service service = buildService("test", "abc", 8080, null, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
 		Assertions.assertNotNull(instance);
@@ -54,7 +53,7 @@ class Fabric8ServiceInstanceMapperTests {
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(8080).withName("web").build());
 		ports.add(new ServicePortBuilder().withPort(9000).withName("http").build());
-		Service service = buildService("test", "abc", ports, new HashMap<>());
+		Service service = buildService("test", "abc", ports, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
 		Assertions.assertNotNull(instance);
@@ -66,7 +65,7 @@ class Fabric8ServiceInstanceMapperTests {
 	@Test
 	void testMapperSecure() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
-		Service service = buildService("test", "abc", 443, null, new HashMap<>());
+		Service service = buildService("test", "abc", 443, null, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
 		Assertions.assertNotNull(instance);
@@ -95,9 +94,7 @@ class Fabric8ServiceInstanceMapperTests {
 	@Test
 	void testMapperSecureWithLabels() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
-		HashMap<String, String> labels = new HashMap<>();
-		labels.put("secured", "true");
-		labels.put("label1", "123");
+		Map<String, String> labels = Map.of("secured", "true", "label1", "123");
 		Service service = buildService("test", "abc", 8080, null, labels);
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
@@ -120,7 +117,7 @@ class Fabric8ServiceInstanceMapperTests {
 	}
 
 	private Service buildService(String name, String uid, List<ServicePort> ports, Map<String, String> labels) {
-		return buildService(name, uid, ports, labels, new HashMap<>(0));
+		return buildService(name, uid, ports, labels, Map.of());
 	}
 
 }

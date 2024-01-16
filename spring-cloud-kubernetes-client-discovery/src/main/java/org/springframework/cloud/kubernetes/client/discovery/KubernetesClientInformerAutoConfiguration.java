@@ -38,7 +38,7 @@ import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAu
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnBlockingOrReactiveEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
@@ -57,7 +57,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingOrReactiveEnabled
+@ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })

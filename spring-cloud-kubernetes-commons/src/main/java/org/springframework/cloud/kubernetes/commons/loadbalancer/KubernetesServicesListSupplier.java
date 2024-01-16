@@ -32,15 +32,15 @@ import org.springframework.core.env.Environment;
  *
  * @author Piotr Minkowski
  */
-public abstract class KubernetesServicesListSupplier implements ServiceInstanceListSupplier {
+public abstract class KubernetesServicesListSupplier<T> implements ServiceInstanceListSupplier {
 
 	protected final Environment environment;
 
 	protected final KubernetesDiscoveryProperties discoveryProperties;
 
-	protected final KubernetesServiceInstanceMapper mapper;
+	protected final KubernetesServiceInstanceMapper<T> mapper;
 
-	public KubernetesServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
+	public KubernetesServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper<T> mapper,
 			KubernetesDiscoveryProperties discoveryProperties) {
 		this.environment = environment;
 		this.discoveryProperties = discoveryProperties;
