@@ -77,7 +77,7 @@ Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to 
 
 Below is a sample deployment YAML you can use to deploy the Kubernetes Configuration Watcher to Kubernetes.
 
-[source,yaml]
+[source,yaml,subs="attributes+"]
 ----
 ---
 apiVersion: v1
@@ -141,7 +141,7 @@ items:
           serviceAccount: spring-cloud-kubernetes-configuration-watcher
           containers:
           - name: spring-cloud-kubernetes-configuration-watcher
-            image: springcloud/spring-cloud-kubernetes-configuration-watcher:2.0.1-SNAPSHOT
+            image: springcloud/spring-cloud-kubernetes-configuration-watcher:{spring-cloud-version}
             imagePullPolicy: IfNotPresent
             readinessProbe:
               httpGet:

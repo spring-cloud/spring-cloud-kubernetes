@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,48 +31,53 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class Fabric8LoadBalancerAutoConfigurationTests {
 
-	private ConfigurableApplicationContext context;
-
-	@AfterEach
-	public void close() {
-		if (this.context != null) {
-			this.context.close();
-		}
-	}
-
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerDisabled() {
-		setup("spring.cloud.kubernetes.loadbalancer.enabled=false");
-		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LoadBalancerAutoConfigurationTests.Config.class)
+				.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.kubernetes.loadbalancer.enabled=false")
+				.run(this::assertInstanceMapperMissing);
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesDisabledAndLoadBalancerEnabled() {
-		setup("spring.cloud.kubernetes.loadbalancer.enabled=true");
-		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LoadBalancerAutoConfigurationTests.Config.class)
+				.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.kubernetes.loadbalancer.enabled=true")
+				.run(this::assertInstanceMapperMissing);
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerEnabled() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.loadbalancer.enabled=true");
-		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LoadBalancerAutoConfigurationTests.Config.class)
+				.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.kubernetes.loadbalancer.enabled=true",
+						"spring.main.cloud-platform=KUBERNETES")
+				.run(this::assertInstanceMapperPresent);
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenKubernetesEnabledAndLoadBalancerDisabled() {
-		setup("spring.cloud.kubernetes.loadbalancer.enabled=false");
-		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LoadBalancerAutoConfigurationTests.Config.class)
+				.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.kubernetes.loadbalancer.enabled=false",
+						"spring.main.cloud-platform=KUBERNETES")
+				.run(this::assertInstanceMapperMissing);
 	}
 
 	@Test
 	void kubernetesLoadBalancerWhenDefaultProperties() {
-		setup("spring.main.cloud-platform=KUBERNETES");
-		assertThat(this.context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LoadBalancerAutoConfigurationTests.Config.class)
+				.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+				.withPropertyValues("spring.main.cloud-platform=KUBERNETES").run(this::assertInstanceMapperPresent);
 	}
 
-	private void setup(String... env) {
-		this.context = new SpringApplicationBuilder(Fabric8LoadBalancerAutoConfiguration.class, Config.class)
-				.web(org.springframework.boot.WebApplicationType.NONE).properties(env).run();
+	private void assertInstanceMapperMissing(AssertableApplicationContext context) {
+		assertThat(context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
+	}
+
+	private void assertInstanceMapperPresent(AssertableApplicationContext context) {
+		assertThat(context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).hasSize(1);
 	}
 
 	@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
