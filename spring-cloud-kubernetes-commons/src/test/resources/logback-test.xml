@@ -14,5 +14,6 @@
 
 	<!-- needed for CapturedOutput -->
 	<logger name="org.springframework.cloud.kubernetes.commons.discovery" level="DEBUG"/>
+	<logger name="org.springframework.cloud.kubernetes.commons.loadbalancer" level="DEBUG"/>
 
 </configuration>
