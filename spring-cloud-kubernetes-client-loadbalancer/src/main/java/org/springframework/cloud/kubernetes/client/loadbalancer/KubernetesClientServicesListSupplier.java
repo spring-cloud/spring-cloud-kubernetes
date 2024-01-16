@@ -37,7 +37,7 @@ import org.springframework.core.env.Environment;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientServicesListSupplier extends KubernetesServicesListSupplier {
+public class KubernetesClientServicesListSupplier extends KubernetesServicesListSupplier<V1Service> {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientServicesListSupplier.class);
 
@@ -47,9 +47,9 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
-	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
-			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+	public KubernetesClientServicesListSupplier(Environment environment,
+			KubernetesServiceInstanceMapper<V1Service> mapper, KubernetesDiscoveryProperties discoveryProperties,
+			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(environment, mapper, discoveryProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;

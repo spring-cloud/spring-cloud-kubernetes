@@ -37,6 +37,8 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 @Documented
 @Inherited
 @ConditionalOnDiscoveryEnabled
+@ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @ConditionalOnKubernetesCatalogEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public @interface ConditionalOnKubernetesCatalogWatcherEnabled {

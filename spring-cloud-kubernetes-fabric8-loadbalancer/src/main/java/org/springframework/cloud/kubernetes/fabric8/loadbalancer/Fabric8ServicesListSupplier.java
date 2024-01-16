@@ -36,7 +36,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Piotr Minkowski
  */
-public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier {
+public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<Service> {
 
 	private final KubernetesClient kubernetesClient;
 

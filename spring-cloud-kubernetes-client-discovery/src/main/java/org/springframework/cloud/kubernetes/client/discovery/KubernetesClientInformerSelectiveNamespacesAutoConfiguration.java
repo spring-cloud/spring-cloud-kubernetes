@@ -39,6 +39,7 @@ import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
@@ -56,7 +57,7 @@ import org.springframework.core.log.LogAccessor;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingOrReactiveEnabled
+@ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @Conditional(ConditionalOnSelectiveNamespacesPresent.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
@@ -67,10 +68,8 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 			LogFactory.getLog(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class));
 
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
-	// namespaces
-	// as a list, instead of the incoming Set.
+	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	@ConditionalOnMissingBean
 	public List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties) {
 		List<String> selectiveNamespaces = properties.namespaces().stream().sorted().toList();
 		LOG.debug(() -> "using selective namespaces : " + selectiveNamespaces);
