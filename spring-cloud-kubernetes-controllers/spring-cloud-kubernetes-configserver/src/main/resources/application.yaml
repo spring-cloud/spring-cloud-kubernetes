@@ -1,6 +1,12 @@
 spring:
   application:
     name: kubernetesconfigserver
+  main:
+    cloud-platform: kubernetes
+  cloud:
+    kubernetes:
+      client:
+        namespace: default
 
 server:
   port: 8888

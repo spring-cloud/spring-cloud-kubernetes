@@ -161,6 +161,15 @@ public final class ConfigUtils {
 		return target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
 
+	public static String sourceName(String target, String applicationName, String namespace, String[] profiles) {
+		String name = target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR
+				+ namespace;
+		if (profiles != null && profiles.length > 0) {
+			name = name + PROPERTY_SOURCE_NAME_SEPARATOR + StringUtils.arrayToDelimitedString(profiles, "-");
+		}
+		return name;
+	}
+
 	/**
 	 * transforms raw data from one or multiple sources into an entry of source names and
 	 * flattened data that they all hold (potentially overriding entries without any
