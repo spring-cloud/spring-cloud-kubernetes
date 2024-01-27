@@ -113,5 +113,4 @@ public final class PropertySourceUtils {
 			throw new IllegalStateException("Duplicate key " + left);
 		};
 	}
-
 }
