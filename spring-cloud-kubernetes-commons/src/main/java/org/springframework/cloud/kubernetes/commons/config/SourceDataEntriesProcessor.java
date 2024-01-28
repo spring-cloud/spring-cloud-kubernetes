@@ -21,13 +21,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
@@ -78,18 +74,31 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 		return defaultProcessAllEntries(input, environment);
 	}
 
-	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {
+	/**
+	 * <pre>
+	 * 		we want to sort entries coming from the k8s source in a specific way:
+	 *
+	 * 	    1. "application.yaml/yml/properties" have to come first
+	 * 	       (or the value from spring.application.name)
+	 * 	    2. then profile specific entries, like "application-dev.yaml"
+	 * 	    3. then plain properties
+	 * </pre>
+	 */
+	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment) {
+
+		record WeightedEntry(Map.Entry<String, String> entry, int weight) {
+
+		}
 
 		// we pass empty Strings on purpose, the logic here is either the value of
 		// "spring.application.name" or literal "application".
 		String applicationName = ConfigUtils.getApplicationName(environment, "", "");
 		String[] activeProfiles = environment.getActiveProfiles();
 
-		// the order here is important, first has to come "application.yaml" and then "application-dev.yaml"
-		List<String> orderedFileNames = Stream
-				.concat(Stream.of(applicationName),
-						Arrays.stream(activeProfiles).map(profile -> applicationName + "-" + profile))
-				.toList();
+		// the order here is important, first has to come "application.yaml" and then
+		// "application-dev.yaml"
+		List<String> orderedFileNames = Stream.concat(Stream.of(applicationName),
+				Arrays.stream(activeProfiles).map(profile -> applicationName + "-" + profile)).toList();
 
 		int current = orderedFileNames.size() - 1;
 		List<WeightedEntry> weightedEntries = new ArrayList<>();
@@ -110,13 +119,36 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 			}
 		}
 
-		List<Map.Entry<String, String>> sorted = weightedEntries.stream()
-			.sorted(Comparator.comparing(WeightedEntry::weight)).map(WeightedEntry::entry)
-			.toList();
+		return weightedEntries.stream().sorted(Comparator.comparing(WeightedEntry::weight)).map(WeightedEntry::entry)
+				.toList();
+	}
+
+	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {
+
+		List<Map.Entry<String, String>> sortedEntries = sorted(input, environment);
+		Map<String, Object> result = new HashMap<>();
+		for (Map.Entry<String, String> entry : sortedEntries) {
+			result.putAll(extractProperties(entry.getKey(), entry.getValue(), environment));
+		}
+		return result;
 
 	}
 
-	private record WeightedEntry(Map.Entry<String, String> entry, int weight) {
+	private static Map<String, Object> extractProperties(String resourceName, String content, Environment environment) {
+
+		if (resourceName.endsWith(".yml") || resourceName.endsWith(".yaml") || resourceName.endsWith(".properties")) {
+
+			if (resourceName.endsWith(".properties")) {
+				LOG.debug("entry : " + resourceName + " will be treated as a single properties file");
+				return KEY_VALUE_TO_PROPERTIES.andThen(PROPERTIES_TO_MAP).apply(content);
+			}
+			else {
+				LOG.debug("entry : " + resourceName + " will be treated as a single yml/yaml file");
+				return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(content);
+			}
+		}
+
+		return Collections.singletonMap(resourceName, content);
 
 	}
 

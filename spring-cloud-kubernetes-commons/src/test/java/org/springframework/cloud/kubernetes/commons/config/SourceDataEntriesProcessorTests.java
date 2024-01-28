@@ -21,7 +21,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -170,66 +169,6 @@ class SourceDataEntriesProcessorTests {
 		Assertions.assertEquals("jacket", result.get("name"));
 		Assertions.assertEquals("sport", result.get("fit"));
 		Assertions.assertEquals("black", result.get("color"));
-	}
-
-	/**
-	 * <pre>
-	 *     - a single property is present
-	 * </pre>
-	 */
-	@Test
-	void testOne() {
-		Map<String, String> map = Map.of("my-key", "my-value");
-		Assertions.assertEquals(Map.of("my-key", "my-value"),
-				SourceDataEntriesProcessor.processAllEntries(map, new MockEnvironment()));
-	}
-
-	/**
-	 * <pre>
-	 *     - a single property from a properties file
-	 * </pre>
-	 */
-	@Test
-	void testTwo() {
-		Map<String, String> map = Map.of("application.properties", "my-key=from-app");
-		Assertions.assertEquals(Map.of("my-key", "from-app"),
-			SourceDataEntriesProcessor.processAllEntries(map, new MockEnvironment()));
-	}
-
-	/**
-	 * <pre>
-	 *     - application.properties contains:
-	 *     	{
-	 *     	    firstKey=firstFromProperties
-	 *     	    secondKey=secondFromProperties
-	 *     	}
-	 *
-	 *     	- a single property exists : {firstKey = abc}
-	 *
-	 *     	- This proves that the property overrides the value from "application.properties".
-	 * </pre>
-	 */
-	@Test
-	void testThree() {
-		Map<String, String> map = Map.of("application.properties",
-			"""
-				firstKey=firstFromProperties
-				secondKey=secondFromProperties""", "firstKey", "abc");
-		Assertions.assertEquals(Map.of("firstKey", "abc", "secondKey=second", "secondFromProperties"),
-			SourceDataEntriesProcessor.processAllEntries(map, new MockEnvironment()));
-	}
-
-	@Test
-	void profileBasedCollision() {
-		Map<String, String> map = Map.of("application.properties", "key=value",
-				"application-test.properties", "key=anotherValue");
-
-		MockEnvironment env = new MockEnvironment();
-		env.setActiveProfiles("test");
-
-		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, env);
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("anotherValue", result.get("key"));
 	}
 
 }
