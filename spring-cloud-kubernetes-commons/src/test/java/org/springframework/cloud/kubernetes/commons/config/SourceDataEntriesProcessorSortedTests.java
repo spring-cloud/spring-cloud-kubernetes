@@ -219,4 +219,28 @@ class SourceDataEntriesProcessorSortedTests {
 		Assertions.assertEquals(result.get(3).getValue(), "second_other_value");
 	}
 
+	@Test
+	void testProfileBasedOnly() {
+		Map<String, String> k8sSource = new LinkedHashMap<>();
+		k8sSource.put("simple", "other_value");
+		k8sSource.put("second-simple", "second_other_value");
+		k8sSource.put("sorted-k8s.properties", "key-k8s=value-k8s");
+		k8sSource.put("ignored.properties", "key-ignored=value-ignored");
+
+		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment.setProperty("spring.application.name", "sorted");
+		mockEnvironment.setActiveProfiles("k8s");
+
+		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
+		Assertions.assertEquals(result.size(), 3);
+		Assertions.assertEquals(result.get(0).getKey(), "sorted-k8s.properties");
+		Assertions.assertEquals(result.get(0).getValue(), "key-k8s=value-k8s");
+
+		Assertions.assertEquals(result.get(1).getKey(), "simple");
+		Assertions.assertEquals(result.get(1).getValue(), "other_value");
+
+		Assertions.assertEquals(result.get(2).getKey(), "second-simple");
+		Assertions.assertEquals(result.get(2).getValue(), "second_other_value");
+	}
+
 }
