@@ -52,10 +52,6 @@ public class Fabric8AutoConfiguration {
 		return left != null ? (int) left.toMillis() : right;
 	}
 
-	private static Long orDurationLong(Duration left, Long right) {
-		return left != null ? left.toMillis() : right;
-	}
-
 	@Bean
 	@ConditionalOnMissingBean(Config.class)
 	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
@@ -86,8 +82,6 @@ public class Fabric8AutoConfiguration {
 						orDurationInt(kubernetesClientProperties.connectionTimeout(), base.getConnectionTimeout()))
 				.withRequestTimeout(
 						orDurationInt(kubernetesClientProperties.requestTimeout(), base.getRequestTimeout()))
-				.withRollingTimeout(
-						orDurationLong(kubernetesClientProperties.rollingTimeout(), base.getRollingTimeout()))
 				.withTrustCerts(or(kubernetesClientProperties.trustCerts(), base.isTrustCerts()))
 				.withHttpProxy(or(kubernetesClientProperties.httpProxy(), base.getHttpProxy()))
 				.withHttpsProxy(or(kubernetesClientProperties.httpsProxy(), base.getHttpsProxy()))
