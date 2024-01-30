@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -34,6 +33,7 @@ import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressLoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
@@ -361,7 +361,7 @@ public final class Util {
 					return false;
 				}
 
-				List<LoadBalancerIngress> loadBalancerIngress = inner.getStatus().getLoadBalancer().getIngress();
+				List<IngressLoadBalancerIngress> loadBalancerIngress = inner.getStatus().getLoadBalancer().getIngress();
 				if (loadBalancerIngress == null || loadBalancerIngress.isEmpty()) {
 					LOG.info("ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
 					return false;
