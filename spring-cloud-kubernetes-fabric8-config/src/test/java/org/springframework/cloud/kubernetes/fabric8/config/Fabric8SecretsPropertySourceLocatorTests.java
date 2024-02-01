@@ -44,6 +44,10 @@ class Fabric8SecretsPropertySourceLocatorTests {
 
 	@Test
 	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+
+		mockClient.getConfiguration().setRequestRetryBackoffLimit(0);
+		mockClient.getConfiguration().setRequestRetryBackoffInterval(0);
+
 		String name = "my-secret";
 		String namespace = "default";
 		String path = "/api/v1/namespaces/default/secrets";

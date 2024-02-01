@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.fabric8.config.system_properties;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -31,12 +31,14 @@ abstract class CoreTestClientViaSystemProperties {
 	private KubernetesClient client;
 
 	@BeforeAll
-	public static void setUpBeforeClass() {
+	static void setUpBeforeClass() {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, "masterURL");
+		System.setProperty(Config.KUBERNETES_REQUEST_RETRY_BACKOFFLIMIT_SYSTEM_PROPERTY, "0");
+		System.setProperty(Config.KUBERNETES_REQUEST_RETRY_BACKOFFINTERVAL_SYSTEM_PROPERTY, "0");
 	}
 
 	@Test
-	public void kubernetesClientBeanShouldBeConfigurableViaSystemProperties() {
+	void kubernetesClientBeanShouldBeConfigurableViaSystemProperties() {
 		assertThat(client).isNotNull();
 		assertThat(client.getConfiguration().getMasterUrl()).isEqualTo("http://masterURL/");
 	}
