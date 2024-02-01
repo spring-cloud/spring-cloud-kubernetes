@@ -41,7 +41,7 @@ import static org.mockito.Mockito.spy;
 				"spring.config.import=kubernetes:" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class ConfigDataConfigRetryEnabled extends ConfigRetryEnabled {
+class ConfigDataConfigRetryEnabledTest extends ConfigRetryEnabled {
 
 	private static KubernetesMockServer mockServer;
 
