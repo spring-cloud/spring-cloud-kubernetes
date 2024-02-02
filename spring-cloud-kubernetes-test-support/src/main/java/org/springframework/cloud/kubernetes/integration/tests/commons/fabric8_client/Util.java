@@ -42,6 +42,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -115,8 +116,8 @@ public final class Util {
 	public void busybox(String namespace, Phase phase) {
 		InputStream deploymentStream = inputStream("busybox/deployment.yaml");
 		InputStream serviceStream = inputStream("busybox/service.yaml");
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "busybox", deployment, service, null, false);
@@ -192,19 +193,19 @@ public final class Util {
 		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
 		InputStream roleBindingAsStream = inputStream("cluster/role-binding.yaml");
 
-		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).get();
+		ClusterRole clusterRole = Serialization.unmarshal(clusterRoleBindingAsStream, ClusterRole.class);
 		if (client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).get() == null) {
 			client.rbac().clusterRoles().resource(clusterRole).create();
 		}
 
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
+		ServiceAccount serviceAccountFromStream = Serialization.unmarshal(serviceAccountAsStream, ServiceAccount.class);
 		serviceAccountFromStream.getMetadata().setNamespace(serviceAccountNamespace);
 		if (client.serviceAccounts().inNamespace(serviceAccountNamespace)
 				.withName(serviceAccountFromStream.getMetadata().getName()).get() == null) {
 			client.serviceAccounts().inNamespace(serviceAccountNamespace).resource(serviceAccountFromStream).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
+		RoleBinding roleBindingFromStream = Serialization.unmarshal(roleBindingAsStream, RoleBinding.class);
 		namespaces.forEach(namespace -> {
 			roleBindingFromStream.getMetadata().setNamespace(namespace);
 
@@ -269,14 +270,14 @@ public final class Util {
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).get();
-		Service service = client.services().load(serviceStream).get();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
 		Ingress ingress = null;
 
 		if (phase.equals(Phase.CREATE)) {
 
 			if (withIngress) {
-				ingress = client.network().v1().ingresses().load(ingressStream).get();
+				ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 				ingress.getMetadata().setNamespace(namespace);
 				ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
 			}
@@ -288,7 +289,7 @@ public final class Util {
 		else {
 
 			if (withIngress) {
-				ingress = client.network().v1().ingresses().load(ingressStream).get();
+				ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 			}
 
 			deleteAndWait(namespace, deployment, service, ingress);
@@ -432,22 +433,21 @@ public final class Util {
 
 	private void innerSetup(String namespace, InputStream serviceAccountAsStream, InputStream roleBindingAsStream,
 			InputStream roleAsStream) {
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).get();
-		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
+		ServiceAccount serviceAccount = Serialization.unmarshal(serviceAccountAsStream, ServiceAccount.class);
+		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccount.getMetadata().getName())
 				.get() == null) {
-			client.serviceAccounts().inNamespace(namespace).resource(serviceAccountFromStream).create();
+			client.serviceAccounts().inNamespace(namespace).resource(serviceAccount).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).get();
-		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBindingFromStream.getMetadata().getName())
+		RoleBinding roleBinding = Serialization.unmarshal(roleBindingAsStream, RoleBinding.class);
+		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBinding.getMetadata().getName())
 				.get() == null) {
-			client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
+			client.rbac().roleBindings().inNamespace(namespace).resource(roleBinding).create();
 		}
 
-		Role roleFromStream = client.rbac().roles().load(roleAsStream).get();
-		if (client.rbac().roles().inNamespace(namespace).withName(roleFromStream.getMetadata().getName())
-				.get() == null) {
-			client.rbac().roles().inNamespace(namespace).resource(roleFromStream).create();
+		Role role = Serialization.unmarshal(roleAsStream, Role.class);
+		if (client.rbac().roles().inNamespace(namespace).withName(role.getMetadata().getName()).get() == null) {
+			client.rbac().roles().inNamespace(namespace).resource(role).create();
 		}
 	}
 
