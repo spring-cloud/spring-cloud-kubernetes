@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_enabled_retry_disabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -34,11 +34,13 @@ import static org.mockito.Mockito.spy;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
+				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:",
+				"spring.cloud.kubernetes.config.enabled=false" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class ConfigDataSecretsFailFastDisabled extends SecretsFailFastDisabled {
+class ConfigDataSecretsFailFastEnabledButRetryDisabledTest extends SecretsFailFastEnabledButRetryDisabled {
 
 	private static KubernetesMockServer mockServer;
 
@@ -53,7 +55,7 @@ class ConfigDataSecretsFailFastDisabled extends SecretsFailFastDisabled {
 	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@BeforeEach
-	public void beforeEach() {
+	void beforeEach() {
 		psl = spy(propertySourceLocator);
 		verifiablePsl = psl;
 	}
