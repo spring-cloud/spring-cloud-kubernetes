@@ -38,6 +38,9 @@ provide implementations using the https://github.com/fabric8io/kubernetes-client
 Starters that begin with
 `spring-cloud-starter-kubernetes-client` provide implementations using the https://github.com/kubernetes-client/java[Kubernetes Java Client].
 
+NOTE:  You CANNOT combine starters from Fabric8 and Kubernetes Java Clients.  You must pick one library to
+use and use the starters for that library only.
+
 [cols="a,d"]
 |===
 | Starter | Features
