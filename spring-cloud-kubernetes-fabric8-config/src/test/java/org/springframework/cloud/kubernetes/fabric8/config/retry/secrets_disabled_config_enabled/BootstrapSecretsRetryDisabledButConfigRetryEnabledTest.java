@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_disabled_config_enabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"spring.cloud.bootstrap.enabled=true" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class BootstrapSecretsRetryDisabledButConfigRetryEnabled extends SecretsRetryDisabledButConfigRetryEnabled {
+class BootstrapSecretsRetryDisabledButConfigRetryEnabledTest extends SecretsRetryDisabledButConfigRetryEnabled {
 
 	private static KubernetesMockServer mockServer;
 
