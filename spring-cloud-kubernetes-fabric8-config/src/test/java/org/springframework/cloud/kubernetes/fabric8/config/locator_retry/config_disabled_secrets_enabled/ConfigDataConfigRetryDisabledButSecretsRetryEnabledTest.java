@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_disabled_secrets_enabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -22,17 +22,23 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
+import org.springframework.context.ApplicationContext;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" },
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class BoostrapConfigFailFastDisabled extends ConfigFailFastDisabled {
+class ConfigDataConfigRetryDisabledButSecretsRetryEnabledTest extends ConfigRetryDisabledButSecretsRetryEnabled {
 
 	private static KubernetesMockServer mockServer;
 
@@ -41,6 +47,11 @@ class BoostrapConfigFailFastDisabled extends ConfigFailFastDisabled {
 	@BeforeAll
 	static void setup() {
 		setup(mockClient, mockServer);
+	}
+
+	@Override
+	protected void assertRetryBean(ApplicationContext context) {
+		assertThat(context.getBean(ConfigDataRetryableSecretsPropertySourceLocator.class)).isNotNull();
 	}
 
 }
