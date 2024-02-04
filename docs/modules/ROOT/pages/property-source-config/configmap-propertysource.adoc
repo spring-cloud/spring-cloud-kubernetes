@@ -83,6 +83,34 @@ This is what we will end-up loading:
  - `not-my-app.yaml` _ignored_, since it does not match `spring.application.name`
  - `someProp: someValue` plain property
 
+The order of loading properties is a as follows:
+
+- first load all properties from `my-app.yaml`
+- then all from profile-based sources: `my-app-k8s.yaml`
+- then all plain properties `someProp: someValue`
+
+This means that profile based sources take precedence over non-profile based sources (just like in a vanilla Spring app); and plain properties take precedence over both profile and non-profile based sources. Here is an example:
+
+====
+[source]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-app
+data:
+  my-app-k8s.yaml: |-
+    key1=valueA
+	key2=valueB
+  my-app.yaml: |-
+    key1=valueC
+    key2=valueA
+  key1: valueD
+----
+====
+
+After processing such a ConfigMap, this is what you will get in the properties: `key1=valueD`, `key2=valueB`.
+
 The single exception to the aforementioned flow is when the `ConfigMap` contains a *single* key that indicates
 the file is a YAML or properties file. In that case, the name of the key does NOT have to be `application.yaml` or
 `application.properties` (it can be anything) and the value of the property is treated correctly.
