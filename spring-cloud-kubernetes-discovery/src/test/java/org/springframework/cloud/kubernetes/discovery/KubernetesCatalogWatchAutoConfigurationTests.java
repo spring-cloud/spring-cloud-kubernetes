@@ -97,9 +97,9 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	@Test
 	void disableBlockingEnableReactive() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=true",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=example.com",
-			"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true");
+				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=true",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com",
+				"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
 		});
@@ -111,9 +111,9 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 	@Test
 	void enableBlockingDisableReactive() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.discovery.reactive.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=example.com",
-			"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true");
+				"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=example.com",
+				"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
 		});
