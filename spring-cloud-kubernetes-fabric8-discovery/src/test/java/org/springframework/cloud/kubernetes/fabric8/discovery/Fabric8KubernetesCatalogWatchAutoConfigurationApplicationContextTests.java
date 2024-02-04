@@ -66,7 +66,8 @@ class Fabric8KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
-		applicationContextRunner.run(context -> assertThat(context).doesNotHaveBean(Fabric8KubernetesCatalogWatch.class));
+		applicationContextRunner
+				.run(context -> assertThat(context).doesNotHaveBean(Fabric8KubernetesCatalogWatch.class));
 	}
 
 	/**

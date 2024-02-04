@@ -69,14 +69,14 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 				PropertyResolver propertyResolver = getPropertyResolver(context);
 				Fabric8AutoConfiguration fabric8AutoConfiguration = new Fabric8AutoConfiguration();
 				Config config = fabric8AutoConfiguration
-					.kubernetesClientConfig(context.get(KubernetesClientProperties.class));
+						.kubernetesClientConfig(context.get(KubernetesClientProperties.class));
 				KubernetesClient kubernetesClient = fabric8AutoConfiguration.kubernetesClient(config);
 				KubernetesDiscoveryProperties discoveryProperties = context.get(KubernetesDiscoveryProperties.class);
 				Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(
-					kubernetesClient, discoveryProperties, new ServicePortSecureResolver(discoveryProperties),
-					new KubernetesNamespaceProvider(propertyResolver
-						.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)),
-					new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(discoveryProperties));
+						kubernetesClient, discoveryProperties, new ServicePortSecureResolver(discoveryProperties),
+						new KubernetesNamespaceProvider(propertyResolver
+								.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)),
+						new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(discoveryProperties));
 				return discoveryClient::getInstances;
 			}
 		});

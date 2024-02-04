@@ -144,8 +144,8 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 	@Override
 	void testAllNamespacesTrueOtherBranchesNotCalled() {
 
-		Fabric8KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of("color", "blue"),
-				Set.of(), ENDPOINT_SLICES);
+		Fabric8KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of("color", "blue"), Set.of(),
+				ENDPOINT_SLICES);
 
 		endpoints("namespaceA", Map.of(), "podA");
 		endpoints("namespaceA", Map.of("color", "blue"), "podB");
