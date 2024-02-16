@@ -28,15 +28,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
-class IstioAutoConfigurationClientNotPresentWhenKubernetesDisabled {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+		properties = "spring.main.cloud-platform=KUBERNETES")
+class IstioAutoConfigurationClientPresentByDefaultTest {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
-	void istioClientNotPresent() {
-		assertThat(context.getBeanNamesForType(IstioClient.class)).hasSize(0);
+	void istioClientIsPresent() {
+		assertThat(context.getBeanNamesForType(IstioClient.class)).hasSize(1);
 	}
 
 }
