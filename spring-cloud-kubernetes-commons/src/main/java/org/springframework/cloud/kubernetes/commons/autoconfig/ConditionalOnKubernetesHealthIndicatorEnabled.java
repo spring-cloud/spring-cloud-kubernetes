@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.commons.autoconfig;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -24,19 +24,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.cloud.CloudPlatform;
 
 /**
- * Provides common conditionals to be used for blocking discovery health initializer.
- *
  * @author wind57
- */
+ **/
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
 @ConditionalOnClass(name = "org.springframework.boot.actuate.health.HealthIndicator")
-@ConditionalOnDiscoveryHealthIndicatorEnabled
-public @interface ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer {
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+public @interface ConditionalOnKubernetesHealthIndicatorEnabled {
 
 }
