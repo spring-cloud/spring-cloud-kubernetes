@@ -31,11 +31,11 @@ import org.springframework.boot.cloud.CloudPlatform;
 /**
  * @author wind57
  **/
-@Target(ElementType.TYPE)
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnClass(HealthIndicator.class)
+@ConditionalOnClass(name = "org.springframework.boot.actuate.health.HealthIndicator")
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public @interface ConditionalOnKubernetesHealthIndicatorEnabled {
 
