@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
 		properties = { "spring.cloud.istio.enabled=true", "spring.main.cloud-platform=KUBERNETES" })
-class IstioAutoConfigurationClientPresentWhenIstioEnabled {
+class IstioAutoConfigurationClientPresentWhenIstioEnabledTest {
 
 	@Autowired
 	private ConfigurableApplicationContext context;

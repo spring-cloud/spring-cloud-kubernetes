@@ -28,9 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "spring.cloud.istio.enabled=false" })
-class IstioAutoConfigurationClientNotPresentWhenIstioDisabled {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class)
+class IstioAutoConfigurationClientNotPresentWhenKubernetesDisabledTest {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
