@@ -204,7 +204,3 @@ items:
 
 
 ----
-
-*Note* While the port is the same as Eureka's default (8761), there is no conflict despite the JSON
-returned being in a different format. Conflicts are avoided due to the spring-cloud-discoveryserver
-API being mounted at the HTTP path '/apps', not '/eureka/v2/apps'.
