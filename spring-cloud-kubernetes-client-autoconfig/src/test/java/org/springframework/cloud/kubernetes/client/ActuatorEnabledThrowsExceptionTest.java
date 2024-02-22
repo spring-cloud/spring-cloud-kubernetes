@@ -19,8 +19,8 @@ package org.springframework.cloud.kubernetes.client;
 import io.kubernetes.client.openapi.models.V1Pod;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,16 +29,15 @@ import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = { App.class, ActuatorEnabledThrowsExceptionTest.ActuatorConfig.class },
-	properties = { "management.endpoint.health.show-details=always",
-		"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
-		"spring.main.cloud-platform=KUBERNETES", "spring.main.allow-bean-definition-overriding=true" })
+		classes = { App.class, ActuatorEnabledThrowsExceptionTest.ActuatorConfig.class },
+		properties = { "management.endpoint.health.show-details=always",
+				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
+				"spring.main.cloud-platform=KUBERNETES", "spring.main.allow-bean-definition-overriding=true" })
 class ActuatorEnabledThrowsExceptionTest {
 
 	@Autowired
@@ -52,9 +51,9 @@ class ActuatorEnabledThrowsExceptionTest {
 
 	@Test
 	void test() {
-		webClient.get().uri("http://localhost:{port}/actuator/health", port)
-			.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isEqualTo(503).expectBody()
-			.jsonPath("components.kubernetes.status").isEqualTo("DOWN");
+		webClient.get().uri("http://localhost:{port}/actuator/health", port).accept(MediaType.APPLICATION_JSON)
+				.exchange().expectStatus().isEqualTo(503).expectBody().jsonPath("components.kubernetes.status")
+				.isEqualTo("DOWN");
 
 		Assertions.assertNotNull(registry.getContributor("kubernetes"));
 	}
