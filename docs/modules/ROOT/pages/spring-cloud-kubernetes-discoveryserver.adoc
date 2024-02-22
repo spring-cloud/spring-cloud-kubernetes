@@ -191,6 +191,9 @@ items:
           - name: spring-cloud-kubernetes-discoveryserver
             image: springcloud/spring-cloud-kubernetes-discoveryserver:3.1.0
             imagePullPolicy: IfNotPresent
+            env:
+               - name: SPRING_CLOUD_DISCOVERY_CLIENT_HEALTHINDICATOR_ENABLED
+                 value: "FALSE"
             readinessProbe:
               httpGet:
                 port: 8761
