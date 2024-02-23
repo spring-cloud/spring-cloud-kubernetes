@@ -69,7 +69,7 @@ class ActuatorEnabledFailFastExceptionTest {
 	void test() throws ApiException {
 		Health health = healthIndicator.getHealth(true);
 		Assertions.assertEquals(health.getStatus(), Status.DOWN);
-		Mockito.verify(coreV1Api.readNamespacedPod("host", "my-namespace", null));
+		Mockito.verify(coreV1Api).readNamespacedPod("host", "my-namespace", null);
 	}
 
 	private static void mocks() {
