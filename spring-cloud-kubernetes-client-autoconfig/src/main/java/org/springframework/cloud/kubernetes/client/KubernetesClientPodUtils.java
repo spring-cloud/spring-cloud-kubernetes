@@ -58,6 +58,9 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 
 	private final String serviceHost;
 
+	private final boolean failFast;
+
+	@Deprecated(forRemoval = true)
 	public KubernetesClientPodUtils(CoreV1Api client, String namespace) {
 		if (client == null) {
 			throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
@@ -68,6 +71,22 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		this.serviceHost = EnvReader.getEnv(KUBERNETES_SERVICE_HOST);
 		this.current = LazilyInstantiate.using(this::internalGetPod);
 		this.namespace = namespace;
+		this.failFast = false;
+	}
+
+	// mainly needed for the health and info contributors, so that they report DOWN
+	// correctly
+	public KubernetesClientPodUtils(CoreV1Api client, String namespace, boolean failFast) {
+		if (client == null) {
+			throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
+		}
+
+		this.client = client;
+		this.hostName = EnvReader.getEnv(HOSTNAME);
+		this.serviceHost = EnvReader.getEnv(KUBERNETES_SERVICE_HOST);
+		this.current = LazilyInstantiate.using(this::internalGetPod);
+		this.namespace = namespace;
+		this.failFast = failFast;
 	}
 
 	@Override
@@ -84,10 +103,14 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		try {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
 				LOG.debug("reading pod in namespace : " + namespace);
+				// The hostname of your pod is typically also its name.
 				return client.readNamespacedPod(hostName, namespace, null);
 			}
 		}
 		catch (Throwable t) {
+			if (failFast) {
+				throw new RuntimeException(t);
+			}
 			if (t instanceof ApiException apiException) {
 				LOG.warn("error reading pod, with error : " + apiException.getResponseBody());
 			}
