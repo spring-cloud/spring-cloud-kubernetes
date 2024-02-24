@@ -35,7 +35,8 @@ class DiscoveryServerApplicationContextTests {
 
 	@Nested
 	@SpringBootTest(classes = TestConfig.class,
-			properties = "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true")
+			properties = { "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
+					"spring.main.cloud-platform=KUBERNETES" })
 	class BothControllersPresent {
 
 		@Autowired
@@ -59,7 +60,8 @@ class DiscoveryServerApplicationContextTests {
 	@Nested
 	@SpringBootTest(classes = TestConfig.class,
 			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
-					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true" })
+					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
+					"spring.main.cloud-platform=KUBERNETES" })
 	class CatalogControllerNotPresentOne {
 
 		@Autowired
@@ -83,7 +85,8 @@ class DiscoveryServerApplicationContextTests {
 	@Nested
 	@SpringBootTest(classes = TestConfig.class,
 			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=true",
-					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false" })
+					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
+					"spring.main.cloud-platform=KUBERNETES" })
 	class CatalogControllerNotPresentTwo {
 
 		@Autowired
@@ -107,7 +110,8 @@ class DiscoveryServerApplicationContextTests {
 	@Nested
 	@SpringBootTest(classes = TestConfig.class,
 			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
-					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false" })
+					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
+					"spring.main.cloud-platform=KUBERNETES" })
 	class CatalogControllerNotPresentThree {
 
 		@Autowired

@@ -10,10 +10,11 @@ spring:
         health-indicator:
           enabled: false
 
-
 management:
   endpoint:
     health:
       group:
         liveness:
-          include: livenessState, kubernetesClient
+          include: livenessState, kubernetes
+        readiness:
+          include: readinessState, kubernetes

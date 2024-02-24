@@ -52,7 +52,8 @@ import static org.mockito.Mockito.when;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = DiscoveryServerIntegrationAppsEndpointTest.TestConfig.class)
+		classes = DiscoveryServerIntegrationAppsEndpointTest.TestConfig.class,
+		properties = "spring.main.cloud-platform=KUBERNETES")
 class DiscoveryServerIntegrationAppsEndpointTest {
 
 	private static final String NAMESPACE = "namespace";
