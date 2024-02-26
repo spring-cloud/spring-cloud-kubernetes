@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,21 @@ public class DiscoveryServerController {
 		return reactiveDiscoveryClient.getInstances(name);
 	}
 
+	/**
+	 * use the "appInstanceNonDeprecated" instead.
+	 */
+	@Deprecated(forRemoval = true)
 	@GetMapping("/app/{name}/{instanceId}")
 	public Mono<ServiceInstance> appInstance(@PathVariable String name, @PathVariable String instanceId) {
+		return innerAppInstance(name, instanceId);
+	}
+
+	@GetMapping("/apps/{name}/{instanceId}")
+	Mono<ServiceInstance> appInstanceNonDeprecated(@PathVariable String name, @PathVariable String instanceId) {
+		return innerAppInstance(name, instanceId);
+	}
+
+	private Mono<ServiceInstance> innerAppInstance(String name, String instanceId) {
 		return reactiveDiscoveryClient.getInstances(name)
 				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
 	}
