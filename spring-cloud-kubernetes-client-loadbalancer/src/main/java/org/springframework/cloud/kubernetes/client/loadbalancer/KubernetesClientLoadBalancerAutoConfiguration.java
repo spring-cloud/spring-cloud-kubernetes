@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package org.springframework.cloud.kubernetes.client.loadbalancer;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.ConditionalOnKubernetesLoadBalancerEnabled;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(KubernetesLoadBalancerProperties.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.loadbalancer.enabled", matchIfMissing = true)
+@ConditionalOnKubernetesLoadBalancerEnabled
 @LoadBalancerClients(defaultConfiguration = KubernetesClientLoadBalancerClientConfiguration.class)
 public class KubernetesClientLoadBalancerAutoConfiguration {
 
