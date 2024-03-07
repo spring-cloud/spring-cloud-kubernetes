@@ -16,12 +16,14 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.loadbalancer;
 
-import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,13 +39,14 @@ class KubernetesClientLoadBalancerApplication {
 
 	private static final String URL = "http://service-wiremock/__admin/mappings";
 
-	private final DiscoveryClient discoveryClient;
-
 	private final WebClient.Builder client;
 
-	KubernetesClientLoadBalancerApplication(DiscoveryClient discoveryClient, WebClient.Builder client) {
-		this.discoveryClient = discoveryClient;
+	private final ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory;
+
+	KubernetesClientLoadBalancerApplication(WebClient.Builder client,
+			ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory) {
 		this.client = client;
+		this.loadBalancerClientFactory = loadBalancerClientFactory;
 	}
 
 	public static void main(String[] args) {
@@ -57,9 +60,14 @@ class KubernetesClientLoadBalancerApplication {
 				.block();
 	}
 
-	@GetMapping("/services")
-	List<String> services() {
-		return discoveryClient.getServices();
+	@GetMapping("/loadbalancer-it/supplier")
+	String supplier() {
+		ServiceInstanceListSupplier supplier = loadBalancerClientFactory.getIfAvailable()
+				.getInstance("service-wiremock", ServiceInstanceListSupplier.class);
+		if (supplier instanceof CachingServiceInstanceListSupplier cachingSupplier) {
+			return cachingSupplier.getDelegate().getClass().getSimpleName();
+		}
+		return supplier.getClass().getSimpleName();
 	}
 
 }
