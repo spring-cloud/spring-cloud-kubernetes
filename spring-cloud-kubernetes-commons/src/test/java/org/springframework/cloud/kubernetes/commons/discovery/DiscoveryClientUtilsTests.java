@@ -299,7 +299,7 @@ class DiscoveryClientUtilsTests {
 
 	/**
 	 * <pre>
-	 *     - ports without prefix are added
+	 *     - ports without prefix are added.
 	 * </pre>
 	 */
 	@Test
@@ -333,7 +333,7 @@ class DiscoveryClientUtilsTests {
 
 	/**
 	 * <pre>
-	 *     - ports without prefix are added
+	 *     - ports without prefix are added.
 	 * </pre>
 	 */
 	@Test

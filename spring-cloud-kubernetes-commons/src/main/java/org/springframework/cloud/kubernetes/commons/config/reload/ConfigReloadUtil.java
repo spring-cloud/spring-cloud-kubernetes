@@ -74,6 +74,7 @@ public final class ConfigReloadUtil {
 
 		List<PropertySource<?>> sources = environment.getPropertySources().stream()
 				.collect(Collectors.toCollection(ArrayList::new));
+		LOG.debug(() -> "sourceClass : " + sourceClass.getSimpleName());
 		LOG.debug(() -> "environment from findPropertySources: " + environment);
 		LOG.debug(() -> "environment sources from findPropertySources : " + sources);
 
@@ -98,6 +99,18 @@ public final class ConfigReloadUtil {
 				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
 					// we know that the type is correct here
 					managedSources.add((S) mountConfigMapPropertySource);
+				}
+			}
+			else if (source.getClass().getSimpleName().contains("Encryptable")) {
+				LOG.debug(() -> "Encryptable source found, we assume its jasypt");
+				try {
+					PropertySource<Map<String, Object>> delegate = (PropertySource<Map<String, Object>>) source
+							.getClass().getMethod("getDelegate").invoke(source);
+					LOG.debug(() -> "delegate found : " + delegate.getClass().getSimpleName());
+					sources.add(delegate);
+				}
+				catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			}
 		}
