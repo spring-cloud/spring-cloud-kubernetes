@@ -14,3 +14,11 @@ spec:
                 name: spring-cloud-kubernetes-k8s-client-discovery-server
                 port:
                   number: 8080
+
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-cloud-kubernetes-discoveryserver
+                port:
+                  number: 80

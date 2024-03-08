@@ -29,5 +29,9 @@ spec:
               value: "DEBUG"
             - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY
               value: "3000"
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOWCOMPONENTS
+              value: "ALWAYS"
+            - name: MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS
+              value: "ALWAYS"
           ports:
             - containerPort: 8761
