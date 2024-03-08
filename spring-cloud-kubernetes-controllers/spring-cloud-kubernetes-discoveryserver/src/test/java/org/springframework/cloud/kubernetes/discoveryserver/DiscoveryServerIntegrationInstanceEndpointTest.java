@@ -54,6 +54,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = DiscoveryServerIntegrationInstanceEndpointTest.TestConfig.class,
 		properties = { "management.health.livenessstate.enabled=true",
+				/* disable kubernetes from liveness and readiness */
 				"management.endpoint.health.group.liveness.include=livenessState",
 				"management.health.readinessstate.enabled=true",
 				"management.endpoint.health.group.readiness.include=readinessState" })

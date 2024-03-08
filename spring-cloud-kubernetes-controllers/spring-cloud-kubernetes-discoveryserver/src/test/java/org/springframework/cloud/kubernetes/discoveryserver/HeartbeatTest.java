@@ -40,6 +40,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @SpringBootTest(classes = HeartbeatTest.TestConfig.class,
 		properties = { "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
+				/* disable kubernetes from liveness and readiness */
 				"management.health.livenessstate.enabled=true",
 				"management.endpoint.health.group.liveness.include=livenessState",
 				"management.health.readinessstate.enabled=true",

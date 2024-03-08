@@ -36,6 +36,7 @@ class DiscoveryServerApplicationContextTests {
 	@Nested
 	@SpringBootTest(classes = TestConfig.class,
 			properties = { "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
+					/* disable kubernetes from liveness and readiness */
 					"management.health.livenessstate.enabled=true",
 					"management.endpoint.health.group.liveness.include=livenessState",
 					"management.health.readinessstate.enabled=true",
@@ -64,6 +65,7 @@ class DiscoveryServerApplicationContextTests {
 	@SpringBootTest(classes = TestConfig.class,
 			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
 					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
+					/* disable kubernetes from liveness and readiness */
 					"management.health.livenessstate.enabled=true",
 					"management.endpoint.health.group.liveness.include=livenessState",
 					"management.health.readinessstate.enabled=true",
@@ -92,6 +94,7 @@ class DiscoveryServerApplicationContextTests {
 	@SpringBootTest(classes = TestConfig.class,
 			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=true",
 					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
+					/* disable kubernetes from liveness and readiness */
 					"management.health.livenessstate.enabled=true",
 					"management.endpoint.health.group.liveness.include=livenessState",
 					"management.health.readinessstate.enabled=true",
@@ -120,6 +123,7 @@ class DiscoveryServerApplicationContextTests {
 	@SpringBootTest(classes = TestConfig.class,
 			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
 					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
+					/* disable kubernetes from liveness and readiness */
 					"management.health.livenessstate.enabled=true",
 					"management.endpoint.health.group.liveness.include=livenessState",
 					"management.health.readinessstate.enabled=true",
