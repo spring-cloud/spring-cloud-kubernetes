@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -240,21 +240,29 @@ class DiscoveryClientIT {
 	}
 
 	void testHealth() {
-		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
+		WebClient.Builder clientBuilder = builder();
+		WebClient.Builder serverBuilder = builder();
 
-		String health = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+		WebClient client = clientBuilder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
+		WebClient server = serverBuilder.baseUrl("http://localhost:80/actuator/health").build();
+
+		String clientHealth = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
+				.block();
+		String serverHealth = server.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(health))
+		Assertions.assertThat(BASIC_JSON_TESTER.from(clientHealth))
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(serverHealth))
+				.extractingJsonPathStringValue("$.components.kubernetes.status").isEqualTo("UP");
 	}
 
 	private static void discoveryClient(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util
 				.yaml("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("client/spring-cloud-kubernetes-discoveryclient-it-service.yaml");
-		V1Ingress ingress = (V1Ingress) util.yaml("client/spring-cloud-kubernetes-discoveryclient-it-ingress.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
@@ -268,13 +276,12 @@ class DiscoveryClientIT {
 		V1Deployment deployment = (V1Deployment) util
 				.yaml("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("server/spring-cloud-kubernetes-discoveryserver-service.yaml");
-		V1Ingress ingress = (V1Ingress) util.yaml("server/spring-cloud-kubernetes-discoveryserver-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, service, null);
 		}
 	}
 
