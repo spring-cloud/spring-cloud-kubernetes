@@ -52,7 +52,12 @@ import static org.mockito.Mockito.when;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = DiscoveryServerIntegrationInstanceEndpointTest.TestConfig.class)
+		classes = DiscoveryServerIntegrationInstanceEndpointTest.TestConfig.class,
+		properties = { "management.health.livenessstate.enabled=true",
+				/* disable kubernetes from liveness and readiness */
+				"management.endpoint.health.group.liveness.include=livenessState",
+				"management.health.readinessstate.enabled=true",
+				"management.endpoint.health.group.readiness.include=readinessState" })
 class DiscoveryServerIntegrationInstanceEndpointTest {
 
 	private static final String NAMESPACE = "namespace";
