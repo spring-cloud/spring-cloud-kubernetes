@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
+import org.springframework.core.log.LogAccessor;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -28,7 +32,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE
@@ -38,29 +41,40 @@ import org.springframework.util.StringUtils;
  */
 public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<Service> {
 
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ServicesListSupplier.class));
+
 	private final KubernetesClient kubernetesClient;
+
+	private final KubernetesNamespaceProvider namespaceProvider;
 
 	Fabric8ServicesListSupplier(Environment environment, KubernetesClient kubernetesClient,
 			Fabric8ServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties) {
 		super(environment, mapper, discoveryProperties);
 		this.kubernetesClient = kubernetesClient;
+		namespaceProvider = new KubernetesNamespaceProvider(environment);
 	}
 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		List<ServiceInstance> result = new ArrayList<>();
 		if (discoveryProperties.allNamespaces()) {
-			List<Service> services = this.kubernetesClient.services().inAnyNamespace()
-					.withField("metadata.name", this.getServiceId()).list().getItems();
+			LOG.debug(() -> "discovering services in all namespaces");
+			List<Service> services = kubernetesClient.services().inAnyNamespace()
+					.withField("metadata.name", getServiceId()).list().getItems();
 			services.forEach(service -> result.add(mapper.map(service)));
 		}
 		else {
-			Service service = StringUtils.hasText(this.kubernetesClient.getNamespace())
-					? this.kubernetesClient.services().inNamespace(this.kubernetesClient.getNamespace())
-							.withName(this.getServiceId()).get()
-					: this.kubernetesClient.services().withName(this.getServiceId()).get();
+			String namespace = Fabric8Utils.getApplicationNamespace(
+				kubernetesClient, null, "loadbalancer-service", namespaceProvider);
+			String serviceName = getServiceId();
+
+			LOG.debug(() -> "discovering services in namespace : " + namespace);
+			Service service = kubernetesClient.services().inNamespace(namespace).withName(serviceName).get();
 			if (service != null) {
 				result.add(mapper.map(service));
+			}
+			else {
+				LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : " + namespace);
 			}
 		}
 		return Flux.defer(() -> Flux.just(result));
