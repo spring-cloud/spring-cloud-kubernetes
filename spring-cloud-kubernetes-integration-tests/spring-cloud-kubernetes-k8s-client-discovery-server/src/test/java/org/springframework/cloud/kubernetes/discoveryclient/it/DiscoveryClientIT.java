@@ -249,13 +249,13 @@ class DiscoveryClientIT {
 		String clientHealth = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
 				.block();
 		String serverHealth = server.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-			.block();
+				.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(clientHealth))
 				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(serverHealth))
-			.extractingJsonPathStringValue("$.components.kubernetes.status").isEqualTo("UP");
+				.extractingJsonPathStringValue("$.components.kubernetes.status").isEqualTo("UP");
 	}
 
 	private static void discoveryClient(Phase phase) {
