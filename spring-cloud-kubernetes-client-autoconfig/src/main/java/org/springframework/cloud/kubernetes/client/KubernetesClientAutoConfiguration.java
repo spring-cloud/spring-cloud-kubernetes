@@ -73,7 +73,7 @@ public class KubernetesClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	public KubernetesClientPodUtils kubernetesPodUtils(CoreV1Api client,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		return new KubernetesClientPodUtils(client, kubernetesNamespaceProvider.getNamespace());
+		return new KubernetesClientPodUtils(client, kubernetesNamespaceProvider.getNamespace(), true);
 	}
 
 }
