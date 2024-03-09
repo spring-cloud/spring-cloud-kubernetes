@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * @author wind57
  */
-public class KubernetesClientPodUtilsTests {
+class KubernetesClientPodUtilsTests {
 
 	private static final String KUBERNETES_SERVICE_HOST = KubernetesClientPodUtils.KUBERNETES_SERVICE_HOST;
 
@@ -70,73 +70,73 @@ public class KubernetesClientPodUtilsTests {
 	private MockedStatic<Paths> paths;
 
 	@BeforeEach
-	public void before() {
+	void before() {
 		envReader = Mockito.mockStatic(EnvReader.class);
 		paths = Mockito.mockStatic(Paths.class);
 	}
 
 	@AfterEach
-	public void after() {
+	void after() {
 		envReader.close();
 		paths.close();
 	}
 
 	@Test
-	public void constructorThrowsIllegalArgumentExceptionWhenKubeClientIsNull() {
-		assertThatThrownBy(() -> new KubernetesClientPodUtils(null, "namespace"))
+	void constructorThrowsIllegalArgumentExceptionWhenKubeClientIsNull() {
+		assertThatThrownBy(() -> new KubernetesClientPodUtils(null, "namespace", false))
 				.isInstanceOf(IllegalArgumentException.class)
 				.hasMessage("Must provide an instance of KubernetesClient");
 	}
 
 	@Test
-	public void serviceHostNotPresent() {
+	void serviceHostNotPresent() {
 		mockHost(null);
 
-		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace");
+		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace", false);
 		Supplier<V1Pod> sup = util.currentPod();
 		assertSupplierAndClient(sup, util);
 	}
 
 	@Test
-	public void hostNameNotPresent() {
+	void hostNameNotPresent() {
 		mockHost(HOST);
 		mockHostname(null);
 
-		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace");
+		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace", false);
 		Supplier<V1Pod> sup = util.currentPod();
 		assertSupplierAndClient(sup, util);
 	}
 
 	@Test
-	public void serviceAccountPathNotPresent() {
+	void serviceAccountPathNotPresent() {
 		mockTokenPath(false);
 		mockHostname(HOST);
 
-		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace");
+		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace", false);
 		Supplier<V1Pod> sup = util.currentPod();
 		assertSupplierAndClient(sup, util);
 	}
 
 	@Test
-	public void serviceAccountCertPathNotPresent() {
+	void serviceAccountCertPathNotPresent() {
 		mockTokenPath(true);
 		mockCertPath(false);
 		mockHostname(HOST);
 
-		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace");
+		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace", false);
 		Supplier<V1Pod> sup = util.currentPod();
 		assertSupplierAndClient(sup, util);
 	}
 
 	@Test
-	public void allPresent() throws ApiException {
+	void allPresent() throws ApiException {
 		mockTokenPath(true);
 		mockCertPath(true);
 		mockHost(HOST);
 		mockHostname(POD_HOSTNAME);
 		mockPodResult();
 
-		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace");
+		KubernetesClientPodUtils util = new KubernetesClientPodUtils(client, "namespace", false);
 		Supplier<V1Pod> sup = util.currentPod();
 		assertThat(sup.get()).isNotNull();
 		assertThat(util.isInsideKubernetes()).isTrue();
