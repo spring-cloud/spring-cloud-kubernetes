@@ -16,12 +16,10 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.loadbalancer;
 
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,12 +35,9 @@ class KubernetesClientLoadBalancerApplication {
 
 	private static final String URL = "http://service-wiremock/__admin/mappings";
 
-	private final DiscoveryClient discoveryClient;
-
 	private final WebClient.Builder client;
 
-	KubernetesClientLoadBalancerApplication(DiscoveryClient discoveryClient, WebClient.Builder client) {
-		this.discoveryClient = discoveryClient;
+	KubernetesClientLoadBalancerApplication(WebClient.Builder client) {
 		this.client = client;
 	}
 
@@ -55,11 +50,6 @@ class KubernetesClientLoadBalancerApplication {
 	Map<String, Object> greeting() {
 		return (Map<String, Object>) client.baseUrl(URL).build().method(HttpMethod.GET).retrieve().bodyToMono(Map.class)
 				.block();
-	}
-
-	@GetMapping("/services")
-	List<String> services() {
-		return discoveryClient.getServices();
 	}
 
 }
