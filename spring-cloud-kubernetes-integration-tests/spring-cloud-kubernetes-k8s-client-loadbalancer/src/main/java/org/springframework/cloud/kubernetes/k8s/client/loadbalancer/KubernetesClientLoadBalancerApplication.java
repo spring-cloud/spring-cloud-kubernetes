@@ -16,18 +16,11 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.loadbalancer;
 
-import java.util.List;
 import java.util.Map;
-
-import reactor.netty.http.client.HttpClient;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -38,36 +31,25 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootApplication
 @RestController
-public class KubernetesClientLoadBalancerApplication {
+class KubernetesClientLoadBalancerApplication {
 
 	private static final String URL = "http://service-wiremock/__admin/mappings";
 
-	private final DiscoveryClient discoveryClient;
+	private final WebClient.Builder client;
 
-	public KubernetesClientLoadBalancerApplication(DiscoveryClient discoveryClien) {
-		this.discoveryClient = discoveryClien;
+	KubernetesClientLoadBalancerApplication(WebClient.Builder client) {
+		this.client = client;
 	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(KubernetesClientLoadBalancerApplication.class, args);
 	}
 
-	@Bean
-	@LoadBalanced
-	WebClient.Builder client() {
-		return WebClient.builder();
-	}
-
 	@GetMapping("/loadbalancer-it/service")
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> greeting() {
-		return (Map<String, Object>) client().clientConnector(new ReactorClientHttpConnector(HttpClient.create()))
-				.baseUrl(URL).build().method(HttpMethod.GET).retrieve().bodyToMono(Map.class).block();
-	}
-
-	@GetMapping("/services")
-	public List<String> services() {
-		return discoveryClient.getServices();
+	Map<String, Object> greeting() {
+		return (Map<String, Object>) client.baseUrl(URL).build().method(HttpMethod.GET).retrieve().bodyToMono(Map.class)
+				.block();
 	}
 
 }

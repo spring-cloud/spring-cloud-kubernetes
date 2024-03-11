@@ -41,7 +41,7 @@ public class KubernetesClientInfoContributor extends AbstractKubernetesInfoContr
 
 	@Override
 	public Map<String, Object> getDetails() {
-		V1Pod current = this.utils.currentPod().get();
+		V1Pod current = utils.currentPod().get();
 		if (current != null) {
 			Map<String, Object> details = CollectionUtils.newHashMap(7);
 			details.put(INSIDE, true);

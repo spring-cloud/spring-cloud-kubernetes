@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
@@ -41,6 +45,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
+@ExtendWith(OutputCaptureExtension.class)
 class Fabric8ServicesListSupplierMockClientTests {
 
 	private static KubernetesClient mockClient;
@@ -62,7 +67,7 @@ class Fabric8ServicesListSupplierMockClientTests {
 	}
 
 	@Test
-	void testAllNamespaces() {
+	void testAllNamespaces(CapturedOutput output) {
 
 		createService("a", "service-a", 8887);
 		createService("b", "service-b", 8888);
@@ -84,8 +89,54 @@ class Fabric8ServicesListSupplierMockClientTests {
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertEquals(serviceInstances.size(), 1);
 		List<ServiceInstance> inner = serviceInstances.get(0);
-		Assertions.assertEquals(inner.size(), 2);
 
+		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream().sorted(Comparator.comparing(
+                ServiceInstance::getServiceId)).toList();
+		Assertions.assertEquals(serviceInstancesSorted.size(), 2);
+		Assertions.assertEquals(inner.get(0).getServiceId(), "service-a");
+		Assertions.assertEquals(inner.get(0).getHost(), "service-a.a.svc.cluster.local");
+		Assertions.assertEquals(inner.get(0).getPort(), 8887);
+
+		Assertions.assertEquals(inner.get(1).getServiceId(), "service-b");
+		Assertions.assertEquals(inner.get(1).getHost(), "service-b.b.svc.cluster.local");
+		Assertions.assertEquals(inner.get(1).getPort(), 8888);
+
+		Assertions.assertTrue(output.getOut().contains("discovering services in all namespaces"));
+	}
+
+	@Test
+	void testOneNamespace(CapturedOutput output) {
+
+		createService("a", "service-a", 8887);
+		createService("b", "service-b", 8888);
+		createService("c", "service-c", 8889);
+
+		Environment environment = new MockEnvironment().withProperty("spring.cloud.kubernetes.client.namespace", "c");
+		boolean allNamespaces = false;
+		Set<String> namespaces = Set.of();
+
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
+			namespaces, true, 60, false, null, Set.of(), Map.of(), null,
+			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+
+		Fabric8ServicesListSupplier supplier = new Fabric8ServicesListSupplier(
+			environment, mockClient, new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties),
+			discoveryProperties
+		);
+
+		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
+		Assertions.assertEquals(serviceInstances.size(), 1);
+		List<ServiceInstance> inner = serviceInstances.get(0);
+
+		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream().sorted(Comparator.comparing(
+			ServiceInstance::getServiceId)).toList();
+		Assertions.assertEquals(serviceInstancesSorted.size(), 1);
+		Assertions.assertEquals(inner.get(0).getServiceId(), "service-c");
+		Assertions.assertEquals(inner.get(0).getHost(), "service-c.c.svc.cluster.local");
+		Assertions.assertEquals(inner.get(0).getPort(), 8889);
+
+		Assertions.assertTrue(output.getOut().contains("discovering services in namespace : c"));
 	}
 
 	private void createService(String namespace, String name, int port) {
