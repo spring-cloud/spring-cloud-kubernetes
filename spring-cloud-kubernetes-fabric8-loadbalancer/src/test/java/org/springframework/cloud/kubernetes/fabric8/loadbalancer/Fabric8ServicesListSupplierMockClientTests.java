@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.client.ServiceInstance;
@@ -72,26 +73,24 @@ class Fabric8ServicesListSupplierMockClientTests {
 		createService("a", "service-a", 8887);
 		createService("b", "service-b", 8888);
 
-		Environment environment = new MockEnvironment();
+		Environment environment = new MockEnvironment().withProperty("loadbalancer.client.name", "service-a");
 		boolean allNamespaces = true;
-		Set<String> namespaces = Set.of();
+		Set<String> selectiveNamespaces = Set.of();
 
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			namespaces, true, 60, false, null, Set.of(), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+				selectiveNamespaces, true, 60, false, null, Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		Fabric8ServicesListSupplier supplier = new Fabric8ServicesListSupplier(
-			environment, mockClient, new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties),
-			discoveryProperties
-		);
+		Fabric8ServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, mockClient,
+				new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertEquals(serviceInstances.size(), 1);
 		List<ServiceInstance> inner = serviceInstances.get(0);
 
-		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream().sorted(Comparator.comparing(
-                ServiceInstance::getServiceId)).toList();
+		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream()
+				.sorted(Comparator.comparing(ServiceInstance::getServiceId)).toList();
 		Assertions.assertEquals(serviceInstancesSorted.size(), 2);
 		Assertions.assertEquals(inner.get(0).getServiceId(), "service-a");
 		Assertions.assertEquals(inner.get(0).getHost(), "service-a.a.svc.cluster.local");
@@ -113,24 +112,22 @@ class Fabric8ServicesListSupplierMockClientTests {
 
 		Environment environment = new MockEnvironment().withProperty("spring.cloud.kubernetes.client.namespace", "c");
 		boolean allNamespaces = false;
-		Set<String> namespaces = Set.of();
+		Set<String> selectiveNamespaces = Set.of();
 
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			namespaces, true, 60, false, null, Set.of(), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+				selectiveNamespaces, true, 60, false, null, Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		Fabric8ServicesListSupplier supplier = new Fabric8ServicesListSupplier(
-			environment, mockClient, new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties),
-			discoveryProperties
-		);
+		Fabric8ServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, mockClient,
+				new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertEquals(serviceInstances.size(), 1);
 		List<ServiceInstance> inner = serviceInstances.get(0);
 
-		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream().sorted(Comparator.comparing(
-			ServiceInstance::getServiceId)).toList();
+		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream()
+				.sorted(Comparator.comparing(ServiceInstance::getServiceId)).toList();
 		Assertions.assertEquals(serviceInstancesSorted.size(), 1);
 		Assertions.assertEquals(inner.get(0).getServiceId(), "service-c");
 		Assertions.assertEquals(inner.get(0).getHost(), "service-c.c.svc.cluster.local");
@@ -140,9 +137,10 @@ class Fabric8ServicesListSupplierMockClientTests {
 	}
 
 	private void createService(String namespace, String name, int port) {
-		Service service = new ServiceBuilder().withNewMetadata().withNamespace(namespace)
-			.withName(name).endMetadata().withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder()
-				.withName("http").withPort(port).build()).build()).build();
+		Service service = new ServiceBuilder().withNewMetadata().withNamespace(namespace).withName(name).endMetadata()
+				.withSpec(new ServiceSpecBuilder()
+						.withPorts(new ServicePortBuilder().withName("http").withPort(port).build()).build())
+				.build();
 		mockClient.services().resource(service).create();
 	}
 

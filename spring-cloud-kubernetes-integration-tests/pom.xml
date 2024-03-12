@@ -128,7 +128,8 @@
 		<!-- configuration watcher is based on k8s-client, there's no fabric8 counterpart -->
 		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
 
-		<!-- at the moment we have no integration test for the fabric8 client, only k8s native client -->
+		<!-- loadbalancer -->
+		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
 		<module>spring-cloud-kubernetes-k8s-client-loadbalancer</module>
 
 		<!-- config watcher reload, using kafka and configmap -->
@@ -137,5 +138,5 @@
 		<!-- config watcher reload, using rabbitmq and secret -->
         <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload-multiple-apps</module>
 
-    </modules>
+	</modules>
 </project>

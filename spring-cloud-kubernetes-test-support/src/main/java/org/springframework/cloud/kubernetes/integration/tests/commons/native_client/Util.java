@@ -455,6 +455,21 @@ public final class Util {
 
 	}
 
+	public void httpd(String namespace, Phase phase) {
+		V1Deployment deployment = (V1Deployment) yaml("httpd/httpd-deployment.yaml");
+		V1Service service = (V1Service) yaml("httpd/httpd-service.yaml");
+
+		if (phase.equals(Phase.CREATE)) {
+			deployment.getMetadata().setNamespace(namespace);
+			service.getMetadata().setNamespace(namespace);
+			createAndWait(namespace, "httpd", deployment, service, null, false);
+		}
+		else {
+			deleteAndWait(namespace, deployment, service, null);
+		}
+
+	}
+
 	public static void patchWithMerge(String deploymentName, String namespace, String patchBody,
 			Map<String, String> podLabels) {
 		try {
