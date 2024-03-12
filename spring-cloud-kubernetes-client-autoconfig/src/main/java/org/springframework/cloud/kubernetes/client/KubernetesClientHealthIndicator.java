@@ -41,7 +41,7 @@ public class KubernetesClientHealthIndicator extends AbstractKubernetesHealthInd
 
 	@Override
 	protected Map<String, Object> getDetails() {
-		V1Pod current = this.utils.currentPod().get();
+		V1Pod current = utils.currentPod().get();
 		if (current != null) {
 			Map<String, Object> details = CollectionUtils.newHashMap(8);
 			details.put(INSIDE, true);
