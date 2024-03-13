@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.cloud.kubernetes.client.loadbalancer;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.ConditionalOnKubernetesLoadBalancerServiceModeEnabled;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +32,7 @@ import org.springframework.core.env.Environment;
 public class KubernetesClientLoadBalancerClientConfiguration {
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.kubernetes.loadbalancer.mode", havingValue = "SERVICE")
+	@ConditionalOnKubernetesLoadBalancerServiceModeEnabled
 	ServiceInstanceListSupplier kubernetesServicesListSupplier(Environment environment, CoreV1Api coreV1Api,
 			KubernetesClientServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigurableApplicationContext context) {
