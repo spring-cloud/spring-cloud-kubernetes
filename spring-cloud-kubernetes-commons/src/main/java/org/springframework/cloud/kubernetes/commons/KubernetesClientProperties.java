@@ -33,9 +33,9 @@ public record KubernetesClientProperties(Boolean trustCerts, String masterUrl, S
 		String caCertFile, String caCertData, String clientCertFile, String clientCertData, String clientKeyFile,
 		String clientKeyData, String clientKeyAlgo, String clientKeyPassphrase, String username, String password,
 		Duration watchReconnectInterval, Duration watchReconnectLimit, Duration connectionTimeout,
-		Duration requestTimeout, Duration rollingTimeout, Duration loggingInterval, String httpProxy, String httpsProxy,
-		String proxyUsername, String proxyPassword, String oauthToken, String[] noProxy,
-		@DefaultValue(SERVICE_ACCOUNT_NAMESPACE_PATH) String serviceAccountNamespacePath,
+		Duration requestTimeout, @Deprecated(forRemoval = true) Duration rollingTimeout, Duration loggingInterval,
+		String httpProxy, String httpsProxy, String proxyUsername, String proxyPassword, String oauthToken,
+		String[] noProxy, @DefaultValue(SERVICE_ACCOUNT_NAMESPACE_PATH) String serviceAccountNamespacePath,
 		@DefaultValue(DEFAULT_USER_AGENT) String userAgent) {
 
 	/**

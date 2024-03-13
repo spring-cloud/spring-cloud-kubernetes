@@ -1,0 +1,27 @@
+[[leader-election]]
+= Leader Election
+
+The Spring Cloud Kubernetes leader election mechanism implements the leader election API of Spring Integration using a Kubernetes ConfigMap.
+
+Multiple application instances compete for leadership, but leadership will only be granted to one.
+When granted leadership, a leader application receives an `OnGrantedEvent` application event with leadership `Context`.
+Applications periodically attempt to gain leadership, with leadership granted to the first caller.
+A leader will remain a leader until either it is removed from the cluster, or it yields its leadership.
+When leadership removal occurs, the previous leader receives `OnRevokedEvent` application event.
+After removal, any instances in the cluster may become the new leader, including the old leader.
+
+To include it in your project, add the following dependency.
+Fabric8 Leader Implementation
+[source,xml]
+----
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
+</dependency>
+----
+
+To specify the name of the configmap used for leader election use the following property.
+[source,properties]
+----
+spring.cloud.kubernetes.leader.config-map-name=leader
+----

@@ -39,7 +39,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * Stubs for this test are in
- * {@link org.springframework.cloud.kubernetes.client.config.boostrap.stubs.LabeledSecretWithProfileConfigurationStub}
+ * {@link org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.LabeledSecretWithProfileConfigurationStub}
  *
  * @author wind57
  */

@@ -23,18 +23,18 @@
 	<parent>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>4.0.6-SNAPSHOT</version>
+		<version>4.1.1-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
-	<version>3.0.5-SNAPSHOT</version>
+	<version>3.1.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
 		<hoverfly.version>0.13.0</hoverfly.version>
-		<kubernetes-fabric8-client.version>6.2.0</kubernetes-fabric8-client.version>
-		<kubernetes-native-client.version>17.0.2</kubernetes-native-client.version>
+		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
+		<kubernetes-native-client.version>19.0.0</kubernetes-native-client.version>
 		<wiremock.version>2.26.3</wiremock.version>
 		<commons.collections4.version>4.4</commons.collections4.version>
 	</properties>

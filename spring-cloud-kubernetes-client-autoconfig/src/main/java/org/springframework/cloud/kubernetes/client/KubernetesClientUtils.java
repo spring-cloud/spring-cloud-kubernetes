@@ -49,8 +49,16 @@ public final class KubernetesClientUtils {
 			return apiClient;
 		}
 		catch (Exception e) {
-			LOG.info("Could not create the Kubernetes ApiClient in a cluster environment, because : ", e);
-			LOG.info("Trying to use a \"standard\" configuration to create the Kubernetes ApiClient");
+			if (e instanceof IllegalStateException illegalStateException
+					&& illegalStateException.getCause() instanceof NumberFormatException) {
+				LOG.info("Could not create the Kubernetes ApiClient in a cluster environment, because connection port "
+						+ "was not provided.");
+			}
+			else {
+				LOG.info("Could not create the Kubernetes ApiClient in a cluster environment, because : ", e);
+			}
+			LOG.info("""
+					Trying to use a "standard" configuration to create the Kubernetes ApiClient""");
 			try {
 				ApiClient apiClient = ClientBuilder.defaultClient();
 				LOG.info("Created standard API client. Unless $KUBECONFIG or $HOME/.kube/config is defined, "

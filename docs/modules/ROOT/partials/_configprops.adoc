@@ -1,0 +1,117 @@
+|===
+|Name | Default | Description
+
+|spring.cloud.kubernetes.client.api-version |  | 
+|spring.cloud.kubernetes.client.apiVersion | `+++v1+++` | Kubernetes API Version
+|spring.cloud.kubernetes.client.ca-cert-data |  | 
+|spring.cloud.kubernetes.client.ca-cert-file |  | 
+|spring.cloud.kubernetes.client.caCertData |  | Kubernetes API CACertData
+|spring.cloud.kubernetes.client.caCertFile |  | Kubernetes API CACertFile
+|spring.cloud.kubernetes.client.client-cert-data |  | 
+|spring.cloud.kubernetes.client.client-cert-file |  | 
+|spring.cloud.kubernetes.client.client-key-algo |  | 
+|spring.cloud.kubernetes.client.client-key-data |  | 
+|spring.cloud.kubernetes.client.client-key-file |  | 
+|spring.cloud.kubernetes.client.client-key-passphrase |  | 
+|spring.cloud.kubernetes.client.clientCertData |  | Kubernetes API ClientCertData
+|spring.cloud.kubernetes.client.clientCertFile |  | Kubernetes API ClientCertFile
+|spring.cloud.kubernetes.client.clientKeyAlgo | `+++RSA+++` | Kubernetes API ClientKeyAlgo
+|spring.cloud.kubernetes.client.clientKeyData |  | Kubernetes API ClientKeyData
+|spring.cloud.kubernetes.client.clientKeyFile |  | Kubernetes API ClientKeyFile
+|spring.cloud.kubernetes.client.clientKeyPassphrase | `+++changeit+++` | Kubernetes API ClientKeyPassphrase
+|spring.cloud.kubernetes.client.connection-timeout |  | 
+|spring.cloud.kubernetes.client.connectionTimeout | `+++10s+++` | Connection timeout
+|spring.cloud.kubernetes.client.http-proxy |  | 
+|spring.cloud.kubernetes.client.https-proxy |  | 
+|spring.cloud.kubernetes.client.logging-interval |  | 
+|spring.cloud.kubernetes.client.loggingInterval | `+++20s+++` | Logging interval
+|spring.cloud.kubernetes.client.master-url |  | 
+|spring.cloud.kubernetes.client.masterUrl | `+++https://kubernetes.default.svc+++` | Kubernetes API Master Node URL
+|spring.cloud.kubernetes.client.namespace | `+++true+++` | Kubernetes Namespace
+|spring.cloud.kubernetes.client.no-proxy |  | 
+|spring.cloud.kubernetes.client.oauth-token |  | 
+|spring.cloud.kubernetes.client.oauthToken |  | Kubernetes API Oauth Token
+|spring.cloud.kubernetes.client.password |  | Kubernetes API Password
+|spring.cloud.kubernetes.client.proxy-password |  | 
+|spring.cloud.kubernetes.client.proxy-username |  | 
+|spring.cloud.kubernetes.client.request-timeout |  | 
+|spring.cloud.kubernetes.client.requestTimeout | `+++10s+++` | Request timeout
+|spring.cloud.kubernetes.client.rolling-timeout |  | 
+|spring.cloud.kubernetes.client.rollingTimeout | `+++900s+++` | Rolling timeout
+|spring.cloud.kubernetes.client.service-account-namespace-path | `+++/var/run/secrets/kubernetes.io/serviceaccount/namespace+++` | 
+|spring.cloud.kubernetes.client.trust-certs |  | 
+|spring.cloud.kubernetes.client.trustCerts | `+++false+++` | Kubernetes API Trust Certificates
+|spring.cloud.kubernetes.client.user-agent | `+++Spring-Cloud-Kubernetes-Application+++` | 
+|spring.cloud.kubernetes.client.username |  | Kubernetes API Username
+|spring.cloud.kubernetes.client.watch-reconnect-interval |  | 
+|spring.cloud.kubernetes.client.watch-reconnect-limit |  | 
+|spring.cloud.kubernetes.client.watchReconnectInterval | `+++1s+++` | Reconnect Interval
+|spring.cloud.kubernetes.client.watchReconnectLimit | `+++-1+++` | Reconnect Interval limit retries
+|spring.cloud.kubernetes.config.enable-api | `+++true+++` | 
+|spring.cloud.kubernetes.config.enabled | `+++true+++` | Enable the ConfigMap property source locator.
+|spring.cloud.kubernetes.config.fail-fast | `+++false+++` | 
+|spring.cloud.kubernetes.config.include-profile-specific-sources | `+++true+++` | 
+|spring.cloud.kubernetes.config.labels |  | 
+|spring.cloud.kubernetes.config.name |  | 
+|spring.cloud.kubernetes.config.namespace |  | 
+|spring.cloud.kubernetes.config.paths |  | 
+|spring.cloud.kubernetes.config.retry |  | 
+|spring.cloud.kubernetes.config.sources |  | 
+|spring.cloud.kubernetes.config.use-name-as-prefix | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | 
+|spring.cloud.kubernetes.discovery.discovery-server-url |  | 
+|spring.cloud.kubernetes.discovery.enabled | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.filter |  | 
+|spring.cloud.kubernetes.discovery.include-external-name-services | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.include-not-ready-addresses | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.known-secure-ports | `+++[443, 8443]+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-annotations | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-labels | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-pod-annotations | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-pod-labels | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.metadata.add-ports | `+++true+++` | 
+|spring.cloud.kubernetes.discovery.metadata.annotations-prefix |  | 
+|spring.cloud.kubernetes.discovery.metadata.labels-prefix |  | 
+|spring.cloud.kubernetes.discovery.metadata.ports-prefix | `+++port.+++` | 
+|spring.cloud.kubernetes.discovery.namespaces |  | 
+|spring.cloud.kubernetes.discovery.order | `+++0+++` | 
+|spring.cloud.kubernetes.discovery.primary-port-name |  | 
+|spring.cloud.kubernetes.discovery.service-labels |  | 
+|spring.cloud.kubernetes.discovery.use-endpoint-slices | `+++false+++` | 
+|spring.cloud.kubernetes.discovery.wait-cache-ready | `+++true+++` | 
+|spring.cloud.kubernetes.leader.auto-startup | `+++true+++` | Should leader election be started automatically on startup. Default: true
+|spring.cloud.kubernetes.leader.config-map-name | `+++leaders+++` | Kubernetes ConfigMap where leaders information will be stored. Default: leaders
+|spring.cloud.kubernetes.leader.create-config-map | `+++true+++` | Enable/disable creating ConfigMap if it does not exist. Default: true
+|spring.cloud.kubernetes.leader.enabled | `+++true+++` | Should leader election be enabled. Default: true
+|spring.cloud.kubernetes.leader.leader-id-prefix | `+++leader.id.+++` | Leader id property prefix for the ConfigMap. Default: leader.id.
+|spring.cloud.kubernetes.leader.namespace |  | Kubernetes namespace where the leaders ConfigMap and candidates are located.
+|spring.cloud.kubernetes.leader.publish-failed-events | `+++false+++` | Enable/disable publishing events in case leadership acquisition fails. Default: false
+|spring.cloud.kubernetes.leader.role |  | Role for which leadership this candidate will compete.
+|spring.cloud.kubernetes.leader.update-period | `+++60000ms+++` | Leadership status check period. Default: 60s
+|spring.cloud.kubernetes.loadbalancer.cluster-domain | `+++cluster.local+++` | cluster domain.
+|spring.cloud.kubernetes.loadbalancer.enabled | `+++true+++` | Load balancer enabled,default true.
+|spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
+|spring.cloud.kubernetes.loadbalancer.port-name | `+++http+++` | service port name.
+|spring.cloud.kubernetes.reload.enable-reload-filtering | `+++false+++` | 
+|spring.cloud.kubernetes.reload.enabled | `+++false+++` | 
+|spring.cloud.kubernetes.reload.max-wait-for-restart | `+++2s+++` | 
+|spring.cloud.kubernetes.reload.mode | `+++EVENT+++` | 
+|spring.cloud.kubernetes.reload.monitoring-config-maps | `+++true+++` | 
+|spring.cloud.kubernetes.reload.monitoring-secrets | `+++false+++` | 
+|spring.cloud.kubernetes.reload.namespaces |  | 
+|spring.cloud.kubernetes.reload.period | `+++15000ms+++` | 
+|spring.cloud.kubernetes.reload.strategy | `+++REFRESH+++` | 
+|spring.cloud.kubernetes.secrets.enable-api | `+++false+++` | 
+|spring.cloud.kubernetes.secrets.enabled | `+++true+++` | Enable the Secrets property source locator.
+|spring.cloud.kubernetes.secrets.fail-fast | `+++false+++` | 
+|spring.cloud.kubernetes.secrets.include-profile-specific-sources | `+++true+++` | 
+|spring.cloud.kubernetes.secrets.labels |  | 
+|spring.cloud.kubernetes.secrets.name |  | 
+|spring.cloud.kubernetes.secrets.namespace |  | 
+|spring.cloud.kubernetes.secrets.paths |  | 
+|spring.cloud.kubernetes.secrets.retry |  | 
+|spring.cloud.kubernetes.secrets.sources |  | 
+|spring.cloud.kubernetes.secrets.use-name-as-prefix | `+++false+++` | 
+
+|===
