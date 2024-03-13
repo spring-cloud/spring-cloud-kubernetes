@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
 
