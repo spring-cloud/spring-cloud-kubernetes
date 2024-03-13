@@ -61,8 +61,8 @@ class Fabric8LoadBalancerController {
 
 	@GetMapping("/loadbalancer/supplier")
 	String supplier() {
-		ServiceInstanceListSupplier supplier = loadBalancerClientFactory.getIfAvailable().getInstance("service-httpd",
-				ServiceInstanceListSupplier.class);
+		ServiceInstanceListSupplier supplier = loadBalancerClientFactory.getIfAvailable()
+			.getProvider("service-wiremock", ServiceInstanceListSupplier.class).getIfAvailable();
 		if (supplier instanceof CachingServiceInstanceListSupplier cachingSupplier) {
 			return cachingSupplier.getDelegate().getClass().getSimpleName();
 		}
