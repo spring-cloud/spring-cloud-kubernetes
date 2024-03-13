@@ -18,8 +18,12 @@ package org.springframework.cloud.kubernetes.k8s.client.loadbalancer;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,8 +41,12 @@ class KubernetesClientLoadBalancerApplication {
 
 	private final WebClient.Builder client;
 
-	KubernetesClientLoadBalancerApplication(WebClient.Builder client) {
+	private final ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory;
+
+	KubernetesClientLoadBalancerApplication(WebClient.Builder client,
+			ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory) {
 		this.client = client;
+		this.loadBalancerClientFactory = loadBalancerClientFactory;
 	}
 
 	public static void main(String[] args) {
@@ -50,6 +58,16 @@ class KubernetesClientLoadBalancerApplication {
 	Map<String, Object> greeting() {
 		return (Map<String, Object>) client.baseUrl(URL).build().method(HttpMethod.GET).retrieve().bodyToMono(Map.class)
 				.block();
+	}
+
+	@GetMapping("/loadbalancer-it/supplier")
+	String supplier() {
+		ServiceInstanceListSupplier supplier = loadBalancerClientFactory.getIfAvailable()
+				.getProvider("service-wiremock", ServiceInstanceListSupplier.class).getIfAvailable();
+		if (supplier instanceof CachingServiceInstanceListSupplier cachingSupplier) {
+			return cachingSupplier.getDelegate().getClass().getSimpleName();
+		}
+		return supplier.getClass().getSimpleName();
 	}
 
 }
