@@ -13,7 +13,7 @@
 
 	<properties>
 		<docker.registry.organization>springcloud</docker.registry.organization>
-		<plexus-archiver.version>4.1.0</plexus-archiver.version>
+		<plexus-archiver.version>4.8.0</plexus-archiver.version>
 	</properties>
 
 	<dependencies>
