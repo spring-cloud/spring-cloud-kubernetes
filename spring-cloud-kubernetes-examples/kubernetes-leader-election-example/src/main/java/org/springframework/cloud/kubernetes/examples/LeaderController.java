@@ -47,7 +47,7 @@ public class LeaderController {
 	 * Return a message whether this instance is a leader or not.
 	 * @return info
 	 */
-	@GetMapping
+	@GetMapping("/")
 	public String getInfo() {
 		if (this.context == null) {
 			return String.format("I am '%s' but I am not a leader of the '%s'", this.host, this.role);
@@ -63,7 +63,7 @@ public class LeaderController {
 	 * to give up the leadership.
 	 * @return info about leadership
 	 */
-	@PutMapping
+	@PutMapping("/")
 	public ResponseEntity<String> revokeLeadership() {
 		if (this.context == null) {
 			String message = String.format("Cannot revoke leadership because '%s' is not a leader", this.host);
