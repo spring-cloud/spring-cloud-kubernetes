@@ -72,6 +72,7 @@ class Fabric8ServicesListSupplierMockClientTests {
 
 		createService("a", "service-a", 8887);
 		createService("b", "service-b", 8888);
+		createService("c", "service-a", 8889);
 
 		Environment environment = new MockEnvironment().withProperty("loadbalancer.client.name", "service-a");
 		boolean allNamespaces = true;
@@ -96,9 +97,9 @@ class Fabric8ServicesListSupplierMockClientTests {
 		Assertions.assertEquals(inner.get(0).getHost(), "service-a.a.svc.cluster.local");
 		Assertions.assertEquals(inner.get(0).getPort(), 8887);
 
-		Assertions.assertEquals(inner.get(1).getServiceId(), "service-b");
-		Assertions.assertEquals(inner.get(1).getHost(), "service-b.b.svc.cluster.local");
-		Assertions.assertEquals(inner.get(1).getPort(), 8888);
+		Assertions.assertEquals(inner.get(1).getServiceId(), "service-a");
+		Assertions.assertEquals(inner.get(1).getHost(), "service-a.c.svc.cluster.local");
+		Assertions.assertEquals(inner.get(1).getPort(), 8889);
 
 		Assertions.assertTrue(output.getOut().contains("discovering services in all namespaces"));
 	}
@@ -106,11 +107,13 @@ class Fabric8ServicesListSupplierMockClientTests {
 	@Test
 	void testOneNamespace(CapturedOutput output) {
 
-		createService("a", "service-a", 8887);
+		createService("a", "service-c", 8887);
 		createService("b", "service-b", 8888);
 		createService("c", "service-c", 8889);
 
-		Environment environment = new MockEnvironment().withProperty("spring.cloud.kubernetes.client.namespace", "c");
+		Environment environment = new MockEnvironment()
+			.withProperty("spring.cloud.kubernetes.client.namespace", "c")
+			.withProperty("loadbalancer.client.name", "service-c");
 		boolean allNamespaces = false;
 		Set<String> selectiveNamespaces = Set.of();
 
