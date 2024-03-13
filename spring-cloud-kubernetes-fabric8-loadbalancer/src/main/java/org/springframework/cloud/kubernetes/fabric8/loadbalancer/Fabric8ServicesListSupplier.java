@@ -50,15 +50,14 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 	public Flux<List<ServiceInstance>> get() {
 		List<ServiceInstance> result = new ArrayList<>();
 		if (discoveryProperties.allNamespaces()) {
-			List<Service> services = this.kubernetesClient.services().inAnyNamespace()
-					.withField("metadata.name", this.getServiceId()).list().getItems();
+			List<Service> services = kubernetesClient.services().inAnyNamespace()
+					.withField("metadata.name", getServiceId()).list().getItems();
 			services.forEach(service -> result.add(mapper.map(service)));
 		}
 		else {
-			Service service = StringUtils.hasText(this.kubernetesClient.getNamespace())
-					? this.kubernetesClient.services().inNamespace(this.kubernetesClient.getNamespace())
-							.withName(this.getServiceId()).get()
-					: this.kubernetesClient.services().withName(this.getServiceId()).get();
+			Service service = StringUtils.hasText(kubernetesClient.getNamespace()) ? kubernetesClient.services()
+					.inNamespace(kubernetesClient.getNamespace()).withName(getServiceId()).get()
+					: kubernetesClient.services().withName(getServiceId()).get();
 			if (service != null) {
 				result.add(mapper.map(service));
 			}

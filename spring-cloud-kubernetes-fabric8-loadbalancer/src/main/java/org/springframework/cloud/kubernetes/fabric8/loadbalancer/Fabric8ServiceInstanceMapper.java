@@ -51,8 +51,8 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 
 	@Override
 	public KubernetesServiceInstance map(Service service) {
-		final ObjectMeta meta = service.getMetadata();
-		final List<ServicePort> ports = service.getSpec().getPorts();
+		ObjectMeta meta = service.getMetadata();
+		List<ServicePort> ports = service.getSpec().getPorts();
 		ServicePort port = null;
 		if (ports.size() == 1) {
 			port = ports.get(0);
@@ -67,16 +67,16 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		if (port == null) {
 			return null;
 		}
-		final String host = KubernetesServiceInstanceMapper.createHost(service.getMetadata().getName(),
+		String host = KubernetesServiceInstanceMapper.createHost(service.getMetadata().getName(),
 				service.getMetadata().getNamespace(), properties.getClusterDomain());
-		final boolean secure = KubernetesServiceInstanceMapper.isSecure(service.getMetadata().getLabels(),
+		boolean secure = KubernetesServiceInstanceMapper.isSecure(service.getMetadata().getLabels(),
 				service.getMetadata().getAnnotations(), port.getName(), port.getPort());
 		return new DefaultKubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
 				getServiceMetadata(service), secure);
 	}
 
 	private Map<String, String> getServiceMetadata(Service service) {
-		final Map<String, String> serviceMetadata = new HashMap<>();
+		Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.metadata();
 		if (metadataProps.addLabels()) {
 			Map<String, String> labelMetadata = KubernetesServiceInstanceMapper
