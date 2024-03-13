@@ -111,9 +111,8 @@ class Fabric8ServicesListSupplierMockClientTests {
 		createService("b", "service-b", 8888);
 		createService("c", "service-c", 8889);
 
-		Environment environment = new MockEnvironment()
-			.withProperty("spring.cloud.kubernetes.client.namespace", "c")
-			.withProperty("loadbalancer.client.name", "service-c");
+		Environment environment = new MockEnvironment().withProperty("spring.cloud.kubernetes.client.namespace", "c")
+				.withProperty("loadbalancer.client.name", "service-c");
 		boolean allNamespaces = false;
 		Set<String> selectiveNamespaces = Set.of();
 

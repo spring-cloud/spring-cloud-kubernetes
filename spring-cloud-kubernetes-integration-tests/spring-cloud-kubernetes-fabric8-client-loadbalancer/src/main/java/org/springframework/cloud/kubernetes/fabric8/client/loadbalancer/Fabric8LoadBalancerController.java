@@ -18,6 +18,10 @@ package org.springframework.cloud.kubernetes.fabric8.client.loadbalancer;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,8 +39,12 @@ class Fabric8LoadBalancerController {
 
 	private final WebClient.Builder client;
 
-	Fabric8LoadBalancerController(WebClient.Builder client) {
+	private final ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory;
+
+	Fabric8LoadBalancerController(WebClient.Builder client,
+			ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory) {
 		this.client = client;
+		this.loadBalancerClientFactory = loadBalancerClientFactory;
 	}
 
 	@GetMapping("/loadbalancer/wiremock")
@@ -49,6 +57,16 @@ class Fabric8LoadBalancerController {
 	@GetMapping("/loadbalancer/httpd")
 	String greeting() {
 		return client.baseUrl(HTTPD_URL).build().method(HttpMethod.GET).retrieve().bodyToMono(String.class).block();
+	}
+
+	@GetMapping("/loadbalancer/supplier")
+	String supplier() {
+		ServiceInstanceListSupplier supplier = loadBalancerClientFactory.getIfAvailable().getInstance("service-httpd",
+				ServiceInstanceListSupplier.class);
+		if (supplier instanceof CachingServiceInstanceListSupplier cachingSupplier) {
+			return cachingSupplier.getDelegate().getClass().getSimpleName();
+		}
+		return supplier.getClass().getSimpleName();
 	}
 
 }

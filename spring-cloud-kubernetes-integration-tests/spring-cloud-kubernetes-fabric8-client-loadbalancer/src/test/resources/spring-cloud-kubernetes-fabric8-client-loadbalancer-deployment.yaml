@@ -19,6 +19,8 @@ spec:
               value: SERVICE
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_LOADBALANCER
               value: DEBUG
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_ALLNAMESPACES
+              value: "TRUE"
           image: docker.io/springcloud/spring-cloud-kubernetes-fabric8-client-loadbalancer
           imagePullPolicy: IfNotPresent
           readinessProbe:

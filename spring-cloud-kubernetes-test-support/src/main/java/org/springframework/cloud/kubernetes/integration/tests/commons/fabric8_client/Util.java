@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressLoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.Config;
@@ -42,6 +43,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -213,6 +215,33 @@ public final class Util {
 				client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
 			}
 		});
+
+	}
+
+	public void setUpClusterWideClusterRoleBinding(String serviceAccountNamespace) {
+
+		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
+		InputStream clusterRoleAsStream = inputStream("cluster/cluster-role.yaml");
+		InputStream clusterRoleBindingAsStream = inputStream("cluster/cluster-role-binding.yaml");
+
+		ServiceAccount serviceAccount = Serialization.unmarshal(serviceAccountAsStream, ServiceAccount.class);
+		ClusterRole clusterRole = Serialization.unmarshal(clusterRoleAsStream, ClusterRole.class);
+		ClusterRoleBinding clusterRoleBinding = Serialization.unmarshal(clusterRoleBindingAsStream,
+				ClusterRoleBinding.class);
+
+		serviceAccount.getMetadata().setNamespace(serviceAccountNamespace);
+		if (client.serviceAccounts().inNamespace(serviceAccountNamespace)
+				.withName(serviceAccount.getMetadata().getName()).get() == null) {
+			client.serviceAccounts().inNamespace(serviceAccountNamespace).resource(serviceAccount).create();
+		}
+
+		if (client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).get() == null) {
+			client.rbac().clusterRoles().resource(clusterRole).create();
+		}
+
+		if (client.rbac().clusterRoleBindings().withName(clusterRoleBinding.getMetadata().getName()).get() == null) {
+			client.rbac().clusterRoleBindings().resource(clusterRoleBinding).create();
+		}
 
 	}
 
