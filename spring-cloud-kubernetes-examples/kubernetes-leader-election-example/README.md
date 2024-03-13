@@ -83,17 +83,18 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
-      namespace: default
-      name: namespace-reader
+        namespace: default
+        name: namespace-reader
     rules:
-      - apiGroups: ["", "extensions", "apps"]
-        resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
-        verbs: ["get", "list", "watch"]
+        - apiGroups: ["", "extensions", "apps"]
+          resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
+          verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
       name: kubernetes-leader-election-example
     spec:
+      replicas: 4
       selector:
         matchLabels:
           app: kubernetes-leader-election-example
@@ -148,17 +149,10 @@ And check the leadership information again:
 curl $SERVICE_URL
 ```
 
-Now you should receive a message like this:
-```
-I am 'kubernetes-leader-election-example-1234567890-abcde' but I am not a leader of the 'world'
-```
+If another instance was able to acquire the leadership you should see a different instance is now the leadership.  You may
+have to try this a few times depending on how the service is load balanced.
 
-If you wouldn't do anything for a few seconds, the same instance will become a leader again because it only yielded its leadership but stayed in the cluster.
-
-Now scale the application to two instances and try all the steps again:
-```
-kubectl scale --replicas=2 deployment.apps/kubernetes-leader-election-example
-```
+`DEBUG` logging is enabled so you can view the logs of the instances in order to see which instance is acquiring leadership.
 
 > Note: with multiple replicas in the cluster, `curl` command will access one of them depending on the Kubernetes load balancing configuration.
 Thus, when trying to yield the leadership, request might go to a non-leader node first. Just execute command again until it reaches the correct node.
