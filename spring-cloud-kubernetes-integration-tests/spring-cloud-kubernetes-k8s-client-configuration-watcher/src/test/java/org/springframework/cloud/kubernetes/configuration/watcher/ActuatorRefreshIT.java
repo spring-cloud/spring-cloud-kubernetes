@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.time.Duration;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -101,7 +102,7 @@ class ActuatorRefreshIT {
 	void testActuatorRefresh() {
 
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
-		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketException.class)
+		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketTimeoutException.class)
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
 								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
