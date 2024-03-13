@@ -67,24 +67,23 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 		applicationContextRunner.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatch.class));
 	}
 
-	// disabling discovery has no impact on the catalog watch.
+	// disabling discovery, disables catalog watcher.
 	@Test
 	void kubernetesDiscoveryDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
-		applicationContextRunner.run(context -> assertThat(context).hasSingleBean(KubernetesCatalogWatch.class));
+		applicationContextRunner.run(context -> assertThat(context).doesNotHaveBean(KubernetesCatalogWatch.class));
 	}
 
 	/**
-	 * both blocking and reactive configs are disabled, should not influence catalog
-	 * watcher in any way.
+	 * both blocking and reactive configs are disabled, catalog watcher is disabled also.
 	 */
 	@Test
 	void disableBlockingAndReactive() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
+			assertThat(context).doesNotHaveBean(KubernetesCatalogWatch.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(SharedInformerFactory.class);
@@ -94,15 +93,39 @@ class KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 	}
 
 	/**
-	 * spring.cloud.kubernetes.discovery.enabled is false, but does not influence catalog
-	 * watcher.
+	 * blocking is disabled, reactive is enabled, catalog watcher is enabled.
+	 */
+	@Test
+	void disableBlockingEnableReactive() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.discovery.reactive.enabled=true");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
+		});
+	}
+
+	/**
+	 * blocking is enabled, reactive is disabled, catalog watcher is enabled.
+	 */
+	@Test
+	void enableBlockingDisableReactive() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.discovery.reactive.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
+		});
+	}
+
+	/**
+	 * spring.cloud.kubernetes.discovery.enabled is false, catalog watcher is disabled
+	 * also.
 	 */
 	@Test
 	void disableKubernetesDiscovery() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesCatalogWatch.class);
+			assertThat(context).doesNotHaveBean(KubernetesCatalogWatch.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesInformerDiscoveryClient.class);
 		});

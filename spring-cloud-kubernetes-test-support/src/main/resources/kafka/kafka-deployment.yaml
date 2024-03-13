@@ -21,34 +21,39 @@ spec:
       # and this will cause this problem: https://github.com/confluentinc/cp-docker-images/blob/master/debian/kafka/include/etc/confluent/docker/configure#L58-L62
       # Another solution is to rename the service.
       enableServiceLinks: false
+      volumes:
+        - name: kafka-start-config-script
+          configMap:
+              name: kafka-start-config-script
+              defaultMode: 0755
       containers:
-        - name: kafka
+        - name: kafka-start-config-script
+          volumeMounts:
+            - name: kafka-start-config-script
+              mountPath: /tmp
+          command:
+            - /tmp/kafka_start.sh
           image: confluentinc/cp-kafka:7.2.1
           ports:
             - containerPort: 9092
           env:
-            - name: KAFKA_LISTENERS
-              value: "INTERNAL://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094"
-
+            - name: KAFKA_BROKER_ID
+              value: "1"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT"
-
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "INTERNAL://kafka:9092,OUTSIDE://localhost:9094"
-
-            - name: KAFKA_INTER_BROKER_LISTENER_NAME
-              value: "INTERNAL"
-
-            - name: KAFKA_ADVERTISED_HOST_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-
-            - name: KAFKA_ZOOKEEPER_CONNECT
-              value: zookeeper:2181
-
-            # we have enabled auto creation of topics and when this happens there is a replication factor of 3
-            # that is set automatically. Since we don't have that many, producers will fail.
-            # This setting ensures that there is just one replication
+              value: "PLAINTEXT://kafka:9092"
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
               value: "1"
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"
+            - name: KAFKA_NODE_ID
+              value: "1"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://:9092,CONTROLLER://:9093"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "1@localhost:9093"

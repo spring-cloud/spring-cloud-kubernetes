@@ -25,12 +25,12 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.1.0-SNAPSHOT</version>
+		<version>4.1.1-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>3.1.0-SNAPSHOT</version>
+	<version>3.1.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 
@@ -62,14 +62,18 @@
 	</scm>
 
 	<properties>
+		<!-- in our github actions run, we save surefire/failsafe reports in a path that looks like this: -->
+		<!-- surefire-report/1/... , where "1" (and other numbers like this) are the index of the github matrix -->
+		<!-- where this is running. When outside the github actions, for example locally/jenkins, we will simply store -->
+		<!-- the reports in a directory: "surefire-reports/..." -->
+		<surefire-reports-directory>surefire-reports</surefire-reports-directory>
+		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
 		<mockito-inline.version>4.8.1</mockito-inline.version>
-		<spring-cloud-commons.version>4.1.0-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-config.version>4.1.0-SNAPSHOT</spring-cloud-config.version>
-		<spring-cloud-bus.version>4.1.0-SNAPSHOT</spring-cloud-bus.version>
-		<spring-cloud-contract.version>4.1.0-SNAPSHOT</spring-cloud-contract.version>
-
-		<maven-surefire-plugin.version>3.1.0</maven-surefire-plugin.version>
+		<spring-cloud-commons.version>4.1.2-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-config.version>4.1.1-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-bus.version>4.1.1-SNAPSHOT</spring-cloud-bus.version>
+		<spring-cloud-contract.version>4.1.1-SNAPSHOT</spring-cloud-contract.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
@@ -205,8 +209,18 @@
 					<includes>
 						<include>${testsToRun}</include>
 					</includes>
+					<reportsDirectory>${project.build.directory}/${surefire-reports-directory}</reportsDirectory>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<reportsDirectory>${project.build.directory}/${failsafe-reports-directory}</reportsDirectory>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>

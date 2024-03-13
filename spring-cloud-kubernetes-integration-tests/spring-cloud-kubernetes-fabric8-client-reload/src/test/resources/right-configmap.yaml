@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: right-configmap
+  namespace: right
+data:
+  right.value: "right-initial"

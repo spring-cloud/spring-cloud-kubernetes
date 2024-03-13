@@ -29,11 +29,9 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.config.client.ConfigServerInstanceProvider;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerBootstrapper;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerInstanceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.util.ClassUtils;
 
 /**
  * @author Ryan Baxter
@@ -42,7 +40,7 @@ class ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		if (!ClassUtils.isPresent("org.springframework.cloud.config.client.ConfigServerInstanceProvider", null)) {
+		if (hasConfigServerInstanceProvider()) {
 			return;
 		}
 		// We need to pass a lambda here rather than create a new instance of
@@ -54,14 +52,11 @@ class ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 
 	final static class KubernetesFunction implements ConfigServerInstanceProvider.Function {
 
-		private final BootstrapContext context;
-
-		private KubernetesFunction(BootstrapContext context) {
-			this.context = context;
+		private KubernetesFunction() {
 		}
 
 		static KubernetesFunction create(BootstrapContext context) {
-			return new KubernetesFunction(context);
+			return new KubernetesFunction();
 		}
 
 		@Override
@@ -74,23 +69,17 @@ class ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 				// Kubernetes DiscoveryClient
 				return Collections.emptyList();
 			}
-			KubernetesDiscoveryProperties discoveryProperties = createKubernetesDiscoveryProperties(binder,
-					bindHandler);
-			KubernetesClientProperties clientProperties = createKubernetesClientProperties(binder, bindHandler);
-			return getInstanceProvider(discoveryProperties, clientProperties, context, binder, bindHandler, log)
-					.getInstances(serviceId);
+			return getInstanceProvider(binder, bindHandler).getInstances(serviceId);
 		}
 
-		private KubernetesConfigServerInstanceProvider getInstanceProvider(
-				KubernetesDiscoveryProperties discoveryProperties, KubernetesClientProperties clientProperties,
-				BootstrapContext context, Binder binder, BindHandler bindHandler, Log log) {
-			KubernetesDiscoveryClientProperties kubernetesDiscoveryClientProperties = binder
-					.bind("spring.cloud.kubernetes.discovery", Bindable.of(KubernetesDiscoveryClientProperties.class),
+		private KubernetesConfigServerInstanceProvider getInstanceProvider(Binder binder, BindHandler bindHandler) {
+			KubernetesDiscoveryProperties kubernetesDiscoveryProperties = binder
+					.bind(KubernetesDiscoveryProperties.PREFIX, Bindable.of(KubernetesDiscoveryProperties.class),
 							bindHandler)
-					.orElseGet(KubernetesDiscoveryClientProperties::new);
-			KubernetesDiscoveryClientAutoConfiguration.Servlet autoConfiguration = new KubernetesDiscoveryClientAutoConfiguration.Servlet();
+					.orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
+			KubernetesDiscoveryClientBlockingAutoConfiguration autoConfiguration = new KubernetesDiscoveryClientBlockingAutoConfiguration();
 			DiscoveryClient discoveryClient = autoConfiguration
-					.kubernetesDiscoveryClient(autoConfiguration.restTemplate(), kubernetesDiscoveryClientProperties);
+					.kubernetesDiscoveryClient(autoConfiguration.restTemplateBuilder(), kubernetesDiscoveryProperties);
 			return discoveryClient::getInstances;
 		}
 

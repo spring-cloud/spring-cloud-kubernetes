@@ -23,13 +23,11 @@ jobs:
       test_times_cache_present: ${{ steps.test_times_cache_present_init.outputs.test_times_cache_present }}
       number_of_matrix_instances: ${{ steps.test_times_cache_present_init.outputs.number_of_matrix_instances }}
       matrix_array: ${{ steps.test_times_cache_present_init.outputs.matrix_array }}
+      average_time_per_instance: ${{ steps.test_times_cache_present_init.outputs.average_time_per_instance }}
     steps:
 
       - name: checkout project
         uses: actions/checkout@v2
-
-      - name: clean space
-        uses: ./.github/workflows/composites/clean-space
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -91,6 +89,7 @@ jobs:
           echo "test_times_cache_present=${{ env.TEST_TIMES_CACHE_PRESENT }}" >> $GITHUB_OUTPUT
           echo "number_of_matrix_instances=${{ env.NUMBER_OF_MATRIX_INSTANCES }}" >> $GITHUB_OUTPUT
           echo "matrix_array=${{ env.MATRIX_ARRAY }}" >> $GITHUB_OUTPUT
+          echo "average_time_per_instance=${{ env.AVERAGE_TIME_PER_INSTANCE }}" >> $GITHUB_OUTPUT
 
   test_when_cache_present:
     needs: [ build ]
@@ -99,13 +98,14 @@ jobs:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
     # only run this one if there is a previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'true'
-    timeout-minutes: 60
+    timeout-minutes: 120
 
     strategy:
       fail-fast: true
       matrix:
         current_index: [ "${{ fromJSON(needs.build.outputs.matrix_array) }}" ]
         number_of_jobs: [ "${{ fromJSON(needs.build.outputs.number_of_matrix_instances) }}" ]
+        average_time_per_instance: [ "${{ fromJSON(needs.build.outputs.average_time_per_instance) }}" ]
 
     steps:
 
@@ -138,13 +138,14 @@ jobs:
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
+          AVERAGE_TIME_PER_INSTANCE: ${{ matrix.average_time_per_instance }}
 
   test_when_cache_missing:
     needs: [ build ]
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
-    timeout-minutes: 60
+    timeout-minutes: 120
     # only run this one if there is no previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'false'
 

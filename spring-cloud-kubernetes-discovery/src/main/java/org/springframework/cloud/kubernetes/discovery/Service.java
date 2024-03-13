@@ -21,11 +21,12 @@ import java.util.List;
 /**
  * @author Ryan Baxter
  */
+@Deprecated(forRemoval = true)
 public class Service {
 
 	private String name;
 
-	private List<KubernetesServiceInstance> serviceInstances;
+	private List<KubernetesServiceInstance> serviceInstances = List.of();
 
 	public Service() {
 	}

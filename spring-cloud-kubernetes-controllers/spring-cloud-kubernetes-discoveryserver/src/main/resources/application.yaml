@@ -1,2 +1,20 @@
 server:
   port: 8761
+
+# needed to disable the publication of InstanceRegisteredEvent
+# which in case of discovery server would not be needed.
+spring:
+  cloud:
+    discovery:
+      client:
+        health-indicator:
+          enabled: false
+
+management:
+  endpoint:
+    health:
+      group:
+        liveness:
+          include: livenessState, kubernetes
+        readiness:
+          include: readinessState, kubernetes

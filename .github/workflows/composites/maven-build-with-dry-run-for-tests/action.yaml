@@ -4,13 +4,13 @@ runs:
   using: "composite"
   steps:
 
-    - name: run 'package' on the project
+    - name: run 'install' on the project
       shell: bash
       run: |
         ./mvnw install -B  \
               -Dskip.build.image=true \
               -DskipTests -DskipITs \
-              -T 1C -q
+              -T 1C -U -q
 
     - name: find all classpath entries
       shell: bash
@@ -21,7 +21,7 @@ runs:
       shell: bash
       run: |
         cd spring-cloud-kubernetes-test-support
-        .././mvnw -q exec:java -Dexec.mainClass="org.springframework.cloud.kubernetes.tests.discovery.TestsDiscovery" > /tmp/tests.txt
+        .././mvnw -q exec:java -Prun-on-github-actions -Dexec.mainClass="org.springframework.cloud.kubernetes.tests.discovery.TestsDiscovery" > /tmp/tests.txt
         cd ..
 
     - name: show result

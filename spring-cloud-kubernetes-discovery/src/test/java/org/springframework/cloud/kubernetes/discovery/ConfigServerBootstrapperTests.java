@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,9 +30,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -68,11 +67,23 @@ class ConfigServerBootstrapperTests {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
-		String APPS_NAME = "[{\"instanceId\":\"uid2\",\"serviceId\":\"spring-cloud-kubernetes-configserver\",\"host\":\"localhost\",\"port\":"
-				+ wireMockServer.port() + ",\"uri\":\"" + wireMockServer.baseUrl()
-				+ "\",\"secure\":false,\"metadata\":{\"spring\":\"true\",\"http\":\"8080\",\"k8s\":\"true\"},\"namespace\":\"namespace1\",\"cluster\":null,\"scheme\":\"http\"}]";
+		String appsName = """
+								[{
+									"instanceId": "uid2",
+									"serviceId": "spring-cloud-kubernetes-configserver",
+									"host": "localhost",
+									"port": "%s",
+									"uri": "%s",
+									"secure":false,
+									"metadata":{"spring": "true", "http": "8080", "k8s": "true"},
+									"namespace": "namespace1",
+									"cluster": null,
+									"scheme":"http"
+					}]
+				""".formatted(wireMockServer.port(), wireMockServer.baseUrl());
+
 		stubFor(get("/apps/spring-cloud-kubernetes-configserver").willReturn(
-				aResponse().withStatus(200).withBody(APPS_NAME).withHeader("content-type", "application/json")));
+				aResponse().withStatus(200).withBody(appsName).withHeader("content-type", "application/json")));
 		Environment environment = new Environment("test", "default");
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("hello", "world");
@@ -84,11 +95,16 @@ class ConfigServerBootstrapperTests {
 						.withHeader("content-type", "application/json")));
 	}
 
+	@AfterEach
+	void afterEach() {
+		context.close();
+	}
+
 	@Test
 	void testBootstrapper() {
-		this.context = setup().run();
+		context = setup().run();
 		verify(1, getRequestedFor(urlEqualTo("/apps/spring-cloud-kubernetes-configserver")));
-		assertThat(this.context.getEnvironment().getProperty("hello")).isEqualTo("world");
+		assertThat(context.getEnvironment().getProperty("hello")).isEqualTo("world");
 	}
 
 	SpringApplicationBuilder setup(String... env) {
@@ -99,20 +115,20 @@ class ConfigServerBootstrapperTests {
 	}
 
 	private String[] addDefaultEnv(String[] env) {
-		Set<String> set = new LinkedHashSet<>();
-		if (env != null && env.length > 0) {
-			set.addAll(Arrays.asList(env));
+		Set<String> set = new HashSet<>();
+		if (env != null) {
+			set.addAll(List.of(env));
 		}
 		set.add("server.port=0");
 		set.add("spring.cloud.config.discovery.enabled=true");
 		set.add("spring.config.import=optional:configserver:");
 		set.add("spring.cloud.config.discovery.service-id=spring-cloud-kubernetes-configserver");
 		set.add("spring.cloud.kubernetes.discovery.discoveryServerUrl=" + wireMockServer.baseUrl());
+		set.add("spring.main.web-application-type=NONE");
 		return set.toArray(new String[0]);
 	}
 
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
+	@TestConfiguration
 	static class TestConfig {
 
 	}

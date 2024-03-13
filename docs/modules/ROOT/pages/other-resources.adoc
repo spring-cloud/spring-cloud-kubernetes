@@ -1,0 +1,11 @@
+[[other-resources]]
+= Other Resources
+:page-section-summary-toc: 1
+
+This section lists other resources, such as presentations (slides) and videos about Spring Cloud Kubernetes.
+
+* https://salaboy.com/2018/09/27/the-s1p-experience/[S1P Spring Cloud on PKS]
+* https://salaboy.com/2018/07/18/ljc-july-18-spring-cloud-docker-k8s/[Spring Cloud, Docker, Kubernetes -> London Java Community July 2018]
+
+
+Please feel free to submit other resources through pull requests to https://github.com/spring-cloud/spring-cloud-kubernetes[this repository].

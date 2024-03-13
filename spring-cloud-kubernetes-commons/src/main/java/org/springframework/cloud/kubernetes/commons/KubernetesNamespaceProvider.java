@@ -35,8 +35,6 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesClientPrope
  */
 public class KubernetesNamespaceProvider {
 
-	private static final DeferredLog LOG = new DeferredLog();
-
 	/**
 	 * Property name for namespace.
 	 */
@@ -46,6 +44,10 @@ public class KubernetesNamespaceProvider {
 	 * Property for namespace file path.
 	 */
 	public static final String NAMESPACE_PATH_PROPERTY = "spring.cloud.kubernetes.client.serviceAccountNamespacePath";
+
+	private static final DeferredLog LOG = new DeferredLog();
+
+	private String namespacePropertyValue;
 
 	private BindHandler bindHandler;
 
@@ -65,7 +67,36 @@ public class KubernetesNamespaceProvider {
 		this.bindHandler = bindHandler;
 	}
 
+	public KubernetesNamespaceProvider(String namespacePropertyValue) {
+		this.namespacePropertyValue = namespacePropertyValue;
+	}
+
+	public static String getNamespaceFromServiceAccountFile(String path) {
+		String namespace = null;
+		LOG.debug("Looking for service account namespace at: [" + path + "].");
+		Path serviceAccountNamespacePath = Paths.get(path);
+		boolean serviceAccountNamespaceExists = Files.isRegularFile(serviceAccountNamespacePath);
+		if (serviceAccountNamespaceExists) {
+			LOG.debug("Found service account namespace at: [" + serviceAccountNamespacePath + "].");
+
+			try {
+				namespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
+				LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
+			}
+			catch (IOException ioe) {
+				LOG.error("Error reading service account namespace from: [" + serviceAccountNamespacePath + "].", ioe);
+			}
+
+		}
+		return namespace;
+	}
+
 	public String getNamespace() {
+		// If they provided the namespace in the constructor just return that
+		if (!ObjectUtils.isEmpty(namespacePropertyValue)) {
+			return namespacePropertyValue;
+		}
+		// No namespace provided so try to get it from another source
 		String namespace = null;
 		if (environment != null) {
 			namespace = environment.getProperty(NAMESPACE_PROPERTY);
@@ -94,26 +125,6 @@ public class KubernetesNamespaceProvider {
 			serviceAccountNamespace = getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);
 		}
 		return serviceAccountNamespace;
-	}
-
-	public static String getNamespaceFromServiceAccountFile(String path) {
-		String namespace = null;
-		LOG.debug("Looking for service account namespace at: [" + path + "].");
-		Path serviceAccountNamespacePath = Paths.get(path);
-		boolean serviceAccountNamespaceExists = Files.isRegularFile(serviceAccountNamespacePath);
-		if (serviceAccountNamespaceExists) {
-			LOG.debug("Found service account namespace at: [" + serviceAccountNamespacePath + "].");
-
-			try {
-				namespace = new String(Files.readAllBytes((serviceAccountNamespacePath)));
-				LOG.debug("Service account namespace value: " + serviceAccountNamespacePath);
-			}
-			catch (IOException ioe) {
-				LOG.error("Error reading service account namespace from: [" + serviceAccountNamespacePath + "].", ioe);
-			}
-
-		}
-		return namespace;
 	}
 
 }

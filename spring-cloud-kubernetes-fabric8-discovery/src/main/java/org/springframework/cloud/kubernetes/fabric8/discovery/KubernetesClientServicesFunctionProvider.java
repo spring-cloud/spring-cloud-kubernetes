@@ -48,6 +48,11 @@ public final class KubernetesClientServicesFunctionProvider {
 
 	public static KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
 			Binder binder, BindHandler bindHandler) {
+		return servicesFunction(properties, new KubernetesNamespaceProvider(binder, bindHandler));
+	}
+
+	public static KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider namespaceProvider) {
 
 		if (properties.allNamespaces()) {
 			return (client) -> client.services().inAnyNamespace().withLabels(properties.serviceLabels());
@@ -55,7 +60,7 @@ public final class KubernetesClientServicesFunctionProvider {
 
 		return client -> {
 			String namespace = Fabric8Utils.getApplicationNamespace(client, null, "discovery-service",
-					new KubernetesNamespaceProvider(binder, bindHandler));
+					namespaceProvider);
 			return client.services().inNamespace(namespace).withLabels(properties.serviceLabels());
 		};
 

@@ -1,0 +1,14 @@
+[[pod-health-indicator]]
+= Pod Health Indicator
+:page-section-summary-toc: 1
+
+Spring Boot uses https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthEndpoint.java[`HealthIndicator`] to expose info about the health of an application.
+That makes it really useful for exposing health-related information to the user and makes it a good fit for use as https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/[readiness probes].
+
+The Kubernetes health indicator (which is part of the core module) exposes the following info:
+
+* Pod name, IP address, namespace, service account, node name, and its IP address
+* A flag that indicates whether the Spring Boot application is internal or external to Kubernetes
+
+You can disable this `HealthContributor` by setting `management.health.kubernetes.enabled`
+to `false` in `application.[properties | yaml]`.

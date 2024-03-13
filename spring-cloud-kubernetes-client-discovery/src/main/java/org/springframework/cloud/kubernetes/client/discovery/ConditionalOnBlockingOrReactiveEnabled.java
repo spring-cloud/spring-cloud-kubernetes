@@ -26,12 +26,14 @@ import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.context.annotation.Conditional;
 
 /**
  * Conditional that is resolved to active when either
- * {@link ConditionalOnBlockingOrReactiveEnabled} or
+ * {@link ConditionalOnBlockingDiscoveryEnabled} or
  * {@link ConditionalOnReactiveDiscoveryEnabled} matches.
+ * @deprecated in favor of {@link ConditionalOnBlockingOrReactiveDiscoveryEnabled}
  *
  * @author wind57
  */
@@ -40,6 +42,7 @@ import org.springframework.context.annotation.Conditional;
 @Documented
 @Inherited
 @Conditional(ConditionalOnBlockingOrReactiveEnabled.OnBlockingOrReactiveEnabled.class)
+@Deprecated(forRemoval = true)
 public @interface ConditionalOnBlockingOrReactiveEnabled {
 
 	class OnBlockingOrReactiveEnabled extends AnyNestedCondition {

@@ -48,7 +48,7 @@ public final class KubernetesDiscoveryClientHealthIndicatorInitializer {
 		InstanceRegisteredEvent<RegisteredEventSource> instanceRegisteredEvent = new InstanceRegisteredEvent<>(
 				new RegisteredEventSource("kubernetes", podUtils.isInsideKubernetes(), podUtils.currentPod().get()),
 				null);
-		this.applicationEventPublisher.publishEvent(instanceRegisteredEvent);
+		applicationEventPublisher.publishEvent(instanceRegisteredEvent);
 	}
 
 	/**

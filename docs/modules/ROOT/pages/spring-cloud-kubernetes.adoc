@@ -1,0 +1,61 @@
+[[spring-cloud-kubernetes]]
+= Spring Cloud Kubernetes
+
+This reference guide covers how to use Spring Cloud Kubernetes.
+
+[[why-do-you-need-spring-cloud-kubernetes]]
+== Why do you need Spring Cloud Kubernetes?
+
+Spring Cloud Kubernetes provides implementations of well known Spring Cloud interfaces allowing developers to build and run Spring Cloud applications on Kubernetes.  While this project may be useful to you when building a cloud native application, it is also not a requirement in order to deploy a Spring Boot app on Kubernetes.  If you are just getting started in your journey to running your Spring Boot app on Kubernetes you can accomplish a lot with nothing more than a basic Spring Boot app and Kubernetes itself.  To learn more, you can get started by reading the https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#cloud-deployment-kubernetes[Spring Boot reference documentation for deploying to Kubernetes ] and also working through the workshop material https://hackmd.io/@ryanjbaxter/spring-on-k8s-workshop[Spring and Kubernetes].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[[configuration-properties]]
+== Configuration properties
+
+To see the list of all Kubernetes related configuration properties please check link:appendix.html[the Appendix page].
+
+[[building]]
+== Building
+
+Click https://docs.spring.io/spring-cloud-build/reference/building.html[here] for basic building instructions.
+
+
+[[building-docker-images-on-arm64]]
+=== Building Docker Images On ARM64
+
+If you run the Spring Cloud Kuberentes build on an ARM64 machine the docker images
+used for the integration tests will fail to run due to using the wrong architecture.
+This is because the Paketo build pack does not yet support ARM64.  To work around this you
+can run the build by passing `-Dspring-boot.build-image.builder=dashaun/builder:tiny` to Maven.
+
+For example:
+```
+./mvnw clean install -Dspring-boot.build-image.builder=dashaun/builder:tiny
+```
+
+
+[[contributing]]
+== Contributing
+
+Click https://docs.spring.io/spring-cloud-build/reference/contributing.html[here] for instructions on contributing to this project.
+
+
+[[aot-and-native-image-support]]
+== AOT and native image support
+
+At this point, Spring Cloud Kubernetes does not support Spring Boot AOT transformations or native images. Partial support might be added in future releases.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
@@ -37,27 +36,20 @@ import org.springframework.core.env.Environment;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientServicesListSupplier extends KubernetesServicesListSupplier {
+public class KubernetesClientServicesListSupplier extends KubernetesServicesListSupplier<V1Service> {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientServicesListSupplier.class);
 
-	private CoreV1Api coreV1Api;
+	private final CoreV1Api coreV1Api;
 
-	private KubernetesClientProperties kubernetesClientProperties;
+	private final String namespace;
 
-	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
-
-	public KubernetesClientServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper mapper,
-			KubernetesDiscoveryProperties discoveryProperties, CoreV1Api coreV1Api,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+	public KubernetesClientServicesListSupplier(Environment environment,
+			KubernetesServiceInstanceMapper<V1Service> mapper, KubernetesDiscoveryProperties discoveryProperties,
+			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(environment, mapper, discoveryProperties);
 		this.coreV1Api = coreV1Api;
-		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
-	}
-
-	private String getNamespace() {
-		return kubernetesNamespaceProvider != null ? kubernetesNamespaceProvider.getNamespace()
-				: kubernetesClientProperties.namespace();
+		this.namespace = kubernetesNamespaceProvider.getNamespace();
 	}
 
 	@Override
@@ -68,11 +60,11 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 		try {
 			if (discoveryProperties.allNamespaces()) {
 				services = coreV1Api.listServiceForAllNamespaces(null, null, "metadata.name=" + this.getServiceId(),
-						null, null, null, null, null, null, null).getItems();
+						null, null, null, null, null, null, null, null).getItems();
 			}
 			else {
-				services = coreV1Api.listNamespacedService(getNamespace(), null, null, null,
-						"metadata.name=" + this.getServiceId(), null, null, null, null, null, null).getItems();
+				services = coreV1Api.listNamespacedService(namespace, null, null, null,
+						"metadata.name=" + this.getServiceId(), null, null, null, null, null, null, null).getItems();
 			}
 			services.forEach(service -> result.add(mapper.map(service)));
 		}

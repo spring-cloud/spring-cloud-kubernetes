@@ -261,22 +261,36 @@ public final class Util {
 	}
 
 	public void wiremock(String namespace, String path, Phase phase) {
+		wiremock(namespace, path, phase, true);
+	}
+
+	public void wiremock(String namespace, String path, Phase phase, boolean withIngress) {
 		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
 		Service service = client.services().load(serviceStream).item();
-		Ingress ingress = client.network().v1().ingresses().load(ingressStream).item();
+		Ingress ingress = null;
 
 		if (phase.equals(Phase.CREATE)) {
+
+			if (withIngress) {
+				ingress = client.network().v1().ingresses().load(ingressStream).get();
+				ingress.getMetadata().setNamespace(namespace);
+				ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
+			}
+
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			ingress.getMetadata().setNamespace(namespace);
-			ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
 			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
 		}
 		else {
+
+			if (withIngress) {
+				ingress = client.network().v1().ingresses().load(ingressStream).get();
+			}
+
 			deleteAndWait(namespace, deployment, service, ingress);
 		}
 
@@ -400,7 +414,8 @@ public final class Util {
 			fail("No deployment with name " + deploymentName);
 		}
 
-		Deployment deployment = deployments.getItems().get(0);
+		Deployment deployment = deployments.getItems().stream()
+				.filter(x -> x.getMetadata().getName().equals(deploymentName)).findFirst().orElseThrow();
 		// if no replicas are defined, it means only 1 is needed
 		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
 

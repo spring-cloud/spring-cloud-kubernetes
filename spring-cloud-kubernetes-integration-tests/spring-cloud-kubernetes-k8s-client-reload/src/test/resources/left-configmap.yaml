@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: left-configmap
+  namespace: left
+data:
+  left.value: "left-initial"

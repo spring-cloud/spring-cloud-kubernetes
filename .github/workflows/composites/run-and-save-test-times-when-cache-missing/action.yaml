@@ -60,8 +60,9 @@ runs:
         
            ./mvnw -s .settings.xml \
            -DtestsToRun=${TEST_ARG[@]} \
+           -DCURRENT_INSTANCE=${CURRENT_INDEX} \
            -e clean install \
-           -U -P sonar -nsu --batch-mode \
+           -P sonar -nsu --batch-mode \
            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
            -Dhttp.keepAlive=false \
            -Dmaven.wagon.http.pool=false \

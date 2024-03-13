@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>3.1.0-SNAPSHOT</version>
+		<version>3.1.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
@@ -31,7 +31,65 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
+
+			<!-- build image in the 'package' phase, and ignore plain tests -->
+			<!-- via maven-surefire-plugin::skipTests -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
+				</configuration>
+				<executions>
+					<execution>
+						<id>build-image</id>
+						<configuration>
+							<skip>${skip.build.image}</skip>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>build-image</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>repackage</id>
+						<phase>package</phase>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- ignore plain tests (in the 'test' phase), so that we could build the image first, see above -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<skipTests>true</skipTests>
+				</configuration>
+			</plugin>
+
+			<!-- run tests in the 'integration-tests' phase, one that is after 'package' (where we build the image) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>${testsToRun}</include>
+					</includes>
+				</configuration>
+			</plugin>
+
 		</plugins>
+
 	</build>
 
 	<dependencyManagement>
@@ -47,29 +105,37 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>spring-cloud-kubernetes-fabric8-client-simple-core</module>
-		<module>spring-cloud-kubernetes-fabric8-client-configmap</module>
-		<module>spring-cloud-kubernetes-fabric8-istio-it</module>
-		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
-		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
-		<module>spring-cloud-kubernetes-fabric8-client-configmap-polling-reload</module>
-		<module>spring-cloud-kubernetes-fabric8-client-secrets-event-reload</module>
-		<module>spring-cloud-kubernetes-fabric8-client-configmap-event-reload</module>
 
-		<module>spring-cloud-kubernetes-discoveryclient-it</module>
-		<module>spring-cloud-kubernetes-client-config-it</module>
-		<module>spring-cloud-kubernetes-client-loadbalancer-it</module>
-		<module>spring-cloud-kubernetes-client-reactive-discoveryclient-it</module>
-		<module>spring-cloud-kubernetes-configuration-watcher-it</module>
-		<module>spring-cloud-kubernetes-core-k8s-client-it</module>
-        <module>spring-cloud-kubernetes-client-secrets-event-reload</module>
-        <module>spring-cloud-kubernetes-client-configmap-event-reload</module>
-        <module>spring-cloud-kubernetes-client-configmap-event-reload-multiple-apps</module>
-        <module>spring-cloud-kubernetes-client-secrets-event-reload-multiple-apps</module>
-        <module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
-        <module>spring-cloud-kubernetes-client-catalog-watcher</module>
-		<module>spring-cloud-kubernetes-client-discovery-it</module>
-		<module>spring-cloud-kubernetes-fabric8-client-discovery-with-bootstrap</module>
-        <module>spring-cloud-kubernetes-client-configmap-polling-reload</module>
+		<!-- catalog-watcher -->
+		<module>spring-cloud-kubernetes-fabric8-client-catalog-watcher</module>
+		<module>spring-cloud-kubernetes-k8s-client-catalog-watcher</module>
+
+		<!-- discovery client -->
+		<module>spring-cloud-kubernetes-fabric8-client-discovery</module>
+		<module>spring-cloud-kubernetes-k8s-client-discovery</module>
+
+		<!-- reload via plain reload/paths/configtree and catalog watcher -->
+		<module>spring-cloud-kubernetes-fabric8-client-reload</module>
+		<module>spring-cloud-kubernetes-k8s-client-reload</module>
+
+		<!-- at the moment there is no k8s native client support for istio -->
+		<module>spring-cloud-kubernetes-fabric8-client-istio</module>
+
+		<!-- discovery using discovery server -->
+		<!-- since discovery controller is based on k8s-client, we do not have a fabric8 module -->
+		<module>spring-cloud-kubernetes-k8s-client-discovery-server</module>
+
+		<!-- configuration watcher is based on k8s-client, there's no fabric8 counterpart -->
+		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
+
+		<!-- at the moment we have no integration test for the fabric8 client, only k8s native client -->
+		<module>spring-cloud-kubernetes-k8s-client-loadbalancer</module>
+
+		<!-- config watcher reload, using kafka and configmap -->
+        <module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload-multiple-apps</module>
+
+		<!-- config watcher reload, using rabbitmq and secret -->
+        <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload-multiple-apps</module>
+
     </modules>
 </project>

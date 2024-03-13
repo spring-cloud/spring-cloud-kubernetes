@@ -17,13 +17,15 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.util.CollectionUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,16 +34,33 @@ import org.springframework.web.client.RestTemplate;
  */
 public class KubernetesDiscoveryClient implements DiscoveryClient {
 
-	private RestTemplate rest;
+	private final RestTemplate rest;
 
-	private KubernetesDiscoveryClientProperties properties;
+	private final boolean emptyNamespaces;
 
+	private final Set<String> namespaces;
+
+	private final String discoveryServerUrl;
+
+	@Deprecated(forRemoval = true)
 	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
 		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
 		this.rest = rest;
-		this.properties = properties;
+		this.emptyNamespaces = properties.getNamespaces().isEmpty();
+		this.namespaces = properties.getNamespaces();
+		this.discoveryServerUrl = properties.getDiscoveryServerUrl();
+	}
+
+	KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+		if (!StringUtils.hasText(kubernetesDiscoveryProperties.discoveryServerUrl())) {
+			throw new DiscoveryServerUrlInvalidException();
+		}
+		this.rest = rest;
+		this.emptyNamespaces = kubernetesDiscoveryProperties.namespaces().isEmpty();
+		this.namespaces = kubernetesDiscoveryProperties.namespaces();
+		this.discoveryServerUrl = kubernetesDiscoveryProperties.discoveryServerUrl();
 	}
 
 	@Override
@@ -51,38 +70,31 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
-		List<ServiceInstance> response = Collections.emptyList();
-		KubernetesServiceInstance[] responseBody = rest.getForEntity(
-				properties.getDiscoveryServerUrl() + "/apps/" + serviceId, KubernetesServiceInstance[].class).getBody();
+		DefaultKubernetesServiceInstance[] responseBody = rest
+				.getForEntity(discoveryServerUrl + "/apps/" + serviceId, DefaultKubernetesServiceInstance[].class)
+				.getBody();
 		if (responseBody != null && responseBody.length > 0) {
-			response = Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
+			return Arrays.stream(responseBody).filter(this::matchNamespaces).collect(Collectors.toList());
 		}
-		return response;
+		return List.of();
 	}
 
 	@Override
 	public List<String> getServices() {
-		List<String> response = Collections.emptyList();
-		Service[] services = rest.getForEntity(properties.getDiscoveryServerUrl() + "/apps", Service[].class).getBody();
+		Service[] services = rest.getForEntity(discoveryServerUrl + "/apps", Service[].class).getBody();
 		if (services != null && services.length > 0) {
-			response = Arrays.stream(services).filter(this::matchNamespaces).map(Service::getName)
-					.collect(Collectors.toList());
+			return Arrays.stream(services).filter(this::matchNamespaces).map(Service::name).toList();
 		}
-		return response;
+		return List.of();
 	}
 
-	private boolean matchNamespaces(KubernetesServiceInstance kubernetesServiceInstance) {
-		if (CollectionUtils.isEmpty(properties.getNamespaces())) {
-			return true;
-		}
-		return properties.getNamespaces().contains(kubernetesServiceInstance.getNamespace());
+	private boolean matchNamespaces(DefaultKubernetesServiceInstance kubernetesServiceInstance) {
+		return emptyNamespaces || namespaces.contains(kubernetesServiceInstance.getNamespace());
 	}
 
 	private boolean matchNamespaces(Service service) {
-		if (CollectionUtils.isEmpty(service.getServiceInstances())) {
-			return true;
-		}
-		return service.getServiceInstances().stream().anyMatch(this::matchNamespaces);
+		return service.serviceInstances().isEmpty()
+				|| service.serviceInstances().stream().anyMatch(this::matchNamespaces);
 	}
 
 }
