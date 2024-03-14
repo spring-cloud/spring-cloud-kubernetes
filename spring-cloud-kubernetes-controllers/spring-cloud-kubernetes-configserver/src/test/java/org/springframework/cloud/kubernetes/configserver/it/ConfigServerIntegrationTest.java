@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.configserver.it;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
@@ -45,8 +46,11 @@ abstract class ConfigServerIntegrationTest {
 	@Autowired
 	private TestRestTemplate testRestTemplate;
 
+	@Autowired
+	WireMockServer wireMockServer;
+
 	@BeforeEach
-	public void beforeEach() {
+	void beforeEach() {
 		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
 				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").withResourceVersion("1").build())
 				.addToData("app.name", "test").build());
@@ -67,7 +71,7 @@ abstract class ConfigServerIntegrationTest {
 	}
 
 	@Test
-	public void enabled() {
+	void enabled() {
 		Environment env = testRestTemplate.getForObject("/test-cm/default", Environment.class);
 		assertThat(env.getPropertySources().size()).isEqualTo(2);
 		assertThat(env.getPropertySources().get(0).getName().equals("configmap.test-cm.default.default")).isTrue();
