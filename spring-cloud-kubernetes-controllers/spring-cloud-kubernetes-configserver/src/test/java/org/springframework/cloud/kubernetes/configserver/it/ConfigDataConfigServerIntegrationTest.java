@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.configserver.it;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.util.ClientBuilder;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.MockedStatic;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
+import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
+import org.springframework.cloud.kubernetes.configserver.TestBootstrapConfig;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
 
 /**
@@ -36,27 +35,20 @@ import static org.mockito.Mockito.mockStatic;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
 				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true" },
-		classes = { KubernetesConfigServerApplication.class })
-public class ConfigDataConfigServerIntegrationTest extends ConfigServerIntegrationTest {
+		classes = { KubernetesConfigServerApplication.class, TestBootstrapConfig.class })
+class ConfigDataConfigServerIntegrationTest extends ConfigServerIntegrationTest {
 
-	private static WireMockServer wireMockServer;
+	private MockedStatic<KubernetesClientUtils> clientUtilsMock;
 
-	private static MockedStatic<KubernetesClientUtils> clientUtilsMock;
-
-	@BeforeAll
-	static void setup() {
-		wireMockServer = new WireMockServer(options().dynamicPort());
-		wireMockServer.start();
-		WireMock.configureFor(wireMockServer.port());
-
+	@BeforeEach
+	void setup() {
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
 				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 	}
 
-	@AfterAll
-	static void teardown() {
-		wireMockServer.stop();
+	@AfterEach
+	void teardown() {
 		clientUtilsMock.close();
 	}
 
