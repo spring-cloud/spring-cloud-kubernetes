@@ -177,7 +177,7 @@ class KubernetesEnvironmentRepositoryTests {
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "", "");
-		assertThat(environment.getPropertySources().size()).isEqualTo(8);
+		assertThat(environment.getPropertySources().size()).isEqualTo(5);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
 					|| propertySource.getName().equals("secret.application.default")
