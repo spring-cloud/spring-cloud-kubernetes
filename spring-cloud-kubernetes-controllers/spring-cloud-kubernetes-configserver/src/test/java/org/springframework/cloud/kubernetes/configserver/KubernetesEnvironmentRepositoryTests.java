@@ -58,12 +58,15 @@ class KubernetesEnvironmentRepositoryTests {
 
 	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = new V1ConfigMapList()
 			.addItemsItem(new V1ConfigMapBuilder()
-					.withMetadata(
-							new V1ObjectMetaBuilder().withName("stores").withNamespace(DEFAULT_NAMESPACE).build())
+					.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace(DEFAULT_NAMESPACE).build())
 					.addToData("application.yaml", VALUE)
-				.addToData("application-dev.yaml", "dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: true\n")
-				.addToData("application-qa.yaml", "dummy:\n  property:\n    string2: \"qa\"\n    int2: 1\n    bool2: true\n")
-				.addToData("application-prod.yaml", "dummy:\n  property:\n    string2: \"prod\"\n    int2: 1\n    bool2: true\n").build());
+					.addToData("application-dev.yaml",
+							"dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: true\n")
+					.addToData("application-qa.yaml",
+							"dummy:\n  property:\n    string2: \"qa\"\n    int2: 1\n    bool2: true\n")
+					.addToData("application-prod.yaml",
+							"dummy:\n  property:\n    string2: \"prod\"\n    int2: 1\n    bool2: true\n")
+					.build());
 
 	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = new V1ConfigMapList()
 			.addItemsItem(new V1ConfigMapBuilder()
@@ -232,10 +235,10 @@ class KubernetesEnvironmentRepositoryTests {
 			assertThat(propertySource.getName().equals("configmap.application.default")
 					|| propertySource.getName().equals("secret.application.default")
 					|| propertySource.getName().equals("configmap.stores.stores-dev.default.dev")
-				    || propertySource.getName().equals("secret.stores.default")
-				    || propertySource.getName().equals("configmap.stores.dev")
+					|| propertySource.getName().equals("secret.stores.default")
+					|| propertySource.getName().equals("configmap.stores.dev")
 					|| propertySource.getName().equals("configmap.stores.dev.dev")
-				    || propertySource.getName().equals("configmap.stores.default")
+					|| propertySource.getName().equals("configmap.stores.default")
 					|| propertySource.getName().equals("secret.stores.stores-dev.default.dev")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);

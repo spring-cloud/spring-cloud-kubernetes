@@ -72,11 +72,13 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 				if (!"application".equalsIgnoreCase(application)) {
 					addApplicationConfiguration(environment, springEnv, application);
 				}
-			} catch (Exception e) {
-					LOG.warn(e);
-				}
+			}
+			catch (Exception e) {
+				LOG.warn(e);
+			}
 		}
-		if (Arrays.stream(profiles).noneMatch(p -> p.equalsIgnoreCase("default")) && !"application".equalsIgnoreCase(application)) {
+		if (Arrays.stream(profiles).noneMatch(p -> p.equalsIgnoreCase("default"))
+				&& !"application".equalsIgnoreCase(application)) {
 			StandardEnvironment springEnv = new StandardEnvironment();
 			addApplicationConfiguration(environment, springEnv, application);
 		}
