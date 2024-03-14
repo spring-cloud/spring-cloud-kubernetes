@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
+import java.util.Arrays;
 import java.util.List;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -61,18 +63,25 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 		LOG.info("Application: " + application);
 		LOG.info("Label: " + label);
 		Environment environment = new Environment(application, profiles, label, null, null);
-		try {
+		ArrayUtils.reverse(profiles);
+		for (String activeProfile : profiles) {
+			try {
+				LOG.info("Active Profile: " + activeProfile);
+				StandardEnvironment springEnv = new StandardEnvironment();
+				springEnv.setActiveProfiles(activeProfile);
+				if (!"application".equalsIgnoreCase(application)) {
+					addApplicationConfiguration(environment, springEnv, application);
+				}
+			} catch (Exception e) {
+					LOG.warn(e);
+				}
+		}
+		if (Arrays.stream(profiles).noneMatch(p -> p.equalsIgnoreCase("default")) && !"application".equalsIgnoreCase(application)) {
 			StandardEnvironment springEnv = new StandardEnvironment();
-			springEnv.setActiveProfiles(profiles);
-			if (!"application".equalsIgnoreCase(application)) {
-				addApplicationConfiguration(environment, springEnv, application);
-			}
-			addApplicationConfiguration(environment, springEnv, "application");
-			return environment;
+			addApplicationConfiguration(environment, springEnv, application);
 		}
-		catch (Exception e) {
-			LOG.warn(e);
-		}
+		StandardEnvironment springEnv = new StandardEnvironment();
+		addApplicationConfiguration(environment, springEnv, "application");
 		return environment;
 	}
 

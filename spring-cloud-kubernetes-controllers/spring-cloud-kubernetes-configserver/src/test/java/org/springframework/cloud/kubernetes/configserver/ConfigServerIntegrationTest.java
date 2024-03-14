@@ -70,9 +70,9 @@ abstract class ConfigServerIntegrationTest {
 	public void enabled() {
 		Environment env = testRestTemplate.getForObject("/test-cm/default", Environment.class);
 		assertThat(env.getPropertySources().size()).isEqualTo(2);
-		assertThat(env.getPropertySources().get(0).getName().equals("configmap.test-cm.default")).isTrue();
+		assertThat(env.getPropertySources().get(0).getName().equals("configmap.test-cm.default.default")).isTrue();
 		assertThat(env.getPropertySources().get(0).getSource().get("app.name")).isEqualTo("test");
-		assertThat(env.getPropertySources().get(1).getName().equals("secret.test-cm.default")).isTrue();
+		assertThat(env.getPropertySources().get(1).getName().equals("secret.test-cm.default.default")).isTrue();
 		assertThat(env.getPropertySources().get(1).getSource().get("password")).isEqualTo("p455w0rd");
 		assertThat(env.getPropertySources().get(1).getSource().get("username")).isEqualTo("user");
 	}
