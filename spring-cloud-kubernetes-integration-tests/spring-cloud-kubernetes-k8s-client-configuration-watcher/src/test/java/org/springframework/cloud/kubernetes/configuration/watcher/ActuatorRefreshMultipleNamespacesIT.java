@@ -99,7 +99,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 */
 	@Test
 	void testConfigMapActuatorRefreshMultipleNamespaces() {
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))

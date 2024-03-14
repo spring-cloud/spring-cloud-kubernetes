@@ -100,7 +100,7 @@ class ActuatorRefreshIT {
 	@Test
 	void testActuatorRefresh() {
 
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
 		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketTimeoutException.class)
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
@@ -128,7 +128,7 @@ class ActuatorRefreshIT {
 
 		TestUtil.patchForDisabledReload(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, DOCKER_IMAGE);
 
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))

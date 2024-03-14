@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.configserver.it;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
+import org.springframework.cloud.kubernetes.configserver.it.ConfigServerIntegrationTest;
 
 /**
  * @author Ryan Baxter
@@ -26,6 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true",
 				"spring.cloud.bootstrap.enabled=true" },
 		classes = { KubernetesConfigServerApplication.class })
-public class BootstrapConfigServerIntegrationTest extends ConfigServerIntegrationTest {
+class BootstrapConfigServerIntegrationTest extends ConfigServerIntegrationTest {
 
 }
