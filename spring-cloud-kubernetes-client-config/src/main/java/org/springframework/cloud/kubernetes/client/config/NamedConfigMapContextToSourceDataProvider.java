@@ -43,7 +43,6 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 			NamedConfigMapNormalizedSource source = (NamedConfigMapNormalizedSource) context.normalizedSource();
 
 			return new NamedSourceData() {
-				//TODO need to look at Secrets as well as the Fabric8 implementation
 				@Override
 				protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles) {
 					if (source.appendProfileToName()) {
