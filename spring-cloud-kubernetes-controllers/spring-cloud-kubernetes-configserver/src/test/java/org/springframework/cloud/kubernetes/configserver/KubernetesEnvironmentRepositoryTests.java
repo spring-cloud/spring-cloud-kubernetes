@@ -117,13 +117,14 @@ class KubernetesEnvironmentRepositoryTests {
 					true);
 			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource,
 					"default", springEnv);
-
-			NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, true);
-			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
-					springEnv);
-
 			propertySources.add(new KubernetesClientConfigMapPropertySource(defaultContext));
-			propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
+
+			if ("dev".equals(namespace)) {
+				NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, true);
+				KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
+					springEnv);
+				propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
+			}
 			return propertySources;
 		});
 		KUBERNETES_PROPERTY_SOURCE_SUPPLIER.add((coreApi, applicationName, namespace, springEnv) -> {
@@ -180,12 +181,11 @@ class KubernetesEnvironmentRepositoryTests {
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "", "");
-		assertThat(environment.getPropertySources().size()).isEqualTo(5);
+		assertThat(environment.getPropertySources().size()).isEqualTo(4);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
 					|| propertySource.getName().equals("secret.application.default")
 					|| propertySource.getName().equals("configmap.stores.default")
-					|| propertySource.getName().equals("configmap.stores.dev")
 					|| propertySource.getName().equals("secret.stores.default")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
@@ -203,12 +203,6 @@ class KubernetesEnvironmentRepositoryTests {
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("a");
-			}
-			if (propertySource.getName().equals("configmap.stores.dev")) {
-				assertThat(propertySource.getSource().size()).isEqualTo(3);
-				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
-				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
-				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("dev");
 			}
 			if (propertySource.getName().equals("secret.stores.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
@@ -230,16 +224,14 @@ class KubernetesEnvironmentRepositoryTests {
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "dev", "");
-		assertThat(environment.getPropertySources().size()).isEqualTo(8);
+		assertThat(environment.getPropertySources().size()).isEqualTo(6);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
 					|| propertySource.getName().equals("secret.application.default")
-					|| propertySource.getName().equals("configmap.stores.stores-dev.default.dev")
+					|| propertySource.getName().equals("configmap.stores.stores-dev.default")
 					|| propertySource.getName().equals("secret.stores.default")
-					|| propertySource.getName().equals("configmap.stores.dev")
-					|| propertySource.getName().equals("configmap.stores.dev.dev")
-					|| propertySource.getName().equals("configmap.stores.default")
-					|| propertySource.getName().equals("secret.stores.stores-dev.default.dev")).isTrue();
+					|| propertySource.getName().equals("secret.stores.stores-dev.default")
+					|| propertySource.getName().equals("configmap.stores.default")).isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
@@ -251,29 +243,17 @@ class KubernetesEnvironmentRepositoryTests {
 				assertThat(propertySource.getSource().get("username")).isEqualTo("user");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
 			}
-			else if (propertySource.getName().equals("configmap.stores.stores-dev.default.dev")) {
-				assertThat(propertySource.getSource().size()).isEqualTo(4);
-				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(2);
-				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(false);
-				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("b");
-				assertThat(propertySource.getSource().get("dummy.property.string1")).isEqualTo("a");
-			}
-			else if (propertySource.getName().equals("configmap.stores.dev.dev")) {
-				assertThat(propertySource.getSource().size()).isEqualTo(3);
-				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
-				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
-				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("dev");
-			}
-			else if (propertySource.getName().equals("configmap.stores.dev")) {
-				assertThat(propertySource.getSource().size()).isEqualTo(3);
-				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
-				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
-				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("dev");
-			}
-			else if (propertySource.getName().equals("secret.stores.stores-dev.default.dev")) {
+			else if (propertySource.getName().equals("secret.stores.stores-dev.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
 				assertThat(propertySource.getSource().get("username")).isEqualTo("stores-dev");
 				assertThat(propertySource.getSource().get("password")).isEqualTo("password-from-stores-dev");
+			}
+			else if (propertySource.getName().equals("configmap.stores.stores-dev.default")) {
+				assertThat(propertySource.getSource().size()).isEqualTo(4);
+				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(2);
+				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(false);
+				assertThat(propertySource.getSource().get("dummy.property.string1")).isEqualTo("a");
+				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("b");
 			}
 			else if (propertySource.getName().equals("configmap.stores.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
