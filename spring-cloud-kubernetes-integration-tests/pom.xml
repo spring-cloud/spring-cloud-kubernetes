@@ -129,7 +129,6 @@
 		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
 
 		<!-- loadbalancer -->
-		<module>spring-cloud-kubernetes-fabric8-client-loadbalancer</module>
 		<module>spring-cloud-kubernetes-k8s-client-loadbalancer</module>
 
 		<!-- config watcher reload, using kafka and configmap -->

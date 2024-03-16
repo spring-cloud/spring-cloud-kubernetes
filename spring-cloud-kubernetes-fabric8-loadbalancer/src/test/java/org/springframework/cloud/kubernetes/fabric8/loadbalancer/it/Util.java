@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.client.loadbalancer;
+package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 
 /**
  * @author wind57
  */
-@SpringBootApplication
-class Fabric8LoadBalancerApp {
+final class Util {
 
-	public static void main(String[] args) {
-		SpringApplication.run(Fabric8LoadBalancerApp.class, args);
+	private Util() {
+
+	}
+
+	static Service createService(String namespace, String name, int port) {
+		return new ServiceBuilder().withNewMetadata().withNamespace(namespace).withName(name).endMetadata()
+				.withSpec(new ServiceSpecBuilder()
+						.withPorts(new ServicePortBuilder().withName("http").withPort(port).build()).build())
+				.build();
 	}
 
 }

@@ -325,35 +325,6 @@ public final class Util {
 
 	}
 
-	public void httpd(String namespace, Phase phase) {
-		InputStream deploymentStream = inputStream("httpd/httpd-deployment.yaml");
-		InputStream serviceStream = inputStream("httpd/httpd-service.yaml");
-
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
-		Service service = client.services().load(serviceStream).item();
-
-		if (phase.equals(Phase.CREATE)) {
-			deployment.getMetadata().setNamespace(namespace);
-			service.getMetadata().setNamespace(namespace);
-			createAndWait(namespace, "wiremock", deployment, service, null, false);
-		}
-		else {
-			deleteAndWait(namespace, deployment, service, null);
-		}
-	}
-
-	public String logStatements(K3sContainer container, String appLabelValue) {
-		try {
-			String appPodName = container
-					.execInContainer("kubectl", "get", "pods", "-l", "app=" + appLabelValue, "-o=name", "--no-headers")
-					.getStdout();
-			return container.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	private void waitForSecret(String namespace, Secret secret, Phase phase) {
 		String secretName = secretName(secret);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
