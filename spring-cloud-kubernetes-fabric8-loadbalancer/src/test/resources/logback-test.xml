@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/base.xml"/>
+	<!-- needed for CapturedOutput -->
+	<logger name="org.springframework.cloud.kubernetes.fabric8.loadbalancer" level="DEBUG"/>
+	<logger name="io.fabric8.kubernetes.client.http" level="TRACE" />
+</configuration>

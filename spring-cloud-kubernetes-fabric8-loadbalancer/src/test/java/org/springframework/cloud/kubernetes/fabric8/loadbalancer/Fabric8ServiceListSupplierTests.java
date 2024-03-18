@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,6 @@ class Fabric8ServiceListSupplierTests {
 		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				KubernetesDiscoveryProperties.DEFAULT);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
-		assert instances != null;
 		Assertions.assertEquals(1, instances.size());
 	}
 
@@ -98,7 +97,6 @@ class Fabric8ServiceListSupplierTests {
 		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
-		assert instances != null;
 		Assertions.assertEquals(1, instances.size());
 	}
 
