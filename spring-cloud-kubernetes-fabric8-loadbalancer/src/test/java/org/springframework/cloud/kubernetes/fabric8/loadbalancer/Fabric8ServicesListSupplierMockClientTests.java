@@ -88,7 +88,6 @@ class Fabric8ServicesListSupplierMockClientTests {
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertEquals(serviceInstances.size(), 1);
-		List<ServiceInstance> inner = serviceInstances.get(0);
 
 		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream()
 				.sorted(Comparator.comparing(ServiceInstance::getServiceId)).toList();
@@ -160,7 +159,6 @@ class Fabric8ServicesListSupplierMockClientTests {
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertEquals(serviceInstances.size(), 1);
-		List<ServiceInstance> inner = serviceInstances.get(0);
 
 		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream()
 				.sorted(Comparator.comparing(ServiceInstance::getPort)).toList();
