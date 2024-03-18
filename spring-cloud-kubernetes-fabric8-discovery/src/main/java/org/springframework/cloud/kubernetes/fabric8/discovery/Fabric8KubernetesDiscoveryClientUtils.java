@@ -198,13 +198,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 						EndpointPort::getPort));
 	}
 
-	static ServiceMetadata serviceMetadata(Service service) {
-		ObjectMeta metadata = service.getMetadata();
-		ServiceSpec serviceSpec = service.getSpec();
-		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), serviceSpec.getType(),
-				metadata.getLabels(), metadata.getAnnotations());
-	}
-
 	/**
 	 * serviceName can be null, in which case, such a filter will not be applied.
 	 */

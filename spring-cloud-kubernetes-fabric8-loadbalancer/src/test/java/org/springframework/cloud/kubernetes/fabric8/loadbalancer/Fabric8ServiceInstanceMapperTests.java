@@ -102,7 +102,7 @@ class Fabric8ServiceInstanceMapperTests {
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
 		Assertions.assertTrue(instance.isSecure());
-		Assertions.assertEquals(2, instance.getMetadata().keySet().size());
+		Assertions.assertEquals(4, instance.getMetadata().keySet().size());
 	}
 
 	private Service buildService(String name, String uid, int port, String portName, Map<String, String> labels) {
