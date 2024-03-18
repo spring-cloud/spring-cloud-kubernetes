@@ -35,7 +35,7 @@
 		<hoverfly.version>0.13.0</hoverfly.version>
 		<kubernetes-fabric8-client.version>6.10.0</kubernetes-fabric8-client.version>
 		<kubernetes-native-client.version>19.0.0</kubernetes-native-client.version>
-		<wiremock.version>2.26.3</wiremock.version>
+		<wiremock.version>3.4.2</wiremock.version>
 		<commons.collections4.version>4.4</commons.collections4.version>
 	</properties>
 	<dependencyManagement>
@@ -213,8 +213,8 @@
 			</dependency>
 
 			<dependency>
-				<groupId>com.github.tomakehurst</groupId>
-				<artifactId>wiremock-jre8-standalone</artifactId>
+				<groupId>org.wiremock</groupId>
+				<artifactId>wiremock-standalone</artifactId>
 				<version>${wiremock.version}</version>
 				<scope>test</scope>
 			</dependency>
