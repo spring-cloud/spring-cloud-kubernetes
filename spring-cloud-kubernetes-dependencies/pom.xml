@@ -34,7 +34,7 @@
 	<properties>
 		<hoverfly.version>0.13.0</hoverfly.version>
 		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
-		<kubernetes-native-client.version>19.0.0</kubernetes-native-client.version>
+		<kubernetes-native-client.version>19.0.1</kubernetes-native-client.version>
 		<wiremock.version>3.4.2</wiremock.version>
 		<commons.collections4.version>4.4</commons.collections4.version>
 	</properties>
