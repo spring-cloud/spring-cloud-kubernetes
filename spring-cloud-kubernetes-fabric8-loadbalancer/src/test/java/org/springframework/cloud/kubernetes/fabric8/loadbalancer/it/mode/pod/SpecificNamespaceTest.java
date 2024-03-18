@@ -129,8 +129,8 @@ class SpecificNamespaceTest {
 	@Test
 	void test() {
 
-		Service serviceA = Util.createService("a", "my-service", SERVICE_A_PORT);
-		Service serviceB = Util.createService("b", "my-service", SERVICE_B_PORT);
+		Service serviceA = Util.service("a", "my-service", SERVICE_A_PORT);
+		Service serviceB = Util.service("b", "my-service", SERVICE_B_PORT);
 
 		Endpoints endpointsA = Util.endpoints(SERVICE_A_PORT, "127.0.0.1", "a");
 		Endpoints endpointsB = Util.endpoints(SERVICE_B_PORT, "127.0.0.1", "b");

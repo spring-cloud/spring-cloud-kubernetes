@@ -128,8 +128,8 @@ class AllNamespacesTest {
 	@Test
 	void test() {
 
-		Service serviceA = Util.createService("a", "service-a", SERVICE_A_PORT);
-		Service serviceB = Util.createService("b", "service-b", SERVICE_B_PORT);
+		Service serviceA = Util.service("a", "service-a", SERVICE_A_PORT);
+		Service serviceB = Util.service("b", "service-b", SERVICE_B_PORT);
 
 		Endpoints endpointsA = Util.endpoints(SERVICE_A_PORT, "127.0.0.1", "a");
 		Endpoints endpointsB = Util.endpoints(SERVICE_B_PORT, "127.0.0.1", "b");

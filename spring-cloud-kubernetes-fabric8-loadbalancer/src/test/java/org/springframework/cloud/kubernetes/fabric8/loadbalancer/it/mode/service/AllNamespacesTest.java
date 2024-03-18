@@ -131,8 +131,8 @@ class AllNamespacesTest {
 	@Test
 	void test(CapturedOutput output) {
 
-		Service serviceA = Util.createService("a", "service-a", SERVICE_A_PORT);
-		Service serviceB = Util.createService("b", "service-b", SERVICE_B_PORT);
+		Service serviceA = Util.service("a", "service-a", SERVICE_A_PORT);
+		Service serviceB = Util.service("b", "service-b", SERVICE_B_PORT);
 
 		String serviceListAJson = Serialization.asJson(new ServiceListBuilder().withItems(serviceA).build());
 		String serviceListBJson = Serialization.asJson(new ServiceListBuilder().withItems(serviceB).build());

@@ -43,18 +43,18 @@ public final class Util {
 
 	}
 
-	public static Service createService(String namespace, String name, int port) {
+	public static Service service(String namespace, String name, int port) {
 		return new ServiceBuilder().withNewMetadata().withNamespace(namespace).withName(name).endMetadata()
-				.withSpec(new ServiceSpecBuilder()
-						.withPorts(new ServicePortBuilder().withName("http").withPort(port).build()).build())
-				.build();
+			.withSpec(new ServiceSpecBuilder()
+				.withPorts(new ServicePortBuilder().withName("http").withPort(port).build()).build())
+			.build();
 	}
 
 	public static Endpoints endpoints(int port, String host, String namespace) {
 		return new EndpointsBuilder()
-				.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(port).build())
-						.withAddresses(new EndpointAddressBuilder().withIp(host).build()).build())
-				.withMetadata(new ObjectMetaBuilder().withName("random-name").withNamespace(namespace).build()).build();
+			.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(port).build())
+				.withAddresses(new EndpointAddressBuilder().withIp(host).build()).build())
+			.withMetadata(new ObjectMetaBuilder().withName("random-name").withNamespace(namespace).build()).build();
 	}
 
 	@TestConfiguration
@@ -76,5 +76,5 @@ public final class Util {
 		}
 
 	}
-
 }
+

@@ -145,9 +145,9 @@ class SelectiveNamespacesTest {
 	@Test
 	void test(CapturedOutput output) {
 
-		Service serviceA = Util.createService("a", "my-service", SERVICE_A_PORT);
-		Service serviceB = Util.createService("b", "my-service", SERVICE_B_PORT);
-		Service serviceC = Util.createService("c", "my-service", SERVICE_C_PORT);
+		Service serviceA = Util.service("a", "my-service", SERVICE_A_PORT);
+		Service serviceB = Util.service("b", "my-service", SERVICE_B_PORT);
+		Service serviceC = Util.service("c", "my-service", SERVICE_C_PORT);
 
 		String serviceAJson = Serialization.asJson(serviceA);
 		String serviceBJson = Serialization.asJson(serviceB);

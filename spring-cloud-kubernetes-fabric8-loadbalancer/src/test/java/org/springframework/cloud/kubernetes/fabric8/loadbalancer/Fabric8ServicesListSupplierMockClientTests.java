@@ -93,6 +93,7 @@ class Fabric8ServicesListSupplierMockClientTests {
 		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream()
 				.sorted(Comparator.comparing(ServiceInstance::getServiceId)).toList();
 		Assertions.assertEquals(serviceInstancesSorted.size(), 2);
+
 		Assertions.assertEquals(serviceInstancesSorted.get(0).getServiceId(), "service-a");
 		Assertions.assertEquals(serviceInstancesSorted.get(0).getHost(), "service-a.a.svc.cluster.local");
 		Assertions.assertEquals(serviceInstancesSorted.get(0).getPort(), 8887);
