@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
@@ -99,7 +99,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 */
 	@Test
 	void testConfigMapActuatorRefreshMultipleNamespaces() {
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT, WIREMOCK_PATH);
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
 		await().timeout(Duration.ofSeconds(60))
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
@@ -145,7 +145,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 * </pre>
 	 */
 	void testSecretActuatorRefreshMultipleNamespaces() {
-		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketException.class)
+		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketTimeoutException.class)
 				.until(() -> WireMock
 						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
 								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
