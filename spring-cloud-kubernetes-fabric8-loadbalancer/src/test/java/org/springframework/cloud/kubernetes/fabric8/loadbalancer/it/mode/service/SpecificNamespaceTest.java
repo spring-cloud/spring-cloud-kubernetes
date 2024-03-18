@@ -14,53 +14,51 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it;
+package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.Fabric8ServicesListSupplier;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.ServiceModeAllNamespacesTest.Configuration;
-import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.ServiceModeAllNamespacesTest.LoadBalancerConfiguration;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util.Configuration;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util.LoadBalancerConfiguration;
 
 /**
  * @author wind57
  */
 @SpringBootTest(
 		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.discovery.all-namespaces=true" },
+				"spring.cloud.kubernetes.discovery.all-namespaces=false",
+				"spring.cloud.kubernetes.client.namespace=a" },
 		classes = { LoadBalancerConfiguration.class, Configuration.class })
-class ServiceModeAllNamespacesTest {
+@ExtendWith(OutputCaptureExtension.class)
+class SpecificNamespaceTest {
 
-	private static final String SERVICE_A_URL = "http://service-a";
-
-	private static final String SERVICE_B_URL = "http://service-b";
+	private static final String MY_SERVICE_URL = "http://my-service";
 
 	private static final int SERVICE_A_PORT = 8888;
 
@@ -98,10 +96,10 @@ class ServiceModeAllNamespacesTest {
 
 		// we mock host creation so that it becomes something like : localhost:8888
 		// then wiremock can catch this request, and we can assert for the result
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("service-a", "a", "cluster.local"))
+		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
 				.thenReturn("localhost");
 
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("service-b", "b", "cluster.local"))
+		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "b", "cluster.local"))
 				.thenReturn("localhost");
 
 		// Configure the kubernetes master url to point to the mock server
@@ -123,27 +121,29 @@ class ServiceModeAllNamespacesTest {
 
 	/**
 	 * <pre>
-	 *      - service-a is present in namespace a with exposed port 8888
-	 *      - service-b is present in namespace b with exposed port 8889
-	 *      - we make two calls to them via the load balancer
+	 *      - my-service is present in 'a' namespace
+	 *      - my-service is present in 'b' namespace
+	 *      - we enable search in namespace 'a'
+	 *      - load balancer mode is 'SERVICE'
+	 *
+	 *      - as such, only my-service in namespace a is load balanced
+	 *      - we also assert the type of ServiceInstanceListSupplier corresponding to the SERVICE mode.
 	 * </pre>
 	 */
 	@Test
-	void test() {
+	void test(CapturedOutput output) {
 
-		Service serviceA = Util.createService("a", "service-a", SERVICE_A_PORT);
-		Service serviceB = Util.createService("b", "service-b", SERVICE_B_PORT);
+		Service serviceA = Util.createService("a", "my-service", SERVICE_A_PORT);
+		Service serviceB = Util.createService("b", "my-service", SERVICE_B_PORT);
 
-		String serviceListAJson = Serialization.asJson(new ServiceListBuilder().withItems(serviceA).build());
-		String serviceListBJson = Serialization.asJson(new ServiceListBuilder().withItems(serviceB).build());
+		String serviceAJson = Serialization.asJson(serviceA);
+		String serviceBJson = Serialization.asJson(serviceB);
 
-		wireMockServer
-				.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/services?fieldSelector=metadata.name%3Dservice-a"))
-						.willReturn(WireMock.aResponse().withBody(serviceListAJson).withStatus(200)));
+		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/a/services/my-service"))
+				.willReturn(WireMock.aResponse().withBody(serviceAJson).withStatus(200)));
 
-		wireMockServer
-				.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/services?fieldSelector=metadata.name%3Dservice-b"))
-						.willReturn(WireMock.aResponse().withBody(serviceListBJson).withStatus(200)));
+		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/b/services/my-service"))
+				.willReturn(WireMock.aResponse().withBody(serviceBJson).withStatus(200)));
 
 		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
 				.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
@@ -151,36 +151,24 @@ class ServiceModeAllNamespacesTest {
 		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
 				.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
 
-		String serviceAResult = builder.baseUrl(SERVICE_A_URL).build().method(HttpMethod.GET).retrieve()
+		String serviceAResult = builder.baseUrl(MY_SERVICE_URL).build().method(HttpMethod.GET).retrieve()
 				.bodyToMono(String.class).block();
 		Assertions.assertThat(serviceAResult).isEqualTo("service-a-reached");
 
-		String serviceBResult = builder.baseUrl(SERVICE_B_URL).build().method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).block();
-		Assertions.assertThat(serviceBResult).isEqualTo("service-b-reached");
-
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
-				.getIfAvailable().getProvider("service-a", ServiceInstanceListSupplier.class).getIfAvailable();
+				.getIfAvailable().getProvider("my-service", ServiceInstanceListSupplier.class).getIfAvailable();
 		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(Fabric8ServicesListSupplier.class);
-	}
 
-	@TestConfiguration
-	static class LoadBalancerConfiguration {
+		Assertions.assertThat(output.getOut()).contains("serviceID : my-service");
+		Assertions.assertThat(output.getOut()).contains("discovering services in namespace : a");
 
-		@Bean
-		@LoadBalanced
-		WebClient.Builder client() {
-			return WebClient.builder();
-		}
+		// was called in namespace 'a'
+		wireMockServer.verify(WireMock.exactly(1),
+				WireMock.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/a/services/my-service")));
 
-	}
-
-	@SpringBootApplication
-	static class Configuration {
-
-		public static void main(String[] args) {
-			SpringApplication.run(Configuration.class);
-		}
+		// was not called in namespace 'b'
+		wireMockServer.verify(WireMock.exactly(0),
+				WireMock.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/b/services/my-service")));
 
 	}
 

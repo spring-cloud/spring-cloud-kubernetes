@@ -93,13 +93,13 @@ class Fabric8ServicesListSupplierMockClientTests {
 		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream()
 				.sorted(Comparator.comparing(ServiceInstance::getServiceId)).toList();
 		Assertions.assertEquals(serviceInstancesSorted.size(), 2);
-		Assertions.assertEquals(inner.get(0).getServiceId(), "service-a");
-		Assertions.assertEquals(inner.get(0).getHost(), "service-a.a.svc.cluster.local");
-		Assertions.assertEquals(inner.get(0).getPort(), 8887);
+		Assertions.assertEquals(serviceInstancesSorted.get(0).getServiceId(), "service-a");
+		Assertions.assertEquals(serviceInstancesSorted.get(0).getHost(), "service-a.a.svc.cluster.local");
+		Assertions.assertEquals(serviceInstancesSorted.get(0).getPort(), 8887);
 
-		Assertions.assertEquals(inner.get(1).getServiceId(), "service-a");
-		Assertions.assertEquals(inner.get(1).getHost(), "service-a.c.svc.cluster.local");
-		Assertions.assertEquals(inner.get(1).getPort(), 8889);
+		Assertions.assertEquals(serviceInstancesSorted.get(1).getServiceId(), "service-a");
+		Assertions.assertEquals(serviceInstancesSorted.get(1).getHost(), "service-a.c.svc.cluster.local");
+		Assertions.assertEquals(serviceInstancesSorted.get(1).getPort(), 8889);
 
 		Assertions.assertTrue(output.getOut().contains("discovering services in all namespaces"));
 	}
@@ -136,6 +136,43 @@ class Fabric8ServicesListSupplierMockClientTests {
 		Assertions.assertEquals(inner.get(0).getPort(), 8889);
 
 		Assertions.assertTrue(output.getOut().contains("discovering services in namespace : c"));
+	}
+
+	@Test
+	void testSelectiveNamespaces(CapturedOutput output) {
+
+		createService("a", "my-service", 8887);
+		createService("b", "my-service", 8888);
+		createService("c", "my-service", 8889);
+
+		Environment environment = new MockEnvironment().withProperty("loadbalancer.client.name", "my-service");
+		boolean allNamespaces = false;
+		Set<String> selectiveNamespaces = Set.of("a", "b");
+
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
+				selectiveNamespaces, true, 60, false, null, Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+
+		Fabric8ServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, mockClient,
+				new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
+
+		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
+		Assertions.assertEquals(serviceInstances.size(), 1);
+		List<ServiceInstance> inner = serviceInstances.get(0);
+
+		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0).stream()
+				.sorted(Comparator.comparing(ServiceInstance::getPort)).toList();
+		Assertions.assertEquals(serviceInstancesSorted.size(), 2);
+		Assertions.assertEquals(serviceInstancesSorted.get(0).getServiceId(), "my-service");
+		Assertions.assertEquals(serviceInstancesSorted.get(0).getHost(), "my-service.a.svc.cluster.local");
+		Assertions.assertEquals(serviceInstancesSorted.get(0).getPort(), 8887);
+
+		Assertions.assertEquals(serviceInstancesSorted.get(1).getServiceId(), "my-service");
+		Assertions.assertEquals(serviceInstancesSorted.get(1).getHost(), "my-service.b.svc.cluster.local");
+		Assertions.assertEquals(serviceInstancesSorted.get(1).getPort(), 8888);
+
+		Assertions.assertTrue(output.getOut().contains("discovering services in selective namespaces : [a, b]"));
 	}
 
 	private void createService(String namespace, String name, int port) {

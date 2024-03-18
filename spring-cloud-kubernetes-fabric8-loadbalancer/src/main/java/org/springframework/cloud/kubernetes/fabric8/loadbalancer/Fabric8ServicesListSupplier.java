@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -65,6 +66,20 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 			List<Service> services = kubernetesClient.services().inAnyNamespace()
 					.withField("metadata.name", serviceName).list().getItems();
 			services.forEach(service -> result.add(mapper.map(service)));
+		}
+		else if (!discoveryProperties.namespaces().isEmpty()) {
+			Set<String> selectiveNamespaces = discoveryProperties.namespaces();
+			LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
+			selectiveNamespaces.forEach(selectiveNamespace -> {
+				Service one = kubernetesClient.services().inNamespace(selectiveNamespace).withName(serviceName).get();
+				if (one != null) {
+					result.add(mapper.map(one));
+				}
+				else {
+					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
+							+ selectiveNamespace);
+				}
+			});
 		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
