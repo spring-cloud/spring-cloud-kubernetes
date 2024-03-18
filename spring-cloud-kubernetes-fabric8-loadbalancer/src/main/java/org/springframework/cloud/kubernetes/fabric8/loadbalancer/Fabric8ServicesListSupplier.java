@@ -22,12 +22,12 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
@@ -71,7 +71,8 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 			List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
 			LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
 			selectiveNamespaces.forEach(selectiveNamespace -> {
-				Service service = kubernetesClient.services().inNamespace(selectiveNamespace).withName(serviceName).get();
+				Service service = kubernetesClient.services().inNamespace(selectiveNamespace).withName(serviceName)
+						.get();
 				if (service != null) {
 					addMappedService(mapper, result, service);
 				}
