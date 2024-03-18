@@ -34,9 +34,11 @@ import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 
 import org.springframework.boot.test.json.BasicJsonTester;
+import org.springframework.cloud.kubernetes.client.loadbalancer.KubernetesClientServicesListSupplier;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.loadbalancer.core.DiscoveryClientServiceInstanceListSupplier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -76,6 +78,8 @@ class LoadBalancerIT {
 
 	private static final String SERVICE_URL = "http://localhost:80/loadbalancer-it/service";
 
+	private static final String SERVICE_INSTANCE_LIST_SUPPLIER_URL = "http://localhost:80/loadbalancer-it/supplier";
+
 	private static final String SPRING_CLOUD_K8S_LOADBALANCER_APP_NAME = "spring-cloud-kubernetes-k8s-client-loadbalancer";
 
 	private static final String NAMESPACE = "default";
@@ -114,17 +118,17 @@ class LoadBalancerIT {
 	@Test
 	@Order(1)
 	void testLoadBalancerPodMode() {
-		testLoadBalancer();
+		testLoadBalancer(true);
 	}
 
 	@Test
 	@Order(2)
 	void testLoadBalancerServiceMode() {
 		patchForServiceMode();
-		testLoadBalancer();
+		testLoadBalancer(false);
 	}
 
-	private void testLoadBalancer() {
+	private void testLoadBalancer(boolean podMode) {
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl(SERVICE_URL).build();
@@ -133,6 +137,18 @@ class LoadBalancerIT {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$.mappings").isEmpty();
 		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathNumberValue("$.meta.total")
 				.isEqualTo(0);
+
+		WebClient.Builder supplierBuilder = builder();
+		WebClient supplierServiceClient = supplierBuilder.baseUrl(SERVICE_INSTANCE_LIST_SUPPLIER_URL).build();
+		String supplierResult = supplierServiceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
+				.block();
+		if (podMode) {
+			Assertions.assertThat(supplierResult)
+					.isEqualTo(DiscoveryClientServiceInstanceListSupplier.class.getSimpleName());
+		}
+		else {
+			Assertions.assertThat(supplierResult).isEqualTo(KubernetesClientServicesListSupplier.class.getSimpleName());
+		}
 	}
 
 	private static void loadbalancerIt(Phase phase) {
