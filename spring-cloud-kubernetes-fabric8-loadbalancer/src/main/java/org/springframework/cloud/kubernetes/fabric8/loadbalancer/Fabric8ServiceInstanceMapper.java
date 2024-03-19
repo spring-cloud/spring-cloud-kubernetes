@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,10 +26,13 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.client.utils.Utils;
 
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 
 /**
  * Class for mapping Kubernetes Service object into {@link KubernetesServiceInstance}.
@@ -38,6 +40,11 @@ import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServi
  * @author Piotr Minkowski
  */
 public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMapper<Service> {
+
+	/**
+	 * empty on purpose, load balancer implementation does not need them.
+	 */
+	private static final Map<String, Integer> PORTS_DATA = Map.of();
 
 	private final KubernetesLoadBalancerProperties properties;
 
@@ -57,7 +64,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		if (ports.size() == 1) {
 			port = ports.get(0);
 		}
-		else if (ports.size() > 1 && Utils.isNotNullOrEmpty(this.properties.getPortName())) {
+		else if (ports.size() > 1 && Utils.isNotNullOrEmpty(properties.getPortName())) {
 			Optional<ServicePort> optPort = ports.stream().filter(it -> properties.getPortName().endsWith(it.getName()))
 					.findAny();
 			if (optPort.isPresent()) {
@@ -72,24 +79,12 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		boolean secure = KubernetesServiceInstanceMapper.isSecure(service.getMetadata().getLabels(),
 				service.getMetadata().getAnnotations(), port.getName(), port.getPort());
 		return new DefaultKubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
-				getServiceMetadata(service), secure);
+				serviceMetadata(service), secure);
 	}
 
-	private Map<String, String> getServiceMetadata(Service service) {
-		Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.metadata();
-		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = KubernetesServiceInstanceMapper
-					.getMapWithPrefixedKeys(service.getMetadata().getLabels(), metadataProps.labelsPrefix());
-			serviceMetadata.putAll(labelMetadata);
-		}
-		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = KubernetesServiceInstanceMapper
-					.getMapWithPrefixedKeys(service.getMetadata().getAnnotations(), metadataProps.annotationsPrefix());
-			serviceMetadata.putAll(annotationMetadata);
-		}
-
-		return serviceMetadata;
+	Map<String, String> serviceMetadata(Service service) {
+		ServiceMetadata serviceMetadata = Fabric8Utils.serviceMetadata(service);
+		return DiscoveryClientUtils.serviceInstanceMetadata(PORTS_DATA, serviceMetadata, discoveryProperties);
 	}
 
 }
