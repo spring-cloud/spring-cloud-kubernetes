@@ -30,6 +30,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUti
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
@@ -50,10 +52,13 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 
 	private final KubernetesDiscoveryProperties discoveryProperties;
 
+	private final ServicePortSecureResolver resolver;
+
 	Fabric8ServiceInstanceMapper(KubernetesLoadBalancerProperties properties,
 			KubernetesDiscoveryProperties discoveryProperties) {
 		this.properties = properties;
 		this.discoveryProperties = discoveryProperties;
+		resolver = new ServicePortSecureResolver(discoveryProperties);
 	}
 
 	@Override
@@ -76,8 +81,9 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		}
 		String host = KubernetesServiceInstanceMapper.createHost(service.getMetadata().getName(),
 				service.getMetadata().getNamespace(), properties.getClusterDomain());
-		boolean secure = KubernetesServiceInstanceMapper.isSecure(service.getMetadata().getLabels(),
-				service.getMetadata().getAnnotations(), port.getName(), port.getPort());
+
+		boolean secure = secure(port, service);
+
 		return new DefaultKubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
 				serviceMetadata(service), secure);
 	}
@@ -85,6 +91,12 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 	Map<String, String> serviceMetadata(Service service) {
 		ServiceMetadata serviceMetadata = Fabric8Utils.serviceMetadata(service);
 		return DiscoveryClientUtils.serviceInstanceMetadata(PORTS_DATA, serviceMetadata, discoveryProperties);
+	}
+
+	boolean secure(ServicePort port, Service service) {
+		return resolver.resolve(new ServicePortSecureResolver.Input(
+				new ServicePortNameAndNumber(port.getPort(), port.getName()), service.getMetadata().getName(),
+				service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
 	}
 
 }
