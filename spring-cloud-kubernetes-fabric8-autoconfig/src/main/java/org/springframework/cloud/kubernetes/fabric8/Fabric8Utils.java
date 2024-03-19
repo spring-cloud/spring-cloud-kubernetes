@@ -45,7 +45,7 @@ public final class Fabric8Utils {
 		ObjectMeta metadata = service.getMetadata();
 		ServiceSpec serviceSpec = service.getSpec();
 		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), serviceSpec.getType(),
-			metadata.getLabels(), metadata.getAnnotations());
+				metadata.getLabels(), metadata.getAnnotations());
 	}
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8Utils.class));

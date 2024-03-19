@@ -82,20 +82,6 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 				}
 			});
 		}
-		else if (!discoveryProperties.namespaces().isEmpty()) {
-			List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
-			LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
-			selectiveNamespaces.forEach(selectiveNamespace -> {
-				Service one = kubernetesClient.services().inNamespace(selectiveNamespace).withName(serviceName).get();
-				if (one != null) {
-					result.add(mapper.map(one));
-				}
-				else {
-					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
-							+ selectiveNamespace);
-				}
-			});
-		}
 		else {
 			String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
 					namespaceProvider);

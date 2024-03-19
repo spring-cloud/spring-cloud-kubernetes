@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class Fabric8ServiceInstanceMapperTests {
 	@Test
 	void testMapperSimple() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
-		Service service = buildService("test", "abc", 8080, null, Map.of());
+		Service service = buildService("test", "test-namespace", "abc", 8080, null, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
 		Assertions.assertNotNull(instance);
@@ -53,7 +53,7 @@ class Fabric8ServiceInstanceMapperTests {
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(8080).withName("web").build());
 		ports.add(new ServicePortBuilder().withPort(9000).withName("http").build());
-		Service service = buildService("test", "abc", ports, Map.of());
+		Service service = buildService("test", "test-namespace", "abc", ports, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
 		Assertions.assertNotNull(instance);
@@ -65,7 +65,7 @@ class Fabric8ServiceInstanceMapperTests {
 	@Test
 	void testMapperSecure() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
-		Service service = buildService("test", "abc", 443, null, Map.of());
+		Service service = buildService("test", "test-namespace", "abc", 443, null, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
 		Assertions.assertNotNull(instance);
@@ -82,7 +82,7 @@ class Fabric8ServiceInstanceMapperTests {
 				false);
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(443).build());
-		Service service = buildService("test", "abc", ports, null, null);
+		Service service = buildService("test", "test-namespace", "abc", ports, null, null);
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 				.map(service);
 		Assertions.assertNotNull(instance);
@@ -95,7 +95,7 @@ class Fabric8ServiceInstanceMapperTests {
 	void testMapperSecureWithLabels() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		Map<String, String> labels = Map.of("secured", "true", "label1", "123");
-		Service service = buildService("test", "abc", 8080, null, labels);
+		Service service = buildService("test", "test-namespace", "abc", 8080, null, labels);
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT).map(service);
 		Assertions.assertNotNull(instance);
@@ -105,19 +105,46 @@ class Fabric8ServiceInstanceMapperTests {
 		Assertions.assertEquals(4, instance.getMetadata().keySet().size());
 	}
 
-	private Service buildService(String name, String uid, int port, String portName, Map<String, String> labels) {
+	@Test
+	void serviceMetadataTest() {
+
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
+
+		List<ServicePort> ports = new ArrayList<>();
+		ports.add(new ServicePortBuilder().withPort(443).build());
+
+		Map<String, String> labels = Map.of("one", "1");
+		Map<String, String> annotations = Map.of("two", "2");
+
+		Service service = buildService("test", "test-namespace", "abc", ports, labels, annotations);
+		Map<String, String> result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
+				.serviceMetadata(service);
+		Assertions.assertEquals(result.size(), 4);
+		Assertions.assertEquals(result.get("k8s_namespace"), "test-namespace");
+		Assertions.assertEquals(result.get("type"), "ClusterIP");
+		Assertions.assertEquals(result.get("one"), "1");
+		Assertions.assertEquals(result.get("two"), "2");
+	}
+
+	private Service buildService(String name, String namespace, String uid, int port, String portName,
+			Map<String, String> labels) {
 		ServicePort servicePort = new ServicePortBuilder().withPort(port).withName(portName).build();
-		return buildService(name, uid, Collections.singletonList(servicePort), labels);
+		return buildService(name, namespace, uid, Collections.singletonList(servicePort), labels);
 	}
 
-	private Service buildService(String name, String uid, List<ServicePort> ports, Map<String, String> labels,
-			Map<String, String> annotations) {
-		return new ServiceBuilder().withNewMetadata().withName(name).withUid(uid).addToLabels(labels)
-				.withAnnotations(annotations).endMetadata().withNewSpec().addAllToPorts(ports).endSpec().build();
+	private Service buildService(String name, String namespace, String uid, List<ServicePort> ports,
+			Map<String, String> labels, Map<String, String> annotations) {
+		return new ServiceBuilder().withNewMetadata().withNamespace(namespace).withName(name).withUid(uid)
+				.addToLabels(labels).withAnnotations(annotations).endMetadata().withNewSpec().addAllToPorts(ports)
+				.withType("ClusterIP").endSpec().build();
 	}
 
-	private Service buildService(String name, String uid, List<ServicePort> ports, Map<String, String> labels) {
-		return buildService(name, uid, ports, labels, Map.of());
+	private Service buildService(String name, String namespace, String uid, List<ServicePort> ports,
+			Map<String, String> labels) {
+		return buildService(name, namespace, uid, ports, labels, Map.of());
 	}
 
 }
