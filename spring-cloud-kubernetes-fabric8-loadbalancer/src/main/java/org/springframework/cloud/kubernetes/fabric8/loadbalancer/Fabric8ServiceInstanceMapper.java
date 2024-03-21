@@ -36,6 +36,8 @@ import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadB
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
+
 /**
  * Class for mapping Kubernetes Service object into {@link KubernetesServiceInstance}.
  *
@@ -94,9 +96,10 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 	}
 
 	boolean secure(ServicePort port, Service service) {
-		return resolver.resolve(new ServicePortSecureResolver.Input(
-				new ServicePortNameAndNumber(port.getPort(), port.getName()), service.getMetadata().getName(),
-				service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+		ServicePortNameAndNumber portNameAndNumber = new ServicePortNameAndNumber(port.getPort(), port.getName());
+		ObjectMeta metadata = service.getMetadata();
+		Input input = new Input(portNameAndNumber, metadata.getName(), metadata.getLabels(), metadata.getAnnotations());
+		return resolver.resolve(input);
 	}
 
 }
