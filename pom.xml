@@ -376,5 +376,18 @@
 				</plugins>
 			</build>
 		</profile>
+		<!-- Workaround until Paketo build packs support arm64 a.k.a. aarch64
+		     See https://github.com/buildpacks/pack/issues?q=is%3Aissue+is%3Aopen+arm64 -->
+		<profile>
+			<id>build-image-aarch64</id>
+			<activation>
+				<os>
+					<arch>aarch64</arch>
+				</os>
+			</activation>
+			<properties>
+				<spring-boot.build-image.builder>dashaun/builder:tiny</spring-boot.build-image.builder>
+			</properties>
+		</profile>
 	</profiles>
 </project>
