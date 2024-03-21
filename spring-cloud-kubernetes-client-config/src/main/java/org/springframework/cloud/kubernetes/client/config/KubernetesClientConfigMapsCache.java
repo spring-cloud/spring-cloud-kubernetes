@@ -50,10 +50,6 @@ public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 		CACHE.clear();
 	}
 
-	public static void discardCache() {
-		CACHE.clear();
-	}
-
 	static List<StrippedSourceContainer> byNamespace(CoreV1Api coreV1Api, String namespace) {
 		boolean[] b = new boolean[1];
 		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {

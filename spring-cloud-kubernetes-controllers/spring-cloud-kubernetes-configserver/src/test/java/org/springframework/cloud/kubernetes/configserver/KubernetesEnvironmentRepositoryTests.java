@@ -145,7 +145,7 @@ class KubernetesEnvironmentRepositoryTests {
 
 	@AfterEach
 	public void after() {
-		KubernetesClientConfigMapsCache.discardCache();
+		new KubernetesClientConfigMapsCache().discardAll();
 	}
 
 	@Test
