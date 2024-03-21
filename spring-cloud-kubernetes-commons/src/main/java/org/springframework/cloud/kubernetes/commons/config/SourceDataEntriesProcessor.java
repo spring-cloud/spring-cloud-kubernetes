@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,7 +55,8 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 		return processAllEntries(input, environment, true);
 	}
 
-	public static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment, boolean includeDefaultProfile) {
+	public static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment,
+			boolean includeDefaultProfile) {
 
 		Set<Map.Entry<String, String>> entrySet = input.entrySet();
 		if (entrySet.size() == 1) {
@@ -92,7 +92,8 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 	 * 	    3. then plain properties
 	 * </pre>
 	 */
-	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment, boolean includeDefaultProfile) {
+	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment,
+			boolean includeDefaultProfile) {
 
 		record WeightedEntry(Map.Entry<String, String> entry, int weight) {
 
@@ -113,10 +114,13 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 
 		int current = orderedFileNames.size() - 1;
 		List<WeightedEntry> weightedEntries = new ArrayList<>();
-		boolean includeDataEntry = includeDefaultProfile ||
-			Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "default".equals(p)/* ||
-				orderedFileNames.stream().anyMatch(o -> o.contains("-" + p))*/);
-		if (input.entrySet().stream().noneMatch(entry -> entry.getKey().endsWith(".yml") || entry.getKey().endsWith(".yaml") || entry.getKey().endsWith(".properties"))) {
+		boolean includeDataEntry = includeDefaultProfile || Arrays.stream(environment.getActiveProfiles()).anyMatch(
+				p -> "default".equals(p)/*
+										 * || orderedFileNames.stream().anyMatch(o ->
+										 * o.contains("-" + p))
+										 */);
+		if (input.entrySet().stream().noneMatch(entry -> entry.getKey().endsWith(".yml")
+				|| entry.getKey().endsWith(".yaml") || entry.getKey().endsWith(".properties"))) {
 			for (Map.Entry<String, String> entry : input.entrySet()) {
 				weightedEntries.add(new WeightedEntry(entry, ++current));
 			}
@@ -146,7 +150,8 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 				.toList();
 	}
 
-	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment, boolean includeDefaultProfile) {
+	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment,
+			boolean includeDefaultProfile) {
 
 		List<Map.Entry<String, String>> sortedEntries = sorted(input, environment, includeDefaultProfile);
 		Map<String, Object> result = new HashMap<>();

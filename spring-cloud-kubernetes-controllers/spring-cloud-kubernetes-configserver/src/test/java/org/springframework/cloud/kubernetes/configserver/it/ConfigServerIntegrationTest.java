@@ -60,8 +60,8 @@ abstract class ConfigServerIntegrationTest {
 						"dummy:\n  property:\n    string2: \"qa\"\n    int2: 2\n    bool2: true\n")
 				.addToData("test-cm-prod.yaml",
 						"dummy:\n  property:\n    string2: \"prod\"\n    int2: 3\n    bool2: true\n")
-			.addToData("test-cm.yaml",
-				"dummy:\n  property:\n    string2: \"default\"\n    int2: 4\n    bool2: true\n")
+				.addToData("test-cm.yaml",
+						"dummy:\n  property:\n    string2: \"default\"\n    int2: 4\n    bool2: true\n")
 				.addToData("app.name", "test").build());
 
 		V1SecretList TEST_SECRET = new V1SecretListBuilder()

@@ -196,7 +196,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		// add one more profile and specify that we want profile based config maps
 		MockEnvironment env = new MockEnvironment();
 		env.setActiveProfiles("with-profile");
-		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, ConfigUtils.Prefix.DEFAULT, true, true);
+		NormalizedSource normalizedSource = new NamedSecretNormalizedSource("red", NAMESPACE, true,
+				ConfigUtils.Prefix.DEFAULT, true, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
 
 		Fabric8ContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();

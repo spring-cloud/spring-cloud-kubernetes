@@ -52,7 +52,8 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 			return new NamedSourceData() {
 
 				@Override
-				protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles) {
+				protected String generateSourceName(String target, String sourceName, String namespace,
+						String[] activeProfiles) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}

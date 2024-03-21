@@ -42,12 +42,14 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 
 			return new NamedSourceData() {
 				@Override
-				protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles) {
+				protected String generateSourceName(String target, String sourceName, String namespace,
+						String[] activeProfiles) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}
 					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
 				}
+
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
 					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sourceNames,

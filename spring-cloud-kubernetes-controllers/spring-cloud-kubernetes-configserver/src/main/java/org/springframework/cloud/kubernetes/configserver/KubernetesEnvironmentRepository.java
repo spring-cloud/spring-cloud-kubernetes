@@ -72,7 +72,7 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 			profiles.add("default");
 		}
 		Environment environment = new Environment(application, profiles.toArray(profiles.toArray(new String[0])), label,
-			null, null);
+				null, null);
 		LOG.info("Profiles: " + profile);
 		LOG.info("Application: " + application);
 		LOG.info("Label: " + label);
@@ -81,7 +81,8 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 				// This is needed so that when we get the application name in
 				// SourceDataProcessor.sorted that it actually
 				// exists in the Environment
-				StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(createPropertySources(application));
+				StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(
+						createPropertySources(application));
 				springEnv.setActiveProfiles(activeProfile);
 				if (!"application".equalsIgnoreCase(application)) {
 					addApplicationConfiguration(environment, springEnv, application);
