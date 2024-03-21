@@ -35,7 +35,7 @@ import org.springframework.core.log.LogAccessor;
  *
  * @author wind57
  */
-final class KubernetesClientConfigMapsCache implements ConfigMapCache {
+public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientConfigMapsCache.class));
 
@@ -47,6 +47,10 @@ final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 
 	@Override
 	public void discardAll() {
+		CACHE.clear();
+	}
+
+	public static void discardCache() {
 		CACHE.clear();
 	}
 

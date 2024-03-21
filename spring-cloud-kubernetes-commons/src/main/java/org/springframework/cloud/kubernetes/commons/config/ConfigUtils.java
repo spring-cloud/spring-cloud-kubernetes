@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -170,13 +171,19 @@ public final class ConfigUtils {
 		return name;
 	}
 
+	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
+			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
+		return processNamedData(strippedSources, environment, sourceNames, namespace, decode, true);
+	}
+
 	/**
 	 * transforms raw data from one or multiple sources into an entry of source names and
 	 * flattened data that they all hold (potentially overriding entries without any
 	 * defined order).
 	 */
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
-			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
+			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode,
+			boolean includeDefaultProfile) {
 
 		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
 				.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
@@ -198,12 +205,23 @@ public final class ConfigUtils {
 				if (decode) {
 					rawData = decodeData(rawData);
 				}
-				data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
-						environment));
+				boolean containsActiveProfile = environment.getActiveProfiles().length == 0
+						|| Arrays.stream(environment.getActiveProfiles())
+								.anyMatch(p -> source.contains("-" + p) || "default".equals(p));
+				if (includeDefaultProfile || containsActiveProfile
+						|| containsDataWithProfile(rawData, environment.getActiveProfiles())) {
+					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
+							environment, includeDefaultProfile));
+				}
 			}
 		});
 
 		return new MultipleSourcesContainer(foundSourceNames, data);
+	}
+
+	private static boolean containsDataWithProfile(Map<String, String> rawData, String[] activeProfiles) {
+		return rawData.keySet().stream().anyMatch(
+				key -> Arrays.stream(activeProfiles).anyMatch(p -> key.contains("-" + p) || "default".equals(p)));
 	}
 
 	/**

@@ -217,7 +217,8 @@ class NamedSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, ConfigUtils.Prefix.DEFAULT, true, true);
+		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, ConfigUtils.Prefix.DEFAULT,
+				true, true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.addActiveProfile("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
@@ -226,8 +227,7 @@ class NamedSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default.with-profile");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color"), "really-red");
+		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("taste"), "mango");
 
 	}

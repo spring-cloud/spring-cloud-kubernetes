@@ -45,7 +45,7 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 	}
 
 	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
-		boolean includeProfileSpecificSources) {
+			boolean includeProfileSpecificSources) {
 		this(name, namespace, failFast, prefix, includeProfileSpecificSources, false);
 	}
 

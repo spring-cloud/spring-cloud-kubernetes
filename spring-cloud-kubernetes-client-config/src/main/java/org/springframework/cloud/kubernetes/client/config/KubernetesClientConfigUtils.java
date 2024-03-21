@@ -108,12 +108,23 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
+			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfile) {
 		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
 		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, DECODE);
+		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, DECODE,
+				includeDefaultProfile);
+	}
+
+	static MultipleSourcesContainer secretsDataByName(CoreV1Api coreV1Api, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment) {
+		return secretsDataByName(coreV1Api, namespace, sourceNames, environment, true);
+	}
+
+	static MultipleSourcesContainer configMapsDataByName(CoreV1Api coreV1Api, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment) {
+		return configMapsDataByName(coreV1Api, namespace, sourceNames, environment, true);
 	}
 
 	/**
@@ -125,12 +136,13 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
+			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfile) {
 		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
 		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, DECODE);
+		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, DECODE,
+				includeDefaultProfile);
 	}
 
 	private static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api coreV1Api, String namespace) {

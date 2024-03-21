@@ -44,7 +44,8 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 
 			return new NamedSourceData() {
 				@Override
-				protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles) {
+				protected String generateSourceName(String target, String sourceName, String namespace,
+						String[] activeProfiles) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}
@@ -53,6 +54,10 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
+					if (source.appendProfileToName()) {
+						return KubernetesClientConfigUtils.configMapsDataByName(context.client(), context.namespace(),
+								sourceNames, context.environment(), false);
+					}
 					return KubernetesClientConfigUtils.configMapsDataByName(context.client(), context.namespace(),
 							sourceNames, context.environment());
 				}

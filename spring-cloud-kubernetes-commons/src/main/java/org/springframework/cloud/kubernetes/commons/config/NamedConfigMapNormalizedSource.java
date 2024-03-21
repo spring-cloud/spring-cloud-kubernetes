@@ -42,7 +42,7 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 	}
 
 	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
-		boolean includeProfileSpecificSources, boolean appendProfileToName) {
+			boolean includeProfileSpecificSources, boolean appendProfileToName) {
 		super(name, namespace, failFast);
 		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;

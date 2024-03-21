@@ -27,6 +27,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -58,14 +61,15 @@ class KubernetesEnvironmentRepositoryTests {
 
 	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = new V1ConfigMapList()
 			.addItemsItem(new V1ConfigMapBuilder()
-					.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace(DEFAULT_NAMESPACE).build())
-					.addToData("application.yaml", VALUE)
-					.addToData("application-dev.yaml",
-							"dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: true\n")
-					.addToData("application-qa.yaml",
-							"dummy:\n  property:\n    string2: \"qa\"\n    int2: 1\n    bool2: true\n")
-					.addToData("application-prod.yaml",
-							"dummy:\n  property:\n    string2: \"prod\"\n    int2: 1\n    bool2: true\n")
+					.withMetadata(
+							new V1ObjectMetaBuilder().withName("storessingle").withNamespace(DEFAULT_NAMESPACE).build())
+					.addToData("storessingle.yaml", VALUE)
+					.addToData("storessingle-dev.yaml",
+							"dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: false\n")
+					.addToData("storessingle-qa.yaml",
+							"dummy:\n  property:\n    string2: \"qa\"\n    int2: 2\n    bool2: true\n")
+					.addToData("storessingle-prod.yaml",
+							"dummy:\n  property:\n    string2: \"prod\"\n    int2: 3\n    bool2: true\n")
 					.build());
 
 	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = new V1ConfigMapList()
@@ -119,10 +123,10 @@ class KubernetesEnvironmentRepositoryTests {
 					"default", springEnv);
 			propertySources.add(new KubernetesClientConfigMapPropertySource(defaultContext));
 
-			if ("dev".equals(namespace)) {
+			if ("stores".equals(applicationName) && "dev".equals(namespace)) {
 				NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, true);
 				KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
-					springEnv);
+						springEnv);
 				propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
 			}
 			return propertySources;
@@ -137,6 +141,11 @@ class KubernetesEnvironmentRepositoryTests {
 			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;
 		});
+	}
+
+	@AfterEach
+	public void after() {
+		KubernetesClientConfigMapsCache.discardCache();
 	}
 
 	@Test
@@ -302,6 +311,54 @@ class KubernetesEnvironmentRepositoryTests {
 					assertThat(propertySource.getSource().get("username")).isEqualTo("stores-dev");
 					assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
 				});
+	}
+
+	@Test
+	public void testSingleConfigMapMultipleSources() throws ApiException {
+		CoreV1Api coreApi = mock(CoreV1Api.class);
+		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_ONE_LIST);
+		when(coreApi.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(new V1SecretList());
+		List<KubernetesPropertySourceSupplier> suppliers = new ArrayList<>();
+		suppliers.add((coreV1Api, name, namespace, environment) -> {
+			List<MapPropertySource> propertySources = new ArrayList<>();
+			NormalizedSource devSource = new NamedConfigMapNormalizedSource(name, namespace, false,
+					ConfigUtils.Prefix.DEFAULT, true, true);
+			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "default",
+					environment);
+			propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
+			return propertySources;
+		});
+		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi, suppliers,
+				"default");
+		Environment environment = environmentRepository.findOne("storessingle", "", "");
+		assertThat(environment.getPropertySources().size()).isEqualTo(1);
+		assertThat(environment.getPropertySources().get(0).getName())
+				.isEqualTo("configmap.storessingle.default.default");
+
+		environment = environmentRepository.findOne("storessingle", "dev", "");
+		assertThat(environment.getPropertySources().size()).isEqualTo(2);
+		assertThat(environment.getPropertySources().get(0).getName()).isEqualTo("configmap.storessingle.default.dev");
+		assertThat(environment.getPropertySources().get(1).getName())
+				.isEqualTo("configmap.storessingle.default.default");
+
+		environment = environmentRepository.findOne("storessingle", "dev,prod", "");
+		assertThat(environment.getPropertySources().size()).isEqualTo(3);
+		assertThat(environment.getPropertySources().get(0).getName()).isEqualTo("configmap.storessingle.default.prod");
+		assertThat(environment.getPropertySources().get(0).getSource().get("dummy.property.int2")).isEqualTo(3);
+		assertThat(environment.getPropertySources().get(0).getSource().get("dummy.property.bool2")).isEqualTo(true);
+		assertThat(environment.getPropertySources().get(0).getSource().get("dummy.property.string2")).isEqualTo("prod");
+		assertThat(environment.getPropertySources().get(1).getName()).isEqualTo("configmap.storessingle.default.dev");
+		assertThat(environment.getPropertySources().get(1).getSource().get("dummy.property.int2")).isEqualTo(1);
+		assertThat(environment.getPropertySources().get(1).getSource().get("dummy.property.bool2")).isEqualTo(false);
+		assertThat(environment.getPropertySources().get(1).getSource().get("dummy.property.string2")).isEqualTo("dev");
+		assertThat(environment.getPropertySources().get(2).getName())
+				.isEqualTo("configmap.storessingle.default.default");
+		assertThat(environment.getPropertySources().get(2).getSource().get("dummy.property.int2")).isEqualTo(1);
+		assertThat(environment.getPropertySources().get(2).getSource().get("dummy.property.bool2")).isEqualTo(true);
+		assertThat(environment.getPropertySources().get(2).getSource().get("dummy.property.string2")).isEqualTo("a");
+
 	}
 
 }
