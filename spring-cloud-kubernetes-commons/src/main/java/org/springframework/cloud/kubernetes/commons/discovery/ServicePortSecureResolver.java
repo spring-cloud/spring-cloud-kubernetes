@@ -54,7 +54,7 @@ public final class ServicePortSecureResolver {
 		String serviceName = input.serviceName();
 		ServicePortNameAndNumber portData = input.portData();
 		String servicePortName = input.portData().portName();
-		int servicePortNumber = input.portData.portNumber();
+		Integer servicePortNumber = input.portData().portNumber();
 
 		if (checkServiceLabels(input, serviceName, portData)) {
 			return true;
