@@ -53,30 +53,74 @@ public final class ServicePortSecureResolver {
 
 		String serviceName = input.serviceName();
 		ServicePortNameAndNumber portData = input.portData();
+		String servicePortName = input.portData().portName();
+		int servicePortNumber = input.portData.portNumber();
 
+		if (checkServiceLabels(input, serviceName, portData)) {
+			return true;
+		}
+
+		if (checkServiceAnnotations(input, serviceName, portData)) {
+			return true;
+		}
+
+		if (properties.knownSecurePorts().contains(servicePortNumber)) {
+			logEntry(serviceName, portData.portNumber(), "port is known to be a https port");
+			return true;
+		}
+
+		if ("https".equalsIgnoreCase(servicePortName)) {
+			logEntry(serviceName, portData.portNumber(), "port-name is 'https'");
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean resolveViaEndsWith(Input input) {
+
+		String serviceName = input.serviceName();
+		ServicePortNameAndNumber portData = input.portData();
+		String servicePortName = input.portData().portName();
+		Integer servicePortNumber = input.portData().portNumber();
+
+		if (checkServiceLabels(input, serviceName, portData)) {
+			return true;
+		}
+
+		if (checkServiceAnnotations(input, serviceName, portData)) {
+			return true;
+		}
+
+		if (servicePortNumber != null && servicePortNumber.toString().endsWith("443")) {
+			LOG.debug(() -> "Service port ends with '443'");
+			return true;
+		}
+
+		if (servicePortName != null && servicePortName.endsWith("https")) {
+			LOG.debug(() -> "Service port name ends with 'https'");
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean checkServiceLabels(Input input, String serviceName, ServicePortNameAndNumber portData) {
 		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get(SECURED));
 		if (securedLabelValue.isPresent() && TRUTHY_STRINGS.contains(securedLabelValue.get())) {
 			logEntry(serviceName, portData.portNumber(), "the service contains a true value for the 'secured' label");
 			return true;
 		}
+		return false;
+	}
 
+	private boolean checkServiceAnnotations(Input input, String serviceName, ServicePortNameAndNumber portData) {
 		Optional<String> securedAnnotationValue = Optional.ofNullable(input.serviceAnnotations().get(SECURED));
 		if (securedAnnotationValue.isPresent() && TRUTHY_STRINGS.contains(securedAnnotationValue.get())) {
 			logEntry(serviceName, portData.portNumber(),
 					"the service contains a true value for the 'secured' annotation");
 			return true;
 		}
-
-		if (properties.knownSecurePorts().contains(portData.portNumber())) {
-			logEntry(serviceName, portData.portNumber(), "port is known to be a https port");
-			return true;
-		}
-
-		if ("https".equalsIgnoreCase(input.portData().portName())) {
-			logEntry(serviceName, portData.portNumber(), "port-name is 'https'");
-			return true;
-		}
-
 		return false;
 	}
 

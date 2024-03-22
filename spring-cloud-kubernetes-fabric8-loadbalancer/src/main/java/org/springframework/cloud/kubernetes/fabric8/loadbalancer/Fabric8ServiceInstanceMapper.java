@@ -99,7 +99,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		ServicePortNameAndNumber portNameAndNumber = new ServicePortNameAndNumber(port.getPort(), port.getName());
 		ObjectMeta metadata = service.getMetadata();
 		Input input = new Input(portNameAndNumber, metadata.getName(), metadata.getLabels(), metadata.getAnnotations());
-		return resolver.resolve(input);
+		return resolver.resolveViaEndsWith(input);
 	}
 
 }
