@@ -16,12 +16,16 @@
 
 package org.springframework.cloud.kubernetes.fabric8;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
 
@@ -35,6 +39,13 @@ public final class Fabric8Utils {
 
 	private Fabric8Utils() {
 
+	}
+
+	public static ServiceMetadata serviceMetadata(Service service) {
+		ObjectMeta metadata = service.getMetadata();
+		ServiceSpec serviceSpec = service.getSpec();
+		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), serviceSpec.getType(),
+				metadata.getLabels(), metadata.getAnnotations());
 	}
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8Utils.class));
