@@ -96,9 +96,10 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 	}
 
 	boolean secure(ServicePort port, Service service) {
-		return resolver.resolve(new ServicePortSecureResolver.Input(
-				new ServicePortNameAndNumber(port.getPort(), port.getName()), service.getMetadata().getName(),
-				service.getMetadata().getLabels(), service.getMetadata().getAnnotations()));
+		ObjectMeta metadata = service.getMetadata();
+		ServicePortNameAndNumber portNameAndNumber = new ServicePortNameAndNumber(port.getPort(), port.getName());
+		Input input = new Input(portNameAndNumber, metadata.getName(), metadata.getLabels(), metadata.getAnnotations());
+		return resolver.resolve(input);
 	}
 
 }
