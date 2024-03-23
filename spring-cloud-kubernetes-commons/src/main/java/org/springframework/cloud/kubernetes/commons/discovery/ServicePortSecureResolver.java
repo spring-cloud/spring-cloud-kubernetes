@@ -54,7 +54,7 @@ public final class ServicePortSecureResolver {
 		String serviceName = input.serviceName();
 		ServicePortNameAndNumber portData = input.portData();
 
-		Integer portNumber = portData.portNumber();;
+		Integer portNumber = portData.portNumber();
 
 		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get(SECURED));
 		if (securedLabelValue.isPresent() && TRUTHY_STRINGS.contains(securedLabelValue.get())) {
