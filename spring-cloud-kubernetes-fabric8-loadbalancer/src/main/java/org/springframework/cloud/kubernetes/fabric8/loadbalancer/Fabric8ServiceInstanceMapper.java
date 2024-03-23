@@ -36,6 +36,8 @@ import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadB
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
+
 /**
  * Class for mapping Kubernetes Service object into {@link KubernetesServiceInstance}.
  *
