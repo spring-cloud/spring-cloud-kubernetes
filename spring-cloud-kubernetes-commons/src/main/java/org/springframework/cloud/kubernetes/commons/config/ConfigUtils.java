@@ -163,8 +163,7 @@ public final class ConfigUtils {
 	}
 
 	public static String sourceName(String target, String applicationName, String namespace, String[] profiles) {
-		String name = target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR
-				+ namespace;
+		String name = sourceName(target, applicationName, namespace);
 		if (profiles != null && profiles.length > 0) {
 			name = name + PROPERTY_SOURCE_NAME_SEPARATOR + StringUtils.arrayToDelimitedString(profiles, "-");
 		}
