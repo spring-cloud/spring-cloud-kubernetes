@@ -29,10 +29,8 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
-import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
@@ -43,7 +41,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
@@ -196,13 +193,6 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 				.collect(Collectors.toMap(
 						endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
 						EndpointPort::getPort));
-	}
-
-	static ServiceMetadata serviceMetadata(Service service) {
-		ObjectMeta metadata = service.getMetadata();
-		ServiceSpec serviceSpec = service.getSpec();
-		return new ServiceMetadata(metadata.getName(), metadata.getNamespace(), serviceSpec.getType(),
-				metadata.getLabels(), metadata.getAnnotations());
 	}
 
 	/**
