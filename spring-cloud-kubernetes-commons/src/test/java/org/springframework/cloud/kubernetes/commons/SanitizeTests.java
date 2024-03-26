@@ -107,8 +107,7 @@ class SanitizeTests {
 		CompositePropertySource compositePropertySource = new CompositePropertySource("composite");
 		compositePropertySource.addFirstPropertySource(
 				new SecretsPropertySource(new SourceData("secret-source", Map.of("secret", "xyz"))));
-		compositePropertySource
-				.addFirstPropertySource(new DummyPropertySource("mount-source", Map.of("mount", "abc")));
+		compositePropertySource.addFirstPropertySource(new DummyPropertySource("mount-source", Map.of("mount", "abc")));
 
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableDataSecret = new SanitizableData(compositePropertySource, "secret", "xyz");
