@@ -53,12 +53,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
-					if (source.appendProfileToName()) {
-						return KubernetesClientConfigUtils.secretsDataByName(context.client(), context.namespace(),
-								sourceNames, context.environment(), false);
-					}
 					return KubernetesClientConfigUtils.secretsDataByName(context.client(), context.namespace(),
-							sourceNames, context.environment());
+							sourceNames, context.environment(), context.includeDefaultProfileData());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
 					source.failFast(), context.namespace(), context.environment().getActiveProfiles());

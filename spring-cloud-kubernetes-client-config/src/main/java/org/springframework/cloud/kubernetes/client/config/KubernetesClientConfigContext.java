@@ -27,5 +27,10 @@ import org.springframework.core.env.Environment;
  * @author wind57
  */
 public record KubernetesClientConfigContext(CoreV1Api client, NormalizedSource normalizedSource, String namespace,
-		Environment environment) {
+		Environment environment, boolean includeDefaultProfileData) {
+
+	public KubernetesClientConfigContext(CoreV1Api client, NormalizedSource normalizedSource, String namespace,
+			Environment environment) {
+		this(client, normalizedSource, namespace, environment, true);
+	}
 }
