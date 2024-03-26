@@ -2,7 +2,7 @@ spring:
   application:
     name: poll-reload-mount
   config:
-    import: "kubernetes:,configtree:/tmp/,vault://"
+    import: "kubernetes:,configtree:/tmp/"
 
 management:
   endpoint:
