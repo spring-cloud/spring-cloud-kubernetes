@@ -54,7 +54,6 @@ class KubernetesClientPropertiesTests {
 			assertThat(properties.watchReconnectLimit()).isNull();
 			assertThat(properties.connectionTimeout()).isNull();
 			assertThat(properties.requestTimeout()).isNull();
-			assertThat(properties.rollingTimeout()).isNull();
 			assertThat(properties.loggingInterval()).isNull();
 			assertThat(properties.httpProxy()).isNull();
 			assertThat(properties.httpsProxy()).isNull();
@@ -87,7 +86,6 @@ class KubernetesClientPropertiesTests {
 				"spring.cloud.kubernetes.client.watch-reconnect-limit=300ms",
 				"spring.cloud.kubernetes.client.connection-timeout=400ms",
 				"spring.cloud.kubernetes.client.request-timeout=500ms",
-				"spring.cloud.kubernetes.client.rolling-timeout=600ms",
 				"spring.cloud.kubernetes.client.logging-interval=700ms",
 				"spring.cloud.kubernetes.client.http-proxy=http-proxy",
 				"spring.cloud.kubernetes.client.https-proxy=https-proxy",
@@ -117,7 +115,6 @@ class KubernetesClientPropertiesTests {
 					assertThat(properties.watchReconnectLimit()).isEqualTo(Duration.ofMillis(300));
 					assertThat(properties.connectionTimeout()).isEqualTo(Duration.ofMillis(400));
 					assertThat(properties.requestTimeout()).isEqualTo(Duration.ofMillis(500));
-					assertThat(properties.rollingTimeout()).isEqualTo(Duration.ofMillis(600));
 					assertThat(properties.loggingInterval()).isEqualTo(Duration.ofMillis(700));
 					assertThat(properties.httpProxy()).isEqualTo("http-proxy");
 					assertThat(properties.httpsProxy()).isEqualTo("https-proxy");
@@ -151,7 +148,6 @@ class KubernetesClientPropertiesTests {
 				"spring.cloud.kubernetes.client.watch-reconnect-limit=300ms",
 				"spring.cloud.kubernetes.client.connection-timeout=400ms",
 				"spring.cloud.kubernetes.client.request-timeout=500ms",
-				"spring.cloud.kubernetes.client.rolling-timeout=600ms",
 				"spring.cloud.kubernetes.client.logging-interval=700ms",
 				"spring.cloud.kubernetes.client.http-proxy=http-proxy",
 				"spring.cloud.kubernetes.client.https-proxy=https-proxy",
@@ -182,7 +178,6 @@ class KubernetesClientPropertiesTests {
 					assertThat(properties.watchReconnectLimit()).isEqualTo(Duration.ofMillis(300));
 					assertThat(properties.connectionTimeout()).isEqualTo(Duration.ofMillis(400));
 					assertThat(properties.requestTimeout()).isEqualTo(Duration.ofMillis(500));
-					assertThat(properties.rollingTimeout()).isEqualTo(Duration.ofMillis(600));
 					assertThat(properties.loggingInterval()).isEqualTo(Duration.ofMillis(700));
 					assertThat(properties.httpProxy()).isEqualTo("http-proxy");
 					assertThat(properties.httpsProxy()).isEqualTo("https-proxy");

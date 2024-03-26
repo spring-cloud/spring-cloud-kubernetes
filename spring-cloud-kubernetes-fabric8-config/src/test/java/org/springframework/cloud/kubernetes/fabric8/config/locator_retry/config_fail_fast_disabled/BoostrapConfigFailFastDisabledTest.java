@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.locator_retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_fail_fast_disabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -32,7 +32,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.Application;
 				"spring.cloud.bootstrap.enabled=true" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class BoostrapConfigFailFastDisabled extends ConfigFailFastDisabled {
+class BoostrapConfigFailFastDisabledTest extends ConfigFailFastDisabled {
 
 	private static KubernetesMockServer mockServer;
 

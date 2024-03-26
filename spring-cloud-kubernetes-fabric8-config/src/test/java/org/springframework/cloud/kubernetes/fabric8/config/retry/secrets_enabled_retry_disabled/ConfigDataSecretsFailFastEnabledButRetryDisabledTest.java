@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_enabled_retry_disabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -22,13 +22,12 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
-import org.springframework.context.ApplicationContext;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Isik Erhan
@@ -36,12 +35,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
-				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
-				"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" },
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:",
+				"spring.cloud.kubernetes.config.enabled=false" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class BootstrapSecretsRetryDisabledButConfigRetryEnabled extends SecretsRetryDisabledButConfigRetryEnabled {
+class ConfigDataSecretsFailFastEnabledButRetryDisabledTest extends SecretsFailFastEnabledButRetryDisabled {
 
 	private static KubernetesMockServer mockServer;
 
@@ -52,18 +51,13 @@ class BootstrapSecretsRetryDisabledButConfigRetryEnabled extends SecretsRetryDis
 		setup(mockClient, mockServer);
 	}
 
-	@SpyBean
+	@Autowired
 	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@BeforeEach
 	void beforeEach() {
-		psl = propertySourceLocator;
-		verifiablePsl = propertySourceLocator;
-	}
-
-	@Override
-	protected void assertRetryBean(ApplicationContext context) {
-		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
+		psl = spy(propertySourceLocator);
+		verifiablePsl = psl;
 	}
 
 }

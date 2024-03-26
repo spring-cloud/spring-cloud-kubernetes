@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config;
+package org.springframework.cloud.kubernetes.fabric8.config.system_properties;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
@@ -26,7 +27,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.application.name=testapp",
 				"spring.cloud.kubernetes.client.namespace=testns", "spring.cloud.kubernetes.client.trustCerts=true",
 				"spring.cloud.kubernetes.config.namespace=testns", "spring.cloud.kubernetes.secrets.enableApi=true",
-				"spring.cloud.bootstrap.enabled=true" })
-public class BootstrapCoreTestClientViaSystemProperties extends CoreTestClientViaSystemProperties {
+				"spring.config.import=kubernetes:" })
+class ConfigDataCoreTestClientViaSystemPropertiesTest extends CoreTestClientViaSystemProperties {
 
 }

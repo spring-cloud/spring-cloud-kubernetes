@@ -36,7 +36,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPrope
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class BoostrapConfigRetryEnabled extends ConfigRetryEnabled {
+class BoostrapConfigRetryEnabledTest extends ConfigRetryEnabled {
 
 	private static KubernetesMockServer mockServer;
 
