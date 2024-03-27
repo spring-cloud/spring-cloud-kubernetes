@@ -138,6 +138,11 @@ class Fabric8ServiceInstanceMapperTests {
 		Assertions.assertEquals(result.get("two"), "2");
 	}
 
+	/**
+	 * <pre>
+	 *     service has no ServicePorts
+	 * </pre>
+	 */
 	@Test
 	void testMapEmptyPorts(CapturedOutput output) {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
@@ -153,6 +158,141 @@ class Fabric8ServiceInstanceMapperTests {
 		Assertions.assertNull(result);
 		Assertions.assertTrue(output.getOut().contains(
 			"service : test does not have any ServicePort(s), will not consider it for load balancing"));
+
+	}
+
+	/**
+	 * <pre>
+	 *     service has a single ServicePort, and its name matches
+	 *     'spring.cloud.kubernetes.loadbalancer.portName'
+	 * </pre>
+	 */
+	@Test
+	void testSinglePortsMatchesProperty(CapturedOutput output) {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		loadBalancerProperties.setPortName("my-port-name");
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			true);
+
+		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
+		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
+		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
+			.map(service);
+
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(output.getOut().contains(
+			"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+
+	}
+
+	/**
+	 * <pre>
+	 *     service has a single ServicePort, and its name does not match
+	 *     'spring.cloud.kubernetes.loadbalancer.portName'.
+	 *
+	 *     in this case, service is still considered, because we don't care
+	 *     about the property name when there is a single service port.
+	 * </pre>
+	 */
+	@Test
+	void testSinglePortDoesNotMatchProperty(CapturedOutput output) {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		loadBalancerProperties.setPortName("my-different-port-name");
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			true);
+
+		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
+		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
+		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
+			.map(service);
+
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(output.getOut().contains(
+			"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+
+	}
+
+	/**
+	 * <pre>
+	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is empty.
+	 *     in this case, service will be skipped.
+	 * </pre>
+	 */
+	@Test
+	void testMultiplePortsWithoutPortNameProperty(CapturedOutput output) {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		loadBalancerProperties.setPortName("");
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			true);
+
+		List<ServicePort> ports = List.of(
+			new ServicePortBuilder().withPort(8080).withName("one").build(),
+			new ServicePortBuilder().withPort(8081).withName("two").build()
+		);
+		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
+		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
+			.map(service);
+
+		Assertions.assertNull(result);
+		Assertions.assertTrue(output.getOut().contains(
+			"'spring.cloud.kubernetes.loadbalancer.portName' is not set, as such will not consider service with name : test"));
+
+	}
+
+	/**
+	 * <pre>
+	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is empty.
+	 *     in this case, service will be skipped.
+	 * </pre>
+	 */
+	@Test
+	void testMultiplePortsWithPortNamePropertyMatch(CapturedOutput output) {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		loadBalancerProperties.setPortName("one");
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			true);
+
+		List<ServicePort> ports = List.of(
+			new ServicePortBuilder().withPort(8080).withName("one").build(),
+			new ServicePortBuilder().withPort(8081).withName("two").build()
+		);
+		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
+		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
+			.map(service);
+
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(output.getOut().contains("found port name that matches : one"));
+
+	}
+
+	/**
+	 * <pre>
+	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is empty.
+	 *     in this case, service will be skipped.
+	 * </pre>
+	 */
+	@Test
+	void testMultiplePortsWithPortNamePropertyNoMatch(CapturedOutput output) {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		loadBalancerProperties.setPortName("three");
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			true);
+
+		List<ServicePort> ports = List.of(
+			new ServicePortBuilder().withPort(8080).withName("one").build(),
+			new ServicePortBuilder().withPort(8081).withName("two").build()
+		);
+		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
+		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
+			.map(service);
+
+		Assertions.assertNull(result);
+		Assertions.assertTrue(output.getOut().contains("Did not find a port name that is equal to the value three"));
 
 	}
 
