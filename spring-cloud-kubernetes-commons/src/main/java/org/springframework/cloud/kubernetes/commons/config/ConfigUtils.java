@@ -182,7 +182,7 @@ public final class ConfigUtils {
 	 */
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
 			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode,
-			boolean includeDefaultProfile) {
+			boolean includeDefaultProfileData) {
 
 		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
 				.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
@@ -204,13 +204,19 @@ public final class ConfigUtils {
 				if (decode) {
 					rawData = decodeData(rawData);
 				}
+
+				// In some cases we want to include properties from the default profile along with any active profiles
+				// In these cases includeDefaultProfileData will be true
+				// If includeDefaultProfileData is false then we want to make sure that we only return properties from any active profiles
+
+				//Check the source to see if it contains any active profiles
 				boolean containsActiveProfile = environment.getActiveProfiles().length == 0
 						|| Arrays.stream(environment.getActiveProfiles())
 								.anyMatch(p -> source.contains("-" + p) || "default".equals(p));
-				if (includeDefaultProfile || containsActiveProfile
+				if (includeDefaultProfileData || containsActiveProfile
 						|| containsDataWithProfile(rawData, environment.getActiveProfiles())) {
 					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
-							environment, includeDefaultProfile));
+							environment, includeDefaultProfileData));
 				}
 			}
 		});
@@ -218,6 +224,10 @@ public final class ConfigUtils {
 		return new MultipleSourcesContainer(foundSourceNames, data);
 	}
 
+	/*
+	 * In the case there the data contains yaml or properties files we need to check their names to see if they
+	 * contain any active profiles.
+	 */
 	private static boolean containsDataWithProfile(Map<String, String> rawData, String[] activeProfiles) {
 		return rawData.keySet().stream().anyMatch(
 				key -> Arrays.stream(activeProfiles).anyMatch(p -> key.contains("-" + p) || "default".equals(p)));

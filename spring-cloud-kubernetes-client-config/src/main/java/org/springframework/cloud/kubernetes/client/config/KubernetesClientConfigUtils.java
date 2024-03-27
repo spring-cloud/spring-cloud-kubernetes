@@ -108,13 +108,13 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfile) {
+			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData) {
 		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
 		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
 		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, DECODE,
-				includeDefaultProfile);
+				includeDefaultProfileData);
 	}
 
 	static MultipleSourcesContainer secretsDataByName(CoreV1Api coreV1Api, String namespace,
@@ -136,13 +136,13 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfile) {
+			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData) {
 		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
 		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
 		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, DECODE,
-				includeDefaultProfile);
+				includeDefaultProfileData);
 	}
 
 	private static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api coreV1Api, String namespace) {

@@ -56,7 +56,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 	}
 
 	public static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment,
-			boolean includeDefaultProfile) {
+			boolean includeDefaultProfileData) {
 
 		Set<Map.Entry<String, String>> entrySet = input.entrySet();
 		if (entrySet.size() == 1) {
@@ -75,7 +75,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 			}
 		}
 
-		return defaultProcessAllEntries(input, environment, includeDefaultProfile);
+		return defaultProcessAllEntries(input, environment, includeDefaultProfileData);
 	}
 
 	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment) {
@@ -93,7 +93,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 	 * </pre>
 	 */
 	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment,
-			boolean includeDefaultProfile) {
+			boolean includeDefaultProfileData) {
 
 		record WeightedEntry(Map.Entry<String, String> entry, int weight) {
 
@@ -104,21 +104,22 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 		String applicationName = ConfigUtils.getApplicationName(environment, "", "");
 		String[] activeProfiles = environment.getActiveProfiles();
 
+		// In some cases we want to include the properties from the default profile along with any properties from any active profiles
+		// In this case includeDefaultProfileData will be true or the active profile will be default
+		// In the case where includeDefaultProfileData is false we only want to include the properties from the active profiles
+		boolean includeDataEntry = includeDefaultProfileData || Arrays.asList(environment.getActiveProfiles()).contains("default");
+
 		// the order here is important, first has to come "application.yaml" and then
 		// "application-dev.yaml"
 		List<String> orderedFileNames = new ArrayList<>();
-		if (includeDefaultProfile || Arrays.asList(environment.getActiveProfiles()).contains("default")) {
+		if (includeDataEntry) {
 			orderedFileNames.add(applicationName);
 		}
 		orderedFileNames.addAll(Arrays.stream(activeProfiles).map(profile -> applicationName + "-" + profile).toList());
 
 		int current = orderedFileNames.size() - 1;
 		List<WeightedEntry> weightedEntries = new ArrayList<>();
-		boolean includeDataEntry = includeDefaultProfile || Arrays.stream(environment.getActiveProfiles()).anyMatch(
-				p -> "default".equals(p)/*
-										 * || orderedFileNames.stream().anyMatch(o ->
-										 * o.contains("-" + p))
-										 */);
+
 		if (input.entrySet().stream().noneMatch(entry -> entry.getKey().endsWith(".yml")
 				|| entry.getKey().endsWith(".yaml") || entry.getKey().endsWith(".properties"))) {
 			for (Map.Entry<String, String> entry : input.entrySet()) {
