@@ -41,11 +41,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
@@ -60,7 +60,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import static org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory.PROPERTY_NAME;
 
 /**
@@ -70,34 +69,31 @@ import static org.springframework.cloud.loadbalancer.support.LoadBalancerClientF
 class KubernetesClientServicesListSupplierTests {
 
 	private static final V1Service SERVICE_A_DEFAULT_NAMESPACE = new V1ServiceBuilder()
-		.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("default")
-			.withUid("0").addToLabels("beta", "true")
-			.addToAnnotations("org.springframework.cloud", "true").build())
-		.withSpec(new V1ServiceSpecBuilder()
-			.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build()).build())
-		.build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("default").withUid("0")
+					.addToLabels("beta", "true").addToAnnotations("org.springframework.cloud", "true").build())
+			.withSpec(new V1ServiceSpecBuilder()
+					.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build()).build())
+			.build();
 
 	private static final V1Service SERVICE_A_TEST_NAMESPACE = new V1ServiceBuilder()
-		.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("test")
-			.withUid("1").build())
-		.withSpec(new V1ServiceSpecBuilder()
-			.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build(),
-				new V1ServicePortBuilder().withPort(443).withName("https").build())
-			.build())
-		.build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("test").withUid("1").build())
+			.withSpec(new V1ServiceSpecBuilder()
+					.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build(),
+							new V1ServicePortBuilder().withPort(443).withName("https").build())
+					.build())
+			.build();
 
 	private static final V1ServiceList SINGLE_NAMESPACE_SERVICES = new V1ServiceList()
-		.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
+			.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
 
 	private static final V1ServiceList SERVICE_LIST_ALL_NAMESPACE = new V1ServiceList()
-			.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE)
-			.addItemsItem(SERVICE_A_TEST_NAMESPACE);
+			.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE).addItemsItem(SERVICE_A_TEST_NAMESPACE);
 
 	private static final V1ServiceList SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES = new V1ServiceList()
-		.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
+			.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
 
 	private static final V1ServiceList SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES = new V1ServiceList()
-		.addItemsItem(SERVICE_A_TEST_NAMESPACE);
+			.addItemsItem(SERVICE_A_TEST_NAMESPACE);
 
 	private static WireMockServer wireMockServer;
 
@@ -135,8 +131,8 @@ class KubernetesClientServicesListSupplierTests {
 		boolean allNamespaces = false;
 		Set<String> selectiveNamespaces = Set.of();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
@@ -146,10 +142,7 @@ class KubernetesClientServicesListSupplierTests {
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
-		Map<String, String> metadata = Map.of(
-			"org.springframework.cloud", "true",
-			"beta", "true"
-		);
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
 		DefaultKubernetesServiceInstance serviceA = new DefaultKubernetesServiceInstance("0", "service-a",
 				"service-a.default.svc.cluster.local", 80, metadata, false);
 		List<ServiceInstance> services = new ArrayList<>();
@@ -169,20 +162,19 @@ class KubernetesClientServicesListSupplierTests {
 
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
-			new KubernetesLoadBalancerProperties(), KubernetesDiscoveryProperties.DEFAULT);
+				new KubernetesLoadBalancerProperties(), KubernetesDiscoveryProperties.DEFAULT);
 
 		boolean allNamespaces = false;
 		Set<String> selectiveNamespaces = Set.of();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
-
+				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
-			discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
+				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/default/services?fieldSelector=metadata.name%3Dservice-a"))
-			.willReturn(aResponse().withStatus(404)));
+				.willReturn(aResponse().withStatus(404)));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 		List<ServiceInstance> services = List.of();
@@ -202,27 +194,24 @@ class KubernetesClientServicesListSupplierTests {
 		boolean allNamespaces = true;
 		Set<String> selectiveNamespaces = Set.of();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
 				new KubernetesLoadBalancerProperties(), discoveryProperties);
 
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
-			discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
+				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/services?fieldSelector=metadata.name%3Dservice-a"))
 				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST_ALL_NAMESPACE))));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
-		Map<String, String> metadata = Map.of(
-			"org.springframework.cloud", "true",
-			"beta", "true"
-		);
-		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0", "service-a",
-				"service-a.default.svc.cluster.local", 80, metadata, false);
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
+		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0",
+				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false);
 		DefaultKubernetesServiceInstance serviceATestNamespace = new DefaultKubernetesServiceInstance("1", "service-a",
 				"service-a.test.svc.cluster.local", 80, Map.of(), false);
 		List<ServiceInstance> services = new ArrayList<>();
@@ -241,47 +230,43 @@ class KubernetesClientServicesListSupplierTests {
 		boolean allNamespaces = false;
 		Set<String> selectiveNamespaces = Set.of("default", "test", "no-service");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
 
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
-			new KubernetesLoadBalancerProperties(), discoveryProperties);
+				new KubernetesLoadBalancerProperties(), discoveryProperties);
 
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
-			discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
+				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/default/services?fieldSelector=metadata.name%3Dservice-a"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON()
-				.serialize(SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES))));
+				.willReturn(aResponse().withStatus(200)
+						.withBody(new JSON().serialize(SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES))));
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/test/services?fieldSelector=metadata.name%3Dservice-a"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON()
-				.serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
+				.willReturn(aResponse().withStatus(200)
+						.withBody(new JSON().serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/no-service/services?fieldSelector=metadata.name%3Dservice-a"))
-			.willReturn(aResponse().withStatus(404)));
+				.willReturn(aResponse().withStatus(404)));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
-		Map<String, String> metadata = Map.of(
-			"org.springframework.cloud", "true",
-			"beta", "true"
-		);
-		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0", "service-a",
-			"service-a.default.svc.cluster.local", 80, metadata, false);
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
+		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0",
+				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false);
 		DefaultKubernetesServiceInstance serviceATestNamespace = new DefaultKubernetesServiceInstance("1", "service-a",
-			"service-a.test.svc.cluster.local", 80, Map.of(), false);
+				"service-a.test.svc.cluster.local", 80, Map.of(), false);
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(serviceADefaultNamespace);
 		services.add(serviceATestNamespace);
 
 		StepVerifier.create(instances).expectNext(services).verifyComplete();
-		Assertions.assertTrue(output.getOut().contains(
-			"Error retrieving service with name service-a in namespace : no-service"));
-		Assertions.assertTrue(output.getOut().contains(
-			"discovering services in selective namespaces : [default, no-service, test]"
-		));
+		Assertions.assertTrue(
+				output.getOut().contains("Error retrieving service with name service-a in namespace : no-service"));
+		Assertions.assertTrue(
+				output.getOut().contains("discovering services in selective namespaces : [default, no-service, test]"));
 	}
 
 }

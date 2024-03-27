@@ -23,7 +23,6 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.log.LogAccessor;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -32,6 +31,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
@@ -40,7 +40,8 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  */
 public class KubernetesClientServicesListSupplier extends KubernetesServicesListSupplier<V1Service> {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientServicesListSupplier.class));
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesClientServicesListSupplier.class));
 
 	private final CoreV1Api coreV1Api;
 
@@ -92,8 +93,8 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 	private List<V1Service> services(String namespace, String serviceName) {
 		if (namespace == null) {
 			try {
-				return coreV1Api.listServiceForAllNamespaces(null, null, "metadata.name=" + serviceName,
-					null, null, null, null, null, null, null, null).getItems();
+				return coreV1Api.listServiceForAllNamespaces(null, null, "metadata.name=" + serviceName, null, null,
+						null, null, null, null, null, null).getItems();
 			}
 			catch (ApiException apiException) {
 				LOG.warn(apiException, "Error retrieving services (in all namespaces) with name " + serviceName);
@@ -103,14 +104,15 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 		else {
 			try {
 				// there is going to be a single service here, if found
-				return coreV1Api.listNamespacedService(namespace, null, null, null,
-					"metadata.name=" + serviceName, null, null, null, null, null, null, null).getItems();
+				return coreV1Api.listNamespacedService(namespace, null, null, null, "metadata.name=" + serviceName,
+						null, null, null, null, null, null, null).getItems();
 			}
 			catch (ApiException apiException) {
-				LOG.warn(apiException, "Error retrieving service with name "
-					+ serviceName + " in namespace : " + namespace);
+				LOG.warn(apiException,
+						"Error retrieving service with name " + serviceName + " in namespace : " + namespace);
 				return List.of();
 			}
 		}
 	}
+
 }
