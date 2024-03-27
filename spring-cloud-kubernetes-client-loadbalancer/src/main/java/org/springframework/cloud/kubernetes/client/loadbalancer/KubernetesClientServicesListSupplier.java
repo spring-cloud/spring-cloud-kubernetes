@@ -107,7 +107,8 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 					"metadata.name=" + serviceName, null, null, null, null, null, null, null).getItems();
 			}
 			catch (ApiException apiException) {
-				LOG.warn(apiException, "Error retrieving service with name " + serviceName);
+				LOG.warn(apiException, "Error retrieving service with name "
+					+ serviceName + " in namespace : " + namespace);
 				return List.of();
 			}
 		}
