@@ -79,7 +79,7 @@ class KubernetesClientServiceInstanceMapperTests {
 
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
-				"database.default.svc.cluster.local", 443, new HashMap(), true);
+				"database.default.svc.cluster.local", 443, Map.of(), true);
 		assertThat(serviceInstance).isEqualTo(result);
 	}
 
