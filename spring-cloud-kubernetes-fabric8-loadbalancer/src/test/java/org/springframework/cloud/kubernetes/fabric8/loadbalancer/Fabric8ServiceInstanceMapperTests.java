@@ -29,10 +29,14 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 
+@ExtendWith(OutputCaptureExtension.class)
 class Fabric8ServiceInstanceMapperTests {
 
 	@Test
@@ -132,6 +136,24 @@ class Fabric8ServiceInstanceMapperTests {
 		Assertions.assertEquals(result.get("type"), "ClusterIP");
 		Assertions.assertEquals(result.get("one"), "1");
 		Assertions.assertEquals(result.get("two"), "2");
+	}
+
+	@Test
+	void testMapEmptyPorts(CapturedOutput output) {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+			true);
+
+		List<ServicePort> ports = List.of();
+		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
+		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
+			.map(service);
+
+		Assertions.assertNull(result);
+		Assertions.assertTrue(output.getOut().contains(
+			"service : test does not have any ServicePort(s), will not consider it for load balancing"));
+
 	}
 
 	private Service buildService(String name, String namespace, String uid, int port, String portName,

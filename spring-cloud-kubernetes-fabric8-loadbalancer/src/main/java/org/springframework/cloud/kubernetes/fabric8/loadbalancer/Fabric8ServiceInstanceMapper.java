@@ -18,13 +18,14 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.client.utils.Utils;
 
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -35,6 +36,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureR
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
+import org.springframework.core.log.LogAccessor;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
@@ -44,6 +47,10 @@ import static org.springframework.cloud.kubernetes.commons.discovery.ServicePort
  * @author Piotr Minkowski
  */
 public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMapper<Service> {
+
+	private static final String PORT_NAME_PROPERTY = "'spring.cloud.kubernetes.loadbalancer.portName'";
+
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ServiceInstanceMapper.class));
 
 	/**
 	 * empty on purpose, load balancer implementation does not need them.
@@ -65,29 +72,49 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 
 	@Override
 	public KubernetesServiceInstance map(Service service) {
-		ObjectMeta meta = service.getMetadata();
+		ObjectMeta metadata = service.getMetadata();
 		List<ServicePort> ports = service.getSpec().getPorts();
-		ServicePort port = null;
-		if (ports.size() == 1) {
-			port = ports.get(0);
-		}
-		else if (ports.size() > 1 && Utils.isNotNullOrEmpty(properties.getPortName())) {
-			Optional<ServicePort> optPort = ports.stream().filter(it -> properties.getPortName().endsWith(it.getName()))
-					.findAny();
-			if (optPort.isPresent()) {
-				port = optPort.get();
-			}
-		}
-		if (port == null) {
+		ServicePort port;
+
+		if (ports.isEmpty()) {
+			LOG.warn(() -> "service : " + metadata.getName() + " does not have any ServicePort(s)," +
+				" will not consider it for load balancing");
 			return null;
 		}
+
+		if (ports.size() == 1) {
+			LOG.debug(() -> "single ServicePort found, will use it as-is " +
+				"(without checking " + PORT_NAME_PROPERTY + ")" );
+			port = ports.get(0);
+		}
+		else {
+			String portNameFromProperties = properties.getPortName();
+			if (StringUtils.hasText(portNameFromProperties)) {
+				Optional<ServicePort> optionalPort =
+					ports.stream().filter(x -> Objects.equals(x.getName(), portNameFromProperties)).findAny();
+				if (optionalPort.isPresent()) {
+					LOG.debug(() -> "found port name that matches : " + portNameFromProperties);
+					port = optionalPort.get();
+				}
+				else {
+					logWarning(portNameFromProperties);
+					return null;
+				}
+			}
+			else {
+				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set, as such will not consider service with name : " +
+					metadata.getName());
+				return null;
+			}
+		}
+
 		String host = KubernetesServiceInstanceMapper.createHost(service.getMetadata().getName(),
 				service.getMetadata().getNamespace(), properties.getClusterDomain());
 
 		boolean secure = secure(port, service);
 
-		return new DefaultKubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
-				serviceMetadata(service), secure);
+		return new DefaultKubernetesServiceInstance(metadata.getUid(),
+			metadata.getName(), host, port.getPort(), serviceMetadata(service), secure);
 	}
 
 	Map<String, String> serviceMetadata(Service service) {
@@ -100,6 +127,10 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		ServicePortNameAndNumber portNameAndNumber = new ServicePortNameAndNumber(port.getPort(), port.getName());
 		Input input = new Input(portNameAndNumber, metadata.getName(), metadata.getLabels(), metadata.getAnnotations());
 		return resolver.resolve(input);
+	}
+
+	private void logWarning(String portNameFromProperties) {
+		LOG.warn(() -> "Did not find a port name that is equal to the value " + portNameFromProperties);
 	}
 
 }
