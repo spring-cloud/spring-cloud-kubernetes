@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import jakarta.annotation.Nullable;
+
 /**
  * @author wind57
  */
-public record ServicePortNameAndNumber(int portNumber, String portName) {
+public record ServicePortNameAndNumber(@Nullable Integer portNumber, @Nullable String portName) {
 }
