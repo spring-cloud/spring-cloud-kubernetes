@@ -24,8 +24,8 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
-
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -77,21 +77,21 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		ServicePort port;
 
 		if (ports.isEmpty()) {
-			LOG.warn(() -> "service : " + metadata.getName() + " does not have any ServicePort(s)," +
-				" will not consider it for load balancing");
+			LOG.warn(() -> "service : " + metadata.getName() + " does not have any ServicePort(s),"
+					+ " will not consider it for load balancing");
 			return null;
 		}
 
 		if (ports.size() == 1) {
-			LOG.debug(() -> "single ServicePort found, will use it as-is " +
-				"(without checking " + PORT_NAME_PROPERTY + ")" );
+			LOG.debug(() -> "single ServicePort found, will use it as-is " + "(without checking " + PORT_NAME_PROPERTY
+					+ ")");
 			port = ports.get(0);
 		}
 		else {
 			String portNameFromProperties = properties.getPortName();
 			if (StringUtils.hasText(portNameFromProperties)) {
-				Optional<ServicePort> optionalPort =
-					ports.stream().filter(x -> Objects.equals(x.getName(), portNameFromProperties)).findAny();
+				Optional<ServicePort> optionalPort = ports.stream()
+						.filter(x -> Objects.equals(x.getName(), portNameFromProperties)).findAny();
 				if (optionalPort.isPresent()) {
 					LOG.debug(() -> "found port name that matches : " + portNameFromProperties);
 					port = optionalPort.get();
@@ -102,8 +102,8 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 				}
 			}
 			else {
-				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set, as such will not consider service with name : " +
-					metadata.getName());
+				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set, as such will not consider service with name : "
+						+ metadata.getName());
 				return null;
 			}
 		}
@@ -113,8 +113,8 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 
 		boolean secure = secure(port, service);
 
-		return new DefaultKubernetesServiceInstance(metadata.getUid(),
-			metadata.getName(), host, port.getPort(), serviceMetadata(service), secure);
+		return new DefaultKubernetesServiceInstance(metadata.getUid(), metadata.getName(), host, port.getPort(),
+				serviceMetadata(service), secure);
 	}
 
 	Map<String, String> serviceMetadata(Service service) {

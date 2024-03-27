@@ -28,8 +28,8 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -147,17 +147,17 @@ class Fabric8ServiceInstanceMapperTests {
 	void testMapEmptyPorts(CapturedOutput output) {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-			true);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
 
 		List<ServicePort> ports = List.of();
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-			.map(service);
+				.map(service);
 
 		Assertions.assertNull(result);
-		Assertions.assertTrue(output.getOut().contains(
-			"service : test does not have any ServicePort(s), will not consider it for load balancing"));
+		Assertions.assertTrue(output.getOut()
+				.contains("service : test does not have any ServicePort(s), will not consider it for load balancing"));
 
 	}
 
@@ -172,17 +172,17 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("my-port-name");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-			true);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
 
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-			.map(service);
+				.map(service);
 
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(output.getOut().contains(
-			"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+				"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 
 	}
 
@@ -200,17 +200,17 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("my-different-port-name");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-			true);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
 
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-			.map(service);
+				.map(service);
 
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(output.getOut().contains(
-			"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+				"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 
 	}
 
@@ -225,20 +225,18 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-			true);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
 
-		List<ServicePort> ports = List.of(
-			new ServicePortBuilder().withPort(8080).withName("one").build(),
-			new ServicePortBuilder().withPort(8081).withName("two").build()
-		);
+		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("one").build(),
+				new ServicePortBuilder().withPort(8081).withName("two").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-			.map(service);
+				.map(service);
 
 		Assertions.assertNull(result);
 		Assertions.assertTrue(output.getOut().contains(
-			"'spring.cloud.kubernetes.loadbalancer.portName' is not set, as such will not consider service with name : test"));
+				"'spring.cloud.kubernetes.loadbalancer.portName' is not set, as such will not consider service with name : test"));
 
 	}
 
@@ -253,16 +251,14 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("one");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-			true);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
 
-		List<ServicePort> ports = List.of(
-			new ServicePortBuilder().withPort(8080).withName("one").build(),
-			new ServicePortBuilder().withPort(8081).withName("two").build()
-		);
+		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("one").build(),
+				new ServicePortBuilder().withPort(8081).withName("two").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-			.map(service);
+				.map(service);
 
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(output.getOut().contains("found port name that matches : one"));
@@ -280,16 +276,14 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("three");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
-			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-			true);
+				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				true);
 
-		List<ServicePort> ports = List.of(
-			new ServicePortBuilder().withPort(8080).withName("one").build(),
-			new ServicePortBuilder().withPort(8081).withName("two").build()
-		);
+		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("one").build(),
+				new ServicePortBuilder().withPort(8081).withName("two").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-			.map(service);
+				.map(service);
 
 		Assertions.assertNull(result);
 		Assertions.assertTrue(output.getOut().contains("Did not find a port name that is equal to the value three"));
