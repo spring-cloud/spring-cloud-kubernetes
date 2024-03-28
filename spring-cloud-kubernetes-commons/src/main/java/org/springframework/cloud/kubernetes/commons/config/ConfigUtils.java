@@ -212,7 +212,8 @@ public final class ConfigUtils {
 				//Check the source to see if it contains any active profiles
 				boolean containsActiveProfile = environment.getActiveProfiles().length == 0
 						|| Arrays.stream(environment.getActiveProfiles())
-								.anyMatch(p -> sourceName.contains("-" + p) || "default".equals(p));
+								.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile)
+									|| "default".equals(activeProfile));
 				if (includeDefaultProfileData || containsActiveProfile
 						|| containsDataWithProfile(rawData, environment.getActiveProfiles())) {
 					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
@@ -230,7 +231,8 @@ public final class ConfigUtils {
 	 */
 	private static boolean containsDataWithProfile(Map<String, String> rawData, String[] activeProfiles) {
 		return rawData.keySet().stream().anyMatch(
-				key -> Arrays.stream(activeProfiles).anyMatch(p -> key.contains("-" + p) || "default".equals(p)));
+				key -> Arrays.stream(activeProfiles).anyMatch(activeProfile -> key.endsWith("-" + activeProfile)
+					|| "default".equals(activeProfile)));
 	}
 
 	/**
