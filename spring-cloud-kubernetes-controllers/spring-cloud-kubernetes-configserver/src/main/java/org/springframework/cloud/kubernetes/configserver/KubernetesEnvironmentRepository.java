@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,11 +40,11 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesEnvironmentRepository.class);
 
-	private CoreV1Api coreApi;
+	private final CoreV1Api coreApi;
 
-	private List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers;
+	private final List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers;
 
-	private String namespace;
+	private final String namespace;
 
 	public KubernetesEnvironmentRepository(CoreV1Api coreApi,
 			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers, String namespace) {
@@ -64,8 +63,7 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 		if (!StringUtils.hasText(profile)) {
 			profile = "default";
 		}
-		List<String> profiles = new java.util.ArrayList<>(
-				Arrays.stream(StringUtils.commaDelimitedListToStringArray(profile)).toList());
+		List<String> profiles = new ArrayList<>(List.of(StringUtils.commaDelimitedListToStringArray(profile)));
 
 		Collections.reverse(profiles);
 		if (!profiles.contains("default")) {
@@ -98,8 +96,7 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 	}
 
 	private MutablePropertySources createPropertySources(String application) {
-		Map<String, Object> applicationProperties = new HashMap<>();
-		applicationProperties.put("spring.application.name", application);
+		Map<String, Object> applicationProperties = Map.of("spring.application.name", application);
 		MapPropertySource propertySource = new MapPropertySource("kubernetes-config-server", applicationProperties);
 		MutablePropertySources mutablePropertySources = new MutablePropertySources();
 		mutablePropertySources.addFirst(propertySource);
@@ -108,7 +105,7 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 
 	private void addApplicationConfiguration(Environment environment, StandardEnvironment springEnv,
 			String applicationName) {
-		kubernetesPropertySourceSuppliers.stream().forEach(supplier -> {
+		kubernetesPropertySourceSuppliers.forEach(supplier -> {
 			List<MapPropertySource> propertySources = supplier.get(coreApi, applicationName, namespace, springEnv);
 			propertySources.forEach(propertySource -> {
 				if (propertySource.getPropertyNames().length > 0) {
