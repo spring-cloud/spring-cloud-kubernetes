@@ -20,10 +20,13 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1EndpointsListBuilder;
+import io.kubernetes.client.openapi.models.V1ListMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.openapi.models.V1ServiceListBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -31,6 +34,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -89,7 +93,7 @@ class AllNamespacesTest {
 		wireMockServer = new WireMockServer(options().dynamicPort().notifier(new ConsoleNotifier(true)));
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
-		Util.mockWatchers(wireMockServer);
+		mockWatchers();
 
 		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
 		serviceAMockServer.start();
@@ -110,6 +114,7 @@ class AllNamespacesTest {
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		clientUtils = mockStatic(KubernetesClientUtils.class);
 		clientUtils.when(KubernetesClientUtils::kubernetesApiClient).thenReturn(client);
+
 	}
 
 	@AfterAll
@@ -131,32 +136,6 @@ class AllNamespacesTest {
 	@Test
 	void test() {
 
-		V1Service serviceA = Util.service("a", "service-a", SERVICE_A_PORT);
-		V1Service serviceB = Util.service("b", "service-b", SERVICE_B_PORT);
-
-		V1Endpoints endpointsA = Util.endpoints(SERVICE_A_PORT, "127.0.0.1", "a");
-		V1Endpoints endpointsB = Util.endpoints(SERVICE_B_PORT, "127.0.0.1", "b");
-
-		String endpointsAListAsString = new JSON().serialize(new V1EndpointsListBuilder().withItems(endpointsA).build());
-		String endpointsBListAsString = new JSON().serialize(new V1EndpointsListBuilder().withItems(endpointsB).build());
-
-		String serviceAString = new JSON().serialize(serviceA);
-		String serviceBString = new JSON().serialize(serviceB);
-
-		wireMockServer
-				.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/endpoints?fieldSelector=metadata.name%3Dservice-a"))
-						.willReturn(WireMock.aResponse().withBody(endpointsAListAsString).withStatus(200)));
-
-		wireMockServer
-				.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/endpoints?fieldSelector=metadata.name%3Dservice-b"))
-						.willReturn(WireMock.aResponse().withBody(endpointsBListAsString).withStatus(200)));
-
-		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/a/services/service-a"))
-				.willReturn(WireMock.aResponse().withBody(serviceAString).withStatus(200)));
-
-		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/b/services/service-b"))
-				.willReturn(WireMock.aResponse().withBody(serviceBString).withStatus(200)));
-
 		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
 				.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
 
@@ -176,17 +155,25 @@ class AllNamespacesTest {
 		Assertions.assertThat(supplier.getDelegate().getClass())
 				.isSameAs(DiscoveryClientServiceInstanceListSupplier.class);
 
-		wireMockServer.verify(WireMock.exactly(1), WireMock
-				.getRequestedFor(WireMock.urlEqualTo("/api/v1/endpoints?fieldSelector=metadata.name%3Dservice-a")));
+	}
 
-		wireMockServer.verify(WireMock.exactly(1), WireMock
-				.getRequestedFor(WireMock.urlEqualTo("/api/v1/endpoints?fieldSelector=metadata.name%3Dservice-b")));
+	private static void mockWatchers() {
+		V1Service serviceA = Util.service("a", "service-a", SERVICE_A_PORT);
+		V1Service serviceB = Util.service("b", "service-b", SERVICE_B_PORT);
+		V1ServiceList serviceList = new V1ServiceListBuilder()
+				.withKind("V1ServiceList")
+				.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(serviceA, serviceB).build();
+		Util.servicesLister(wireMockServer, serviceList);
 
-		wireMockServer.verify(WireMock.exactly(1),
-				WireMock.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/a/services/service-a")));
-
-		wireMockServer.verify(WireMock.exactly(1),
-				WireMock.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/b/services/service-b")));
+		V1Endpoints endpointsA = Util.endpoints("a", "service-a", SERVICE_A_PORT, "127.0.0.1");
+		V1Endpoints endpointsB = Util.endpoints("b", "service-b", SERVICE_B_PORT, "127.0.0.1");
+		V1EndpointsList endpointsList = new V1EndpointsListBuilder()
+				.withKind("V1EndpointsList")
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(endpointsA, endpointsB).build();
+		Util.endpointsLister(wireMockServer, endpointsList);
 	}
 
 }
