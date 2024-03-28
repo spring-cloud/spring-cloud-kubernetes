@@ -117,16 +117,6 @@ public final class KubernetesClientConfigUtils {
 				includeDefaultProfileData);
 	}
 
-	static MultipleSourcesContainer secretsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
-		return secretsDataByName(coreV1Api, namespace, sourceNames, environment, true);
-	}
-
-	static MultipleSourcesContainer configMapsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
-		return configMapsDataByName(coreV1Api, namespace, sourceNames, environment, true);
-	}
-
 	/**
 	 * <pre>
 	 *     1. read all config maps in the provided namespace
