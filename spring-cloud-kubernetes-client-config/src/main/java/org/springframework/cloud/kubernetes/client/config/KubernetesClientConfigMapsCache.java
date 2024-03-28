@@ -35,7 +35,7 @@ import org.springframework.core.log.LogAccessor;
  *
  * @author wind57
  */
-final class KubernetesClientConfigMapsCache implements ConfigMapCache {
+public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientConfigMapsCache.class));
 
