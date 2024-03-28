@@ -231,7 +231,7 @@ public final class ConfigUtils {
 	 */
 	private static boolean containsDataWithProfile(Map<String, String> rawData, String[] activeProfiles) {
 		return rawData.keySet().stream().anyMatch(
-				key -> Arrays.stream(activeProfiles).anyMatch(activeProfile -> key.endsWith("-" + activeProfile)
+				key -> Arrays.stream(activeProfiles).anyMatch(activeProfile -> key.contains("-" + activeProfile)
 					|| "default".equals(activeProfile)));
 	}
 
