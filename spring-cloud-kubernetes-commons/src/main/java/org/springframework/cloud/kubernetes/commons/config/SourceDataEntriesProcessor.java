@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,6 +52,11 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 	}
 
 	public static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment) {
+		return processAllEntries(input, environment, true);
+	}
+
+	public static Map<String, Object> processAllEntries(Map<String, String> input, Environment environment,
+			boolean includeDefaultProfileData) {
 
 		Set<Map.Entry<String, String>> entrySet = input.entrySet();
 		if (entrySet.size() == 1) {
@@ -71,7 +75,11 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 			}
 		}
 
-		return defaultProcessAllEntries(input, environment);
+		return defaultProcessAllEntries(input, environment, includeDefaultProfileData);
+	}
+
+	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment) {
+		return sorted(input, environment, true);
 	}
 
 	/**
@@ -84,7 +92,8 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 	 * 	    3. then plain properties
 	 * </pre>
 	 */
-	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment) {
+	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment,
+			boolean includeDefaultProfileData) {
 
 		record WeightedEntry(Map.Entry<String, String> entry, int weight) {
 
@@ -95,27 +104,46 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 		String applicationName = ConfigUtils.getApplicationName(environment, "", "");
 		String[] activeProfiles = environment.getActiveProfiles();
 
+		// In some cases we want to include the properties from the default profile along with any properties from any active profiles
+		// In this case includeDefaultProfileData will be true or the active profile will be default
+		// In the case where includeDefaultProfileData is false we only want to include the properties from the active profiles
+		boolean includeDataEntry = includeDefaultProfileData || Arrays.asList(environment.getActiveProfiles()).contains("default");
+
 		// the order here is important, first has to come "application.yaml" and then
 		// "application-dev.yaml"
-		List<String> orderedFileNames = Stream.concat(Stream.of(applicationName),
-				Arrays.stream(activeProfiles).map(profile -> applicationName + "-" + profile)).toList();
+		List<String> orderedFileNames = new ArrayList<>();
+		if (includeDataEntry) {
+			orderedFileNames.add(applicationName);
+		}
+		orderedFileNames.addAll(Arrays.stream(activeProfiles).map(profile -> applicationName + "-" + profile).toList());
 
 		int current = orderedFileNames.size() - 1;
 		List<WeightedEntry> weightedEntries = new ArrayList<>();
-		for (Map.Entry<String, String> entry : input.entrySet()) {
-			String key = entry.getKey();
-			if (key.endsWith(".yml") || key.endsWith(".yaml") || key.endsWith(".properties")) {
-				String withoutExtension = key.split("\\.", 2)[0];
-				int index = orderedFileNames.indexOf(withoutExtension);
-				if (index >= 0) {
-					weightedEntries.add(new WeightedEntry(entry, index));
+
+		if (input.entrySet().stream().noneMatch(entry -> entry.getKey().endsWith(".yml")
+				|| entry.getKey().endsWith(".yaml") || entry.getKey().endsWith(".properties"))) {
+			for (Map.Entry<String, String> entry : input.entrySet()) {
+				weightedEntries.add(new WeightedEntry(entry, ++current));
+			}
+		}
+		else {
+			for (Map.Entry<String, String> entry : input.entrySet()) {
+				String key = entry.getKey();
+				if (key.endsWith(".yml") || key.endsWith(".yaml") || key.endsWith(".properties")) {
+					String withoutExtension = key.split("\\.", 2)[0];
+					int index = orderedFileNames.indexOf(withoutExtension);
+					if (index >= 0) {
+						weightedEntries.add(new WeightedEntry(entry, index));
+					}
+					else {
+						LOG.warn("entry : " + key + " will be skipped");
+					}
 				}
 				else {
-					LOG.warn("entry : " + key + " will be skipped");
+					if (includeDataEntry) {
+						weightedEntries.add(new WeightedEntry(entry, ++current));
+					}
 				}
-			}
-			else {
-				weightedEntries.add(new WeightedEntry(entry, ++current));
 			}
 		}
 
@@ -123,9 +151,10 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 				.toList();
 	}
 
-	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment) {
+	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment,
+			boolean includeDefaultProfile) {
 
-		List<Map.Entry<String, String>> sortedEntries = sorted(input, environment);
+		List<Map.Entry<String, String>> sortedEntries = sorted(input, environment, includeDefaultProfile);
 		Map<String, Object> result = new HashMap<>();
 		for (Map.Entry<String, String> entry : sortedEntries) {
 			result.putAll(extractProperties(entry.getKey(), entry.getValue(), environment));
