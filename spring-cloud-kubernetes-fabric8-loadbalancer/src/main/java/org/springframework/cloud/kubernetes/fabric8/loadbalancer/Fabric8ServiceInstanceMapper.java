@@ -41,8 +41,6 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
-import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
-
 /**
  * Class for mapping Kubernetes Service object into {@link KubernetesServiceInstance}.
  *
