@@ -32,11 +32,11 @@ public interface KubernetesPropertySourceSupplier {
 	List<MapPropertySource> get(CoreV1Api coreV1Api, String name, String namespace, Environment environment);
 
 	/*
-	 * return either a List containing 'currentNamespace' (if 'namespacesString' is empty or null),
-	 * or a List of comma delimited tokens (namespaces) from 'namespacesString'.
+	 * return either a List containing 'currentNamespace' (if 'namespacesString' is empty
+	 * or null), or a List of comma delimited tokens (namespaces) from 'namespacesString'.
 	 *
 	 * 'currentNamespace' can be treated logically as the "default namespace" to use, if
-	 * the other argument is not provided. 
+	 * the other argument is not provided.
 	 */
 	static List<String> namespaceSplitter(String namespacesString, String currentNamespace) {
 		List<String> namespaces = List.of(currentNamespace);

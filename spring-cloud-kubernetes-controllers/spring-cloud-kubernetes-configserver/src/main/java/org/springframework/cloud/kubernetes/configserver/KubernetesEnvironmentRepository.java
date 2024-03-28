@@ -63,8 +63,7 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 		if (!StringUtils.hasText(profile)) {
 			profile = "default";
 		}
-		List<String> profiles = new ArrayList<>(
-                List.of(StringUtils.commaDelimitedListToStringArray(profile)));
+		List<String> profiles = new ArrayList<>(List.of(StringUtils.commaDelimitedListToStringArray(profile)));
 
 		Collections.reverse(profiles);
 		if (!profiles.contains("default")) {
