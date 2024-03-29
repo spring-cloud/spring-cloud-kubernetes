@@ -59,8 +59,8 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 	}
 
 	/**
-	 * append or not the active profiles to the name of the generated source.
-	 * At the moment this is true only for config server generated sources.
+	 * append or not the active profiles to the name of the generated source. At the
+	 * moment this is true only for config server generated sources.
 	 */
 	public boolean appendProfileToName() {
 		return appendProfileToName;

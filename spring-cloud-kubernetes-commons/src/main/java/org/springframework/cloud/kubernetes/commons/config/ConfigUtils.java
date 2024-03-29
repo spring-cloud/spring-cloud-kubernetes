@@ -205,11 +205,13 @@ public final class ConfigUtils {
 					rawData = decodeData(rawData);
 				}
 
-				// In some cases we want to include properties from the default profile along with any active profiles
+				// In some cases we want to include properties from the default profile
+				// along with any active profiles
 				// In these cases includeDefaultProfileData will be true
-				// If includeDefaultProfileData is false then we want to make sure that we only return properties from any active profiles
+				// If includeDefaultProfileData is false then we want to make sure that we
+				// only return properties from any active profiles
 
-				//Check the source to see if it contains any active profiles
+				// Check the source to see if it contains any active profiles
 				boolean containsActiveProfile = environment.getActiveProfiles().length == 0
 						|| Arrays.stream(environment.getActiveProfiles())
 								.anyMatch(p -> source.contains("-" + p) || "default".equals(p));
@@ -225,8 +227,8 @@ public final class ConfigUtils {
 	}
 
 	/*
-	 * In the case there the data contains yaml or properties files we need to check their names to see if they
-	 * contain any active profiles.
+	 * In the case there the data contains yaml or properties files we need to check their
+	 * names to see if they contain any active profiles.
 	 */
 	private static boolean containsDataWithProfile(Map<String, String> rawData, String[] activeProfiles) {
 		return rawData.keySet().stream().anyMatch(

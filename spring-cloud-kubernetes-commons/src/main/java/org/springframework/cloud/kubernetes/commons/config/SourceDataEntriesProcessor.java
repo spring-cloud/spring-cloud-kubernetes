@@ -104,10 +104,14 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 		String applicationName = ConfigUtils.getApplicationName(environment, "", "");
 		String[] activeProfiles = environment.getActiveProfiles();
 
-		// In some cases we want to include the properties from the default profile along with any properties from any active profiles
-		// In this case includeDefaultProfileData will be true or the active profile will be default
-		// In the case where includeDefaultProfileData is false we only want to include the properties from the active profiles
-		boolean includeDataEntry = includeDefaultProfileData || Arrays.asList(environment.getActiveProfiles()).contains("default");
+		// In some cases we want to include the properties from the default profile along
+		// with any properties from any active profiles
+		// In this case includeDefaultProfileData will be true or the active profile will
+		// be default
+		// In the case where includeDefaultProfileData is false we only want to include
+		// the properties from the active profiles
+		boolean includeDataEntry = includeDefaultProfileData
+				|| Arrays.asList(environment.getActiveProfiles()).contains("default");
 
 		// the order here is important, first has to come "application.yaml" and then
 		// "application-dev.yaml"
