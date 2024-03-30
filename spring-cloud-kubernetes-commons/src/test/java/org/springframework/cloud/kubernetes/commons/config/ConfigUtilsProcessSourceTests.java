@@ -41,10 +41,10 @@ class ConfigUtilsProcessSourceTests {
 	/**
 	 * <pre>
 	 *		- includeDefaultProfileData         = true
-	 * 		- emptyActiveProfiles               = does not matter
-	 *  	- profileBasedSourceName            = does not matter
-	 *      - defaultProfilePresent             = does not matter
-	 *      - rawDataContainsProfileBasedSource = does not matter
+	 *		- emptyActiveProfiles               = does not matter
+	 *		- profileBasedSourceName            = does not matter
+	 * 		- defaultProfilePresent             = does not matter
+	 * 		- rawDataContainsProfileBasedSource = does not matter
 	 * </pre>
 	 *
 	 * Since 'includeDefaultProfileData=true', all other arguments are irrelevant and
@@ -88,9 +88,9 @@ class ConfigUtilsProcessSourceTests {
 	 * <pre>
 	 *		- includeDefaultProfileData         = false
 	 * 		- emptyActiveProfiles               = false
-	 *  	- profileBasedSourceName            = false
-	 *      - defaultProfilePresent             = true
-	 *      - rawDataContainsProfileBasedSource = does not matter
+	 *		- profileBasedSourceName            = false
+	 * 		- defaultProfilePresent             = true
+	 * 		- rawDataContainsProfileBasedSource = does not matter
 	 * </pre>
 	 *
 	 * Since 'defaultProfilePresent=true', this method must return 'true'.
@@ -181,9 +181,9 @@ class ConfigUtilsProcessSourceTests {
 	 * <pre>
 	 *		- includeDefaultProfileData         = false
 	 * 		- emptyActiveProfiles               = false
-	 *  	- profileBasedSourceName            = true
-	 *      - defaultProfilePresent             = false
-	 *      - rawDataContainsProfileBasedSource = does not matter
+	 * 		- profileBasedSourceName            = true
+	 * 		- defaultProfilePresent             = false
+	 * 		- rawDataContainsProfileBasedSource = does not matter
 	 * </pre>
 	 *
 	 * Since 'profileBasedSourceName=true', this method must return 'true'.
@@ -299,9 +299,9 @@ class ConfigUtilsProcessSourceTests {
 	 * <pre>
 	 *		- includeDefaultProfileData         = false
 	 * 		- emptyActiveProfiles               = false
-	 *  	- profileBasedSourceName            = false
-	 *      - defaultProfilePresent             = false
-	 *      - rawDataContainsProfileBasedSource = true
+	 * 		- profileBasedSourceName            = false
+	 * 		- defaultProfilePresent             = false
+	 * 		- rawDataContainsProfileBasedSource = true
 	 * </pre>
 	 *
 	 */
@@ -380,10 +380,10 @@ class ConfigUtilsProcessSourceTests {
 	/**
 	 * <pre>
 	 *		- includeDefaultProfileData         = false
-	 * 		- emptyActiveProfiles               = false
-	 *  	- profileBasedSourceName            = true
-	 *      - defaultProfilePresent             = does not matter
-	 *      - rawDataContainsProfileBasedSource = does not matter
+	 *		- emptyActiveProfiles               = false
+	 *		- profileBasedSourceName            = true
+	 * 		- defaultProfilePresent             = does not matter
+	 * 		- rawDataContainsProfileBasedSource = does not matter
 	 * </pre>
 	 *
 	 */
