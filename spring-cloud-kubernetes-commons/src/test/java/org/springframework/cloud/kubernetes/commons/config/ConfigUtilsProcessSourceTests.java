@@ -279,21 +279,203 @@ class ConfigUtilsProcessSourceTests {
 	 * 		- emptyActiveProfiles               = false
 	 *  	- profileBasedSourceName            = false
 	 *      - defaultProfilePresent             = false
-	 *      - rawDataContainsProfileBasedSource = does not matter
+	 *      - rawDataContainsProfileBasedSource = false
 	 * </pre>
 	 *
-	 * Since 'profileBasedSourceName=true', this method must return 'true'.
 	 */
 	@Test
 	void testProcessSourceFour() {
 		boolean includeDefaultProfileData = false;
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("default");
-		String sourceName = "account-default";
-		Map<String, String> sourceRawData = Map.of();
+		environment.setActiveProfiles("k8s");
+		String sourceName = "account";
+		Map<String, String> sourceRawData = Map.of("one", "1");
+
+		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
+		Assertions.assertFalse(result);
+	}
+
+	/**
+	 * <pre>
+	 *		- includeDefaultProfileData         = false
+	 * 		- emptyActiveProfiles               = false
+	 *  	- profileBasedSourceName            = false
+	 *      - defaultProfilePresent             = false
+	 *      - rawDataContainsProfileBasedSource = true
+	 * </pre>
+	 *
+	 */
+	@Test
+	void testProcessSourceFive() {
+		boolean includeDefaultProfileData = false;
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+		String sourceName = "account";
+		Map<String, String> sourceRawData = Map.of("one", "1", "account-k8s.properties", "one=11");
 
 		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
 		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * <pre>
+	 *		- request is coming from config server
+	 *		- activeProfile = ['k8s']
+	 *		- sourceName = 'account'
+	 *	    - rawData inside the source has an entry : 'account-k8s.properties'
+	 * </pre>
+	 *
+	 * As such the above will generate:
+	 *
+	 * <pre>
+	 *     - includeDefaultProfileData         = false
+	 * 	   - emptyActiveProfiles               = false
+	 * 	   - profileBasedSourceName            = false
+	 * 	   - defaultProfilePresent             = false
+	 * 	   - rawDataContainsProfileBasedSource = true
+	 * </pre>
+	 *
+	 * In this case, only one type of source data will be read
+	 *
+	 * <pre>
+	 *     - "${SOURCE_NAME}-${ACTIVE_PROFILE}.{EXTENSION}"
+	 * </pre>
+	 */
+	@Test
+	void testProcessNamedDataFive(CapturedOutput output) {
+		// @formatter:off
+		Map<String, String> sourceRawData = Map.of(
+			"one", "1",
+			"account.properties", "one=11\ntwo=2",
+			"account-default.properties", "one=111\nthree=3",
+			"account-k8s.properties", "one=1111\nfour=4"
+		);
+		// @formatter:on
+		String sourceName = "account";
+		List<StrippedSourceContainer> strippedSources = List
+			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", sourceName);
+		environment.setActiveProfiles("k8s");
+		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
+		String namespace = "namespace-a";
+		boolean decode = false;
+		boolean includeDefaultProfileData = false;
+
+		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
+			namespace, decode, includeDefaultProfileData);
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(result.names().toString(), "[account]");
+
+		/**
+		 * <pre>
+		 * 		- we only read from 'account-k8s.properties'
+		 * </pre>
+		 */
+		Assertions.assertEquals(result.data(), Map.of("one", "1111", "four", "4"));
+		Assertions.assertTrue(output.getOut().contains("entry : account.properties will be skipped"));
+		Assertions.assertTrue(output.getOut().contains("entry : account-default.properties will be skipped"));
+
+	}
+
+	/**
+	 * <pre>
+	 *		- includeDefaultProfileData         = false
+	 * 		- emptyActiveProfiles               = false
+	 *  	- profileBasedSourceName            = true
+	 *      - defaultProfilePresent             = does not matter
+	 *      - rawDataContainsProfileBasedSource = does not matter
+	 * </pre>
+	 *
+	 */
+	@Test
+	void testProcessSourceSix() {
+		boolean includeDefaultProfileData = false;
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+		String sourceName = "account-k8s";
+		Map<String, String> sourceRawData = Map.of("one", "1", "account-k8s.properties", "one=11");
+
+		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
+		Assertions.assertTrue(result);
+	}
+
+	/**
+	 * <pre>
+	 *		- request is coming from config server
+	 *		- activeProfile = ['k8s']
+	 *		- sourceName = 'account-k8s'
+	 * </pre>
+	 *
+	 * As such the above will generate:
+	 *
+	 * <pre>
+	 *     - includeDefaultProfileData         = false
+	 * 	   - emptyActiveProfiles               = false
+	 * 	   - profileBasedSourceName            = true
+	 * 	   - defaultProfilePresent             = does not matter
+	 * 	   - rawDataContainsProfileBasedSource = does not matter
+	 * </pre>
+	 *
+	 * In this case, a few types of data will be read:
+	 *
+	 * <pre>
+	 *     - all simple properties
+	 *     - all nested ones (yaml/yml/properties themselves) that match "${SOURCE_NAME}.{EXTENSION}"
+	 *       (in our case 'account.properties')
+	 *     - all nested ones (yaml/yml/properties themselves) that match "${SOURCE_NAME}-${ACTIVE_PROFILE}.{EXTENSION}"
+	 *       (in our case 'account-k8s.properties')
+	 *     - there are strict sorting rules if both of the above are matched
+	 * </pre>
+	 */
+	@Test
+	void testProcessNamedDataSix(CapturedOutput output) {
+		// @formatter:off
+		Map<String, String> sourceRawData = Map.of(
+			"one", "1",
+			"two", "2",
+			"account.properties", "one=11\nthree=3",
+			"account-default.properties", "one=111\nfour=4",
+			"account-k8s.properties", "one=1111\nfive=5",
+			"account-prod.properties", "six=6"
+		);
+		// @formatter:on
+		String sourceName = "account-k8s";
+		List<StrippedSourceContainer> strippedSources = List
+			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", "account");
+		environment.setActiveProfiles("k8s");
+		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
+		String namespace = "namespace-a";
+		boolean decode = false;
+		boolean includeDefaultProfileData = false;
+
+		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
+			namespace, decode, includeDefaultProfileData);
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(result.names().toString(), "[account-k8s]");
+
+		/**
+		 * <pre>
+		 * there are some things to see here:
+		 *
+		 * 		1. 'one=1' is not present in the result, we are not supposed to read simple properties.
+		 * 	    2. 'two-2' is not present in the result, we are not supposed to read simple properties.
+		 * 		3. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
+		 *    	   since simple properties override the ones from yml/yaml/properties
+		 *    	4. 'three=3' is not present in the result, we are not supposed to read '${SPRING>APPLICATION.NAME}'
+		 *          properties.
+		 *      5. 'four=4' is not present in the result, which means we have not read 'account-default.properties'
+		 *          (but we don't have 'one=111', instead : 'one=1')
+		 * 		6. we do not have 'three=3' since we do not read 'account-default.properties'
+		 * 	    7. we do not have 'six=6' since we do not read 'account-prod.properties'
+		 * 	       (because 'prod' is not an active profile)
+		 * </pre>
+		 */
+		Assertions.assertEquals(result.data(), Map.of("one", "1111", "five", "5"));
+		Assertions.assertTrue(output.getOut().contains("entry : account-prod.properties will be skipped"));
+		Assertions.assertTrue(output.getOut().contains("entry : account.properties will be skipped"));
+		Assertions.assertTrue(output.getOut().contains("entry : account-default.properties will be skipped"));
+
 	}
 
 }
