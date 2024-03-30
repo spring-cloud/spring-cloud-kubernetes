@@ -166,11 +166,11 @@ class ConfigUtilsProcessSourceTests {
 		 * there are some things to see here:
 		 *
 		 * 		1. 'three=3' is present in the result, which means we have read 'account.properties'
-		 * 	.   2. 'five=5' is present in the result, which means we have read 'account-default.properties'
-		 * 		2. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
-		 *    	   since simple properties override the ones from yml/yaml/properties
-		 * 		3. 'four=4' is not present in the result, because we do not read 'account-k8s.properties',
-		 *         since 'k8s' is not an active profile.
+		 *		2. 'five=5' is present in the result, which means we have read 'account-default.properties'
+		 *		3. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
+		 *			since simple properties override the ones from yml/yaml/properties
+		 *		4. 'four=4' is not present in the result, because we do not read 'account-k8s.properties',
+		 *			since 'k8s' is not an active profile.
 		 * </pre>
 		 */
 		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
@@ -277,9 +277,9 @@ class ConfigUtilsProcessSourceTests {
 	 * <pre>
 	 *		- includeDefaultProfileData         = false
 	 * 		- emptyActiveProfiles               = false
-	 *  	- profileBasedSourceName            = false
-	 *      - defaultProfilePresent             = false
-	 *      - rawDataContainsProfileBasedSource = false
+	 *		- profileBasedSourceName            = false
+	 *		- defaultProfilePresent             = false
+	 *		- rawDataContainsProfileBasedSource = false
 	 * </pre>
 	 *
 	 */
@@ -459,16 +459,16 @@ class ConfigUtilsProcessSourceTests {
 		 * there are some things to see here:
 		 *
 		 * 		1. 'one=1' is not present in the result, we are not supposed to read simple properties.
-		 * 	    2. 'two-2' is not present in the result, we are not supposed to read simple properties.
-		 * 		3. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
-		 *    	   since simple properties override the ones from yml/yaml/properties
-		 *    	4. 'three=3' is not present in the result, we are not supposed to read '${SPRING>APPLICATION.NAME}'
-		 *          properties.
-		 *      5. 'four=4' is not present in the result, which means we have not read 'account-default.properties'
-		 *          (but we don't have 'one=111', instead : 'one=1')
-		 * 		6. we do not have 'three=3' since we do not read 'account-default.properties'
-		 * 	    7. we do not have 'six=6' since we do not read 'account-prod.properties'
-		 * 	       (because 'prod' is not an active profile)
+		 *		2. 'two-2' is not present in the result, we are not supposed to read simple properties.
+		 *		3. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
+		 *			since simple properties override the ones from yml/yaml/properties
+		 *		4. 'three=3' is not present in the result, we are not supposed to read '${SPRING>APPLICATION.NAME}'
+		 *			properties.
+		 *		5. 'four=4' is not present in the result, which means we have not read 'account-default.properties'
+		 *			(but we don't have 'one=111', instead : 'one=1')
+		 *		6. we do not have 'three=3' since we do not read 'account-default.properties'
+		 *		7. we do not have 'six=6' since we do not read 'account-prod.properties'
+		 *			(because 'prod' is not an active profile)
 		 * </pre>
 		 */
 		Assertions.assertEquals(result.data(), Map.of("one", "1111", "five", "5"));
