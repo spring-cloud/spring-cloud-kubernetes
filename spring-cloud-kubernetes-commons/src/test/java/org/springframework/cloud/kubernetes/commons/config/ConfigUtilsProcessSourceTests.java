@@ -23,6 +23,9 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -32,6 +35,7 @@ import org.springframework.mock.env.MockEnvironment;
  *
  * @author wind57
  */
+@ExtendWith(OutputCaptureExtension.class)
 class ConfigUtilsProcessSourceTests {
 
 	/**
@@ -120,22 +124,24 @@ class ConfigUtilsProcessSourceTests {
 	 * 	   - rawDataContainsProfileBasedSource = does not matter
 	 * </pre>
 	 *
-	 * In this case, two types of properties will be read from the source:
+	 * In this case, three types of properties will be read from the source:
 	 *
 	 * <pre>
 	 *     - all simple properties
 	 *     - all nested ones (yaml/yml/properties themselves) that match "${SOURCE_NAME}.{EXTENSION}"
 	 *       (in our case 'account.properties')
+	 *     - all nested ones (yaml/yml/properties themselves) that match "${SOURCE_NAME}-${ACTIVE_PROFILE}.{EXTENSION}"
+	 *       (in our case 'account-default.properties')
 	 *     - there are strict sorting rules if both of the above are matched
 	 * </pre>
 	 */
 	@Test
-	void testProcessNamedDataTwo() {
+	void testProcessNamedDataTwo(CapturedOutput output) {
 		// @formatter:off
 		Map<String, String> sourceRawData = Map.of(
 			"one", "1",
 			"two", "2",
-			//"account-default.properties", "five=5",
+			"account-default.properties", "five=5",
 			"account.properties", "one=11\nthree=3",
 			"account-k8s.properties", "one=22\nfour=4"
 		);
@@ -160,13 +166,15 @@ class ConfigUtilsProcessSourceTests {
 		 * there are some things to see here:
 		 *
 		 * 		1. 'three=3' is present in the result, which means we have read 'account.properties'
+		 * 	.   2. 'five=5' is present in the result, which means we have read 'account-default.properties'
 		 * 		2. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
 		 *    	   since simple properties override the ones from yml/yaml/properties
 		 * 		3. 'four=4' is not present in the result, because we do not read 'account-k8s.properties',
 		 *         since 'k8s' is not an active profile.
 		 * </pre>
 		 */
-		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3"));
+		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
+		Assertions.assertTrue(output.getOut().contains("entry : account-k8s.properties will be skipped"));
 	}
 
 	/**
@@ -209,29 +217,32 @@ class ConfigUtilsProcessSourceTests {
 	 * 	   - rawDataContainsProfileBasedSource = does not matter
 	 * </pre>
 	 *
-	 * In this case, two types of properties will be read from the source:
+	 * In this case, three types of properties will be read from the source:
 	 *
 	 * <pre>
-	 *     - none from simple properties
-	 *     - all nested ones (yaml/yml/properties themselves) that match "${SOURCE_NAME}-${ACTIVE-PROFILE}.{EXTENSION}"
+	 *     - all simple properties
+	 *     - all nested ones (yaml/yml/properties themselves) that match "${SOURCE_NAME}.{EXTENSION}"
+	 *       (in our case 'account.properties')
+	 *     - all nested ones (yaml/yml/properties themselves) that match "${SOURCE_NAME}-${ACTIVE_PROFILE}.{EXTENSION}"
 	 *       (in our case 'account-default.properties')
+	 *     - there are strict sorting rules if both of the above are matched
 	 * </pre>
 	 */
 	@Test
-	void testProcessNamedDataThree() {
+	void testProcessNamedDataThree(CapturedOutput output) {
 		// @formatter:off
 		Map<String, String> sourceRawData = Map.of(
 			"one", "1",
 			"two", "2",
 			"account.properties", "one=11\nthree=3",
-			"account-default.properties", "one=111",
+			"account-default.properties", "one=111\nfive=5",
 			"account-k8s.properties", "one=22\nfour=4"
 		);
 		// @formatter:on
 		String sourceName = "account-default";
 		List<StrippedSourceContainer> strippedSources = List
 				.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
-		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", sourceName);
+		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", "account");
 		environment.setActiveProfiles("default");
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
 		String namespace = "namespace-a";
@@ -247,15 +258,42 @@ class ConfigUtilsProcessSourceTests {
 		 * <pre>
 		 * there are some things to see here:
 		 *
-		 * 		1. 'three=3' is present in the result, which means we have read 'account.properties'
-		 * 		2. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
+		 * 		1. 'one=1' is present in the result, which means we have read simple properties.
+		 * 	    2. 'two-2' is present in the result, which means we have read simple properties.
+		 * 		3. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
 		 *    	   since simple properties override the ones from yml/yaml/properties
-		 * 		3. 'four=4' is not present in the result, because we do not read 'account-k8s.properties',
-		 *         since 'k8s' is not an active profile.
+		 *    	4. 'three=3' is present in the result, which means we have read 'account.properties'.
+		 *      5. 'five=5' is present in the result, which means we have read 'account-default.properties'
+		 *          (but we don't have 'one=111', instead : 'one=1')
+		 * 		6. we do not have 'four=4' since we do not read 'account-k8s.properties'
 		 * </pre>
 		 */
-		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2"));
+		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
+		Assertions.assertTrue(output.getOut().contains("entry : account-k8s.properties will be skipped"));
 
+	}
+
+	/**
+	 * <pre>
+	 *		- includeDefaultProfileData         = false
+	 * 		- emptyActiveProfiles               = false
+	 *  	- profileBasedSourceName            = false
+	 *      - defaultProfilePresent             = false
+	 *      - rawDataContainsProfileBasedSource = does not matter
+	 * </pre>
+	 *
+	 * Since 'profileBasedSourceName=true', this method must return 'true'.
+	 */
+	@Test
+	void testProcessSourceFour() {
+		boolean includeDefaultProfileData = false;
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("default");
+		String sourceName = "account-default";
+		Map<String, String> sourceRawData = Map.of();
+
+		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
+		Assertions.assertTrue(result);
 	}
 
 }
