@@ -55,10 +55,10 @@ public final class ConfigUtils {
 	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
 
 	// sourceName (configmap or secret name) ends with : "-dev.yaml" or the like.
-	private static final BiPredicate<String, String> ENDS_WITH_PROFILE_AND_EXTENSION =
-		(sourceName, activeProfile) -> sourceName.endsWith("-" + activeProfile + ".yml") ||
-			sourceName.endsWith("-" + activeProfile + ".yaml") ||
-			sourceName.endsWith("-" + activeProfile + ".properties");
+	private static final BiPredicate<String, String> ENDS_WITH_PROFILE_AND_EXTENSION = (sourceName,
+			activeProfile) -> sourceName.endsWith("-" + activeProfile + ".yml")
+					|| sourceName.endsWith("-" + activeProfile + ".yaml")
+					|| sourceName.endsWith("-" + activeProfile + ".properties");
 
 	private ConfigUtils() {
 	}
@@ -216,7 +216,7 @@ public final class ConfigUtils {
 
 				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
 					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
-						environment, includeDefaultProfileData));
+							environment, includeDefaultProfileData));
 				}
 			}
 		});
@@ -224,35 +224,34 @@ public final class ConfigUtils {
 		return new MultipleSourcesContainer(foundSourceNames, data);
 	}
 
-	static boolean processSource(boolean includeDefaultProfileData, Environment environment,
-			String sourceName, Map<String, String> sourceRawData) {
+	static boolean processSource(boolean includeDefaultProfileData, Environment environment, String sourceName,
+			Map<String, String> sourceRawData) {
 		Set<String> activeProfiles = Arrays.stream(environment.getActiveProfiles()).collect(Collectors.toSet());
 
 		boolean emptyActiveProfiles = activeProfiles.isEmpty();
 
 		boolean profileBasedSourceName = activeProfiles.stream()
-			.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile));
+				.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile));
 
 		boolean defaultProfilePresent = activeProfiles.contains("default");
 
-		return includeDefaultProfileData || emptyActiveProfiles || profileBasedSourceName || defaultProfilePresent ||
-				rawDataContainsProfileBasedSource(activeProfiles, sourceRawData).getAsBoolean();
+		return includeDefaultProfileData || emptyActiveProfiles || profileBasedSourceName || defaultProfilePresent
+				|| rawDataContainsProfileBasedSource(activeProfiles, sourceRawData).getAsBoolean();
 	}
 
 	/*
-	 * this one is not inlined into 'processSource' because other filters, that come before it,
-	 * might have already resolved to 'true', so no need to compute it at all.
+	 * this one is not inlined into 'processSource' because other filters, that come
+	 * before it, might have already resolved to 'true', so no need to compute it at all.
 	 *
-	 * This method is supposed to answer the question if raw data that a certain source (configmap or secret)
-	 * has entries that are themselves profile based yaml/yml/properties.
-	 * For example: 'account-k8s.yaml' or the like.
+	 * This method is supposed to answer the question if raw data that a certain source
+	 * (configmap or secret) has entries that are themselves profile based
+	 * yaml/yml/properties. For example: 'account-k8s.yaml' or the like.
 	 */
 	static BooleanSupplier rawDataContainsProfileBasedSource(Set<String> activeProfiles,
 			Map<String, String> sourceRawData) {
-		return () ->
-			Optional.ofNullable(sourceRawData).orElse(Map.of())
-				.keySet().stream().anyMatch(keyName -> activeProfiles.stream().anyMatch(activeProfile ->
-					ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
+		return () -> Optional.ofNullable(sourceRawData).orElse(Map.of()).keySet().stream()
+				.anyMatch(keyName -> activeProfiles.stream()
+						.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
 	}
 
 	/**

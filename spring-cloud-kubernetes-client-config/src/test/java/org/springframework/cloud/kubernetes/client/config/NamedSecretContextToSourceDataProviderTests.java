@@ -221,7 +221,8 @@ class NamedSecretContextToSourceDataProviderTests {
 				true, true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.addActiveProfile("with-profile");
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment, false);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				false);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
