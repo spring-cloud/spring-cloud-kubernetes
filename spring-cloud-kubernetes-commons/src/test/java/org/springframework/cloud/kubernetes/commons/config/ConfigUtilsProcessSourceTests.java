@@ -258,14 +258,14 @@ class ConfigUtilsProcessSourceTests {
 		 * <pre>
 		 * there are some things to see here:
 		 *
-		 * 		1. 'one=1' is present in the result, which means we have read simple properties.
-		 * 	    2. 'two-2' is present in the result, which means we have read simple properties.
-		 * 		3. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
-		 *    	   since simple properties override the ones from yml/yaml/properties
-		 *    	4. 'three=3' is present in the result, which means we have read 'account.properties'.
-		 *      5. 'five=5' is present in the result, which means we have read 'account-default.properties'
-		 *          (but we don't have 'one=111', instead : 'one=1')
-		 * 		6. we do not have 'four=4' since we do not read 'account-k8s.properties'
+		 *		1. 'one=1' is present in the result, which means we have read simple properties.
+		 *		2. 'two-2' is present in the result, which means we have read simple properties.
+		 *		3. even if we have read 'account.properties', we have 'one=1' (and not 'one=11'),
+		 *			since simple properties override the ones from yml/yaml/properties
+		 *		4. 'three=3' is present in the result, which means we have read 'account.properties'.
+		 *		5. 'five=5' is present in the result, which means we have read 'account-default.properties'
+		 *			(but we don't have 'one=111', instead : 'one=1')
+		 *		6. we do not have 'four=4' since we do not read 'account-k8s.properties'
 		 * </pre>
 		 */
 		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
