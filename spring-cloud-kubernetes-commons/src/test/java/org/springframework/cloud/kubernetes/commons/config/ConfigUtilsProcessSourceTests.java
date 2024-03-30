@@ -22,8 +22,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.core.env.Environment;
@@ -353,7 +353,7 @@ class ConfigUtilsProcessSourceTests {
 		// @formatter:on
 		String sourceName = "account";
 		List<StrippedSourceContainer> strippedSources = List
-			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+				.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
 		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", sourceName);
 		environment.setActiveProfiles("k8s");
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
@@ -362,7 +362,7 @@ class ConfigUtilsProcessSourceTests {
 		boolean includeDefaultProfileData = false;
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
-			namespace, decode, includeDefaultProfileData);
+				namespace, decode, includeDefaultProfileData);
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.names().toString(), "[account]");
 
@@ -441,7 +441,7 @@ class ConfigUtilsProcessSourceTests {
 		// @formatter:on
 		String sourceName = "account-k8s";
 		List<StrippedSourceContainer> strippedSources = List
-			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+				.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
 		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", "account");
 		environment.setActiveProfiles("k8s");
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
@@ -450,7 +450,7 @@ class ConfigUtilsProcessSourceTests {
 		boolean includeDefaultProfileData = false;
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
-			namespace, decode, includeDefaultProfileData);
+				namespace, decode, includeDefaultProfileData);
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.names().toString(), "[account-k8s]");
 
