@@ -36,6 +36,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecret
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -77,9 +78,9 @@ public class KubernetesConfigServerAutoConfiguration {
 			namespaces.forEach(space -> {
 
 				NamedConfigMapNormalizedSource source = new NamedConfigMapNormalizedSource(applicationName, space,
-						false, true);
+						false, ConfigUtils.Prefix.DEFAULT, true, true);
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
-						springEnv);
+						springEnv, false);
 
 				propertySources.add(new KubernetesClientConfigMapPropertySource(context));
 			});
@@ -96,9 +97,10 @@ public class KubernetesConfigServerAutoConfiguration {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
 			namespaces.forEach(space -> {
-				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false, false);
+				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false,
+						ConfigUtils.Prefix.DEFAULT, true, true);
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
-						springEnv);
+						springEnv, false);
 				propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			});
 
