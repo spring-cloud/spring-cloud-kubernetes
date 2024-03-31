@@ -54,6 +54,8 @@ public final class ServicePortSecureResolver {
 		String serviceName = input.serviceName();
 		ServicePortNameAndNumber portData = input.portData();
 
+		Integer portNumber = portData.portNumber();
+
 		Optional<String> securedLabelValue = Optional.ofNullable(input.serviceLabels().get(SECURED));
 		if (securedLabelValue.isPresent() && TRUTHY_STRINGS.contains(securedLabelValue.get())) {
 			logEntry(serviceName, portData.portNumber(), "the service contains a true value for the 'secured' label");
@@ -67,7 +69,7 @@ public final class ServicePortSecureResolver {
 			return true;
 		}
 
-		if (properties.knownSecurePorts().contains(portData.portNumber())) {
+		if (portNumber != null && properties.knownSecurePorts().contains(portData.portNumber())) {
 			logEntry(serviceName, portData.portNumber(), "port is known to be a https port");
 			return true;
 		}

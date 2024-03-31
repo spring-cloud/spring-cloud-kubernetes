@@ -67,7 +67,11 @@ public abstract class NamedSourceData {
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.data());
+		return new SourceData(generateSourceName(target, names, namespace, activeProfiles), data.data());
+	}
+
+	protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles) {
+		return ConfigUtils.sourceName(target, sourceName, namespace);
 	}
 
 	/**
