@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
@@ -43,9 +44,18 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 
 			return new NamedSourceData() {
 				@Override
+				protected String generateSourceName(String target, String sourceName, String namespace,
+						String[] activeProfiles) {
+					if (source.appendProfileToName()) {
+						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
+					}
+					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
+				}
+
+				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
 					return KubernetesClientConfigUtils.configMapsDataByName(context.client(), context.namespace(),
-							sourceNames, context.environment());
+							sourceNames, context.environment(), context.includeDefaultProfileData());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
 					source.failFast(), context.namespace(), context.environment().getActiveProfiles());

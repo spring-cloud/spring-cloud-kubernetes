@@ -136,6 +136,24 @@ class SourceDataEntriesProcessorSortedTests {
 	}
 
 	@Test
+	void testSimplePropertyAndTwoApplicationsDoNotIncludeDefaultProfile() {
+
+		Map<String, String> k8sSource = new LinkedHashMap<>();
+		k8sSource.put("simple", "other_value");
+		k8sSource.put("application.properties", "key=value");
+		k8sSource.put("application-dev.properties", "key-dev=value-dev");
+
+		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment.setActiveProfiles("dev");
+
+		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment, false);
+		Assertions.assertEquals(1, result.size());
+
+		Assertions.assertEquals(result.get(0).getKey(), "application-dev.properties");
+		Assertions.assertEquals(result.get(0).getValue(), "key-dev=value-dev");
+	}
+
+	@Test
 	void testComplex() {
 
 		Map<String, String> k8sSource = new LinkedHashMap<>();

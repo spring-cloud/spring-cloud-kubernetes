@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.apache.commons.logging.Log;
@@ -26,6 +29,7 @@ import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.StringUtils;
 
@@ -36,11 +40,11 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesEnvironmentRepository.class);
 
-	private CoreV1Api coreApi;
+	private final CoreV1Api coreApi;
 
-	private List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers;
+	private final List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers;
 
-	private String namespace;
+	private final String namespace;
 
 	public KubernetesEnvironmentRepository(CoreV1Api coreApi,
 			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers, String namespace) {
@@ -56,29 +60,52 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 
 	@Override
 	public Environment findOne(String application, String profile, String label, boolean includeOrigin) {
-		String[] profiles = StringUtils.commaDelimitedListToStringArray(profile);
+		if (!StringUtils.hasText(profile)) {
+			profile = "default";
+		}
+		List<String> profiles = new ArrayList<>(List.of(StringUtils.commaDelimitedListToStringArray(profile)));
+
+		Collections.reverse(profiles);
+		if (!profiles.contains("default")) {
+			profiles.add("default");
+		}
+		Environment environment = new Environment(application, profiles.toArray(profiles.toArray(new String[0])), label,
+				null, null);
 		LOG.info("Profiles: " + profile);
 		LOG.info("Application: " + application);
 		LOG.info("Label: " + label);
-		Environment environment = new Environment(application, profiles, label, null, null);
-		try {
-			StandardEnvironment springEnv = new StandardEnvironment();
-			springEnv.setActiveProfiles(profiles);
-			if (!"application".equalsIgnoreCase(application)) {
-				addApplicationConfiguration(environment, springEnv, application);
+		for (String activeProfile : profiles) {
+			try {
+				// This is needed so that when we get the application name in
+				// SourceDataProcessor.sorted that it actually
+				// exists in the Environment
+				StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(
+						createPropertySources(application));
+				springEnv.setActiveProfiles(activeProfile);
+				if (!"application".equalsIgnoreCase(application)) {
+					addApplicationConfiguration(environment, springEnv, application);
+				}
 			}
-			addApplicationConfiguration(environment, springEnv, "application");
-			return environment;
+			catch (Exception e) {
+				LOG.warn(e);
+			}
 		}
-		catch (Exception e) {
-			LOG.warn(e);
-		}
+		StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(createPropertySources("application"));
+		addApplicationConfiguration(environment, springEnv, "application");
 		return environment;
+	}
+
+	private MutablePropertySources createPropertySources(String application) {
+		Map<String, Object> applicationProperties = Map.of("spring.application.name", application);
+		MapPropertySource propertySource = new MapPropertySource("kubernetes-config-server", applicationProperties);
+		MutablePropertySources mutablePropertySources = new MutablePropertySources();
+		mutablePropertySources.addFirst(propertySource);
+		return mutablePropertySources;
 	}
 
 	private void addApplicationConfiguration(Environment environment, StandardEnvironment springEnv,
 			String applicationName) {
-		kubernetesPropertySourceSuppliers.stream().forEach(supplier -> {
+		kubernetesPropertySourceSuppliers.forEach(supplier -> {
 			List<MapPropertySource> propertySources = supplier.get(coreApi, applicationName, namespace, springEnv);
 			propertySources.forEach(propertySource -> {
 				if (propertySource.getPropertyNames().length > 0) {
