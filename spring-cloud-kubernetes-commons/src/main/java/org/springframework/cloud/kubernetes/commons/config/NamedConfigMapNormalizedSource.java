@@ -29,18 +29,25 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	private final boolean includeProfileSpecificSources;
 
+	private final boolean appendProfileToName;
+
 	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
 			boolean includeProfileSpecificSources) {
-		super(name, namespace, failFast);
-		this.prefix = Objects.requireNonNull(prefix);
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
+		this(name, namespace, failFast, prefix, includeProfileSpecificSources, false);
 	}
 
 	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast,
 			boolean includeProfileSpecificSources) {
+		this(name, namespace, failFast, ConfigUtils.Prefix.DEFAULT, includeProfileSpecificSources);
+	}
+
+	public NamedConfigMapNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
+			boolean includeProfileSpecificSources, boolean appendProfileToName) {
 		super(name, namespace, failFast);
-		this.prefix = ConfigUtils.Prefix.DEFAULT;
+		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
+		this.appendProfileToName = appendProfileToName;
+
 	}
 
 	public ConfigUtils.Prefix prefix() {
@@ -49,6 +56,14 @@ public final class NamedConfigMapNormalizedSource extends NormalizedSource {
 
 	public boolean profileSpecificSources() {
 		return includeProfileSpecificSources;
+	}
+
+	/**
+	 * append or not the active profiles to the name of the generated source. At the
+	 * moment this is true only for config server generated sources.
+	 */
+	public boolean appendProfileToName() {
+		return appendProfileToName;
 	}
 
 	@Override

@@ -66,8 +66,13 @@ class Fabric8ServiceInstanceMapperTests {
 	void testMapperSecure() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		Service service = buildService("test", "test-namespace", "abc", 443, null, Map.of());
-		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
-				KubernetesDiscoveryProperties.DEFAULT).map(service);
+
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
+				true, 60, false, null, Set.of(443, 8443), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+
+		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
+				.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -78,8 +83,8 @@ class Fabric8ServiceInstanceMapperTests {
 	void testMapperSecureNullLabelsAndAnnotations() {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
-				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				false);
+				true, 60, false, null, Set.of(443, 8443), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(443).build());
 		Service service = buildService("test", "test-namespace", "abc", ports, null, null);
