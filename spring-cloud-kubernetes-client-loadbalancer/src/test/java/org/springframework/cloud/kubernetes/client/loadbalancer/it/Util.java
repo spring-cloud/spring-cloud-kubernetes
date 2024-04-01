@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.loadbalancer.it;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
@@ -70,6 +69,8 @@ public final class Util {
 	}
 
 	public static void servicesServiceMode(WireMockServer server, V1ServiceList serviceList, String serviceName) {
+		// resourceVersion=0 is passed only from the watcher, so this mocks the
+		// 'postConstruct' in the KubernetesInformerDiscoveryClient
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/services*"))
 				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
 				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200)));
@@ -86,6 +87,8 @@ public final class Util {
 
 	public static void endpointsServiceMode(WireMockServer server, V1EndpointsList endpointsList,
 			String endpointsName) {
+		// resourceVersion=0 is passed only from the watcher, so this mocks the
+		// 'postConstruct' in the KubernetesInformerDiscoveryClient
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/endpoints*"))
 				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
 				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200)));
@@ -102,6 +105,8 @@ public final class Util {
 
 	public static void servicesInNamespaceServiceMode(WireMockServer server, V1ServiceList serviceList,
 			String namespace, String serviceName) {
+		// resourceVersion=0 is passed only from the watcher, so this mocks the
+		// 'postConstruct' in the KubernetesInformerDiscoveryClient
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/namespaces/" + namespace + "/services*"))
 				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
 				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200)));
@@ -120,6 +125,8 @@ public final class Util {
 
 	public static void endpointsInNamespaceServiceMode(WireMockServer server, V1EndpointsList endpointsList,
 			String namespace, String endpointsName) {
+		// resourceVersion=0 is passed only from the watcher, so this mocks the
+		// 'postConstruct' in the KubernetesInformerDiscoveryClient
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/namespaces/" + namespace + "/endpoints*"))
 				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
 				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200)));
