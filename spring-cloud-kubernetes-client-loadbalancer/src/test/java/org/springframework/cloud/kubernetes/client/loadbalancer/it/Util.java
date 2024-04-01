@@ -65,21 +65,14 @@ public final class Util {
 	}
 
 	public static void servicesPodMode(WireMockServer server, V1ServiceList serviceList) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/services*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200)));
 	}
 
 	public static void servicesServiceMode(WireMockServer server, V1ServiceList serviceList, String serviceName) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/services*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200)));
 
 		server.stubFor(
 				WireMock.get(WireMock.urlEqualTo("/api/v1/services?fieldSelector=metadata.name%3D" + serviceName))
@@ -87,22 +80,15 @@ public final class Util {
 	}
 
 	public static void endpointsPodMode(WireMockServer server, V1EndpointsList endpointsList) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/endpoints*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200)));
 	}
 
 	public static void endpointsServiceMode(WireMockServer server, V1EndpointsList endpointsList,
 			String endpointsName) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/endpoints*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200)));
 
 		server.stubFor(WireMock
 				.get(WireMock.urlEqualTo("/api/v1/endpoints?fieldSelector=metadata.name%3D" + endpointsName))
@@ -110,22 +96,15 @@ public final class Util {
 	}
 
 	public static void servicesInNamespacePodMode(WireMockServer server, V1ServiceList serviceList, String namespace) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/namespaces/" + namespace + "/services*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200)));
 	}
 
 	public static void servicesInNamespaceServiceMode(WireMockServer server, V1ServiceList serviceList,
 			String namespace, String serviceName) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/namespaces/" + namespace + "/services*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(serviceList)).withStatus(200)));
 
 		server.stubFor(WireMock
 				.get(WireMock.urlEqualTo(
@@ -135,22 +114,15 @@ public final class Util {
 
 	public static void endpointsInNamespacePodMode(WireMockServer server, V1EndpointsList endpointsList,
 			String namespace) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/namespaces/" + namespace + "/endpoints*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200)));
 	}
 
 	public static void endpointsInNamespaceServiceMode(WireMockServer server, V1EndpointsList endpointsList,
 			String namespace, String endpointsName) {
-		// we change the state here, so that watcher "fails" for the second call
-		// we do not need another watch event for our test
-		// otherwise, the test will pass, but we will get too many logs
 		server.stubFor(WireMock.get(WireMock.urlPathMatching("^/api/v1/namespaces/" + namespace + "/endpoints*"))
-				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200))
-				.inScenario("first").whenScenarioStateIs(Scenario.STARTED).willSetStateTo("second"));
+				.withQueryParam("resourceVersion", WireMock.equalTo("0"))
+				.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200)));
 
 		server.stubFor(WireMock
 				.get(WireMock.urlEqualTo("/api/v1/namespaces/" + namespace + "/endpoints?fieldSelector=metadata.name%3D"
