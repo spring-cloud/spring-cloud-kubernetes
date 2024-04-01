@@ -29,22 +29,36 @@ public final class NamedSecretNormalizedSource extends NormalizedSource {
 
 	private final boolean includeProfileSpecificSources;
 
+	private final boolean appendProfileToName;
+
 	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
-			boolean includeProfileSpecificSources) {
+			boolean includeProfileSpecificSources, boolean appendProfileToName) {
 		super(name, namespace, failFast);
 		this.prefix = Objects.requireNonNull(prefix);
 		this.includeProfileSpecificSources = includeProfileSpecificSources;
+		this.appendProfileToName = appendProfileToName;
 	}
 
 	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast,
 			boolean includeProfileSpecificSources) {
-		super(name, namespace, failFast);
-		this.prefix = ConfigUtils.Prefix.DEFAULT;
-		this.includeProfileSpecificSources = includeProfileSpecificSources;
+		this(name, namespace, failFast, ConfigUtils.Prefix.DEFAULT, includeProfileSpecificSources, false);
+	}
+
+	public NamedSecretNormalizedSource(String name, String namespace, boolean failFast, ConfigUtils.Prefix prefix,
+			boolean includeProfileSpecificSources) {
+		this(name, namespace, failFast, prefix, includeProfileSpecificSources, false);
 	}
 
 	public boolean profileSpecificSources() {
 		return includeProfileSpecificSources;
+	}
+
+	/**
+	 * append or not the active profiles to the name of the generated source. At the
+	 * moment this is true only for config server generated sources.
+	 */
+	public boolean appendProfileToName() {
+		return appendProfileToName;
 	}
 
 	public ConfigUtils.Prefix prefix() {

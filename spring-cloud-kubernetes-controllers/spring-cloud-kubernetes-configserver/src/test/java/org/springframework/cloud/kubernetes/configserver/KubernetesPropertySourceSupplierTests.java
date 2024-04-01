@@ -49,7 +49,7 @@ class KubernetesPropertySourceSupplierTests {
 	private static final CoreV1Api coreApi = mock(CoreV1Api.class);
 
 	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = new V1ConfigMapList()
-			.addItemsItem(buildConfigMap("gateway", "tdefault"));
+			.addItemsItem(buildConfigMap("gateway", "default"));
 
 	private static final V1ConfigMapList CONFIGMAP_TEAM_A_LIST = new V1ConfigMapList()
 			.addItemsItem(buildConfigMap("stores", "team-a"));

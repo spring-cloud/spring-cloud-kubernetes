@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -33,11 +31,18 @@ public interface KubernetesPropertySourceSupplier {
 
 	List<MapPropertySource> get(CoreV1Api coreV1Api, String name, String namespace, Environment environment);
 
+	/*
+	 * return either a List containing 'currentNamespace' (if 'namespacesString' is empty
+	 * or null), or a List of comma delimited tokens (namespaces) from 'namespacesString'.
+	 *
+	 * 'currentNamespace' can be treated logically as the "default namespace" to use, if
+	 * the other argument is not provided.
+	 */
 	static List<String> namespaceSplitter(String namespacesString, String currentNamespace) {
-		List<String> namespaces = Collections.singletonList(currentNamespace);
+		List<String> namespaces = List.of(currentNamespace);
 		String[] namespacesArray = StringUtils.commaDelimitedListToStringArray(namespacesString);
 		if (namespacesArray.length > 0) {
-			namespaces = Arrays.asList(namespacesArray);
+			namespaces = List.of(namespacesArray);
 		}
 		return namespaces;
 	}
