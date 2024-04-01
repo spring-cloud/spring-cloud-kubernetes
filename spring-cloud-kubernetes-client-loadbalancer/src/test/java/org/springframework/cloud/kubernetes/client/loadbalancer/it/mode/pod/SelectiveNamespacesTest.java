@@ -185,36 +185,36 @@ class SelectiveNamespacesTest {
 		V1Service serviceC = Util.service("c", "my-service", SERVICE_C_PORT);
 
 		V1ServiceList serviceListA = new V1ServiceListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-			.withItems(serviceA).build();
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(serviceA).build();
 		V1ServiceList serviceListB = new V1ServiceListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-			.withItems(serviceB).build();
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(serviceB).build();
 		V1ServiceList serviceListC = new V1ServiceListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-			.withItems(serviceC).build();
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(serviceC).build();
 
-		Util.servicesListerInNamespace(wireMockServer, serviceListA, "a");
-		Util.servicesListerInNamespace(wireMockServer, serviceListB, "b");
-		Util.servicesListerInNamespace(wireMockServer, serviceListC, "c");
+		Util.servicesInNamespacePodMode(wireMockServer, serviceListA, "a");
+		Util.servicesInNamespacePodMode(wireMockServer, serviceListB, "b");
+		Util.servicesInNamespacePodMode(wireMockServer, serviceListC, "c");
 
 		V1Endpoints endpointsA = Util.endpoints("a", "my-service", SERVICE_A_PORT, "127.0.0.1");
 		V1Endpoints endpointsB = Util.endpoints("b", "my-service", SERVICE_B_PORT, "127.0.0.1");
 		V1Endpoints endpointsC = Util.endpoints("c", "my-service", SERVICE_C_PORT, "127.0.0.1");
 
 		V1EndpointsList endpointsListA = new V1EndpointsListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-			.withItems(endpointsA).build();
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(endpointsA).build();
 		V1EndpointsList endpointsListB = new V1EndpointsListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-			.withItems(endpointsB).build();
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(endpointsB).build();
 		V1EndpointsList endpointsListC = new V1EndpointsListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-			.withItems(endpointsC).build();
+				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
+				.withItems(endpointsC).build();
 
-		Util.endpointsListerInNamespace(wireMockServer, endpointsListA, "a");
-		Util.endpointsListerInNamespace(wireMockServer, endpointsListB, "b");
-		Util.endpointsListerInNamespace(wireMockServer, endpointsListC, "c");
+		Util.endpointsInNamespacePodMode(wireMockServer, endpointsListA, "a");
+		Util.endpointsInNamespacePodMode(wireMockServer, endpointsListB, "b");
+		Util.endpointsInNamespacePodMode(wireMockServer, endpointsListC, "c");
 	}
 
 }

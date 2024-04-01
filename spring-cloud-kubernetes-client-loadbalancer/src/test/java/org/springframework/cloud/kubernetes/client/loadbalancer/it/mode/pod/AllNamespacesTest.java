@@ -160,20 +160,18 @@ class AllNamespacesTest {
 	private static void mockWatchers() {
 		V1Service serviceA = Util.service("a", "service-a", SERVICE_A_PORT);
 		V1Service serviceB = Util.service("b", "service-b", SERVICE_B_PORT);
-		V1ServiceList serviceList = new V1ServiceListBuilder()
-				.withKind("V1ServiceList")
+		V1ServiceList serviceList = new V1ServiceListBuilder().withKind("V1ServiceList")
 				.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
 				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
 				.withItems(serviceA, serviceB).build();
-		Util.servicesLister(wireMockServer, serviceList);
+		Util.servicesPodMode(wireMockServer, serviceList);
 
 		V1Endpoints endpointsA = Util.endpoints("a", "service-a", SERVICE_A_PORT, "127.0.0.1");
 		V1Endpoints endpointsB = Util.endpoints("b", "service-b", SERVICE_B_PORT, "127.0.0.1");
-		V1EndpointsList endpointsList = new V1EndpointsListBuilder()
-				.withKind("V1EndpointsList")
+		V1EndpointsList endpointsList = new V1EndpointsListBuilder().withKind("V1EndpointsList")
 				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
 				.withItems(endpointsA, endpointsB).build();
-		Util.endpointsLister(wireMockServer, endpointsList);
+		Util.endpointsPodMode(wireMockServer, endpointsList);
 	}
 
 }
