@@ -109,6 +109,7 @@ class SpecificNamespaceTest {
 
 	@AfterAll
 	static void afterAll() {
+		WireMock.shutdownServer();
 		wireMockServer.stop();
 		serviceAMockServer.stop();
 		serviceBMockServer.stop();
