@@ -214,6 +214,12 @@ public final class ConfigUtils {
 					rawData = decodeData(rawData);
 				}
 
+				/*
+				 * In some cases we want to include properties from the default profile
+				 * along with any active profiles In these cases includeDefaultProfileData
+				 * will be true If includeDefaultProfileData is false then we want to make
+				 * sure that we only return properties from any active profiles
+				 */
 				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
 					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
 							environment, includeDefaultProfileData));
@@ -226,7 +232,7 @@ public final class ConfigUtils {
 
 	static boolean processSource(boolean includeDefaultProfileData, Environment environment, String sourceName,
 			Map<String, String> sourceRawData) {
-		Set<String> activeProfiles = Arrays.stream(environment.getActiveProfiles()).collect(Collectors.toSet());
+		List<String> activeProfiles = Arrays.stream(environment.getActiveProfiles()).toList();
 
 		boolean emptyActiveProfiles = activeProfiles.isEmpty();
 
@@ -247,7 +253,7 @@ public final class ConfigUtils {
 	 * (configmap or secret) has entries that are themselves profile based
 	 * yaml/yml/properties. For example: 'account-k8s.yaml' or the like.
 	 */
-	static BooleanSupplier rawDataContainsProfileBasedSource(Set<String> activeProfiles,
+	static BooleanSupplier rawDataContainsProfileBasedSource(List<String> activeProfiles,
 			Map<String, String> sourceRawData) {
 		return () -> Optional.ofNullable(sourceRawData).orElse(Map.of()).keySet().stream()
 				.anyMatch(keyName -> activeProfiles.stream()
