@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 
 	@Test
 	void nullSourceRawData() {
-		Set<String> activeProfiles = Set.of();
+		List<String> activeProfiles = List.of();
 		Map<String, String> rawData = null;
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
@@ -40,7 +40,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 
 	@Test
 	void sourceRawDataPresentEmptyActiveProfiles() {
-		Set<String> activeProfiles = Set.of();
+		List<String> activeProfiles = List.of();
 		Map<String, String> rawData = Map.of("account-k8s.yaml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
@@ -49,7 +49,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 
 	@Test
 	void plainValuesOnly() {
-		Set<String> activeProfiles = Set.of("k8s");
+		List<String> activeProfiles = List.of("k8s");
 		Map<String, String> rawData = Map.of("account", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
@@ -58,7 +58,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 
 	@Test
 	void noMatchInActiveProfiles() {
-		Set<String> activeProfiles = Set.of("k8s");
+		List<String> activeProfiles = List.of("k8s");
 		Map<String, String> rawData = Map.of("account-dev.yml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
@@ -67,7 +67,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 
 	@Test
 	void matchInActiveProfilesWithYml() {
-		Set<String> activeProfiles = Set.of("dev");
+		List<String> activeProfiles = List.of("dev");
 		Map<String, String> rawData = Map.of("account-dev.yml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
@@ -76,7 +76,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 
 	@Test
 	void matchInActiveProfilesWithYaml() {
-		Set<String> activeProfiles = Set.of("dev", "k8s");
+		List<String> activeProfiles = List.of("dev", "k8s");
 		Map<String, String> rawData = Map.of("account-dev.yaml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
@@ -85,7 +85,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 
 	@Test
 	void matchInActiveProfilesWithProperties() {
-		Set<String> activeProfiles = Set.of("dev", "k8s");
+		List<String> activeProfiles = List.of("dev", "k8s");
 		Map<String, String> rawData = Map.of("account-dev.properties", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
