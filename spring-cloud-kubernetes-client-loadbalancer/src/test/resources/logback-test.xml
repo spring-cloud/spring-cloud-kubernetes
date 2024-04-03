@@ -3,4 +3,6 @@
 	<include resource="org/springframework/boot/logging/logback/base.xml"/>
 	<!-- needed for CapturedOutput -->
 	<logger name="org.springframework.cloud.kubernetes.client.loadbalancer" level="DEBUG"/>
+	<!-- otherwise there would be far too much logging from 'it' package -->
+	<logger name="io.kubernetes.client.informer.cache" level="OFF" />
 </configuration>
