@@ -23,7 +23,10 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -50,6 +53,12 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
 public final class ConfigUtils {
 
 	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
+
+	// sourceName (configmap or secret name) ends with : "-dev.yaml" or the like.
+	private static final BiPredicate<String, String> ENDS_WITH_PROFILE_AND_EXTENSION = (sourceName,
+			activeProfile) -> sourceName.endsWith("-" + activeProfile + ".yml")
+					|| sourceName.endsWith("-" + activeProfile + ".yaml")
+					|| sourceName.endsWith("-" + activeProfile + ".properties");
 
 	private ConfigUtils() {
 	}
@@ -205,19 +214,13 @@ public final class ConfigUtils {
 					rawData = decodeData(rawData);
 				}
 
-				// In some cases we want to include properties from the default profile
-				// along with any active profiles
-				// In these cases includeDefaultProfileData will be true
-				// If includeDefaultProfileData is false then we want to make sure that we
-				// only return properties from any active profiles
-
-				// Check the source to see if it contains any active profiles
-				boolean containsActiveProfile = environment.getActiveProfiles().length == 0
-						|| Arrays.stream(environment.getActiveProfiles())
-								.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile)
-										|| "default".equals(activeProfile));
-				if (includeDefaultProfileData || containsActiveProfile
-						|| containsDataWithProfile(rawData, environment.getActiveProfiles())) {
+				/*
+				 * In some cases we want to include properties from the default profile
+				 * along with any active profiles In these cases includeDefaultProfileData
+				 * will be true If includeDefaultProfileData is false then we want to make
+				 * sure that we only return properties from any active profiles
+				 */
+				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
 					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
 							environment, includeDefaultProfileData));
 				}
@@ -227,13 +230,34 @@ public final class ConfigUtils {
 		return new MultipleSourcesContainer(foundSourceNames, data);
 	}
 
+	static boolean processSource(boolean includeDefaultProfileData, Environment environment, String sourceName,
+			Map<String, String> sourceRawData) {
+		List<String> activeProfiles = Arrays.stream(environment.getActiveProfiles()).toList();
+
+		boolean emptyActiveProfiles = activeProfiles.isEmpty();
+
+		boolean profileBasedSourceName = activeProfiles.stream()
+				.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile));
+
+		boolean defaultProfilePresent = activeProfiles.contains("default");
+
+		return includeDefaultProfileData || emptyActiveProfiles || profileBasedSourceName || defaultProfilePresent
+				|| rawDataContainsProfileBasedSource(activeProfiles, sourceRawData).getAsBoolean();
+	}
+
 	/*
-	 * In the case there the data contains yaml or properties files we need to check their
-	 * names to see if they contain any active profiles.
+	 * this one is not inlined into 'processSource' because other filters, that come
+	 * before it, might have already resolved to 'true', so no need to compute it at all.
+	 *
+	 * This method is supposed to answer the question if raw data that a certain source
+	 * (configmap or secret) has entries that are themselves profile based
+	 * yaml/yml/properties. For example: 'account-k8s.yaml' or the like.
 	 */
-	private static boolean containsDataWithProfile(Map<String, String> rawData, String[] activeProfiles) {
-		return rawData.keySet().stream().anyMatch(key -> Arrays.stream(activeProfiles)
-				.anyMatch(activeProfile -> key.contains("-" + activeProfile) || "default".equals(activeProfile)));
+	static BooleanSupplier rawDataContainsProfileBasedSource(List<String> activeProfiles,
+			Map<String, String> sourceRawData) {
+		return () -> Optional.ofNullable(sourceRawData).orElse(Map.of()).keySet().stream()
+				.anyMatch(keyName -> activeProfiles.stream()
+						.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
 	}
 
 	/**
