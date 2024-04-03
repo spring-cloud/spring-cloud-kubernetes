@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +47,9 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
 public class SourceDataEntriesProcessor extends MapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(SourceDataEntriesProcessor.class);
+
+	private static Predicate<String> ENDS_IN_EXTENSION = x -> x.endsWith(".yml") || x.endsWith(".yaml")
+			|| x.endsWith(".properties");
 
 	public SourceDataEntriesProcessor(SourceData sourceData) {
 		super(sourceData.sourceName(), sourceData.sourceData());
@@ -92,7 +96,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 	 * 	    3. then plain properties
 	 * </pre>
 	 */
-	static List<Map.Entry<String, String>> sorted(Map<String, String> input, Environment environment,
+	static List<Map.Entry<String, String>> sorted(Map<String, String> rawData, Environment environment,
 			boolean includeDefaultProfileData) {
 
 		record WeightedEntry(Map.Entry<String, String> entry, int weight) {
@@ -124,16 +128,17 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 		int current = orderedFileNames.size() - 1;
 		List<WeightedEntry> weightedEntries = new ArrayList<>();
 
-		if (input.entrySet().stream().noneMatch(entry -> entry.getKey().endsWith(".yml")
-				|| entry.getKey().endsWith(".yaml") || entry.getKey().endsWith(".properties"))) {
-			for (Map.Entry<String, String> entry : input.entrySet()) {
+		boolean plainEntriesOnly = rawData.keySet().stream().noneMatch(ENDS_IN_EXTENSION);
+
+		if (plainEntriesOnly) {
+			for (Map.Entry<String, String> entry : rawData.entrySet()) {
 				weightedEntries.add(new WeightedEntry(entry, ++current));
 			}
 		}
 		else {
-			for (Map.Entry<String, String> entry : input.entrySet()) {
+			for (Map.Entry<String, String> entry : rawData.entrySet()) {
 				String key = entry.getKey();
-				if (key.endsWith(".yml") || key.endsWith(".yaml") || key.endsWith(".properties")) {
+				if (ENDS_IN_EXTENSION.test(key)) {
 					String withoutExtension = key.split("\\.", 2)[0];
 					int index = orderedFileNames.indexOf(withoutExtension);
 					if (index >= 0) {
