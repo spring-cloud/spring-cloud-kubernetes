@@ -285,9 +285,10 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 				.map(service);
 
-		Assertions.assertNull(result);
+		Assertions.assertNotNull(result);
 		Assertions.assertTrue(output.getOut().contains("Did not find a port name that is equal to the value three"));
-
+		Assertions.assertTrue(output.getOut().contains("Will return 'first' port found, which is non-deterministic"));
+		Assertions.assertTrue(result.getPort() == 8081 || result.getPort() == 8080);
 	}
 
 	private Service buildService(String name, String namespace, String uid, int port, String portName,

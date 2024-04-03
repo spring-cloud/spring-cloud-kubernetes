@@ -98,7 +98,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 				}
 				else {
 					logWarning(portNameFromProperties);
-					return null;
+					port = ports.get(0);
 				}
 			}
 			else {
@@ -131,6 +131,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 
 	private void logWarning(String portNameFromProperties) {
 		LOG.warn(() -> "Did not find a port name that is equal to the value " + portNameFromProperties);
+		LOG.warn(() -> "Will return 'first' port found, which is non-deterministic");
 	}
 
 }
