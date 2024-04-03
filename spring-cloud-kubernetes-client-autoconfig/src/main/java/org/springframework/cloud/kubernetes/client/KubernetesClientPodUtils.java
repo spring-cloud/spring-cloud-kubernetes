@@ -109,6 +109,9 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		}
 		catch (Throwable t) {
 			if (failFast) {
+				if (t instanceof ApiException apiException) {
+					LOG.error("error reading pod : " + apiException.getResponseBody());
+				}
 				throw new RuntimeException(t);
 			}
 			if (t instanceof ApiException apiException) {
