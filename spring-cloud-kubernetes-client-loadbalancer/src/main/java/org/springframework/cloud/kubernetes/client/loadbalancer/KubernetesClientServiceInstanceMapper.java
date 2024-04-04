@@ -28,23 +28,31 @@ import io.kubernetes.client.openapi.models.V1ServicePort;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.util.StringUtils;
+
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
+import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
 /**
  * @author Ryan Baxter
  */
 public class KubernetesClientServiceInstanceMapper implements KubernetesServiceInstanceMapper<V1Service> {
 
-	private KubernetesLoadBalancerProperties properties;
+	private final KubernetesLoadBalancerProperties properties;
 
-	private KubernetesDiscoveryProperties discoveryProperties;
+	private final KubernetesDiscoveryProperties discoveryProperties;
+
+	private final ServicePortSecureResolver resolver;
 
 	public KubernetesClientServiceInstanceMapper(KubernetesLoadBalancerProperties properties,
 			KubernetesDiscoveryProperties discoveryProperties) {
 		this.properties = properties;
 		this.discoveryProperties = discoveryProperties;
+		resolver = new ServicePortSecureResolver(discoveryProperties);
 	}
 
 	@Override
@@ -66,10 +74,11 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 		if (port == null) {
 			return null;
 		}
-		final String host = KubernetesServiceInstanceMapper.createHost(service.getMetadata().getName(),
+		String host = KubernetesServiceInstanceMapper.createHost(service.getMetadata().getName(),
 				service.getMetadata().getNamespace(), properties.getClusterDomain());
-		final boolean secure = KubernetesServiceInstanceMapper.isSecure(service.getMetadata().getLabels(),
-				service.getMetadata().getAnnotations(), port.getName(), port.getPort());
+
+		boolean secure = secure(port, service);
+
 		return new DefaultKubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
 				getServiceMetadata(service), secure);
 	}
@@ -78,17 +87,24 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 		final Map<String, String> serviceMetadata = new HashMap<>();
 		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.metadata();
 		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = KubernetesServiceInstanceMapper
-					.getMapWithPrefixedKeys(service.getMetadata().getLabels(), metadataProps.labelsPrefix());
+			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
+				metadataProps.labelsPrefix());
 			serviceMetadata.putAll(labelMetadata);
 		}
 		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = KubernetesServiceInstanceMapper
-					.getMapWithPrefixedKeys(service.getMetadata().getAnnotations(), metadataProps.annotationsPrefix());
+			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
+				metadataProps.annotationsPrefix());
 			serviceMetadata.putAll(annotationMetadata);
 		}
 
 		return serviceMetadata;
+	}
+
+	private boolean secure(V1ServicePort port, V1Service service) {
+		V1ObjectMeta metadata = service.getMetadata();
+		ServicePortNameAndNumber portNameAndNumber = new ServicePortNameAndNumber(port.getPort(), port.getName());
+		Input input = new Input(portNameAndNumber, metadata.getName(), metadata.getLabels(), metadata.getAnnotations());
+		return resolver.resolve(input);
 	}
 
 }

@@ -16,12 +16,13 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
+import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.junit.jupiter.api.Test;
@@ -39,48 +40,75 @@ import static org.assertj.core.api.Assertions.assertThat;
 class KubernetesClientServiceInstanceMapperTests {
 
 	@Test
-	void basicMap() {
+	void singlePortNonSecure() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
 				KubernetesDiscoveryProperties.DEFAULT);
 
-		V1Service service = new V1ServiceBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("database").withUid("0").withResourceVersion("0")
-						.withNamespace("default").addToAnnotations("org.springframework.cloud", "true")
-						.addToLabels("beta", "true").build())
-				.withSpec(new V1ServiceSpecBuilder()
-						.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build()).build())
-				.build();
+		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
+		Map<String, String> labels = Map.of("beta", "true");
+		List<V1ServicePort> servicePorts = List.of(
+			new V1ServicePortBuilder().withName("http").withPort(80).build()
+		);
+		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Map<String, String> metadata = new HashMap<>();
-		metadata.put("org.springframework.cloud", "true");
-		metadata.put("beta", "true");
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 80, metadata, false);
 		assertThat(serviceInstance).isEqualTo(result);
 	}
 
+	// has an annotation 'secured=true'
 	@Test
-	void multiportMap() {
+	void singlePortSecure() {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
+			KubernetesDiscoveryProperties.DEFAULT);
+
+		Map<String, String> annotations = Map.of("org.springframework.cloud", "true", "secured", "true");
+		Map<String, String> labels = Map.of("beta", "true");
+		List<V1ServicePort> servicePorts = List.of(
+			new V1ServicePortBuilder().withName("http").withPort(80).build()
+		);
+		V1Service service = createService("database", "default", annotations, labels, servicePorts);
+
+		KubernetesServiceInstance serviceInstance = mapper.map(service);
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "secured", "true");
+		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
+			"database.default.svc.cluster.local", 80, metadata, true);
+		assertThat(serviceInstance).isEqualTo(result);
+	}
+
+	@Test
+	void multiplePortsSecure() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("https");
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
 				KubernetesDiscoveryProperties.DEFAULT);
 
-		V1Service service = new V1ServiceBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("database").withUid("0").withResourceVersion("0")
-						.withNamespace("default").build())
-				.withSpec(new V1ServiceSpecBuilder()
-						.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build(),
-								new V1ServicePortBuilder().withPort(443).withName("https").build())
-						.build())
-				.build();
+		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
+		Map<String, String> labels = Map.of("beta", "true");
+		List<V1ServicePort> servicePorts = List.of(
+			new V1ServicePortBuilder().withName("http").withPort(80).build(),
+			new V1ServicePortBuilder().withName("https").withPort(443).build()
+		);
+		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
-				"database.default.svc.cluster.local", 443, Map.of(), true);
+				"database.default.svc.cluster.local", 443, metadata, true);
 		assertThat(serviceInstance).isEqualTo(result);
+	}
+
+	private V1Service createService(String name, String namespace, Map<String, String> annotations,
+			Map<String, String> labels, List<V1ServicePort> servicePorts) {
+		return new V1ServiceBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName(name).withUid("0")
+				.withNamespace(namespace).addToAnnotations(annotations)
+				.addToLabels(labels).build())
+			.withSpec(new V1ServiceSpecBuilder().addAllToPorts(servicePorts).build()).build();
 	}
 
 }
