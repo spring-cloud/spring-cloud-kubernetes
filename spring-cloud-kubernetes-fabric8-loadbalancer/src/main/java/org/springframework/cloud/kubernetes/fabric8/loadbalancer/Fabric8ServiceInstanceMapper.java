@@ -122,7 +122,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 		return DiscoveryClientUtils.serviceInstanceMetadata(PORTS_DATA, serviceMetadata, discoveryProperties);
 	}
 
-	boolean secure(ServicePort port, Service service) {
+	private boolean secure(ServicePort port, Service service) {
 		ObjectMeta metadata = service.getMetadata();
 		ServicePortNameAndNumber portNameAndNumber = new ServicePortNameAndNumber(port.getPort(), port.getName());
 		Input input = new Input(portNameAndNumber, metadata.getName(), metadata.getLabels(), metadata.getAnnotations());
