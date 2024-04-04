@@ -23,8 +23,8 @@ import java.util.Optional;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
-
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -93,8 +93,7 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 		V1ObjectMeta metadata = service.getMetadata();
 		V1ServiceSpec serviceSpec = service.getSpec();
 		ServiceMetadata serviceMetadata = new ServiceMetadata(metadata.getName(), metadata.getNamespace(),
-			serviceSpec.getType(), metadata.getLabels(), metadata.getAnnotations());
-
+				serviceSpec.getType(), metadata.getLabels(), metadata.getAnnotations());
 		return DiscoveryClientUtils.serviceInstanceMetadata(PORTS_DATA, serviceMetadata, discoveryProperties);
 	}
 
