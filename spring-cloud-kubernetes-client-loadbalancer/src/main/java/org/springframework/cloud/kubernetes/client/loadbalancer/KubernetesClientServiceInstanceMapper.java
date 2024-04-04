@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,22 +24,29 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesLoadBalancerProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
 /**
  * @author Ryan Baxter
  */
 public class KubernetesClientServiceInstanceMapper implements KubernetesServiceInstanceMapper<V1Service> {
+
+	/**
+	 * empty on purpose, load balancer implementation does not need them.
+	 */
+	private static final Map<String, Integer> PORTS_DATA = Map.of();
 
 	private final KubernetesLoadBalancerProperties properties;
 
@@ -80,24 +86,16 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 		boolean secure = secure(port, service);
 
 		return new DefaultKubernetesServiceInstance(meta.getUid(), meta.getName(), host, port.getPort(),
-				getServiceMetadata(service), secure);
+				serviceMetadata(service), secure);
 	}
 
-	private Map<String, String> getServiceMetadata(V1Service service) {
-		final Map<String, String> serviceMetadata = new HashMap<>();
-		KubernetesDiscoveryProperties.Metadata metadataProps = this.discoveryProperties.metadata();
-		if (metadataProps.addLabels()) {
-			Map<String, String> labelMetadata = keysWithPrefix(service.getMetadata().getLabels(),
-				metadataProps.labelsPrefix());
-			serviceMetadata.putAll(labelMetadata);
-		}
-		if (metadataProps.addAnnotations()) {
-			Map<String, String> annotationMetadata = keysWithPrefix(service.getMetadata().getAnnotations(),
-				metadataProps.annotationsPrefix());
-			serviceMetadata.putAll(annotationMetadata);
-		}
+	private Map<String, String> serviceMetadata(V1Service service) {
+		V1ObjectMeta metadata = service.getMetadata();
+		V1ServiceSpec serviceSpec = service.getSpec();
+		ServiceMetadata serviceMetadata = new ServiceMetadata(metadata.getName(), metadata.getNamespace(),
+			serviceSpec.getType(), metadata.getLabels(), metadata.getAnnotations());
 
-		return serviceMetadata;
+		return DiscoveryClientUtils.serviceInstanceMetadata(PORTS_DATA, serviceMetadata, discoveryProperties);
 	}
 
 	private boolean secure(V1ServicePort port, V1Service service) {
