@@ -47,13 +47,12 @@ class KubernetesClientServiceInstanceMapperTests {
 
 		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
 		Map<String, String> labels = Map.of("beta", "true");
-		List<V1ServicePort> servicePorts = List.of(
-			new V1ServicePortBuilder().withName("http").withPort(80).build()
-		);
+		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http").withPort(80).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
+				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 80, metadata, false);
 		assertThat(serviceInstance).isEqualTo(result);
@@ -64,19 +63,18 @@ class KubernetesClientServiceInstanceMapperTests {
 	void singlePortSecure() {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-			KubernetesDiscoveryProperties.DEFAULT);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		Map<String, String> annotations = Map.of("org.springframework.cloud", "true", "secured", "true");
 		Map<String, String> labels = Map.of("beta", "true");
-		List<V1ServicePort> servicePorts = List.of(
-			new V1ServicePortBuilder().withName("http").withPort(80).build()
-		);
+		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http").withPort(80).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "secured", "true");
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "secured", "true",
+				"k8s_namespace", "default", "type", "V1Service");
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
-			"database.default.svc.cluster.local", 80, metadata, true);
+				"database.default.svc.cluster.local", 80, metadata, true);
 		assertThat(serviceInstance).isEqualTo(result);
 	}
 
@@ -89,13 +87,12 @@ class KubernetesClientServiceInstanceMapperTests {
 
 		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
 		Map<String, String> labels = Map.of("beta", "true");
-		List<V1ServicePort> servicePorts = List.of(
-			new V1ServicePortBuilder().withName("http").withPort(80).build(),
-			new V1ServicePortBuilder().withName("https").withPort(443).build()
-		);
+		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http").withPort(80).build(),
+				new V1ServicePortBuilder().withName("https").withPort(443).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 
-		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
+				"default", "type", "V1Service");
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
 				"database.default.svc.cluster.local", 443, metadata, true);
@@ -105,10 +102,9 @@ class KubernetesClientServiceInstanceMapperTests {
 	private V1Service createService(String name, String namespace, Map<String, String> annotations,
 			Map<String, String> labels, List<V1ServicePort> servicePorts) {
 		return new V1ServiceBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName(name).withUid("0")
-				.withNamespace(namespace).addToAnnotations(annotations)
-				.addToLabels(labels).build())
-			.withSpec(new V1ServiceSpecBuilder().addAllToPorts(servicePorts).build()).build();
+				.withMetadata(new V1ObjectMetaBuilder().withName(name).withUid("0").withNamespace(namespace)
+						.addToAnnotations(annotations).addToLabels(labels).build())
+				.withSpec(new V1ServiceSpecBuilder().addAllToPorts(servicePorts).withType("V1Service").build()).build();
 	}
 
 }
