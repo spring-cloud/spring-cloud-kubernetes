@@ -52,6 +52,8 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 
 	private static final String PORT_NAME_PROPERTY = "'spring.cloud.kubernetes.loadbalancer.portName'";
 
+	private static final String NON_DETERMINISTIC = "Will return 'first' port found, which is non-deterministic";
+
 	/**
 	 * empty on purpose, load balancer implementation does not need them.
 	 */
@@ -103,9 +105,9 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 				}
 			}
 			else {
-				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set, as such will not consider service with name : "
-						+ metadata.getName());
-				return null;
+				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set");
+				LOG.warn(() -> NON_DETERMINISTIC);
+				port = ports.get(0);
 			}
 		}
 
