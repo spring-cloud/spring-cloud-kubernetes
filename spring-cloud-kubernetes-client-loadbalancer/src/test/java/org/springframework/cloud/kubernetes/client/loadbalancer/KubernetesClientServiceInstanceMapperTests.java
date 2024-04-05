@@ -134,8 +134,8 @@ class KubernetesClientServiceInstanceMapperTests {
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertNotNull(serviceInstance);
-		 Assertions.assertTrue(output.getOut().contains("single ServicePort found, " +
-			 "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+		Assertions.assertTrue(output.getOut().contains("single ServicePort found, "
+				+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 	}
 
 	@Test
@@ -143,7 +143,7 @@ class KubernetesClientServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("http-api");
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-			KubernetesDiscoveryProperties.DEFAULT);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
 		Map<String, String> labels = Map.of("beta", "true");
@@ -151,8 +151,8 @@ class KubernetesClientServiceInstanceMapperTests {
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut().contains("single ServicePort found, " +
-			"will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+		Assertions.assertTrue(output.getOut().contains("single ServicePort found, "
+				+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 	}
 
 	@Test
@@ -160,14 +160,12 @@ class KubernetesClientServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("http");
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-			KubernetesDiscoveryProperties.DEFAULT);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
 		Map<String, String> labels = Map.of("beta", "true");
-		List<V1ServicePort> servicePorts = List.of(
-			new V1ServicePortBuilder().withName("http").withPort(80).build(),
-			new V1ServicePortBuilder().withName("https").withPort(443).build()
-		);
+		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http").withPort(80).build(),
+				new V1ServicePortBuilder().withName("https").withPort(443).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertNotNull(serviceInstance);
@@ -180,14 +178,12 @@ class KubernetesClientServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		loadBalancerProperties.setPortName("http");
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
-			KubernetesDiscoveryProperties.DEFAULT);
+				KubernetesDiscoveryProperties.DEFAULT);
 
 		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
 		Map<String, String> labels = Map.of("beta", "true");
-		List<V1ServicePort> servicePorts = List.of(
-			new V1ServicePortBuilder().withName("http-api").withPort(80).build(),
-			new V1ServicePortBuilder().withName("https").withPort(443).build()
-		);
+		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http-api").withPort(80).build(),
+				new V1ServicePortBuilder().withName("https").withPort(443).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertNotNull(serviceInstance);

@@ -25,8 +25,8 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
-
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -48,7 +48,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.ServicePort
 public class KubernetesClientServiceInstanceMapper implements KubernetesServiceInstanceMapper<V1Service> {
 
 	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesClientServiceInstanceMapper.class));
+			LogFactory.getLog(KubernetesClientServiceInstanceMapper.class));
 
 	private static final String PORT_NAME_PROPERTY = "'spring.cloud.kubernetes.loadbalancer.portName'";
 
