@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.commons.loadbalancer;
 
 import java.util.StringJoiner;
 
-
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
 import org.springframework.util.StringUtils;
 

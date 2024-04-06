@@ -40,6 +40,7 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
 
 import static java.util.Optional.ofNullable;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PORT_NAME_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
 /**
@@ -49,8 +50,6 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientServiceInstanceMapper.class));
-
-	private static final String PORT_NAME_PROPERTY = "'spring.cloud.kubernetes.loadbalancer.portName'";
 
 	/**
 	 * empty on purpose, load balancer implementation does not need them.
