@@ -39,8 +39,8 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
 
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PORT_NAME_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NON_DETERMINISTIC_PORT_MESSAGE;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PORT_NAME_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
 /**
