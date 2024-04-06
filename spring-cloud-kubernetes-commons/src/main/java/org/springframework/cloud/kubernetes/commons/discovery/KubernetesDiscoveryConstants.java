@@ -98,4 +98,9 @@ public final class KubernetesDiscoveryConstants {
 	public static final String CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE = CATALOG_WATCH_PROPERTY_NAME + ":"
 			+ CATALOG_WATCHER_DEFAULT_DELAY;
 
+	/**
+	 * load balancer port name property.
+	 */
+	public static final String PORT_NAME_PROPERTY = "'spring.cloud.kubernetes.loadbalancer.portName'";
+
 }

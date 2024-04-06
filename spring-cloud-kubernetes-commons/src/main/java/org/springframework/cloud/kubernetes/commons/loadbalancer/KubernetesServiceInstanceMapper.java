@@ -18,21 +18,13 @@ package org.springframework.cloud.kubernetes.commons.loadbalancer;
 
 import java.util.StringJoiner;
 
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
-import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
  */
 public interface KubernetesServiceInstanceMapper<T> {
-
-	/**
-	 * Logger instance.
-	 */
-	LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesServiceInstanceMapper.class));
 
 	KubernetesServiceInstance map(T service);
 
