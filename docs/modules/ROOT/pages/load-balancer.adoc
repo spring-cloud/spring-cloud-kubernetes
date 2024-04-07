@@ -77,7 +77,7 @@ service-a.<SERVICE_NAMESPACE>.svc.<DOMAIN>:<FOUND_PORT>
 ----
 
 
-`<SERVICE_NAMESPACE>` is the namespace where the service resides, `DOMAIN` is the value of the property (by default it is equal to `clsuter.local`):
+`<SERVICE_NAMESPACE>` is the namespace where the service resides, `DOMAIN` is the value of the property (by default it is equal to `cluster.local`):
 
 [source]
 ----
