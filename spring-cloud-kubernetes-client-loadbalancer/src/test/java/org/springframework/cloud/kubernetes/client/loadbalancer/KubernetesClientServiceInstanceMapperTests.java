@@ -192,6 +192,25 @@ class KubernetesClientServiceInstanceMapperTests {
 		Assertions.assertTrue(serviceInstance.getPort() == 80 || serviceInstance.getPort() == 443);
 	}
 
+	@Test
+	void multiPortsEmptyPortNameProperty(CapturedOutput output) {
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		loadBalancerProperties.setPortName("");
+		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(loadBalancerProperties,
+				KubernetesDiscoveryProperties.DEFAULT);
+
+		Map<String, String> annotations = Map.of("org.springframework.cloud", "true");
+		Map<String, String> labels = Map.of("beta", "true");
+		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http-api").withPort(80).build(),
+				new V1ServicePortBuilder().withName("https").withPort(443).build());
+		V1Service service = createService("database", "default", annotations, labels, servicePorts);
+		KubernetesServiceInstance serviceInstance = mapper.map(service);
+		Assertions.assertNotNull(serviceInstance);
+		Assertions.assertTrue(output.getOut().contains("'spring.cloud.kubernetes.loadbalancer.portName' is not set"));
+		Assertions.assertTrue(output.getOut().contains("Will return 'first' port found, which is non-deterministic"));
+		Assertions.assertTrue(serviceInstance.getPort() == 80 || serviceInstance.getPort() == 443);
+	}
+
 	private V1Service createService(String name, String namespace, Map<String, String> annotations,
 			Map<String, String> labels, List<V1ServicePort> servicePorts) {
 		return new V1ServiceBuilder()

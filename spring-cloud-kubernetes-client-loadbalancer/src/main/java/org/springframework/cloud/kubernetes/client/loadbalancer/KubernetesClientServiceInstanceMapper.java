@@ -40,6 +40,7 @@ import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
 
 import static java.util.Optional.ofNullable;
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NON_DETERMINISTIC_PORT_MESSAGE;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PORT_NAME_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
@@ -102,9 +103,9 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 				}
 			}
 			else {
-				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set, as such will not consider service with name : "
-						+ metadata.getName());
-				return null;
+				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set");
+				LOG.warn(() -> NON_DETERMINISTIC_PORT_MESSAGE);
+				port = ports.get(0);
 			}
 		}
 
@@ -135,7 +136,7 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 
 	private void logWarning(String portNameFromProperties) {
 		LOG.warn(() -> "Did not find a port name that is equal to the value " + portNameFromProperties);
-		LOG.warn(() -> "Will return 'first' port found, which is non-deterministic");
+		LOG.warn(() -> NON_DETERMINISTIC_PORT_MESSAGE);
 	}
 
 }
