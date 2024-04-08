@@ -26,16 +26,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.leader")
 public class LeaderProperties {
 
-	private static final String DEFAULT_LEADER_ID_PREFIX = "leader.id.";
-
-	private static final String DEFAULT_CONFIG_MAP_NAME = "leaders";
-
-	private static final Duration DEFAULT_UPDATE_PERIOD = Duration.ofMillis(60000);
-
-	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
-
-	private static final boolean DEFAULT_CREATE_CONFIG_MAP = true;
-
 	/**
 	 * Should leader election be enabled. Default: true
 	 */
@@ -59,28 +49,28 @@ public class LeaderProperties {
 	/**
 	 * Kubernetes ConfigMap where leaders information will be stored. Default: leaders
 	 */
-	private String configMapName = DEFAULT_CONFIG_MAP_NAME;
+	private String configMapName = "leaders";
 
 	/**
 	 * Leader id property prefix for the ConfigMap. Default: leader.id.
 	 */
-	private String leaderIdPrefix = DEFAULT_LEADER_ID_PREFIX;
+	private String leaderIdPrefix = "leader.id.";
 
 	/**
 	 * Leadership status check period. Default: 60s
 	 */
-	private Duration updatePeriod = DEFAULT_UPDATE_PERIOD;
+	private Duration updatePeriod = Duration.ofMillis(60000);
 
 	/**
 	 * Enable/disable publishing events in case leadership acquisition fails. Default:
 	 * false
 	 */
-	private boolean publishFailedEvents = DEFAULT_PUBLISH_FAILED_EVENTS;
+	private boolean publishFailedEvents = false;
 
 	/**
 	 * Enable/disable creating ConfigMap if it does not exist. Default: true
 	 */
-	private boolean createConfigMap = DEFAULT_CREATE_CONFIG_MAP;
+	private boolean createConfigMap = true;
 
 	public boolean isEnabled() {
 		return enabled;
