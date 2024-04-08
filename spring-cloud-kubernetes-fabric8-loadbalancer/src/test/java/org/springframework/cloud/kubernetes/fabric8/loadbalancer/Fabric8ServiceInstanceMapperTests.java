@@ -217,7 +217,7 @@ class Fabric8ServiceInstanceMapperTests {
 	/**
 	 * <pre>
 	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is empty.
-	 *     in this case, service will be skipped.
+	 *     in this case, a single, 'first', port will be returned.
 	 * </pre>
 	 */
 	@Test
@@ -234,16 +234,15 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 				.map(service);
 
-		Assertions.assertNull(result);
-		Assertions.assertTrue(output.getOut().contains(
-				"'spring.cloud.kubernetes.loadbalancer.portName' is not set, as such will not consider service with name : test"));
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(output.getOut().contains("'spring.cloud.kubernetes.loadbalancer.portName' is not set"));
+		Assertions.assertTrue(output.getOut().contains("Will return 'first' port found, which is non-deterministic"));
 
 	}
 
 	/**
 	 * <pre>
-	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is empty.
-	 *     in this case, service will be skipped.
+	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is not empty.
 	 * </pre>
 	 */
 	@Test
@@ -267,8 +266,8 @@ class Fabric8ServiceInstanceMapperTests {
 
 	/**
 	 * <pre>
-	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is empty.
-	 *     in this case, service will be skipped.
+	 *     service has multiple ServicePorts, and 'spring.cloud.kubernetes.loadbalancer.portName' is not empty.
+	 *     property name also does not match 'potName'
 	 * </pre>
 	 */
 	@Test
