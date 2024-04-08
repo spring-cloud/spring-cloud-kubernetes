@@ -39,6 +39,7 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.NON_DETERMINISTIC_PORT_MESSAGE;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.PORT_NAME_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver.Input;
 
@@ -101,9 +102,9 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 				}
 			}
 			else {
-				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set, as such will not consider service with name : "
-						+ metadata.getName());
-				return null;
+				LOG.warn(() -> PORT_NAME_PROPERTY + " is not set");
+				LOG.warn(() -> NON_DETERMINISTIC_PORT_MESSAGE);
+				port = ports.get(0);
 			}
 		}
 
@@ -130,7 +131,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 
 	private void logWarning(String portNameFromProperties) {
 		LOG.warn(() -> "Did not find a port name that is equal to the value " + portNameFromProperties);
-		LOG.warn(() -> "Will return 'first' port found, which is non-deterministic");
+		LOG.warn(() -> NON_DETERMINISTIC_PORT_MESSAGE);
 	}
 
 }
