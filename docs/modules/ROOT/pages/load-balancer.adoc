@@ -1,7 +1,7 @@
 [[loadbalancer-for-kubernetes]]
 = LoadBalancer for Kubernetes
 
-This project includes Spring Cloud Load Balancer for load balancing based on Kubernetes Endpoints and provides implementation of load balancer based on Kubernetes Service.
+This project includes Spring Cloud Load Balancer for load balancing based on either Kubernetes Endpoints or Kubernetes Service.
 To include it to your project add the following dependency.
 Fabric8 Implementation
 [source,xml]
@@ -21,16 +21,71 @@ Kubernetes Java Client Implementation
 </dependency>
 ----
 
-To enable load balancing based on Kubernetes Service name use the following property. Then load balancer would try to call application using address, for example `service-a.default.svc.cluster.local`
+There are two "modes" in which load balancer works: `POD` and `SERVICE`, denoted by the property (default being `POD`)
+
 [source]
 ----
 spring.cloud.kubernetes.loadbalancer.mode=SERVICE
 ----
 
-To enabled load balancing across all namespaces use the following property. Property from `spring-cloud-kubernetes-discovery` module is respected.
+or
+
 [source]
 ----
-spring.cloud.kubernetes.discovery.all-namespaces=true
+spring.cloud.kubernetes.loadbalancer.mode=POD
 ----
 
-If a service needs to be accessed over HTTPS you need to add a label or annotation to your service definition with the name `secured` and the value `true` and the load balancer will then use HTTPS to make requests to the service.
+In `POD` mode, we will use the `DiscoveryClient` to find all services that match your load balancer name. For example, if you have a configuration like this:
+
+[source]
+----
+@Bean
+@LoadBalanced
+WebClient.Builder client() {
+	return WebClient.builder();
+}
+----
+
+and issue a request to `http://service-a` using that `WebClient`, we will use `service-a` to call `DiscoveryClient::getInstances` with this value. Since this is using `DiscoveryClient`, all the configuration specific to it apply, which are explained in the relevant part of the documentation.
+
+On the other hand, if you use `SERVICE` mode, things are a bit different, but closely resemble discovery client settings. For example, to answer the question in which namespace(s) to look for service(s) with name `service-a`, we will use one of the settings:
+
+[source]
+----
+spring.cloud.kubernetes.discovery.all-namespaces
+spring.cloud.kubernetes.discovery.namespaces
+----
+
+to either search in all-namespaces, or the so-called "selective namespaces". If none of the above are specified, xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] kicks in.
+
+Once we find all the services, we need to know what port to call them by. If the service in question has a single port defined, that is what we will use, no matter of its name. If there are no ports defined, this service will not be considered for load balancing and will be skipped.
+
+If there are more then one ports defined, we will try to match its name to the value of the property (`http` by default):
+
+[source]
+----
+spring.cloud.kubernetes.loadbalancer.portName
+----
+
+In case such a match is found, that port number will be used. Otherwise, the "first" port from the list will be used. This last option is non-deterministic and care must be taken.
+
+Once we know the port, we know how to call that service. The URL will have the form:
+
+[source]
+----
+service-a.<SERVICE_NAMESPACE>.svc.<DOMAIN>:<FOUND_PORT>
+----
+
+
+`<SERVICE_NAMESPACE>` is the namespace where the service resides, `DOMAIN` is the value of the property (by default it is equal to `cluster.local`):
+
+[source]
+----
+spring.cloud.kubernetes.loadbalancer.clusterDomain
+----
+
+and `<FOUND_PORT>` is the port of the service that we have chosen described in the process above.
+
+If a service needs to be accessed over HTTPS, you need to explicitly configure that. The rules for that are exactly the same as for the discovery implementation and can be found in the relevant part of the documentation regarding discovery-client.
+
+
