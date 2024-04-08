@@ -71,16 +71,17 @@ class KubernetesClientServicesListSupplierTests {
 	private static final V1Service SERVICE_A_DEFAULT_NAMESPACE = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("default").withUid("0")
 					.addToLabels("beta", "true").addToAnnotations("org.springframework.cloud", "true").build())
-			.withSpec(new V1ServiceSpecBuilder()
+			.withSpec(new V1ServiceSpecBuilder().withType("V1Service")
 					.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build()).build())
 			.build();
 
 	private static final V1Service SERVICE_A_TEST_NAMESPACE = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("test").withUid("1").build())
-			.withSpec(new V1ServiceSpecBuilder()
-					.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build(),
-							new V1ServicePortBuilder().withPort(443).withName("https").build())
-					.build())
+			.withSpec(
+					new V1ServiceSpecBuilder().withType("V1Service")
+							.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build(),
+									new V1ServicePortBuilder().withPort(443).withName("https").build())
+							.build())
 			.build();
 
 	private static final V1ServiceList SINGLE_NAMESPACE_SERVICES = new V1ServiceList()
@@ -142,7 +143,8 @@ class KubernetesClientServicesListSupplierTests {
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
-		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
+				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance serviceA = new DefaultKubernetesServiceInstance("0", "service-a",
 				"service-a.default.svc.cluster.local", 80, metadata, false);
 		List<ServiceInstance> services = new ArrayList<>();
@@ -209,11 +211,12 @@ class KubernetesClientServicesListSupplierTests {
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
-		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
+				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0",
 				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false);
 		DefaultKubernetesServiceInstance serviceATestNamespace = new DefaultKubernetesServiceInstance("1", "service-a",
-				"service-a.test.svc.cluster.local", 80, Map.of(), false);
+				"service-a.test.svc.cluster.local", 80, Map.of("k8s_namespace", "test", "type", "V1Service"), false);
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(serviceADefaultNamespace);
 		services.add(serviceATestNamespace);
@@ -253,11 +256,12 @@ class KubernetesClientServicesListSupplierTests {
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
-		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true");
+		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
+				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0",
 				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false);
 		DefaultKubernetesServiceInstance serviceATestNamespace = new DefaultKubernetesServiceInstance("1", "service-a",
-				"service-a.test.svc.cluster.local", 80, Map.of(), false);
+				"service-a.test.svc.cluster.local", 80, Map.of("k8s_namespace", "test", "type", "V1Service"), false);
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(serviceADefaultNamespace);
 		services.add(serviceATestNamespace);
