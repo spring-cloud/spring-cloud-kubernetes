@@ -51,4 +51,8 @@ public class LeaderInfoContributor implements InfoContributor {
 		builder.withDetail("leaderElection", details);
 	}
 
+	private Map<String, Object> details(Le) {
+
+	}
+
 }
