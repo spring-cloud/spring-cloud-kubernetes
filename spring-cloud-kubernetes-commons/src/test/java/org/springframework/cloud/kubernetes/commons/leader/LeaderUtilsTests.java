@@ -16,14 +16,15 @@
 
 package org.springframework.cloud.kubernetes.commons.leader;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.springframework.cloud.kubernetes.commons.EnvReader;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import org.springframework.cloud.kubernetes.commons.EnvReader;
 
 /**
  * @author wind57
