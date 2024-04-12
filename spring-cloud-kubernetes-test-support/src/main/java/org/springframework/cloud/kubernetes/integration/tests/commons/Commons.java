@@ -61,8 +61,6 @@ public final class Commons {
 	 */
 	public static final String ISTIO_VERSION = "1.16.0";
 
-	private static final String LOCAL_ISTIO_BIN_PATH = "istio-cli/istio-" + ISTIO_VERSION + "/bin";
-
 	private Commons() {
 		throw new AssertionError("No instance provided");
 	}
