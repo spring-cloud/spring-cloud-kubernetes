@@ -77,12 +77,19 @@ class Fabric8IstioIT {
 		processExecResult(
 				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
 
+		util.setUpIstioctl(NAMESPACE, Phase.CREATE);
+
+		String istioctlPodName = istioctlPodName();
+		K3S.execInContainer("sh", "-c",
+				"kubectl cp istio-test/" + istioctlPodName + ":/usr/local/bin/istioctl /tmp/istioctl");
+		K3S.execInContainer("sh", "-c", "chmod +x /tmp/istioctl");
+
 		processExecResult(K3S.execInContainer("sh", "-c",
 				"/tmp/istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
 
 		util.setUpIstio(NAMESPACE);
 
-		manifests(Phase.CREATE);
+		appManifests(Phase.CREATE);
 	}
 
 	@AfterAll
@@ -94,7 +101,8 @@ class Fabric8IstioIT {
 
 	@AfterAll
 	static void after() {
-		manifests(Phase.DELETE);
+		appManifests(Phase.DELETE);
+		util.setUpIstioctl(NAMESPACE, Phase.DELETE);
 	}
 
 	@Test
@@ -109,7 +117,7 @@ class Fabric8IstioIT {
 		Assertions.assertTrue(result.contains("istio"));
 	}
 
-	private static void manifests(Phase phase) {
+	private static void appManifests(Phase phase) {
 
 		InputStream deploymentStream = util.inputStream("istio-deployment.yaml");
 		InputStream serviceStream = util.inputStream("istio-service.yaml");
@@ -134,6 +142,18 @@ class Fabric8IstioIT {
 
 	private RetryBackoffSpec retrySpec() {
 		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+	}
+
+	private static String istioctlPodName() {
+		try {
+			return K3S
+					.execInContainer("sh", "-c",
+							"kubectl get pods -n istio-test -l app=istio-ctl -o=name --no-headers | tr -d '\n'")
+					.getStdout().split("/")[1];
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

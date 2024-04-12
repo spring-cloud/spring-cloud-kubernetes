@@ -42,6 +42,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -79,7 +80,7 @@ public final class Util {
 	 * tight as possible, providing reasonable defaults.
 	 *
 	 */
-	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, Service service,
+	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, @Nullable Service service,
 			@Nullable Ingress ingress, boolean changeVersion) {
 		try {
 
@@ -100,7 +101,9 @@ public final class Util {
 				waitForDeployment(namespace, deployment);
 			}
 
-			client.services().inNamespace(namespace).resource(service).create();
+			if (service != null) {
+				client.services().inNamespace(namespace).resource(service).create();
+			}
 
 			if (ingress != null) {
 				client.network().v1().ingresses().inNamespace(namespace).resource(ingress).create();
@@ -246,6 +249,18 @@ public final class Util {
 		InputStream roleAsStream = inputStream("istio/role.yaml");
 
 		innerSetup(namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
+	}
+
+	public void setUpIstioctl(String namespace, Phase phase) {
+		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
+		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, null, istioctlDeployment, null, null, false);
+		}
+		else {
+			deleteAndWait(namespace, istioctlDeployment, null, null);
+		}
 	}
 
 	private void waitForConfigMap(String namespace, ConfigMap configMap, Phase phase) {
