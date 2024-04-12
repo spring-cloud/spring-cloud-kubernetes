@@ -27,6 +27,14 @@ runs:
         done <$result
         
         ls /tmp/docker/images
+
+    - name: save docker images
+      id: save-docker-images
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          /tmp/docker/images
+        key: docker-images-cache-${{ hashFiles('**/current-images.txt') }}
         
 
 
