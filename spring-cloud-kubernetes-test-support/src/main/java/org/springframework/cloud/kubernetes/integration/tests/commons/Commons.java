@@ -59,7 +59,7 @@ public final class Commons {
 	/**
 	 * istio version used in our integration tests.
 	 */
-	public static final String ISTIO_VERSION = "1.16.0";
+	public static final String ISTIO_VERSION = "1.20.5";
 
 	private Commons() {
 		throw new AssertionError("No instance provided");
@@ -70,7 +70,7 @@ public final class Commons {
 	/**
 	 * Rancher version to use for test-containers.
 	 */
-	public static final String RANCHER = "rancher/k3s:v1.25.4-k3s1";
+	public static final String RANCHER = "rancher/k3s:v1.28.8+k3s1";
 
 	/**
 	 * Command to use when starting rancher. Without "server" option, traefik is not
