@@ -77,7 +77,7 @@ class Fabric8IstioIT {
 		processExecResult(
 				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
 
-		istioctlManifests(Phase.CREATE);
+		util.setUpIstioctl(NAMESPACE, Phase.CREATE);
 
 		String istioctlPodName = istioctlPodName();
 		K3S.execInContainer("sh", "-c",
@@ -102,7 +102,7 @@ class Fabric8IstioIT {
 	@AfterAll
 	static void after() {
 		appManifests(Phase.DELETE);
-		istioctlManifests(Phase.DELETE);
+		util.setUpIstioctl(NAMESPACE, Phase.DELETE);
 	}
 
 	@Test
@@ -134,18 +134,6 @@ class Fabric8IstioIT {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
-	}
-
-	private static void istioctlManifests(Phase phase) {
-		InputStream istioctlDeploymentStream = util.inputStream("istioctl-deployment.yaml");
-		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, istioctlDeployment, null, null, false);
-		}
-		else {
-			util.deleteAndWait(NAMESPACE, istioctlDeployment, null, null);
-		}
 	}
 
 	private WebClient.Builder builder() {

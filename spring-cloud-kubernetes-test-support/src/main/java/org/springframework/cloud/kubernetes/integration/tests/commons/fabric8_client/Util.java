@@ -42,6 +42,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -248,6 +249,18 @@ public final class Util {
 		InputStream roleAsStream = inputStream("istio/role.yaml");
 
 		innerSetup(namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
+	}
+
+	public void setUpIstioctl(String namespace, Phase phase) {
+		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
+		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, null, istioctlDeployment, null, null, false);
+		}
+		else {
+			deleteAndWait(namespace, istioctlDeployment, null, null);
+		}
 	}
 
 	private void waitForConfigMap(String namespace, ConfigMap configMap, Phase phase) {
