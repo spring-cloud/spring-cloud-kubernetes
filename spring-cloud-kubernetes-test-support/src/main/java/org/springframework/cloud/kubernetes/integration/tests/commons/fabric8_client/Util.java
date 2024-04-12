@@ -79,7 +79,7 @@ public final class Util {
 	 * tight as possible, providing reasonable defaults.
 	 *
 	 */
-	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, Service service,
+	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, @Nullable Service service,
 			@Nullable Ingress ingress, boolean changeVersion) {
 		try {
 
@@ -100,7 +100,9 @@ public final class Util {
 				waitForDeployment(namespace, deployment);
 			}
 
-			client.services().inNamespace(namespace).resource(service).create();
+			if (service != null) {
+				client.services().inNamespace(namespace).resource(service).create();
+			}
 
 			if (ingress != null) {
 				client.network().v1().ingresses().inNamespace(namespace).resource(ingress).create();
