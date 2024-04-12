@@ -22,6 +22,9 @@ runs:
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
 
+    - name: restore common images
+      uses: ./.github/workflows/composites/restore-docker-images
+
     - name: build project
       shell: bash
       run: |
@@ -32,9 +35,6 @@ runs:
 
     - name: build integration tests project
       uses: ./.github/workflows/composites/build-integration-tests-project
-
-    - name: restore common images
-      uses: ./.github/workflows/composites/restore-docker-images
 
     - name: download tests
       uses: actions/download-artifact@v3

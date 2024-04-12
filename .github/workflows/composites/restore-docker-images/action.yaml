@@ -8,8 +8,25 @@ runs:
       with:
         attempt_limit: 3
         action: actions/cache/restore@v4
+        id: images-cache
         with: |
           path: /tmp/docker/images
           key: docker-images-cache-${{ hashFiles('**/current-images.txt') }}
+
+    - name: pull docker images
+      shell: bash
+      if: steps.images-cache.outputs.cache-hit != 'true'
+      run: |
+        echo 'start pulling common images'
+        mkdir -p /tmp/docker/images
+        result=$(find . -name 'current-images.txt')
+        while read line; do
+          docker pull "$line"
+          replace_slash=$(tr '/' '-' <<< "$line")
+          docker save "${line}" > "/tmp/docker/images/${replace_slash}.tar"
+        done <$result
+        
+        ls /tmp/docker/images
+        
 
 
