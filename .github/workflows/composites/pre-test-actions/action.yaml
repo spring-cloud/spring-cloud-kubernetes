@@ -33,6 +33,9 @@ runs:
     - name: build integration tests project
       uses: ./.github/workflows/composites/build-integration-tests-project
 
+    - name: restore common images
+      uses: ./.github/workflows/composites/restore-docker-images
+
     - name: download tests
       uses: actions/download-artifact@v3
       with:

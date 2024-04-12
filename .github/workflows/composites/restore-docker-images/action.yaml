@@ -1,0 +1,15 @@
+name: restore-docker-images
+description: upload docker images
+runs:
+  using: "composite"
+  steps:
+
+    - uses: Wandalen/wretry.action@master
+      with:
+        attempt_limit: 3
+        action: actions/cache/restore@v4
+        with: |
+          path: /tmp/docker/images
+          key: docker-images-cache-${{ hashFiles('**/current-images.txt') }}
+
+
