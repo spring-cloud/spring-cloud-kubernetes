@@ -70,7 +70,7 @@ public final class Commons {
 	/**
 	 * Rancher version to use for test-containers.
 	 */
-	public static final String RANCHER = "rancher/k3s:v1.28.8+k3s1";
+	public static final String RANCHER = "rancher/k3s:v1.28.8-k3s1";
 
 	/**
 	 * Command to use when starting rancher. Without "server" option, traefik is not
