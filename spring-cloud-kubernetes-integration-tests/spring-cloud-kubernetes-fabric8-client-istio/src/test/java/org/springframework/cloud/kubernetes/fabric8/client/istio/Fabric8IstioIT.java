@@ -41,6 +41,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.load;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.processExecResult;
 
 /**
@@ -68,10 +69,8 @@ class Fabric8IstioIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		Commons.pullImage(ISTIO_PROXY, Commons.ISTIO_VERSION, K3S);
-		Commons.loadImage(ISTIO_PROXY, Commons.ISTIO_VERSION, "istioproxy", K3S);
-		Commons.pullImage(ISTIO_PILOT, Commons.ISTIO_VERSION, K3S);
-		Commons.loadImage(ISTIO_PILOT, Commons.ISTIO_VERSION, "istiopilot", K3S);
+		load(K3S, "proxyv2", ISTIO_PROXY);
+		load(K3S, "pilot", ISTIO_PILOT);
 
 		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
 		processExecResult(

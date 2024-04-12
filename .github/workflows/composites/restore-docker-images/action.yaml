@@ -4,14 +4,12 @@ runs:
   using: "composite"
   steps:
 
-    - uses: Wandalen/wretry.action@master
+    - name: restore images if cache matches
+      uses: actions/cache/restore@v4
+      id: images-cache
       with:
-        attempt_limit: 3
-        action: actions/cache/restore@v4
-        id: images-cache
-        with: |
-          path: /tmp/docker/images
-          key: docker-images-cache-${{ hashFiles('**/current-images.txt') }}
+        path: /tmp/docker/images
+        key: docker-images-cache-${{ hashFiles('**/current-images.txt') }}
 
     - name: pull docker images
       shell: bash
@@ -31,6 +29,7 @@ runs:
     - name: save docker images
       id: save-docker-images
       uses: actions/cache/save@v4
+      if: steps.images-cache.outputs.cache-hit != 'true'
       with:
         path: |
           /tmp/docker/images
