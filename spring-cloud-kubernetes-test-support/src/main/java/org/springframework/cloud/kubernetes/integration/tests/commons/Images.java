@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import org.testcontainers.k3s.K3sContainer;
 
@@ -93,14 +92,10 @@ public final class Images {
 
 	// find the image version from current-images.txt
 	private static String imageVersion(String imageNameForDownload) {
-		File file = new File(Commons.class.getClassLoader().getResource("current-images.txt").getFile());
-		try {
-			return Files.readAllLines(file.toPath()).stream().filter(line -> line.contains(imageNameForDownload))
-					.map(line -> line.split(":")[1]).findFirst().orElseThrow();
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		BufferedReader reader = new BufferedReader(
+				new InputStreamReader(Commons.class.getClassLoader().getResourceAsStream("current-images.txt")));
+		return reader.lines().filter(line -> line.contains(imageNameForDownload)).map(line -> line.split(":")[1])
+				.findFirst().orElseThrow();
 	}
 
 }
