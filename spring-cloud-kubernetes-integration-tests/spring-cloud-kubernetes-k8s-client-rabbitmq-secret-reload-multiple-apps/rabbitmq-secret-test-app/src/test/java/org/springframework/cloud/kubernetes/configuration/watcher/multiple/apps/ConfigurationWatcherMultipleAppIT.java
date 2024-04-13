@@ -36,6 +36,7 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
@@ -75,6 +76,8 @@ class ConfigurationWatcherMultipleAppIT {
 
 		Commons.validateImage(CONFIG_WATCHER_APP_B_IMAGE, K3S);
 		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_APP_B_IMAGE, K3S);
+
+		Images.loadRabbitmq(K3S);
 
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);

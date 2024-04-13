@@ -35,13 +35,13 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.load;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.processExecResult;
 
 /**
@@ -52,10 +52,6 @@ class Fabric8IstioIT {
 	private static final String NAMESPACE = "istio-test";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-istio";
-
-	private static final String ISTIO_PROXY = "istio/proxyv2";
-
-	private static final String ISTIO_PILOT = "istio/pilot";
 
 	private static Util util;
 
@@ -69,8 +65,7 @@ class Fabric8IstioIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		load(K3S, "proxyv2", ISTIO_PROXY);
-		load(K3S, "pilot", ISTIO_PILOT);
+		Images.loadIstioctl(K3S);
 
 		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
 		processExecResult(
@@ -123,6 +118,7 @@ class Fabric8IstioIT {
 		InputStream ingressStream = util.inputStream("istio-ingress.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
+
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
 		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,20 +172,22 @@ public final class Commons {
 
 	}
 
-	public static void load(K3sContainer container, String name, String image) {
+	/**
+	 * either get the tar from '/tmp/docker/images', or pull the image.
+	 */
+	public static void load(K3sContainer container, String tarName, String imageNameForDownload, String imageVersion) {
 		File dockerImagesRootDir = Paths.get(Commons.TMP_IMAGES).toFile();
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();
 			if (tars != null && tars.length > 0) {
-				Optional<String> found = Arrays.stream(tars).map(File::getName)
-						.filter(tarName -> tarName.contains(name)).findFirst();
+				Optional<String> found = Arrays.stream(tars).map(File::getName).filter(tarName::contains).findFirst();
 				if (found.isPresent()) {
 					LOG.info("running in github actions, will load from : " + Commons.TMP_IMAGES);
 					Commons.loadImageFromPath(found.get(), container);
 					return;
 				}
 				else {
-					LOG.info(name + " not found, resorting to pulling the image");
+					LOG.info(tarName + " not found, resorting to pulling the image");
 				}
 			}
 			else {
@@ -198,8 +200,9 @@ public final class Commons {
 
 		try {
 			LOG.info("no tars found, will resort to pulling the image");
-			Commons.pullImage(image, Commons.ISTIO_VERSION, container);
-			Commons.loadImage(image, Commons.ISTIO_VERSION, name, container);
+			LOG.info("using : " + imageVersion + " for : " + imageNameForDownload);
+			Commons.pullImage(imageNameForDownload, imageVersion, container);
+			Commons.loadImage(imageNameForDownload, imageVersion, tarName, container);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
