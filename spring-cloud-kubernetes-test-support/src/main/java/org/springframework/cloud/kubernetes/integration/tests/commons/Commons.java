@@ -208,7 +208,7 @@ public final class Commons {
 
 	private static void loadImageFromPath(String tarName, K3sContainer container) {
 		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
-			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TEMP_FOLDER + "/" + tarName);
+			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TMP_IMAGES + "/" + tarName);
 			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
 			if (!noErrors) {
 				LOG.info("error is : " + result.getStderr());
