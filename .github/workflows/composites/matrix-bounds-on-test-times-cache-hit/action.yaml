@@ -19,7 +19,7 @@ runs:
   steps:
 
     - name: restore test times cache
-      uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v4
       with:
         path: /tmp/sorted.txt
         key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
@@ -117,13 +117,13 @@ runs:
         echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance_json)" >> $GITHUB_ENV
 
     - name: upload test with times
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tests-with-times-sorted.txt
         path: /tmp/tests-with-times-sorted.txt
 
     - name: upload test without times
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tests-without-times.txt
         path: /tmp/tests-without-times.txt
