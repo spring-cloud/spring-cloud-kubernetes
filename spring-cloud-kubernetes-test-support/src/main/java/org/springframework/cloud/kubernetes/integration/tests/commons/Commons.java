@@ -62,11 +62,6 @@ public final class Commons {
 	 */
 	private static final String TMP_IMAGES = "/tmp/docker/images";
 
-	/**
-	 * istio version used in our integration tests.
-	 */
-	public static final String ISTIO_VERSION = "1.20.5";
-
 	private Commons() {
 		throw new AssertionError("No instance provided");
 	}
