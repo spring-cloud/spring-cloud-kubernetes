@@ -175,7 +175,8 @@ public final class Commons {
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();
 			if (tars != null && tars.length > 0) {
-				Optional<String> found = Arrays.stream(tars).map(File::getName).filter(tarName::contains).findFirst();
+				Optional<String> found = Arrays.stream(tars).map(File::getName)
+					.filter(x -> x.contains(tarName)).findFirst();
 				if (found.isPresent()) {
 					LOG.info("running in github actions, will load from : " + Commons.TMP_IMAGES);
 					Commons.loadImageFromPath(found.get(), container);
