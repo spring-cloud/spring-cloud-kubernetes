@@ -9,7 +9,7 @@ runs:
       id: images-cache
       with:
         path: /tmp/docker/images
-        key: docker-images-cache-${{ hashFiles('**/current-images.txt') }}
+        key: docker-images-github-cache-${{ hashFiles('**/current-images.txt') }}
 
     - name: pull docker images
       shell: bash
@@ -24,8 +24,6 @@ runs:
           docker save "${line}" > "/tmp/docker/images/${replace_slash}.tar"
         done <$result
         
-        ls /tmp/docker/images
-
     - name: save docker images
       id: save-docker-images
       uses: actions/cache/save@v4
@@ -33,7 +31,12 @@ runs:
       with:
         path: |
           /tmp/docker/images
-        key: docker-images-cache-${{ hashFiles('**/current-images.txt') }}
-        
+        key: docker-images-github-cache-${{ hashFiles('**/current-images.txt') }}
+
+    - name: print images
+      shell: bash
+      run: | 
+        echo 'printing images'
+        ls /tmp/docker/images
 
 
