@@ -48,11 +48,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
-<<<<<<< HEAD
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-=======
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
->>>>>>> main
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
