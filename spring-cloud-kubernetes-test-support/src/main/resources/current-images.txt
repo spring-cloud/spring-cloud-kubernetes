@@ -1,4 +1,4 @@
-busybox:1.35
+busybox:1.36.1
 istio/istioctl:1.20.5
 confluentinc/cp-kafka:7.2.1
 rabbitmq:3-management

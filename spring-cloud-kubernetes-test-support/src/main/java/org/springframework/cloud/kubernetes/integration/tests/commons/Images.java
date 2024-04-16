@@ -28,19 +28,19 @@ public final class Images {
 
 	private static final String BUSYBOX = "busybox";
 
-	private static final String BUSYBOX_TAR = "busybox";
+	private static final String BUSYBOX_TAR = BUSYBOX + ":" + busyboxVersion();
 
 	private static final String WIREMOCK = "wiremock/wiremock";
 
-	private static final String WIREMOCK_TAR = "wiremock";
+	private static final String WIREMOCK_TAR = WIREMOCK.replace('/', '-') + ":" + wiremockVersion();
 
 	private static final String ISTIOCTL = "istio/istioctl";
 
-	private static final String ISTIOCTL_TAR = "istioctl";
+	private static final String ISTIOCTL_TAR = ISTIOCTL.replace('/', '-') + ":" + istioctlVersion();
 
 	private static final String KAFKA = "confluentinc/cp-kafka";
 
-	private static final String KAFKA_TAR = "kafka";
+	private static final String KAFKA_TAR = KAFKA.replace('/', '-') + kafkaVersion();
 
 	private static final String RABBITMQ = "rabbitmq";
 
