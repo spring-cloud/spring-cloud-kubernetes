@@ -48,7 +48,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
+<<<<<<< HEAD
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
+=======
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+>>>>>>> main
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
@@ -63,6 +67,9 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
+
+	/** Image we get {@code istioctl} from in order to install Istio. */
+	public static final String ISTIO_ISTIOCTL = "istio/istioctl";
 
 	private final K3sContainer container;
 

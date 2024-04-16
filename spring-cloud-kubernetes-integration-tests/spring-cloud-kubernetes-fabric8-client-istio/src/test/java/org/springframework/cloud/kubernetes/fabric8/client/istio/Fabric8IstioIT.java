@@ -43,6 +43,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.processExecResult;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util.ISTIO_ISTIOCTL;
 
 /**
  * @author wind57
