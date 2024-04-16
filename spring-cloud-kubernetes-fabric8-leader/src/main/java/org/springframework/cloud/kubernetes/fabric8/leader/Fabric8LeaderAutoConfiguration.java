@@ -48,7 +48,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 public class Fabric8LeaderAutoConfiguration {
 
 	/*
-	 * used for publishing application events that happen:
+	 * Used for publishing application events that happen:
 	 * granted, revoked or failed to acquire mutex.
 	 */
 	@Bean
@@ -58,7 +58,7 @@ public class Fabric8LeaderAutoConfiguration {
 	}
 
 	/*
-	 * This can the though as "self" or the pod that participates in leader election process.
+	 * This can be thought as "self" or the pod that participates in leader election process.
 	 * The implementation that we return simply logs events that happen during that process.
 	 */
 	@Bean
@@ -69,7 +69,7 @@ public class Fabric8LeaderAutoConfiguration {
 	}
 
 	/*
-	 * add an info contributor with leader information.
+	 * Add an info contributor with leader information.
 	 */
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
