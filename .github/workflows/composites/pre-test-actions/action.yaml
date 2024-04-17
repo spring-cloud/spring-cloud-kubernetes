@@ -22,6 +22,9 @@ runs:
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
 
+    - name: restore common images
+      uses: ./.github/workflows/composites/restore-docker-images
+
     - name: build project
       shell: bash
       run: |

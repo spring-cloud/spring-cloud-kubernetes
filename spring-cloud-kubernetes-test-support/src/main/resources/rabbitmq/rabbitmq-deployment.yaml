@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: taskqueue
-          image: rabbitmq:3-management
+          image: rabbitmq
           imagePullPolicy: IfNotPresent
 
 
