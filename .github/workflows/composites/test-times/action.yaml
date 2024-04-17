@@ -15,18 +15,15 @@ runs:
 
     # we omit the name, as such all artifacts are downloaded
     - name: download all artifacts
-      if: env.BASE_BRANCH != '2.1.x'
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: /tmp/all-artifacts
 
     - name: show all artifacts
-      if: env.BASE_BRANCH != '2.1.x'
       shell: bash
       run: ls -l /tmp/all-artifacts
 
     - name: merge all artifacts into a single file and sort by time
-      if: env.BASE_BRANCH != '2.1.x'
       shell: bash
       run: |
         arr=($(find /tmp/all-artifacts/ -type f -name "test_times*"))
@@ -41,7 +38,6 @@ runs:
         cat /tmp/sorted.txt
 
     - name: show all tests in a sorted manner
-      if: env.BASE_BRANCH != '2.1.x'
       shell: bash
       run: cat /tmp/sorted.txt
 
@@ -51,8 +47,7 @@ runs:
     #    meaning there could be many of them already present and this is not an exact match
     #    github in this case will pick up the latest one, exactly what we want.
     - name: save test times in cache
-      uses: actions/cache/save@v3
-      if: env.BASE_BRANCH != '2.1.x'
+      uses: actions/cache/save@v4
       with:
         path: /tmp/sorted.txt
         key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
