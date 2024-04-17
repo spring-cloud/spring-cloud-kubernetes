@@ -3,7 +3,7 @@ description: setup project with jdk-17
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-java@v3
+    - uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'

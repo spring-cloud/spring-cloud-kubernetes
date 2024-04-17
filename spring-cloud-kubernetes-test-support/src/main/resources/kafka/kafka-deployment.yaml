@@ -33,7 +33,7 @@ spec:
               mountPath: /tmp
           command:
             - /tmp/kafka_start.sh
-          image: confluentinc/cp-kafka:7.2.1
+          image: confluentinc/cp-kafka
           ports:
             - containerPort: 9092
           env:
