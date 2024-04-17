@@ -62,11 +62,6 @@ public final class Commons {
 	 */
 	private static final String TMP_IMAGES = "/tmp/docker/images";
 
-	/**
-	 * istio version used in our integration tests.
-	 */
-	public static final String ISTIO_VERSION = "1.20.5";
-
 	private Commons() {
 		throw new AssertionError("No instance provided");
 	}
@@ -76,7 +71,7 @@ public final class Commons {
 	/**
 	 * Rancher version to use for test-containers.
 	 */
-	public static final String RANCHER = "rancher/k3s:v1.25.4-k3s1";
+	public static final String RANCHER = "rancher/k3s:v1.28.8-k3s1";
 
 	/**
 	 * Command to use when starting rancher. Without "server" option, traefik is not
@@ -180,9 +175,11 @@ public final class Commons {
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();
 			if (tars != null && tars.length > 0) {
-				Optional<String> found = Arrays.stream(tars).map(File::getName).filter(tarName::contains).findFirst();
+				Optional<String> found = Arrays.stream(tars).map(File::getName).filter(x -> x.contains(tarName))
+						.findFirst();
 				if (found.isPresent()) {
-					LOG.info("running in github actions, will load from : " + Commons.TMP_IMAGES);
+					LOG.info("running in github actions, will load from : " + Commons.TMP_IMAGES + " tar : "
+							+ found.get());
 					Commons.loadImageFromPath(found.get(), container);
 					return;
 				}
