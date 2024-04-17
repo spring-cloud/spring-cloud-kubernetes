@@ -33,6 +33,7 @@ import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
@@ -72,6 +73,8 @@ class Fabric8CatalogWatchIT {
 		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		Images.loadBusybox(K3S);
 
 		util = new Util(K3S);
 

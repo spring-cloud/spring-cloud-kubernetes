@@ -6,15 +6,13 @@ runs:
   steps:
 
     - name: download tests with times
-      if: env.BASE_BRANCH != '2.1.x'
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tests-with-times-sorted.txt
         path: /tmp/
 
     - name: download tests without times
-      if: env.BASE_BRANCH != '2.1.x'
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tests-without-times.txt
         path: /tmp/
@@ -187,12 +185,10 @@ runs:
 
     - name: show individual test times
       shell: bash
-      if: env.BASE_BRANCH != '2.1.x'
       run: cat /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
 
     - name: upload individual tests
-      if: env.BASE_BRANCH != '2.1.x'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test_times_${{ env.CURRENT_INDEX }}.txt
         path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt

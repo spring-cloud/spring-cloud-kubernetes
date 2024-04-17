@@ -48,6 +48,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
@@ -62,6 +63,9 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
+
+	/** Image we get {@code istioctl} from in order to install Istio. */
+	public static final String ISTIO_ISTIOCTL = "istio/istioctl";
 
 	private final K3sContainer container;
 
@@ -80,7 +84,7 @@ public final class Util {
 	 * tight as possible, providing reasonable defaults.
 	 *
 	 */
-	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, Service service,
+	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, @Nullable Service service,
 			@Nullable Ingress ingress, boolean changeVersion) {
 		try {
 
@@ -101,7 +105,9 @@ public final class Util {
 				waitForDeployment(namespace, deployment);
 			}
 
-			client.services().inNamespace(namespace).resource(service).create();
+			if (service != null) {
+				client.services().inNamespace(namespace).resource(service).create();
+			}
 
 			if (ingress != null) {
 				client.network().v1().ingresses().inNamespace(namespace).resource(ingress).create();
@@ -116,8 +122,14 @@ public final class Util {
 	public void busybox(String namespace, Phase phase) {
 		InputStream deploymentStream = inputStream("busybox/deployment.yaml");
 		InputStream serviceStream = inputStream("busybox/service.yaml");
-		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
-		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+
+		String busyboxVersion = Images.busyboxVersion();
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + busyboxVersion;
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
+		Service service = client.services().load(serviceStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "busybox", deployment, service, null, false);
@@ -249,6 +261,23 @@ public final class Util {
 		innerSetup(namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
 	}
 
+	public void setUpIstioctl(String namespace, Phase phase) {
+		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
+		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
+
+		String imageWithoutVersion = istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+				.getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.istioctlVersion();
+		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait(namespace, null, istioctlDeployment, null, null, false);
+		}
+		else {
+			deleteAndWait(namespace, istioctlDeployment, null, null);
+		}
+	}
+
 	private void waitForConfigMap(String namespace, ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
@@ -270,8 +299,12 @@ public final class Util {
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
 
-		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
-		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.wiremockVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
+		Service service = client.services().load(serviceStream).item();
 		Ingress ingress = null;
 
 		if (phase.equals(Phase.CREATE)) {

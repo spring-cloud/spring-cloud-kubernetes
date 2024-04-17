@@ -23,7 +23,6 @@ import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
@@ -100,7 +99,7 @@ class KubernetesClientServicesListSupplierTests {
 
 	@BeforeAll
 	static void setup() {
-		wireMockServer = new WireMockServer(options().dynamicPort().notifier(new ConsoleNotifier(true)));
+		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
 
