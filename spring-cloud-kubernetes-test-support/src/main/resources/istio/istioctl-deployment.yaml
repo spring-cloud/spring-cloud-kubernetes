@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: istio-ctl
+  labels:
+    app: istio-ctl
+spec:
+  selector:
+    matchLabels:
+      app: istio-ctl
+  template:
+    metadata:
+      labels:
+        app: istio-ctl
+    spec:
+      containers:
+        - name: istio-ctl
+          image: istio/istioctl
+          imagePullPolicy: IfNotPresent
+          command: [ "/bin/bash" ]
+          args: [ "-c", "trap : TERM INT; sleep infinity & wait" ]

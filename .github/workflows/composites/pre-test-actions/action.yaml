@@ -15,12 +15,11 @@ runs:
       uses: ./.github/workflows/composites/setup-jdk17
       if: env.BASE_BRANCH == 'main'
 
-    - name: setup project jdk-8
-      uses: ./.github/workflows/composites/setup-jdk1.8
-      if: env.BASE_BRANCH == '2.1.x'
-
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
+
+    - name: restore common images
+      uses: ./.github/workflows/composites/restore-docker-images
 
     - name: build project
       shell: bash
@@ -34,7 +33,7 @@ runs:
       uses: ./.github/workflows/composites/build-integration-tests-project
 
     - name: download tests
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tests.txt
         path: /tmp
