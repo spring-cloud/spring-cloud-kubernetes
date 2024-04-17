@@ -34,6 +34,7 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 
@@ -66,6 +67,9 @@ class ActuatorRefreshIT {
 		K3S.start();
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+
+		Images.loadWiremock(K3S);
+
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
 

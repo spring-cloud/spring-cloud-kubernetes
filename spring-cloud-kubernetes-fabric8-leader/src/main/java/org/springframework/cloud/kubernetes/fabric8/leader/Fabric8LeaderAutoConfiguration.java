@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
-import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -30,6 +29,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInfoContributor;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,7 +55,7 @@ public class Fabric8LeaderAutoConfiguration {
 
 	@Bean
 	public Candidate candidate(LeaderProperties leaderProperties) throws UnknownHostException {
-		String id = Inet4Address.getLocalHost().getHostName();
+		String id = LeaderUtils.hostName();
 		String role = leaderProperties.getRole();
 
 		return new DefaultCandidate(id, role);
