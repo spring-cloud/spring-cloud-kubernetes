@@ -37,39 +37,17 @@ runs:
         TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
         echo "$TEST_ARG"
         
-        if [[ $baseBranch == "2.1.x" ]]; then
-        
-           ./mvnw -s .settings.xml -pl '-:kubernetes-leader-election-example' -pl '-:kubernetes-hello-world-example' \
-           -pl '-:kubernetes-reload-example' -pl '-:kubernetes-loadbalancer-example' \
-           -pl '-:spring-cloud-kubernetes-configserver' -pl '-:spring-cloud-kubernetes-configuration-watcher' \
-           -pl '-:spring-cloud-kubernetes-discoveryserver' \
-           -DtestsToRun=${TEST_ARG[@]} \
-           -e clean install \
-           -U -P sonar -nsu --batch-mode \
-           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-           -Dhttp.keepAlive=false \
-           -Dmaven.wagon.http.pool=false \
-           -Dmaven.wagon.http.retryHandler.class=standard \
-           -Dmaven.wagon.http.retryHandler.count=3 \
-           -Dskip.build.image=true
-        
-        else 
-           
-           version=$(java -version)
-           echo "version of java: $version"
-        
-           ./mvnw -s .settings.xml \
-           -DtestsToRun=${TEST_ARG[@]} \
-           -DCURRENT_INSTANCE=${CURRENT_INDEX} \
-           -e clean install \
-           -P sonar -nsu --batch-mode \
-           -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-           -Dhttp.keepAlive=false \
-           -Dmaven.wagon.http.pool=false \
-           -Dmaven.wagon.http.retryHandler.class=standard \
-           -Dmaven.wagon.http.retryHandler.count=3 \
-           -Dskip.build.image=true          
-        fi
+        ./mvnw -s .settings.xml \
+            -DtestsToRun=${TEST_ARG[@]} \
+            -DCURRENT_INSTANCE=${CURRENT_INDEX} \
+            -e clean install \
+            -P sonar -nsu --batch-mode \
+            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
+            -Dhttp.keepAlive=false \
+            -Dmaven.wagon.http.pool=false \
+            -Dmaven.wagon.http.retryHandler.class=standard \
+            -Dmaven.wagon.http.retryHandler.count=3 \
+            -Dskip.build.image=true          
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         
@@ -85,12 +63,10 @@ runs:
 
     - name: show individual test times
       shell: bash
-      if: env.BASE_BRANCH != '2.1.x'
       run: cat /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
 
     - name: upload individual tests
-      if: env.BASE_BRANCH != '2.1.x'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test_times_${{ env.CURRENT_INDEX }}.txt
         path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
