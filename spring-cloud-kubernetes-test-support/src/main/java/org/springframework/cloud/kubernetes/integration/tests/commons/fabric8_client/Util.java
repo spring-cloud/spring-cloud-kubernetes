@@ -48,7 +48,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
@@ -123,6 +123,12 @@ public final class Util {
 		InputStream deploymentStream = inputStream("busybox/deployment.yaml");
 		InputStream serviceStream = inputStream("busybox/service.yaml");
 		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+
+		String busyboxVersion = Images.busyboxVersion();
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + busyboxVersion;
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
 		Service service = client.services().load(serviceStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
@@ -259,9 +265,10 @@ public final class Util {
 		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
 		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
 
-		// Ensure the version in the yaml is consistent with images we pulled.
-		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0)
-				.setImage(ISTIO_ISTIOCTL + ":" + Commons.ISTIO_VERSION);
+		String imageWithoutVersion = istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0)
+				.getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.istioctlVersion();
+		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, null, istioctlDeployment, null, null, false);
@@ -293,6 +300,10 @@ public final class Util {
 		InputStream ingressStream = inputStream("wiremock/wiremock-ingress.yaml");
 
 		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.wiremockVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
 		Service service = client.services().load(serviceStream).item();
 		Ingress ingress = null;
 
