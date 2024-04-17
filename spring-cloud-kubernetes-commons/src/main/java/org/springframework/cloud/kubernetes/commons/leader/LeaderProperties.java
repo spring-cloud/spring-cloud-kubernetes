@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,29 +26,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("spring.cloud.kubernetes.leader")
 public class LeaderProperties {
 
-	private static final boolean DEFAULT_ENABLED = true;
-
-	private static final String DEFAULT_LEADER_ID_PREFIX = "leader.id.";
-
-	private static final boolean DEFAULT_AUTO_STARTUP = true;
-
-	private static final String DEFAULT_CONFIG_MAP_NAME = "leaders";
-
-	private static final Duration DEFAULT_UPDATE_PERIOD = Duration.ofMillis(60000);
-
-	private static final boolean DEFAULT_PUBLISH_FAILED_EVENTS = false;
-
-	private static final boolean DEFAULT_CREATE_CONFIG_MAP = true;
-
 	/**
 	 * Should leader election be enabled. Default: true
 	 */
-	private boolean enabled = DEFAULT_ENABLED;
+	private boolean enabled = true;
 
 	/**
 	 * Should leader election be started automatically on startup. Default: true
 	 */
-	private boolean autoStartup = DEFAULT_AUTO_STARTUP;
+	private boolean autoStartup = true;
 
 	/**
 	 * Role for which leadership this candidate will compete.
@@ -63,31 +49,31 @@ public class LeaderProperties {
 	/**
 	 * Kubernetes ConfigMap where leaders information will be stored. Default: leaders
 	 */
-	private String configMapName = DEFAULT_CONFIG_MAP_NAME;
+	private String configMapName = "leaders";
 
 	/**
 	 * Leader id property prefix for the ConfigMap. Default: leader.id.
 	 */
-	private String leaderIdPrefix = DEFAULT_LEADER_ID_PREFIX;
+	private String leaderIdPrefix = "leader.id.";
 
 	/**
 	 * Leadership status check period. Default: 60s
 	 */
-	private Duration updatePeriod = DEFAULT_UPDATE_PERIOD;
+	private Duration updatePeriod = Duration.ofMillis(60000);
 
 	/**
 	 * Enable/disable publishing events in case leadership acquisition fails. Default:
 	 * false
 	 */
-	private boolean publishFailedEvents = DEFAULT_PUBLISH_FAILED_EVENTS;
+	private boolean publishFailedEvents = false;
 
 	/**
 	 * Enable/disable creating ConfigMap if it does not exist. Default: true
 	 */
-	private boolean createConfigMap = DEFAULT_CREATE_CONFIG_MAP;
+	private boolean createConfigMap = true;
 
 	public boolean isEnabled() {
-		return this.enabled;
+		return enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
@@ -95,7 +81,7 @@ public class LeaderProperties {
 	}
 
 	public boolean isAutoStartup() {
-		return this.autoStartup;
+		return autoStartup;
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
@@ -103,7 +89,7 @@ public class LeaderProperties {
 	}
 
 	public String getRole() {
-		return this.role;
+		return role;
 	}
 
 	public void setRole(String role) {
@@ -111,7 +97,7 @@ public class LeaderProperties {
 	}
 
 	public String getNamespace() {
-		return this.namespace;
+		return namespace;
 	}
 
 	public void setNamespace(String namespace) {
@@ -119,15 +105,15 @@ public class LeaderProperties {
 	}
 
 	public String getNamespace(String defaultValue) {
-		if (this.namespace == null || this.namespace.isEmpty()) {
+		if (namespace == null || namespace.isEmpty()) {
 			return defaultValue;
 		}
 
-		return this.namespace;
+		return namespace;
 	}
 
 	public String getConfigMapName() {
-		return this.configMapName;
+		return configMapName;
 	}
 
 	public void setConfigMapName(String configMapName) {
@@ -135,7 +121,7 @@ public class LeaderProperties {
 	}
 
 	public String getLeaderIdPrefix() {
-		return this.leaderIdPrefix;
+		return leaderIdPrefix;
 	}
 
 	public void setLeaderIdPrefix(String leaderIdPrefix) {
@@ -143,7 +129,7 @@ public class LeaderProperties {
 	}
 
 	public Duration getUpdatePeriod() {
-		return this.updatePeriod;
+		return updatePeriod;
 	}
 
 	public void setUpdatePeriod(Duration updatePeriod) {
@@ -151,7 +137,7 @@ public class LeaderProperties {
 	}
 
 	public boolean isPublishFailedEvents() {
-		return this.publishFailedEvents;
+		return publishFailedEvents;
 	}
 
 	public void setPublishFailedEvents(boolean publishFailedEvents) {
@@ -159,7 +145,7 @@ public class LeaderProperties {
 	}
 
 	public boolean isCreateConfigMap() {
-		return this.createConfigMap;
+		return createConfigMap;
 	}
 
 	public void setCreateConfigMap(boolean createConfigMap) {

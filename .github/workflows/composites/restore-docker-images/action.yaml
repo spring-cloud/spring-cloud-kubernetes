@@ -1,0 +1,40 @@
+name: restore-docker-images
+description: upload docker images
+runs:
+  using: "composite"
+  steps:
+
+    - name: restore images if cache matches
+      uses: actions/cache/restore@v4
+      id: images-cache
+      with:
+        path: /tmp/docker/images
+        key: docker-images-github-cache-${{ hashFiles('**/current-images.txt') }}
+
+    - name: pull docker images
+      shell: bash
+      if: steps.images-cache.outputs.cache-hit != 'true'
+      run: |
+        echo 'start pulling common images'
+        mkdir -p /tmp/docker/images
+        result=$(find . -name 'current-images.txt')
+        while read line; do
+          docker pull "$line"
+          replace_slash=$(tr '/' '-' <<< "$line")
+          docker save "${line}" > "/tmp/docker/images/${replace_slash}.tar"
+        done <$result
+        
+    - name: save docker images
+      id: save-docker-images
+      uses: actions/cache/save@v4
+      if: steps.images-cache.outputs.cache-hit != 'true'
+      with:
+        path: |
+          /tmp/docker/images
+
+    - name: print images
+      shell: bash
+      run: | 
+        echo 'printing images'
+        ls /tmp/docker/images
+

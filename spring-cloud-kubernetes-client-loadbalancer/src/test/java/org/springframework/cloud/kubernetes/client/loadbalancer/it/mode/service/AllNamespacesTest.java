@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.service
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
@@ -90,7 +89,7 @@ class AllNamespacesTest {
 	@BeforeAll
 	static void beforeAll() {
 
-		wireMockServer = new WireMockServer(options().dynamicPort().notifier(new ConsoleNotifier(true)));
+		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
 		mockWatchers();
