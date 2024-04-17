@@ -60,6 +60,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
@@ -233,6 +234,11 @@ public final class Util {
 
 	public void busybox(String namespace, Phase phase) {
 		V1Deployment deployment = (V1Deployment) yaml("busybox/deployment.yaml");
+
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.busyboxVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
 		V1Service service = (V1Service) yaml("busybox/service.yaml");
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "busybox", deployment, service, null, false);
@@ -244,6 +250,11 @@ public final class Util {
 
 	public void kafka(String namespace, Phase phase) {
 		V1Deployment deployment = (V1Deployment) yaml("kafka/kafka-deployment.yaml");
+
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.kafkaVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
 		V1Service service = (V1Service) yaml("kafka/kafka-service.yaml");
 		V1ConfigMap configMap = (V1ConfigMap) yaml("kafka/kafka-configmap-startup-script.yaml");
 
@@ -259,6 +270,11 @@ public final class Util {
 
 	public void rabbitMq(String namespace, Phase phase) {
 		V1Deployment deployment = (V1Deployment) yaml("rabbitmq/rabbitmq-deployment.yaml");
+
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.rabbitMqVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
 		V1Service service = (V1Service) yaml("rabbitmq/rabbitmq-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
@@ -430,6 +446,11 @@ public final class Util {
 
 	public void wiremock(String namespace, String path, Phase phase, boolean withIngress) {
 		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
+
+		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.wiremockVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+
 		V1Service service = (V1Service) yaml("wiremock/wiremock-service.yaml");
 
 		V1Ingress ingress = null;

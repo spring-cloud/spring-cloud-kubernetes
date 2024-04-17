@@ -2,9 +2,9 @@ name: github-workflow
 
 on:
   push:
-    branches: [ main, 2.1.x, 3.0.x ]
+    branches: [ main, 3.0.x ]
   pull_request:
-    branches: [ main, 2.1.x, 3.0.x ]
+    branches: [ main, 3.0.x ]
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -36,10 +36,6 @@ jobs:
         id: jdk_17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
-
-      - name: setup project jdk-8
-        uses: ./.github/workflows/composites/setup-jdk1.8
-        if: env.BASE_BRANCH == '2.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
@@ -61,8 +57,7 @@ jobs:
 
       - name: restore test times cache if it exists
         id: restore_test_times_cache
-        if: env.BASE_BRANCH != '2.1.x'
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: /tmp/sorted.txt
           key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
@@ -110,7 +105,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -121,10 +116,6 @@ jobs:
       - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
-
-      - name: setup project jdk-8
-        uses: ./.github/workflows/composites/setup-jdk1.8
-        if: env.BASE_BRANCH == '2.1.x'
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
@@ -158,7 +149,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -169,10 +160,6 @@ jobs:
       - name: setup project jdk-17
         uses: ./.github/workflows/composites/setup-jdk17
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x'
-
-      - name: setup project jdk-8
-        uses: ./.github/workflows/composites/setup-jdk1.8
-        if: env.BASE_BRANCH == '2.1.x'
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
@@ -190,7 +177,6 @@ jobs:
       - name: run and save individual test times
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
-        if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
 
   save_test_times_when_cache_missing:
@@ -200,10 +186,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: compute and save running time of tests
-        if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/test-times
 
   save_test_times_when_cache_present:
@@ -213,8 +198,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: compute and save running time of tests
-        if: env.BASE_BRANCH != '2.1.x'
         uses: ./.github/workflows/composites/test-times
