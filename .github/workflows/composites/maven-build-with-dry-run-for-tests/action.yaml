@@ -30,7 +30,7 @@ runs:
       run: cat /tmp/tests.txt
 
     - name: upload test
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tests.txt
         path: /tmp/tests.txt
