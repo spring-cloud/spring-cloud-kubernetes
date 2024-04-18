@@ -48,8 +48,8 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 public class Fabric8LeaderAutoConfiguration {
 
 	/*
-	 * Used for publishing application events that happen:
-	 * granted, revoked or failed to acquire mutex.
+	 * Used for publishing application events that happen: granted, revoked or failed to
+	 * acquire mutex.
 	 */
 	@Bean
 	@ConditionalOnMissingBean(LeaderEventPublisher.class)
@@ -58,8 +58,9 @@ public class Fabric8LeaderAutoConfiguration {
 	}
 
 	/*
-	 * This can be thought as "self" or the pod that participates in leader election process.
-	 * The implementation that we return simply logs events that happen during that process.
+	 * This can be thought as "self" or the pod that participates in leader election
+	 * process. The implementation that we return simply logs events that happen during
+	 * that process.
 	 */
 	@Bean
 	public Candidate candidate(LeaderProperties leaderProperties) throws UnknownHostException {

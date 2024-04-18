@@ -38,8 +38,8 @@ class LeaderInfoContributorTests {
 		Candidate candidate = new DefaultCandidate("id", "role");
 		LeaderProperties leaderProperties = new LeaderProperties();
 		LeaderEventPublisher leaderEventPublisher = Mockito.mock(LeaderEventPublisher.class);
-		LeadershipController leadershipController = new LeadershipControllerStub(candidate,
-			leaderProperties, leaderEventPublisher);
+		LeadershipController leadershipController = new LeadershipControllerStub(candidate, leaderProperties,
+				leaderEventPublisher);
 
 		LeaderInfoContributor leaderInfoContributor = new LeaderInfoContributor(leadershipController, candidate);
 		Info.Builder builder = new Info.Builder();
@@ -51,11 +51,11 @@ class LeaderInfoContributorTests {
 	@Test
 	void testLeaderPresentIsLeader() {
 
-		Candidate candidate = new DefaultCandidate("leaderId", "notLeaderRole");
+		Candidate candidate = new DefaultCandidate("leaderId", "leaderRole");
 		LeaderProperties leaderProperties = new LeaderProperties();
 		LeaderEventPublisher leaderEventPublisher = Mockito.mock(LeaderEventPublisher.class);
-		LeadershipController leadershipController = new LeadershipControllerStub(candidate,
-			leaderProperties, leaderEventPublisher);
+		LeadershipController leadershipController = new LeadershipControllerStub(candidate, leaderProperties,
+				leaderEventPublisher);
 
 		Leader leader = new Leader("leaderRole", "leaderId");
 
@@ -66,8 +66,28 @@ class LeaderInfoContributorTests {
 		leaderInfoContributor.contribute(builder);
 
 		Assertions.assertEquals(builder.build().getDetails().get("leaderElection"),
-			Map.of("role", "leaderRole", "isLeader", false, "leaderId", "leaderId"));
+				Map.of("role", "leaderRole", "isLeader", true, "leaderId", "leaderId"));
 	}
 
+	@Test
+	void testLeaderPresentIsNotLeader() {
+
+		Candidate candidate = new DefaultCandidate("leaderId", "notLeaderRole");
+		LeaderProperties leaderProperties = new LeaderProperties();
+		LeaderEventPublisher leaderEventPublisher = Mockito.mock(LeaderEventPublisher.class);
+		LeadershipController leadershipController = new LeadershipControllerStub(candidate, leaderProperties,
+				leaderEventPublisher);
+
+		Leader leader = new Leader("leaderRole", "leaderId");
+
+		leadershipController.handleLeaderChange(leader);
+
+		LeaderInfoContributor leaderInfoContributor = new LeaderInfoContributor(leadershipController, candidate);
+		Info.Builder builder = new Info.Builder();
+		leaderInfoContributor.contribute(builder);
+
+		Assertions.assertEquals(builder.build().getDetails().get("leaderElection"),
+				Map.of("role", "leaderRole", "isLeader", false, "leaderId", "leaderId"));
+	}
 
 }

@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.leader;
 
+import java.util.Optional;
+
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
-
-import java.util.Optional;
 
 /**
  * @author wind57
@@ -28,7 +28,7 @@ final class LeadershipControllerStub extends LeadershipController {
 
 	private Leader leader;
 
-	public LeadershipControllerStub(Candidate candidate, LeaderProperties leaderProperties,
+	LeadershipControllerStub(Candidate candidate, LeaderProperties leaderProperties,
 			LeaderEventPublisher leaderEventPublisher) {
 		super(candidate, leaderProperties, leaderEventPublisher);
 	}
@@ -57,4 +57,5 @@ final class LeadershipControllerStub extends LeadershipController {
 	public Optional<Leader> getLocalLeader() {
 		return Optional.ofNullable(leader);
 	}
+
 }
