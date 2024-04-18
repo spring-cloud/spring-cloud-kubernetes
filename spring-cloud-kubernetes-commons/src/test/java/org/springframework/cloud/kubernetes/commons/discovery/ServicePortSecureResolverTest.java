@@ -101,8 +101,8 @@ class ServicePortSecureResolverTest {
 	@Test
 	void securedLabelPresentWrongValue(CapturedOutput output) {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true, false, null);
+				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true,
+				false, null);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of("secured", "right"), Map.of());
@@ -115,8 +115,8 @@ class ServicePortSecureResolverTest {
 	@Test
 	void securedLabelPresentCorrectValue(CapturedOutput output) {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true, false, null);
+				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true,
+				false, null);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of("secured", "true"), Map.of());
@@ -130,8 +130,8 @@ class ServicePortSecureResolverTest {
 	@Test
 	void securedAnnotationPresentWrongValue(CapturedOutput output) {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true, false, null);
+				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true,
+				false, null);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of(), Map.of("secured", "right"));
@@ -144,8 +144,8 @@ class ServicePortSecureResolverTest {
 	@Test
 	void securedAnnotationPresentCorrectValue(CapturedOutput output) {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true, false, null);
+				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true,
+				false, null);
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
 		Input input = new Input(portData, "dummy", Map.of(), Map.of("secured", "true"));

@@ -132,7 +132,7 @@ class KubernetesClientServicesListSupplierTests {
 		Set<String> selectiveNamespaces = Set.of();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
 				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
@@ -169,7 +169,7 @@ class KubernetesClientServicesListSupplierTests {
 		Set<String> selectiveNamespaces = Set.of();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
 				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
 		KubernetesClientServicesListSupplier listSupplier = new KubernetesClientServicesListSupplier(env, mapper,
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
@@ -196,7 +196,7 @@ class KubernetesClientServicesListSupplierTests {
 		Set<String> selectiveNamespaces = Set.of();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
 				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(
@@ -233,7 +233,7 @@ class KubernetesClientServicesListSupplierTests {
 		Set<String> selectiveNamespaces = Set.of("default", "test", "no-service");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
 				selectiveNamespaces, true, 60, false, null, Set.of(443, 8443, 12345), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
 		CoreV1Api coreV1Api = new CoreV1Api();
 		KubernetesClientServiceInstanceMapper mapper = new KubernetesClientServiceInstanceMapper(

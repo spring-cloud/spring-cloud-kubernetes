@@ -78,7 +78,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, null, false,
 				null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
@@ -97,7 +97,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, null, false,
 				null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
@@ -117,7 +117,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, "l_", false,
 				null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
@@ -137,7 +137,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, null, true,
 				null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
@@ -157,7 +157,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, null, true,
 				"a_", false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
@@ -177,7 +177,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, null, false,
 				null, true, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
@@ -197,7 +197,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, null, false,
 				null, true, "p_");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
@@ -217,7 +217,7 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, "l_", true,
 				"a_", true, "p_");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, metadata, 0, true);
+				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
