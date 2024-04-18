@@ -47,7 +47,7 @@ public class Leader {
 			return false;
 		}
 
-		return Objects.equals(this.role, candidate.getRole()) && Objects.equals(this.id, candidate.getId());
+		return Objects.equals(role, candidate.getRole()) && Objects.equals(id, candidate.getId());
 	}
 
 	@Override
