@@ -68,7 +68,7 @@ final class Fabric8KubernetesCatalogWatch implements ApplicationEventPublisherAw
 	}
 
 	@Scheduled(fixedDelayString = "${" + CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE + "}")
-	public void catalogServicesWatch() {
+	void catalogServicesWatch() {
 		try {
 
 			List<EndpointNameAndNamespace> currentState = stateGenerator.apply(context);

@@ -70,7 +70,7 @@ class Fabric8KubernetesDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
-	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);

@@ -88,7 +88,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
-	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
+	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
 			Fabric8KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
