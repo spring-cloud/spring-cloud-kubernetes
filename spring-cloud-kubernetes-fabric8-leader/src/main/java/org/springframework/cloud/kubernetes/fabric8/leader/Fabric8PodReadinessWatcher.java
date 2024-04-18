@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
@@ -35,7 +37,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 
 	private static final LogAccessor LOGGER = new LogAccessor(LogFactory.getLog(Fabric8PodReadinessWatcher.class));
 
-	private final Object lock = new Object();
+	private final ReentrantLock lock = new ReentrantLock();
 
 	private final String podName;
 
@@ -57,27 +59,27 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	@Override
 	public void start() {
 		if (watch == null) {
-			synchronized (lock) {
+			guarded(() -> {
 				if (watch == null) {
 					LOGGER.debug(() -> "Starting pod readiness watcher for :" + podName);
 					PodResource podResource = kubernetesClient.pods().withName(this.podName);
 					previousState = podResource.isReady();
 					watch = podResource.watch(this);
 				}
-			}
+			});
 		}
 	}
 
 	@Override
 	public void stop() {
 		if (watch != null) {
-			synchronized (lock) {
+			guarded(() -> {
 				if (watch != null) {
 					LOGGER.debug(() -> "Stopping pod readiness watcher for :" + podName);
 					watch.close();
 					watch = null;
 				}
-			}
+			});
 		}
 	}
 
@@ -85,26 +87,37 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	public void eventReceived(Action action, Pod pod) {
 		boolean currentState = Readiness.isPodReady(pod);
 		if (previousState != currentState) {
-			synchronized (lock) {
+			guarded(() -> {
 				if (previousState != currentState) {
-					LOGGER.debug(() -> "readiness status changed for pod : " + podName +
-						" to state: " + currentState + ", triggering leadership update");
+					LOGGER.debug(() -> "readiness status changed for pod : " + podName + " to state: " + currentState
+							+ ", triggering leadership update");
 					previousState = currentState;
 					fabric8LeadershipController.update();
 				}
-			}
+			});
 		}
 	}
 
 	@Override
 	public void onClose(WatcherException cause) {
 		if (cause != null) {
-			synchronized (lock) {
+			guarded(() -> {
 				LOGGER.warn(() -> "Watcher stopped unexpectedly, will restart" + cause.getMessage());
 				watch = null;
 				start();
-			}
+			});
 		}
+	}
+
+	private void guarded(Runnable runnable) {
+		try {
+			lock.lock();
+			runnable.run();
+		}
+		finally {
+			lock.unlock();
+		}
+
 	}
 
 }
