@@ -66,7 +66,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -98,7 +98,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -130,7 +130,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -166,7 +166,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -204,7 +204,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -239,7 +239,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -277,7 +277,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -319,7 +319,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -353,7 +353,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(addLabels,
 				labelsPrefix, addAnnotations, annotationsPrefix, addPorts, portsPrefix);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				true, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		ServiceMetadata serviceMetadata = new ServiceMetadata("my-service", namespace, "ClusterIP", serviceLabels,
 				serviceAnnotations);
 
@@ -398,7 +398,7 @@ class DiscoveryClientUtilsTests {
 	void testPrimaryPortNameFoundInProperties(CapturedOutput output) {
 		String primaryPortName = "https";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false, null);
 
 		Map<String, String> serviceLabels = Map.of();
 
@@ -440,7 +440,7 @@ class DiscoveryClientUtilsTests {
 		String primaryPortName = "https";
 		Map<String, String> serviceLabels = Map.of(PRIMARY_PORT_NAME_LABEL_KEY, "http");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false, null);
 
 		String result = primaryPortName(properties, serviceLabels, "abc");
 		Assertions.assertNotNull(result);
@@ -535,7 +535,7 @@ class DiscoveryClientUtilsTests {
 		String serviceId = "spring-k8s";
 		String primaryPortName = "three";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false, null);
 
 		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		endpointsPorts.put("one", 8080);
@@ -571,7 +571,7 @@ class DiscoveryClientUtilsTests {
 		String serviceId = "spring-k8s";
 		String primaryPortName = "two";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false, null);
 
 		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		endpointsPorts.put("one", 8080);
@@ -601,7 +601,7 @@ class DiscoveryClientUtilsTests {
 		String serviceId = "spring-k8s";
 		String primaryPortName = "three";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false, null);
 
 		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		endpointsPorts.put("one", 8080);
@@ -633,7 +633,7 @@ class DiscoveryClientUtilsTests {
 		String serviceId = "spring-k8s";
 		String primaryPortName = "three";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false);
+				true, "", Set.of(), Map.of(), primaryPortName, null, 0, false, false, null);
 
 		LinkedHashMap<String, Integer> endpointsPorts = new LinkedHashMap<>();
 		endpointsPorts.put("one", 8080);
@@ -657,7 +657,8 @@ class DiscoveryClientUtilsTests {
 	@Test
 	void testServiceInstance() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				false, false, null);
 		ServicePortSecureResolver resolver = new ServicePortSecureResolver(properties);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(8080, "http");
@@ -685,7 +686,8 @@ class DiscoveryClientUtilsTests {
 	void testExternalNameServiceInstance() {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
+				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
+				false, false, null);
 
 		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
 		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(), Map.of());
@@ -721,7 +723,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
 
 		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
@@ -742,7 +744,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
 
 		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
@@ -768,7 +770,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> null;
 
 		Map<String, Map<String, String>> result = podMetadata(podName, serviceMetadata, properties,
@@ -795,7 +797,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of(), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
@@ -826,7 +828,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
@@ -858,7 +860,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of());
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
@@ -889,7 +891,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
@@ -921,7 +923,7 @@ class DiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(false, "", false,
 				"", false, "", addLabels, addAnnotations);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				false, "", Set.of(), Map.of(), "", metadata, 0, false, false);
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
 
 		PodLabelsAndAnnotations both = new PodLabelsAndAnnotations(Map.of("a", "b"), Map.of("c", "d"));
 		Function<String, PodLabelsAndAnnotations> podLabelsAndMetadata = x -> both;
