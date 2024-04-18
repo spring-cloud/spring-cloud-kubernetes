@@ -80,8 +80,8 @@ public class Fabric8LeaderAutoConfiguration {
 	}
 
 	/**
-	 * watches the readiness of the pod. In case of a readiness change, it has to
-	 * go through leader process again.
+	 * watches the readiness of the pod. In case of a readiness change, it has to go
+	 * through leader process again.
 	 */
 	@Bean
 	public Fabric8PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
