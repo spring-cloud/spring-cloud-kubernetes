@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,17 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.readiness.Readiness;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.leader.PodReadinessWatcher;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author Gytis Trikleris
  */
 public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<Pod> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Fabric8PodReadinessWatcher.class);
+	private static final LogAccessor LOGGER = new LogAccessor(LogFactory.getLog(Fabric8PodReadinessWatcher.class));
 
 	private final Object lock = new Object();
 
@@ -43,9 +43,9 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 
 	private final Fabric8LeadershipController fabric8LeadershipController;
 
-	private boolean previousState;
+	private volatile boolean previousState;
 
-	private Watch watch;
+	private volatile Watch watch;
 
 	public Fabric8PodReadinessWatcher(String podName, KubernetesClient kubernetesClient,
 			Fabric8LeadershipController fabric8LeadershipController) {
@@ -56,13 +56,13 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 
 	@Override
 	public void start() {
-		if (this.watch == null) {
-			synchronized (this.lock) {
-				if (this.watch == null) {
-					LOGGER.debug("Starting pod readiness watcher for '{}'", this.podName);
-					PodResource podResource = this.kubernetesClient.pods().withName(this.podName);
-					this.previousState = podResource.isReady();
-					this.watch = podResource.watch(this);
+		if (watch == null) {
+			synchronized (lock) {
+				if (watch == null) {
+					LOGGER.debug(() -> "Starting pod readiness watcher for :" + podName);
+					PodResource podResource = kubernetesClient.pods().withName(this.podName);
+					previousState = podResource.isReady();
+					watch = podResource.watch(this);
 				}
 			}
 		}
@@ -70,12 +70,12 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 
 	@Override
 	public void stop() {
-		if (this.watch != null) {
-			synchronized (this.lock) {
-				if (this.watch != null) {
-					LOGGER.debug("Stopping pod readiness watcher for '{}'", this.podName);
-					this.watch.close();
-					this.watch = null;
+		if (watch != null) {
+			synchronized (lock) {
+				if (watch != null) {
+					LOGGER.debug(() -> "Stopping pod readiness watcher for :" + podName);
+					watch.close();
+					watch = null;
 				}
 			}
 		}
@@ -84,13 +84,13 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	@Override
 	public void eventReceived(Action action, Pod pod) {
 		boolean currentState = Readiness.isPodReady(pod);
-		if (this.previousState != currentState) {
-			synchronized (this.lock) {
-				if (this.previousState != currentState) {
-					LOGGER.debug("'{}' readiness status changed to '{}', triggering leadership update", this.podName,
-							currentState);
-					this.previousState = currentState;
-					this.fabric8LeadershipController.update();
+		if (previousState != currentState) {
+			synchronized (lock) {
+				if (previousState != currentState) {
+					LOGGER.debug(() -> "readiness status changed for pod : " + podName +
+						" to state: " + currentState + ", triggering leadership update");
+					previousState = currentState;
+					fabric8LeadershipController.update();
 				}
 			}
 		}
@@ -99,9 +99,9 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	@Override
 	public void onClose(WatcherException cause) {
 		if (cause != null) {
-			synchronized (this.lock) {
-				LOGGER.warn("Watcher stopped unexpectedly, will restart", cause);
-				this.watch = null;
+			synchronized (lock) {
+				LOGGER.warn(() -> "Watcher stopped unexpectedly, will restart" + cause.getMessage());
+				watch = null;
 				start();
 			}
 		}
