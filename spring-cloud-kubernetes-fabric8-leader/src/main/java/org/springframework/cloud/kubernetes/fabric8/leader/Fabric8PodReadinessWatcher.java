@@ -30,6 +30,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.leader.PodReadinessWatcher;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.guarded;
+
 /**
  * @author Gytis Trikleris
  */
@@ -59,7 +61,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	@Override
 	public void start() {
 		if (watch == null) {
-			guarded(() -> {
+			guarded(lock, () -> {
 				if (watch == null) {
 					LOGGER.debug(() -> "Starting pod readiness watcher for :" + podName);
 					PodResource podResource = kubernetesClient.pods().withName(this.podName);
@@ -73,7 +75,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	@Override
 	public void stop() {
 		if (watch != null) {
-			guarded(() -> {
+			guarded(lock, () -> {
 				if (watch != null) {
 					LOGGER.debug(() -> "Stopping pod readiness watcher for :" + podName);
 					watch.close();
@@ -87,7 +89,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	public void eventReceived(Action action, Pod pod) {
 		boolean currentState = Readiness.isPodReady(pod);
 		if (previousState != currentState) {
-			guarded(() -> {
+			guarded(lock, () -> {
 				if (previousState != currentState) {
 					LOGGER.debug(() -> "readiness status changed for pod : " + podName + " to state: " + currentState
 							+ ", triggering leadership update");
@@ -101,23 +103,12 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 	@Override
 	public void onClose(WatcherException cause) {
 		if (cause != null) {
-			guarded(() -> {
+			guarded(lock, () -> {
 				LOGGER.warn(() -> "Watcher stopped unexpectedly, will restart" + cause.getMessage());
 				watch = null;
 				start();
 			});
 		}
-	}
-
-	private void guarded(Runnable runnable) {
-		try {
-			lock.lock();
-			runnable.run();
-		}
-		finally {
-			lock.unlock();
-		}
-
 	}
 
 }
