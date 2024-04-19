@@ -117,7 +117,6 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 		finally {
 			lock.unlock();
 		}
-
 	}
 
 }
