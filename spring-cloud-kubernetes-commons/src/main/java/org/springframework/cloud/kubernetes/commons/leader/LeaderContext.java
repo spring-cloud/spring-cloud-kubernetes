@@ -35,12 +35,17 @@ public class LeaderContext implements Context {
 
 	@Override
 	public boolean isLeader() {
-		return this.leadershipController.getLocalLeader().filter(l -> l.isCandidate(candidate)).isPresent();
+		return leadershipController.getLocalLeader().filter(l -> l.isCandidate(candidate)).isPresent();
 	}
 
 	@Override
 	public void yield() {
 		leadershipController.revoke();
+	}
+
+	@Override
+	public String getRole() {
+		return candidate.getRole();
 	}
 
 }

@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons.leader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.log.LogAccessor;
@@ -40,7 +41,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	private ScheduledExecutorService scheduledExecutorService;
 
-	private boolean isRunning;
+	private final AtomicBoolean isRunning = new AtomicBoolean(false);
 
 	public LeaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
 			LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
@@ -65,7 +66,7 @@ public class LeaderInitiator implements SmartLifecycle {
 			scheduledExecutorService.scheduleAtFixedRate(leadershipController::update,
 					leaderProperties.getUpdatePeriod().toMillis(),
 					leaderProperties.getUpdatePeriod().toMillis(), TimeUnit.MILLISECONDS);
-			isRunning = true;
+			isRunning.set(true);
 		}
 	}
 
@@ -78,7 +79,7 @@ public class LeaderInitiator implements SmartLifecycle {
 			hostPodWatcher.stop();
 			leaderRecordWatcher.stop();
 			leadershipController.revoke();
-			isRunning = false;
+			isRunning.set(false);
 		}
 	}
 
@@ -90,7 +91,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	@Override
 	public boolean isRunning() {
-		return isRunning;
+		return isRunning.get();
 	}
 
 	@Override
