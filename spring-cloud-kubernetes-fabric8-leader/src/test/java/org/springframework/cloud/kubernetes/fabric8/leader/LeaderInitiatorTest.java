@@ -18,123 +18,112 @@ package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import java.time.Duration;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.atLeastOnce;
 
 /**
  * @author Gytis Trikleris
  */
-@ExtendWith(MockitoExtension.class)
 public class LeaderInitiatorTest {
 
-	@Mock
-	private LeaderProperties mockLeaderProperties;
+	private final LeaderProperties leaderProperties = new LeaderProperties();
 
-	@Mock
-	private Fabric8LeadershipController mockFabric8LeadershipController;
+	private final Fabric8LeadershipController mockFabric8LeadershipController =
+		Mockito.mock(Fabric8LeadershipController.class);
 
-	@Mock
-	private Fabric8LeaderRecordWatcher mockFabric8LeaderRecordWatcher;
+	private final Fabric8LeaderRecordWatcher mockFabric8LeaderRecordWatcher = Mockito.mock(Fabric8LeaderRecordWatcher.class);
 
-	@Mock
-	private Fabric8PodReadinessWatcher mockFabric8PodReadinessWatcher;
+	private final Fabric8PodReadinessWatcher mockFabric8PodReadinessWatcher =
+		Mockito.mock(Fabric8PodReadinessWatcher.class);
 
-	@Mock
-	private Runnable mockRunnable;
+	private final Runnable runnable = Mockito.mock(Runnable.class);
 
 	private LeaderInitiator leaderInitiator;
 
 	@BeforeEach
-	public void before() {
-		this.leaderInitiator = new LeaderInitiator(this.mockLeaderProperties, this.mockFabric8LeadershipController,
-				this.mockFabric8LeaderRecordWatcher, this.mockFabric8PodReadinessWatcher);
+	void beforeEach() {
+		leaderInitiator = new LeaderInitiator(leaderProperties, mockFabric8LeadershipController,
+			mockFabric8LeaderRecordWatcher, mockFabric8PodReadinessWatcher);
 	}
 
 	@AfterEach
-	public void after() {
-		this.leaderInitiator.stop();
+	void afterEach() {
+		leaderInitiator.stop();
 	}
 
 	@Test
-	public void testIsAutoStartup() {
-		given(this.mockLeaderProperties.isAutoStartup()).willReturn(true);
-
-		assertThat(this.leaderInitiator.isAutoStartup()).isTrue();
+	void testIsAutoStartup() {
+		assertThat(leaderInitiator.isAutoStartup()).isTrue();
 	}
 
 	@Test
-	public void shouldStart() throws InterruptedException {
-		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(1L));
+	void shouldStart() {
+		leaderProperties.setUpdatePeriod(Duration.ofMillis(1L));
 
-		this.leaderInitiator.start();
+		leaderInitiator.start();
 
-		assertThat(this.leaderInitiator.isRunning()).isTrue();
-		verify(this.mockFabric8LeaderRecordWatcher).start();
-		verify(this.mockFabric8PodReadinessWatcher).start();
+		assertThat(leaderInitiator.isRunning()).isTrue();
+		verify(mockFabric8LeaderRecordWatcher).start();
+		verify(mockFabric8PodReadinessWatcher).start();
+		boolean[] updateCalled = new boolean[1];
+		Mockito.doAnswer(x -> {
+			updateCalled[0] = true;
+			return null;
+		}).when(mockFabric8LeadershipController).update();
 
-		// TODO this tests needs to be reviewed not to use sleep
-		Thread.sleep(1000);
-		verify(this.mockFabric8LeadershipController, atLeastOnce()).update();
+		Awaitility.await().atMost(Duration.ofSeconds(3)).until(() -> updateCalled[0]);
+
+		verify(mockFabric8LeadershipController, atLeastOnce()).update();
 	}
 
 	@Test
-	public void shouldStartOnlyOnce() {
-		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+	void shouldStartOnlyOnce() {
+		leaderInitiator.start();
+		leaderInitiator.start();
 
-		this.leaderInitiator.start();
-		this.leaderInitiator.start();
-
-		verify(this.mockFabric8LeaderRecordWatcher).start();
+		verify(mockFabric8LeaderRecordWatcher).start();
 	}
 
 	@Test
-	public void shouldStop() {
-		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+	void shouldStop() {
+		leaderInitiator.start();
+		leaderInitiator.stop();
 
-		this.leaderInitiator.start();
-		this.leaderInitiator.stop();
-
-		assertThat(this.leaderInitiator.isRunning()).isFalse();
-		verify(this.mockFabric8LeaderRecordWatcher).stop();
-		verify(this.mockFabric8PodReadinessWatcher).start();
-		verify(this.mockFabric8LeadershipController).revoke();
+		assertThat(leaderInitiator.isRunning()).isFalse();
+		verify(mockFabric8LeaderRecordWatcher).stop();
+		verify(mockFabric8PodReadinessWatcher).start();
+		verify(mockFabric8LeadershipController).revoke();
 	}
 
 	@Test
-	public void shouldStopOnlyOnce() {
-		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+	void shouldStopOnlyOnce() {
+		leaderInitiator.start();
+		leaderInitiator.stop();
+		leaderInitiator.stop();
 
-		this.leaderInitiator.start();
-		this.leaderInitiator.stop();
-		this.leaderInitiator.stop();
-
-		verify(this.mockFabric8LeaderRecordWatcher).stop();
+		verify(mockFabric8LeaderRecordWatcher).stop();
 	}
 
 	@Test
-	public void shouldStopAndExecuteCallback() {
-		given(this.mockLeaderProperties.getUpdatePeriod()).willReturn(Duration.ofMillis(10000L));
+	void shouldStopAndExecuteCallback() {
+		leaderInitiator.start();
+		leaderInitiator.stop(runnable);
 
-		this.leaderInitiator.start();
-		this.leaderInitiator.stop(this.mockRunnable);
-
-		assertThat(this.leaderInitiator.isRunning()).isFalse();
-		verify(this.mockFabric8LeaderRecordWatcher).stop();
-		verify(this.mockFabric8PodReadinessWatcher).start();
-		verify(this.mockFabric8LeadershipController).revoke();
-		verify(this.mockRunnable).run();
+		assertThat(leaderInitiator.isRunning()).isFalse();
+		verify(mockFabric8LeaderRecordWatcher).stop();
+		verify(mockFabric8PodReadinessWatcher).start();
+		verify(mockFabric8LeadershipController).revoke();
+		verify(runnable).run();
 	}
 
 }

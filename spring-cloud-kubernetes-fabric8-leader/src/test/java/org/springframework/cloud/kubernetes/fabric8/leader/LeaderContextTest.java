@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,73 +20,61 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.leader.Leader;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderContext;
 import org.springframework.integration.leader.Candidate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Gytis Trikleris
  */
-@ExtendWith(MockitoExtension.class)
 public class LeaderContextTest {
 
-	@Mock
-	private Candidate mockCandidate;
+	private final Candidate mockCandidate = Mockito.mock(Candidate.class);
 
-	@Mock
-	private Fabric8LeadershipController mockFabric8LeadershipController;
+	private final Fabric8LeadershipController mockFabric8LeadershipController =
+		Mockito.mock(Fabric8LeadershipController.class);
 
-	@Mock
-	private Leader mockLeader;
+	private final Leader mockLeader = Mockito.mock(Leader.class);
 
 	private LeaderContext leaderContext;
 
 	@BeforeEach
-	public void before() {
-		this.leaderContext = new LeaderContext(this.mockCandidate, this.mockFabric8LeadershipController);
+	void beforeEach() {
+		leaderContext = new LeaderContext(mockCandidate, mockFabric8LeadershipController);
 	}
 
 	@Test
-	public void testIsLeaderWithoutLeader() {
-		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.empty());
-
-		boolean result = this.leaderContext.isLeader();
-
+	void testIsLeaderWithoutLeader() {
+		Mockito.when(mockFabric8LeadershipController.getLocalLeader()).thenReturn(Optional.empty());
+		boolean result = leaderContext.isLeader();
 		assertThat(result).isFalse();
 	}
 
 	@Test
-	public void testIsLeaderWithAnotherLeader() {
-		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
-
-		boolean result = this.leaderContext.isLeader();
-
+	void testIsLeaderWithAnotherLeader() {
+		Mockito.when(mockFabric8LeadershipController.getLocalLeader()).thenReturn(Optional.of(mockLeader));
+		boolean result = leaderContext.isLeader();
 		assertThat(result).isFalse();
 	}
 
 	@Test
-	public void testIsLeaderWhenLeader() {
-		given(this.mockFabric8LeadershipController.getLocalLeader()).willReturn(Optional.of(this.mockLeader));
-		given(this.mockLeader.isCandidate(this.mockCandidate)).willReturn(true);
-
+	void testIsLeaderWhenLeader() {
+		Mockito.when(mockFabric8LeadershipController.getLocalLeader()).thenReturn(Optional.of(mockLeader));
+		Mockito.when(mockLeader.isCandidate(mockCandidate)).thenReturn(true);
 		boolean result = this.leaderContext.isLeader();
-
 		assertThat(result).isTrue();
 	}
 
 	@Test
-	public void shouldYieldLeadership() {
-		this.leaderContext.yield();
-
-		verify(this.mockFabric8LeadershipController).revoke();
+	void shouldYieldLeadership() {
+		leaderContext.yield();
+		verify(mockFabric8LeadershipController).revoke();
 	}
 
 }

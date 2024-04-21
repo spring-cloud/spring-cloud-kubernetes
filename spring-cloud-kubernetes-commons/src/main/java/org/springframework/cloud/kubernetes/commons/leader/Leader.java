@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.commons.leader;
 
 import java.util.Objects;
 
-import org.springframework.core.style.ToStringCreator;
 import org.springframework.integration.leader.Candidate;
 
 /**
