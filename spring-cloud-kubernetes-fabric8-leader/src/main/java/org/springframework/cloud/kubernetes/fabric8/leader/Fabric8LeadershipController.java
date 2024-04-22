@@ -52,7 +52,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	@Override
-	public synchronized void update() {
+	public void update() {
 		guarded(lock, () -> {
 			LOGGER.debug(()-> "Checking leader state");
 			ConfigMap configMap = getConfigMap();
@@ -79,7 +79,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 
 	}
 
-	public synchronized void revoke() {
+	public void revoke() {
 		guarded(lock, () -> {
 			ConfigMap configMap = getConfigMap();
 			Leader leader = extractLeader(configMap);
