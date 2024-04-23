@@ -70,7 +70,7 @@ public class Fabric8LeaderRecordWatcher implements LeaderRecordWatcher, Watcher<
 	public void stop() {
 		if (configMapWatch != null) {
 			guarded(lock, () -> {
-				if (this.configMapWatch != null) {
+				if (configMapWatch != null) {
 					LOGGER.debug(() -> "Stopping leader record watcher");
 					configMapWatch.close();
 					configMapWatch = null;
