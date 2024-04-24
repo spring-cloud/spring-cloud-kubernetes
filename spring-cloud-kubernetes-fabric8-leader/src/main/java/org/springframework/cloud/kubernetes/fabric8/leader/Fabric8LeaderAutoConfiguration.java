@@ -79,6 +79,16 @@ public class Fabric8LeaderAutoConfiguration {
 		return new LeaderInfoContributor(fabric8LeadershipController, candidate);
 	}
 
+	/**
+	 * watches the readiness of the pod. In case of a readiness change, it has to go
+	 * through leader process again.
+	 */
+	@Bean
+	public Fabric8PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
+			Fabric8LeadershipController fabric8LeadershipController) {
+		return new Fabric8PodReadinessWatcher(candidate.getId(), kubernetesClient, fabric8LeadershipController);
+	}
+
 	@Bean
 	public Fabric8LeadershipController leadershipController(Candidate candidate, LeaderProperties leaderProperties,
 			LeaderEventPublisher leaderEventPublisher, KubernetesClient kubernetesClient) {
@@ -89,12 +99,6 @@ public class Fabric8LeaderAutoConfiguration {
 	public Fabric8LeaderRecordWatcher leaderRecordWatcher(LeaderProperties leaderProperties,
 			Fabric8LeadershipController fabric8LeadershipController, KubernetesClient kubernetesClient) {
 		return new Fabric8LeaderRecordWatcher(leaderProperties, fabric8LeadershipController, kubernetesClient);
-	}
-
-	@Bean
-	public Fabric8PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
-			Fabric8LeadershipController fabric8LeadershipController) {
-		return new Fabric8PodReadinessWatcher(candidate.getId(), kubernetesClient, fabric8LeadershipController);
 	}
 
 	@Bean(destroyMethod = "stop")
