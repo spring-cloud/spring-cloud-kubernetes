@@ -53,7 +53,6 @@ public final class LeaderUtils {
 		finally {
 			lock.unlock();
 		}
-
 	}
 
 }

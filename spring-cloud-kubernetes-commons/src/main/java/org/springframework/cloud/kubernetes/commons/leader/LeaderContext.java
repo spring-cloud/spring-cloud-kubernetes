@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,17 @@ public class LeaderContext implements Context {
 
 	@Override
 	public boolean isLeader() {
-		return this.leadershipController.getLocalLeader().filter(l -> l.isCandidate(this.candidate)).isPresent();
+		return leadershipController.getLocalLeader().filter(l -> l.isCandidate(candidate)).isPresent();
 	}
 
 	@Override
 	public void yield() {
-		this.leadershipController.revoke();
+		leadershipController.revoke();
+	}
+
+	@Override
+	public String getRole() {
+		return candidate.getRole();
 	}
 
 }
