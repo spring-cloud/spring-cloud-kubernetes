@@ -25,12 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderRecordWatcher;
 
 /**
  * @author Gytis Trikleris
  */
-public class Fabric8LeaderRecordWatcher
-		implements org.springframework.cloud.kubernetes.commons.leader.LeaderRecordWatcher, Watcher<ConfigMap> {
+public class Fabric8LeaderRecordWatcher implements LeaderRecordWatcher, Watcher<ConfigMap> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Fabric8LeaderRecordWatcher.class);
 
