@@ -51,14 +51,14 @@ public class Fabric8LeadershipControllerTest {
 	private final LeaderEventPublisher mockLeaderEventPublisher = Mockito.mock(LeaderEventPublisher.class);
 
 	private final KubernetesClient mockKubernetesClient = Mockito.mock(KubernetesClient.class,
-		Mockito.RETURNS_DEEP_STUBS);
+			Mockito.RETURNS_DEEP_STUBS);
 
 	private Fabric8LeadershipController fabric8LeadershipController;
 
 	@BeforeEach
 	void beforeEach() {
-		fabric8LeadershipController = new Fabric8LeadershipController(mockCandidate,
-				mockLeaderProperties, mockLeaderEventPublisher, mockKubernetesClient);
+		fabric8LeadershipController = new Fabric8LeadershipController(mockCandidate, mockLeaderProperties,
+				mockLeaderEventPublisher, mockKubernetesClient);
 	}
 
 	@Test
@@ -75,8 +75,8 @@ public class Fabric8LeadershipControllerTest {
 		@SuppressWarnings("unchecked")
 		Resource<ConfigMap> mockResource = Mockito.mock(Resource.class);
 		@SuppressWarnings("unchecked")
-		NonNamespaceOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockNonNamespaceOperation =
-			Mockito.mock(NonNamespaceOperation.class);
+		NonNamespaceOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockNonNamespaceOperation = Mockito
+				.mock(NonNamespaceOperation.class);
 
 		Fabric8LeadershipController fabric8LeadershipController = new Fabric8LeadershipController(mockCandidate,
 				mockLeaderProperties, mockLeaderEventPublisher, mockKubernetesClient);

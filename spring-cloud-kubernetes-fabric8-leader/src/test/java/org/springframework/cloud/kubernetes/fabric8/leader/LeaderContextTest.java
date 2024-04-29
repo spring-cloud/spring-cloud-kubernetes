@@ -20,15 +20,14 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
+
 import org.springframework.cloud.kubernetes.commons.leader.Leader;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderContext;
 import org.springframework.integration.leader.Candidate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Gytis Trikleris
@@ -37,8 +36,8 @@ public class LeaderContextTest {
 
 	private final Candidate mockCandidate = Mockito.mock(Candidate.class);
 
-	private final Fabric8LeadershipController mockFabric8LeadershipController =
-		Mockito.mock(Fabric8LeadershipController.class);
+	private final Fabric8LeadershipController mockFabric8LeadershipController = Mockito
+			.mock(Fabric8LeadershipController.class);
 
 	private final Leader mockLeader = Mockito.mock(Leader.class);
 
