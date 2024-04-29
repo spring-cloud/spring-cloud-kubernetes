@@ -64,8 +64,7 @@ public class LeaderInitiator implements SmartLifecycle {
 			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 			scheduledExecutorService.scheduleAtFixedRate(leadershipController::update,
 					leaderProperties.getUpdatePeriod().toMillis(),
-					leaderProperties.getUpdatePeriod().toMillis(),
-					TimeUnit.MILLISECONDS);
+					leaderProperties.getUpdatePeriod().toMillis(), TimeUnit.MILLISECONDS);
 			isRunning = true;
 		}
 	}
