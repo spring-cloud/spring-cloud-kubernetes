@@ -63,7 +63,8 @@ public class LeaderInitiator implements SmartLifecycle {
 			hostPodWatcher.start();
 			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 			scheduledExecutorService.scheduleAtFixedRate(leadershipController::update,
-					leaderProperties.getUpdatePeriod().toMillis(), leaderProperties.getUpdatePeriod().toMillis(),
+					leaderProperties.getUpdatePeriod().toMillis(),
+					leaderProperties.getUpdatePeriod().toMillis(),
 					TimeUnit.MILLISECONDS);
 			isRunning = true;
 		}
