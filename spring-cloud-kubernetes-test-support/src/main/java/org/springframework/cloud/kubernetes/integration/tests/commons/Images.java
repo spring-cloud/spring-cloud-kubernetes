@@ -42,7 +42,7 @@ public final class Images {
 
 	private static final String ISTIO_PROXY_V2_TAR = ISTIO_PROXY_V2.replace('/', '-') + ":" + istioVersion();
 
-	private static final String ISTIO_PILOT = "istio/istioctl";
+	private static final String ISTIO_PILOT = "istio/pilot";
 
 	private static final String ISTIO_PILOT_TAR = ISTIO_PILOT.replace('/', '-') + ":" + istioVersion();
 
