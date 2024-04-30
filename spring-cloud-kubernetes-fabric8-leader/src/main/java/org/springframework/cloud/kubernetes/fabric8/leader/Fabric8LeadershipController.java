@@ -54,11 +54,12 @@ public class Fabric8LeadershipController extends LeadershipController {
 	@Override
 	public void update() {
 		guarded(lock, () -> {
-			LOGGER.debug(()-> "Checking leader state");
+			LOGGER.debug(() -> "Checking leader state");
 			ConfigMap configMap = getConfigMap();
 			if (configMap == null && !leaderProperties.isCreateConfigMap()) {
-				LOGGER.warn("ConfigMap ' " + leaderProperties.getConfigMapName() +
-					"' does not exist and leaderProperties.isCreateConfigMap() " + "is false, cannot acquire leadership");
+				LOGGER.warn("ConfigMap ' " + leaderProperties.getConfigMapName()
+						+ "' does not exist and leaderProperties.isCreateConfigMap() "
+						+ "is false, cannot acquire leadership");
 				notifyOnFailedToAcquire();
 				return;
 			}
@@ -91,7 +92,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private void revoke(ConfigMap configMap) {
-		LOGGER.debug(() -> "Trying to revoke leadership for :" +  candidate);
+		LOGGER.debug(() -> "Trying to revoke leadership for :" + candidate);
 
 		try {
 			String leaderKey = getLeaderKey();
@@ -99,8 +100,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 			handleLeaderChange(null);
 		}
 		catch (KubernetesClientException e) {
-			LOGGER.warn("Failure when revoking leadership for : " +  candidate +
-				"because : " + e.getMessage());
+			LOGGER.warn("Failure when revoking leadership for : " + candidate + "because : " + e.getMessage());
 		}
 	}
 
@@ -108,7 +108,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 		LOGGER.debug(() -> "Trying to acquire leadership for :" + this.candidate);
 
 		if (!isPodReady(candidate.getId())) {
-			LOGGER.debug("Pod : " + candidate +  "is not ready at the moment, cannot acquire leadership");
+			LOGGER.debug("Pod : " + candidate + "is not ready at the moment, cannot acquire leadership");
 			return;
 		}
 
@@ -149,20 +149,17 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private ConfigMap getConfigMap() {
-		return kubernetesClient.configMaps()
-				.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+		return kubernetesClient.configMaps().inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
 				.withName(leaderProperties.getConfigMapName()).get();
 	}
 
 	private void createConfigMap(Map<String, String> data) {
 		LOGGER.debug(() -> "Creating new config map with data: " + data);
 
-		ConfigMap newConfigMap = new ConfigMapBuilder().withNewMetadata()
-				.withName(leaderProperties.getConfigMapName()).addToLabels(PROVIDER_KEY, PROVIDER)
-				.addToLabels(KIND_KEY, KIND).endMetadata().addToData(data).build();
+		ConfigMap newConfigMap = new ConfigMapBuilder().withNewMetadata().withName(leaderProperties.getConfigMapName())
+				.addToLabels(PROVIDER_KEY, PROVIDER).addToLabels(KIND_KEY, KIND).endMetadata().addToData(data).build();
 
-		kubernetesClient.configMaps()
-				.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+		kubernetesClient.configMaps().inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
 				.resource(newConfigMap).create();
 	}
 
@@ -179,8 +176,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
-		kubernetesClient.configMaps()
-				.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+		kubernetesClient.configMaps().inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
 				.resource(newConfigMap).lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion()).update();
 	}
 
