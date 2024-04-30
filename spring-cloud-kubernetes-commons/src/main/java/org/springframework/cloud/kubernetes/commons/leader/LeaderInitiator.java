@@ -40,7 +40,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	private ScheduledExecutorService scheduledExecutorService;
 
-	private boolean isRunning = false;
+	private boolean isRunning;
 
 	public LeaderInitiator(LeaderProperties leaderProperties, LeadershipController leadershipController,
 			LeaderRecordWatcher leaderRecordWatcher, PodReadinessWatcher hostPodWatcher) {
