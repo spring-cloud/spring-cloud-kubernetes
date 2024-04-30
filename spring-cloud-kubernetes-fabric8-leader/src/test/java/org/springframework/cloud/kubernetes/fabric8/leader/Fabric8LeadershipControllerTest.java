@@ -94,8 +94,7 @@ public class Fabric8LeadershipControllerTest {
 		fabric8LeadershipController.update();
 
 		// then
-		assertThat(output).contains("ConfigMap '" + testConfigmap + "' does not exist "
-				+ "and leaderProperties.isCreateConfigMap() is false, cannot acquire leadership");
+		assertThat(output).contains("ConfigMap 'test-configmap' does not exist and leaderProperties.isCreateConfigMap() is false, cannot acquire leadership");
 		verify(mockLeaderEventPublisher).publishOnFailedToAcquire(any(), any(), any());
 
 		verify(mockKubernetesClient, never()).pods();

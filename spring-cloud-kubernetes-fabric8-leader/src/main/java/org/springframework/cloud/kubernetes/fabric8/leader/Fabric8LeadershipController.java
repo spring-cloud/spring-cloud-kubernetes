@@ -57,7 +57,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 			LOGGER.debug(() -> "Checking leader state");
 			ConfigMap configMap = getConfigMap();
 			if (configMap == null && !leaderProperties.isCreateConfigMap()) {
-				LOGGER.warn("ConfigMap ' " + leaderProperties.getConfigMapName()
+				LOGGER.warn("ConfigMap '" + leaderProperties.getConfigMapName()
 						+ "' does not exist and leaderProperties.isCreateConfigMap() "
 						+ "is false, cannot acquire leadership");
 				notifyOnFailedToAcquire();
