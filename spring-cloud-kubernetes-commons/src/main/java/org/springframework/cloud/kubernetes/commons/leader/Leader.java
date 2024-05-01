@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,11 @@ public class Leader {
 	}
 
 	public String getRole() {
-		return this.role;
+		return role;
 	}
 
 	public String getId() {
-		return this.id;
+		return id;
 	}
 
 	public boolean isCandidate(Candidate candidate) {
@@ -47,7 +47,7 @@ public class Leader {
 			return false;
 		}
 
-		return Objects.equals(this.role, candidate.getRole()) && Objects.equals(this.id, candidate.getId());
+		return Objects.equals(role, candidate.getRole()) && Objects.equals(id, candidate.getId());
 	}
 
 	@Override
@@ -62,17 +62,17 @@ public class Leader {
 
 		Leader leader = (Leader) o;
 
-		return Objects.equals(this.role, leader.role) && Objects.equals(this.id, leader.id);
+		return Objects.equals(role, leader.role) && Objects.equals(id, leader.id);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.role, this.id);
+		return Objects.hash(role, id);
 	}
 
 	@Override
 	public String toString() {
-		return String.format("Leader{role='%s', id='%s'}", this.role, this.id);
+		return String.format("Leader{role='%s', id='%s'}", role, id);
 	}
 
 }

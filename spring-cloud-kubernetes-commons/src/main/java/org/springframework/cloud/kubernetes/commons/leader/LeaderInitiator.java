@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.context.SmartLifecycle;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author Gytis Trikleris
  */
 public class LeaderInitiator implements SmartLifecycle {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LeaderInitiator.class);
+	private static final LogAccessor LOGGER = new LogAccessor(LeaderInitiator.class);
 
 	private final LeaderProperties leaderProperties;
 
@@ -54,33 +52,33 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	@Override
 	public boolean isAutoStartup() {
-		return this.leaderProperties.isAutoStartup();
+		return leaderProperties.isAutoStartup();
 	}
 
 	@Override
 	public void start() {
 		if (!isRunning()) {
-			LOGGER.debug("Leader initiator starting");
-			this.leaderRecordWatcher.start();
-			this.hostPodWatcher.start();
-			this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-			this.scheduledExecutorService.scheduleAtFixedRate(this.leadershipController::update,
-					this.leaderProperties.getUpdatePeriod().toMillis(),
-					this.leaderProperties.getUpdatePeriod().toMillis(), TimeUnit.MILLISECONDS);
-			this.isRunning = true;
+			LOGGER.debug(() -> "Leader initiator starting");
+			leaderRecordWatcher.start();
+			hostPodWatcher.start();
+			scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+			scheduledExecutorService.scheduleAtFixedRate(leadershipController::update,
+					leaderProperties.getUpdatePeriod().toMillis(), leaderProperties.getUpdatePeriod().toMillis(),
+					TimeUnit.MILLISECONDS);
+			isRunning = true;
 		}
 	}
 
 	@Override
 	public void stop() {
 		if (isRunning()) {
-			LOGGER.debug("Leader initiator stopping");
-			this.scheduledExecutorService.shutdown();
-			this.scheduledExecutorService = null;
-			this.hostPodWatcher.stop();
-			this.leaderRecordWatcher.stop();
-			this.leadershipController.revoke();
-			this.isRunning = false;
+			LOGGER.debug(() -> "Leader initiator stopping");
+			scheduledExecutorService.shutdown();
+			scheduledExecutorService = null;
+			hostPodWatcher.stop();
+			leaderRecordWatcher.stop();
+			leadershipController.revoke();
+			isRunning = false;
 		}
 	}
 
@@ -92,7 +90,7 @@ public class LeaderInitiator implements SmartLifecycle {
 
 	@Override
 	public boolean isRunning() {
-		return this.isRunning;
+		return isRunning;
 	}
 
 	@Override
