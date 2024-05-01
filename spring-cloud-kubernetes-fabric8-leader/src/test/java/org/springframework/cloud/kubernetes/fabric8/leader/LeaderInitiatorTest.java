@@ -22,8 +22,8 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
+
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 
@@ -38,13 +38,14 @@ public class LeaderInitiatorTest {
 
 	private final LeaderProperties leaderProperties = new LeaderProperties();
 
-	private final Fabric8LeadershipController mockFabric8LeadershipController =
-		Mockito.mock(Fabric8LeadershipController.class);
+	private final Fabric8LeadershipController mockFabric8LeadershipController = Mockito
+			.mock(Fabric8LeadershipController.class);
 
-	private final Fabric8LeaderRecordWatcher mockFabric8LeaderRecordWatcher = Mockito.mock(Fabric8LeaderRecordWatcher.class);
+	private final Fabric8LeaderRecordWatcher mockFabric8LeaderRecordWatcher = Mockito
+			.mock(Fabric8LeaderRecordWatcher.class);
 
-	private final Fabric8PodReadinessWatcher mockFabric8PodReadinessWatcher =
-		Mockito.mock(Fabric8PodReadinessWatcher.class);
+	private final Fabric8PodReadinessWatcher mockFabric8PodReadinessWatcher = Mockito
+			.mock(Fabric8PodReadinessWatcher.class);
 
 	private final Runnable runnable = Mockito.mock(Runnable.class);
 
@@ -53,7 +54,7 @@ public class LeaderInitiatorTest {
 	@BeforeEach
 	void beforeEach() {
 		leaderInitiator = new LeaderInitiator(leaderProperties, mockFabric8LeadershipController,
-			mockFabric8LeaderRecordWatcher, mockFabric8PodReadinessWatcher);
+				mockFabric8LeaderRecordWatcher, mockFabric8PodReadinessWatcher);
 	}
 
 	@AfterEach

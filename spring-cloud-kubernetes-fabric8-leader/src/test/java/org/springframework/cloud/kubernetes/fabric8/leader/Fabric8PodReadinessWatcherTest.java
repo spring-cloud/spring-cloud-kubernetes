@@ -39,14 +39,13 @@ public class Fabric8PodReadinessWatcherTest {
 
 	private static final String POD_NAME = "test-pod";
 
-	private final Fabric8LeadershipController mockFabric8LeadershipController =
-		Mockito.mock(Fabric8LeadershipController.class);
+	private final Fabric8LeadershipController mockFabric8LeadershipController = Mockito
+			.mock(Fabric8LeadershipController.class);
 
 	private final KubernetesClient mockKubernetesClient = Mockito.mock(KubernetesClient.class);
 
 	@SuppressWarnings("unchecked")
-	private final MixedOperation<Pod, PodList, PodResource> mockPodsOperation =
-		Mockito.mock(MixedOperation.class);
+	private final MixedOperation<Pod, PodList, PodResource> mockPodsOperation = Mockito.mock(MixedOperation.class);
 
 	private final PodResource mockPodResource = Mockito.mock(PodResource.class);
 
