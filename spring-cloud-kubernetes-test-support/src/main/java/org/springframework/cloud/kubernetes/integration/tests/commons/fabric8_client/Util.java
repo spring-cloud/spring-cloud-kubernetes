@@ -267,7 +267,7 @@ public final class Util {
 
 		String imageWithoutVersion = istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0)
 				.getImage();
-		String imageWithVersion = imageWithoutVersion + ":" + Images.istioctlVersion();
+		String imageWithVersion = imageWithoutVersion + ":" + Images.istioVersion();
 		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		if (phase.equals(Phase.CREATE)) {

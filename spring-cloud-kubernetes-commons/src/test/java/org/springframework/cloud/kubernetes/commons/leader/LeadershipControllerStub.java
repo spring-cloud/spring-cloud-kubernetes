@@ -16,36 +16,46 @@
 
 package org.springframework.cloud.kubernetes.commons.leader;
 
+import java.util.Optional;
+
 import org.springframework.integration.leader.Candidate;
-import org.springframework.integration.leader.Context;
+import org.springframework.integration.leader.event.LeaderEventPublisher;
 
 /**
- * @author Gytis Trikleris
+ * @author wind57
  */
-public class LeaderContext implements Context {
+final class LeadershipControllerStub extends LeadershipController {
 
-	private final Candidate candidate;
+	private Leader leader;
 
-	private final LeadershipController leadershipController;
-
-	public LeaderContext(Candidate candidate, LeadershipController leadershipController) {
-		this.candidate = candidate;
-		this.leadershipController = leadershipController;
+	LeadershipControllerStub(Candidate candidate, LeaderProperties leaderProperties,
+			LeaderEventPublisher leaderEventPublisher) {
+		super(candidate, leaderProperties, leaderEventPublisher);
 	}
 
 	@Override
-	public boolean isLeader() {
-		return leadershipController.getLocalLeader().filter(l -> l.isCandidate(candidate)).isPresent();
+	public void update() {
+
 	}
 
 	@Override
-	public void yield() {
-		leadershipController.revoke();
+	public void revoke() {
+
 	}
 
 	@Override
-	public String getRole() {
-		return candidate.getRole();
+	protected PodReadinessWatcher createPodReadinessWatcher(String localLeaderId) {
+		return null;
+	}
+
+	@Override
+	protected void handleLeaderChange(Leader leader) {
+		this.leader = leader;
+	}
+
+	@Override
+	public Optional<Leader> getLocalLeader() {
+		return Optional.ofNullable(leader);
 	}
 
 }
