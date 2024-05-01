@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons.leader;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Gytis Trikleris
@@ -105,7 +106,7 @@ public class LeaderProperties {
 	}
 
 	public String getNamespace(String defaultValue) {
-		if (namespace == null || namespace.isEmpty()) {
+		if (!StringUtils.hasText(defaultValue)) {
 			return defaultValue;
 		}
 
