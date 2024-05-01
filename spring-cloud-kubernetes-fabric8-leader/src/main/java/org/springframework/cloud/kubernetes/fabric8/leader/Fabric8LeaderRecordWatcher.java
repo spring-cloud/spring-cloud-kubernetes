@@ -60,8 +60,8 @@ public class Fabric8LeaderRecordWatcher implements LeaderRecordWatcher, Watcher<
 				if (configMapWatch == null) {
 					LOGGER.debug(() -> "Starting leader record watcher");
 					configMapWatch = kubernetesClient.configMaps()
-						.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-						.withName(leaderProperties.getConfigMapName()).watch(this);
+							.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+							.withName(leaderProperties.getConfigMapName()).watch(this);
 				}
 			});
 		}

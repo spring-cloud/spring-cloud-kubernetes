@@ -106,7 +106,7 @@ public class LeaderProperties {
 	}
 
 	public String getNamespace(String defaultValue) {
-		if (StringUtils.hasText(defaultValue)) {
+		if (!StringUtils.hasText(defaultValue)) {
 			return defaultValue;
 		}
 

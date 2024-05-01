@@ -46,8 +46,8 @@ class Fabric8LeaderAutoConfigurationTests {
 
 	@Test
 	void infoEndpointShouldContainLeaderElection() {
-		webClient.get().uri("http://localhost:{port}/actuator/info", port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody(String.class).value(containsString("kubernetes"));
+		webClient.get().uri("http://localhost:{port}/actuator/info", port).accept(MediaType.APPLICATION_JSON).exchange()
+				.expectStatus().isOk().expectBody(String.class).value(containsString("kubernetes"));
 	}
 
 	@SpringBootConfiguration
