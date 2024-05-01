@@ -36,7 +36,15 @@ public final class Images {
 
 	private static final String ISTIOCTL = "istio/istioctl";
 
-	private static final String ISTIOCTL_TAR = ISTIOCTL.replace('/', '-') + ":" + istioctlVersion();
+	private static final String ISTIOCTL_TAR = ISTIOCTL.replace('/', '-') + ":" + istioVersion();
+
+	private static final String ISTIO_PROXY_V2 = "istio/proxyv2";
+
+	private static final String ISTIO_PROXY_V2_TAR = ISTIO_PROXY_V2.replace('/', '-') + ":" + istioVersion();
+
+	private static final String ISTIO_PILOT = "istio/pilot";
+
+	private static final String ISTIO_PILOT_TAR = ISTIO_PILOT.replace('/', '-') + ":" + istioVersion();
 
 	private static final String KAFKA = "confluentinc/cp-kafka";
 
@@ -54,7 +62,7 @@ public final class Images {
 		return imageVersion(BUSYBOX);
 	}
 
-	public static String istioctlVersion() {
+	public static String istioVersion() {
 		return imageVersion(ISTIOCTL);
 	}
 
@@ -78,8 +86,16 @@ public final class Images {
 		Commons.load(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
 	}
 
-	public static void loadIstioctl(K3sContainer container) {
-		Commons.load(container, ISTIOCTL_TAR, ISTIOCTL, istioctlVersion());
+	public static void loadIstioCtl(K3sContainer container) {
+		Commons.load(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
+	}
+
+	public static void loadIstioProxyV2(K3sContainer container) {
+		Commons.load(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
+	}
+
+	public static void loadIstioPilot(K3sContainer container) {
+		Commons.load(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
 	}
 
 	public static void loadKafka(K3sContainer container) {

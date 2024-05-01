@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,115 +27,98 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
  * @author Gytis Trikleris
  */
-@ExtendWith(MockitoExtension.class)
 public class Fabric8PodReadinessWatcherTest {
 
 	private static final String POD_NAME = "test-pod";
 
-	@Mock
-	private Fabric8LeadershipController mockFabric8LeadershipController;
+	private final Fabric8LeadershipController mockFabric8LeadershipController = Mockito
+			.mock(Fabric8LeadershipController.class);
 
-	@Mock
-	private KubernetesClient mockKubernetesClient;
+	private final KubernetesClient mockKubernetesClient = Mockito.mock(KubernetesClient.class);
 
-	@Mock
-	private MixedOperation<Pod, PodList, PodResource> mockPodsOperation;
+	@SuppressWarnings("unchecked")
+	private final MixedOperation<Pod, PodList, PodResource> mockPodsOperation = Mockito.mock(MixedOperation.class);
 
-	@Mock
-	private PodResource mockPodResource;
+	private final PodResource mockPodResource = Mockito.mock(PodResource.class);
 
-	@Mock
-	private Pod mockPod;
+	private final Pod mockPod = Mockito.mock(Pod.class);
 
-	@Mock
-	private PodStatus mockPodStatus;
+	private final PodStatus mockPodStatus = Mockito.mock(PodStatus.class);
 
-	@Mock
-	private Watch mockWatch;
+	private final Watch mockWatch = Mockito.mock(Watch.class);
 
-	@Mock
-	private WatcherException mockKubernetesClientException;
+	private final WatcherException mockKubernetesClientException = Mockito.mock(WatcherException.class);
 
 	private Fabric8PodReadinessWatcher watcher;
 
 	@BeforeEach
-	public void before() {
-		this.watcher = new Fabric8PodReadinessWatcher(POD_NAME, this.mockKubernetesClient,
-				this.mockFabric8LeadershipController);
+	void beforeEach() {
+		watcher = new Fabric8PodReadinessWatcher(POD_NAME, mockKubernetesClient, mockFabric8LeadershipController);
 	}
 
 	@Test
-	public void shouldStartOnce() {
+	void shouldStartOnce() {
 		initStubs();
-		this.watcher.start();
-		this.watcher.start();
-
-		verify(this.mockPodResource).watch(this.watcher);
+		watcher.start();
+		watcher.start();
+		verify(mockPodResource).watch(watcher);
 	}
 
 	@Test
-	public void shouldStopOnce() {
+	void shouldStopOnce() {
 		initStubs();
-		this.watcher.start();
-		this.watcher.stop();
-		this.watcher.stop();
-
-		verify(this.mockWatch).close();
+		watcher.start();
+		watcher.stop();
+		watcher.stop();
+		verify(mockWatch).close();
 	}
 
 	@Test
-	public void shouldHandleEventWithStateChange() {
+	void shouldHandleEventWithStateChange() {
 		initStubs();
-		given(this.mockPodResource.isReady()).willReturn(true);
-		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
+		Mockito.when(mockPodResource.isReady()).thenReturn(true);
+		Mockito.when(mockPod.getStatus()).thenReturn(mockPodStatus);
 
-		this.watcher.start();
-		this.watcher.eventReceived(Watcher.Action.ADDED, this.mockPod);
-
-		verify(this.mockFabric8LeadershipController).update();
+		watcher.start();
+		watcher.eventReceived(Watcher.Action.ADDED, mockPod);
+		verify(mockFabric8LeadershipController).update();
 	}
 
 	@Test
-	public void shouldIgnoreEventIfStateDoesNotChange() {
+	void shouldIgnoreEventIfStateDoesNotChange() {
 		initStubs();
-		given(this.mockPod.getStatus()).willReturn(this.mockPodStatus);
+		Mockito.when(mockPod.getStatus()).thenReturn(mockPodStatus);
 
-		this.watcher.start();
-		this.watcher.eventReceived(Watcher.Action.ADDED, this.mockPod);
-
-		verify(this.mockFabric8LeadershipController, times(0)).update();
+		watcher.start();
+		watcher.eventReceived(Watcher.Action.ADDED, mockPod);
+		verify(mockFabric8LeadershipController, times(0)).update();
 	}
 
 	@Test
-	public void shouldHandleClose() {
+	void shouldHandleClose() {
 		initStubs();
-		this.watcher.onClose(this.mockKubernetesClientException);
-
-		verify(this.mockPodResource).watch(this.watcher);
+		watcher.onClose(mockKubernetesClientException);
+		verify(mockPodResource).watch(watcher);
 	}
 
 	@Test
-	public void shouldIgnoreCloseWithoutCause() {
-		this.watcher.onClose(null);
-
-		verify(this.mockPodResource, times(0)).watch(this.watcher);
+	void shouldIgnoreCloseWithoutCause() {
+		watcher.onClose(null);
+		verify(mockPodResource, times(0)).watch(watcher);
 	}
 
 	private void initStubs() {
-		given(this.mockKubernetesClient.pods()).willReturn(this.mockPodsOperation);
-		given(this.mockPodsOperation.withName(POD_NAME)).willReturn(this.mockPodResource);
-		given(this.mockPodResource.watch(this.watcher)).willReturn(this.mockWatch);
+		Mockito.when(mockKubernetesClient.pods()).thenReturn(mockPodsOperation);
+		Mockito.when(mockPodsOperation.withName(POD_NAME)).thenReturn(mockPodResource);
+		Mockito.when(mockPodResource.watch(watcher)).thenReturn(mockWatch);
 	}
 
 }
