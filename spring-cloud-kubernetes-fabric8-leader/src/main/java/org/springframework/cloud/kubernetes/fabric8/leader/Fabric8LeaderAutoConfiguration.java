@@ -47,18 +47,46 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
 public class Fabric8LeaderAutoConfiguration {
 
+	/*
+	 * Used for publishing application events that happen: granted, revoked or failed to
+	 * acquire mutex.
+	 */
 	@Bean
 	@ConditionalOnMissingBean(LeaderEventPublisher.class)
 	public LeaderEventPublisher defaultLeaderEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		return new DefaultLeaderEventPublisher(applicationEventPublisher);
 	}
 
+	/*
+	 * This can be thought as "self" or the pod that participates in leader election
+	 * process. The implementation that we return simply logs events that happen during
+	 * that process.
+	 */
 	@Bean
 	public Candidate candidate(LeaderProperties leaderProperties) throws UnknownHostException {
 		String id = LeaderUtils.hostName();
 		String role = leaderProperties.getRole();
-
 		return new DefaultCandidate(id, role);
+	}
+
+	/*
+	 * Add an info contributor with leader information.
+	 */
+	@Bean
+	@ConditionalOnClass(InfoContributor.class)
+	public LeaderInfoContributor leaderInfoContributor(Fabric8LeadershipController fabric8LeadershipController,
+			Candidate candidate) {
+		return new LeaderInfoContributor(fabric8LeadershipController, candidate);
+	}
+
+	/**
+	 * watches the readiness of the pod. In case of a readiness change, it has to go
+	 * through leader process again.
+	 */
+	@Bean
+	public Fabric8PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
+			Fabric8LeadershipController fabric8LeadershipController) {
+		return new Fabric8PodReadinessWatcher(candidate.getId(), kubernetesClient, fabric8LeadershipController);
 	}
 
 	@Bean
@@ -73,25 +101,12 @@ public class Fabric8LeaderAutoConfiguration {
 		return new Fabric8LeaderRecordWatcher(leaderProperties, fabric8LeadershipController, kubernetesClient);
 	}
 
-	@Bean
-	public Fabric8PodReadinessWatcher hostPodWatcher(Candidate candidate, KubernetesClient kubernetesClient,
-			Fabric8LeadershipController fabric8LeadershipController) {
-		return new Fabric8PodReadinessWatcher(candidate.getId(), kubernetesClient, fabric8LeadershipController);
-	}
-
 	@Bean(destroyMethod = "stop")
 	public LeaderInitiator leaderInitiator(LeaderProperties leaderProperties,
 			Fabric8LeadershipController fabric8LeadershipController,
 			Fabric8LeaderRecordWatcher fabric8LeaderRecordWatcher, Fabric8PodReadinessWatcher hostPodWatcher) {
 		return new LeaderInitiator(leaderProperties, fabric8LeadershipController, fabric8LeaderRecordWatcher,
 				hostPodWatcher);
-	}
-
-	@Bean
-	@ConditionalOnClass(InfoContributor.class)
-	public LeaderInfoContributor leaderInfoContributor(Fabric8LeadershipController fabric8LeadershipController,
-			Candidate candidate) {
-		return new LeaderInfoContributor(fabric8LeadershipController, candidate);
 	}
 
 }
