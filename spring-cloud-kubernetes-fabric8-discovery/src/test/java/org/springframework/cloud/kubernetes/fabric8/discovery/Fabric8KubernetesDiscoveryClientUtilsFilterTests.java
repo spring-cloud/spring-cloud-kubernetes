@@ -44,7 +44,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	private static KubernetesClient client;
 
 	private static final KubernetesDiscoveryProperties PROPERTIES = new KubernetesDiscoveryProperties(true, true,
-			Set.of(), false, 60L, false, "some", Set.of(), Map.of(), "", null, 0, false);
+			Set.of(), false, 60L, false, "some", Set.of(), Map.of(), "", null, 0, false, false, null);
 
 	@AfterEach
 	void afterEach() {

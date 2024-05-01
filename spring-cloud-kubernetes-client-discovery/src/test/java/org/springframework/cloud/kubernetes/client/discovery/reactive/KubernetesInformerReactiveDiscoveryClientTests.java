@@ -89,7 +89,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
-				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
@@ -122,7 +122,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
@@ -143,7 +143,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
@@ -178,7 +178,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 
 		Lister<V1Service> serviceLister = new Lister<>(serviceCache).namespace(NAMESPACE_ALL);
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
-				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
@@ -212,7 +212,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 
 		Lister<V1Service> serviceLister = new Lister<>(serviceCache).namespace("namespace-a");
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
-				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
+				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
@@ -262,7 +262,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
@@ -313,7 +313,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true,
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
