@@ -83,6 +83,7 @@ public abstract class LeadershipController {
 
 		String leaderKey = getLeaderKey();
 		String leaderId = data.get(leaderKey);
+		LOGGER.debug(() -> "retrieved leaderId: " + leaderId + " from leaderKey : " + leaderId);
 		if (!StringUtils.hasText(leaderId)) {
 			return null;
 		}
@@ -112,7 +113,7 @@ public abstract class LeadershipController {
 	}
 
 	protected void notifyOnGranted() {
-		LOGGER.debug(() -> "Leadership has been granted for :" + candidate);
+		LOGGER.debug(() -> "Leadership has been granted to : " + candidate);
 
 		Context context = new LeaderContext(candidate, this);
 		leaderEventPublisher.publishOnGranted(this, context, candidate.getRole());
@@ -126,7 +127,7 @@ public abstract class LeadershipController {
 	}
 
 	protected void notifyOnRevoked() {
-		LOGGER.debug(() -> "Leadership has been revoked for :" + candidate);
+		LOGGER.debug(() -> "Leadership has been revoked from :" + candidate);
 
 		Context context = new LeaderContext(candidate, this);
 		leaderEventPublisher.publishOnRevoked(this, context, candidate.getRole());

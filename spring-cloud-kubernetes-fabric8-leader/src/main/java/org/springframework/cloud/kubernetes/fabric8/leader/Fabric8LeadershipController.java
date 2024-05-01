@@ -92,7 +92,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private void revoke(ConfigMap configMap) {
-		LOGGER.debug(() -> "Trying to revoke leadership for :" + candidate);
+		LOGGER.debug(() -> "Trying to revoke leadership from :" + candidate);
 
 		try {
 			String leaderKey = getLeaderKey();
@@ -105,7 +105,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private void acquire(ConfigMap configMap) {
-		LOGGER.debug(() -> "Trying to acquire leadership for :" + this.candidate);
+		LOGGER.debug(() -> "Trying to acquire leadership for :" + candidate);
 
 		if (!isPodReady(candidate.getId())) {
 			LOGGER.debug("Pod : " + candidate + "is not ready at the moment, cannot acquire leadership");
@@ -133,7 +133,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 
 	@Override
 	protected PodReadinessWatcher createPodReadinessWatcher(String localLeaderId) {
-		return new Fabric8PodReadinessWatcher(localLeaderId, this.kubernetesClient, this);
+		return new Fabric8PodReadinessWatcher(localLeaderId, kubernetesClient, this);
 	}
 
 	private Leader extractLeader(ConfigMap configMap) {
@@ -176,8 +176,9 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
+		String oldResourceVersion = oldConfigMap.getMetadata().getResourceVersion();
 		kubernetesClient.configMaps().inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.resource(newConfigMap).lockResourceVersion(oldConfigMap.getMetadata().getResourceVersion()).update();
+				.resource(newConfigMap).lockResourceVersion(oldResourceVersion).update();
 	}
 
 }
