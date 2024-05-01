@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2019 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.commons.leader;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.boot.actuate.info.Info.Builder;
 import org.springframework.boot.actuate.info.InfoContributor;
@@ -38,16 +37,12 @@ public class LeaderInfoContributor implements InfoContributor {
 	@Override
 	public void contribute(Builder builder) {
 		Map<String, Object> details = new HashMap<>();
-		Optional<Leader> leader = leadershipController.getLocalLeader();
-		if (leader.isPresent()) {
-			Leader l = leader.get();
-			details.put("leaderId", l.getId());
-			details.put("role", l.getRole());
-			details.put("isLeader", l.isCandidate(candidate));
-		}
-		else {
-			details.put("leaderId", "Unknown");
-		}
+		leadershipController.getLocalLeader().ifPresentOrElse(leader -> {
+			details.put("leaderId", leader.getId());
+			details.put("role", leader.getRole());
+			details.put("isLeader", leader.isCandidate(candidate));
+		}, () -> details.put("leaderId", "Unknown"));
+
 		builder.withDetail("leaderElection", details);
 	}
 
