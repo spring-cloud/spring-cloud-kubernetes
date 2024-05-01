@@ -21,9 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
 import org.springframework.integration.leader.event.LeaderEventPublisher;
@@ -34,7 +32,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class LeadershipController {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LeadershipController.class);
+	private static final LogAccessor LOGGER = new LogAccessor(LeadershipController.class);
 
 	protected static final String PROVIDER_KEY = "provider";
 
@@ -62,7 +60,7 @@ public abstract class LeadershipController {
 	}
 
 	public Optional<Leader> getLocalLeader() {
-		return Optional.ofNullable(this.localLeader);
+		return Optional.ofNullable(localLeader);
 	}
 
 	public abstract void update();
@@ -70,7 +68,7 @@ public abstract class LeadershipController {
 	public abstract void revoke();
 
 	protected String getLeaderKey() {
-		return this.leaderProperties.getLeaderIdPrefix() + this.candidate.getRole();
+		return leaderProperties.getLeaderIdPrefix() + candidate.getRole();
 	}
 
 	protected Map<String, String> getLeaderData(Candidate candidate) {
@@ -85,72 +83,73 @@ public abstract class LeadershipController {
 
 		String leaderKey = getLeaderKey();
 		String leaderId = data.get(leaderKey);
+		LOGGER.debug(() -> "retrieved leaderId: " + leaderId + " from leaderKey : " + leaderId);
 		if (!StringUtils.hasText(leaderId)) {
 			return null;
 		}
 
-		return new Leader(this.candidate.getRole(), leaderId);
+		return new Leader(candidate.getRole(), leaderId);
 	}
 
 	protected void handleLeaderChange(Leader newLeader) {
-		if (Objects.equals(this.localLeader, newLeader)) {
-			LOGGER.debug("Leader is still '{}'", this.localLeader);
+		if (Objects.equals(localLeader, newLeader)) {
+			LOGGER.debug(() -> "Leader is still : " + localLeader);
 			return;
 		}
 
-		Leader oldLeader = this.localLeader;
-		this.localLeader = newLeader;
+		Leader oldLeader = localLeader;
+		localLeader = newLeader;
 
-		if (oldLeader != null && oldLeader.isCandidate(this.candidate)) {
+		if (oldLeader != null && oldLeader.isCandidate(candidate)) {
 			notifyOnRevoked();
 		}
-		else if (newLeader != null && newLeader.isCandidate(this.candidate)) {
+		else if (newLeader != null && newLeader.isCandidate(candidate)) {
 			notifyOnGranted();
 		}
 
 		restartLeaderReadinessWatcher();
 
-		LOGGER.debug("New leader is '{}'", this.localLeader);
+		LOGGER.debug(() -> "New leader is " + localLeader);
 	}
 
 	protected void notifyOnGranted() {
-		LOGGER.debug("Leadership has been granted for '{}'", this.candidate);
+		LOGGER.debug(() -> "Leadership has been granted to : " + candidate);
 
-		Context context = new LeaderContext(this.candidate, this);
-		this.leaderEventPublisher.publishOnGranted(this, context, this.candidate.getRole());
+		Context context = new LeaderContext(candidate, this);
+		leaderEventPublisher.publishOnGranted(this, context, candidate.getRole());
 		try {
-			this.candidate.onGranted(context);
+			candidate.onGranted(context);
 		}
 		catch (InterruptedException e) {
-			LOGGER.warn(e.getMessage());
+			LOGGER.warn(e::getMessage);
 			Thread.currentThread().interrupt();
 		}
 	}
 
 	protected void notifyOnRevoked() {
-		LOGGER.debug("Leadership has been revoked for '{}'", this.candidate);
+		LOGGER.debug(() -> "Leadership has been revoked from :" + candidate);
 
-		Context context = new LeaderContext(this.candidate, this);
-		this.leaderEventPublisher.publishOnRevoked(this, context, this.candidate.getRole());
-		this.candidate.onRevoked(context);
+		Context context = new LeaderContext(candidate, this);
+		leaderEventPublisher.publishOnRevoked(this, context, candidate.getRole());
+		candidate.onRevoked(context);
 	}
 
 	protected void notifyOnFailedToAcquire() {
-		if (this.leaderProperties.isPublishFailedEvents()) {
-			Context context = new LeaderContext(this.candidate, this);
-			this.leaderEventPublisher.publishOnFailedToAcquire(this, context, this.candidate.getRole());
+		if (leaderProperties.isPublishFailedEvents()) {
+			Context context = new LeaderContext(candidate, this);
+			leaderEventPublisher.publishOnFailedToAcquire(this, context, candidate.getRole());
 		}
 	}
 
 	protected void restartLeaderReadinessWatcher() {
-		if (this.leaderReadinessWatcher != null) {
-			this.leaderReadinessWatcher.stop();
-			this.leaderReadinessWatcher = null;
+		if (leaderReadinessWatcher != null) {
+			leaderReadinessWatcher.stop();
+			leaderReadinessWatcher = null;
 		}
 
-		if (this.localLeader != null && !this.localLeader.isCandidate(this.candidate)) {
-			this.leaderReadinessWatcher = createPodReadinessWatcher(this.localLeader.getId());
-			this.leaderReadinessWatcher.start();
+		if (localLeader != null && !localLeader.isCandidate(candidate)) {
+			leaderReadinessWatcher = createPodReadinessWatcher(localLeader.getId());
+			leaderReadinessWatcher.start();
 		}
 	}
 

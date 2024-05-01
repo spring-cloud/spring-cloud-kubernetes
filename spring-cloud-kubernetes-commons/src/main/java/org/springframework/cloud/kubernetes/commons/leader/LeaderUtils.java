@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.leader;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.util.StringUtils;
@@ -41,6 +42,16 @@ public final class LeaderUtils {
 		}
 		else {
 			return InetAddress.getLocalHost().getHostName();
+		}
+	}
+
+	public static void guarded(ReentrantLock lock, Runnable runnable) {
+		try {
+			lock.lock();
+			runnable.run();
+		}
+		finally {
+			lock.unlock();
 		}
 	}
 
