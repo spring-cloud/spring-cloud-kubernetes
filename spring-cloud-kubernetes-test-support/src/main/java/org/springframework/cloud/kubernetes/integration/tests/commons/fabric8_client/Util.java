@@ -205,19 +205,19 @@ public final class Util {
 		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
 		InputStream roleBindingAsStream = inputStream("cluster/role-binding.yaml");
 
-		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).item();
+		ClusterRole clusterRole = Serialization.unmarshal(clusterRoleBindingAsStream, ClusterRole.class);
 		if (client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).get() == null) {
 			client.rbac().clusterRoles().resource(clusterRole).create();
 		}
 
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).item();
+		ServiceAccount serviceAccountFromStream = Serialization.unmarshal(serviceAccountAsStream, ServiceAccount.class);
 		serviceAccountFromStream.getMetadata().setNamespace(serviceAccountNamespace);
 		if (client.serviceAccounts().inNamespace(serviceAccountNamespace)
 				.withName(serviceAccountFromStream.getMetadata().getName()).get() == null) {
 			client.serviceAccounts().inNamespace(serviceAccountNamespace).resource(serviceAccountFromStream).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).item();
+		RoleBinding roleBindingFromStream = Serialization.unmarshal(roleBindingAsStream, RoleBinding.class);
 		namespaces.forEach(namespace -> {
 			roleBindingFromStream.getMetadata().setNamespace(namespace);
 
@@ -310,7 +310,7 @@ public final class Util {
 		if (phase.equals(Phase.CREATE)) {
 
 			if (withIngress) {
-				ingress = client.network().v1().ingresses().load(ingressStream).get();
+				ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 				ingress.getMetadata().setNamespace(namespace);
 				ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
 			}
@@ -322,7 +322,7 @@ public final class Util {
 		else {
 
 			if (withIngress) {
-				ingress = client.network().v1().ingresses().load(ingressStream).get();
+				ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 			}
 
 			deleteAndWait(namespace, deployment, service, ingress);
@@ -466,24 +466,21 @@ public final class Util {
 
 	private void innerSetup(String namespace, InputStream serviceAccountAsStream, InputStream roleBindingAsStream,
 			InputStream roleAsStream) {
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().inNamespace(namespace)
-				.load(serviceAccountAsStream).item();
-		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
+		ServiceAccount serviceAccount = Serialization.unmarshal(serviceAccountAsStream, ServiceAccount.class);
+		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccount.getMetadata().getName())
 				.get() == null) {
-			client.serviceAccounts().inNamespace(namespace).resource(serviceAccountFromStream).create();
+			client.serviceAccounts().inNamespace(namespace).resource(serviceAccount).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().inNamespace(namespace)
-				.load(roleBindingAsStream).item();
-		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBindingFromStream.getMetadata().getName())
+		RoleBinding roleBinding = Serialization.unmarshal(roleBindingAsStream, RoleBinding.class);
+		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBinding.getMetadata().getName())
 				.get() == null) {
-			client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
+			client.rbac().roleBindings().inNamespace(namespace).resource(roleBinding).create();
 		}
 
-		Role roleFromStream = client.rbac().roles().inNamespace(namespace).load(roleAsStream).item();
-		if (client.rbac().roles().inNamespace(namespace).withName(roleFromStream.getMetadata().getName())
-				.get() == null) {
-			client.rbac().roles().inNamespace(namespace).resource(roleFromStream).create();
+		Role role = Serialization.unmarshal(roleAsStream, Role.class);
+		if (client.rbac().roles().inNamespace(namespace).withName(role.getMetadata().getName()).get() == null) {
+			client.rbac().roles().inNamespace(namespace).resource(role).create();
 		}
 	}
 

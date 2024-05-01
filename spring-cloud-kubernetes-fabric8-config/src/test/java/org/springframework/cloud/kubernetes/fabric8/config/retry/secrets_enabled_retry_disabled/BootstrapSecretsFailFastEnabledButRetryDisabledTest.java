@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_retry_enabled;
+package org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_enabled_retry_disabled;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -22,47 +22,40 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Application;
-
-import static org.mockito.Mockito.spy;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 
 /**
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-		properties = { "spring.cloud.kubernetes.secrets.enabled=false",
-				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.config.fail-fast=true",
-				"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:" },
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
+				"spring.cloud.kubernetes.config.enabled=false" },
 		classes = Application.class)
 @EnableKubernetesMockClient
-class ConfigDataConfigRetryEnabled extends ConfigRetryEnabled {
+class BootstrapSecretsFailFastEnabledButRetryDisabledTest extends SecretsFailFastEnabledButRetryDisabled {
 
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
-
-	@MockBean
-	private KubernetesNamespaceProvider namespaceProvider;
 
 	@BeforeAll
 	static void setup() {
 		setup(mockClient, mockServer);
 	}
 
-	@Autowired
-	ConfigDataRetryableConfigMapPropertySourceLocator propertySourceLocator;
+	@SpyBean
+	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@BeforeEach
-	public void beforeEach() {
+	void beforeEach() {
 		psl = propertySourceLocator;
-		verifiablePsl = spy(propertySourceLocator.getConfigMapPropertySourceLocator());
-		propertySourceLocator.setConfigMapPropertySourceLocator(verifiablePsl);
+		verifiablePsl = propertySourceLocator;
 	}
 
 }

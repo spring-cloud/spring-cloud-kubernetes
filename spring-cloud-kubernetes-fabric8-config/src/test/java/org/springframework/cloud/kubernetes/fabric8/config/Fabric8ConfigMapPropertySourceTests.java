@@ -49,6 +49,10 @@ class Fabric8ConfigMapPropertySourceTests {
 
 	@Test
 	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+
+		mockClient.getConfiguration().setRequestRetryBackoffLimit(0);
+		mockClient.getConfiguration().setRequestRetryBackoffInterval(0);
+
 		String name = "my-config";
 		String namespace = "default";
 		String path = String.format("/api/v1/namespaces/%s/configmaps", namespace);

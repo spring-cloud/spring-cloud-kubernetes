@@ -14,61 +14,57 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.retry;
+package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_fail_fast_disabled;
 
-import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
  * @author Isik Erhan
  */
-abstract class SecretsFailFastDisabled {
+abstract class ConfigFailFastDisabled {
 
-	private static final String API = "/api/v1/namespaces/default/secrets/my-secret";
-
-	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
+	private static final String API = "/api/v1/namespaces/default/configmaps/application";
 
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
 
-	protected SecretsPropertySourceLocator psl;
-
-	protected SecretsPropertySourceLocator verifiablePsl;
+	@Autowired
+	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
 
 	static void setup(KubernetesClient mockClient, KubernetesMockServer mockServer) {
-		SecretsFailFastDisabled.mockClient = mockClient;
-		SecretsFailFastDisabled.mockServer = mockServer;
+		ConfigFailFastDisabled.mockClient = mockClient;
+		ConfigFailFastDisabled.mockServer = mockServer;
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).always();
 	}
 
 	@Test
 	void locateShouldNotRetry() {
+		Fabric8ConfigMapPropertySourceLocator psl = spy(propertySourceLocator);
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
 		Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
-		// verify locate is called only once
-		verify(verifiablePsl, times(1)).locate(any());
+		// verify that propertySourceLocator.locate is called only once
+		verify(psl, times(1)).locate(any());
 	}
 
 }
