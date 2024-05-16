@@ -1,0 +1,160 @@
+/*
+ * Copyright 2013-2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.kubernetes.fabric8.leader.election;
+
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
+
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
+import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElector;
+import io.fabric8.kubernetes.client.readiness.Readiness;
+import io.fabric8.kubernetes.client.utils.CachedSingleThreadScheduler;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+
+import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
+import org.springframework.core.log.LogAccessor;
+
+/**
+ * @author wind57
+ */
+final class Fabric8LeaderElectionInitiator {
+
+	private static final LogAccessor LOG = new LogAccessor(Fabric8LeaderElectionInitiator.class);
+
+	private final CachedSingleThreadScheduler scheduler = new CachedSingleThreadScheduler();
+
+	private final String holderIdentity;
+
+	private final String podNamespace;
+
+	private final KubernetesClient fabric8KubernetesClient;
+
+	private final LeaderElectionConfig leaderElectionConfig;
+
+	private final LeaderElectionProperties leaderElectionProperties;
+
+	private ExecutorService executorService;
+
+	private ScheduledFuture<?> scheduledFuture;
+
+	private CompletableFuture<?> leaderFuture;
+
+	Fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace, KubernetesClient fabric8KubernetesClient,
+			LeaderElectionConfig leaderElectionConfig, LeaderElectionProperties leaderElectionProperties) {
+		this.holderIdentity = holderIdentity;
+		this.podNamespace = podNamespace;
+		this.fabric8KubernetesClient = fabric8KubernetesClient;
+		this.leaderElectionConfig = leaderElectionConfig;
+		this.leaderElectionProperties = leaderElectionProperties;
+	}
+
+	@PostConstruct
+	void postConstruct() {
+		LOG.info(() -> "starting leader initiator");
+		executorService = Executors.newSingleThreadExecutor();
+		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
+
+		// wait until pod is ready
+		if (leaderElectionProperties.waitForPodReady()) {
+			scheduledFuture = scheduler.scheduleWithFixedDelay(() -> {
+				Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(holderIdentity).get();
+				boolean podReady = Readiness.isPodReady(pod);
+				if (podReady) {
+					LOG.info(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is ready");
+					podReadyFuture.complete(null);
+				}
+				else {
+					LOG.info(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is not ready, "
+							+ "will retry in one second");
+				}
+			}, 1, 1, TimeUnit.SECONDS);
+		}
+
+		// wait in a different thread until the pod is ready
+		// and in the same thread start the leader election
+		executorService.execute(() -> {
+			try {
+				if (leaderElectionProperties.waitForPodReady()) {
+					CompletableFuture<?> ready = podReadyFuture.whenComplete((x, y) -> scheduledFuture.cancel(true));
+					ready.get();
+				}
+				leaderFuture = leaderElector(leaderElectionConfig, fabric8KubernetesClient).start();
+				//TODO
+				System.out.println("getting");
+				leaderFuture.get();
+				System.out.println("done getting");
+			}
+			catch (Exception e) {
+				if (e instanceof CancellationException) {
+					LOG.warn(() -> Thread.currentThread().getName() + " : leaderFuture was canceled");
+					LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
+					//TODO
+					//return;
+				}
+				throw new RuntimeException(e);
+			}
+		});
+
+	}
+
+	@PreDestroy
+	void preDestroy() {
+		//TODO
+		try {
+			if (scheduledFuture != null) {
+				// if the task is not running, this has no effect
+				// if the task is running, calling this will also make sure
+				// that the caching executor will shut down too.
+				scheduledFuture.cancel(true);
+			}
+			if (leaderFuture != null) {
+				// needed to release the lock, fabric8 internally expects this one to be
+				// called
+				System.out.println("thread is : " + Thread.currentThread().getName());
+				boolean isCanceled = leaderFuture.cancel(true);
+//				leaderFuture.whenComplete((ok, err) -> {
+//					if (err != null) {
+//						System.out.println("leader feature failed with : " + err.getMessage());
+//					}
+//				});
+				System.out.println(" : isCanceled : " + isCanceled);
+			}
+			//TODO
+			//executorService.shutdownNow();
+		} catch(Exception e) {
+			System.out.println("caught in main");
+			e.printStackTrace();
+		}
+
+	}
+
+	// can't be a bean because on context refresh, we keep starting an instance, and
+	// it is not allowed to start the same instance twice.
+	LeaderElector leaderElector(LeaderElectionConfig config, KubernetesClient fabric8KubernetesClient) {
+		return fabric8KubernetesClient.leaderElector().withConfig(config).build();
+	}
+
+}

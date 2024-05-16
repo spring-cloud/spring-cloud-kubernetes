@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.leader;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.cloud.kubernetes.commons.EnvReader;
@@ -31,6 +32,8 @@ public final class LeaderUtils {
 	// k8s environment variable responsible for host name
 	private static final String HOSTNAME = "HOSTNAME";
 
+	private static final String POD_NAMESPACE = "POD_NAMESPACE";
+
 	private LeaderUtils() {
 
 	}
@@ -43,6 +46,13 @@ public final class LeaderUtils {
 		else {
 			return InetAddress.getLocalHost().getHostName();
 		}
+	}
+
+	/**
+	 * ideally, should always be present. If not, downward api must enable this one.
+	 */
+	public static Optional<String> podNamespace() {
+		return Optional.ofNullable(EnvReader.getEnv(POD_NAMESPACE));
 	}
 
 	public static void guarded(ReentrantLock lock, Runnable runnable) {

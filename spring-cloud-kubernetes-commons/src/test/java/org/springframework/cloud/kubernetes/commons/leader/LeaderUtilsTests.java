@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.leader;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -60,6 +61,25 @@ class LeaderUtilsTests {
 
 		envReaderMockedStatic.close();
 		inet4AddressMockedStatic.close();
+	}
+
+	@Test
+	void podNamespaceMissing() {
+		MockedStatic<EnvReader> envReaderMockedStatic = Mockito.mockStatic(EnvReader.class);
+		// envReaderMockedStatic.when(() -> EnvReader.getEnv("")).thenReturn("");
+		Optional<String> podNamespace = LeaderUtils.podNamespace();
+		Assertions.assertTrue(podNamespace.isEmpty());
+		envReaderMockedStatic.close();
+	}
+
+	@Test
+	void podNamespacePresent() {
+		MockedStatic<EnvReader> envReaderMockedStatic = Mockito.mockStatic(EnvReader.class);
+		envReaderMockedStatic.when(() -> EnvReader.getEnv("POD_NAMESPACE")).thenReturn("podNamespace");
+		Optional<String> podNamespace = LeaderUtils.podNamespace();
+		Assertions.assertTrue(podNamespace.isPresent());
+		Assertions.assertEquals(podNamespace.get(), "podNamespace");
+		envReaderMockedStatic.close();
 	}
 
 }
