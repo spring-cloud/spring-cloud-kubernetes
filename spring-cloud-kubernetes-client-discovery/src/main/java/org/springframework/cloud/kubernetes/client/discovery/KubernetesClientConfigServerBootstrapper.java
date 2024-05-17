@@ -57,8 +57,16 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 		if (hasConfigServerInstanceProvider()) {
 			return;
 		}
-		registry.registerIfAbsent(KubernetesDiscoveryProperties.class,
-			KubernetesConfigServerBootstrapper::createKubernetesDiscoveryProperties);
+
+		if (hasConfigServerInstanceProvider()) {
+			return;
+		}
+		registry.registerIfAbsent(KubernetesDiscoveryProperties.class, context -> {
+			if (!getDiscoveryEnabled(context)) {
+				return null;
+			}
+			return createKubernetesDiscoveryProperties(context);
+		});
 
 		registry.registerIfAbsent(ConfigServerInstanceProvider.Function.class, context -> {
 			if (!getDiscoveryEnabled(context)) {
