@@ -44,8 +44,8 @@ import org.springframework.context.annotation.Primary;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.leader.election.enabled=true", "spring.cloud.kubernetes.leader.enabled=false",
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
+				"spring.cloud.kubernetes.leader.enabled=false",
 				"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false" })
 @ExtendWith(OutputCaptureExtension.class)
 class Fabric8LeaderElectionSimpleITTest {

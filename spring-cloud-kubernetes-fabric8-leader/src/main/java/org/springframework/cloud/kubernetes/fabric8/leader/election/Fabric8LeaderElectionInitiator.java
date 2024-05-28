@@ -21,9 +21,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -60,7 +59,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	private ScheduledFuture<?> scheduledFuture;
 
-	private CompletableFuture<?> leaderFuture;
+	private final AtomicReference<CompletableFuture<?>> leaderFuture = new AtomicReference<>();
 
 	Fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace, KubernetesClient fabric8KubernetesClient,
 			LeaderElectionConfig leaderElectionConfig, LeaderElectionProperties leaderElectionProperties) {
@@ -95,24 +94,18 @@ final class Fabric8LeaderElectionInitiator {
 
 		// wait in a different thread until the pod is ready
 		// and in the same thread start the leader election
-		executorService.execute(() -> {
+		executorService.submit(() -> {
 			try {
 				if (leaderElectionProperties.waitForPodReady()) {
 					CompletableFuture<?> ready = podReadyFuture.whenComplete((x, y) -> scheduledFuture.cancel(true));
 					ready.get();
 				}
-				leaderFuture = leaderElector(leaderElectionConfig, fabric8KubernetesClient).start();
-				//TODO
-				System.out.println("getting");
+				leaderFuture.set(leaderElector(leaderElectionConfig, fabric8KubernetesClient).start());
 				leaderFuture.get();
-				System.out.println("done getting");
 			}
 			catch (Exception e) {
 				if (e instanceof CancellationException) {
-					LOG.warn(() -> Thread.currentThread().getName() + " : leaderFuture was canceled");
-					LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
-					//TODO
-					//return;
+					LOG.warn(() -> "leaderFuture was canceled");
 				}
 				throw new RuntimeException(e);
 			}
@@ -122,32 +115,19 @@ final class Fabric8LeaderElectionInitiator {
 
 	@PreDestroy
 	void preDestroy() {
-		//TODO
-		try {
-			if (scheduledFuture != null) {
-				// if the task is not running, this has no effect
-				// if the task is running, calling this will also make sure
-				// that the caching executor will shut down too.
-				scheduledFuture.cancel(true);
-			}
-			if (leaderFuture != null) {
-				// needed to release the lock, fabric8 internally expects this one to be
-				// called
-				System.out.println("thread is : " + Thread.currentThread().getName());
-				boolean isCanceled = leaderFuture.cancel(true);
-//				leaderFuture.whenComplete((ok, err) -> {
-//					if (err != null) {
-//						System.out.println("leader feature failed with : " + err.getMessage());
-//					}
-//				});
-				System.out.println(" : isCanceled : " + isCanceled);
-			}
-			//TODO
-			//executorService.shutdownNow();
-		} catch(Exception e) {
-			System.out.println("caught in main");
-			e.printStackTrace();
+		if (scheduledFuture != null) {
+			// if the task is not running, this has no effect
+			// if the task is running, calling this will also make sure
+			// that the caching executor will shut down too.
+			scheduledFuture.cancel(true);
 		}
+
+		if (leaderFuture.get() != null) {
+			// needed to release the lock, fabric8 internally expects this one to be
+			// called
+			leaderFuture.get().cancel(true);
+		}
+		executorService.shutdownNow();
 
 	}
 

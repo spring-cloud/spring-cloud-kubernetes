@@ -17,36 +17,24 @@
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
 import java.time.Duration;
-import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfigBuilder;
-import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElector;
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.LeaseLock;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.testcontainers.k3s.K3sContainer;
+
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
-import org.testcontainers.k3s.K3sContainer;
-
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 
 /**
@@ -55,8 +43,8 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 @ExtendWith(OutputCaptureExtension.class)
 class Fabric8LeaderElectionConcurrentITTest {
 
-	private static final LeaderElectionProperties PROPERTIES =
-		new LeaderElectionProperties(false, false, 15, "default", "lease-lock", 10, 2);
+	private static final LeaderElectionProperties PROPERTIES = new LeaderElectionProperties(false, false, 15, "default",
+			"lease-lock", 10, 2);
 
 	private static K3sContainer container;
 
@@ -80,13 +68,13 @@ class Fabric8LeaderElectionConcurrentITTest {
 
 		String holderIdentityOne = "one";
 		LeaderElectionConfig leaderElectionConfigOne = leaderElectionConfig(holderIdentityOne);
-		Fabric8LeaderElectionInitiator one = new Fabric8LeaderElectionInitiator(
-			holderIdentityOne, "default", kubernetesClient, leaderElectionConfigOne , PROPERTIES);
+		Fabric8LeaderElectionInitiator one = new Fabric8LeaderElectionInitiator(holderIdentityOne, "default",
+				kubernetesClient, leaderElectionConfigOne, PROPERTIES);
 
 		String holderIdentityTwo = "two";
 		LeaderElectionConfig leaderElectionConfigTwo = leaderElectionConfig(holderIdentityTwo);
-		Fabric8LeaderElectionInitiator two = new Fabric8LeaderElectionInitiator(
-			holderIdentityTwo, "default", kubernetesClient, leaderElectionConfigTwo, PROPERTIES);
+		Fabric8LeaderElectionInitiator two = new Fabric8LeaderElectionInitiator(holderIdentityTwo, "default",
+				kubernetesClient, leaderElectionConfigTwo, PROPERTIES);
 
 		one.postConstruct();
 		two.postConstruct();
@@ -94,9 +82,9 @@ class Fabric8LeaderElectionConcurrentITTest {
 		// both try to acquire the lock
 		awaitForMessage(output, "Attempting to acquire leader lease 'LeaseLock: default - lease-lock (two)'...");
 		awaitForMessage(output, "Attempting to acquire leader lease 'LeaseLock: default - lease-lock (one)'...");
+		awaitForMessage(output, "Leader changed from null to ");
 
-		boolean oneIsLeader =
-			leaderElectionConfigOne.getLock().get(kubernetesClient).getHolderIdentity().equals("one");
+		boolean oneIsLeader = leaderElectionConfigOne.getLock().get(kubernetesClient).getHolderIdentity().equals("one");
 
 		String currentLeader;
 		String notLeader;
@@ -110,22 +98,20 @@ class Fabric8LeaderElectionConcurrentITTest {
 			notLeader = "one";
 		}
 
-		System.out.println("currentLeader : " + currentLeader);
-
 		awaitForMessage(output, "Leader changed from null to " + currentLeader);
 		awaitForMessage(output, "id : " + currentLeader + " is the new leader");
-		awaitForMessage(output, "Successfully Acquired leader lease 'LeaseLock: " +
-			"default - lease-lock (" + currentLeader + ")'");
+		awaitForMessage(output,
+				"Successfully Acquired leader lease 'LeaseLock: " + "default - lease-lock (" + currentLeader + ")'");
 
 		// renewal happens for the current leader
-		awaitForMessage(output, "Attempting to renew leader lease 'LeaseLock: " +
-			"default - lease-lock (" + currentLeader + ")'...");
+		awaitForMessage(output,
+				"Attempting to renew leader lease 'LeaseLock: " + "default - lease-lock (" + currentLeader + ")'...");
 		awaitForMessage(output, "Acquired lease 'LeaseLock: default - lease-lock (" + currentLeader + ")'");
 
 		// the other elector says it can't acquire the lock
 		awaitForMessage(output, "Lock is held by " + currentLeader + " and has not yet expired");
-		awaitForMessage(output, "Failed to acquire lease 'LeaseLock: " +
-			"default - lease-lock (" + notLeader + ")' retrying...");
+		awaitForMessage(output,
+				"Failed to acquire lease 'LeaseLock: " + "default - lease-lock (" + notLeader + ")' retrying...");
 
 		if (currentLeader.equals("one")) {
 			one.preDestroy();
@@ -134,62 +120,11 @@ class Fabric8LeaderElectionConcurrentITTest {
 			two.preDestroy();
 		}
 
-		System.out.println(Thread.currentThread().getName() + " : cccccccccc");
-
 		// leader changed and the new leader can renew
 		awaitForMessage(output, "id : " + notLeader + " is the new leader");
-		System.out.println(" : eeeeeeee");
-		awaitForMessage(output, "Attempting to renew leader lease 'LeaseLock: " +
-			"default - lease-lock (" + notLeader + ")'...");
+		awaitForMessage(output,
+				"Attempting to renew leader lease 'LeaseLock: " + "default - lease-lock (" + notLeader + ")'...");
 		awaitForMessage(output, "Acquired lease 'LeaseLock: default - lease-lock (" + notLeader + ")'");
-
-		System.out.println("11111111");
-
-	}
-
-	@Test
-	void test2(CapturedOutput output) {
-		String kubeConfigYaml = container.getKubeConfigYaml();
-		Config config = Config.fromKubeconfig(kubeConfigYaml);
-		KubernetesClient kubernetesClient = new KubernetesClientBuilder().withConfig(config).build();
-
-		String holderIdentityOne = "one";
-		LeaderElectionConfig leaderElectionConfigOne = leaderElectionConfig(holderIdentityOne);
-		Fabric8LeaderElectionInitiator one = new Fabric8LeaderElectionInitiator(
-			holderIdentityOne, "default", kubernetesClient, leaderElectionConfigOne , PROPERTIES);
-
-		String holderIdentityTwo = "two";
-		LeaderElectionConfig leaderElectionConfigTwo = leaderElectionConfig(holderIdentityTwo);
-		Fabric8LeaderElectionInitiator two = new Fabric8LeaderElectionInitiator(
-			holderIdentityTwo, "default", kubernetesClient, leaderElectionConfigTwo, PROPERTIES);
-
-		one.postConstruct();
-		two.postConstruct();
-
-		awaitForMessage(output, "Attempting to acquire leader lease 'LeaseLock: default - lease-lock (two)'...");
-		awaitForMessage(output, "Attempting to acquire leader lease 'LeaseLock: default - lease-lock (one)'...");
-		awaitForMessage(output, "Leader changed from null to ");
-
-		boolean oneIsLeader =
-			leaderElectionConfigOne.getLock().get(kubernetesClient).getHolderIdentity().equals("one");
-
-
-		String notLeader;
-		if (oneIsLeader) {
-			awaitForMessage(output, "id : one is the new leader");
-			notLeader = "two";
-			one.preDestroy();
-		}
-
-		else {
-			awaitForMessage(output, "id : two is the new leader");
-			notLeader = "one";
-			two.preDestroy();
-		}
-
-		System.out.println("aaaaa");
-		awaitForMessage2(output, "id : " + notLeader + " is the new leader");
-		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(10));
 
 	}
 
@@ -199,10 +134,9 @@ class Fabric8LeaderElectionConcurrentITTest {
 		Fabric8LeaderElectionCallbacks callbacks = callbacks(holderIdentity);
 
 		return new LeaderElectionConfigBuilder().withReleaseOnCancel().withName("leader-election-config")
-			.withLeaseDuration(Duration.ofSeconds(PROPERTIES.leaseDuration())).withLock(lock)
-			.withRenewDeadline(Duration.ofSeconds(PROPERTIES.renewDeadline()))
-			.withRetryPeriod(Duration.ofSeconds(PROPERTIES.retryPeriod()))
-			.withLeaderCallbacks(callbacks).build();
+				.withLeaseDuration(Duration.ofSeconds(PROPERTIES.leaseDuration())).withLock(lock)
+				.withRenewDeadline(Duration.ofSeconds(PROPERTIES.renewDeadline()))
+				.withRetryPeriod(Duration.ofSeconds(PROPERTIES.retryPeriod())).withLeaderCallbacks(callbacks).build();
 	}
 
 	private LeaseLock leaseLock(String holderIdentity) {
@@ -210,8 +144,7 @@ class Fabric8LeaderElectionConcurrentITTest {
 	}
 
 	private Fabric8LeaderElectionCallbacks callbacks(String holderIdentity) {
-		Fabric8LeaderElectionCallbacksAutoConfiguration configuration =
-			new Fabric8LeaderElectionCallbacksAutoConfiguration();
+		Fabric8LeaderElectionCallbacksAutoConfiguration configuration = new Fabric8LeaderElectionCallbacksAutoConfiguration();
 
 		Runnable onStartLeadingCallback = configuration.onStartLeadingCallback(null, holderIdentity, PROPERTIES);
 		Runnable onStopLeadingCallback = configuration.onStopLeadingCallback(null, holderIdentity, PROPERTIES);
@@ -221,64 +154,8 @@ class Fabric8LeaderElectionConcurrentITTest {
 	}
 
 	private void awaitForMessage(CapturedOutput output, String message) {
-		System.out.println(Thread.currentThread().getName() +  " : ddddddd + " + message);
-		Awaitility.await().pollInterval(Duration.ofMillis(50)).atMost(Duration.ofSeconds(10))
-			//TODO
-			.until(() -> {
-				boolean x = output.getOut().contains(message);
-				System.out.println("x is resolved : " + x);
-				return x;
-			});
-		System.out.println("does it? " + output.getOut().contains(message));
-
-//		boolean done = false;
-//
-//		while (!done) {
-//			done = output.getOut().contains(message);
-//			LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
-//		}
-	}
-
-	private void awaitForMessage2(CapturedOutput output, String message) {
-		System.out.println(Thread.currentThread().getName() +  " : ddddddd + " + message);
-		//Awaitility.await().during(Duration.ofSeconds(3));
-		Awaitility.await().ignoreException(CancellationException.class).pollInterval(Duration.ofMillis(50)).atMost(Duration.ofSeconds(10))
-			//TODO
-			.until(() -> {
-				boolean x = output.getOut().contains(message);
-				System.out.println("x is resolved : " + x);
-				return x;
-			});
-		System.out.println("does it? " + output.getOut().contains(message));
-	}
-
-	static CompletableFuture<?> result;
-
-	public static void main(String[] args) {
-		ExecutorService service = Executors.newSingleThreadExecutor();
-		Supplier<CompletableFuture<?>> sup = () -> CompletableFuture.supplyAsync(() -> {
-			LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(4));
-			return "";
-		});
-
-
-		service.execute(() -> {
-			try {
-				result = sup.get();
-				result.get();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		});
-
-		Awaitility.await().during(Duration.ofSeconds(1));
-		//LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
-
-		result.cancel(true);
-
-		System.out.println("after cancel");
-		Awaitility.await().during(Duration.ofSeconds(1));
-		//LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1));
+		Awaitility.await().pollInterval(Duration.ofMillis(100)).atMost(Duration.ofSeconds(10))
+				.until(() -> output.getOut().contains(message));
 	}
 
 }
