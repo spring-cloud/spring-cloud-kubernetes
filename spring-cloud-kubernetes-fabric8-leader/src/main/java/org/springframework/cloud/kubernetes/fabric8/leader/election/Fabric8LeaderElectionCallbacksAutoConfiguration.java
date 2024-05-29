@@ -59,10 +59,9 @@ class Fabric8LeaderElectionCallbacksAutoConfiguration {
 
 	@Bean
 	String podNamespace() {
-		// String podNamespace = LeaderUtils.podNamespace().orElse("default");
-		// LOG.debug(() -> "using pod namespace : " + podNamespace);
-		// return podNamespace;
-		return "";
+		 String podNamespace = LeaderUtils.podNamespace().orElse("default");
+		 LOG.debug(() -> "using pod namespace : " + podNamespace);
+		 return podNamespace;
 	}
 
 	@Bean
