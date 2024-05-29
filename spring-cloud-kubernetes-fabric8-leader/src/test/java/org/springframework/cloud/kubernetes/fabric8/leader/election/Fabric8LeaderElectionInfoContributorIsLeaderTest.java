@@ -85,7 +85,7 @@ class Fabric8LeaderElectionInfoContributorIsLeaderTest {
 	}
 
 	@TestConfiguration
-	private static class Configuration {
+	static class Configuration {
 
 		@Bean
 		@Primary

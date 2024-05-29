@@ -55,9 +55,9 @@ final class Fabric8LeaderElectionInitiator {
 
 	private final LeaderElectionProperties leaderElectionProperties;
 
-	private ExecutorService executorService;
+	private final AtomicReference<ExecutorService> executorService = new AtomicReference<>();
 
-	private ScheduledFuture<?> scheduledFuture;
+	private final AtomicReference<ScheduledFuture<?>> scheduledFuture = new AtomicReference<>();
 
 	private final AtomicReference<CompletableFuture<?>> leaderFuture = new AtomicReference<>();
 
@@ -73,12 +73,12 @@ final class Fabric8LeaderElectionInitiator {
 	@PostConstruct
 	void postConstruct() {
 		LOG.info(() -> "starting leader initiator");
-		executorService = Executors.newSingleThreadExecutor();
+		executorService.set(Executors.newSingleThreadExecutor());
 		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
 
 		// wait until pod is ready
 		if (leaderElectionProperties.waitForPodReady()) {
-			scheduledFuture = scheduler.scheduleWithFixedDelay(() -> {
+			scheduledFuture.set(scheduler.scheduleWithFixedDelay(() -> {
 				Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(holderIdentity).get();
 				boolean podReady = Readiness.isPodReady(pod);
 				if (podReady) {
@@ -89,15 +89,16 @@ final class Fabric8LeaderElectionInitiator {
 					LOG.info(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is not ready, "
 							+ "will retry in one second");
 				}
-			}, 1, 1, TimeUnit.SECONDS);
+			}, 1, 1, TimeUnit.SECONDS));
 		}
 
 		// wait in a different thread until the pod is ready
 		// and in the same thread start the leader election
-		executorService.submit(() -> {
+		executorService.get().submit(() -> {
 			try {
 				if (leaderElectionProperties.waitForPodReady()) {
-					CompletableFuture<?> ready = podReadyFuture.whenComplete((x, y) -> scheduledFuture.cancel(true));
+					CompletableFuture<?> ready = podReadyFuture.whenComplete((x, y) ->
+						scheduledFuture.get().cancel(true));
 					ready.get();
 				}
 				leaderFuture.set(leaderElector(leaderElectionConfig, fabric8KubernetesClient).start());
@@ -115,11 +116,11 @@ final class Fabric8LeaderElectionInitiator {
 
 	@PreDestroy
 	void preDestroy() {
-		if (scheduledFuture != null) {
+		if (scheduledFuture.get() != null) {
 			// if the task is not running, this has no effect
 			// if the task is running, calling this will also make sure
 			// that the caching executor will shut down too.
-			scheduledFuture.cancel(true);
+			scheduledFuture.get().cancel(true);
 		}
 
 		if (leaderFuture.get() != null) {
@@ -127,7 +128,7 @@ final class Fabric8LeaderElectionInitiator {
 			// called
 			leaderFuture.get().cancel(true);
 		}
-		executorService.shutdownNow();
+		executorService.get().shutdownNow();
 
 	}
 
