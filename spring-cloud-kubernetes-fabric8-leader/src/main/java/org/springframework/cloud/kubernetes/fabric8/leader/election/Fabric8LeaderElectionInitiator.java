@@ -80,7 +80,8 @@ final class Fabric8LeaderElectionInitiator {
 		if (leaderElectionProperties.waitForPodReady()) {
 			LOG.info(() -> "need to wait until pod is ready");
 			scheduledFuture.set(scheduler.scheduleWithFixedDelay(() -> {
-				LOG.info(() -> "waiting for pod " + holderIdentity + " to be ready");
+				LOG.info(() -> "waiting for pod : " + holderIdentity +
+					" in namespace : " + podNamespace + " to be ready");
 				Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(holderIdentity).get();
 				boolean podReady = Readiness.isPodReady(pod);
 				if (podReady) {
