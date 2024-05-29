@@ -32,11 +32,9 @@
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
-		<hoverfly.version>0.13.0</hoverfly.version>
 		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
 		<kubernetes-native-client.version>19.0.1</kubernetes-native-client.version>
 		<wiremock.version>3.4.2</wiremock.version>
-		<commons.collections4.version>4.4</commons.collections4.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -46,12 +44,6 @@
 				<version>${kubernetes-fabric8-client.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-collections4</artifactId>
-				<version>${commons.collections4.version}</version>
 			</dependency>
 
 			<dependency>
@@ -196,20 +188,6 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-starter-kubernetes-discoveryclient</artifactId>
 				<version>${project.version}</version>
-			</dependency>
-
-			<!-- Testing Dependencies -->
-			<dependency>
-				<groupId>io.specto</groupId>
-				<artifactId>hoverfly-java-junit5</artifactId>
-				<version>${hoverfly.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>io.specto</groupId>
-				<artifactId>hoverfly-java</artifactId>
-				<version>${hoverfly.version}</version>
-				<scope>test</scope>
 			</dependency>
 
 			<dependency>
