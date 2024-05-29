@@ -129,6 +129,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	@PreDestroy
 	void preDestroy() {
+		LOG.info(() -> "preDestroy called in the leader initiator");
 		if (scheduledFuture.get() != null) {
 			// if the task is not running, this has no effect
 			// if the task is running, calling this will also make sure
@@ -137,6 +138,7 @@ final class Fabric8LeaderElectionInitiator {
 		}
 
 		if (leaderFuture.get() != null) {
+			LOG.info(() -> "leader will be canceled");
 			// needed to release the lock, fabric8 internally expects this one to be
 			// called
 			leaderFuture.get().cancel(true);
