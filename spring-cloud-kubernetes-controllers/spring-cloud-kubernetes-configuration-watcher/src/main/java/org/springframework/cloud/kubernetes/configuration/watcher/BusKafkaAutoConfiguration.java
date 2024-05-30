@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -44,6 +45,7 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @Profile(KAFKA)
 @Import(ContextFunctionCatalogAutoConfiguration.class)
+@AutoConfigureAfter(RefreshTriggerAutoConfiguration.class)
 class BusKafkaAutoConfiguration {
 
 	@Bean
