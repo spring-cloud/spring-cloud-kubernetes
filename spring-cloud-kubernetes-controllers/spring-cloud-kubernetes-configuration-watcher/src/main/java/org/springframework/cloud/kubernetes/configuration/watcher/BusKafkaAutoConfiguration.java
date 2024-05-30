@@ -22,7 +22,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -31,52 +31,44 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.reactive.function.client.WebClient;
 
-/**
- * @author Ryan Baxter
- * @author Kris Iyer
- */
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
+
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
+@Profile(KAFKA)
+@Import({ ContextFunctionCatalogAutoConfiguration.class, RefreshTriggerConfiguration.class })
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@Import({ RefreshTriggerConfiguration.class })
-public class ConfigurationWatcherAutoConfiguration {
-
-	@Bean
-	@ConditionalOnMissingBean
-	public WebClient webClient(WebClient.Builder webClientBuilder) {
-		return webClientBuilder.build();
-	}
+class BusKafkaAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
 	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
-	public ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
-			CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+	ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(AbstractEnvironment environment, CoreV1Api coreV1Api,
+			KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
+			ConfigReloadProperties properties, KubernetesNamespaceProvider namespaceProvider,
+			ConfigurationUpdateStrategy strategy,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			KubernetesNamespaceProvider namespaceProvider, ThreadPoolTaskExecutor threadFactory,
-			HttpRefreshTrigger httpRefreshTrigger) {
-		return new HttpBasedConfigMapWatchChangeDetector(coreV1Api, environment, properties, strategy,
+			ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger) {
+		return new BusEventBasedConfigMapWatcherChangeDetector(coreV1Api, environment, properties, strategy,
 				configMapPropertySourceLocator, namespaceProvider, k8SConfigurationProperties, threadFactory,
-				httpRefreshTrigger);
+				busRefreshTrigger);
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
-			CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
-			KubernetesNamespaceProvider namespaceProvider, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy,
+	SecretsWatcherChangeDetector busSecretsChangeWatcher(AbstractEnvironment environment, CoreV1Api coreV1Api,
+			KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadFactory, HttpRefreshTrigger httpRefreshTrigger) {
-		return new HttpBasedSecretsWatchChangeDetector(coreV1Api, environment, properties, strategy,
+			ThreadPoolTaskExecutor threadFactory, KubernetesNamespaceProvider namespaceProvider,
+			BusRefreshTrigger busRefreshTrigger) {
+		return new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, environment, properties, strategy,
 				secretsPropertySourceLocator, namespaceProvider, k8SConfigurationProperties, threadFactory,
-				httpRefreshTrigger);
+				busRefreshTrigger);
 	}
 
 }
