@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,8 +33,9 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 /**
  * @author wind57
  */
-@Configuration
-class RefreshTriggerConfiguration {
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+class RefreshTriggerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean

@@ -42,10 +42,9 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
  * @author wind57
  */
 @Configuration(proxyBeanMethods = false)
-@Profile(AMQP)
-@Import({ ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class,
-		RefreshTriggerConfiguration.class })
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@Profile(AMQP)
+@Import({ ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class })
 class BusRabbitAutoConfiguration {
 
 	@Bean

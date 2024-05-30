@@ -38,9 +38,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
 
 @Configuration(proxyBeanMethods = false)
-@Profile(KAFKA)
-@Import({ ContextFunctionCatalogAutoConfiguration.class, RefreshTriggerConfiguration.class })
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@Profile(KAFKA)
+@Import(ContextFunctionCatalogAutoConfiguration.class)
 class BusKafkaAutoConfiguration {
 
 	@Bean

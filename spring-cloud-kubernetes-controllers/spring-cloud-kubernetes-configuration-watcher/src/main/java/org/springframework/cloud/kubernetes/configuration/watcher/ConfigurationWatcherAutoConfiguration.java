@@ -30,7 +30,6 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPr
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -40,9 +39,8 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author Kris Iyer
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@Import({ RefreshTriggerConfiguration.class })
+@EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
 public class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
