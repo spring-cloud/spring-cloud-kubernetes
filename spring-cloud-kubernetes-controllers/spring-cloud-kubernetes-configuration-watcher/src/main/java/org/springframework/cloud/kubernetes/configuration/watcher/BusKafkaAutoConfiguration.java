@@ -37,6 +37,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
 
+/**
+ * @author wind57
+ */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @Profile(KAFKA)
