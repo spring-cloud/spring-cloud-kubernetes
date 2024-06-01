@@ -72,7 +72,7 @@
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>4.1.4-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>4.1.3-SNAPSHOT</spring-cloud-config.version>
-		<spring-cloud-bus.version>4.1.1</spring-cloud-bus.version>
+		<spring-cloud-bus.version>4.1.2-SNAPSHOT</spring-cloud-bus.version>
 		<spring-cloud-contract.version>4.1.4-SNAPSHOT</spring-cloud-contract.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
