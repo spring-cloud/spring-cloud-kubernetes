@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +36,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 final class HttpRefreshTrigger implements RefreshTrigger {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientEventBasedSecretsChangeDetector.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(HttpRefreshTrigger.class));
 
 	private final KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
