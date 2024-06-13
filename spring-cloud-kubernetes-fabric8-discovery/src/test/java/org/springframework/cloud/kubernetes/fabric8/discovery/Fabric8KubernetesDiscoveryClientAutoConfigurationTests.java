@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "spring.main.cloud-platform=KUBERNETES",
 		"spring.cloud.config.enabled=false", "spring.cloud.kubernetes.discovery.use-endpoint-slices=false" })
-class KubernetesDiscoveryClientAutoConfigurationTests {
+class Fabric8KubernetesDiscoveryClientAutoConfigurationTests {
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
@@ -39,8 +39,9 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 		assertThat(this.discoveryClient).isInstanceOf(CompositeDiscoveryClient.class);
 
 		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
-		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof KubernetesDiscoveryClient))
-				.isTrue();
+		assertThat(
+				composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof Fabric8KubernetesDiscoveryClient))
+						.isTrue();
 	}
 
 	@SpringBootApplication
