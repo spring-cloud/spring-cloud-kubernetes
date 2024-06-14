@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
-import java.util.Map;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import org.springframework.core.env.MapPropertySource;
+@ConfigurationProperties("props")
+public class ConfigMapNoMountProperties {
 
-/**
- * @author wind57
- */
-public final class MountConfigMapPropertySource extends MapPropertySource {
+	private String key;
 
-	public MountConfigMapPropertySource(String name, Map<String, Object> source) {
-		super(name, source);
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 }

@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author wind57
  */
-@ConfigurationProperties("from.properties")
+@ConfigurationProperties("props")
 public class ConfigMapProperties {
 
 	private String key;
@@ -30,8 +30,8 @@ public class ConfigMapProperties {
 		return key;
 	}
 
-	public void setKey(String key1) {
-		this.key = key1;
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 }
