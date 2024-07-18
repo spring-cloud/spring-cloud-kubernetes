@@ -86,7 +86,7 @@ After `podA` has become the leader, at every 2 seconds, it will try to "extend" 
 
 A different story happens when `podA` dies with an OOM for example, without being able to gracefully update lock record and this is when `leaseDuration` argument matters. The easiest way to explain is via an example:
 
-`podA` has renewed its leadership at `12:00:04`, but at `12:00:05` it has been killed by the OOMKiller. At `12:00:06`, `podB` will try to become the leader. It will check if "now" (`12::00:06`) is _after_ last renewal + lease duration, essentially it will check:
+`podA` has renewed its leadership at `12:00:04`, but at `12:00:05` it has been killed by the OOMKiller. At `12:00:06`, `podB` will try to become the leader. It will check if "now" (`12:00:06`) is _after_ last renewal + lease duration, essentially it will check:
 
 [source]
 ----
