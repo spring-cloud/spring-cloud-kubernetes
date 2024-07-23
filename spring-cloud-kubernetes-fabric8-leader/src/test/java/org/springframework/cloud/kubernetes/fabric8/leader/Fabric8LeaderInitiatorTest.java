@@ -34,7 +34,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.atLeastO
 /**
  * @author Gytis Trikleris
  */
-public class LeaderInitiatorTest {
+class Fabric8LeaderInitiatorTest {
 
 	private final LeaderProperties leaderProperties = new LeaderProperties();
 

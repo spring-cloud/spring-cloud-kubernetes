@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Gytis Trikleris
  */
-public class LeaderContextTest {
+class Fabric8LeaderContextTest {
 
 	private final Candidate mockCandidate = Mockito.mock(Candidate.class);
 
