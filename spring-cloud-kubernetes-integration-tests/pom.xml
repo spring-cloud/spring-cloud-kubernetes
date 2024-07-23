@@ -88,6 +88,10 @@
 				</configuration>
 			</plugin>
 
+			<!-- fix for :
+	     		"Presumably you have configured maven-source-plugin to execute twice in your build.
+		  		You have to configure a classifier for at least one of them"
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>

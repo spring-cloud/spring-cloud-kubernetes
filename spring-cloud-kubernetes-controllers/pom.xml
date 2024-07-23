@@ -18,6 +18,10 @@
 		<module>spring-cloud-kubernetes-configserver</module>
 	</modules>
 
+	<!-- fix for :
+	     "Presumably you have configured maven-source-plugin to execute twice in your build.
+		  You have to configure a classifier for at least one of them"
+	-->
 	<build>
 		<plugins>
 			<plugin>
