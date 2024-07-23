@@ -7,7 +7,7 @@ runs:
     - name: run 'install' on the project
       shell: bash
       run: |
-        ./mvnw clean install -B  \
+        ./mvnw install -B  \
               -Dskip.build.image=true \
               -DskipTests -DskipITs \
               -T 1C -U -q
