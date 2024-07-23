@@ -47,11 +47,11 @@ class K8sPodLabelsAndAnnotationsSupplierTests {
 	@Test
 	void noObjetMeta() throws Exception {
 
-		Mockito.when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE, null)).thenReturn(
-				new V1PodBuilder().withMetadata(new V1ObjectMetaBuilder().withName(POD_NAME).build()).build());
+		Mockito.when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE, null))
+			.thenReturn(new V1PodBuilder().withMetadata(new V1ObjectMetaBuilder().withName(POD_NAME).build()).build());
 
 		PodLabelsAndAnnotations result = K8sPodLabelsAndAnnotationsSupplier.nonExternalName(coreV1Api, NAMESPACE)
-				.apply(POD_NAME);
+			.apply(POD_NAME);
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(result.labels().isEmpty());
 		Assertions.assertTrue(result.annotations().isEmpty());
@@ -61,11 +61,15 @@ class K8sPodLabelsAndAnnotationsSupplierTests {
 	void labelsAndAnnotationsPresent() throws Exception {
 
 		Mockito.when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE, null))
-				.thenReturn(new V1PodBuilder().withMetadata(new V1ObjectMetaBuilder().withName(POD_NAME)
-						.withLabels(Map.of("a", "b")).withAnnotations(Map.of("c", "d")).build()).build());
+			.thenReturn(new V1PodBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName(POD_NAME)
+					.withLabels(Map.of("a", "b"))
+					.withAnnotations(Map.of("c", "d"))
+					.build())
+				.build());
 
 		PodLabelsAndAnnotations result = K8sPodLabelsAndAnnotationsSupplier.nonExternalName(coreV1Api, NAMESPACE)
-				.apply(POD_NAME);
+			.apply(POD_NAME);
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.labels(), Map.of("a", "b"));
 		Assertions.assertEquals(result.annotations(), Map.of("c", "d"));

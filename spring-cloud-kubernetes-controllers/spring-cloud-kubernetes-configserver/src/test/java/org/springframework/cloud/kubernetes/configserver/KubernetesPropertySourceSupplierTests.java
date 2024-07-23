@@ -49,38 +49,47 @@ class KubernetesPropertySourceSupplierTests {
 	private static final CoreV1Api coreApi = mock(CoreV1Api.class);
 
 	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = new V1ConfigMapList()
-			.addItemsItem(buildConfigMap("gateway", "default"));
+		.addItemsItem(buildConfigMap("gateway", "default"));
 
 	private static final V1ConfigMapList CONFIGMAP_TEAM_A_LIST = new V1ConfigMapList()
-			.addItemsItem(buildConfigMap("stores", "team-a"));
+		.addItemsItem(buildConfigMap("stores", "team-a"));
 
 	private static final V1ConfigMapList CONFIGMAP_TEAM_B_LIST = new V1ConfigMapList()
-			.addItemsItem(buildConfigMap("orders", "team-b"));
+		.addItemsItem(buildConfigMap("orders", "team-b"));
 
 	private static final V1SecretList SECRET_DEFAULT_LIST = new V1SecretListBuilder()
-			.addToItems(buildSecret("gateway", "default")).build();
+		.addToItems(buildSecret("gateway", "default"))
+		.build();
 
 	private static final V1SecretList SECRET_TEAM_A_LIST = new V1SecretListBuilder()
-			.addToItems(buildSecret("stores", "team-a")).build();
+		.addToItems(buildSecret("stores", "team-a"))
+		.build();
 
 	private static final V1SecretList SECRET_TEAM_B_LIST = new V1SecretListBuilder()
-			.addToItems(buildSecret("orders", "team-b")).build();
+		.addToItems(buildSecret("orders", "team-b"))
+		.build();
 
 	@BeforeAll
 	public static void before() throws ApiException {
 		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_DEFAULT_LIST);
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(CONFIGMAP_DEFAULT_LIST);
 		when(coreApi.listNamespacedConfigMap(eq("team-a"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_TEAM_A_LIST);
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(CONFIGMAP_TEAM_A_LIST);
 		when(coreApi.listNamespacedConfigMap(eq("team-b"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(CONFIGMAP_TEAM_B_LIST);
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(CONFIGMAP_TEAM_B_LIST);
 
 		when(coreApi.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(SECRET_DEFAULT_LIST);
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(SECRET_DEFAULT_LIST);
 		when(coreApi.listNamespacedSecret(eq("team-a"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(SECRET_TEAM_A_LIST);
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(SECRET_TEAM_A_LIST);
 		when(coreApi.listNamespacedSecret(eq("team-b"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-				eq(null), eq(null), eq(null), eq(null), eq(null))).thenReturn(SECRET_TEAM_B_LIST);
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(SECRET_TEAM_B_LIST);
 	}
 
 	@Test
@@ -89,7 +98,7 @@ class KubernetesPropertySourceSupplierTests {
 		kubernetesConfigServerProperties.setConfigMapNamespaces("default,team-a,team-b");
 
 		KubernetesPropertySourceSupplier kubernetesPropertySourceSupplier = new KubernetesConfigServerAutoConfiguration()
-				.configMapPropertySourceSupplier(kubernetesConfigServerProperties);
+			.configMapPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
@@ -110,7 +119,7 @@ class KubernetesPropertySourceSupplierTests {
 		kubernetesConfigServerProperties.setConfigMapNamespaces("team-a,team-b");
 
 		KubernetesPropertySourceSupplier kubernetesPropertySourceSupplier = new KubernetesConfigServerAutoConfiguration()
-				.configMapPropertySourceSupplier(kubernetesConfigServerProperties);
+			.configMapPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
@@ -131,7 +140,7 @@ class KubernetesPropertySourceSupplierTests {
 		kubernetesConfigServerProperties.setSecretsNamespaces("default,team-a,team-b");
 
 		KubernetesPropertySourceSupplier kubernetesPropertySourceSupplier = new KubernetesConfigServerAutoConfiguration()
-				.secretsPropertySourceSupplier(kubernetesConfigServerProperties);
+			.secretsPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
@@ -152,7 +161,7 @@ class KubernetesPropertySourceSupplierTests {
 		kubernetesConfigServerProperties.setSecretsNamespaces("team-a,team-b");
 
 		KubernetesPropertySourceSupplier kubernetesPropertySourceSupplier = new KubernetesConfigServerAutoConfiguration()
-				.secretsPropertySourceSupplier(kubernetesConfigServerProperties);
+			.secretsPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
@@ -169,16 +178,19 @@ class KubernetesPropertySourceSupplierTests {
 
 	private static V1ConfigMap buildConfigMap(String name, String namespace) {
 		return new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(name).withNamespace(namespace).withResourceVersion("1")
-						.build())
-				.addToData("application.yaml", "dummy:\n  property:\n    string: \"" + name + "\"\n").build();
+			.withMetadata(
+					new V1ObjectMetaBuilder().withName(name).withNamespace(namespace).withResourceVersion("1").build())
+			.addToData("application.yaml", "dummy:\n  property:\n    string: \"" + name + "\"\n")
+			.build();
 	}
 
 	private static V1Secret buildSecret(String name, String namespace) {
 		return new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(name).withResourceVersion("0").withNamespace(namespace)
-						.build())
-				.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build();
+			.withMetadata(
+					new V1ObjectMetaBuilder().withName(name).withResourceVersion("0").withNamespace(namespace).build())
+			.addToData("password", "p455w0rd".getBytes())
+			.addToData("username", "user".getBytes())
+			.build();
 	}
 
 }

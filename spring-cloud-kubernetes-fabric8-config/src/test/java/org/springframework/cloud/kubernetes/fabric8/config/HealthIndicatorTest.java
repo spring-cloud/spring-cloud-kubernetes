@@ -56,9 +56,15 @@ class HealthIndicatorTest {
 
 	@Test
 	void healthEndpointShouldContainKubernetes() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-				.jsonPath("components.kubernetes").exists();
+		this.webClient.get()
+			.uri("http://localhost:{port}/actuator/health", this.port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("components.kubernetes")
+			.exists();
 	}
 
 }

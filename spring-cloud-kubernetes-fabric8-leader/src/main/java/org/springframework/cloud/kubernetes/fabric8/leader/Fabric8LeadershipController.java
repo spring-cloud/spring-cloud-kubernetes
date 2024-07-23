@@ -149,18 +149,27 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private ConfigMap getConfigMap() {
-		return kubernetesClient.configMaps().inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.withName(leaderProperties.getConfigMapName()).get();
+		return kubernetesClient.configMaps()
+			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+			.withName(leaderProperties.getConfigMapName())
+			.get();
 	}
 
 	private void createConfigMap(Map<String, String> data) {
 		LOGGER.debug(() -> "Creating new config map with data: " + data);
 
-		ConfigMap newConfigMap = new ConfigMapBuilder().withNewMetadata().withName(leaderProperties.getConfigMapName())
-				.addToLabels(PROVIDER_KEY, PROVIDER).addToLabels(KIND_KEY, KIND).endMetadata().addToData(data).build();
+		ConfigMap newConfigMap = new ConfigMapBuilder().withNewMetadata()
+			.withName(leaderProperties.getConfigMapName())
+			.addToLabels(PROVIDER_KEY, PROVIDER)
+			.addToLabels(KIND_KEY, KIND)
+			.endMetadata()
+			.addToData(data)
+			.build();
 
-		kubernetesClient.configMaps().inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.resource(newConfigMap).create();
+		kubernetesClient.configMaps()
+			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+			.resource(newConfigMap)
+			.create();
 	}
 
 	private void updateConfigMapEntry(ConfigMap configMap, Map<String, String> newData) {
@@ -177,8 +186,11 @@ public class Fabric8LeadershipController extends LeadershipController {
 
 	private void updateConfigMap(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
 		String oldResourceVersion = oldConfigMap.getMetadata().getResourceVersion();
-		kubernetesClient.configMaps().inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
-				.resource(newConfigMap).lockResourceVersion(oldResourceVersion).update();
+		kubernetesClient.configMaps()
+			.inNamespace(leaderProperties.getNamespace(kubernetesClient.getNamespace()))
+			.resource(newConfigMap)
+			.lockResourceVersion(oldResourceVersion)
+			.update();
 	}
 
 }

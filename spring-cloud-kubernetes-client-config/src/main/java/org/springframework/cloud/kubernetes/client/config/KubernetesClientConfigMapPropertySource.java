@@ -43,8 +43,9 @@ public class KubernetesClientConfigMapPropertySource extends SourceDataEntriesPr
 
 	private static SourceData getSourceData(KubernetesClientConfigContext context) {
 		NormalizedSourceType type = context.normalizedSource().type();
-		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
-				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+		return Optional.ofNullable(STRATEGIES.get(type))
+			.map(x -> x.apply(context))
+			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	private static KubernetesClientContextToSourceData namedConfigMap() {

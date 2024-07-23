@@ -92,7 +92,8 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 			String portNameFromProperties = properties.getPortName();
 			if (StringUtils.hasText(portNameFromProperties)) {
 				Optional<V1ServicePort> optionalPort = ports.stream()
-						.filter(x -> Objects.equals(x.getName(), portNameFromProperties)).findAny();
+					.filter(x -> Objects.equals(x.getName(), portNameFromProperties))
+					.findAny();
 				if (optionalPort.isPresent()) {
 					LOG.debug(() -> "found port name that matches : " + portNameFromProperties);
 					port = optionalPort.get();

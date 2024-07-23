@@ -58,8 +58,12 @@ abstract class MultipleSecretsTests {
 		metadata1.put("env", "env1");
 		metadata1.put("version", "1.0");
 
-		Secret secret1 = new SecretBuilder().withNewMetadata().withName("name1").withLabels(metadata1).endMetadata()
-				.addToData("secrets.secret1", Base64.getEncoder().encodeToString(SECRET_VALUE_1.getBytes())).build();
+		Secret secret1 = new SecretBuilder().withNewMetadata()
+			.withName("name1")
+			.withLabels(metadata1)
+			.endMetadata()
+			.addToData("secrets.secret1", Base64.getEncoder().encodeToString(SECRET_VALUE_1.getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(DEFAULT_NAMESPACE).resource(secret1).create();
 
@@ -67,8 +71,12 @@ abstract class MultipleSecretsTests {
 		metadata2.put("env", "env2");
 		metadata2.put("version", "2.0");
 
-		Secret secret2 = new SecretBuilder().withNewMetadata().withName("name2").withLabels(metadata2).endMetadata()
-				.addToData("secrets.secret2", Base64.getEncoder().encodeToString(SECRET_VALUE_2.getBytes())).build();
+		Secret secret2 = new SecretBuilder().withNewMetadata()
+			.withName("name2")
+			.withLabels(metadata2)
+			.endMetadata()
+			.addToData("secrets.secret2", Base64.getEncoder().encodeToString(SECRET_VALUE_2.getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(ANOTHER_NAMESPACE).resource(secret2).create();
 	}
@@ -84,8 +92,14 @@ abstract class MultipleSecretsTests {
 	}
 
 	private void assertResponse(String path, String expectedMessage) {
-		this.webClient.get().uri(path).exchange().expectStatus().isOk().expectBody().jsonPath("secret")
-				.isEqualTo(expectedMessage);
+		this.webClient.get()
+			.uri(path)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("secret")
+			.isEqualTo(expectedMessage);
 	}
 
 }

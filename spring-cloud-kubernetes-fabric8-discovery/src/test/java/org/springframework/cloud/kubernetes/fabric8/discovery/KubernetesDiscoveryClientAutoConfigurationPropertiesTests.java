@@ -83,8 +83,9 @@ class KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
 				KubernetesDiscoveryPropertiesAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE)
-						.properties(envList.toArray(new String[0])).run();
+			.web(org.springframework.boot.WebApplicationType.NONE)
+			.properties(envList.toArray(new String[0]))
+			.run();
 	}
 
 	@Configuration(proxyBeanMethods = false)

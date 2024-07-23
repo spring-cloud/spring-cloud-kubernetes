@@ -48,7 +48,9 @@ public class KubernetesConfigTestBase {
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class, mockClientConfiguration,
 				BootstrapConfiguration.class, Fabric8ConfigReloadAutoConfiguration.class,
 				ConfigReloadPropertiesAutoConfiguration.class, RefreshAutoConfiguration.class)
-						.web(WebApplicationType.NONE).properties(properties).run();
+			.web(WebApplicationType.NONE)
+			.properties(properties)
+			.run();
 	}
 
 	@AfterEach

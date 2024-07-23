@@ -88,7 +88,7 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		configMap.setMetadata(objectMeta);
 		changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName());
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
-				.forClass(RefreshRemoteApplicationEvent.class);
+			.forClass(RefreshRemoteApplicationEvent.class);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
 		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(configMap);
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());

@@ -67,8 +67,10 @@ final class Fabric8SecretsCache implements SecretsCache {
 	}
 
 	private static List<StrippedSourceContainer> strippedSecrets(List<Secret> secrets) {
-		return secrets.stream().map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(),
-				secret.getMetadata().getName(), secret.getData())).collect(Collectors.toList());
+		return secrets.stream()
+			.map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(), secret.getMetadata().getName(),
+					secret.getData()))
+			.collect(Collectors.toList());
 	}
 
 }

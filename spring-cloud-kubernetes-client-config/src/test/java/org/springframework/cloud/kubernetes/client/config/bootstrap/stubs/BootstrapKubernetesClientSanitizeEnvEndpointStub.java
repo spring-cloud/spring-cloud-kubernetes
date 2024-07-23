@@ -69,16 +69,19 @@ public class BootstrapKubernetesClientSanitizeEnvEndpointStub {
 	public static void stubData() {
 
 		V1ConfigMap one = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("sanitize-configmap").withNamespace("test").build())
-				.addToData(Map.of("sanitize.sanitizeConfigMapName", "sanitizeConfigMapValue")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("sanitize-configmap").withNamespace("test").build())
+			.addToData(Map.of("sanitize.sanitizeConfigMapName", "sanitizeConfigMapValue"))
+			.build();
 
 		V1Secret secretOne = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("sanitize-secret").withNamespace("test").build())
-				.addToData(Map.of("sanitize.sanitizeSecretName", "sanitizeSecretValue".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("sanitize-secret").withNamespace("test").build())
+			.addToData(Map.of("sanitize.sanitizeSecretName", "sanitizeSecretValue".getBytes()))
+			.build();
 
 		V1Secret secretTwo = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("sanitize-secret-two").withNamespace("test").build())
-				.addToData(Map.of("sanitize.sanitizeSecretNameTwo", "sanitizeSecretValueTwo".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("sanitize-secret-two").withNamespace("test").build())
+			.addToData(Map.of("sanitize.sanitizeSecretNameTwo", "sanitizeSecretValueTwo".getBytes()))
+			.build();
 
 		// the actual stub for CoreV1Api calls
 		V1ConfigMapList configMapList = new V1ConfigMapList();
@@ -89,10 +92,10 @@ public class BootstrapKubernetesClientSanitizeEnvEndpointStub {
 		secretList.addItemsItem(secretTwo);
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/test/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/test/secrets")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 	}
 
 }

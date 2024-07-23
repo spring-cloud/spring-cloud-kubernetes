@@ -46,8 +46,9 @@ public final class Fabric8SecretsPropertySource extends SecretsPropertySource {
 
 	private static SourceData getSourceData(Fabric8ConfigContext context) {
 		NormalizedSourceType type = context.normalizedSource().type();
-		return Optional.ofNullable(STRATEGIES.get(type)).map(x -> x.apply(context))
-				.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
+		return Optional.ofNullable(STRATEGIES.get(type))
+			.map(x -> x.apply(context))
+			.orElseThrow(() -> new IllegalArgumentException("no strategy found for : " + type));
 	}
 
 	private static Fabric8ContextToSourceData namedSecret() {

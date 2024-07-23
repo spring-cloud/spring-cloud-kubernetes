@@ -43,7 +43,8 @@ class WatcherUtilTests {
 	@Test
 	void isSpringCloudKubernetesConfigTrue() {
 		V1ConfigMap configMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMeta().labels(Map.of(CONFIG_MAP_LABEL, "true"))).build();
+			.withMetadata(new V1ObjectMeta().labels(Map.of(CONFIG_MAP_LABEL, "true")))
+			.build();
 		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, CONFIG_MAP_LABEL);
 		Assertions.assertTrue(present);
 	}
@@ -58,7 +59,7 @@ class WatcherUtilTests {
 	@Test
 	void isSpringCloudKubernetesSecretTrue() {
 		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().labels(Map.of(SECRET_LABEL, "true")))
-				.build();
+			.build();
 		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, SECRET_LABEL);
 		Assertions.assertTrue(present);
 	}
@@ -101,7 +102,8 @@ class WatcherUtilTests {
 	@Test
 	void appsSingleResult() {
 		V1Secret secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one-app"))).build();
+			.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one-app")))
+			.build();
 		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
 		Assertions.assertEquals(apps.size(), 1);
 		Assertions.assertEquals(apps.iterator().next(), "one-app");
@@ -110,8 +112,8 @@ class WatcherUtilTests {
 	@Test
 	void appsMultipleResults() {
 		V1Secret secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one, two,  three ")))
-				.build();
+			.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one, two,  three ")))
+			.build();
 		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
 		Assertions.assertEquals(apps.size(), 3);
 		Assertions.assertTrue(apps.contains("one"));

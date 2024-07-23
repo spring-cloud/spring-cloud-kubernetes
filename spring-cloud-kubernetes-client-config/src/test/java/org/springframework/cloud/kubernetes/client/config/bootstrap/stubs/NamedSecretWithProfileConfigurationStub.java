@@ -71,41 +71,59 @@ public class NamedSecretWithProfileConfigurationStub {
 		// overridden by the ones from "oneWithProfile".
 		// We have a test that asserts this.
 		V1Secret one = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("secret-one").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("one.property", "one".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret-one")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("one.property", "one".getBytes()))
+			.build();
 
 		V1Secret oneWithProfile = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("secret-one-k8s").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("one.property", "one-from-k8s".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret-one-k8s")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("one.property", "one-from-k8s".getBytes()))
+			.build();
 
 		V1Secret two = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("secret-two").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("property", "two".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret-two")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("property", "two".getBytes()))
+			.build();
 
 		V1Secret twoWithProfile = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("secret-two-k8s").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("property", "two-from-k8s".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret-two-k8s")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("property", "two-from-k8s".getBytes()))
+			.build();
 
 		V1Secret three = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("secret-three").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("property", "three".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret-three")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("property", "three".getBytes()))
+			.build();
 
 		V1Secret threeFromProfile = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("secret-three-k8s").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("property", "three-from-k8s".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret-three-k8s")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("property", "three-from-k8s".getBytes()))
+			.build();
 
 		V1SecretList allSecrets = new V1SecretList();
 		allSecrets.setItems(Arrays.asList(one, oneWithProfile, two, twoWithProfile, three, threeFromProfile));
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allSecrets))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allSecrets))));
 	}
 
 }
