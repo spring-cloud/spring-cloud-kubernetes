@@ -75,8 +75,9 @@ public final class DiscoveryClientUtils {
 		}
 
 		if (metadataProps.addPorts()) {
-			Map<String, String> portsDataValueAsString = portsData.entrySet().stream()
-					.collect(Collectors.toMap(Map.Entry::getKey, en -> Integer.toString(en.getValue())));
+			Map<String, String> portsDataValueAsString = portsData.entrySet()
+				.stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, en -> Integer.toString(en.getValue())));
 			Map<String, String> portMetadata = keysWithPrefix(portsDataValueAsString,
 					properties.metadata().portsPrefix());
 			if (!portMetadata.isEmpty()) {
@@ -166,8 +167,8 @@ public final class DiscoveryClientUtils {
 
 		// the value from labels takes precedence over the one from properties
 		String primaryPortName = Optional
-				.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
-				.orElse(primaryPortNameFromProperties);
+			.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
+			.orElse(primaryPortNameFromProperties);
 
 		if (primaryPortName == null) {
 			LOG.debug(

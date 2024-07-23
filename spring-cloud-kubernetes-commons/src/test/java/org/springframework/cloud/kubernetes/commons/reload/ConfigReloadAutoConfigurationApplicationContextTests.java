@@ -129,10 +129,11 @@ class ConfigReloadAutoConfigurationApplicationContextTests {
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(InfoEndpointAutoConfiguration.class,
-						RefreshEndpointAutoConfiguration.class, ConfigReloadPropertiesAutoConfiguration.class,
-						RefreshAutoConfiguration.class, ConfigReloadAutoConfiguration.class))
-				.withUserConfiguration(RebinderConfig.class).withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(InfoEndpointAutoConfiguration.class,
+					RefreshEndpointAutoConfiguration.class, ConfigReloadPropertiesAutoConfiguration.class,
+					RefreshAutoConfiguration.class, ConfigReloadAutoConfiguration.class))
+			.withUserConfiguration(RebinderConfig.class)
+			.withPropertyValues(properties);
 	}
 
 	@TestConfiguration

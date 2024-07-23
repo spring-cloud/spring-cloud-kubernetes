@@ -22,13 +22,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<configuration>
-							<attach>false</attach>
-						</configuration>
-					</execution>
-				</executions>
+				<configuration>
+					<skipSource>true</skipSource>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

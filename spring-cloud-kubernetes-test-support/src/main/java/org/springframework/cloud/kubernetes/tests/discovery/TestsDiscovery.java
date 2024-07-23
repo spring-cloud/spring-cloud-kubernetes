@@ -48,23 +48,31 @@ public class TestsDiscovery {
 		List<String> targetTestClasses = targetClasses.stream().map(x -> x.replace("classes", "test-classes")).toList();
 		List<String> jars = classpathEntries.stream().filter(x -> x.contains(".jar")).toList();
 
-		List<URL> urls = Stream.of(targetClasses, targetTestClasses, jars).flatMap(List::stream)
-				.map(x -> toURL(new File(x).toPath().toUri())).toList();
+		List<URL> urls = Stream.of(targetClasses, targetTestClasses, jars)
+			.flatMap(List::stream)
+			.map(x -> toURL(new File(x).toPath().toUri()))
+			.toList();
 
-		Set<Path> paths = Stream.of(targetClasses, targetTestClasses, jars).flatMap(List::stream).map(Paths::get)
-				.collect(Collectors.toSet());
+		Set<Path> paths = Stream.of(targetClasses, targetTestClasses, jars)
+			.flatMap(List::stream)
+			.map(Paths::get)
+			.collect(Collectors.toSet());
 
 		replaceClassloader(urls);
 
 		LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-				.selectors(DiscoverySelectors.selectClasspathRoots(paths)).build();
+			.selectors(DiscoverySelectors.selectClasspathRoots(paths))
+			.build();
 
 		try (LauncherSession session = LauncherFactory.openSession()) {
 			Launcher launcher = session.getLauncher();
 			TestPlan testPlan = launcher.discover(request);
-			testPlan.getRoots().stream().flatMap(x -> testPlan.getChildren(x).stream())
-					.map(TestIdentifier::getLegacyReportingName).sorted()
-					.forEach(test -> System.out.println("spring.cloud.k8s.test.to.run -> " + test));
+			testPlan.getRoots()
+				.stream()
+				.flatMap(x -> testPlan.getChildren(x).stream())
+				.map(TestIdentifier::getLegacyReportingName)
+				.sorted()
+				.forEach(test -> System.out.println("spring.cloud.k8s.test.to.run -> " + test));
 		}
 
 	}
