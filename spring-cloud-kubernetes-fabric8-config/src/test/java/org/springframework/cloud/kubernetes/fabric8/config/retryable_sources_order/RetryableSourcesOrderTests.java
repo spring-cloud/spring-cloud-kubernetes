@@ -61,13 +61,15 @@ abstract class RetryableSourcesOrderTests {
 	}
 
 	private static void createSecret(String name, Map<String, String> data) {
-		mockClient.secrets().inNamespace("spring-k8s")
-				.create(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
+		mockClient.secrets()
+			.inNamespace("spring-k8s")
+			.create(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
 	}
 
 	private static void createConfigmap(String name, Map<String, String> data) {
-		mockClient.configMaps().inNamespace("spring-k8s")
-				.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
+		mockClient.configMaps()
+			.inNamespace("spring-k8s")
+			.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build());
 	}
 
 	/**
@@ -82,13 +84,28 @@ abstract class RetryableSourcesOrderTests {
 	 */
 	@Test
 	void test() {
-		this.webClient.get().uri("/retryable-one").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("one"));
-		this.webClient.get().uri("/retryable-two").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("two"));
+		this.webClient.get()
+			.uri("/retryable-one")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("one"));
+		this.webClient.get()
+			.uri("/retryable-two")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("two"));
 
-		this.webClient.get().uri("/retryable-key").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("from-configmap"));
+		this.webClient.get()
+			.uri("/retryable-key")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("from-configmap"));
 	}
 
 }

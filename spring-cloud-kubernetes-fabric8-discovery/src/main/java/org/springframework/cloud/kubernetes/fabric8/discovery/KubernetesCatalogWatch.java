@@ -98,11 +98,18 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			// can't use try with resources here as it will close the client
 			KubernetesClient client = context.kubernetesClient();
 			// this emulates : 'kubectl api-resources | grep -i EndpointSlice'
-			boolean found = client.getApiGroups().getGroups().stream().flatMap(x -> x.getVersions().stream())
-					.map(GroupVersionForDiscovery::getGroupVersion).filter(DISCOVERY_GROUP_VERSION::equals).findFirst()
-					.map(client::getApiResources).map(APIResourceList::getResources)
-					.map(x -> x.stream().map(APIResource::getKind))
-					.flatMap(x -> x.filter(y -> y.equals(ENDPOINT_SLICE)).findFirst()).isPresent();
+			boolean found = client.getApiGroups()
+				.getGroups()
+				.stream()
+				.flatMap(x -> x.getVersions().stream())
+				.map(GroupVersionForDiscovery::getGroupVersion)
+				.filter(DISCOVERY_GROUP_VERSION::equals)
+				.findFirst()
+				.map(client::getApiResources)
+				.map(APIResourceList::getResources)
+				.map(x -> x.stream().map(APIResource::getKind))
+				.flatMap(x -> x.filter(y -> y.equals(ENDPOINT_SLICE)).findFirst())
+				.isPresent();
 
 			if (!found) {
 				throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");

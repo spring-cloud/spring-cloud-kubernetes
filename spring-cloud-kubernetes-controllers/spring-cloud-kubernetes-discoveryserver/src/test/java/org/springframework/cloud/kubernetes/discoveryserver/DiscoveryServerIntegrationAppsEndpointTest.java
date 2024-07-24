@@ -65,24 +65,27 @@ class DiscoveryServerIntegrationAppsEndpointTest {
 	private static final SharedInformerFactory SHARED_INFORMER_FACTORY = Mockito.mock(SharedInformerFactory.class);
 
 	private static final V1Service TEST_SERVICE_A = new V1Service()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE))
-			.spec(new V1ServiceSpec().type("ClusterIP"));
+		.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE))
+		.spec(new V1ServiceSpec().type("ClusterIP"));
 
-	private static final V1Service TEST_SERVICE_B = new V1Service().metadata(new V1ObjectMeta().name("test-svc-2")
-			.namespace(NAMESPACE).putLabelsItem("spring", "true").putLabelsItem("k8s", "true"))
-			.spec(new V1ServiceSpec().type("ClusterIP"));
+	private static final V1Service TEST_SERVICE_B = new V1Service()
+		.metadata(new V1ObjectMeta().name("test-svc-2")
+			.namespace(NAMESPACE)
+			.putLabelsItem("spring", "true")
+			.putLabelsItem("k8s", "true"))
+		.spec(new V1ServiceSpec().type("ClusterIP"));
 
 	private static final V1Endpoints TEST_ENDPOINTS_A = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
-					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
-							.targetRef(new V1ObjectReferenceBuilder().withUid("uid1").build())));
+		.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE))
+		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
+			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
+				.targetRef(new V1ObjectReferenceBuilder().withUid("uid1").build())));
 
 	private static final V1Endpoints TEST_ENDPOINTS_B = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
-					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
-							.targetRef(new V1ObjectReferenceBuilder().withUid("uid2").build())));
+		.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE))
+		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
+			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
+				.targetRef(new V1ObjectReferenceBuilder().withUid("uid2").build())));
 
 	@Autowired
 	private WebTestClient webTestClient;
@@ -112,11 +115,16 @@ class DiscoveryServerIntegrationAppsEndpointTest {
 				TEST_ENDPOINTS_B.getSubsets().get(0).getPorts().get(0).getPort(), metadataB, false,
 				TEST_SERVICE_B.getMetadata().getNamespace(), null);
 
-		webTestClient.get().uri("/apps").exchange().expectBodyList(Util.InstanceForTest.class).hasSize(2).contains(
-				new Util.InstanceForTest(TEST_SERVICE_A.getMetadata().getName(),
-						Collections.singletonList(kubernetesServiceInstance1)),
-				new Util.InstanceForTest(TEST_SERVICE_B.getMetadata().getName(),
-						Collections.singletonList(kubernetesServiceInstance2)));
+		webTestClient.get()
+			.uri("/apps")
+			.exchange()
+			.expectBodyList(Util.InstanceForTest.class)
+			.hasSize(2)
+			.contains(
+					new Util.InstanceForTest(TEST_SERVICE_A.getMetadata().getName(),
+							Collections.singletonList(kubernetesServiceInstance1)),
+					new Util.InstanceForTest(TEST_SERVICE_B.getMetadata().getName(),
+							Collections.singletonList(kubernetesServiceInstance2)));
 	}
 
 	@TestConfiguration

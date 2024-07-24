@@ -74,8 +74,8 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Test
 	@Override
 	void testInAllNamespacesEmptyServiceLabels() {
-		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=").willReturn(
-				aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "default")))));
+		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "default")))));
 		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of(), Set.of(), null, apiClient,
 				USE_ENDPOINT_SLICES);
 
@@ -85,8 +85,8 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Test
 	@Override
 	void testInAllNamespacesWithSingleLabel() {
-		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=a%3Db").willReturn(
-				aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "default")))));
+		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=a%3Db")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "default")))));
 		KubernetesCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of("a", "b"), Set.of(), null,
 				apiClient, USE_ENDPOINT_SLICES);
 
@@ -96,8 +96,8 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Test
 	@Override
 	void testInAllNamespacesWithDoubleLabel() {
-		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=a%3Db%26c%3Dd").willReturn(
-				aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "default")))));
+		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=a%3Db%26c%3Dd")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "default")))));
 		// otherwise the stub might fail
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
 		map.put("a", "b");
@@ -112,7 +112,7 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Override
 	void testInSpecificNamespacesEmptyServiceLabels() {
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
 		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("b"), Map.of(), null,
 				apiClient, USE_ENDPOINT_SLICES);
 
@@ -123,9 +123,9 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Override
 	void testInSpecificNamespacesWithSingleLabel() {
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/one/endpointslices?labelSelector=a%3Db")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("aa", "a")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("aa", "a")))));
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/two/endpointslices?labelSelector=a%3Db")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("bb", "b")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("bb", "b")))));
 
 		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("one", "two"),
 				Map.of("a", "b"), null, apiClient, USE_ENDPOINT_SLICES);
@@ -138,9 +138,9 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Override
 	void testInSpecificNamespacesWithDoubleLabel() {
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/one/endpointslices?labelSelector=a%3Db%26c%3Dd")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("aa", "a")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("aa", "a")))));
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/two/endpointslices?labelSelector=a%3Db%26c%3Dd")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("bb", "b")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("bb", "b")))));
 
 		// otherwise the stub might fail
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
@@ -158,7 +158,7 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Override
 	void testInOneNamespaceEmptyServiceLabels() {
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
 		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", Map.of(), null, apiClient,
 				USE_ENDPOINT_SLICES);
 
@@ -169,7 +169,7 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Override
 	void testInOneNamespaceWithSingleLabel() {
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=key%3Dvalue")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
 		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", Map.of("key", "value"), null,
 				apiClient, USE_ENDPOINT_SLICES);
 
@@ -180,7 +180,7 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Override
 	void testInOneNamespaceWithDoubleLabel() {
 		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=key%3Dvalue%26key1%3Dvalue1")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
 		// otherwise the stub might fail
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
 		map.put("key", "value");

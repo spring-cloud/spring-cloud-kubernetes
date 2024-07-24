@@ -42,9 +42,10 @@ public class DiscoveryServerController {
 	@GetMapping("/apps")
 	public Flux<Service> apps() {
 		return reactiveDiscoveryClient.getServices()
-				.flatMap(service -> reactiveDiscoveryClient.getInstances(service).collectList()
-						.flatMap(serviceInstances -> Mono.just(new Service(service,
-								serviceInstances.stream().map(x -> (DefaultKubernetesServiceInstance) x).toList()))));
+			.flatMap(service -> reactiveDiscoveryClient.getInstances(service)
+				.collectList()
+				.flatMap(serviceInstances -> Mono.just(new Service(service,
+						serviceInstances.stream().map(x -> (DefaultKubernetesServiceInstance) x).toList()))));
 	}
 
 	@GetMapping("/apps/{name}")
@@ -68,7 +69,8 @@ public class DiscoveryServerController {
 
 	private Mono<ServiceInstance> innerAppInstance(String name, String instanceId) {
 		return reactiveDiscoveryClient.getInstances(name)
-				.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId)).singleOrEmpty();
+			.filter(serviceInstance -> serviceInstance.getInstanceId().equals(instanceId))
+			.singleOrEmpty();
 	}
 
 }

@@ -55,8 +55,11 @@ final class DataChangesInSecretsReloadDelegate {
 				"added configmap informer for namespace", deploymentName);
 
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		// we first read the initial value from the secret
 		Assertions.assertEquals("initial", result);
@@ -64,16 +67,22 @@ final class DataChangesInSecretsReloadDelegate {
 		// then deploy a new version of left-configmap, but without changing its data,
 		// only add a label
 		V1Secret secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("new-label", "abc")).withNamespace(NAMESPACE)
-						.withName("event-reload").build())
-				.withData(Map.of("application.properties", "from.properties.key=initial".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("new-label", "abc"))
+				.withNamespace(NAMESPACE)
+				.withName("event-reload")
+				.build())
+			.withData(Map.of("application.properties", "from.properties.key=initial".getBytes()))
+			.build();
 
 		replaceSecret(secret, "event-reload");
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 			return "initial".equals(innerResult);
 		});
 
@@ -83,16 +92,22 @@ final class DataChangesInSecretsReloadDelegate {
 
 		// change data
 		secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("new-label", "abc")).withNamespace(NAMESPACE)
-						.withName("event-reload").build())
-				.withData(Map.of("application.properties", "from.properties.key=change-initial".getBytes())).build();
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("new-label", "abc"))
+				.withNamespace(NAMESPACE)
+				.withName("event-reload")
+				.build())
+			.withData(Map.of("application.properties", "from.properties.key=change-initial".getBytes()))
+			.build();
 
 		replaceSecret(secret, "event-reload");
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 			return "change-initial".equals(innerResult);
 		});
 

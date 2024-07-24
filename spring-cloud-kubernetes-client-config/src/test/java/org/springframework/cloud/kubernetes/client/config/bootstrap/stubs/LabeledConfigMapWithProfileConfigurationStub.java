@@ -84,56 +84,83 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 
 		// is found by labels
 		V1ConfigMap colorConfigMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "blue")).build())
-				.addToData(Collections.singletonMap("one", "1")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "blue"))
+				.build())
+			.addToData(Collections.singletonMap("one", "1"))
+			.build();
 
 		// is not taken, since "profileSpecificSources=false" for the above
 		V1ConfigMap colorConfigMapK8s = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "not-blue")).build())
-				.addToData(Collections.singletonMap("five", "5")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "not-blue"))
+				.build())
+			.addToData(Collections.singletonMap("five", "5"))
+			.build();
 
 		// is found by labels
 		V1ConfigMap greenConfigMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "green")).build())
-				.addToData(Collections.singletonMap("two", "2")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "green"))
+				.build())
+			.addToData(Collections.singletonMap("two", "2"))
+			.build();
 
 		V1ConfigMap greenConfigMapK8s = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-k8s").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "green-k8s")).build())
-				.addToData(Collections.singletonMap("six", "6")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-k8s")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "green-k8s"))
+				.build())
+			.addToData(Collections.singletonMap("six", "6"))
+			.build();
 
 		// is taken because prod profile is active and "profileSpecificSources=true"
 		V1ConfigMap greenConfigMapProd = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-prod").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "green-prod")).build())
-				.addToData(Collections.singletonMap("seven", "7")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-prod")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "green-prod"))
+				.build())
+			.addToData(Collections.singletonMap("seven", "7"))
+			.build();
 
 		// not taken
 		V1ConfigMap redConfigMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("red-configmap").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "red")).build())
-				.addToData(Collections.singletonMap("three", "3")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("red-configmap")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "red"))
+				.build())
+			.addToData(Collections.singletonMap("three", "3"))
+			.build();
 
 		// not taken
 		V1ConfigMap yellowConfigMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("yellow-configmap").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "yellow")).build())
-				.addToData(Collections.singletonMap("four", "4")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("yellow-configmap")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "yellow"))
+				.build())
+			.addToData(Collections.singletonMap("four", "4"))
+			.build();
 
 		// is found by labels
 		V1ConfigMap greenPurpleConfigMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-configmap").withNamespace("spring-k8s")
-						.withLabels(Map.of("color", "green", "shape", "round")).build())
-				.addToData(Collections.singletonMap("eight", "8")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-configmap")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "green", "shape", "round"))
+				.build())
+			.addToData(Collections.singletonMap("eight", "8"))
+			.build();
 
 		// is taken and thus overrides the above
 		V1ConfigMap greenPurpleConfigMapK8s = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-configmap-k8s")
-						.withNamespace("spring-k8s").withLabels(Map.of("color", "black")).build())
-				.addToData(Collections.singletonMap("eight", "eight-ish")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-configmap-k8s")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("color", "black"))
+				.build())
+			.addToData(Collections.singletonMap("eight", "eight-ish"))
+			.build();
 
 		// the actual stub for CoreV1Api calls
 		V1ConfigMapList configMaps = new V1ConfigMapList();
@@ -148,7 +175,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 		configMaps.addItemsItem(greenPurpleConfigMapK8s);
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMaps))));
 	}
 
 }

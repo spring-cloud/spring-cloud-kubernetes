@@ -235,9 +235,14 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 			Map<Integer, String> ports) {
 
 		V1Service service = new V1ServiceBuilder()
-				.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(ports)).build())
-				.withNewMetadata().withName(serviceId).withNamespace(namespace).withLabels(labels)
-				.withAnnotations(annotations).endMetadata().build();
+			.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(ports)).build())
+			.withNewMetadata()
+			.withName(serviceId)
+			.withNamespace(namespace)
+			.withLabels(labels)
+			.withAnnotations(annotations)
+			.endMetadata()
+			.build();
 
 		servicesCache.add(service);
 
@@ -245,8 +250,13 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		objectMeta.setNamespace(namespace);
 		objectMeta.setName(serviceId);
 
-		V1Endpoints endpoints = new V1EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
-				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();
+		V1Endpoints endpoints = new V1EndpointsBuilder().withMetadata(objectMeta)
+			.addNewSubset()
+			.addAllToPorts(getEndpointPorts(ports))
+			.addNewAddress()
+			.endAddress()
+			.endSubset()
+			.build();
 
 		endpointsCache.add(endpoints);
 

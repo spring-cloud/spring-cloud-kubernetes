@@ -83,29 +83,37 @@ class KubernetesClientConfigServerBootstrapperTests {
 		WireMock.configureFor(wireMockServer.port());
 
 		V1ServiceList SERVICE_LIST = new V1ServiceListBuilder()
-				.withMetadata(new V1ListMetaBuilder().withResourceVersion("1").build())
-				.addToItems(new V1ServiceBuilder()
-						.withMetadata(new V1ObjectMetaBuilder().withName("spring-cloud-kubernetes-configserver")
-								.withNamespace("default").withResourceVersion("0").addToLabels("beta", "true")
-								.addToAnnotations("org.springframework.cloud", "true").withUid("0").build())
-						.withSpec(new V1ServiceSpecBuilder().withClusterIP("localhost").withSessionAffinity("None")
-								.withType("ClusterIP")
-								.addToPorts(new V1ServicePortBuilder().withPort(wireMockServer.port()).withName("http")
-										.withProtocol("TCP").withNewTargetPort(wireMockServer.port()).build())
-								.build())
+			.withMetadata(new V1ListMetaBuilder().withResourceVersion("1").build())
+			.addToItems(new V1ServiceBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("spring-cloud-kubernetes-configserver")
+					.withNamespace("default")
+					.withResourceVersion("0")
+					.addToLabels("beta", "true")
+					.addToAnnotations("org.springframework.cloud", "true")
+					.withUid("0")
+					.build())
+				.withSpec(new V1ServiceSpecBuilder().withClusterIP("localhost")
+					.withSessionAffinity("None")
+					.withType("ClusterIP")
+					.addToPorts(new V1ServicePortBuilder().withPort(wireMockServer.port())
+						.withName("http")
+						.withProtocol("TCP")
+						.withNewTargetPort(wireMockServer.port())
 						.build())
-				.build();
+					.build())
+				.build())
+			.build();
 
 		V1EndpointsList ENDPOINTS_LIST = new V1EndpointsListBuilder()
-				.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
-				.addToItems(new V1Endpoints()
-						.metadata(new V1ObjectMeta().name("spring-cloud-kubernetes-configserver").namespace("default"))
-						.addSubsetsItem(
-								new V1EndpointSubset()
-										.addPortsItem(new CoreV1EndpointPort().port(wireMockServer.port()).name("http"))
-										.addAddressesItem(new V1EndpointAddress().hostname("localhost").ip("localhost")
-												.targetRef(new V1ObjectReferenceBuilder().withUid("uid1").build()))))
-				.build();
+			.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.addToItems(new V1Endpoints()
+				.metadata(new V1ObjectMeta().name("spring-cloud-kubernetes-configserver").namespace("default"))
+				.addSubsetsItem(new V1EndpointSubset()
+					.addPortsItem(new CoreV1EndpointPort().port(wireMockServer.port()).name("http"))
+					.addAddressesItem(new V1EndpointAddress().hostname("localhost")
+						.ip("localhost")
+						.targetRef(new V1ObjectReferenceBuilder().withUid("uid1").build()))))
+			.build();
 
 		Environment environment = new Environment("test", "default");
 		Map<String, Object> properties = new HashMap<>();
@@ -113,19 +121,21 @@ class KubernetesClientConfigServerBootstrapperTests {
 		org.springframework.cloud.config.environment.PropertySource p = new PropertySource("p1", properties);
 		environment.add(p);
 		ObjectMapper objectMapper = new ObjectMapper();
-		stubFor(get("/application/default")
-				.willReturn(aResponse().withStatus(200).withBody(objectMapper.writeValueAsString(environment))
-						.withHeader("content-type", "application/json")));
+		stubFor(get("/application/default").willReturn(aResponse().withStatus(200)
+			.withBody(objectMapper.writeValueAsString(environment))
+			.withHeader("content-type", "application/json")));
 		stubFor(get("/api/v1/namespaces/default/endpoints?resourceVersion=0&watch=false")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(ENDPOINTS_LIST))
-						.withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(ENDPOINTS_LIST))
+				.withHeader("content-type", "application/json")));
 		stubFor(get("/api/v1/namespaces/default/services?resourceVersion=0&watch=false")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST))
-						.withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(SERVICE_LIST))
+				.withHeader("content-type", "application/json")));
 		stubFor(get(urlMatching("/api/v1/namespaces/default/services.*.watch=true"))
-				.willReturn(aResponse().withStatus(200)));
+			.willReturn(aResponse().withStatus(200)));
 		stubFor(get(urlMatching("/api/v1/namespaces/default/endpoints.*.watch=true"))
-				.willReturn(aResponse().withStatus(200)));
+			.willReturn(aResponse().withStatus(200)));
 	}
 
 	@AfterEach
@@ -143,9 +153,10 @@ class KubernetesClientConfigServerBootstrapperTests {
 
 	SpringApplicationBuilder setup(String... env) {
 		SpringApplicationBuilder builder = new SpringApplicationBuilder(TestConfig.class)
-				.properties(addDefaultEnv(env));
+			.properties(addDefaultEnv(env));
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port())
-				.setReadTimeout(Duration.ZERO).build();
+			.setReadTimeout(Duration.ZERO)
+			.build();
 		builder.addBootstrapRegistryInitializer(registry -> registry.register(ApiClient.class, (context) -> apiClient));
 		builder.addBootstrapRegistryInitializer(new KubernetesClientConfigServerBootstrapper());
 		return builder;

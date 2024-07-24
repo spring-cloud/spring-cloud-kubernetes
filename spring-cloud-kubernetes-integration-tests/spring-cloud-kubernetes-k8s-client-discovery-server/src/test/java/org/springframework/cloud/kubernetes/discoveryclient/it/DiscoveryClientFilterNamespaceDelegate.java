@@ -55,34 +55,48 @@ final class DiscoveryClientFilterNamespaceDelegate {
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/services").build();
-		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = serviceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$")
-				.contains("service-wiremock");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
+			.extractingJsonPathArrayValue("$")
+			.contains("service-wiremock");
 
 		// ServiceInstance
 		WebClient serviceInstanceClient = builder
-				.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock").build();
-		String serviceInstances = serviceInstanceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+			.baseUrl("http://localhost:80/discoveryclient-it/service/service-wiremock")
+			.build();
+		String serviceInstances = serviceInstanceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances)).extractingJsonPathStringValue("$.[0].serviceId")
-				.isEqualTo("service-wiremock");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances))
+			.extractingJsonPathStringValue("$.[0].serviceId")
+			.isEqualTo("service-wiremock");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances)).extractingJsonPathStringValue("$.[0].namespace")
-				.isEqualTo("left");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(serviceInstances))
+			.extractingJsonPathStringValue("$.[0].namespace")
+			.isEqualTo("left");
 	}
 
 	private static void testHealth() {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
 
-		String health = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String health = serviceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(health))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+			.isEqualTo("UP");
 	}
 
 	private static void testForHeartbeat(K3sContainer container) {
@@ -101,24 +115,27 @@ final class DiscoveryClientFilterNamespaceDelegate {
 		// 3. heartbeat listener message
 		WebClient.Builder builder = builder();
 		WebClient client = builder.baseUrl("http://localhost:80/discoveryclient-it/state").build();
-		String result = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Condition<LinkedHashMap<String, String>> wireMockService = new Condition<>(
 				map -> map.entrySet().stream().anyMatch(en -> en.getValue().contains("service-wiremock-deployment")),
 				"");
 
-		Condition<LinkedHashMap<String, String>> discoveryServerService = new Condition<>(
-				map -> map.entrySet().stream()
-						.anyMatch(en -> en.getValue().contains("spring-cloud-kubernetes-k8s-client-discovery-server")),
-				"");
+		Condition<LinkedHashMap<String, String>> discoveryServerService = new Condition<>(map -> map.entrySet()
+			.stream()
+			.anyMatch(en -> en.getValue().contains("spring-cloud-kubernetes-k8s-client-discovery-server")), "");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
-				.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]").areAtLeastOne(wireMockService);
+			.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]")
+			.areAtLeastOne(wireMockService);
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
-				.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]")
-				.areAtLeastOne(discoveryServerService);
+			.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]")
+			.areAtLeastOne(discoveryServerService);
 	}
 
 	private static WebClient.Builder builder() {

@@ -54,9 +54,14 @@ final class Fabric8EndpointsCatalogWatch
 		 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
 		 * </pre>
 		 */
-		Stream<ObjectReference> references = endpoints.stream().map(Endpoints::getSubsets).filter(Objects::nonNull)
-				.flatMap(List::stream).map(EndpointSubset::getAddresses).filter(Objects::nonNull).flatMap(List::stream)
-				.map(EndpointAddress::getTargetRef);
+		Stream<ObjectReference> references = endpoints.stream()
+			.map(Endpoints::getSubsets)
+			.filter(Objects::nonNull)
+			.flatMap(List::stream)
+			.map(EndpointSubset::getAddresses)
+			.filter(Objects::nonNull)
+			.flatMap(List::stream)
+			.map(EndpointAddress::getTargetRef);
 
 		return Fabric8CatalogWatchContext.state(references);
 	}

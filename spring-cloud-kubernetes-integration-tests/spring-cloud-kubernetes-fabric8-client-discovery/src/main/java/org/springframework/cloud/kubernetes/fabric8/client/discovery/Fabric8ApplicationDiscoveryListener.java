@@ -37,7 +37,7 @@ public class Fabric8ApplicationDiscoveryListener implements ApplicationListener<
 	@Override
 	public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
 		Pod pod = (Pod) ((KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) event.getSource())
-				.pod();
+			.pod();
 		LOG.info(() -> "received InstanceRegisteredEvent from pod with 'app' label value : "
 				+ pod.getMetadata().getLabels().get("app"));
 	}

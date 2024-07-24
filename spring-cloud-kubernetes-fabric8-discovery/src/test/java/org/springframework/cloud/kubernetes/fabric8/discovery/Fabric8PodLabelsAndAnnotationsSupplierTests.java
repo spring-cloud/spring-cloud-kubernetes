@@ -47,12 +47,13 @@ class Fabric8PodLabelsAndAnnotationsSupplierTests {
 
 	@Test
 	void noObjetMeta() {
-		client.pods().inNamespace(NAMESPACE)
-				.resource(new PodBuilder().withMetadata(new ObjectMetaBuilder().withName(POD_NAME).build()).build())
-				.create();
+		client.pods()
+			.inNamespace(NAMESPACE)
+			.resource(new PodBuilder().withMetadata(new ObjectMetaBuilder().withName(POD_NAME).build()).build())
+			.create();
 
 		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName(client, NAMESPACE)
-				.apply(POD_NAME);
+			.apply(POD_NAME);
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(result.labels().isEmpty());
 		Assertions.assertTrue(result.annotations().isEmpty());
@@ -60,12 +61,18 @@ class Fabric8PodLabelsAndAnnotationsSupplierTests {
 
 	@Test
 	void labelsAndAnnotationsPresent() {
-		client.pods().inNamespace(NAMESPACE).resource(new PodBuilder().withMetadata(new ObjectMetaBuilder()
-				.withName(POD_NAME).withLabels(Map.of("a", "b")).withAnnotations(Map.of("c", "d")).build()).build())
-				.create();
+		client.pods()
+			.inNamespace(NAMESPACE)
+			.resource(new PodBuilder()
+				.withMetadata(new ObjectMetaBuilder().withName(POD_NAME)
+					.withLabels(Map.of("a", "b"))
+					.withAnnotations(Map.of("c", "d"))
+					.build())
+				.build())
+			.create();
 
 		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName(client, NAMESPACE)
-				.apply(POD_NAME);
+			.apply(POD_NAME);
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.labels(), Map.of("a", "b"));
 		Assertions.assertEquals(result.annotations(), Map.of("c", "d"));

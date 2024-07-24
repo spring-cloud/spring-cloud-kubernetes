@@ -94,8 +94,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void noMatch() {
 		V1ConfigMap redConfigMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(redConfigMap);
 		stubCall(configMapList);
@@ -123,8 +124,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	void match() {
 
 		V1ConfigMap configMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
 		stubCall(configMapList);
@@ -153,12 +155,14 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	void matchIncludeSingleProfile() {
 
 		V1ConfigMap red = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1ConfigMap redWithProfile = new V1ConfigMapBuilder().withMetadata(
 				new V1ObjectMetaBuilder().withName(RED_WITH_PROFILE_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(TASTE_MANGO).build();
+			.addToData(TASTE_MANGO)
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(redWithProfile);
 		stubCall(configMapList);
@@ -193,12 +197,14 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	void matchIncludeSingleProfileWithPrefix() {
 
 		V1ConfigMap red = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1ConfigMap redWithTaste = new V1ConfigMapBuilder().withMetadata(
 				new V1ObjectMetaBuilder().withName(RED_WITH_PROFILE_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(TASTE_MANGO).build();
+			.addToData(TASTE_MANGO)
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(redWithTaste);
 		stubCall(configMapList);
@@ -233,20 +239,28 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	void matchIncludeTwoProfilesWithPrefix() {
 
 		V1ConfigMap red = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1ConfigMap redWithTaste = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-taste")
-						.withNamespace(NAMESPACE).withResourceVersion("1").build())
-				.addToData(TASTE_MANGO).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-taste")
+				.withNamespace(NAMESPACE)
+				.withResourceVersion("1")
+				.build())
+			.addToData(TASTE_MANGO)
+			.build();
 
-		V1ConfigMap redWithShape = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withName(RED_CONFIG_MAP_NAME + "-with-shape").withNamespace(NAMESPACE).build())
-				.addToData("shape", "round").build();
+		V1ConfigMap redWithShape = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME + "-with-shape")
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("shape", "round")
+			.build();
 
-		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(redWithTaste)
-				.addItemsItem(redWithShape);
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red)
+			.addItemsItem(redWithTaste)
+			.addItemsItem(redWithShape);
 
 		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
@@ -279,8 +293,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	void matchWithName() {
 
 		V1ConfigMap red = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("application").withNamespace(NAMESPACE).build())
-				.addToData("color", "red").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("application").withNamespace(NAMESPACE).build())
+			.addToData("color", "red")
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red);
 
 		stubCall(configMapList);
@@ -309,8 +324,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	void namespaceMatch() {
 
 		V1ConfigMap configMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
 
 		stubCall(configMapList);
@@ -336,8 +352,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void testSingleYaml() {
 		V1ConfigMap singleYaml = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
-				.addToData("single.yaml", "key: value").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(RED_CONFIG_MAP_NAME).withNamespace(NAMESPACE).build())
+			.addToData("single.yaml", "key: value")
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(singleYaml);
 
 		stubCall(configMapList);
@@ -365,8 +382,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void testCorrectNameWithProfile() {
 		V1ConfigMap one = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("one").withNamespace(NAMESPACE).build())
-				.addToData("key", "value").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("one").withNamespace(NAMESPACE).build())
+			.addToData("key", "value")
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
 
 		stubCall(configMapList);
@@ -397,12 +415,14 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void cache(CapturedOutput output) {
 		V1ConfigMap red = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
-				.addToData("color", "red").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
+			.addToData("color", "red")
+			.build();
 
 		V1ConfigMap green = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("green").withNamespace(NAMESPACE).build())
-				.addToData("color", "green").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("green").withNamespace(NAMESPACE).build())
+			.addToData("color", "green")
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(green);
 
@@ -442,7 +462,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	private void stubCall(V1ConfigMapList list) {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 	}
 
 }

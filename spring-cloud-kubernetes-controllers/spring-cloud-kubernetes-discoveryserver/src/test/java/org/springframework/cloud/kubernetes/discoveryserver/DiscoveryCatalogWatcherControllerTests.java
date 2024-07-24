@@ -35,13 +35,14 @@ class DiscoveryCatalogWatcherControllerTests {
 	@Test
 	void test() {
 		Mockito.when(heartBeatListener.lastState())
-				.thenReturn(new AtomicReference<>(List.of(new EndpointNameAndNamespace("one", "two"))));
+			.thenReturn(new AtomicReference<>(List.of(new EndpointNameAndNamespace("one", "two"))));
 
 		DiscoveryCatalogWatcherController catalogWatcherController = new DiscoveryCatalogWatcherController(
 				heartBeatListener);
 
 		StepVerifier.create(catalogWatcherController.state())
-				.expectNext(List.of(new EndpointNameAndNamespace("one", "two"))).verifyComplete();
+			.expectNext(List.of(new EndpointNameAndNamespace("one", "two")))
+			.verifyComplete();
 	}
 
 }

@@ -33,8 +33,9 @@ class Fabric8ProfileEnvironmentPostProcessorTests {
 	@Test
 	void whenKubernetesEnvironmentAndNoApiAccessThenProfileEnabled() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(App.class)
-				.web(org.springframework.boot.WebApplicationType.NONE)
-				.properties("KUBERNETES_SERVICE_HOST=10.0.0.1", "spring.main.cloud-platform=KUBERNETES").run();
+			.web(org.springframework.boot.WebApplicationType.NONE)
+			.properties("KUBERNETES_SERVICE_HOST=10.0.0.1", "spring.main.cloud-platform=KUBERNETES")
+			.run();
 
 		assertThat(context.getEnvironment().getActiveProfiles()).contains(KUBERNETES_PROFILE);
 	}
@@ -42,7 +43,8 @@ class Fabric8ProfileEnvironmentPostProcessorTests {
 	@Test
 	void whenNoKubernetesEnvironmentAndNoApiAccessThenNoProfileEnabled() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(App.class)
-				.web(org.springframework.boot.WebApplicationType.NONE).run();
+			.web(org.springframework.boot.WebApplicationType.NONE)
+			.run();
 
 		assertThat(context.getEnvironment().getActiveProfiles()).doesNotContain(KUBERNETES_PROFILE);
 	}

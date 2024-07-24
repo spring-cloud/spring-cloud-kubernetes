@@ -47,9 +47,9 @@ public class MissingActuatorTest {
 				"spring.cloud.kubernetes.client.namespace=default")) {
 			String output = capturedOutput.toString();
 			assertThat(output)
-					.doesNotContain("Failed to introspect annotations on"
-							+ " [class org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration")
-					.doesNotContain("TypeNotPresentExceptionProxy");
+				.doesNotContain("Failed to introspect annotations on"
+						+ " [class org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration")
+				.doesNotContain("TypeNotPresentExceptionProxy");
 		}
 	}
 
