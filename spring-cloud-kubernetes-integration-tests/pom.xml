@@ -23,6 +23,7 @@
 
 	<build>
 		<plugins>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -48,7 +49,7 @@
 						</configuration>
 						<phase>package</phase>
 						<goals>
-							<goal>build-image</goal>
+							<goal>build-image-no-fork</goal>
 						</goals>
 					</execution>
 					<execution>
@@ -85,18 +86,6 @@
 					<includes>
 						<include>${testsToRun}</include>
 					</includes>
-				</configuration>
-			</plugin>
-
-			<!-- fix for :
-	     		"Presumably you have configured maven-source-plugin to execute twice in your build.
-		  		You have to configure a classifier for at least one of them"
-			-->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<configuration>
-					<skipSource>true</skipSource>
 				</configuration>
 			</plugin>
 
