@@ -47,9 +47,15 @@ class ActuatorDisabledHealthTest {
 
 	@Test
 	void healthEndpointShouldNotContainKubernetes() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-				.jsonPath("components.kubernetes").doesNotExist();
+		this.webClient.get()
+			.uri("http://localhost:{port}/actuator/health", this.port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("components.kubernetes")
+			.doesNotExist();
 
 		Assertions.assertNull(registry.getContributor("kubernetes"),
 				"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");

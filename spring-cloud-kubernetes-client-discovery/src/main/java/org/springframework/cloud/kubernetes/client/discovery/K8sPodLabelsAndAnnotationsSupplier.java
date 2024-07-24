@@ -66,7 +66,7 @@ final class K8sPodLabelsAndAnnotationsSupplier implements Function<String, PodLa
 
 		try {
 			objectMeta = Optional.ofNullable(coreV1Api.readNamespacedPod(podName, namespace, null).getMetadata())
-					.orElse(new V1ObjectMetaBuilder().withLabels(Map.of()).withAnnotations(Map.of()).build());
+				.orElse(new V1ObjectMetaBuilder().withLabels(Map.of()).withAnnotations(Map.of()).build());
 		}
 		catch (ApiException e) {
 			LOG.warn(e, "Could not get pod metadata");

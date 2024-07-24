@@ -83,8 +83,10 @@ final class Fabric8CatalogWatchWithNamespacesDelegate {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec())
+				.block();
 
 			// we get 3 pods as input, but because they are sorted by name in the catalog
 			// watcher implementation
@@ -117,8 +119,10 @@ final class Fabric8CatalogWatchWithNamespacesDelegate {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec())
+				.block();
 
 			// we need to get the event from KubernetesCatalogWatch, but that happens
 			// on periodic bases. So in order to be sure we got the event we care about

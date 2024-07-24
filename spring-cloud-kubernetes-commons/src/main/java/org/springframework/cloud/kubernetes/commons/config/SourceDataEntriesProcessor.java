@@ -156,8 +156,10 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 			}
 		}
 
-		return weightedEntries.stream().sorted(Comparator.comparing(WeightedEntry::weight)).map(WeightedEntry::entry)
-				.toList();
+		return weightedEntries.stream()
+			.sorted(Comparator.comparing(WeightedEntry::weight))
+			.map(WeightedEntry::entry)
+			.toList();
 	}
 
 	private static Map<String, Object> defaultProcessAllEntries(Map<String, String> input, Environment environment,

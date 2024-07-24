@@ -70,8 +70,15 @@ abstract class LabeledSecretWithPrefixTests {
 	}
 
 	private static void createSecret(String name, Map<String, String> data, Map<String, String> labels) {
-		mockClient.secrets().inNamespace("spring-k8s").resource(new SecretBuilder().withNewMetadata().withName(name)
-				.withLabels(labels).endMetadata().addToData(data).build()).create();
+		mockClient.secrets()
+			.inNamespace("spring-k8s")
+			.resource(new SecretBuilder().withNewMetadata()
+				.withName(name)
+				.withLabels(labels)
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 	}
 
 	/**
@@ -85,8 +92,13 @@ abstract class LabeledSecretWithPrefixTests {
 	 */
 	@Test
 	void testOne() {
-		this.webClient.get().uri("/labeled-secret/prefix/one").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("one"));
+		this.webClient.get()
+			.uri("/labeled-secret/prefix/one")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("one"));
 	}
 
 	/**
@@ -100,8 +112,13 @@ abstract class LabeledSecretWithPrefixTests {
 	 */
 	@Test
 	void testTwo() {
-		this.webClient.get().uri("/labeled-secret/prefix/two").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("two"));
+		this.webClient.get()
+			.uri("/labeled-secret/prefix/two")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("two"));
 	}
 
 	/**
@@ -117,8 +134,13 @@ abstract class LabeledSecretWithPrefixTests {
 	 */
 	@Test
 	void testThree() {
-		this.webClient.get().uri("/labeled-secret/prefix/three").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("three"));
+		this.webClient.get()
+			.uri("/labeled-secret/prefix/three")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("three"));
 	}
 
 	/**
@@ -134,8 +156,13 @@ abstract class LabeledSecretWithPrefixTests {
 	 */
 	@Test
 	void testFour() {
-		this.webClient.get().uri("/labeled-secret/prefix/four").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("four"));
+		this.webClient.get()
+			.uri("/labeled-secret/prefix/four")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("four"));
 	}
 
 }

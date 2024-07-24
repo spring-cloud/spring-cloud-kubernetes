@@ -126,8 +126,10 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 
 	private String logs(K3sContainer container) {
 		try {
-			String appPodName = container.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+			String appPodName = container
+				.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
 
 			Container.ExecResult execResult = container.execInContainer("sh", "-c",
 					"kubectl logs " + appPodName.trim());
@@ -142,10 +144,13 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 	private void reactiveCheck() {
 		WebClient servicesClient = builder().baseUrl("http://localhost/reactive/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		// we get two here, but since there is 'distinct' call, only 1 will be reported
 		// but service instances will report 2 nevertheless
@@ -153,16 +158,20 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
 		WebClient ourServiceClient = builder().baseUrl("http://localhost/reactive/service-instances/service-wiremock")
-				.build();
+			.build();
 
-		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(ourServiceInstances.size(), 2);
 		ourServiceInstances = ourServiceInstances.stream()
-				.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace)).toList();
+			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace))
+			.toList();
 
 		DefaultKubernetesServiceInstance serviceInstanceA = ourServiceInstances.get(0);
 		// we only care about namespace here, as all other fields are tested in various
@@ -178,10 +187,13 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 	private void blockingCheck() {
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		// we get two here, but since there is 'distinct' call, only 1 will be reported
 		// but service instances will report 2 nevertheless
@@ -190,14 +202,18 @@ class KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate {
 
 		WebClient ourServiceClient = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
 
-		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(ourServiceInstances.size(), 2);
 		ourServiceInstances = ourServiceInstances.stream()
-				.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace)).toList();
+			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::namespace))
+			.toList();
 
 		DefaultKubernetesServiceInstance serviceInstanceA = ourServiceInstances.get(0);
 		// we only care about namespace here, as all other fields are tested in various

@@ -57,7 +57,7 @@ class Fabric8ConfigMapPropertySourceTests {
 		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, DEFAULT, true);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
 		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("v1/namespaces/default/configmaps. Message: Internal Server Error.");
+			.hasMessageContaining("v1/namespaces/default/configmaps. Message: Internal Server Error.");
 	}
 
 	@Test

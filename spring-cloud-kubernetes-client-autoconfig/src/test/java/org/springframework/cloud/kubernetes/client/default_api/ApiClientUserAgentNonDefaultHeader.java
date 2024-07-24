@@ -57,7 +57,7 @@ class ApiClientUserAgentNonDefaultHeader {
 		Request.Builder builder = new Request.Builder();
 		apiClient.processHeaderParams(Collections.emptyMap(), builder);
 		assertThat(builder.url(new URL("http://example.com")).build().headers().get("User-Agent"))
-				.isEqualTo("non-default");
+			.isEqualTo("non-default");
 	}
 
 }

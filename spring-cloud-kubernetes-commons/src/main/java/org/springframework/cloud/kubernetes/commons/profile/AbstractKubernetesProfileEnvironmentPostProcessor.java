@@ -95,10 +95,11 @@ public abstract class AbstractKubernetesProfileEnvironmentPostProcessor implemen
 		String serviceAccountNamespacePathString = environment.getProperty(NAMESPACE_PATH_PROPERTY,
 				SERVICE_ACCOUNT_NAMESPACE_PATH);
 		String namespace = KubernetesNamespaceProvider
-				.getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);
+			.getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);
 		if (StringUtils.hasText(namespace)) {
-			environment.getPropertySources().addLast(new MapPropertySource(PROPERTY_SOURCE_NAME,
-					Collections.singletonMap(NAMESPACE_PROPERTY, namespace)));
+			environment.getPropertySources()
+				.addLast(new MapPropertySource(PROPERTY_SOURCE_NAME,
+						Collections.singletonMap(NAMESPACE_PROPERTY, namespace)));
 		}
 
 	}

@@ -57,8 +57,13 @@ abstract class LabeledConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testOne() {
-		this.webClient.get().uri("/labeled-configmap/prefix/one").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("one"));
+		this.webClient.get()
+			.uri("/labeled-configmap/prefix/one")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("one"));
 	}
 
 	/**
@@ -72,8 +77,13 @@ abstract class LabeledConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testTwo() {
-		this.webClient.get().uri("/labeled-configmap/prefix/two").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("two"));
+		this.webClient.get()
+			.uri("/labeled-configmap/prefix/two")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("two"));
 	}
 
 	/**
@@ -89,8 +99,13 @@ abstract class LabeledConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testThree() {
-		this.webClient.get().uri("/labeled-configmap/prefix/three").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("three"));
+		this.webClient.get()
+			.uri("/labeled-configmap/prefix/three")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("three"));
 	}
 
 	/**
@@ -106,8 +121,13 @@ abstract class LabeledConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testFour() {
-		this.webClient.get().uri("/labeled-configmap/prefix/four").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("four"));
+		this.webClient.get()
+			.uri("/labeled-configmap/prefix/four")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("four"));
 	}
 
 }

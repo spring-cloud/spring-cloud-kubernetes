@@ -58,8 +58,12 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 			URI actuatorUri = getActuatorUri(si, k8SConfigurationProperties.getActuatorPath(),
 					k8SConfigurationProperties.getActuatorPort());
 			LOG.debug(() -> "Sending refresh request for " + appName + " to URI " + actuatorUri);
-			return webClient.post().uri(actuatorUri).retrieve().toBodilessEntity()
-					.doOnSuccess(onSuccess(appName, actuatorUri)).doOnError(onError(appName));
+			return webClient.post()
+				.uri(actuatorUri)
+				.retrieve()
+				.toBodilessEntity()
+				.doOnSuccess(onSuccess(appName, actuatorUri))
+				.doOnError(onError(appName));
 		}).then();
 	}
 
@@ -73,12 +77,13 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 	}
 
 	private URI getActuatorUri(ServiceInstance si, String actuatorPath, int actuatorPort) {
-		String metadataUri = si.getMetadata().getOrDefault(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
-				"");
+		String metadataUri = si.getMetadata()
+			.getOrDefault(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY, "");
 		LOG.debug(() -> "Metadata actuator uri is: " + metadataUri);
 
-		UriComponentsBuilder actuatorUriBuilder = UriComponentsBuilder.newInstance().scheme(si.getScheme())
-				.host(si.getHost());
+		UriComponentsBuilder actuatorUriBuilder = UriComponentsBuilder.newInstance()
+			.scheme(si.getScheme())
+			.host(si.getHost());
 
 		if (StringUtils.hasText(metadataUri)) {
 			LOG.debug(() -> "Found actuator URI in service instance metadata");

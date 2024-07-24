@@ -86,37 +86,61 @@ abstract class ConfigMapsFromFilePathsTests {
 	@AfterAll
 	public static void teardownAfterClass() {
 		newArrayList(FIRST_FILE_NAME_FULL_PATH, SECOND_FILE_NAME_FULL_PATH, SECOND_FILE_NAME_FULL_PATH, FILES_ROOT_PATH)
-				.forEach(fn -> {
-					try {
-						Files.delete(Paths.get(fn));
-					}
-					catch (IOException ignored) {
-					}
-				});
+			.forEach(fn -> {
+				try {
+					Files.delete(Paths.get(fn));
+				}
+				catch (IOException ignored) {
+				}
+			});
 	}
 
 	@Test
 	public void greetingInputShouldReturnPropertyFromFirstFile() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Hello from path!");
+		this.webClient.get()
+			.uri("/api/greeting")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Hello from path!");
 	}
 
 	@Test
 	public void farewellInputShouldReturnPropertyFromSecondFile() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Bye from path!");
+		this.webClient.get()
+			.uri("/api/farewell")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Bye from path!");
 	}
 
 	@Test
 	public void morningInputShouldReturnDefaultValue() {
-		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Good morning, World!");
+		this.webClient.get()
+			.uri("/api/morning")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Good morning, World!");
 	}
 
 	@Test
 	public void bonjourInputShouldReturnPropertyFromDuplicatedFile() {
-		this.webClient.get().uri("/api/bonjour").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Bonjour from path!");
+		this.webClient.get()
+			.uri("/api/bonjour")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Bonjour from path!");
 	}
 
 }

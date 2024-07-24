@@ -65,10 +65,10 @@ public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<Strin
 			return result;
 		}
 
-		return this.sources
-				.stream().flatMap(s -> s.normalize(this.name, this.namespace, this.labels,
-						this.includeProfileSpecificSources, this.failFast, this.useNameAsPrefix, environment))
-				.collect(Collectors.toList());
+		return this.sources.stream()
+			.flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.includeProfileSpecificSources,
+					this.failFast, this.useNameAsPrefix, environment))
+			.collect(Collectors.toList());
 	}
 
 	/**
