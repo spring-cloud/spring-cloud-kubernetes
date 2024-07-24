@@ -45,10 +45,13 @@ class KubernetesClientDiscoveryPodMetadataITDelegate {
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(servicesResult.size(), 3);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
@@ -56,12 +59,16 @@ class KubernetesClientDiscoveryPodMetadataITDelegate {
 		Assertions.assertTrue(servicesResult.contains("external-name-service"));
 
 		WebClient ourServiceClient = builder()
-				.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-k8s-client-discovery").build();
+			.baseUrl("http://localhost//service-instances/spring-cloud-kubernetes-k8s-client-discovery")
+			.build();
 
-		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(ourServiceInstances.size(), 1);
 

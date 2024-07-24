@@ -118,7 +118,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				List.of(source1, source2), true, "app", "default", false, true, false, RetryProperties.DEFAULT);
 
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties).locate(ENV);
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
+			.locate(ENV);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 	}
@@ -131,7 +132,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				List.of(), true, "db-secret", "default", false, true, false, RetryProperties.DEFAULT);
 
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties).locate(ENV);
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
+			.locate(ENV);
 		assertThat(propertySource.containsProperty("password")).isTrue();
 		assertThat(propertySource.getProperty("password")).isEqualTo("p455w0rd");
 	}
@@ -152,8 +154,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				List.of(), true, "db-secret", "", false, true, false, RetryProperties.DEFAULT);
 
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
-				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties).locate(ENV))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
+			.locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	@Test
@@ -168,7 +170,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Internal Server Error");
+			.hasMessage("Internal Server Error");
 	}
 
 	@Test

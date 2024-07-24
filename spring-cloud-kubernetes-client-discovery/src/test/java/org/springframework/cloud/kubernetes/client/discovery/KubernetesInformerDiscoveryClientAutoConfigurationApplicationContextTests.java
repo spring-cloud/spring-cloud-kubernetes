@@ -426,21 +426,23 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						KubernetesClientInformerAutoConfiguration.class,
-						KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
-				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
+					KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
+			.withUserConfiguration(ApiClientConfig.class)
+			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						KubernetesClientInformerAutoConfiguration.class,
-						KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader(cls)).withUserConfiguration(ApiClientConfig.class)
-				.withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(KubernetesInformerDiscoveryClientAutoConfiguration.class,
+					KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(cls))
+			.withUserConfiguration(ApiClientConfig.class)
+			.withPropertyValues(properties);
 	}
 
 	@Configuration

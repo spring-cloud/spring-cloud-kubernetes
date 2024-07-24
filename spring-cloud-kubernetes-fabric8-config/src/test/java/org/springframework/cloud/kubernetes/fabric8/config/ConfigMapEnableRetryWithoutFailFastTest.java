@@ -66,7 +66,9 @@ public class ConfigMapEnableRetryWithoutFailFastTest {
 				ConfigurationPropertiesBindingPostProcessor.class,
 				ConfigurationPropertiesRebinderAutoConfiguration.class, Fabric8BootstrapConfiguration.class,
 				Fabric8RetryBootstrapConfiguration.class, KubernetesBootstrapConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE).properties(envArray).run();
+			.web(org.springframework.boot.WebApplicationType.NONE)
+			.properties(envArray)
+			.run();
 	}
 
 	@AfterEach

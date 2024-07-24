@@ -58,7 +58,8 @@ final class Fabric8PodLabelsAndAnnotationsSupplier implements Function<String, P
 	@Override
 	public PodLabelsAndAnnotations apply(String podName) {
 		ObjectMeta metadata = Optional.ofNullable(client.pods().inNamespace(namespace).withName(podName).get())
-				.map(Pod::getMetadata).orElse(new ObjectMeta());
+			.map(Pod::getMetadata)
+			.orElse(new ObjectMeta());
 		return new PodLabelsAndAnnotations(metadata.getLabels(), metadata.getAnnotations());
 	}
 

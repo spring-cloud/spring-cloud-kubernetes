@@ -432,25 +432,25 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(
-						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
-						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
-						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
-				.withUserConfiguration(ApiClientConfig.class).withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
+					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
+					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
+					KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
+			.withUserConfiguration(ApiClientConfig.class)
+			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(String name, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(
-						KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
-						KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
-						UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
-						KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
-				.withUserConfiguration(ApiClientConfig.class).withClassLoader(new FilteredClassLoader(name))
-				.withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class,
+					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
+					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
+					KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class))
+			.withUserConfiguration(ApiClientConfig.class)
+			.withClassLoader(new FilteredClassLoader(name))
+			.withPropertyValues(properties);
 	}
 
 	@Configuration

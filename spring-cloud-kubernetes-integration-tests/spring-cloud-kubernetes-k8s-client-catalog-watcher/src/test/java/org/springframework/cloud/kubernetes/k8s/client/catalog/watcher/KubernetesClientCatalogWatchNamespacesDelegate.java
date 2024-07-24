@@ -87,8 +87,10 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec())
+				.block();
 
 			if (result != null) {
 				// 2 from namespace-a, 2 from namespace-b
@@ -114,7 +116,8 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 		Assertions.assertTrue(resultFour.endpointName().contains("busybox"));
 
 		List<EndpointNameAndNamespace> sorted = Arrays.stream(holder)
-				.sorted(Comparator.comparing(EndpointNameAndNamespace::namespace)).toList();
+			.sorted(Comparator.comparing(EndpointNameAndNamespace::namespace))
+			.toList();
 
 		Assertions.assertEquals(NAMESPACE_A, sorted.get(0).namespace());
 		Assertions.assertEquals(NAMESPACE_A, sorted.get(1).namespace());
@@ -127,8 +130,10 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec())
+				.block();
 
 			// there is no update to receive anymore, as there is nothing in namespacea
 			// and namespaceb

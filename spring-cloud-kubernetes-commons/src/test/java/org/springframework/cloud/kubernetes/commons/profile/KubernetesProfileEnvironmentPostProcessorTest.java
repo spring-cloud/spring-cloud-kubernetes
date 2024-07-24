@@ -210,7 +210,7 @@ public class KubernetesProfileEnvironmentPostProcessorTest {
 				"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must be present when running on kubernetes");
 
 		String property = (String) kubernetesPropertySource.get()
-				.getProperty("spring.cloud.kubernetes.client.namespace");
+			.getProperty("spring.cloud.kubernetes.client.namespace");
 		Assertions.assertEquals(property, FOUNT_IT,
 				"'spring.cloud.kubernetes.client.namespace' must be set to 'foundIt'");
 	}
@@ -240,8 +240,11 @@ public class KubernetesProfileEnvironmentPostProcessorTest {
 	}
 
 	private Optional<PropertySource<?>> kubernetesPropertySource() {
-		return context.getEnvironment().getPropertySources().stream()
-				.filter(x -> "KUBERNETES_NAMESPACE_PROPERTY_SOURCE".equals(x.getName())).findAny();
+		return context.getEnvironment()
+			.getPropertySources()
+			.stream()
+			.filter(x -> "KUBERNETES_NAMESPACE_PROPERTY_SOURCE".equals(x.getName()))
+			.findAny();
 	}
 
 }

@@ -67,24 +67,36 @@ public class LabeledConfigMapWithPrefixConfigurationStub {
 	public static void stubData() {
 
 		V1ConfigMap one = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "a")).build())
-				.addToData(Collections.singletonMap("one.property", "one")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("letter", "a"))
+				.build())
+			.addToData(Collections.singletonMap("one.property", "one"))
+			.build();
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "b")).build())
-				.addToData(Collections.singletonMap("property", "two")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("letter", "b"))
+				.build())
+			.addToData(Collections.singletonMap("property", "two"))
+			.build();
 
 		V1ConfigMap three = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "c")).build())
-				.addToData(Collections.singletonMap("property", "three")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("letter", "c"))
+				.build())
+			.addToData(Collections.singletonMap("property", "three"))
+			.build();
 
 		V1ConfigMap four = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-four").withNamespace("spring-k8s")
-						.withLabels(Map.of("letter", "d")).build())
-				.addToData(Collections.singletonMap("property", "four")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-four")
+				.withNamespace("spring-k8s")
+				.withLabels(Map.of("letter", "d"))
+				.build())
+			.addToData(Collections.singletonMap("property", "four"))
+			.build();
 
 		// the actual stub for CoreV1Api calls
 		V1ConfigMapList configMapList = new V1ConfigMapList();
@@ -94,7 +106,7 @@ public class LabeledConfigMapWithPrefixConfigurationStub {
 		configMapList.addItemsItem(four);
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 	}
 
 }

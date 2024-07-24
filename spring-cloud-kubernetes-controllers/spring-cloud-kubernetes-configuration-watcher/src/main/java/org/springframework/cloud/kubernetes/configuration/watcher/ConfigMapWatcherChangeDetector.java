@@ -38,8 +38,8 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
  * @author Kris Iyer
  */
 abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEventBasedConfigMapChangeDetector
-		implements
-		RefreshTrigger permits BusEventBasedConfigMapWatcherChangeDetector, HttpBasedConfigMapWatchChangeDetector {
+		implements RefreshTrigger
+		permits BusEventBasedConfigMapWatcherChangeDetector, HttpBasedConfigMapWatchChangeDetector {
 
 	private final ScheduledExecutorService executorService;
 

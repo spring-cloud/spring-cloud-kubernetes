@@ -63,8 +63,11 @@ abstract class ConfigMapsMixedTests {
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.morning", "Buenos Dias ConfigMap, %s");
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-				.addToData(data).build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName(APPLICATION_NAME)
+			.endMetadata()
+			.addToData(data)
+			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 	}
@@ -82,20 +85,38 @@ abstract class ConfigMapsMixedTests {
 
 	@Test
 	public void greetingInputShouldReturnPropertyFromFile() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap, World from path");
+		this.webClient.get()
+			.uri("/api/greeting")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Hello ConfigMap, World from path");
 	}
 
 	@Test
 	public void farewellInputShouldReturnPropertyFromFile() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Bye ConfigMap, World from path");
+		this.webClient.get()
+			.uri("/api/farewell")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Bye ConfigMap, World from path");
 	}
 
 	@Test
 	public void morningInputShouldReturnPropertyFromApi() {
-		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Buenos Dias ConfigMap, World");
+		this.webClient.get()
+			.uri("/api/morning")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Buenos Dias ConfigMap, World");
 	}
 
 }

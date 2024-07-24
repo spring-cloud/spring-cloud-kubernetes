@@ -93,8 +93,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void singleSecretMatchAgainstLabels() {
 
-		Secret secret = new SecretBuilder().withNewMetadata().withName("test-secret").withLabels(LABELS).endMetadata()
-				.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes())).build();
+		Secret secret = new SecretBuilder().withNewMetadata()
+			.withName("test-secret")
+			.withLabels(LABELS)
+			.endMetadata()
+			.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
@@ -117,15 +121,26 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void twoSecretsMatchAgainstLabels() {
 
-		Secret redOne = new SecretBuilder().withNewMetadata().withName("red-secret").withLabels(RED_LABEL).endMetadata()
-				.addToData("colorOne", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret redOne = new SecretBuilder().withNewMetadata()
+			.withName("red-secret")
+			.withLabels(RED_LABEL)
+			.endMetadata()
+			.addToData("colorOne", Base64.getEncoder().encodeToString("really-red".getBytes()))
+			.build();
 
-		Secret redTwo = new SecretBuilder().withNewMetadata().withName("red-secret-again").withLabels(RED_LABEL)
-				.endMetadata().addToData("colorTwo", Base64.getEncoder().encodeToString("really-red-again".getBytes()))
-				.build();
+		Secret redTwo = new SecretBuilder().withNewMetadata()
+			.withName("red-secret-again")
+			.withLabels(RED_LABEL)
+			.endMetadata()
+			.addToData("colorTwo", Base64.getEncoder().encodeToString("really-red-again".getBytes()))
+			.build();
 
-		Secret blue = new SecretBuilder().withNewMetadata().withName("blue-secret").withLabels(BLUE_LABEL).endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("blue".getBytes())).build();
+		Secret blue = new SecretBuilder().withNewMetadata()
+			.withName("blue-secret")
+			.withLabels(BLUE_LABEL)
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("blue".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(redOne).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(redTwo).create();
@@ -151,8 +166,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void secretNoMatch() {
 
-		Secret pink = new SecretBuilder().withNewMetadata().withName("pink-secret").withLabels(PINK_LABEL).endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes())).build();
+		Secret pink = new SecretBuilder().withNewMetadata()
+			.withName("pink-secret")
+			.withLabels(PINK_LABEL)
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(pink).create();
 
@@ -176,8 +195,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void namespaceMatch() {
 
-		Secret secret = new SecretBuilder().withNewMetadata().withName("test-secret").withLabels(LABELS).endMetadata()
-				.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes())).build();
+		Secret secret = new SecretBuilder().withNewMetadata()
+			.withName("test-secret")
+			.withLabels(LABELS)
+			.endMetadata()
+			.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
@@ -201,9 +224,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testWithPrefix() {
-		Secret secret = new SecretBuilder().withNewMetadata().withName("blue-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("what-color", Base64.getEncoder().encodeToString("blue-color".getBytes())).build();
+		Secret secret = new SecretBuilder().withNewMetadata()
+			.withName("blue-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("what-color", Base64.getEncoder().encodeToString("blue-color".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
@@ -231,13 +257,19 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testTwoSecretsWithPrefix() {
-		Secret blueSecret = new SecretBuilder().withNewMetadata().withName("blue-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("first", Base64.getEncoder().encodeToString("blue".getBytes())).build();
+		Secret blueSecret = new SecretBuilder().withNewMetadata()
+			.withName("blue-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("first", Base64.getEncoder().encodeToString("blue".getBytes()))
+			.build();
 
-		Secret anotherBlue = new SecretBuilder().withNewMetadata().withName("another-blue-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("second", Base64.getEncoder().encodeToString("blue".getBytes())).build();
+		Secret anotherBlue = new SecretBuilder().withNewMetadata()
+			.withName("another-blue-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("second", Base64.getEncoder().encodeToString("blue".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(blueSecret).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(anotherBlue).create();
@@ -275,12 +307,18 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsNoSecretFound() {
-		Secret colorSecret = new SecretBuilder().withNewMetadata().withName("color-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("one", Base64.getEncoder().encodeToString("1".getBytes())).build();
+		Secret colorSecret = new SecretBuilder().withNewMetadata()
+			.withName("color-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
+			.build();
 
-		Secret colorSecretK8s = new SecretBuilder().withNewMetadata().withName("color-secret-k8s").endMetadata()
-				.addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
+		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
+			.withName("color-secret-k8s")
+			.endMetadata()
+			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
@@ -306,12 +344,18 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsOneSecretFound() {
-		Secret colorSecret = new SecretBuilder().withNewMetadata().withName("color-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("one", Base64.getEncoder().encodeToString("1".getBytes())).build();
+		Secret colorSecret = new SecretBuilder().withNewMetadata()
+			.withName("color-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
+			.build();
 
-		Secret shapeSecret = new SecretBuilder().withNewMetadata().withName("shape-secret").endMetadata()
-				.addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
+		Secret shapeSecret = new SecretBuilder().withNewMetadata()
+			.withName("shape-secret")
+			.endMetadata()
+			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(shapeSecret).create();
@@ -339,13 +383,19 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsOneSecretFoundAndOneFromProfileFound() {
-		Secret colorSecret = new SecretBuilder().withNewMetadata().withName("color-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("one", Base64.getEncoder().encodeToString("1".getBytes())).build();
+		Secret colorSecret = new SecretBuilder().withNewMetadata()
+			.withName("color-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
+			.build();
 
-		Secret colorSecretK8s = new SecretBuilder().withNewMetadata().withName("color-secret-k8s")
-				.withLabels(Collections.singletonMap("color", "red")).endMetadata()
-				.addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
+		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
+			.withName("color-secret-k8s")
+			.withLabels(Collections.singletonMap("color", "red"))
+			.endMetadata()
+			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
@@ -377,24 +427,40 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsTwoSecretsFoundAndOneFromProfileFound() {
-		Secret colorSecret = new SecretBuilder().withNewMetadata().withName("color-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("one", Base64.getEncoder().encodeToString("1".getBytes())).build();
+		Secret colorSecret = new SecretBuilder().withNewMetadata()
+			.withName("color-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
+			.build();
 
-		Secret shapeSecret = new SecretBuilder().withNewMetadata().withName("shape-secret")
-				.withLabels(Map.of("color", "blue", "shape", "round")).endMetadata()
-				.addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
+		Secret shapeSecret = new SecretBuilder().withNewMetadata()
+			.withName("shape-secret")
+			.withLabels(Map.of("color", "blue", "shape", "round"))
+			.endMetadata()
+			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
+			.build();
 
-		Secret noFit = new SecretBuilder().withNewMetadata().withName("no-fit").withLabels(Map.of("tag", "no-fit"))
-				.endMetadata().addToData("three", Base64.getEncoder().encodeToString("3".getBytes())).build();
+		Secret noFit = new SecretBuilder().withNewMetadata()
+			.withName("no-fit")
+			.withLabels(Map.of("tag", "no-fit"))
+			.endMetadata()
+			.addToData("three", Base64.getEncoder().encodeToString("3".getBytes()))
+			.build();
 
-		Secret colorSecretK8s = new SecretBuilder().withNewMetadata().withName("color-secret-k8s")
-				.withLabels(Map.of("color", "red")).endMetadata()
-				.addToData("four", Base64.getEncoder().encodeToString("4".getBytes())).build();
+		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
+			.withName("color-secret-k8s")
+			.withLabels(Map.of("color", "red"))
+			.endMetadata()
+			.addToData("four", Base64.getEncoder().encodeToString("4".getBytes()))
+			.build();
 
-		Secret shapeSecretK8s = new SecretBuilder().withNewMetadata().withName("shape-secret-k8s")
-				.withLabels(Map.of("shape", "triangle")).endMetadata()
-				.addToData("five", Base64.getEncoder().encodeToString("5".getBytes())).build();
+		Secret shapeSecretK8s = new SecretBuilder().withNewMetadata()
+			.withName("shape-secret-k8s")
+			.withLabels(Map.of("shape", "triangle"))
+			.endMetadata()
+			.addToData("five", Base64.getEncoder().encodeToString("5".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(shapeSecret).create();
@@ -432,9 +498,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testYaml() {
-		Secret colorSecret = new SecretBuilder().withNewMetadata().withName("color-secret")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("test.yaml", Base64.getEncoder().encodeToString("color: blue".getBytes())).build();
+		Secret colorSecret = new SecretBuilder().withNewMetadata()
+			.withName("color-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("test.yaml", Base64.getEncoder().encodeToString("color: blue".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 
@@ -461,12 +530,19 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void cache(CapturedOutput output) {
-		Secret red = new SecretBuilder().withNewMetadata().withName("red")
-				.withLabels(Collections.singletonMap("color", "red")).endMetadata()
-				.addToData("one", Base64.getEncoder().encodeToString("1".getBytes())).build();
+		Secret red = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.withLabels(Collections.singletonMap("color", "red"))
+			.endMetadata()
+			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
+			.build();
 
-		Secret green = new SecretBuilder().withNewMetadata().withName("green").withLabels(Map.of("color", "green"))
-				.endMetadata().addToData("two", Base64.getEncoder().encodeToString("2".getBytes())).build();
+		Secret green = new SecretBuilder().withNewMetadata()
+			.withName("green")
+			.withLabels(Map.of("color", "green"))
+			.endMetadata()
+			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(green).create();

@@ -66,20 +66,24 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
-		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String healthResult = healthClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS)
-				.isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathArrayValue(
-						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-						"busybox-service", "external-name-service", "service-wiremock");
+			.extractingJsonPathStringValue(BLOCKING_STATUS)
+			.isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+					"busybox-service", "external-name-service", "service-wiremock");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
@@ -99,33 +103,39 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
-		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String healthResult = healthClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
-				.isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathArrayValue(
-						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-						"external-name-service", "service-wiremock", "busybox-service");
+			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+					"external-name-service", "service-wiremock", "busybox-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status")
-				.isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathStringValue(
+					"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status")
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-						"external-name-service", "service-wiremock", "busybox-service");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathArrayValue(
+					"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+					"external-name-service", "service-wiremock", "busybox-service");
 	}
 
 	/**
@@ -148,19 +158,25 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
-		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String healthResult = healthClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS)
-				.isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathStringValue(REACTIVE_STATUS)
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
-						"external-name-service", "service-wiremock", "busybox-service");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathArrayValue(
+					"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-fabric8-client-discovery", "kubernetes",
+					"external-name-service", "service-wiremock", "busybox-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
@@ -168,9 +184,12 @@ final class Fabric8DiscoveryClientHealthDelegate {
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/reactive/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
-				}).retryWhen(retrySpec()).block();
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-fabric8-client-discovery");
 		Assertions.assertThat(servicesResult).contains("kubernetes");

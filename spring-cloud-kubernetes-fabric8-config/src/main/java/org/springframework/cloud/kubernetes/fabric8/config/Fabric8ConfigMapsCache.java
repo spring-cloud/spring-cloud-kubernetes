@@ -67,8 +67,10 @@ final class Fabric8ConfigMapsCache implements ConfigMapCache {
 	}
 
 	private static List<StrippedSourceContainer> strippedConfigMaps(List<ConfigMap> configMaps) {
-		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
-				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
+		return configMaps.stream()
+			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
+					configMap.getMetadata().getName(), configMap.getData()))
+			.collect(Collectors.toList());
 	}
 
 }

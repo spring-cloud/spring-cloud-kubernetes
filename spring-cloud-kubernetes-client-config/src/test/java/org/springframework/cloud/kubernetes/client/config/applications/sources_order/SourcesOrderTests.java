@@ -67,13 +67,28 @@ abstract class SourcesOrderTests {
 	 */
 	@Test
 	void test() {
-		this.webClient.get().uri("/one").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("one"));
-		this.webClient.get().uri("/two").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("two"));
+		this.webClient.get()
+			.uri("/one")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("one"));
+		this.webClient.get()
+			.uri("/two")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("two"));
 
-		this.webClient.get().uri("/key").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("from-configmap"));
+		this.webClient.get()
+			.uri("/key")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("from-configmap"));
 	}
 
 }

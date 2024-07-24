@@ -62,9 +62,14 @@ abstract class SingleSourceMultipleFilesTests {
 	}
 
 	static void createConfigmap(Map<String, String> data) {
-		mockClient.configMaps().inNamespace("spring-k8s").resource(
-				new ConfigMapBuilder().withNewMetadata().withName("my-configmap").endMetadata().addToData(data).build())
-				.create();
+		mockClient.configMaps()
+			.inNamespace("spring-k8s")
+			.resource(new ConfigMapBuilder().withNewMetadata()
+				.withName("my-configmap")
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 	}
 
 	/**
@@ -75,8 +80,13 @@ abstract class SingleSourceMultipleFilesTests {
 	 */
 	@Test
 	void color() {
-		this.webClient.get().uri("/single_source-multiple-files/color").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("raw:green###ripe:yellow"));
+		this.webClient.get()
+			.uri("/single_source-multiple-files/color")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("raw:green###ripe:yellow"));
 	}
 
 	/**
@@ -86,8 +96,13 @@ abstract class SingleSourceMultipleFilesTests {
 	 */
 	@Test
 	void name() {
-		this.webClient.get().uri("/single_source-multiple-files/name").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("banana"));
+		this.webClient.get()
+			.uri("/single_source-multiple-files/name")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("banana"));
 	}
 
 	/**
@@ -98,8 +113,13 @@ abstract class SingleSourceMultipleFilesTests {
 	 */
 	@Test
 	void shape() {
-		this.webClient.get().uri("/single_source-multiple-files/shape").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.nullValue());
+		this.webClient.get()
+			.uri("/single_source-multiple-files/shape")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.nullValue());
 	}
 
 	/**
@@ -109,8 +129,13 @@ abstract class SingleSourceMultipleFilesTests {
 	 */
 	@Test
 	void type() {
-		this.webClient.get().uri("/single_source-multiple-files/type").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("yummy"));
+		this.webClient.get()
+			.uri("/single_source-multiple-files/type")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("yummy"));
 	}
 
 }

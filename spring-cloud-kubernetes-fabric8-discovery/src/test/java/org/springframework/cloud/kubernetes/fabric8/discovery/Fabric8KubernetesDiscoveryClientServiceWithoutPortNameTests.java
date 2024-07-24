@@ -52,16 +52,18 @@ class Fabric8KubernetesDiscoveryClientServiceWithoutPortNameTests {
 	void testDiscoveryWithoutAServicePortName() {
 
 		Service service = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder().withPort(8080).build()).build())
-				.withMetadata(new ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
-				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).build();
+			.withSpec(new ServiceSpecBuilder().withPorts(new ServicePortBuilder().withPort(8080).build()).build())
+			.withMetadata(new ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+			.build();
 		mockClient.services().inNamespace(NAMESPACE).resource(service).create();
 
 		Endpoints endpoints = new EndpointsBuilder()
-				.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build())
-						.withAddresses(new EndpointAddressBuilder().withIp("127.0.0.1").build()).build())
-				.withMetadata(new ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
-				.build();
+			.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build())
+				.withAddresses(new EndpointAddressBuilder().withIp("127.0.0.1").build())
+				.build())
+			.withMetadata(new ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
+			.build();
 		mockClient.endpoints().inNamespace(NAMESPACE).resource(endpoints).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE),

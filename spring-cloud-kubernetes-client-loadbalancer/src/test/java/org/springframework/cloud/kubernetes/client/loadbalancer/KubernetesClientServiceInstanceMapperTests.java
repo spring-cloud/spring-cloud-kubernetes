@@ -117,8 +117,8 @@ class KubernetesClientServiceInstanceMapperTests {
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertNull(serviceInstance);
-		Assertions.assertTrue(output.getOut().contains(
-				"service : database does not have any ServicePort(s), will not consider it for load balancing"));
+		Assertions.assertTrue(output.getOut()
+			.contains("service : database does not have any ServicePort(s), will not consider it for load balancing"));
 	}
 
 	@Test
@@ -134,8 +134,9 @@ class KubernetesClientServiceInstanceMapperTests {
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut().contains("single ServicePort found, "
-				+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+		Assertions.assertTrue(output.getOut()
+			.contains("single ServicePort found, "
+					+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 	}
 
 	@Test
@@ -151,8 +152,9 @@ class KubernetesClientServiceInstanceMapperTests {
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut().contains("single ServicePort found, "
-				+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+		Assertions.assertTrue(output.getOut()
+			.contains("single ServicePort found, "
+					+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 	}
 
 	@Test
@@ -214,9 +216,14 @@ class KubernetesClientServiceInstanceMapperTests {
 	private V1Service createService(String name, String namespace, Map<String, String> annotations,
 			Map<String, String> labels, List<V1ServicePort> servicePorts) {
 		return new V1ServiceBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(name).withUid("0").withNamespace(namespace)
-						.addToAnnotations(annotations).addToLabels(labels).build())
-				.withSpec(new V1ServiceSpecBuilder().addAllToPorts(servicePorts).withType("V1Service").build()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName(name)
+				.withUid("0")
+				.withNamespace(namespace)
+				.addToAnnotations(annotations)
+				.addToLabels(labels)
+				.build())
+			.withSpec(new V1ServiceSpecBuilder().addAllToPorts(servicePorts).withType("V1Service").build())
+			.build();
 	}
 
 }

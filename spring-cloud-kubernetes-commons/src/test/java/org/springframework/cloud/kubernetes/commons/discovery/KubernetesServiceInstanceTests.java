@@ -82,7 +82,7 @@ class KubernetesServiceInstanceTests {
 		assertThat(instance.getNamespace()).isEqualTo("spring-k8s");
 		assertThat(instance.getCluster()).isEqualTo("cluster");
 		assertThat(instance.podMetadata())
-				.isEqualTo(Map.of("labels", Map.of("a", "b"), "annotations", Map.of("c", "d")));
+			.isEqualTo(Map.of("labels", Map.of("a", "b"), "annotations", Map.of("c", "d")));
 	}
 
 	@Test
