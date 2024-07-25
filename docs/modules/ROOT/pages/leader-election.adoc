@@ -44,7 +44,7 @@ Unlike the old implementation, this one will use either the `Lease` _or_ `Config
 spring.cloud.kubernetes.leader.election.lockName=other-name
 ----
 
-The namespace (`default` being set if no explicit one exists) can be set also:
+The namespace where the lock is created (`default` being set if no explicit one exists) can be set also:
 
 [source]
 ----
