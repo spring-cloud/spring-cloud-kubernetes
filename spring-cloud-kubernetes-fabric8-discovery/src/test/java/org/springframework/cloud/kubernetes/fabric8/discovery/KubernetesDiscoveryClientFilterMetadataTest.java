@@ -64,18 +64,18 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
 	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
-			.mock(MixedOperation.class);
+		.mock(MixedOperation.class);
 
 	private final MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>> endpointsOperation = Mockito
-			.mock(MixedOperation.class);
+		.mock(MixedOperation.class);
 
 	private final ServiceResource<Service> serviceResource = Mockito.mock(ServiceResource.class);
 
 	private final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> filter = Mockito
-			.mock(FilterWatchListDeletable.class);
+		.mock(FilterWatchListDeletable.class);
 
 	private final FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested = Mockito
-			.mock(FilterNested.class);
+		.mock(FilterNested.class);
 
 	@Test
 	void testAllExtraMetadataDisabled() {
@@ -240,22 +240,37 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 	private void setupServiceWithLabelsAndAnnotationsAndPorts(String serviceId, String namespace,
 			Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
 		Service service = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(ports)).build())
-				.withNewMetadata().withNamespace(namespace).withLabels(labels).withAnnotations(annotations)
-				.endMetadata().build();
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(ports)).build())
+			.withNewMetadata()
+			.withNamespace(namespace)
+			.withLabels(labels)
+			.withAnnotations(annotations)
+			.endMetadata()
+			.build();
 		when(serviceOperation.withName(serviceId)).thenReturn(serviceResource);
 		when(serviceResource.get()).thenReturn(service);
 		when(CLIENT.services()).thenReturn(serviceOperation);
 		when(CLIENT.services().inNamespace(anyString())).thenReturn(serviceOperation);
-		when(serviceOperation.list()).thenReturn(new ServiceListBuilder().withItems(new ServiceBuilder()
-				.withNewMetadata().withName(serviceId).withNamespace(namespace).endMetadata().build()).build());
+		when(serviceOperation.list()).thenReturn(
+				new ServiceListBuilder()
+					.withItems(new ServiceBuilder().withNewMetadata()
+						.withName(serviceId)
+						.withNamespace(namespace)
+						.endMetadata()
+						.build())
+					.build());
 
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setNamespace(namespace);
 		objectMeta.setName(serviceId);
 
-		Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta).addNewSubset()
-				.addAllToPorts(getEndpointPorts(ports)).addNewAddress().endAddress().endSubset().build();
+		Endpoints endpoints = new EndpointsBuilder().withMetadata(objectMeta)
+			.addNewSubset()
+			.addAllToPorts(getEndpointPorts(ports))
+			.addNewAddress()
+			.endAddress()
+			.endSubset()
+			.build();
 
 		when(CLIENT.endpoints()).thenReturn(endpointsOperation);
 		when(endpointsOperation.inNamespace(Mockito.anyString())).thenReturn(endpointsOperation);

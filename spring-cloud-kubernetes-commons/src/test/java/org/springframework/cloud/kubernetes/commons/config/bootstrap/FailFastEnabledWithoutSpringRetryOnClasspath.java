@@ -35,27 +35,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FailFastEnabledWithoutSpringRetryOnClasspath {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(KubernetesBootstrapConfiguration.class))
-			.withClassLoader(new FilteredClassLoader(Retryable.class, Aspect.class, AopAutoConfiguration.class));
+		.withConfiguration(AutoConfigurations.of(KubernetesBootstrapConfiguration.class))
+		.withClassLoader(new FilteredClassLoader(Retryable.class, Aspect.class, AopAutoConfiguration.class));
 
 	@Test
 	void shouldNotDefineRetryBeansWhenConfigMapFailFastEnabled() {
 		contextRunner.withPropertyValues("spring.cloud.kubernetes.config.fail-fast=true")
-				.run(context -> assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty());
+			.run(context -> assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty());
 	}
 
 	@Test
 	void shouldNotDefineRetryBeansWhenSecretsFailFastEnabled() {
 		contextRunner.withPropertyValues("spring.cloud.kubernetes.secrets.fail-fast=true")
-				.run(context -> assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty());
+			.run(context -> assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty());
 	}
 
 	@Test
 	void shouldNotDefineRetryBeansWhenConfigMapAndSecretsFailFastEnabled() {
 		contextRunner
-				.withPropertyValues("spring.cloud.kubernetes.config.fail-fast=true",
-						"spring.cloud.kubernetes.secrets.fail-fast=true")
-				.run(context -> assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty());
+			.withPropertyValues("spring.cloud.kubernetes.config.fail-fast=true",
+					"spring.cloud.kubernetes.secrets.fail-fast=true")
+			.run(context -> assertThat(context.getBeansOfType(RetryOperationsInterceptor.class)).isEmpty());
 	}
 
 }

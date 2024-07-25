@@ -97,8 +97,13 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void singleConfigMapMatchAgainstLabels() {
 
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("test-configmap")
-				.withLabels(LABELS).withNamespace(NAMESPACE).build()).addToData("name", "value").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("test-configmap")
+				.withLabels(LABELS)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("name", "value")
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
 
 		stubCall(configMapList);
@@ -123,18 +128,33 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void twoConfigMapsMatchAgainstLabels() {
 
-		V1ConfigMap redOne = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("red-configmap")
-				.withLabels(RED_LABEL).withNamespace(NAMESPACE).build()).addToData("colorOne", "really-red").build();
+		V1ConfigMap redOne = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("red-configmap")
+				.withLabels(RED_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("colorOne", "really-red")
+			.build();
 
-		V1ConfigMap redTwo = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withName("red-configmap-again").withLabels(RED_LABEL).withNamespace(NAMESPACE).build())
-				.addToData("colorTwo", "really-red-again").build();
+		V1ConfigMap redTwo = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("red-configmap-again")
+				.withLabels(RED_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("colorTwo", "really-red-again")
+			.build();
 
-		V1ConfigMap blue = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("blue-configmap")
-				.withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build()).addToData("color", "blue").build();
+		V1ConfigMap blue = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("blue-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("color", "blue")
+			.build();
 
-		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(redOne).addItemsItem(redTwo)
-				.addItemsItem(blue);
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(redOne)
+			.addItemsItem(redTwo)
+			.addItemsItem(blue);
 
 		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
@@ -159,8 +179,13 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void configMapNoMatch() {
 
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("pink-configmap")
-				.withLabels(PINK_LABEL).withNamespace(NAMESPACE).build()).addToData("color", "pink").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("pink-configmap")
+				.withLabels(PINK_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("color", "pink")
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
 
 		stubCall(configMapList);
@@ -186,8 +211,13 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void namespaceMatch() {
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("test-configmap")
-				.withLabels(LABELS).withNamespace(NAMESPACE).build()).addToData("name", "value").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("test-configmap")
+				.withLabels(LABELS)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("name", "value")
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
 
 		stubCall(configMapList);
@@ -213,8 +243,13 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testWithPrefix() {
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("blue-configmap")
-				.withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build()).addToData("what-color", "blue-color").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("blue-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("what-color", "blue-color")
+			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
 
 		stubCall(configMapList);
@@ -245,12 +280,21 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void testTwoConfigmapsWithPrefix() {
 
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("blue-configmap")
-				.withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build()).addToData("first", "blue").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("blue-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("first", "blue")
+			.build();
 
-		V1ConfigMap two = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withName("another-blue-configmap").withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build())
-				.addToData("second", "blue").build();
+		V1ConfigMap two = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("another-blue-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("second", "blue")
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
 
@@ -291,12 +335,18 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void searchWithLabelsNoConfigmapsFound() {
 
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
-				.withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build()).addToData("one", "1").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("one", "1")
+			.build();
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("color-config-k8s").withNamespace(NAMESPACE).build())
-				.addToData("two", "2").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-config-k8s").withNamespace(NAMESPACE).build())
+			.addToData("two", "2")
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
 
@@ -324,12 +374,18 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void searchWithLabelsOneConfigMapFound() {
 
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
-				.withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build()).addToData("one", "1").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("one", "1")
+			.build();
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap").withNamespace(NAMESPACE).build())
-				.addToData("two", "2").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap").withNamespace(NAMESPACE).build())
+			.addToData("two", "2")
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
 
@@ -359,12 +415,21 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
 
-		V1ConfigMap one = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
-				.withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build()).addToData("one", "1").build();
+		V1ConfigMap one = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("one", "1")
+			.build();
 
-		V1ConfigMap two = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withName("color-configmap-k8s").withLabels(RED_LABEL).withNamespace(NAMESPACE).build())
-				.addToData("two", "2").build();
+		V1ConfigMap two = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
+				.withLabels(RED_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("two", "2")
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
 
@@ -399,29 +464,51 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void searchWithLabelsTwoConfigMapsFoundAndOneFromProfileFound() {
 
-		V1ConfigMap colorConfigMap = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withName("color-configmap").withLabels(BLUE_LABEL).withNamespace(NAMESPACE).build())
-				.addToData("one", "1").build();
+		V1ConfigMap colorConfigMap = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
+				.withLabels(BLUE_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("one", "1")
+			.build();
 
 		V1ConfigMap shapeConfigmap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap")
-						.withLabels(Map.of("color", "blue", "shape", "round")).withNamespace(NAMESPACE).build())
-				.addToData("two", "2").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap")
+				.withLabels(Map.of("color", "blue", "shape", "round"))
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("two", "2")
+			.build();
 
-		V1ConfigMap noFit = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder().withName("no-fit")
-				.withLabels(Map.of("tag", "no-fit")).withNamespace(NAMESPACE).build()).addToData("three", "3").build();
+		V1ConfigMap noFit = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("no-fit")
+				.withLabels(Map.of("tag", "no-fit"))
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("three", "3")
+			.build();
 
-		V1ConfigMap colorConfigmapK8s = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withName("color-configmap-k8s").withLabels(RED_LABEL).withNamespace(NAMESPACE).build())
-				.addToData("four", "4").build();
+		V1ConfigMap colorConfigmapK8s = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
+				.withLabels(RED_LABEL)
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("four", "4")
+			.build();
 
 		V1ConfigMap shapeConfigmapK8s = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap-k8s")
-						.withLabels(Map.of("shape", "triangle")).withNamespace(NAMESPACE).build())
-				.addToData("five", "5").build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap-k8s")
+				.withLabels(Map.of("shape", "triangle"))
+				.withNamespace(NAMESPACE)
+				.build())
+			.addToData("five", "5")
+			.build();
 
-		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(colorConfigMap).addItemsItem(shapeConfigmap)
-				.addItemsItem(noFit).addItemsItem(colorConfigmapK8s).addItemsItem(shapeConfigmapK8s);
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(colorConfigMap)
+			.addItemsItem(shapeConfigmap)
+			.addItemsItem(noFit)
+			.addItemsItem(colorConfigmapK8s)
+			.addItemsItem(shapeConfigmapK8s);
 
 		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
@@ -437,13 +524,13 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 4);
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
 
 		Assertions.assertEquals(sourceData.sourceName(),
 				"configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
@@ -461,13 +548,21 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void cache(CapturedOutput output) {
-		V1ConfigMap red = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withLabels(Map.of("color", "red")).withNamespace(NAMESPACE).withName("red-configmap").build())
-				.addToData("color", "red").build();
+		V1ConfigMap red = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+				.withNamespace(NAMESPACE)
+				.withName("red-configmap")
+				.build())
+			.addToData("color", "red")
+			.build();
 
-		V1ConfigMap green = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withLabels(Map.of("color", "green")).withNamespace(NAMESPACE).withName("green-configmap").build())
-				.addToData("color", "green").build();
+		V1ConfigMap green = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "green"))
+				.withNamespace(NAMESPACE)
+				.withName("green-configmap")
+				.build())
+			.addToData("color", "green")
+			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(green);
 
@@ -508,7 +603,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 	private void stubCall(V1ConfigMapList list) {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 	}
 
 }

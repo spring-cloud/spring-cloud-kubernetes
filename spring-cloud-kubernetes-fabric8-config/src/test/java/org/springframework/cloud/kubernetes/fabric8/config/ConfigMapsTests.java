@@ -56,8 +56,14 @@ abstract class ConfigMapsTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.greeting", "Hello ConfigMap, %s!");
-		mockClient.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
-				.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
+		mockClient.configMaps()
+			.inNamespace("test")
+			.resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(APPLICATION_NAME)
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 	}
 
 	@Test
@@ -75,8 +81,14 @@ abstract class ConfigMapsTests {
 
 	@Test
 	public void testGreetingEndpoint() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap, World!");
+		this.webClient.get()
+			.uri("/api/greeting")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Hello ConfigMap, World!");
 	}
 
 }

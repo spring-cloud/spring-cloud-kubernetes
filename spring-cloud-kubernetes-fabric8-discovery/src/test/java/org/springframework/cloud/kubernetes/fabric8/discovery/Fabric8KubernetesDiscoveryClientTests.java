@@ -498,13 +498,21 @@ class Fabric8KubernetesDiscoveryClientTests {
 	@Test
 	void testGetServicesWithExternalNameService() {
 		Service nonExternalNameService = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).withNewMetadata()
-				.withName("blue-service").withNamespace("a").endMetadata().build();
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+			.withNewMetadata()
+			.withName("blue-service")
+			.withNamespace("a")
+			.endMetadata()
+			.build();
 		client.services().inNamespace("a").resource(nonExternalNameService).create();
 
 		Service externalNameService = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring").build())
-				.withNewMetadata().withName("blue-service").withNamespace("b").endMetadata().build();
+			.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring").build())
+			.withNewMetadata()
+			.withName("blue-service")
+			.withNamespace("b")
+			.endMetadata()
+			.build();
 		client.services().inNamespace("b").resource(externalNameService).create();
 
 		// last argument is irrelevant, as getServices does not care about that flag
@@ -520,9 +528,14 @@ class Fabric8KubernetesDiscoveryClientTests {
 	@Test
 	void testExternalNameService() {
 		Service externalNameService = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring-b").build())
-				.withNewMetadata().withLabels(Map.of("label-key", "label-value")).withAnnotations(Map.of("abc", "def"))
-				.withName("blue-service").withNamespace("b").endMetadata().build();
+			.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring-b").build())
+			.withNewMetadata()
+			.withLabels(Map.of("label-key", "label-value"))
+			.withAnnotations(Map.of("abc", "def"))
+			.withName("blue-service")
+			.withNamespace("b")
+			.endMetadata()
+			.build();
 		client.services().inNamespace("b").resource(externalNameService).create();
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
@@ -546,21 +559,34 @@ class Fabric8KubernetesDiscoveryClientTests {
 	@Test
 	void testPodMetadata() {
 		Service nonExternalNameService = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build()).withNewMetadata()
-				.withName("blue-service").withNamespace("a").endMetadata().build();
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
+			.withNewMetadata()
+			.withName("blue-service")
+			.withNamespace("a")
+			.endMetadata()
+			.build();
 		client.services().inNamespace("a").resource(nonExternalNameService).create();
 
-		client.endpoints().inNamespace("a").resource(new EndpointsBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("blue-service").build())
+		client.endpoints()
+			.inNamespace("a")
+			.resource(new EndpointsBuilder().withMetadata(new ObjectMetaBuilder().withName("blue-service").build())
 				.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8080).build())
-						.withAddresses(new EndpointAddressBuilder().withIp("127.0.0.1")
-								.withTargetRef(new ObjectReferenceBuilder().withKind("Pod").withName("my-pod").build())
-								.build())
+					.withAddresses(new EndpointAddressBuilder().withIp("127.0.0.1")
+						.withTargetRef(new ObjectReferenceBuilder().withKind("Pod").withName("my-pod").build())
 						.build())
-				.build()).create();
+					.build())
+				.build())
+			.create();
 
-		client.pods().inNamespace("a").resource(new PodBuilder().withMetadata(new ObjectMetaBuilder().withName("my-pod")
-				.withLabels(Map.of("a", "b")).withAnnotations(Map.of("c", "d")).build()).build()).create();
+		client.pods()
+			.inNamespace("a")
+			.resource(new PodBuilder()
+				.withMetadata(new ObjectMetaBuilder().withName("my-pod")
+					.withLabels(Map.of("a", "b"))
+					.withAnnotations(Map.of("c", "d"))
+					.build())
+				.build())
+			.create();
 
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
 				"labels-prefix-", true, "annotations-prefix-", true, "ports-prefix", true, true);
@@ -583,17 +609,21 @@ class Fabric8KubernetesDiscoveryClientTests {
 	}
 
 	private void createEndpoints(String namespace, String name, Map<String, String> labels) {
-		client.endpoints().inNamespace(namespace)
-				.resource(new EndpointsBuilder()
-						.withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build()).build())
-				.create();
+		client.endpoints()
+			.inNamespace(namespace)
+			.resource(new EndpointsBuilder()
+				.withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build())
+				.build())
+			.create();
 	}
 
 	private void createService(String namespace, String name, Map<String, String> labels) {
-		client.services().inNamespace(namespace)
-				.resource(new ServiceBuilder()
-						.withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build()).build())
-				.create();
+		client.services()
+			.inNamespace(namespace)
+			.resource(
+					new ServiceBuilder().withMetadata(new ObjectMetaBuilder().withName(name).withLabels(labels).build())
+						.build())
+			.create();
 	}
 
 }

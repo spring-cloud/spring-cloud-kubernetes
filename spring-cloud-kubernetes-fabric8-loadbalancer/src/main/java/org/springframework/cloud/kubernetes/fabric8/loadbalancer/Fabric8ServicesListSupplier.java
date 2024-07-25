@@ -63,16 +63,21 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 
 		if (discoveryProperties.allNamespaces()) {
 			LOG.debug(() -> "discovering services in all namespaces");
-			List<Service> services = kubernetesClient.services().inAnyNamespace()
-					.withField("metadata.name", serviceName).list().getItems();
+			List<Service> services = kubernetesClient.services()
+				.inAnyNamespace()
+				.withField("metadata.name", serviceName)
+				.list()
+				.getItems();
 			services.forEach(service -> addMappedService(mapper, result, service));
 		}
 		else if (!discoveryProperties.namespaces().isEmpty()) {
 			List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
 			LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
 			selectiveNamespaces.forEach(selectiveNamespace -> {
-				Service service = kubernetesClient.services().inNamespace(selectiveNamespace).withName(serviceName)
-						.get();
+				Service service = kubernetesClient.services()
+					.inNamespace(selectiveNamespace)
+					.withName(serviceName)
+					.get();
 				if (service != null) {
 					addMappedService(mapper, result, service);
 				}

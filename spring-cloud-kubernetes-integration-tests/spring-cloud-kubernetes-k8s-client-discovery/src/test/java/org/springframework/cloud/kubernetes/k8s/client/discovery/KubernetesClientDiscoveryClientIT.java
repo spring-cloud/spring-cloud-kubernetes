@@ -108,7 +108,8 @@ class KubernetesClientDiscoveryClientIT {
 
 		// find both pods
 		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-				.getStdout().split("\n");
+			.getStdout()
+			.split("\n");
 		// add a label to first pod
 		K3S.execInContainer("sh", "-c",
 				"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
@@ -120,10 +121,13 @@ class KubernetesClientDiscoveryClientIT {
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(servicesResult.size(), 4);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
@@ -132,12 +136,16 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertTrue(servicesResult.contains("external-name-service"));
 
 		WebClient ourServiceClient = builder()
-				.baseUrl("http://localhost/service-instances/spring-cloud-kubernetes-k8s-client-discovery").build();
+			.baseUrl("http://localhost/service-instances/spring-cloud-kubernetes-k8s-client-discovery")
+			.build();
 
-		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(ourServiceInstances.size(), 1);
 
@@ -152,42 +160,58 @@ class KubernetesClientDiscoveryClientIT {
 		Assertions.assertEquals(serviceInstance.getNamespace(), "default");
 
 		WebClient busyBoxServiceClient = builder().baseUrl("http://localhost/service-instances/busybox-service")
-				.build();
+			.build();
 		List<DefaultKubernetesServiceInstance> busyBoxServiceInstances = busyBoxServiceClient.method(HttpMethod.GET)
-				.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(busyBoxServiceInstances.size(), 2);
 
 		DefaultKubernetesServiceInstance withCustomLabel = busyBoxServiceInstances.stream()
-				.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
 		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomLabel.getInstanceId());
 		Assertions.assertNotNull(withCustomLabel.getHost());
 		Assertions.assertEquals(withCustomLabel.getMetadata(),
 				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomLabel.podMetadata().get("labels").entrySet().stream()
-				.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
+		Assertions.assertTrue(withCustomLabel.podMetadata()
+			.get("labels")
+			.entrySet()
+			.stream()
+			.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
 
 		DefaultKubernetesServiceInstance withCustomAnnotation = busyBoxServiceInstances.stream()
-				.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+			.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
 		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
 		Assertions.assertNotNull(withCustomAnnotation.getHost());
 		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
 				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomAnnotation.podMetadata().get("annotations").entrySet().stream().anyMatch(
-				x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
+		Assertions.assertTrue(withCustomAnnotation.podMetadata()
+			.get("annotations")
+			.entrySet()
+			.stream()
+			.anyMatch(x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
 
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
 		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
-				.build();
+			.build();
 		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
-				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
@@ -220,10 +244,13 @@ class KubernetesClientDiscoveryClientIT {
 		Commons.waitForLogStatement("serviceSharedInformer will use all-namespaces", K3S, IMAGE_NAME);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals(servicesResult.size(), 8);
 		Assertions.assertTrue(servicesResult.contains("kubernetes"));
 		Assertions.assertTrue(servicesResult.contains("spring-cloud-kubernetes-k8s-client-discovery"));
@@ -234,21 +261,27 @@ class KubernetesClientDiscoveryClientIT {
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
 		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
-				.build();
+			.build();
 		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
-				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
 		// test ExternalName fields
 		WebClient externalNameClient = builder().baseUrl("http://localhost/service-instances/external-name-service")
-				.build();
+			.build();
 		List<DefaultKubernetesServiceInstance> externalNameServices = externalNameClient.method(HttpMethod.GET)
-				.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 		DefaultKubernetesServiceInstance externalNameService = externalNameServices.get(0);
 		Assertions.assertNotNull(externalNameService.getInstanceId());
 		Assertions.assertEquals(externalNameService.getHost(), "spring.io");
@@ -290,20 +323,26 @@ class KubernetesClientDiscoveryClientIT {
 		Commons.waitForLogStatement("registering lister (for endpoints) in namespace : a", K3S, IMAGE_NAME);
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals(servicesResult.size(), 1);
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
 		WebClient wiremockInNamespaceAClient = builder().baseUrl("http://localhost/service-instances/service-wiremock")
-				.build();
+			.build();
 
 		List<DefaultKubernetesServiceInstance> wiremockInNamespaceA = wiremockInNamespaceAClient.method(HttpMethod.GET)
-				.retrieve().bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(wiremockInNamespaceA.size(), 1);
 
@@ -313,11 +352,14 @@ class KubernetesClientDiscoveryClientIT {
 		// enforces this :
 		// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
 		WebClient clientForNonExistentService = builder().baseUrl("http://localhost/service-instances/non-existent")
-				.build();
+			.build();
 		List<ServiceInstance> resultForNonExistentService = clientForNonExistentService.method(HttpMethod.GET)
-				.retrieve().bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<ServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(resultForNonExistentService.size(), 0);
 
@@ -420,20 +462,24 @@ class KubernetesClientDiscoveryClientIT {
 
 			List<V1EnvVar> envVars = new ArrayList<>(
 					Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-							.orElse(List.of()));
+						.orElse(List.of()));
 			V1EnvVar debugLevel = new V1EnvVar()
-					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY")
+				.value("DEBUG");
 			V1EnvVar commonsLevel = new V1EnvVar()
-					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY")
+				.value("DEBUG");
 
 			V1EnvVar debugLevelForClient = new V1EnvVar()
-					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT").value("DEBUG");
+				.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT")
+				.value("DEBUG");
 
 			V1EnvVar addLabels = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODLABELS")
-					.value("TRUE");
+				.value("TRUE");
 
 			V1EnvVar addAnnotations = new V1EnvVar()
-					.name("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODANNOTATIONS").value("TRUE");
+				.name("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODANNOTATIONS")
+				.value("TRUE");
 
 			envVars.add(debugLevel);
 			envVars.add(debugLevelForClient);
@@ -459,9 +505,10 @@ class KubernetesClientDiscoveryClientIT {
 	private void assertServicePresentInNamespaces(List<String> namespaces, String value, String serviceName) {
 		namespaces.forEach(x -> {
 			try {
-				String service = K3S.execInContainer("sh", "-c",
-						"kubectl get services -n " + x + " -l app=" + value + " -o=name --no-headers | tr -d '\n'")
-						.getStdout();
+				String service = K3S
+					.execInContainer("sh", "-c",
+							"kubectl get services -n " + x + " -l app=" + value + " -o=name --no-headers | tr -d '\n'")
+					.getStdout();
 				Assertions.assertEquals(service, "service/" + serviceName);
 			}
 			catch (Exception e) {

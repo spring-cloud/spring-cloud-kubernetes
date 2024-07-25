@@ -66,7 +66,7 @@ class ConfigDataSecretsRetryDisabledButConfigRetryEnabled extends SecretsRetryDi
 	protected void assertRetryBean(ApplicationContext context) {
 		assertThat(context.containsBean("configDataSecretsPropertySourceLocator")).isTrue();
 		assertThat(context.getBean("configDataSecretsPropertySourceLocator"))
-				.isInstanceOf(Fabric8SecretsPropertySourceLocator.class);
+			.isInstanceOf(Fabric8SecretsPropertySourceLocator.class);
 	}
 
 }

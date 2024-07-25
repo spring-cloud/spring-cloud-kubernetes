@@ -53,7 +53,7 @@ class ApiClientUserAgentDefaultHeader {
 		Request.Builder builder = new Request.Builder();
 		apiClient.processHeaderParams(Collections.emptyMap(), builder);
 		assertThat(builder.url(new URL("http://example.com")).build().headers().get("User-Agent"))
-				.isEqualTo("Spring-Cloud-Kubernetes-Application");
+			.isEqualTo("Spring-Cloud-Kubernetes-Application");
 	}
 
 }

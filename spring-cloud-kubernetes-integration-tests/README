@@ -18,7 +18,7 @@ you must name the image with the same name as the module. For example:
            </configuration>
            <phase>package</phase>
            <goals>
-              <goal>build-image</goal>
+              <goal>build-image-no-fork</goal>
            </goals>
         </execution>
         <execution>

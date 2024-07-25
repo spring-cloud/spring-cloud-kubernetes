@@ -42,20 +42,27 @@ abstract class Fabric8SecretsSanitize {
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, NAMESPACE);
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		Secret secret = new SecretBuilder().withNewMetadata().withName("sanitize-secret").endMetadata()
-				.addToData("sanitize.sanitizeSecretName",
-						Base64.getEncoder().encodeToString("sanitizeSecretValue".getBytes()))
-				.build();
+		Secret secret = new SecretBuilder().withNewMetadata()
+			.withName("sanitize-secret")
+			.endMetadata()
+			.addToData("sanitize.sanitizeSecretName",
+					Base64.getEncoder().encodeToString("sanitizeSecretValue".getBytes()))
+			.build();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
-		Secret secretTwo = new SecretBuilder().withNewMetadata().withName("sanitize-secret-two").endMetadata()
-				.addToData("sanitize.sanitizeSecretNameTwo",
-						Base64.getEncoder().encodeToString("sanitizeSecretValueTwo".getBytes()))
-				.build();
+		Secret secretTwo = new SecretBuilder().withNewMetadata()
+			.withName("sanitize-secret-two")
+			.endMetadata()
+			.addToData("sanitize.sanitizeSecretNameTwo",
+					Base64.getEncoder().encodeToString("sanitizeSecretValueTwo".getBytes()))
+			.build();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secretTwo).create();
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("sanitize-configmap").endMetadata()
-				.addToData("sanitize.sanitizeConfigMapName", "sanitizeConfigMapValue").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("sanitize-configmap")
+			.endMetadata()
+			.addToData("sanitize.sanitizeConfigMapName", "sanitizeConfigMapValue")
+			.build();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
 	}

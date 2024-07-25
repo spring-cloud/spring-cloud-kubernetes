@@ -74,17 +74,31 @@ class Fabric8InsideHealthIndicatorTest {
 	 */
 	@Test
 	void test() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-				.jsonPath("components.stubKubernetes.status").isEqualTo("UP")
-				.jsonPath("components.stubKubernetes.details.nodeName").isEqualTo("nodeName")
-				.jsonPath("components.stubKubernetes.details.podIp").isEqualTo("10.1.1.1")
-				.jsonPath("components.stubKubernetes.details.hostIp").isEqualTo("192.160.10.3")
-				.jsonPath("components.stubKubernetes.details.namespace").isEqualTo("namespace")
-				.jsonPath("components.stubKubernetes.details.podName").isEqualTo("pod")
-				.jsonPath("components.stubKubernetes.details.serviceAccount").isEqualTo("serviceAccountName")
-				.jsonPath("components.stubKubernetes.details.inside").isEqualTo("true")
-				.jsonPath("components.stubKubernetes.details.labels.labelName").isEqualTo("labelValue");
+		this.webClient.get()
+			.uri("http://localhost:{port}/actuator/health", this.port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("components.stubKubernetes.status")
+			.isEqualTo("UP")
+			.jsonPath("components.stubKubernetes.details.nodeName")
+			.isEqualTo("nodeName")
+			.jsonPath("components.stubKubernetes.details.podIp")
+			.isEqualTo("10.1.1.1")
+			.jsonPath("components.stubKubernetes.details.hostIp")
+			.isEqualTo("192.160.10.3")
+			.jsonPath("components.stubKubernetes.details.namespace")
+			.isEqualTo("namespace")
+			.jsonPath("components.stubKubernetes.details.podName")
+			.isEqualTo("pod")
+			.jsonPath("components.stubKubernetes.details.serviceAccount")
+			.isEqualTo("serviceAccountName")
+			.jsonPath("components.stubKubernetes.details.inside")
+			.isEqualTo("true")
+			.jsonPath("components.stubKubernetes.details.labels.labelName")
+			.isEqualTo("labelValue");
 	}
 
 	private static Pod stubPod() {
@@ -97,9 +111,14 @@ class Fabric8InsideHealthIndicatorTest {
 		spec.setServiceAccountName("serviceAccountName");
 		spec.setNodeName("nodeName");
 
-		return new PodBuilder().withNewMetadata().withName("pod").withNamespace("namespace")
-				.withLabels(Collections.singletonMap("labelName", "labelValue")).endMetadata().withStatus(status)
-				.withSpec(spec).build();
+		return new PodBuilder().withNewMetadata()
+			.withName("pod")
+			.withNamespace("namespace")
+			.withLabels(Collections.singletonMap("labelName", "labelValue"))
+			.endMetadata()
+			.withStatus(status)
+			.withSpec(spec)
+			.build();
 	}
 
 	@Configuration

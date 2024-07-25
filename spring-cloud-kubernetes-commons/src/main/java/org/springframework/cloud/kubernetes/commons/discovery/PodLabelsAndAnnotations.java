@@ -20,6 +20,7 @@ import java.util.Map;
 
 /**
  * Holds pod labels and annotations.
+ *
  * @author wind57
  */
 public record PodLabelsAndAnnotations(Map<String, String> labels, Map<String, String> annotations) {

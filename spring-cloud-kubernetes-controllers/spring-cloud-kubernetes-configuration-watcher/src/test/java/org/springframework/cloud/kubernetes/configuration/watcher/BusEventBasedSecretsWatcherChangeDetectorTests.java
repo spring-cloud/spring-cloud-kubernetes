@@ -88,7 +88,7 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 		secret.setMetadata(objectMeta);
 		changeDetector.triggerRefresh(secret, secret.getMetadata().getName());
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
-				.forClass(RefreshRemoteApplicationEvent.class);
+			.forClass(RefreshRemoteApplicationEvent.class);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
 		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(secret);
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());

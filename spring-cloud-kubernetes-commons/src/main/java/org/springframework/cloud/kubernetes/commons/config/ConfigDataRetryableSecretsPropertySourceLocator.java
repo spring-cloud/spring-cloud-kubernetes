@@ -43,20 +43,22 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 			SecretsConfigProperties secretsConfigProperties) {
 		super(secretsConfigProperties);
 		this.secretsPropertySourceLocator = propertySourceLocator;
-		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
-				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
-						properties.retry().maxInterval())
-				.build();
+		this.retryTemplate = RetryTemplate.builder()
+			.maxAttempts(properties.retry().maxAttempts())
+			.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
+					properties.retry().maxInterval())
+			.build();
 	}
 
 	public ConfigDataRetryableSecretsPropertySourceLocator(SecretsPropertySourceLocator propertySourceLocator,
 			SecretsConfigProperties secretsConfigProperties, SecretsCache cache) {
 		super(secretsConfigProperties, cache);
 		this.secretsPropertySourceLocator = propertySourceLocator;
-		this.retryTemplate = RetryTemplate.builder().maxAttempts(properties.retry().maxAttempts())
-				.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
-						properties.retry().maxInterval())
-				.build();
+		this.retryTemplate = RetryTemplate.builder()
+			.maxAttempts(properties.retry().maxAttempts())
+			.exponentialBackoff(properties.retry().initialInterval(), properties.retry().multiplier(),
+					properties.retry().maxInterval())
+			.build();
 	}
 
 	@Override
