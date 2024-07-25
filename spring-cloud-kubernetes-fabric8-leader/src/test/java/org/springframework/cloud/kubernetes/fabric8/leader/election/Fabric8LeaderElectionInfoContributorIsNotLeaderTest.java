@@ -52,8 +52,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
 				"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true",
-				"spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.cloud.kubernetes.leader.enabled=false" })
+				"spring.cloud.kubernetes.leader.election.enabled=true" })
 class Fabric8LeaderElectionInfoContributorIsNotLeaderTest {
 
 	private static final String HOLDER_IDENTITY = "leader";
@@ -79,9 +78,17 @@ class Fabric8LeaderElectionInfoContributorIsNotLeaderTest {
 
 	@Test
 	void infoEndpointIsNotLeaderTest() {
-		webClient.get().uri("http://localhost:{port}/actuator/info", port).accept(MediaType.APPLICATION_JSON).exchange()
-				.expectStatus().isOk().expectBody().jsonPath("leaderElection.isLeader").isEqualTo(false)
-				.jsonPath("leaderElection.leaderId").isEqualTo("non-" + HOLDER_IDENTITY);
+		webClient.get()
+			.uri("http://localhost:{port}/actuator/info", port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("leaderElection.isLeader")
+			.isEqualTo(false)
+			.jsonPath("leaderElection.leaderId")
+			.isEqualTo("non-" + HOLDER_IDENTITY);
 	}
 
 	@TestConfiguration
@@ -97,13 +104,15 @@ class Fabric8LeaderElectionInfoContributorIsNotLeaderTest {
 		}
 
 		private void mockForLeaseSupport(KubernetesClient client) {
-			Mockito.when(client.getApiResources("coordination.k8s.io/v1")).thenReturn(new APIResourceListBuilder()
-					.withResources(new APIResourceBuilder().withKind("Lease").build()).build());
+			Mockito.when(client.getApiResources("coordination.k8s.io/v1"))
+				.thenReturn(
+						new APIResourceListBuilder().withResources(new APIResourceBuilder().withKind("Lease").build())
+							.build());
 
 			APIGroupList apiGroupList = new APIGroupListBuilder().addNewGroup()
-					.withVersions(
-							new GroupVersionForDiscoveryBuilder().withGroupVersion("coordination.k8s.io/v1").build())
-					.endGroup().build();
+				.withVersions(new GroupVersionForDiscoveryBuilder().withGroupVersion("coordination.k8s.io/v1").build())
+				.endGroup()
+				.build();
 
 			Mockito.when(client.getApiGroups()).thenReturn(apiGroupList);
 		}
@@ -111,11 +120,16 @@ class Fabric8LeaderElectionInfoContributorIsNotLeaderTest {
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		private void mockForLeaderSupport(KubernetesClient client) {
 
-			Lease lease = new LeaseBuilder().withNewMetadata().withName("spring-k8s-leader-election-lock").endMetadata()
-					.withSpec(new LeaseSpecBuilder().withHolderIdentity(HOLDER_IDENTITY).withLeaseDurationSeconds(1)
-							.withAcquireTime(ZonedDateTime.now()).withRenewTime(ZonedDateTime.now())
-							.withLeaseTransitions(1).build())
-					.build();
+			Lease lease = new LeaseBuilder().withNewMetadata()
+				.withName("spring-k8s-leader-election-lock")
+				.endMetadata()
+				.withSpec(new LeaseSpecBuilder().withHolderIdentity(HOLDER_IDENTITY)
+					.withLeaseDurationSeconds(1)
+					.withAcquireTime(ZonedDateTime.now())
+					.withRenewTime(ZonedDateTime.now())
+					.withLeaseTransitions(1)
+					.build())
+				.build();
 
 			MixedOperation mixedOperation = Mockito.mock(MixedOperation.class);
 			Mockito.when(client.resources(Lease.class)).thenReturn(mixedOperation);

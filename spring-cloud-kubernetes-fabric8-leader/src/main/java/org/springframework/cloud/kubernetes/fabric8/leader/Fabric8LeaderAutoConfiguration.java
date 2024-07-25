@@ -24,12 +24,12 @@ import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInfoContributor;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
+import org.springframework.cloud.kubernetes.commons.leader.election.ConditionalOnLeaderElectionDisabled;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +44,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
+@ConditionalOnLeaderElectionDisabled
 public class Fabric8LeaderAutoConfiguration {
 
 	/*

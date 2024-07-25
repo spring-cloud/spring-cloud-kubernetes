@@ -45,7 +45,6 @@ import org.springframework.context.annotation.Primary;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.cloud.kubernetes.leader.enabled=false",
 				"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false" })
 @ExtendWith(OutputCaptureExtension.class)
 class Fabric8LeaderElectionSimpleITTest {
@@ -70,8 +69,10 @@ class Fabric8LeaderElectionSimpleITTest {
 	void test(CapturedOutput output) {
 
 		// wait for a renewal
-		Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofMinutes(1))
-				.until(() -> output.getOut().contains("Attempting to renew leader lease"));
+		Awaitility.await()
+			.pollInterval(Duration.ofSeconds(1))
+			.atMost(Duration.ofMinutes(1))
+			.until(() -> output.getOut().contains("Attempting to renew leader lease"));
 
 		// all these logs happen before a renewal
 		Assertions.assertTrue(output.getOut().contains("will use lease as the lock for leader election"));
@@ -79,8 +80,10 @@ class Fabric8LeaderElectionSimpleITTest {
 		Assertions.assertTrue(output.getOut().contains("Leader election started"));
 		Assertions.assertTrue(output.getOut().contains("Successfully Acquired leader lease"));
 
-		Lease lockLease = kubernetesClient.leases().inNamespace("default").withName("spring-k8s-leader-election-lock")
-				.get();
+		Lease lockLease = kubernetesClient.leases()
+			.inNamespace("default")
+			.withName("spring-k8s-leader-election-lock")
+			.get();
 		ZonedDateTime currentAcquiredTime = lockLease.getSpec().getAcquireTime();
 		Assertions.assertNotNull(currentAcquiredTime);
 		Assertions.assertEquals(15, lockLease.getSpec().getLeaseDurationSeconds());
@@ -90,9 +93,15 @@ class Fabric8LeaderElectionSimpleITTest {
 		Assertions.assertNotNull(currentRenewalTime);
 
 		// renew happened, we renew by default on every two seconds
-		Awaitility.await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(4))
-				.until(() -> !(currentRenewalTime.equals(kubernetesClient.leases().inNamespace("default")
-						.withName("spring-k8s-leader-election-lock").get().getSpec().getRenewTime())));
+		Awaitility.await()
+			.pollInterval(Duration.ofSeconds(1))
+			.atMost(Duration.ofSeconds(4))
+			.until(() -> !(currentRenewalTime.equals(kubernetesClient.leases()
+				.inNamespace("default")
+				.withName("spring-k8s-leader-election-lock")
+				.get()
+				.getSpec()
+				.getRenewTime())));
 	}
 
 	@TestConfiguration

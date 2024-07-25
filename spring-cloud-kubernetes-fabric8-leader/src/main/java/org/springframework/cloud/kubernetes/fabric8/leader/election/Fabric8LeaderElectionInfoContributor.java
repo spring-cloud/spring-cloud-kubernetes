@@ -48,11 +48,11 @@ final class Fabric8LeaderElectionInfoContributor implements InfoContributor {
 	public void contribute(Info.Builder builder) {
 		Map<String, Object> details = new HashMap<>();
 		Optional.ofNullable(leaderElectionConfig.getLock().get(fabric8KubernetesClient))
-				.ifPresentOrElse(leaderRecord -> {
-					boolean isLeader = holderIdentity.equals(leaderRecord.getHolderIdentity());
-					details.put("leaderId", holderIdentity);
-					details.put("isLeader", isLeader);
-				}, () -> details.put("leaderId", "Unknown"));
+			.ifPresentOrElse(leaderRecord -> {
+				boolean isLeader = holderIdentity.equals(leaderRecord.getHolderIdentity());
+				details.put("leaderId", holderIdentity);
+				details.put("isLeader", isLeader);
+			}, () -> details.put("leaderId", "Unknown"));
 
 		builder.withDetail("leaderElection", details);
 	}

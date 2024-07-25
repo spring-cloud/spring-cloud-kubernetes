@@ -45,8 +45,7 @@ class Fabric8LeaderElectionAutoConfigurationTests {
 
 	@Test
 	void allBeansPresent() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.cloud.kubernetes.leader.enabled=false");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(Fabric8LeaderElectionInfoContributor.class);
 			assertThat(context).hasSingleBean(Fabric8LeaderElectionInitiator.class);
@@ -59,7 +58,7 @@ class Fabric8LeaderElectionAutoConfigurationTests {
 	@Test
 	void allBeansPresentWithoutHealthIndicator() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.cloud.kubernetes.leader.enabled=false", "management.health.leader.election.enabled=false");
+				"management.health.leader.election.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(Fabric8LeaderElectionInfoContributor.class);
 			assertThat(context).hasSingleBean(Fabric8LeaderElectionInitiator.class);
@@ -83,10 +82,11 @@ class Fabric8LeaderElectionAutoConfigurationTests {
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(Fabric8LeaderElectionCallbacksAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						Fabric8LeaderElectionAutoConfiguration.class))
-				.withUserConfiguration(Configuration.class).withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(Fabric8LeaderElectionCallbacksAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					Fabric8LeaderElectionAutoConfiguration.class))
+			.withUserConfiguration(Configuration.class)
+			.withPropertyValues(properties);
 	}
 
 	@TestConfiguration
@@ -96,13 +96,15 @@ class Fabric8LeaderElectionAutoConfigurationTests {
 		KubernetesClient mockKubernetesClient() {
 			KubernetesClient client = Mockito.mock(KubernetesClient.class);
 
-			Mockito.when(client.getApiResources("coordination.k8s.io/v1")).thenReturn(new APIResourceListBuilder()
-					.withResources(new APIResourceBuilder().withKind("Lease").build()).build());
+			Mockito.when(client.getApiResources("coordination.k8s.io/v1"))
+				.thenReturn(
+						new APIResourceListBuilder().withResources(new APIResourceBuilder().withKind("Lease").build())
+							.build());
 
 			APIGroupList apiGroupList = new APIGroupListBuilder().addNewGroup()
-					.withVersions(
-							new GroupVersionForDiscoveryBuilder().withGroupVersion("coordination.k8s.io/v1").build())
-					.endGroup().build();
+				.withVersions(new GroupVersionForDiscoveryBuilder().withGroupVersion("coordination.k8s.io/v1").build())
+				.endGroup()
+				.build();
 
 			Mockito.when(client.getApiGroups()).thenReturn(apiGroupList);
 			return client;

@@ -28,16 +28,9 @@ spring.cloud.kubernetes.leader.config-map-name=leader
 
 '''
 
-There is another way you can configure leader election and it comes with native support in the fabric8 library. In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDKs "preview" features.
+There is another way you can configure leader election, and it comes with native support in the fabric8 library. In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDKs "preview" features.
 
-To be able to use it, you first need to disable the old implementation:
-
-[source]
-----
-spring.cloud.kubernetes.leader.enabled=false
-----
-
-and enable the new one:
+To be able to use it, you need to set the property:
 
 [source]
 ----

@@ -83,7 +83,7 @@ final class Fabric8LeaderElectionInitiator {
 
 				try {
 					LOG.info(() -> "waiting for pod : " + holderIdentity + " in namespace : " + podNamespace
-						+ " to be ready");
+							+ " to be ready");
 					Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(holderIdentity).get();
 					boolean podReady = Readiness.isPodReady(pod);
 					if (podReady) {
@@ -92,7 +92,7 @@ final class Fabric8LeaderElectionInitiator {
 					}
 					else {
 						LOG.info(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is not ready, "
-							+ "will retry in one second");
+								+ "will retry in one second");
 					}
 				}
 				catch (Exception e) {
@@ -100,7 +100,6 @@ final class Fabric8LeaderElectionInitiator {
 					LOG.error(() -> "leader election was not OK");
 					throw new RuntimeException(e);
 				}
-
 
 			}, 1, 1, TimeUnit.SECONDS));
 		}
@@ -111,7 +110,7 @@ final class Fabric8LeaderElectionInitiator {
 			try {
 				if (leaderElectionProperties.waitForPodReady()) {
 					CompletableFuture<?> ready = podReadyFuture
-							.whenComplete((x, y) -> scheduledFuture.get().cancel(true));
+						.whenComplete((x, y) -> scheduledFuture.get().cancel(true));
 					ready.get();
 				}
 				leaderFuture.set(leaderElector(leaderElectionConfig, fabric8KubernetesClient).start());

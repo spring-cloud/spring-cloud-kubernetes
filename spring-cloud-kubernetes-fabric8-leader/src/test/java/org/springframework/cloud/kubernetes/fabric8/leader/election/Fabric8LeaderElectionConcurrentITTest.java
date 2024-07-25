@@ -133,10 +133,14 @@ class Fabric8LeaderElectionConcurrentITTest {
 		LeaseLock lock = leaseLock(holderIdentity);
 		Fabric8LeaderElectionCallbacks callbacks = callbacks(holderIdentity);
 
-		return new LeaderElectionConfigBuilder().withReleaseOnCancel().withName("leader-election-config")
-				.withLeaseDuration(Duration.ofSeconds(PROPERTIES.leaseDuration())).withLock(lock)
-				.withRenewDeadline(Duration.ofSeconds(PROPERTIES.renewDeadline()))
-				.withRetryPeriod(Duration.ofSeconds(PROPERTIES.retryPeriod())).withLeaderCallbacks(callbacks).build();
+		return new LeaderElectionConfigBuilder().withReleaseOnCancel()
+			.withName("leader-election-config")
+			.withLeaseDuration(Duration.ofSeconds(PROPERTIES.leaseDuration()))
+			.withLock(lock)
+			.withRenewDeadline(Duration.ofSeconds(PROPERTIES.renewDeadline()))
+			.withRetryPeriod(Duration.ofSeconds(PROPERTIES.retryPeriod()))
+			.withLeaderCallbacks(callbacks)
+			.build();
 	}
 
 	private LeaseLock leaseLock(String holderIdentity) {
@@ -154,8 +158,10 @@ class Fabric8LeaderElectionConcurrentITTest {
 	}
 
 	private void awaitForMessage(CapturedOutput output, String message) {
-		Awaitility.await().pollInterval(Duration.ofMillis(100)).atMost(Duration.ofSeconds(10))
-				.until(() -> output.getOut().contains(message));
+		Awaitility.await()
+			.pollInterval(Duration.ofMillis(100))
+			.atMost(Duration.ofSeconds(10))
+			.until(() -> output.getOut().contains(message));
 	}
 
 }

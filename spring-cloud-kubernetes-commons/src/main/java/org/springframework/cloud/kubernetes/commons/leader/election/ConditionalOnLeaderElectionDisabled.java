@@ -35,8 +35,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.election.enabled", matchIfMissing = false,
-		havingValue = "true")
-public @interface ConditionalOnLeaderElectionEnabled {
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.election.enabled", matchIfMissing = true,
+		havingValue = "false")
+public @interface ConditionalOnLeaderElectionDisabled {
 
 }

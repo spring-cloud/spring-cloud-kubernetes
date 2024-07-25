@@ -83,21 +83,31 @@ class Fabric8LeaderElectionAutoConfiguration {
 	@ConditionalOnMissingBean
 	LeaderElectionConfig fabric8LeaderElectionConfig(LeaderElectionProperties properties, Lock lock,
 			Fabric8LeaderElectionCallbacks fabric8LeaderElectionCallbacks) {
-		return new LeaderElectionConfigBuilder().withReleaseOnCancel().withName("Spring k8s leader election")
-				.withLeaseDuration(Duration.ofSeconds(properties.leaseDuration())).withLock(lock)
-				.withRenewDeadline(Duration.ofSeconds(properties.renewDeadline()))
-				.withRetryPeriod(Duration.ofSeconds(properties.retryPeriod()))
-				.withLeaderCallbacks(fabric8LeaderElectionCallbacks).build();
+		return new LeaderElectionConfigBuilder().withReleaseOnCancel()
+			.withName("Spring k8s leader election")
+			.withLeaseDuration(Duration.ofSeconds(properties.leaseDuration()))
+			.withLock(lock)
+			.withRenewDeadline(Duration.ofSeconds(properties.renewDeadline()))
+			.withRetryPeriod(Duration.ofSeconds(properties.retryPeriod()))
+			.withLeaderCallbacks(fabric8LeaderElectionCallbacks)
+			.build();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	Lock lock(KubernetesClient fabric8KubernetesClient, LeaderElectionProperties properties, String holderIdentity) {
-		boolean leaseSupported = fabric8KubernetesClient.getApiGroups().getGroups().stream()
-				.flatMap(x -> x.getVersions().stream()).map(GroupVersionForDiscovery::getGroupVersion)
-				.filter(COORDINATION_VERSION_GROUP::equals).findFirst().map(fabric8KubernetesClient::getApiResources)
-				.map(APIResourceList::getResources).map(x -> x.stream().map(APIResource::getKind))
-				.flatMap(x -> x.filter(y -> y.equals(LEASE)).findFirst()).isPresent();
+		boolean leaseSupported = fabric8KubernetesClient.getApiGroups()
+			.getGroups()
+			.stream()
+			.flatMap(x -> x.getVersions().stream())
+			.map(GroupVersionForDiscovery::getGroupVersion)
+			.filter(COORDINATION_VERSION_GROUP::equals)
+			.findFirst()
+			.map(fabric8KubernetesClient::getApiResources)
+			.map(APIResourceList::getResources)
+			.map(x -> x.stream().map(APIResource::getKind))
+			.flatMap(x -> x.filter(y -> y.equals(LEASE)).findFirst())
+			.isPresent();
 
 		if (leaseSupported) {
 			LOG.info(() -> "will use lease as the lock for leader election");

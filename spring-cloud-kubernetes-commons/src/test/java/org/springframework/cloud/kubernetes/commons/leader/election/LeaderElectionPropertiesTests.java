@@ -46,24 +46,24 @@ class LeaderElectionPropertiesTests {
 	@Test
 	void testNonDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
-				.withPropertyValues("spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false",
-						"spring.cloud.kubernetes.leader.election.publish-events=false",
-						"spring.cloud.kubernetes.leader.election.lease-duration=10",
-						"spring.cloud.kubernetes.leader.election.lock-namespace=lock-namespace",
-						"spring.cloud.kubernetes.leader.election.lock-name=lock-name",
-						"spring.cloud.kubernetes.leader.election.renew-deadline=1",
-						"spring.cloud.kubernetes.leader.election.retry-period=3")
-				.run(context -> {
-					LeaderElectionProperties properties = context.getBean(LeaderElectionProperties.class);
-					Assertions.assertNotNull(properties);
-					Assertions.assertFalse(properties.waitForPodReady());
-					Assertions.assertFalse(properties.publishEvents());
-					Assertions.assertEquals(10, properties.leaseDuration());
-					Assertions.assertEquals("lock-namespace", properties.lockNamespace());
-					Assertions.assertEquals("lock-name", properties.lockName());
-					Assertions.assertEquals(1, properties.renewDeadline());
-					Assertions.assertEquals(3, properties.retryPeriod());
-				});
+			.withPropertyValues("spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false",
+					"spring.cloud.kubernetes.leader.election.publish-events=false",
+					"spring.cloud.kubernetes.leader.election.lease-duration=10",
+					"spring.cloud.kubernetes.leader.election.lock-namespace=lock-namespace",
+					"spring.cloud.kubernetes.leader.election.lock-name=lock-name",
+					"spring.cloud.kubernetes.leader.election.renew-deadline=1",
+					"spring.cloud.kubernetes.leader.election.retry-period=3")
+			.run(context -> {
+				LeaderElectionProperties properties = context.getBean(LeaderElectionProperties.class);
+				Assertions.assertNotNull(properties);
+				Assertions.assertFalse(properties.waitForPodReady());
+				Assertions.assertFalse(properties.publishEvents());
+				Assertions.assertEquals(10, properties.leaseDuration());
+				Assertions.assertEquals("lock-namespace", properties.lockNamespace());
+				Assertions.assertEquals("lock-name", properties.lockName());
+				Assertions.assertEquals(1, properties.renewDeadline());
+				Assertions.assertEquals(3, properties.retryPeriod());
+			});
 	}
 
 	@EnableConfigurationProperties(LeaderElectionProperties.class)

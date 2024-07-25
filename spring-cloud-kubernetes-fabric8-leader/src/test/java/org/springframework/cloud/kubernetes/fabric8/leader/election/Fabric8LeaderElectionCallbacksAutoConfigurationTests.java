@@ -34,8 +34,7 @@ class Fabric8LeaderElectionCallbacksAutoConfigurationTests {
 
 	@Test
 	void allBeansPresent() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.cloud.kubernetes.leader.enabled=false");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasBean("holderIdentity");
 			assertThat(context).hasBean("podNamespace");
@@ -61,9 +60,9 @@ class Fabric8LeaderElectionCallbacksAutoConfigurationTests {
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(Fabric8LeaderElectionCallbacksAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
-				.withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(Fabric8LeaderElectionCallbacksAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class))
+			.withPropertyValues(properties);
 	}
 
 }
