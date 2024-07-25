@@ -23,6 +23,7 @@
 
 	<build>
 		<plugins>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -48,7 +49,7 @@
 						</configuration>
 						<phase>package</phase>
 						<goals>
-							<goal>build-image</goal>
+							<goal>build-image-no-fork</goal>
 						</goals>
 					</execution>
 					<execution>
