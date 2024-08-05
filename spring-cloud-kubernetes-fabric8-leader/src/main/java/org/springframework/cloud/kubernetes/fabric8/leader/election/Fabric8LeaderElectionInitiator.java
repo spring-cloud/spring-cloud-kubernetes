@@ -72,13 +72,13 @@ final class Fabric8LeaderElectionInitiator {
 
 	@PostConstruct
 	void postConstruct() {
-		LOG.info(() -> "starting leader initiator");
+		LOG.info(() -> "starting leader initiator : " + holderIdentity);
 		executorService.set(Executors.newSingleThreadExecutor());
 		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
 
 		// wait until pod is ready
 		if (leaderElectionProperties.waitForPodReady()) {
-			LOG.info(() -> "need to wait until pod is ready");
+			LOG.info(() -> "need to wait until pod is ready : " + holderIdentity);
 			scheduledFuture.set(scheduler.scheduleWithFixedDelay(() -> {
 
 				try {
@@ -97,7 +97,7 @@ final class Fabric8LeaderElectionInitiator {
 				}
 				catch (Exception e) {
 					LOG.error(() -> "exception waiting for pod : " + e.getMessage());
-					LOG.error(() -> "leader election was not OK");
+					LOG.error(() -> "leader election for " + holderIdentity + "  was not OK");
 					throw new RuntimeException(e);
 				}
 
@@ -118,7 +118,7 @@ final class Fabric8LeaderElectionInitiator {
 			}
 			catch (Exception e) {
 				if (e instanceof CancellationException) {
-					LOG.warn(() -> "leaderFuture was canceled");
+					LOG.warn(() -> "leaderFuture was canceled for : " + holderIdentity);
 				}
 				throw new RuntimeException(e);
 			}
@@ -128,7 +128,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	@PreDestroy
 	void preDestroy() {
-		LOG.info(() -> "preDestroy called in the leader initiator");
+		LOG.info(() -> "preDestroy called in the leader initiator : " + holderIdentity);
 		if (scheduledFuture.get() != null) {
 			// if the task is not running, this has no effect
 			// if the task is running, calling this will also make sure
@@ -137,7 +137,7 @@ final class Fabric8LeaderElectionInitiator {
 		}
 
 		if (leaderFuture.get() != null) {
-			LOG.info(() -> "leader will be canceled");
+			LOG.info(() -> "leader will be canceled : " + holderIdentity);
 			// needed to release the lock, fabric8 internally expects this one to be
 			// called
 			leaderFuture.get().cancel(true);
