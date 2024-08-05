@@ -526,10 +526,12 @@ class DiscoveryClientUtilsTests {
 			.contains("not found primary-port-name (with value: 'null') via properties or service labels"));
 		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'https' to match port"));
 		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'http' to match port"));
+		Assertions.assertTrue(
+				output.getOut().contains("Could not find a port named 'https' or 'http' for service 'spring-k8s'."));
 		Assertions.assertTrue(output.getOut().contains("""
 				Make sure that either the primary-port-name label has been added to the service,
 				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
-				Alternatively name the primary port 'https' or 'http'
+				Alternatively name the primary port 'https' or 'http'.
 				An incorrect configuration may result in non-deterministic behaviour."""));
 	}
 
@@ -562,10 +564,12 @@ class DiscoveryClientUtilsTests {
 			.contains("not found primary-port-name (with value: 'three') via properties or service labels"));
 		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'https' to match port"));
 		Assertions.assertTrue(output.getOut().contains("not found primary-port-name via 'http' to match port"));
+		Assertions.assertTrue(output.getOut()
+			.contains("Could not find a port named 'three', 'https', or 'http' for service 'spring-k8s'."));
 		Assertions.assertTrue(output.getOut().contains("""
 				Make sure that either the primary-port-name label has been added to the service,
 				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
-				Alternatively name the primary port 'https' or 'http'
+				Alternatively name the primary port 'https' or 'http'.
 				An incorrect configuration may result in non-deterministic behaviour."""));
 	}
 
