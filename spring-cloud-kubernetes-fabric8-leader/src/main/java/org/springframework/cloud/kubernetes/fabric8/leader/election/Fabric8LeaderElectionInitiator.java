@@ -212,9 +212,6 @@ final class Fabric8LeaderElectionInitiator {
 			leaderFutureReference.get().get();
 		}
 		catch (Exception e) {
-			if (e instanceof CancellationException) {
-				LOG.warn(() -> "leaderFuture was canceled for : " + holderIdentity);
-			}
 			throw new RuntimeException(e);
 		}
 	}
