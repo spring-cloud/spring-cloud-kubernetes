@@ -137,7 +137,8 @@ final class Fabric8LeaderElectionInitiator {
 					});
 				try {
 					ready.get();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					throw new RuntimeException(e);
 				}
 
@@ -199,7 +200,8 @@ final class Fabric8LeaderElectionInitiator {
 							leaderElectionProperties.waitAfterRenewalFailure() + " seconds");
 						try {
 							TimeUnit.SECONDS.sleep(leaderElectionProperties.waitAfterRenewalFailure());
-						} catch (InterruptedException e) {
+						}
+						catch (InterruptedException e) {
 							throw new RuntimeException(e);
 						}
 						startLeaderElection();

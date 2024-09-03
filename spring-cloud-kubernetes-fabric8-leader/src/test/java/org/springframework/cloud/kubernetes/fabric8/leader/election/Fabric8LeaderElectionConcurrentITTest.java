@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
 import java.time.Duration;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.client.Config;
