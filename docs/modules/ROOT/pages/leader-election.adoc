@@ -65,13 +65,20 @@ Like with the old implementation, we will publish events by default, but this ca
 spring.cloud.kubernetes.leader.election.publishEvents=false
 ----
 
-There are a few parameters that directly control how the leader election process will happen. In order to explain them, we need to look at the high level implementation of this process. All the candidates (pods), try to become the leader, or they try to _acquire_ the lock. If the lock is already taken, they will continue to retry to acquire it every `spring.cloud.kubernetes.leader.election.retryPeriod` (value is specified in seconds, and by default it is 2 seconds).
+There are a few parameters that control how the leader election process will happen. In order to explain them, we need to look at the high level implementation of this process. All the candidates (pods), try to become the leader, or they try to _acquire_ the lock. If the lock is already taken, they will continue to retry to acquire it every `spring.cloud.kubernetes.leader.election.retryPeriod` (value is specified in seconds, and by default it is 2 seconds).
 
 If the lock is not taken, current pod becomes the leader. It does so by inserting a so-called "record" into the lock (`Lease` or `ConfigMap`). Among the things that the "record" contains, is the `leaseDuration` (that you can specify via `spring.cloud.kubernetes.leader.election.leaseDuration` and by default it is 15 seconds). This acts like a TTL on the lock: no other candidate can acquire the lock, unless this period has expired (from the last renewal time).
 
 Once a certain pod establishes itself as the leader (by acquiring the lock), it will continuously (every `spring.cloud.kubernetes.leader.election.retryPeriod`) try to renew its lease, or in other words: it will try to extend its leadership. When a renewal happens, the "record" that is stored inside the lock, is updated. For example, `renewTime` is updated inside the record, to denote when the last renewal happened. (You can always peek inside these fields by using `kubectl describe lease...` for example).
 
-Renewal must happen within a certain interval, specified by `spring.cloud.kubernetes.leader.election.renewDeadline`. By default, it is equal to 10 seconds and it means that the leader pod has a maximum of 10 seconds to renew its leadership. If that does not happen, this pod is taken out from leader election process and never participates again (unless you refresh the Spring context or restart the pod).
+Renewal must happen within a certain interval, specified by `spring.cloud.kubernetes.leader.election.renewDeadline`. By default, it is equal to 10 seconds, and it means that the leader pod has a maximum of 10 seconds to renew its leadership. If that does not happen, this pod loses its leadership and leader election starts again. Because other pods try to become leaders every 2 seconds (by default), it could mean that the pod that just lost leadership, will become leader again. If you want other pods to have a higher chance of becoming leaders, you can set the property (specified in seconds, by default it is 0) :
+
+[source]
+----
+spring.cloud.kubernetes.leader.election.wait-after-renewal-failure=3
+----
+
+This will mean that the pod (that could not renew its lease) and lost leadership, will wait this many seconds, before trying to become leader again.
 
 Let's try to explain these settings based on an example: there are two pods that participate in leader election. For simplicity let's call them `podA` and `podB`. They both start at the same time: `12:00:00`, but `podA` establishes itself as the leader. This means that every two seconds (`retryPeriod`), `podB` will try to become the new leader. So at `12:00:02`, then at `12:00:04` and so on, it will basically ask : "Can I become the leader?". In our simplified example, the answer to that question can be answered based on `podA` activity.
 

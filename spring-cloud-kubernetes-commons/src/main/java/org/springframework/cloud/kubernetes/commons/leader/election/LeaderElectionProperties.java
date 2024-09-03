@@ -31,7 +31,8 @@ public record LeaderElectionProperties(
 	@DefaultValue("default") String lockNamespace,
 	@DefaultValue("spring-k8s-leader-election-lock") String lockName,
 	@DefaultValue("10") int renewDeadline,
-	@DefaultValue("2") int retryPeriod) {
+	@DefaultValue("2") int retryPeriod,
+	@DefaultValue("0") int waitAfterRenewalFailure) {
 // @formatter:on
 
 	/**

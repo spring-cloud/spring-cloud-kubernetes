@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.api.model.Pod;
@@ -59,7 +60,10 @@ final class Fabric8LeaderElectionInitiator {
 
 	private final AtomicReference<ScheduledFuture<?>> scheduledFuture = new AtomicReference<>();
 
-	private final AtomicReference<CompletableFuture<?>> leaderFuture = new AtomicReference<>();
+	private final AtomicReference<CompletableFuture<?>> leaderFutureReference = new AtomicReference<>();
+
+	// not private for testing
+	final AtomicBoolean destroyCalled = new AtomicBoolean(false);
 
 	Fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace, KubernetesClient fabric8KubernetesClient,
 			LeaderElectionConfig leaderElectionConfig, LeaderElectionProperties leaderElectionProperties) {
@@ -70,10 +74,20 @@ final class Fabric8LeaderElectionInitiator {
 		this.leaderElectionProperties = leaderElectionProperties;
 	}
 
+	/**
+	 *  in a CachedSingleThreadScheduler start pod readiness and keep it running 'forever',
+	 *  until it is successful or failed. That is run in a daemon thread.
+	 *
+	 *  In a different pool ('executorService'), block until the above CompletableFuture is done.
+	 *  Only when it's done, start the leader election process.
+	 *  If pod readiness fails, leader election is not started.
+	 *
+ 	 */
 	@PostConstruct
 	void postConstruct() {
 		LOG.info(() -> "starting leader initiator : " + holderIdentity);
-		executorService.set(Executors.newSingleThreadExecutor());
+		executorService.set(Executors.newSingleThreadExecutor(
+			r -> new Thread(r, "Fabric8LeaderElectionInitiator-" + holderIdentity)));
 		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
 
 		// wait until pod is ready
@@ -97,7 +111,8 @@ final class Fabric8LeaderElectionInitiator {
 				}
 				catch (Exception e) {
 					LOG.error(() -> "exception waiting for pod : " + e.getMessage());
-					LOG.error(() -> "leader election for " + holderIdentity + "  was not OK");
+					LOG.error(() -> "leader election for " + holderIdentity + "  was not successful");
+					podReadyFuture.completeExceptionally(e);
 					throw new RuntimeException(e);
 				}
 
@@ -107,20 +122,33 @@ final class Fabric8LeaderElectionInitiator {
 		// wait in a different thread until the pod is ready
 		// and in the same thread start the leader election
 		executorService.get().submit(() -> {
-			try {
-				if (leaderElectionProperties.waitForPodReady()) {
-					CompletableFuture<?> ready = podReadyFuture
-						.whenComplete((x, y) -> scheduledFuture.get().cancel(true));
+			if (leaderElectionProperties.waitForPodReady()) {
+				CompletableFuture<?> ready = podReadyFuture
+					.whenComplete((ok, error) -> {
+						if (error != null) {
+							LOG.error(() -> "readiness failed for : " + holderIdentity);
+							LOG.error(() -> "leader election for : " + holderIdentity + " will not start");
+							scheduledFuture.get().cancel(true);
+						}
+						else {
+							LOG.info(() -> holderIdentity + " is ready");
+							scheduledFuture.get().cancel(true);
+						}
+					});
+				try {
 					ready.get();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
-				leaderFuture.set(leaderElector(leaderElectionConfig, fabric8KubernetesClient).start());
-				leaderFuture.get();
+
+				// readiness check passed, start leader election
+				if (!podReadyFuture.isCompletedExceptionally()) {
+					startLeaderElection();
+				}
+
 			}
-			catch (Exception e) {
-				if (e instanceof CancellationException) {
-					LOG.warn(() -> "leaderFuture was canceled for : " + holderIdentity);
-				}
-				throw new RuntimeException(e);
+			else {
+				startLeaderElection();
 			}
 		});
 
@@ -128,6 +156,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	@PreDestroy
 	void preDestroy() {
+		destroyCalled();
 		LOG.info(() -> "preDestroy called in the leader initiator : " + holderIdentity);
 		if (scheduledFuture.get() != null) {
 			// if the task is not running, this has no effect
@@ -136,19 +165,59 @@ final class Fabric8LeaderElectionInitiator {
 			scheduledFuture.get().cancel(true);
 		}
 
-		if (leaderFuture.get() != null) {
+		if (leaderFutureReference.get() != null) {
 			LOG.info(() -> "leader will be canceled : " + holderIdentity);
 			// needed to release the lock, fabric8 internally expects this one to be
 			// called
-			leaderFuture.get().cancel(true);
+			leaderFutureReference.get().cancel(true);
 		}
-		executorService.get().shutdownNow();
-
+		shutDownExecutor();
 	}
 
-	// can't be a bean because on context refresh, we keep starting an instance, and
-	// it is not allowed to start the same instance twice.
-	LeaderElector leaderElector(LeaderElectionConfig config, KubernetesClient fabric8KubernetesClient) {
+	void destroyCalled() {
+		destroyCalled.set(true);
+	}
+
+	void shutDownExecutor() {
+		executorService.get().shutdownNow();
+	}
+
+	private void startLeaderElection() {
+		try {
+			CompletableFuture<?> leaderFuture = leaderElector(leaderElectionConfig, fabric8KubernetesClient).start();
+			leaderFuture.whenCompleteAsync((ok, error) -> {
+
+				if (ok != null) {
+					LOG.info(() -> "leaderFuture finished normally, will re-start it for  : " + holderIdentity);
+					startLeaderElection();
+					return;
+				}
+
+				if (error instanceof CancellationException) {
+					if (!destroyCalled.get()) {
+						LOG.warn(() -> "renewal failed for  : " + holderIdentity + ", will re-start it after : " +
+							leaderElectionProperties.waitAfterRenewalFailure() + " seconds");
+						try {
+							TimeUnit.SECONDS.sleep(leaderElectionProperties.waitAfterRenewalFailure());
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e);
+						}
+						startLeaderElection();
+					}
+				}
+			}, executorService.get());
+			leaderFutureReference.set(leaderFuture);
+			leaderFutureReference.get().get();
+		}
+		catch (Exception e) {
+			if (e instanceof CancellationException) {
+				LOG.warn(() -> "leaderFuture was canceled for : " + holderIdentity);
+			}
+			throw new RuntimeException(e);
+		}
+	}
+
+	private LeaderElector leaderElector(LeaderElectionConfig config, KubernetesClient fabric8KubernetesClient) {
 		return fabric8KubernetesClient.leaderElector().withConfig(config).build();
 	}
 
