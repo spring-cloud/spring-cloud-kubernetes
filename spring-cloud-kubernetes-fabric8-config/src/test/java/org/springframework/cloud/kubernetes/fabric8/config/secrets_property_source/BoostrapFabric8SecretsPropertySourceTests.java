@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(value = "classpath:/application-secrets.properties",
-	properties = "spring.cloud.bootstrap.enabled=true")
+		properties = "spring.cloud.bootstrap.enabled=true")
 @EnableKubernetesMockClient(crud = true, https = false)
 class BoostrapFabric8SecretsPropertySourceTests extends Fabric8SecretsPropertySource {
 

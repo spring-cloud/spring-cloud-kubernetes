@@ -21,6 +21,7 @@ import java.io.IOException;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
+
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true" })

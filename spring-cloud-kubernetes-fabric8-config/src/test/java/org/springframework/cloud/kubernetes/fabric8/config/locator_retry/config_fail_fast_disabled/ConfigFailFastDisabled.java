@@ -37,8 +37,8 @@ import static org.mockito.Mockito.verify;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-	properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
-	classes = TestApplication.class)
+		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES" },
+		classes = TestApplication.class)
 abstract class ConfigFailFastDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps/application";

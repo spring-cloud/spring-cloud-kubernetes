@@ -45,11 +45,11 @@ import static org.mockito.Mockito.verify;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-	properties = { "spring.cloud.kubernetes.client.namespace=default",
-		"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
-		"spring.cloud.kubernetes.secrets.enabled=false" },
-	classes = TestApplication.class)
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
+				"spring.cloud.kubernetes.secrets.enabled=false" },
+		classes = TestApplication.class)
 abstract class ConfigFailFastEnabledButRetryDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps/application";

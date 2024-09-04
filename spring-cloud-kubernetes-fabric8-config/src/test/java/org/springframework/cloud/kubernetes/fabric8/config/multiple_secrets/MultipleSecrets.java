@@ -35,7 +35,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author Haytham Mohamed
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = MultiSecretsApp.class,
-	properties = { "spring.cloud.bootstrap.name=multiple-secrets", "spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.cloud.bootstrap.name=multiple-secrets", "spring.main.cloud-platform=KUBERNETES" })
 abstract class MultipleSecrets {
 
 	private static final String DEFAULT_NAMESPACE = "ns1";

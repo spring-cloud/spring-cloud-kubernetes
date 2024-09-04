@@ -20,8 +20,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -29,7 +27,7 @@ import org.springframework.test.context.TestPropertySource;
  */
 
 @TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true",
-	"spring.cloud.bootstrap.name=labeled-configmap-with-profile" })
+		"spring.cloud.bootstrap.name=labeled-configmap-with-profile" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class LabeledConfigMapWithProfileBootstrapTests extends LabeledConfigMapWithProfile {
 

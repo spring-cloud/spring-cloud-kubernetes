@@ -35,8 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Charles Moulliard
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
-	properties = { "spring.application.name=configmap-example", "spring.cloud.kubernetes.reload.enabled=false",
-		"spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.application.name=configmap-example", "spring.cloud.kubernetes.reload.enabled=false",
+				"spring.main.cloud-platform=KUBERNETES" })
 abstract class ConfigMapSource {
 
 	private static final String APPLICATION_NAME = "configmap-example";

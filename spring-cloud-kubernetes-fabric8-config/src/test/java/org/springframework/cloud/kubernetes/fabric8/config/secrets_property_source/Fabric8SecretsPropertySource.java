@@ -35,7 +35,7 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
-	properties = { "spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.main.cloud-platform=KUBERNETES" })
 abstract class Fabric8SecretsPropertySource {
 
 	private static final String NAMESPACE = "test";

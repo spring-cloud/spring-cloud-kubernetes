@@ -37,10 +37,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.assertj.core.util.Lists.newArrayList;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
-	properties = { "spring.application.name=" + BootstrapConfigMapsMixedTests.APPLICATION_NAME,
-		"spring.cloud.kubernetes.config.enableApi=true",
-		"spring.cloud.kubernetes.config.paths=" + BootstrapConfigMapsMixedTests.FILE_NAME_FULL_PATH,
-		"spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.application.name=" + BootstrapConfigMapsMixedTests.APPLICATION_NAME,
+				"spring.cloud.kubernetes.config.enableApi=true",
+				"spring.cloud.kubernetes.config.paths=" + BootstrapConfigMapsMixedTests.FILE_NAME_FULL_PATH,
+				"spring.main.cloud-platform=KUBERNETES" })
 abstract class ConfigMapsMixed {
 
 	protected static final String FILES_ROOT_PATH = "/tmp/scktests";

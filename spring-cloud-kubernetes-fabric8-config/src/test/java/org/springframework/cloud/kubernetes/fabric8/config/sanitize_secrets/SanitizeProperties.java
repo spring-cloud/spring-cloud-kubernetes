@@ -30,27 +30,27 @@ class SanitizeProperties {
 
 	private String sanitizeConfigMapName;
 
-	String getSanitizeSecretName() {
+	public String getSanitizeSecretName() {
 		return sanitizeSecretName;
 	}
 
-	void setSanitizeSecretName(String sanitizeSecretName) {
+	public void setSanitizeSecretName(String sanitizeSecretName) {
 		this.sanitizeSecretName = sanitizeSecretName;
 	}
 
-	String getSanitizeConfigMapName() {
+	public String getSanitizeConfigMapName() {
 		return sanitizeConfigMapName;
 	}
 
-	void setSanitizeConfigMapName(String sanitizeConfigMapName) {
+	public void setSanitizeConfigMapName(String sanitizeConfigMapName) {
 		this.sanitizeConfigMapName = sanitizeConfigMapName;
 	}
 
-	String getSanitizeSecretNameTwo() {
+	public String getSanitizeSecretNameTwo() {
 		return sanitizeSecretNameTwo;
 	}
 
-	void setSanitizeSecretNameTwo(String sanitizeSecretNameTwo) {
+	public void setSanitizeSecretNameTwo(String sanitizeSecretNameTwo) {
 		this.sanitizeSecretNameTwo = sanitizeSecretNameTwo;
 	}
 

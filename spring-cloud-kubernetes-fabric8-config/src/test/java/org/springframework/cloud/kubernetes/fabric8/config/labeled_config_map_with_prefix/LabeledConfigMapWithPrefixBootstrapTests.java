@@ -26,7 +26,7 @@ import org.springframework.test.context.TestPropertySource;
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true",
-	"spring.cloud.bootstrap.name=labeled-configmap-with-prefix" })
+		"spring.cloud.bootstrap.name=labeled-configmap-with-prefix" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class LabeledConfigMapWithPrefixBootstrapTests extends LabeledConfigMapWithPrefix {
 

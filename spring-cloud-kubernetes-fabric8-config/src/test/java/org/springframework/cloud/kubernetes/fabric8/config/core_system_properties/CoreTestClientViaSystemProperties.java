@@ -28,9 +28,9 @@ import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = TestApplication.class,
-	properties = { "spring.main.cloud-platform=KUBERNETES", "spring.application.name=testapp",
-		"spring.cloud.kubernetes.client.namespace=testns", "spring.cloud.kubernetes.client.trustCerts=true",
-		"spring.cloud.kubernetes.config.namespace=testns", "spring.cloud.kubernetes.secrets.enableApi=true" })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.application.name=testapp",
+				"spring.cloud.kubernetes.client.namespace=testns", "spring.cloud.kubernetes.client.trustCerts=true",
+				"spring.cloud.kubernetes.config.namespace=testns", "spring.cloud.kubernetes.secrets.enableApi=true" })
 abstract class CoreTestClientViaSystemProperties {
 
 	@Autowired
