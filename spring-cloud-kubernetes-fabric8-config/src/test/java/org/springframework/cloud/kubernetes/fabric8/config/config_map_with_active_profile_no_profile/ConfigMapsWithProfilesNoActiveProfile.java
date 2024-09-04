@@ -34,8 +34,8 @@ import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestU
  * @author Charles Moulliard
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
-	properties = { "spring.application.name=configmap-with-profile-no-active-profiles-example",
-		"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.application.name=configmap-with-profile-no-active-profiles-example",
+				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 abstract class ConfigMapsWithProfilesNoActiveProfile {
 
 	private static final String APPLICATION_NAME = "configmap-with-profile-no-active-profiles-example";

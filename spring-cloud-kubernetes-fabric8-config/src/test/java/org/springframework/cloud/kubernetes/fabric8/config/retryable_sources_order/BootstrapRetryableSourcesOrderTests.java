@@ -22,8 +22,8 @@ import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true",
-	"spring.cloud.bootstrap.name=retryable-sources-order" })
+@TestPropertySource(
+		properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.bootstrap.name=retryable-sources-order" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class BootstrapRetryableSourcesOrderTests extends RetryableSourcesOrder {
 

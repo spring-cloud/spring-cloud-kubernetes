@@ -35,8 +35,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ActiveProfiles("k8s")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = NamedConfigMapWithProfileApp.class,
-	properties = { "spring.main.cloud-platform=KUBERNETES", "spring.application.name=named-configmap-with-profile" })
+		classes = NamedConfigMapWithProfileApp.class, properties = { "spring.main.cloud-platform=KUBERNETES",
+				"spring.application.name=named-configmap-with-profile" })
 abstract class NamedConfigMapWithProfile {
 
 	private static KubernetesClient mockClient;

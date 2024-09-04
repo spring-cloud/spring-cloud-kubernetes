@@ -26,7 +26,7 @@ import org.springframework.test.context.TestPropertySource;
  * @author wind57
  */
 
-@TestPropertySource(properties = {"spring.config.import=kubernetes:,classpath:./labeled-configmap-with-prefix.yaml"})
+@TestPropertySource(properties = { "spring.config.import=kubernetes:,classpath:./labeled-configmap-with-prefix.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class LabeledConfigMapWithPrefixConfigDataTests extends LabeledConfigMapWithPrefix {
 

@@ -26,8 +26,8 @@ import org.springframework.test.context.TestPropertySource;
  * @author wind57
  */
 
-@TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true",
-	"spring.cloud.bootstrap.name=secret-with-labels-config" })
+@TestPropertySource(
+		properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.bootstrap.name=secret-with-labels-config" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class BootstrapSecretsWithLabelsTests extends SecretsWithLabels {
 

@@ -26,8 +26,8 @@ import org.springframework.test.context.TestPropertySource;
  * @author wind57
  */
 
-@TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true",
-	"spring.cloud.bootstrap.name=named-secret-with-profile" })
+@TestPropertySource(
+		properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.bootstrap.name=named-secret-with-profile" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class NamedSecretWithProfileBootstrapTests extends NamedSecretWithProfile {
 

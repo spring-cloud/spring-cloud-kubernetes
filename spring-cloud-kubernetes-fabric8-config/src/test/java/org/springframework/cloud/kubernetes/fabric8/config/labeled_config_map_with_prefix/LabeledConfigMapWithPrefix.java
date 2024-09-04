@@ -33,8 +33,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = LabeledConfigMapWithPrefixApp.class,
-	properties = { "spring.application.name=labeled-configmap-with-prefix", "spring.main.cloud-platform=KUBERNETES" })
+		classes = LabeledConfigMapWithPrefixApp.class, properties = {
+				"spring.application.name=labeled-configmap-with-prefix", "spring.main.cloud-platform=KUBERNETES" })
 abstract class LabeledConfigMapWithPrefix {
 
 	private static KubernetesClient mockClient;

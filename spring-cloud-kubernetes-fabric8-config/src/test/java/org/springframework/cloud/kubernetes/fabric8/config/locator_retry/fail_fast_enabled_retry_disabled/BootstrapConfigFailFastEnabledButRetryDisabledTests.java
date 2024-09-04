@@ -33,8 +33,8 @@ import org.springframework.test.context.TestPropertySource;
  * @author wind57
  */
 
-@TestPropertySource(properties = { "spring.cloud.kubernetes.config.enabled=false",
-	"spring.cloud.bootstrap.enabled=true" })
+@TestPropertySource(
+		properties = { "spring.cloud.kubernetes.config.enabled=false", "spring.cloud.bootstrap.enabled=true" })
 @EnableKubernetesMockClient
 class BootstrapConfigFailFastEnabledButRetryDisabledTests extends ConfigFailFastEnabledButRetryDisabled {
 

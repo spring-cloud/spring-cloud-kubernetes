@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = {"spring.cloud.bootstrap.enabled=true"})
+@TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class BootstrapConfigMapsFromFilePathsTests extends ConfigMapsFromFilePaths {
 

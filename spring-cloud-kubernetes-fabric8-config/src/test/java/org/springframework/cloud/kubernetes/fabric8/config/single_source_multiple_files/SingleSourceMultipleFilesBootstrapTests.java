@@ -26,7 +26,7 @@ import org.springframework.test.context.TestPropertySource;
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true",
-	"spring.cloud.bootstrap.name=single-source-multiple-files" })
+		"spring.cloud.bootstrap.name=single-source-multiple-files" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class SingleSourceMultipleFilesBootstrapTests extends SingleSourceMultipleFiles {
 

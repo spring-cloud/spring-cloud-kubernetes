@@ -37,8 +37,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @ActiveProfiles("color")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = SingleSourceMultipleFilesApp.class,
-	properties = { "spring.main.cloud-platform=KUBERNETES" })
+		classes = SingleSourceMultipleFilesApp.class, properties = { "spring.main.cloud-platform=KUBERNETES" })
 abstract class SingleSourceMultipleFiles {
 
 	private static KubernetesClient mockClient;

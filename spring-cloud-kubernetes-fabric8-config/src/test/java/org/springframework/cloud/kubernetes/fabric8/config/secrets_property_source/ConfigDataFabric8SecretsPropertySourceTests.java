@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.springframework.test.context.TestPropertySource;
 
 @TestPropertySource(value = "classpath:/application-secrets.properties",
-	properties = "spring.config.import=kubernetes:")
+		properties = "spring.config.import=kubernetes:")
 @EnableKubernetesMockClient(crud = true, https = false)
 class ConfigDataFabric8SecretsPropertySourceTests extends Fabric8SecretsPropertySource {
 

@@ -33,7 +33,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RetryableSourcesOrderApp.class,
-	properties = { "spring.application.name=sources-order", "spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.application.name=sources-order", "spring.main.cloud-platform=KUBERNETES" })
 abstract class RetryableSourcesOrder {
 
 	private static KubernetesClient mockClient;

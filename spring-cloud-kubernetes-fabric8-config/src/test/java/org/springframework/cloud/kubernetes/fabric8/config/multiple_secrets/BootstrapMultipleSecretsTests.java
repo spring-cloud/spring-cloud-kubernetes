@@ -26,8 +26,8 @@ import org.springframework.test.context.TestPropertySource;
  * @author Haytham Mohamed
  */
 
-@TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true",
-	"spring.cloud.bootstrap.name=multiple-secrets" })
+@TestPropertySource(
+		properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.bootstrap.name=multiple-secrets" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class BootstrapMultipleSecretsTests extends MultipleSecrets {
 

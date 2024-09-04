@@ -39,11 +39,11 @@ import static org.mockito.Mockito.verify;
  * @author Isik Erhan
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-	properties = { "spring.cloud.kubernetes.client.namespace=default",
-		"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
-		"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
-		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false" },
-	classes = TestApplication.class)
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false" },
+		classes = TestApplication.class)
 abstract class SecretsFailFastEnabledButRetryDisabled {
 
 	private static final String LIST_API = "/api/v1/namespaces/default/secrets";

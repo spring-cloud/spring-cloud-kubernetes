@@ -26,7 +26,6 @@ import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropert
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-
 @TestPropertySource(properties = "spring.cloud.bootstrap.enabled=true")
 @EnableKubernetesMockClient
 class BootstrapSecretsRetryEnabledTests extends SecretsRetryEnabled {
