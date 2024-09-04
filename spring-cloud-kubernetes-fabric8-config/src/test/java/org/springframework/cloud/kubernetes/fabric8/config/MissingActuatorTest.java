@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ SpringExtension.class, OutputCaptureExtension.class })
 @ClassPathExclusions({ "spring-boot-actuator-autoconfigure-*.jar", "spring-boot-starter-actuator-*.jar" })
-public class MissingActuatorTest {
+class MissingActuatorTest {
 
 	private static ConfigurableApplicationContext getApplicationContext(String... properties) {
 		return new SpringApplicationBuilder(Config.class).web(WebApplicationType.NONE).properties(properties).run();
