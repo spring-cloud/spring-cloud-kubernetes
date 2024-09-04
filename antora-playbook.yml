@@ -13,7 +13,7 @@ content:
     - url: https://github.com/spring-cloud/spring-cloud-kubernetes
       # Refname matching:
       # https://docs.antora.org/antora/latest/playbook/content-refname-matching/
-      branches: [ main ]
+      branches: [ main, 3.1.x ]
       tags: [ 'v{3..9}.+({1..9}).+({0..9})?(-{RC,M}*)', '!v3.1.0-M1' ]
       start_path: docs
 asciidoc:
