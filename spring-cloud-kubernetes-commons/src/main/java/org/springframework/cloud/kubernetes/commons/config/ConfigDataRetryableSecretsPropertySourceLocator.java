@@ -73,8 +73,8 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 
 	@Override
 	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource) {
-		return this.secretsPropertySourceLocator.getPropertySource(environment, normalizedSource);
+			NormalizedSource normalizedSource, boolean singleRead) {
+		return this.secretsPropertySourceLocator.getPropertySource(environment, normalizedSource, singleRead);
 	}
 
 	public SecretsPropertySourceLocator getSecretsPropertySourceLocator() {

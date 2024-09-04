@@ -28,5 +28,5 @@ import org.springframework.core.env.Environment;
  * @author wind57
  */
 record Fabric8ConfigContext(KubernetesClient client, NormalizedSource normalizedSource, String namespace,
-		Environment environment) {
+		Environment environment, boolean singleRead) {
 }

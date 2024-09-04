@@ -53,6 +53,7 @@ class SecretsConfigPropertiesBindingTests {
 			Assertions.assertEquals(props.retry().maxInterval(), 2000L);
 			Assertions.assertEquals(props.retry().maxAttempts(), 6);
 			Assertions.assertTrue(props.retry().enabled());
+			Assertions.assertTrue(props.singleRead());
 		});
 	}
 
@@ -77,7 +78,8 @@ class SecretsConfigPropertiesBindingTests {
 					"spring.cloud.kubernetes.secrets.retry.multiplier=1.2",
 					"spring.cloud.kubernetes.secrets.retry.max-interval=3",
 					"spring.cloud.kubernetes.secrets.retry.max-attempts=4",
-					"spring.cloud.kubernetes.secrets.retry.enabled=false")
+					"spring.cloud.kubernetes.secrets.retry.enabled=false",
+					"spring.cloud.kubernetes.secrets.single-read=false")
 			.run(context -> {
 				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 				Assertions.assertNotNull(props);
@@ -113,7 +115,7 @@ class SecretsConfigPropertiesBindingTests {
 				Assertions.assertEquals(retryProperties.multiplier(), 1.2);
 				Assertions.assertEquals(retryProperties.maxInterval(), 3);
 				Assertions.assertFalse(retryProperties.enabled());
-
+				Assertions.assertFalse(props.singleRead());
 			});
 	}
 

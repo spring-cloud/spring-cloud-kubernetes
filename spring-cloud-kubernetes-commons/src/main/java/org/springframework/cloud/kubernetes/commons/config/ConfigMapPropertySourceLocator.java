@@ -71,7 +71,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	}
 
 	protected abstract MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
-			ConfigurableEnvironment environment);
+			ConfigurableEnvironment environment, boolean singleRead);
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
@@ -81,7 +81,8 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
-				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
+				sources.forEach(
+						s -> composite.addFirstPropertySource(getMapPropertySource(s, env, properties.singleRead())));
 			}
 
 			addPropertySourcesFromPaths(environment, composite);
