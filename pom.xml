@@ -69,7 +69,7 @@
 		<surefire-reports-directory>surefire-reports</surefire-reports-directory>
 		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
-		<mockito-inline.version>4.8.1</mockito-inline.version>
+		<mockito-inline.version>4.11.0</mockito-inline.version>
 		<spring-cloud-commons.version>4.2.0-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>4.2.0-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>4.2.0-SNAPSHOT</spring-cloud-bus.version>
