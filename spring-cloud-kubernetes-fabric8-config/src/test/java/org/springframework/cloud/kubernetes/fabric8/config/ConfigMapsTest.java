@@ -46,7 +46,7 @@ class ConfigMapsTest {
 	}
 
 	@Test
-	public void testConfigMapList() {
+	void testConfigMapList() {
 		mockClient.configMaps()
 			.inNamespace("ns1")
 			.resource(new ConfigMapBuilder().withNewMetadata().withName("empty").endMetadata().build())

@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config.example;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "bean")
-public class GreetingProperties {
+class GreetingProperties {
 
 	private String greeting = "Hello, %s!";
 
@@ -29,35 +29,35 @@ public class GreetingProperties {
 
 	private String bonjour = "Bonjour, %s!";
 
-	public String getGreeting() {
+	String getGreeting() {
 		return this.greeting;
 	}
 
-	public void setGreeting(String greeting) {
+	void setGreeting(String greeting) {
 		this.greeting = greeting;
 	}
 
-	public String getFarewell() {
+	String getFarewell() {
 		return this.farewell;
 	}
 
-	public void setFarewell(String farewell) {
+	void setFarewell(String farewell) {
 		this.farewell = farewell;
 	}
 
-	public String getMorning() {
+	String getMorning() {
 		return this.morning;
 	}
 
-	public void setMorning(String morning) {
+	void setMorning(String morning) {
 		this.morning = morning;
 	}
 
-	public String getBonjour() {
+	String getBonjour() {
 		return this.bonjour;
 	}
 
-	public void setBonjour(String bonjour) {
+	void setBonjour(String bonjour) {
 		this.bonjour = bonjour;
 	}
 
