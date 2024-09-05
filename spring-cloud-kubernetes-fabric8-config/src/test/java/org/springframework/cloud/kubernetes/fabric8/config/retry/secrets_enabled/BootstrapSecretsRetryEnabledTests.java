@@ -22,9 +22,9 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @TestPropertySource(properties = "spring.cloud.bootstrap.enabled=true")
 @EnableKubernetesMockClient
@@ -39,7 +39,7 @@ class BootstrapSecretsRetryEnabledTests extends SecretsRetryEnabled {
 		setup(mockClient, mockServer);
 	}
 
-	@MockitoSpyBean
+	@SpyBean
 	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@BeforeEach

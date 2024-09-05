@@ -23,10 +23,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.Mockito.spy;
 
@@ -42,7 +42,7 @@ class ConfigDataConfigRetryEnabledTests extends ConfigRetryEnabled {
 
 	private static KubernetesClient mockClient;
 
-	@MockitoBean
+	@MockBean
 	private KubernetesNamespaceProvider namespaceProvider;
 
 	@BeforeAll

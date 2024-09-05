@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
@@ -32,7 +33,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * we call Fabric8ConfigMapPropertySourceLocator::locate directly, thus no need for
@@ -53,7 +53,7 @@ class ConfigDataConfigFailFastEnabledButRetryDisabledTests extends ConfigFailFas
 
 	private static KubernetesClient mockClient;
 
-	@MockitoBean
+	@MockBean
 	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
 	@BeforeAll
