@@ -13,7 +13,7 @@
 
 	<properties>
 		<awaitility.version>4.0.3</awaitility.version>
-		<testcontainers.version>1.19.0</testcontainers.version>
+		<testcontainers.version>1.18.3</testcontainers.version>
 	</properties>
 	<dependencies>
 
@@ -61,7 +61,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>3.1.0</version>
+						<version>3.1.1</version>
 						<executions>
 							<execution>
 								<goals>
