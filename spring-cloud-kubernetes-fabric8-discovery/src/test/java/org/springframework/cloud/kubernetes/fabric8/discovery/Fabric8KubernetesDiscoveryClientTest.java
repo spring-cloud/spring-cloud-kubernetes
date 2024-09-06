@@ -70,15 +70,31 @@ class Fabric8KubernetesDiscoveryClientTest {
 	void getInstancesShouldBeAbleToHandleEndpointsSingleAddress() {
 		Map<String, String> labels = Map.of("l", "v");
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("10").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset()
-				.build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("10")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint").withNamespace("test").withLabels(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -88,24 +104,44 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("10")).hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("10"))
+			.hasSize(1);
 	}
 
 	@Test
 	void getInstancesShouldBeAbleToHandleEndpointsSingleAddressAndMultiplePorts() {
 		Map<String, String> labels = Map.of("l2", "v2");
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("20").endTargetRef().endAddress().addNewPort("mgmt", "mgmt_tcp", 900, "TCP")
-				.addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("20")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("mgmt", "mgmt_tcp", 900, "TCP")
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint").withNamespace("test").withLabels(labels).withAnnotations(labels)
-				.endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -117,21 +153,39 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("20")).hasSize(1).filteredOn(s -> 80 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("20"))
+			.hasSize(1)
+			.filteredOn(s -> 80 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
 	void getEndPointsListTest() {
 		Map<String, String> labels = Map.of("l", "v");
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("30").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset()
-				.build();
-		Service service = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.endMetadata().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("30")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.endSubset()
+			.build();
+		Service service = new ServiceBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.endMetadata()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 		mockClient.services().inNamespace("test").resource(service).create();
@@ -151,15 +205,27 @@ class Fabric8KubernetesDiscoveryClientTest {
 		String namespace1 = "ns1";
 		String namespace2 = "ns2";
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
-				.endMetadata().build();
-		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-				.endMetadata().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace1)
+			.endMetadata()
+			.build();
+		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace2)
+			.endMetadata()
+			.build();
 
-		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
-				.endMetadata().build();
-		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-				.endMetadata().build();
+		Service service1 = new ServiceBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace1)
+			.endMetadata()
+			.build();
+		Service service2 = new ServiceBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace2)
+			.endMetadata()
+			.build();
 
 		mockClient.endpoints().inNamespace(namespace1).resource(endPoint1).create();
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
@@ -184,19 +250,37 @@ class Fabric8KubernetesDiscoveryClientTest {
 		String namespace2 = "ns2";
 		String namespace3 = "ns3";
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
-				.endMetadata().build();
-		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-				.endMetadata().build();
-		Endpoints endPoint3 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace3)
-				.endMetadata().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace1)
+			.endMetadata()
+			.build();
+		Endpoints endPoint2 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace2)
+			.endMetadata()
+			.build();
+		Endpoints endPoint3 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace3)
+			.endMetadata()
+			.build();
 
-		Service service1 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace1)
-				.endMetadata().build();
-		Service service2 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace2)
-				.endMetadata().build();
-		Service service3 = new ServiceBuilder().withNewMetadata().withName("endpoint").withNamespace(namespace3)
-				.endMetadata().build();
+		Service service1 = new ServiceBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace1)
+			.endMetadata()
+			.build();
+		Service service2 = new ServiceBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace2)
+			.endMetadata()
+			.build();
+		Service service3 = new ServiceBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace(namespace3)
+			.endMetadata()
+			.build();
 
 		mockClient.endpoints().inNamespace(namespace1).resource(endPoint1).create();
 		mockClient.endpoints().inNamespace(namespace2).resource(endPoint2).create();
@@ -215,24 +299,47 @@ class Fabric8KubernetesDiscoveryClientTest {
 		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
 		assertThat(result_endpoints).hasSize(2);
-		assertThat(result_endpoints.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace)
-				.collect(Collectors.toList())).containsOnly(namespace1, namespace3);
+		assertThat(result_endpoints.stream()
+			.map(Endpoints::getMetadata)
+			.map(ObjectMeta::getNamespace)
+			.collect(Collectors.toList())).containsOnly(namespace1, namespace3);
 	}
 
 	@Test
 	void getInstancesShouldBeAbleToHandleEndpointsMultipleAddresses() {
 		Map<String, String> labels = Map.of("l1", "v1");
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("40").endTargetRef().endAddress().addNewAddress().withIp("ip2").withNewTargetRef()
-				.withUid("50").endTargetRef().endAddress().addNewPort("https", "https_tcp", 443, "TCP").endSubset()
-				.build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("40")
+			.endTargetRef()
+			.endAddress()
+			.addNewAddress()
+			.withIp("ip2")
+			.withNewTargetRef()
+			.withUid("50")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("https", "https_tcp", 443, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint").withNamespace("test").withLabels(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -245,23 +352,36 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
-		assertThat(instances).hasSize(2).filteredOn(ServiceInstance::isSecure).extracting(ServiceInstance::getHost)
-				.containsOnly("ip1", "ip2");
+		assertThat(instances).hasSize(2)
+			.filteredOn(ServiceInstance::isSecure)
+			.extracting(ServiceInstance::getHost)
+			.containsOnly("ip1", "ip2");
 	}
 
 	@Test
 	void getServicesShouldReturnAllServicesWhenNoLabelsAreAppliedToTheClient() {
 
 		Map<String, String> service1Labels = Collections.singletonMap("label", "value");
-		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace("test")
-				.withLabels(service1Labels).endMetadata().build();
+		Service service1 = new ServiceBuilder().withNewMetadata()
+			.withName("s1")
+			.withNamespace("test")
+			.withLabels(service1Labels)
+			.endMetadata()
+			.build();
 
 		Map<String, String> service2Labels = Map.of("label", "value", "label2", "value2");
-		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace("test")
-				.withLabels(service2Labels).endMetadata().build();
+		Service service2 = new ServiceBuilder().withNewMetadata()
+			.withName("s2")
+			.withNamespace("test")
+			.withLabels(service2Labels)
+			.endMetadata()
+			.build();
 
-		Service service3 = new ServiceBuilder().withNewMetadata().withName("s3").withNamespace("test").endMetadata()
-				.build();
+		Service service3 = new ServiceBuilder().withNewMetadata()
+			.withName("s3")
+			.withNamespace("test")
+			.endMetadata()
+			.build();
 		mockClient.services().inNamespace("test").resource(service1).create();
 		mockClient.services().inNamespace("test").resource(service2).create();
 		mockClient.services().inNamespace("test").resource(service3).create();
@@ -279,12 +399,20 @@ class Fabric8KubernetesDiscoveryClientTest {
 	void getServicesShouldReturnOnlyMatchingServicesWhenLabelsAreAppliedToTheClient() {
 
 		Map<String, String> service1Labels = Collections.singletonMap("label", "value");
-		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace("test")
-				.withLabels(service1Labels).endMetadata().build();
+		Service service1 = new ServiceBuilder().withNewMetadata()
+			.withName("s1")
+			.withNamespace("test")
+			.withLabels(service1Labels)
+			.endMetadata()
+			.build();
 
 		Map<String, String> service2Labels = Map.of("label", "value", "label2", "value2");
-		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace("test")
-				.withLabels(service2Labels).endMetadata().build();
+		Service service2 = new ServiceBuilder().withNewMetadata()
+			.withName("s2")
+			.withNamespace("test")
+			.withLabels(service2Labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service1).create();
 		mockClient.services().inNamespace("test").resource(service2).create();
@@ -306,14 +434,23 @@ class Fabric8KubernetesDiscoveryClientTest {
 		String nameSpace2 = "ns2";
 		String nameSpace3 = "ns3";
 
-		Service service1 = new ServiceBuilder().withNewMetadata().withName("s1").withNamespace(nameSpace1).endMetadata()
-				.build();
+		Service service1 = new ServiceBuilder().withNewMetadata()
+			.withName("s1")
+			.withNamespace(nameSpace1)
+			.endMetadata()
+			.build();
 
-		Service service2 = new ServiceBuilder().withNewMetadata().withName("s2").withNamespace(nameSpace2).endMetadata()
-				.build();
+		Service service2 = new ServiceBuilder().withNewMetadata()
+			.withName("s2")
+			.withNamespace(nameSpace2)
+			.endMetadata()
+			.build();
 
-		Service service3 = new ServiceBuilder().withNewMetadata().withName("s3").withNamespace(nameSpace3).endMetadata()
-				.build();
+		Service service3 = new ServiceBuilder().withNewMetadata()
+			.withName("s3")
+			.withNamespace(nameSpace3)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace(nameSpace1).resource(service1).create();
 		mockClient.services().inNamespace(nameSpace2).resource(service2).create();
@@ -333,24 +470,54 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 	@Test
 	void getInstancesShouldBeAbleToHandleEndpointsFromMultipleNamespaces() {
-		Endpoints endPoints1 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test")
-				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("60")
-				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
+		Endpoints endPoints1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("60")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.endSubset()
+			.build();
 
-		Endpoints endPoints2 = new EndpointsBuilder().withNewMetadata().withName("endpoint").withNamespace("test2")
-				.endMetadata().addNewSubset().addNewAddress().withIp("ip2").withNewTargetRef().withUid("70")
-				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
+		Endpoints endPoints2 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test2")
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip2")
+			.withNewTargetRef()
+			.withUid("70")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoints1).create();
 		mockClient.endpoints().inNamespace("test2").resource(endPoints2).create();
 
 		Service service1 = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint").withNamespace("test")
-				.withLabels(Collections.singletonMap("l", "v")).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test")
+			.withLabels(Collections.singletonMap("l", "v"))
+			.endMetadata()
+			.build();
 
 		Service service2 = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint").withNamespace("test2")
-				.withLabels(Collections.singletonMap("l", "v")).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint")
+			.withNamespace("test2")
+			.withLabels(Collections.singletonMap("l", "v"))
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service1).create();
 		mockClient.services().inNamespace("test2").resource(service2).create();
@@ -366,18 +533,26 @@ class Fabric8KubernetesDiscoveryClientTest {
 		assertThat(instances).hasSize(2);
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip2") && !s.isSecure()).hasSize(1);
-		assertThat(instances).filteredOn(s -> s.getServiceId().contains("endpoint")
-				&& ((KubernetesServiceInstance) s).getNamespace().equals("test")).hasSize(1);
-		assertThat(instances).filteredOn(s -> s.getServiceId().contains("endpoint")
-				&& ((KubernetesServiceInstance) s).getNamespace().equals("test2")).hasSize(1);
+		assertThat(instances)
+			.filteredOn(s -> s.getServiceId().contains("endpoint")
+					&& ((KubernetesServiceInstance) s).getNamespace().equals("test"))
+			.hasSize(1);
+		assertThat(instances)
+			.filteredOn(s -> s.getServiceId().contains("endpoint")
+					&& ((KubernetesServiceInstance) s).getNamespace().equals("test2"))
+			.hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("60")).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("70")).hasSize(1);
 	}
 
 	@Test
 	void instanceWithoutSubsetsShouldBeSkipped() {
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint1").withNamespace("test")
-				.withLabels(Collections.emptyMap()).endMetadata().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint1")
+			.withNamespace("test")
+			.withLabels(Collections.emptyMap())
+			.endMetadata()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
@@ -394,16 +569,33 @@ class Fabric8KubernetesDiscoveryClientTest {
 	void getInstancesShouldBeAbleToHandleEndpointsSingleAddressAndMultiplePortsUsingPrimaryPortNameLabel() {
 		Map<String, String> labels = Map.of("primary-port-name", "https");
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint2").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("80").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
-				.addNewPort("http", "http", 80, "TCP").endSubset().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint2")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("80")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "https", 443, "TCP")
+			.addNewPort("http", "http", 80, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint2").withNamespace("test").withLabels(labels)
-				.withAnnotations(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint2")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -415,26 +607,48 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint2");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("80")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("80"))
+			.hasSize(1)
+			.filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
 	void instanceWithMultiplePortsAndMisconfiguredPrimaryPortNameInLabelWithoutFallbackShouldLogWarning() {
 		Map<String, String> labels = Map.of("primary-port-name", "oops");
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint3").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("90").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
-				.addNewPort("http", "https2", 8443, "TCP").addNewPort("http", "http1", 80, "TCP")
-				.addNewPort("http", "http2", 8080, "TCP").endSubset().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint3")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("90")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "https1", 443, "TCP")
+			.addNewPort("http", "https2", 8443, "TCP")
+			.addNewPort("http", "http1", 80, "TCP")
+			.addNewPort("http", "http2", 8080, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint3").withNamespace("test").withLabels(labels)
-				.withAnnotations(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint3")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -446,25 +660,47 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("90")).hasSize(1).hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("90"))
+			.hasSize(1)
+			.hasSize(1);
 	}
 
 	@Test
 	void instanceWithMultiplePortsAndMisconfiguredGenericPrimaryPortNameWithoutFallbackShouldLogWarning() {
 		Map<String, String> labels = Map.of();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("endpoint4").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("100").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
-				.addNewPort("http", "https2", 8443, "TCP").addNewPort("http", "http1", 80, "TCP")
-				.addNewPort("http", "http2", 8080, "TCP").endSubset().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint4")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("100")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "https1", 443, "TCP")
+			.addNewPort("http", "https2", 8443, "TCP")
+			.addNewPort("http", "http1", 80, "TCP")
+			.addNewPort("http", "http2", 8080, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint4").withNamespace("test").withLabels(labels)
-				.withAnnotations(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint4")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -476,24 +712,45 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("100")).hasSize(1).hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("100"))
+			.hasSize(1)
+			.hasSize(1);
 	}
 
 	@Test
 	void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldFallBackToHttps() {
 		Map<String, String> labels = Map.of();
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("110").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
-				.addNewPort("http", "http", 80, "TCP").endSubset().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("110")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "https", 443, "TCP")
+			.addNewPort("http", "http", 80, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
-				.withAnnotations(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -505,25 +762,47 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("110")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("110"))
+			.hasSize(1)
+			.filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
 	void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedOrHttpsPortShouldFallBackToHttp() {
 		Map<String, String> labels = Map.of();
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("120").endTargetRef().endAddress().addNewPort("http", "https1", 443, "TCP")
-				.addNewPort("http", "https2", 8443, "TCP").addNewPort("http", "http", 80, "TCP").endSubset().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("120")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "https1", 443, "TCP")
+			.addNewPort("http", "https2", 8443, "TCP")
+			.addNewPort("http", "http", 80, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
-				.withAnnotations(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -533,25 +812,46 @@ class Fabric8KubernetesDiscoveryClientTest {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("120")).hasSize(1).filteredOn(s -> 80 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("120"))
+			.hasSize(1)
+			.filteredOn(s -> 80 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
 	void instanceWithMultiplePortsAndWithoutPrimaryPortNameSpecifiedShouldLogWarning() {
 		Map<String, String> labels = Map.of();
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("130").endTargetRef().endAddress().addNewPort("http", "https", 443, "TCP")
-				.addNewPort("http", "http", 80, "TCP").endSubset().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("130")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "https", 443, "TCP")
+			.addNewPort("http", "http", 80, "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
-				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
-				.withAnnotations(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
@@ -564,24 +864,44 @@ class Fabric8KubernetesDiscoveryClientTest {
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
 		// We're returning the first discovered port to not change previous behaviour
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("130")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("130"))
+			.hasSize(1)
+			.filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
 	public void instanceWithoutPorts() {
 		Map<String, String> labels = new HashMap<>();
 
-		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata().withName("endpoint5").withNamespace("test")
-				.withLabels(labels).endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("130").endTargetRef().endAddress().endSubset().build();
+		Endpoints endPoint1 = new EndpointsBuilder().withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("130")
+			.endTargetRef()
+			.endAddress()
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").create(endPoint1);
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
-				.withNewMetadata().withName("endpoint5").withNamespace("test").withLabels(labels)
-				.withAnnotations(labels).endMetadata().build();
+			.withNewMetadata()
+			.withName("endpoint5")
+			.withNamespace("test")
+			.withLabels(labels)
+			.withAnnotations(labels)
+			.endMetadata()
+			.build();
 
 		mockClient.services().inNamespace("test").create(service);
 
@@ -593,10 +913,14 @@ class Fabric8KubernetesDiscoveryClientTest {
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
 		// We're returning the first discovered port to not change previous behaviour
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getUri().toASCIIString().equals("http://ip1"))
-				.filteredOn(s -> s.getInstanceId().equals("130")).hasSize(1).filteredOn(s -> 0 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getUri().toASCIIString().equals("http://ip1"))
+			.filteredOn(s -> s.getInstanceId().equals("130"))
+			.hasSize(1)
+			.filteredOn(s -> 0 == s.getPort())
+			.hasSize(1);
 	}
 
 }

@@ -72,38 +72,41 @@ public class NamedConfigMapWithProfileConfigurationStub {
 		// overridden by the ones from "oneFromK8s".
 		// We have a test that asserts this.
 		V1ConfigMap one = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one").withNamespace("spring-k8s").build())
-				.addToData(Collections.singletonMap("one.property", "one")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one").withNamespace("spring-k8s").build())
+			.addToData(Collections.singletonMap("one.property", "one"))
+			.build();
 
 		V1ConfigMap oneFromK8s = new V1ConfigMapBuilder()
-				.withMetadata(
-						new V1ObjectMetaBuilder().withName("configmap-one-k8s").withNamespace("spring-k8s").build())
-				.addToData(Collections.singletonMap("one.property", "one-from-k8s")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one-k8s").withNamespace("spring-k8s").build())
+			.addToData(Collections.singletonMap("one.property", "one-from-k8s"))
+			.build();
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two").withNamespace("spring-k8s").build())
-				.addToData(Collections.singletonMap("property", "two")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two").withNamespace("spring-k8s").build())
+			.addToData(Collections.singletonMap("property", "two"))
+			.build();
 
 		V1ConfigMap twoFromK8s = new V1ConfigMapBuilder()
-				.withMetadata(
-						new V1ObjectMetaBuilder().withName("configmap-two-k8s").withNamespace("spring-k8s").build())
-				.addToData(Collections.singletonMap("property", "two-from-k8s")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two-k8s").withNamespace("spring-k8s").build())
+			.addToData(Collections.singletonMap("property", "two-from-k8s"))
+			.build();
 
 		V1ConfigMap three = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three").withNamespace("spring-k8s").build())
-				.addToData(Collections.singletonMap("property", "three")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three").withNamespace("spring-k8s").build())
+			.addToData(Collections.singletonMap("property", "three"))
+			.build();
 
 		V1ConfigMap threeFromK8s = new V1ConfigMapBuilder()
-				.withMetadata(
-						new V1ObjectMetaBuilder().withName("configmap-three-k8s").withNamespace("spring-k8s").build())
-				.addToData(Collections.singletonMap("property", "three-from-k8s")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three-k8s").withNamespace("spring-k8s").build())
+			.addToData(Collections.singletonMap("property", "three-from-k8s"))
+			.build();
 
 		V1ConfigMapList allConfigMaps = new V1ConfigMapList();
 		allConfigMaps.setItems(Arrays.asList(one, oneFromK8s, two, twoFromK8s, three, threeFromK8s));
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 
 }

@@ -54,7 +54,7 @@ class KubernetesConfigDataLocationResolverTests {
 	};
 
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
-			.mock(ConfigDataLocationResolverContext.class);
+		.mock(ConfigDataLocationResolverContext.class);
 
 	@Test
 	void testGetPrefix() {
@@ -192,11 +192,11 @@ class KubernetesConfigDataLocationResolverTests {
 		NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 
 		KubernetesClientProperties kubernetesClientProperties = RESOLVER_CONTEXT.getBootstrapContext()
-				.get(KubernetesClientProperties.class);
+			.get(KubernetesClientProperties.class);
 		ConfigMapConfigProperties configMapConfigProperties = RESOLVER_CONTEXT.getBootstrapContext()
-				.get(ConfigMapConfigProperties.class);
+			.get(ConfigMapConfigProperties.class);
 		SecretsConfigProperties secretsConfigProperties = RESOLVER_CONTEXT.getBootstrapContext()
-				.get(SecretsConfigProperties.class);
+			.get(SecretsConfigProperties.class);
 
 		Assertions.assertNotNull(kubernetesClientProperties);
 		Assertions.assertNotNull(configMapConfigProperties);
@@ -231,11 +231,11 @@ class KubernetesConfigDataLocationResolverTests {
 				null, false, false, false, null);
 
 		KubernetesClientProperties kubernetesClientProperties = RESOLVER_CONTEXT.getBootstrapContext()
-				.get(KubernetesClientProperties.class);
+			.get(KubernetesClientProperties.class);
 		ConfigMapConfigProperties configMapConfigProperties = RESOLVER_CONTEXT.getBootstrapContext()
-				.getOrElse(ConfigMapConfigProperties.class, one);
+			.getOrElse(ConfigMapConfigProperties.class, one);
 		SecretsConfigProperties secretsConfigProperties = RESOLVER_CONTEXT.getBootstrapContext()
-				.getOrElse(SecretsConfigProperties.class, two);
+			.getOrElse(SecretsConfigProperties.class, two);
 
 		Assertions.assertNotNull(kubernetesClientProperties);
 		Assertions.assertSame(one, configMapConfigProperties);

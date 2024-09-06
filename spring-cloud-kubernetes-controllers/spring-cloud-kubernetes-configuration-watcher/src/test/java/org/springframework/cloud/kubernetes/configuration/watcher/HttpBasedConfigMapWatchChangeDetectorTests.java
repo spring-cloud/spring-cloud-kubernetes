@@ -92,10 +92,10 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		WIRE_MOCK_SERVER.start();
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::createApiClientForInformerClient)
-				.thenReturn(new ClientBuilder().setBasePath(WIRE_MOCK_SERVER.baseUrl()).build());
+			.thenReturn(new ClientBuilder().setBasePath(WIRE_MOCK_SERVER.baseUrl()).build());
 		clientUtilsMock
-				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn("default");
+			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+			.thenReturn("default");
 	}
 
 	@AfterAll
@@ -131,9 +131,9 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		configMap.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-				.willReturn(WireMock.aResponse().withStatus(200)));
+			.willReturn(WireMock.aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName()))
-				.verifyComplete();
+			.verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 	}
 
@@ -147,9 +147,9 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		configMap.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
-				.willReturn(WireMock.aResponse().withStatus(200)));
+			.willReturn(WireMock.aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName()))
-				.verifyComplete();
+			.verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
 	}
 
@@ -175,9 +175,9 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
-				.willReturn(WireMock.aResponse().withStatus(200)));
+			.willReturn(WireMock.aResponse().withStatus(200)));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName()))
-				.verifyComplete();
+			.verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
 	}
 

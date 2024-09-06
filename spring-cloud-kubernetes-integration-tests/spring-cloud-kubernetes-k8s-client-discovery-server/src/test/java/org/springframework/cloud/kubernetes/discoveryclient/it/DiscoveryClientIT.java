@@ -164,7 +164,7 @@ class DiscoveryClientIT {
 		util.createNamespace(NAMESPACE_RIGHT);
 
 		clusterRoleBinding = (V1ClusterRoleBinding) util
-				.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
+			.yaml("namespace-filter/cluster-admin-serviceaccount-role.yaml");
 		rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
 
 		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.CREATE, false);
@@ -210,11 +210,15 @@ class DiscoveryClientIT {
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:80/discoveryclient-it/services").build();
 
-		String result = serviceClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = serviceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(result)).extractingJsonPathArrayValue("$")
-				.contains("spring-cloud-kubernetes-discoveryserver");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
+			.extractingJsonPathArrayValue("$")
+			.contains("spring-cloud-kubernetes-discoveryserver");
 
 		// since 'spring.cloud.kubernetes.http.discovery.client.catalog.watcher.enabled'
 		// is false by default, we will not receive any heartbeat events,
@@ -226,8 +230,11 @@ class DiscoveryClientIT {
 
 		WebClient.Builder stateBuilder = builder();
 		WebClient client = stateBuilder.baseUrl("http://localhost:80/discoveryclient-it/state").build();
-		String stateResult = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String stateResult = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertThat(BASIC_JSON_TESTER.from(stateResult)).isEqualTo("[]");
 
 		try {
@@ -237,8 +244,11 @@ class DiscoveryClientIT {
 			throw new RuntimeException(e);
 		}
 
-		String stateResultAfter10Seconds = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String stateResultAfter10Seconds = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertThat(BASIC_JSON_TESTER.from(stateResultAfter10Seconds)).isEqualTo("[]");
 	}
 
@@ -249,21 +259,29 @@ class DiscoveryClientIT {
 		WebClient client = clientBuilder.baseUrl("http://localhost:80/discoveryclient-it/actuator/health").build();
 		WebClient server = serverBuilder.baseUrl("http://localhost:80/actuator/health").build();
 
-		String clientHealth = client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
-		String serverHealth = server.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String clientHealth = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
+		String serverHealth = server.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(clientHealth))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(serverHealth))
-				.extractingJsonPathStringValue("$.components.kubernetes.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.kubernetes.status")
+			.isEqualTo("UP");
 	}
 
 	private static void discoveryClient(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util
-				.yaml("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
+			.yaml("client/spring-cloud-kubernetes-discoveryclient-it-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("client/spring-cloud-kubernetes-discoveryclient-it-service.yaml");
 		V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
@@ -277,7 +295,7 @@ class DiscoveryClientIT {
 
 	private static void discoveryServer(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util
-				.yaml("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
+			.yaml("server/spring-cloud-kubernetes-discoveryserver-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("server/spring-cloud-kubernetes-discoveryserver-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {

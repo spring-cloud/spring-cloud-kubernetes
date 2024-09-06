@@ -91,8 +91,10 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		namespaces.forEach(namespace -> {
 			SharedIndexInformer<Secret> informer;
 			if (enableReloadFiltering) {
-				informer = kubernetesClient.secrets().inNamespace(namespace)
-						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
+				informer = kubernetesClient.secrets()
+					.inNamespace(namespace)
+					.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
+					.inform();
 				LOG.debug("added secret informer for namespace : " + namespace + " with enabled filter");
 			}
 			else {

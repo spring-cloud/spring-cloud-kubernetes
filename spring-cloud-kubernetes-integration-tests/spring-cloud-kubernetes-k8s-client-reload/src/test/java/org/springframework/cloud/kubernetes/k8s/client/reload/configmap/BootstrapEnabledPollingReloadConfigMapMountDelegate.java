@@ -68,8 +68,11 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 
 		// (3)
 		WebClient webClient = K8sClientConfigMapReloadITUtil.builder().baseUrl("http://localhost/mount").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec())
+			.block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
@@ -82,8 +85,12 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 				null);
 
 		await().timeout(Duration.ofSeconds(180))
-				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-						.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block().equals("as-mount-changed"));
+			.until(() -> webClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec())
+				.block()
+				.equals("as-mount-changed"));
 
 	}
 

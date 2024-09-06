@@ -68,32 +68,37 @@ import static org.springframework.cloud.loadbalancer.support.LoadBalancerClientF
 class KubernetesClientServicesListSupplierTests {
 
 	private static final V1Service SERVICE_A_DEFAULT_NAMESPACE = new V1ServiceBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("default").withUid("0")
-					.addToLabels("beta", "true").addToAnnotations("org.springframework.cloud", "true").build())
-			.withSpec(new V1ServiceSpecBuilder().withType("V1Service")
-					.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build()).build())
-			.build();
+		.withMetadata(new V1ObjectMetaBuilder().withName("service-a")
+			.withNamespace("default")
+			.withUid("0")
+			.addToLabels("beta", "true")
+			.addToAnnotations("org.springframework.cloud", "true")
+			.build())
+		.withSpec(new V1ServiceSpecBuilder().withType("V1Service")
+			.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build())
+			.build())
+		.build();
 
 	private static final V1Service SERVICE_A_TEST_NAMESPACE = new V1ServiceBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("test").withUid("1").build())
-			.withSpec(
-					new V1ServiceSpecBuilder().withType("V1Service")
-							.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build(),
-									new V1ServicePortBuilder().withPort(443).withName("https").build())
-							.build())
-			.build();
+		.withMetadata(new V1ObjectMetaBuilder().withName("service-a").withNamespace("test").withUid("1").build())
+		.withSpec(new V1ServiceSpecBuilder().withType("V1Service")
+			.addToPorts(new V1ServicePortBuilder().withPort(80).withName("http").build(),
+					new V1ServicePortBuilder().withPort(443).withName("https").build())
+			.build())
+		.build();
 
 	private static final V1ServiceList SINGLE_NAMESPACE_SERVICES = new V1ServiceList()
-			.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
+		.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
 
 	private static final V1ServiceList SERVICE_LIST_ALL_NAMESPACE = new V1ServiceList()
-			.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE).addItemsItem(SERVICE_A_TEST_NAMESPACE);
+		.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE)
+		.addItemsItem(SERVICE_A_TEST_NAMESPACE);
 
 	private static final V1ServiceList SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES = new V1ServiceList()
-			.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
+		.addItemsItem(SERVICE_A_DEFAULT_NAMESPACE);
 
 	private static final V1ServiceList SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES = new V1ServiceList()
-			.addItemsItem(SERVICE_A_TEST_NAMESPACE);
+		.addItemsItem(SERVICE_A_TEST_NAMESPACE);
 
 	private static WireMockServer wireMockServer;
 
@@ -138,7 +143,7 @@ class KubernetesClientServicesListSupplierTests {
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/default/services?fieldSelector=metadata.name%3Dservice-a"))
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SINGLE_NAMESPACE_SERVICES))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SINGLE_NAMESPACE_SERVICES))));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
@@ -175,7 +180,7 @@ class KubernetesClientServicesListSupplierTests {
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/default/services?fieldSelector=metadata.name%3Dservice-a"))
-				.willReturn(aResponse().withStatus(404)));
+			.willReturn(aResponse().withStatus(404)));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 		List<ServiceInstance> services = List.of();
@@ -206,7 +211,7 @@ class KubernetesClientServicesListSupplierTests {
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/services?fieldSelector=metadata.name%3Dservice-a"))
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST_ALL_NAMESPACE))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST_ALL_NAMESPACE))));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
@@ -243,15 +248,15 @@ class KubernetesClientServicesListSupplierTests {
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/default/services?fieldSelector=metadata.name%3Dservice-a"))
-				.willReturn(aResponse().withStatus(200)
-						.withBody(new JSON().serialize(SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES))));
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES))));
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/test/services?fieldSelector=metadata.name%3Dservice-a"))
-				.willReturn(aResponse().withStatus(200)
-						.withBody(new JSON().serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/no-service/services?fieldSelector=metadata.name%3Dservice-a"))
-				.willReturn(aResponse().withStatus(404)));
+			.willReturn(aResponse().withStatus(404)));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 

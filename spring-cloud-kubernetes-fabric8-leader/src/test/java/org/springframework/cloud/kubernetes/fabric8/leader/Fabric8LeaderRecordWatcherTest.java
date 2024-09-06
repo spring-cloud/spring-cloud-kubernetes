@@ -42,17 +42,17 @@ class Fabric8LeaderRecordWatcherTest {
 	private final LeaderProperties mockLeaderProperties = Mockito.mock(LeaderProperties.class);
 
 	private final Fabric8LeadershipController mockFabric8LeadershipController = Mockito
-			.mock(Fabric8LeadershipController.class);
+		.mock(Fabric8LeadershipController.class);
 
 	private final KubernetesClient mockKubernetesClient = Mockito.mock(KubernetesClient.class);
 
 	@SuppressWarnings("unchecked")
 	private final MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockConfigMapsOperation = Mockito
-			.mock(MixedOperation.class);
+		.mock(MixedOperation.class);
 
 	@SuppressWarnings("unchecked")
 	private final NonNamespaceOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockInNamespaceOperation = Mockito
-			.mock(NonNamespaceOperation.class);
+		.mock(NonNamespaceOperation.class);
 
 	@SuppressWarnings("unchecked")
 	private final Resource<ConfigMap> mockWithNameResource = Mockito.mock(Resource.class);

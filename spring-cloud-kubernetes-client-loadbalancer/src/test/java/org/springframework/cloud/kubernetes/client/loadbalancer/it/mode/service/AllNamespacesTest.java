@@ -78,7 +78,7 @@ class AllNamespacesTest {
 	private static MockedStatic<KubernetesClientUtils> clientUtils;
 
 	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
-			.mockStatic(KubernetesServiceInstanceMapper.class);
+		.mockStatic(KubernetesServiceInstanceMapper.class);
 
 	@Autowired
 	private WebClient.Builder builder;
@@ -105,10 +105,10 @@ class AllNamespacesTest {
 		// we mock host creation so that it becomes something like : localhost:8888
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("service-a", "a", "cluster.local"))
-				.thenReturn("localhost");
+			.thenReturn("localhost");
 
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("service-b", "b", "cluster.local"))
-				.thenReturn("localhost");
+			.thenReturn("localhost");
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		clientUtils = mockStatic(KubernetesClientUtils.class);
@@ -136,21 +136,31 @@ class AllNamespacesTest {
 	void test() {
 
 		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-				.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
 
 		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-				.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
 
-		String serviceAResult = builder.baseUrl(SERVICE_A_URL).build().method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).block();
+		String serviceAResult = builder.baseUrl(SERVICE_A_URL)
+			.build()
+			.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.block();
 		Assertions.assertThat(serviceAResult).isEqualTo("service-a-reached");
 
-		String serviceBResult = builder.baseUrl(SERVICE_B_URL).build().method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).block();
+		String serviceBResult = builder.baseUrl(SERVICE_B_URL)
+			.build()
+			.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.block();
 		Assertions.assertThat(serviceBResult).isEqualTo("service-b-reached");
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
-				.getIfAvailable().getProvider("service-a", ServiceInstanceListSupplier.class).getIfAvailable();
+			.getIfAvailable()
+			.getProvider("service-a", ServiceInstanceListSupplier.class)
+			.getIfAvailable();
 		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(KubernetesClientServicesListSupplier.class);
 
 	}
@@ -158,28 +168,36 @@ class AllNamespacesTest {
 	private static void mockWatchers() {
 		V1Service serviceA = Util.service("a", "service-a", SERVICE_A_PORT);
 		V1ServiceList serviceListA = new V1ServiceListBuilder().withKind("V1ServiceList")
-				.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(serviceA).build();
+			.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(serviceA)
+			.build();
 		Util.servicesServiceMode(wireMockServer, serviceListA, "service-a");
 
 		V1Service serviceB = Util.service("b", "service-b", SERVICE_B_PORT);
 		V1ServiceList serviceListB = new V1ServiceListBuilder().withKind("V1ServiceList")
-				.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(serviceB).build();
+			.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(serviceB)
+			.build();
 		Util.servicesServiceMode(wireMockServer, serviceListB, "service-b");
 
 		V1Endpoints endpointsA = Util.endpoints("a", "service-a", SERVICE_A_PORT, "127.0.0.1");
 		V1EndpointsList endpointsListA = new V1EndpointsListBuilder().withKind("V1EndpointsList")
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(endpointsA).build();
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(endpointsA)
+			.build();
 		Util.endpointsServiceMode(wireMockServer, endpointsListA, "service-a");
 
 		V1Endpoints endpointsB = Util.endpoints("b", "service-b", SERVICE_B_PORT, "127.0.0.1");
 		V1EndpointsList endpointsListB = new V1EndpointsListBuilder().withKind("V1EndpointsList")
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(endpointsB).build();
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(endpointsB)
+			.build();
 		Util.endpointsServiceMode(wireMockServer, endpointsListB, "service-b");
 	}
 

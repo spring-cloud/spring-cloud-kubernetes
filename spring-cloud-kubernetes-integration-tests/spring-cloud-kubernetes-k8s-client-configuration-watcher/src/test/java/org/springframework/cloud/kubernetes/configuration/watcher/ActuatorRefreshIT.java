@@ -105,17 +105,20 @@ class ActuatorRefreshIT {
 	void testActuatorRefresh() {
 
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
-		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketTimeoutException.class)
-				.until(() -> WireMock
-						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-						.getResponse().wasConfigured());
+		await().timeout(Duration.ofSeconds(60))
+			.ignoreException(SocketTimeoutException.class)
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse()
+				.wasConfigured());
 
 		createConfigMap();
 
 		// Wait a bit before we verify
-		await().atMost(Duration.ofSeconds(30)).until(
-				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")))
+				.isEmpty());
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
 		deleteConfigMap();
@@ -134,16 +137,18 @@ class ActuatorRefreshIT {
 
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
 		await().timeout(Duration.ofSeconds(60))
-				.until(() -> WireMock
-						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-						.getResponse().wasConfigured());
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse()
+				.wasConfigured());
 
 		createConfigMap();
 
 		// Wait a bit before we verify
-		await().atMost(Duration.ofSeconds(30)).until(
-				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")))
+				.isEmpty());
 
 		Commons.waitForLogStatement("creating NOOP strategy because reload is disabled", K3S,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
@@ -159,11 +164,11 @@ class ActuatorRefreshIT {
 
 	private static void configWatcher(Phase phase) {
 		V1ConfigMap configMap = (V1ConfigMap) util
-				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 		V1Deployment deployment = (V1Deployment) util
-				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
 		V1Service service = (V1Service) util
-				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, configMap, null);
@@ -178,21 +183,32 @@ class ActuatorRefreshIT {
 
 	// Create new configmap to trigger controller to signal app to refresh
 	private void createConfigMap() {
-		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("service-wiremock")
-				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata()
+			.withName("service-wiremock")
+			.addToLabels("spring.cloud.kubernetes.config", "true")
+			.endMetadata()
+			.addToData("foo", "bar")
+			.build();
 		util.createAndWait(NAMESPACE, configMap, null);
 	}
 
 	private void deleteConfigMap() {
-		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata().withName("service-wiremock")
-				.addToLabels("spring.cloud.kubernetes.config", "true").endMetadata().addToData("foo", "bar").build();
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata()
+			.withName("service-wiremock")
+			.addToLabels("spring.cloud.kubernetes.config", "true")
+			.endMetadata()
+			.addToData("foo", "bar")
+			.build();
 		util.deleteAndWait(NAMESPACE, configMap, null);
 	}
 
 	private String logs() {
 		try {
-			String appPodName = K3S.execInContainer("sh", "-c", "kubectl get pods -l app="
-					+ SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+			String appPodName = K3S
+				.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME
+								+ " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
 			return execResult.getStdout();

@@ -75,9 +75,12 @@ abstract class SecretsRetryEnabled {
 		data.put("some.sensitive.number", Base64.getEncoder().encodeToString("1".getBytes()));
 
 		// return secret without failing
-		mockServer.expect().withPath(API).andReturn(200, new SecretListBuilder().withItems(
-				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
-				.build()).once();
+		mockServer.expect()
+			.withPath(API)
+			.andReturn(200, new SecretListBuilder().withItems(
+					new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
+				.build())
+			.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -98,9 +101,12 @@ abstract class SecretsRetryEnabled {
 		// fail 3 times then succeed at the 4th call
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(3);
 
-		mockServer.expect().withPath(API).andReturn(200, new SecretListBuilder().withItems(
-				new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
-				.build()).once();
+		mockServer.expect()
+			.withPath(API)
+			.andReturn(200, new SecretListBuilder().withItems(
+					new SecretBuilder().withNewMetadata().withName("my-secret").endMetadata().addToData(data).build())
+				.build())
+			.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -118,7 +124,7 @@ abstract class SecretsRetryEnabled {
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(5);
 
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
+			.hasMessageContaining("api/v1/namespaces/default/secrets. Message: Internal Server Error.");
 
 		// verify retried 5 times until failure
 		verify(verifiablePsl, times(5)).locate(any());

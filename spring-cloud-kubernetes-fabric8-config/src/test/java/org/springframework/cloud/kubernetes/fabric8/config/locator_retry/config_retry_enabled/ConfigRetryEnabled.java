@@ -75,10 +75,17 @@ abstract class ConfigRetryEnabled {
 		data.put("some.number", "0");
 
 		// return config map without failing
-		mockServer
-				.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().withItems(new ConfigMapBuilder()
-						.withNewMetadata().withName("application").endMetadata().addToData(data).build()).build())
-				.once();
+		mockServer.expect()
+			.withPath(API)
+			.andReturn(200,
+					new ConfigMapListBuilder()
+						.withItems(new ConfigMapBuilder().withNewMetadata()
+							.withName("application")
+							.endMetadata()
+							.addToData(data)
+							.build())
+						.build())
+			.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -98,10 +105,17 @@ abstract class ConfigRetryEnabled {
 
 		// fail 3 times then succeed at the 4th call
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(3);
-		mockServer
-				.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().withItems(new ConfigMapBuilder()
-						.withNewMetadata().withName("application").endMetadata().addToData(data).build()).build())
-				.once();
+		mockServer.expect()
+			.withPath(API)
+			.andReturn(200,
+					new ConfigMapListBuilder()
+						.withItems(new ConfigMapBuilder().withNewMetadata()
+							.withName("application")
+							.endMetadata()
+							.addToData(data)
+							.build())
+						.build())
+			.once();
 
 		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
 
@@ -119,7 +133,7 @@ abstract class ConfigRetryEnabled {
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(5);
 
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Internal Server Error");
+			.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Internal Server Error");
 
 		// verify retried 5 times until failure
 		verify(verifiablePsl, times(5)).locate(any());

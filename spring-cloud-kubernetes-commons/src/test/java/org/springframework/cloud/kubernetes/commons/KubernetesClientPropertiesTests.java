@@ -62,7 +62,7 @@ class KubernetesClientPropertiesTests {
 			assertThat(properties.oauthToken()).isNull();
 			assertThat(properties.noProxy()).isNull();
 			assertThat(properties.serviceAccountNamespacePath())
-					.isEqualTo("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+				.isEqualTo("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 			assertThat(properties.userAgent()).isEqualTo("Spring-Cloud-Kubernetes-Application");
 		});
 	}

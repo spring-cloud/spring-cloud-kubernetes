@@ -82,17 +82,17 @@ class ConfigServerBootstrapperTests {
 					}]
 				""".formatted(wireMockServer.port(), wireMockServer.baseUrl());
 
-		stubFor(get("/apps/spring-cloud-kubernetes-configserver").willReturn(
-				aResponse().withStatus(200).withBody(appsName).withHeader("content-type", "application/json")));
+		stubFor(get("/apps/spring-cloud-kubernetes-configserver")
+			.willReturn(aResponse().withStatus(200).withBody(appsName).withHeader("content-type", "application/json")));
 		Environment environment = new Environment("test", "default");
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("hello", "world");
 		PropertySource p = new PropertySource("p1", properties);
 		environment.add(p);
 		ObjectMapper objectMapper = new ObjectMapper();
-		stubFor(get("/application/default")
-				.willReturn(aResponse().withStatus(200).withBody(objectMapper.writeValueAsString(environment))
-						.withHeader("content-type", "application/json")));
+		stubFor(get("/application/default").willReturn(aResponse().withStatus(200)
+			.withBody(objectMapper.writeValueAsString(environment))
+			.withHeader("content-type", "application/json")));
 	}
 
 	@AfterEach
@@ -109,7 +109,7 @@ class ConfigServerBootstrapperTests {
 
 	SpringApplicationBuilder setup(String... env) {
 		SpringApplicationBuilder builder = new SpringApplicationBuilder(TestConfig.class)
-				.properties(addDefaultEnv(env));
+			.properties(addDefaultEnv(env));
 		builder.addBootstrapRegistryInitializer(new ConfigServerBootstrapper());
 		return builder;
 	}

@@ -66,26 +66,35 @@ public class NamedConfigMapWithPrefixConfigurationStub {
 
 	public static void stubData() {
 		V1ConfigMap one = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-one").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("one.property", "one")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("config-map-one")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("one.property", "one"))
+			.build();
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-two").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("property", "two")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("config-map-two")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("property", "two"))
+			.build();
 
 		V1ConfigMap three = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("config-map-three").withNamespace("spring-k8s")
-						.withResourceVersion("1").build())
-				.addToData(Collections.singletonMap("property", "three")).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("config-map-three")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(Collections.singletonMap("property", "three"))
+			.build();
 
 		V1ConfigMapList allConfigMaps = new V1ConfigMapList();
 		allConfigMaps.setItems(Arrays.asList(one, two, three));
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 
 }

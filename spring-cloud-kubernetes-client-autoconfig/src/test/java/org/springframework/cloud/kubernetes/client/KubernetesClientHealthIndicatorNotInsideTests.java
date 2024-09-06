@@ -40,7 +40,7 @@ public class KubernetesClientHealthIndicatorNotInsideTests {
 	@Test
 	public void test() {
 		assertThatThrownBy(() -> context.getBean(KubernetesClientHealthIndicator.class))
-				.isInstanceOf(NoSuchBeanDefinitionException.class);
+			.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 }

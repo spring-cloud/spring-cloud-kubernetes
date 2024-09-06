@@ -48,10 +48,10 @@ class KubernetesCatalogWatchTests {
 	private WireMockServer wireMockServer;
 
 	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
-			.forClass(HeartbeatEvent.class);
+		.forClass(HeartbeatEvent.class);
 
 	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
-			.mock(ApplicationEventPublisher.class);
+		.mock(ApplicationEventPublisher.class);
 
 	@AfterEach
 	void afterEach() {
@@ -67,7 +67,7 @@ class KubernetesCatalogWatchTests {
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
 		stubFor(get("/state")
-				.willReturn(aResponse().withStatus(200).withBody(body).withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200).withBody(body).withHeader("content-type", "application/json")));
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
@@ -99,7 +99,7 @@ class KubernetesCatalogWatchTests {
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
 		stubFor(get("/state")
-				.willReturn(aResponse().withStatus(200).withBody(body).withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200).withBody(body).withHeader("content-type", "application/json")));
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
@@ -147,8 +147,8 @@ class KubernetesCatalogWatchTests {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
-		stubFor(get("/state").willReturn(
-				aResponse().withStatus(200).withBody(bodyOne).withHeader("content-type", "application/json")));
+		stubFor(get("/state")
+			.willReturn(aResponse().withStatus(200).withBody(bodyOne).withHeader("content-type", "application/json")));
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
@@ -169,8 +169,8 @@ class KubernetesCatalogWatchTests {
 		Assertions.assertEquals(stateOne.get(0).namespace(), "namespaceA");
 
 		// second call
-		stubFor(get("/state").willReturn(
-				aResponse().withStatus(200).withBody(bodyTwo).withHeader("content-type", "application/json")));
+		stubFor(get("/state")
+			.willReturn(aResponse().withStatus(200).withBody(bodyTwo).withHeader("content-type", "application/json")));
 
 		catalogWatch.catalogServicesWatch();
 

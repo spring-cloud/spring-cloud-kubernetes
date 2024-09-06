@@ -97,8 +97,11 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("id");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("10")).hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("10"))
+			.hasSize(1);
 	}
 
 	@Test
@@ -124,9 +127,13 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("20")).hasSize(1).filteredOn(s -> 80 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("20"))
+			.hasSize(1)
+			.filteredOn(s -> 80 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
@@ -154,8 +161,10 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
-		assertThat(instances).hasSize(2).filteredOn(ServiceInstance::isSecure).extracting(ServiceInstance::getHost)
-				.containsOnly("ip1", "ip2");
+		assertThat(instances).hasSize(2)
+			.filteredOn(ServiceInstance::isSecure)
+			.extracting(ServiceInstance::getHost)
+			.containsOnly("ip1", "ip2");
 	}
 
 	@Test
@@ -191,22 +200,33 @@ class KubernetesDiscoveryClientTests {
 		assertThat(instances).hasSize(2);
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getHost().equals("ip2") && !s.isSecure()).hasSize(1);
-		assertThat(instances).filteredOn(s -> s.getServiceId().contains("endpoint")
-				&& ((KubernetesServiceInstance) s).getNamespace().equals("test")).hasSize(1);
-		assertThat(instances).filteredOn(s -> s.getServiceId().contains("endpoint")
-				&& ((KubernetesServiceInstance) s).getNamespace().equals("test2")).hasSize(1);
+		assertThat(instances)
+			.filteredOn(s -> s.getServiceId().contains("endpoint")
+					&& ((KubernetesServiceInstance) s).getNamespace().equals("test"))
+			.hasSize(1);
+		assertThat(instances)
+			.filteredOn(s -> s.getServiceId().contains("endpoint")
+					&& ((KubernetesServiceInstance) s).getNamespace().equals("test2"))
+			.hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("60")).hasSize(1);
 		assertThat(instances).filteredOn(s -> s.getInstanceId().equals("70")).hasSize(1);
 	}
 
 	@Test
 	void instanceWithoutSubsetsShouldBeSkipped() {
-		V1Endpoints endpoints = new V1EndpointsBuilder().withNewMetadata().withName("endpoint1").withNamespace("test")
-				.withLabels(Collections.emptyMap()).endMetadata().build();
+		V1Endpoints endpoints = new V1EndpointsBuilder().withNewMetadata()
+			.withName("endpoint1")
+			.withNamespace("test")
+			.withLabels(Collections.emptyMap())
+			.endMetadata()
+			.build();
 		endpointsCache.add(endpoints);
 
-		V1Service service = new V1ServiceBuilder().withNewMetadata().withName("endpoint1").withNamespace("test").and()
-				.build();
+		V1Service service = new V1ServiceBuilder().withNewMetadata()
+			.withName("endpoint1")
+			.withNamespace("test")
+			.and()
+			.build();
 		servicesCache.add(service);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
@@ -242,9 +262,13 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint2");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("80")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("80"))
+			.hasSize(1)
+			.filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
@@ -270,8 +294,12 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("90")).hasSize(1).hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("90"))
+			.hasSize(1)
+			.hasSize(1);
 	}
 
 	@Test
@@ -297,8 +325,12 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("100")).hasSize(1).hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("100"))
+			.hasSize(1)
+			.hasSize(1);
 	}
 
 	@Test
@@ -325,9 +357,13 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("110")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("110"))
+			.hasSize(1)
+			.filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
@@ -351,9 +387,13 @@ class KubernetesDiscoveryClientTests {
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("120")).hasSize(1).filteredOn(s -> 80 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("120"))
+			.hasSize(1)
+			.filteredOn(s -> 80 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
@@ -380,9 +420,13 @@ class KubernetesDiscoveryClientTests {
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
 		// We're returning the first discovered port to not change previous behaviour
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getInstanceId().equals("130")).hasSize(1).filteredOn(s -> 443 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getInstanceId().equals("130"))
+			.hasSize(1)
+			.filteredOn(s -> 443 == s.getPort())
+			.hasSize(1);
 	}
 
 	@Test
@@ -408,10 +452,14 @@ class KubernetesDiscoveryClientTests {
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
 		// We're returning the first discovered port to not change previous behaviour
-		assertThat(instances).hasSize(1).filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure()).hasSize(1)
-				.filteredOn(s -> s.getUri().toASCIIString().equals("http://ip1"))
-				.filteredOn(s -> s.getInstanceId().equals("130")).hasSize(1).filteredOn(s -> 0 == s.getPort())
-				.hasSize(1);
+		assertThat(instances).hasSize(1)
+			.filteredOn(s -> s.getHost().equals("ip1") && !s.isSecure())
+			.hasSize(1)
+			.filteredOn(s -> s.getUri().toASCIIString().equals("http://ip1"))
+			.filteredOn(s -> s.getInstanceId().equals("130"))
+			.hasSize(1)
+			.filteredOn(s -> 0 == s.getPort())
+			.hasSize(1);
 	}
 
 	private void setup(String serviceId, String serviceType, String namespace, Map<String, String> labels,
@@ -419,8 +467,12 @@ class KubernetesDiscoveryClientTests {
 			List<String> appProtocols) {
 
 		V1Service service = new V1ServiceBuilder().withSpec(new V1ServiceSpecBuilder().withType(serviceType).build())
-				.withNewMetadata().withName(serviceId).withNamespace(namespace).withLabels(labels).endMetadata()
-				.build();
+			.withNewMetadata()
+			.withName(serviceId)
+			.withNamespace(namespace)
+			.withLabels(labels)
+			.endMetadata()
+			.build();
 
 		servicesCache.add(service);
 
@@ -428,13 +480,20 @@ class KubernetesDiscoveryClientTests {
 		objectMeta.setNamespace(namespace);
 		objectMeta.setName(serviceId);
 
-		V1Endpoints endpoints = new V1EndpointsBuilder().withNewMetadata().withName(serviceId).withNamespace(namespace)
-				.withLabels(labels).endMetadata().build();
+		V1Endpoints endpoints = new V1EndpointsBuilder().withNewMetadata()
+			.withName(serviceId)
+			.withNamespace(namespace)
+			.withLabels(labels)
+			.endMetadata()
+			.build();
 
 		List<V1EndpointAddress> addresses = new ArrayList<>();
 		for (int i = 0; i < ips.size(); ++i) {
-			V1EndpointAddress address = new V1EndpointAddressBuilder().withIp(ips.get(i)).withNewTargetRef()
-					.withUid(uuids.get(i)).endTargetRef().build();
+			V1EndpointAddress address = new V1EndpointAddressBuilder().withIp(ips.get(i))
+				.withNewTargetRef()
+				.withUid(uuids.get(i))
+				.endTargetRef()
+				.build();
 			addresses.add(address);
 		}
 
@@ -444,7 +503,10 @@ class KubernetesDiscoveryClientTests {
 		List<CoreV1EndpointPort> corePorts = new ArrayList<>();
 		for (int i = 0; i < names.size(); ++i) {
 			CoreV1EndpointPort port = new CoreV1EndpointPortBuilder().withName(names.get(i))
-					.withProtocol(protocols.get(i)).withPort(ports.get(i)).withAppProtocol(appProtocols.get(i)).build();
+				.withProtocol(protocols.get(i))
+				.withPort(ports.get(i))
+				.withAppProtocol(appProtocols.get(i))
+				.build();
 			corePorts.add(port);
 		}
 		subset.setPorts(corePorts);

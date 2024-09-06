@@ -83,8 +83,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void noMatch() {
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData(COLOR_REALLY_RED).build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -109,8 +112,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void match() {
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData(COLOR_REALLY_RED).build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -136,11 +142,17 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void matchIncludeSingleProfile() {
 
-		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData(COLOR_REALLY_RED).build();
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
-		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
-				.addToData("taste", "mango").build();
+		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata()
+			.withName("red-with-profile")
+			.endMetadata()
+			.addToData("taste", "mango")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(redWithProfile).create();
@@ -175,11 +187,17 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void matchIncludeSingleProfileWithPrefix() {
 
-		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData(COLOR_REALLY_RED).build();
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
-		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
-				.addToData("taste", "mango").build();
+		ConfigMap redWithProfile = new ConfigMapBuilder().withNewMetadata()
+			.withName("red-with-profile")
+			.endMetadata()
+			.addToData("taste", "mango")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(redWithProfile).create();
@@ -213,14 +231,23 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void matchIncludeTwoProfilesWithPrefix() {
 
-		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData(COLOR_REALLY_RED).build();
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
-		ConfigMap redWithTaste = new ConfigMapBuilder().withNewMetadata().withName("red-with-taste").endMetadata()
-				.addToData("taste", "mango").build();
+		ConfigMap redWithTaste = new ConfigMapBuilder().withNewMetadata()
+			.withName("red-with-taste")
+			.endMetadata()
+			.addToData("taste", "mango")
+			.build();
 
-		ConfigMap redWithShape = new ConfigMapBuilder().withNewMetadata().withName("red-with-shape").endMetadata()
-				.addToData("shape", "round").build();
+		ConfigMap redWithShape = new ConfigMapBuilder().withNewMetadata()
+			.withName("red-with-shape")
+			.endMetadata()
+			.addToData("shape", "round")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(redWithTaste).create();
@@ -253,8 +280,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void matchWithName() {
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("application").endMetadata()
-				.addToData("color", "red").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("application")
+			.endMetadata()
+			.addToData("color", "red")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -279,8 +309,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void namespaceMatch() {
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData(COLOR_REALLY_RED).build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -303,8 +336,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testSingleYaml() {
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("single.yaml", "key: value").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("single.yaml", "key: value")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -329,8 +365,11 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testCorrectNameWithProfile() {
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("one").endMetadata()
-				.addToData("key", "value").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("one")
+			.endMetadata()
+			.addToData("key", "value")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 		MockEnvironment environment = new MockEnvironment();
@@ -356,11 +395,17 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@Test
 	void cache(CapturedOutput output) {
 
-		ConfigMap red = new ConfigMapBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData(COLOR_REALLY_RED).build();
+		ConfigMap red = new ConfigMapBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
-		ConfigMap green = new ConfigMapBuilder().withNewMetadata().withName("green").endMetadata()
-				.addToData("taste", "mango").build();
+		ConfigMap green = new ConfigMapBuilder().withNewMetadata()
+			.withName("green")
+			.endMetadata()
+			.addToData("taste", "mango")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(green).create();

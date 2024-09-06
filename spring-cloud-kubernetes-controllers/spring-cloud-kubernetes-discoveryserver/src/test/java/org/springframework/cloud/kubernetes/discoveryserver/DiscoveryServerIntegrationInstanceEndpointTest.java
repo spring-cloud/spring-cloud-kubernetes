@@ -65,15 +65,18 @@ class DiscoveryServerIntegrationInstanceEndpointTest {
 	private static final SharedInformerFactory SHARED_INFORMER_FACTORY = Mockito.mock(SharedInformerFactory.class);
 
 	private static final V1Service TEST_SERVICE = new V1Service()
-			.metadata(new V1ObjectMeta().name("test-svc-3").namespace(NAMESPACE).putLabelsItem("spring", "true")
-					.putLabelsItem("k8s", "true"))
-			.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1").type("ClusterIP")).status(new V1ServiceStatus());
+		.metadata(new V1ObjectMeta().name("test-svc-3")
+			.namespace(NAMESPACE)
+			.putLabelsItem("spring", "true")
+			.putLabelsItem("k8s", "true"))
+		.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1").type("ClusterIP"))
+		.status(new V1ServiceStatus());
 
 	private static final V1Endpoints TEST_ENDPOINTS = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-3").namespace(NAMESPACE))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
-					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
-							.targetRef(new V1ObjectReferenceBuilder().withUid("uid2").build())));
+		.metadata(new V1ObjectMeta().name("test-svc-3").namespace(NAMESPACE))
+		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
+			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
+				.targetRef(new V1ObjectReferenceBuilder().withUid("uid2").build())));
 
 	@Autowired
 	private WebTestClient webTestClient;
@@ -92,8 +95,11 @@ class DiscoveryServerIntegrationInstanceEndpointTest {
 				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
 				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
 				TEST_SERVICE.getMetadata().getNamespace(), null);
-		webTestClient.get().uri("/app/test-svc-3/uid2").exchange().expectBody(DefaultKubernetesServiceInstance.class)
-				.isEqualTo(kubernetesServiceInstance);
+		webTestClient.get()
+			.uri("/app/test-svc-3/uid2")
+			.exchange()
+			.expectBody(DefaultKubernetesServiceInstance.class)
+			.isEqualTo(kubernetesServiceInstance);
 	}
 
 	@Test
@@ -110,8 +116,11 @@ class DiscoveryServerIntegrationInstanceEndpointTest {
 				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
 				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
 				TEST_SERVICE.getMetadata().getNamespace(), null);
-		webTestClient.get().uri("/apps/test-svc-3/uid2").exchange().expectBody(DefaultKubernetesServiceInstance.class)
-				.isEqualTo(kubernetesServiceInstance);
+		webTestClient.get()
+			.uri("/apps/test-svc-3/uid2")
+			.exchange()
+			.expectBody(DefaultKubernetesServiceInstance.class)
+			.isEqualTo(kubernetesServiceInstance);
 	}
 
 	@TestConfiguration
