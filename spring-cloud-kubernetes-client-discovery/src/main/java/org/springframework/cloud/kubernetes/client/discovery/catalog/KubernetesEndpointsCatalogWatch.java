@@ -59,7 +59,9 @@ final class KubernetesEndpointsCatalogWatch
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in " + context.properties().namespaces());
 			List<V1Endpoints> inner = new ArrayList<>(context.properties().namespaces().size());
-			context.properties().namespaces().forEach(namespace -> inner
+			context.properties()
+				.namespaces()
+				.forEach(namespace -> inner
 					.addAll(namespacedEndpoints(coreV1Api, namespace, context.properties().serviceLabels())));
 			endpoints = inner;
 		}
@@ -80,9 +82,14 @@ final class KubernetesEndpointsCatalogWatch
 		 *     V1EndpointSubset::getAddresses and V1EndpointSubset::getPorts (each is a List)
 		 * </pre>
 		 */
-		Stream<V1ObjectReference> references = endpoints.stream().map(V1Endpoints::getSubsets).filter(Objects::nonNull)
-				.flatMap(List::stream).map(V1EndpointSubset::getAddresses).filter(Objects::nonNull)
-				.flatMap(List::stream).map(V1EndpointAddress::getTargetRef);
+		Stream<V1ObjectReference> references = endpoints.stream()
+			.map(V1Endpoints::getSubsets)
+			.filter(Objects::nonNull)
+			.flatMap(List::stream)
+			.map(V1EndpointSubset::getAddresses)
+			.filter(Objects::nonNull)
+			.flatMap(List::stream)
+			.map(V1EndpointAddress::getTargetRef);
 
 		return KubernetesCatalogWatchContext.state(references);
 
@@ -90,8 +97,10 @@ final class KubernetesEndpointsCatalogWatch
 
 	private List<V1Endpoints> endpoints(CoreV1Api client, Map<String, String> labels) {
 		try {
-			return client.listEndpointsForAllNamespaces(null, null, null, labelSelector(labels), null, null, null, null,
-					null, null, null).getItems();
+			return client
+				.listEndpointsForAllNamespaces(null, null, null, labelSelector(labels), null, null, null, null, null,
+						null, null)
+				.getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in all namespaces");
@@ -101,8 +110,10 @@ final class KubernetesEndpointsCatalogWatch
 
 	private List<V1Endpoints> namespacedEndpoints(CoreV1Api client, String namespace, Map<String, String> labels) {
 		try {
-			return client.listNamespacedEndpoints(namespace, null, null, null, null, labelSelector(labels), null, null,
-					null, null, null, null).getItems();
+			return client
+				.listNamespacedEndpoints(namespace, null, null, null, null, labelSelector(labels), null, null, null,
+						null, null, null)
+				.getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoints in namespace " + namespace);

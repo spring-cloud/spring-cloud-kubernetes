@@ -61,7 +61,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = Mockito.mock(KubernetesNamespaceProvider.class);
 
 	static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
-			.forClass(HeartbeatEvent.class);
+		.forClass(HeartbeatEvent.class);
 
 	static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito.mock(ApplicationEventPublisher.class);
 
@@ -297,31 +297,39 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	void endpoints(String namespace, Map<String, String> labels, String podName) {
 
 		EndpointAddress endpointAddress = new EndpointAddressBuilder()
-				.withTargetRef(new ObjectReferenceBuilder().withName(podName).withNamespace(namespace).build()).build();
+			.withTargetRef(new ObjectReferenceBuilder().withName(podName).withNamespace(namespace).build())
+			.build();
 
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder().withAddresses(List.of(endpointAddress)).build();
 
 		Endpoints endpoints = new EndpointsBuilder()
-				.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
-				.withSubsets(List.of(endpointSubset)).build();
+			.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
+			.withSubsets(List.of(endpointSubset))
+			.build();
 		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
 	void service(String namespace, Map<String, String> labels, String podName) {
 
 		Service service = new ServiceBuilder()
-				.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
-				.build();
+			.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
+			.build();
 		mockClient().services().inNamespace(namespace).resource(service).create();
 	}
 
 	static void endpointSlice(String namespace, Map<String, String> labels, String podName) {
 
 		Endpoint endpoint = new EndpointBuilder()
-				.withTargetRef(new ObjectReferenceBuilder().withName(podName).withNamespace(namespace).build()).build();
+			.withTargetRef(new ObjectReferenceBuilder().withName(podName).withNamespace(namespace).build())
+			.build();
 
-		EndpointSlice slice = new EndpointSliceBuilder().withMetadata(new ObjectMetaBuilder().withNamespace(namespace)
-				.withName("slice-" + podName).withLabels(labels).build()).withEndpoints(endpoint).build();
+		EndpointSlice slice = new EndpointSliceBuilder()
+			.withMetadata(new ObjectMetaBuilder().withNamespace(namespace)
+				.withName("slice-" + podName)
+				.withLabels(labels)
+				.build())
+			.withEndpoints(endpoint)
+			.build();
 
 		mockClient().discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
 
@@ -331,7 +339,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		watch.catalogServicesWatch();
 
 		verify(APPLICATION_EVENT_PUBLISHER, Mockito.atLeastOnce())
-				.publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
+			.publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
 
 		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
 		assertThat(event.getValue()).isInstanceOf(List.class);

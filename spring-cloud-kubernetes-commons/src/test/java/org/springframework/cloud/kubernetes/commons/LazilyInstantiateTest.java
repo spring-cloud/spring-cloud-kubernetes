@@ -46,7 +46,7 @@ class LazilyInstantiateTest {
 		if (!testInfo.getTags().contains(TAG)) {
 			// common setup
 			when(this.mockSupplier.get()).thenReturn(SINGLETON)
-					.thenThrow(new RuntimeException("Supplier was called more than once!"));
+				.thenThrow(new RuntimeException("Supplier was called more than once!"));
 		}
 	}
 

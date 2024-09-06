@@ -158,15 +158,26 @@ public class K8SUtils {
 	public static Object readYamlFromClasspath(String fileName) throws Exception {
 		ClassLoader classLoader = K8SUtils.class.getClassLoader();
 		String file = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream(fileName))).lines()
-				.collect(Collectors.joining("\n"));
+			.collect(Collectors.joining("\n"));
 		return Yaml.load(file);
 	}
 
 	public V1Service createService(String name, Map<String, String> labels, Map<String, String> specSelectors,
 			String type, String portName, int port, int targetPort, String namespace) throws ApiException {
-		V1Service wiremockService = new V1ServiceBuilder().editOrNewMetadata().withName(name).addToLabels(labels)
-				.endMetadata().editOrNewSpec().addToSelector(specSelectors).withType(type).addNewPort()
-				.withName(portName).withPort(port).withNewTargetPort(targetPort).endPort().endSpec().build();
+		V1Service wiremockService = new V1ServiceBuilder().editOrNewMetadata()
+			.withName(name)
+			.addToLabels(labels)
+			.endMetadata()
+			.editOrNewSpec()
+			.addToSelector(specSelectors)
+			.withType(type)
+			.addNewPort()
+			.withName(portName)
+			.withPort(port)
+			.withNewTargetPort(targetPort)
+			.endPort()
+			.endSpec()
+			.build();
 		return api.createNamespacedService(namespace, wiremockService, null, null, null, null);
 	}
 
@@ -176,22 +187,52 @@ public class K8SUtils {
 			String livenessProbePath, String serviceAccountName, Collection<V1EnvVar> envVars, String namespace)
 			throws ApiException {
 
-		V1Deployment wiremockDeployment = new V1DeploymentBuilder().editOrNewMetadata().withName(name).endMetadata()
-				.editOrNewSpec().withNewSelector().addToMatchLabels(selectorMatchLabels).endSelector()
-				.editOrNewTemplate().editOrNewMetadata().addToLabels(templateMetadataLabels).endMetadata()
-				.editOrNewSpec().withServiceAccountName(serviceAccountName).addNewContainer().withName(containerName)
-				.withImage(image).withImagePullPolicy(pullPolicy).addNewPort().withContainerPort(containerPort)
-				.endPort().editOrNewReadinessProbe().editOrNewHttpGet().withNewPort(readinessProbePort)
-				.withPath(readinessProbePath).endHttpGet().endReadinessProbe().editOrNewLivenessProbe()
-				.editOrNewHttpGet().withNewPort(livenessProbePort).withPath(livenessProbePath).endHttpGet()
-				.endLivenessProbe().addAllToEnv(envVars).endContainer().endSpec().endTemplate().endSpec().build();
+		V1Deployment wiremockDeployment = new V1DeploymentBuilder().editOrNewMetadata()
+			.withName(name)
+			.endMetadata()
+			.editOrNewSpec()
+			.withNewSelector()
+			.addToMatchLabels(selectorMatchLabels)
+			.endSelector()
+			.editOrNewTemplate()
+			.editOrNewMetadata()
+			.addToLabels(templateMetadataLabels)
+			.endMetadata()
+			.editOrNewSpec()
+			.withServiceAccountName(serviceAccountName)
+			.addNewContainer()
+			.withName(containerName)
+			.withImage(image)
+			.withImagePullPolicy(pullPolicy)
+			.addNewPort()
+			.withContainerPort(containerPort)
+			.endPort()
+			.editOrNewReadinessProbe()
+			.editOrNewHttpGet()
+			.withNewPort(readinessProbePort)
+			.withPath(readinessProbePath)
+			.endHttpGet()
+			.endReadinessProbe()
+			.editOrNewLivenessProbe()
+			.editOrNewHttpGet()
+			.withNewPort(livenessProbePort)
+			.withPath(livenessProbePath)
+			.endHttpGet()
+			.endLivenessProbe()
+			.addAllToEnv(envVars)
+			.endContainer()
+			.endSpec()
+			.endTemplate()
+			.endSpec()
+			.build();
 		return appsApi.createNamespacedDeployment(namespace, wiremockDeployment, null, null, null, null);
 
 	}
 
 	public void waitForEndpointReady(String name, String namespace) {
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
-				.until(() -> isEndpointReady(name, namespace));
+		await().pollInterval(Duration.ofSeconds(1))
+			.atMost(600, TimeUnit.SECONDS)
+			.until(() -> isEndpointReady(name, namespace));
 	}
 
 	public boolean isEndpointReady(String name, String namespace) throws ApiException {
@@ -205,8 +246,9 @@ public class K8SUtils {
 	}
 
 	public void waitForReplicationController(String name, String namespace) {
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
-				.until(() -> isReplicationControllerReady(name, namespace));
+		await().pollInterval(Duration.ofSeconds(1))
+			.atMost(600, TimeUnit.SECONDS)
+			.until(() -> isReplicationControllerReady(name, namespace));
 	}
 
 	public boolean isReplicationControllerReady(String name, String namespace) throws ApiException {
@@ -224,15 +266,17 @@ public class K8SUtils {
 	}
 
 	public void waitForDeployment(String deploymentName, String namespace) {
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS)
-				.until(() -> isDeploymentReady(deploymentName, namespace));
+		await().pollInterval(Duration.ofSeconds(1))
+			.atMost(600, TimeUnit.SECONDS)
+			.until(() -> isDeploymentReady(deploymentName, namespace));
 	}
 
 	public void waitForIngress(String ingressName, String namespace) {
 		await().timeout(Duration.ofSeconds(90)).pollInterval(Duration.ofSeconds(3)).until(() -> {
 			try {
 				V1IngressLoadBalancerStatus status = networkingApi.readNamespacedIngress(ingressName, namespace, null)
-						.getStatus().getLoadBalancer();
+					.getStatus()
+					.getLoadBalancer();
 
 				if (status == null) {
 					log.info("ingress : " + ingressName + " not ready yet (loadbalancer not yet present)");
@@ -295,7 +339,7 @@ public class K8SUtils {
 
 		V1ServiceAccount serviceAccount = getConfigK8sClientItServiceAccount();
 		CheckedSupplier<V1ServiceAccount> accountSupplier = () -> api
-				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace, null);
+			.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace, null);
 		CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> api.createNamespacedServiceAccount(namespace,
 				serviceAccount, null, null, null, null);
 		notExistsHandler(accountSupplier, accountDefaulter);
@@ -312,18 +356,21 @@ public class K8SUtils {
 	public void deleteNamespace(String name) throws Exception {
 		api.deleteNamespace(name, null, null, null, null, null, null);
 
-		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS)
-				.until(() -> api.listNamespace(null, null, null, null, null, null, null, null, null, null, null)
-						.getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
+		await().pollInterval(Duration.ofSeconds(1))
+			.atMost(30, TimeUnit.SECONDS)
+			.until(() -> api.listNamespace(null, null, null, null, null, null, null, null, null, null, null)
+				.getItems()
+				.stream()
+				.noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
 	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) throws Exception {
 
 		V1ServiceAccount serviceAccount = getConfigK8sClientItClusterServiceAccount();
 		CheckedSupplier<V1ServiceAccount> accountSupplier = () -> api
-				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace, null);
+			.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace, null);
 		CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> api
-				.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount, null, null, null, null);
+			.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount, null, null, null, null);
 		notExistsHandler(accountSupplier, accountDefaulter);
 
 		V1ClusterRole clusterRole = getConfigK8sClientItClusterRole();

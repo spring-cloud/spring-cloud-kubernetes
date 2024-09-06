@@ -73,20 +73,18 @@ class KubernetesDiscoveryClientServiceWithoutPortNameTests {
 	void testDiscoveryWithoutAServicePortName() {
 
 		V1Endpoints endpoints = new V1EndpointsBuilder()
-				.withSubsets(
-						new V1EndpointSubsetBuilder().withPorts(new CoreV1EndpointPortBuilder().withPort(8080).build())
-								.withAddresses(new V1EndpointAddressBuilder().withIp("127.0.0.1").build()).build())
-				.withMetadata(
-						new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
-				.build();
+			.withSubsets(new V1EndpointSubsetBuilder().withPorts(new CoreV1EndpointPortBuilder().withPort(8080).build())
+				.withAddresses(new V1EndpointAddressBuilder().withIp("127.0.0.1").build())
+				.build())
+			.withMetadata(new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
+			.build();
 		endpointsCache.add(endpoints);
 
 		V1Service service = new V1ServiceBuilder()
-				.withSpec(
-						new V1ServiceSpecBuilder().withPorts(new V1ServicePortBuilder().withPort(8080).build()).build())
-				.withMetadata(
-						new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
-				.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").build()).build();
+			.withSpec(new V1ServiceSpecBuilder().withPorts(new V1ServicePortBuilder().withPort(8080).build()).build())
+			.withMetadata(new V1ObjectMetaBuilder().withName("no-port-name-service").withNamespace(NAMESPACE).build())
+			.withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").build())
+			.build();
 		servicesCache.add(service);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE),

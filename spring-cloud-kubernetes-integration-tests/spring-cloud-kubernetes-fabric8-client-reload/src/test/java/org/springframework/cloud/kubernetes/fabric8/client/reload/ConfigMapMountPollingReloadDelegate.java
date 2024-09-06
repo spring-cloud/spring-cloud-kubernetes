@@ -62,8 +62,11 @@ final class ConfigMapMountPollingReloadDelegate {
 				appLabelValue);
 		// (3)
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
@@ -75,8 +78,13 @@ final class ConfigMapMountPollingReloadDelegate {
 		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(360)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block().equals("as-mount-changed"));
+		await().timeout(Duration.ofSeconds(360))
+			.until(() -> webClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec())
+				.block()
+				.equals("as-mount-changed"));
 
 	}
 

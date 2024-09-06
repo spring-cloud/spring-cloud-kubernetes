@@ -62,9 +62,9 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
-						new EndpointAddressBuilder().withHostname("two").build())
-				.build();
+			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+					new EndpointAddressBuilder().withHostname("two").build())
+			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 	}
@@ -81,9 +81,10 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
-						new EndpointAddressBuilder().withHostname("two").build())
-				.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build()).build();
+			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+					new EndpointAddressBuilder().withHostname("two").build())
+			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
+			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
@@ -102,9 +103,10 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
-						new EndpointAddressBuilder().withHostname("two").build())
-				.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build()).build();
+			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+					new EndpointAddressBuilder().withHostname("two").build())
+			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
+			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 3);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();

@@ -56,22 +56,30 @@ final class SecretsEventsReloadDelegate {
 				"added configmap informer for namespace", appLabelValue);
 
 		WebClient webClient = builder().baseUrl("http://localhost/key-from-secret").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("secret-initial", result);
 
 		Secret secret = new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a")).withNamespace("default")
-						.withName("event-reload").build())
-				.withData(Map.of("application.properties",
-						Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial".getBytes())))
-				.build();
+			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("letter", "a"))
+				.withNamespace("default")
+				.withName("event-reload")
+				.build())
+			.withData(Map.of("application.properties",
+					Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial".getBytes())))
+			.build();
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key-from-secret").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 			return "secret-initial".equals(innerResult);
 		});
 
@@ -80,18 +88,20 @@ final class SecretsEventsReloadDelegate {
 
 		// change data
 		secret = new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
-				.withData(Map.of("application.properties",
-						Base64.getEncoder()
-								.encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
-				.build();
+			.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
+			.withData(Map.of("application.properties",
+					Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
+			.build();
 
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/key-from-secret").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 			return "secret-initial-changed".equals(innerResult);
 		});
 

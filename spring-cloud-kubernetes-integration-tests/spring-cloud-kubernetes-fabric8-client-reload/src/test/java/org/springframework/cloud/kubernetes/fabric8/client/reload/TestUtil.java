@@ -356,9 +356,9 @@ final class TestUtil {
 	static String logs(K3sContainer container, String appLabelValue) {
 		try {
 			String appPodName = container
-					.execInContainer("sh", "-c",
-							"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'")
-					.getStdout();
+				.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
 
 			Container.ExecResult execResult = container.execInContainer("sh", "-c",
 					"kubectl logs " + appPodName.trim());

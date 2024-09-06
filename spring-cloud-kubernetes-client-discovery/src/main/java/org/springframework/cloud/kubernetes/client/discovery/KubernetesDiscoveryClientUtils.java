@@ -57,7 +57,8 @@ final class KubernetesDiscoveryClientUtils {
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final SimpleEvaluationContext EVALUATION_CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
-			.withInstanceMethods().build();
+		.withInstanceMethods()
+		.build();
 
 	private KubernetesDiscoveryClientUtils() {
 
@@ -66,8 +67,9 @@ final class KubernetesDiscoveryClientUtils {
 	static boolean matchesServiceLabels(V1Service service, KubernetesDiscoveryProperties properties) {
 
 		Map<String, String> propertiesServiceLabels = properties.serviceLabels();
-		Map<String, String> serviceLabels = Optional.ofNullable(service.getMetadata()).map(V1ObjectMeta::getLabels)
-				.orElse(Map.of());
+		Map<String, String> serviceLabels = Optional.ofNullable(service.getMetadata())
+			.map(V1ObjectMeta::getLabels)
+			.orElse(Map.of());
 
 		if (propertiesServiceLabels.isEmpty()) {
 			LOG.debug(() -> "service labels from properties are empty, service with name : '"
@@ -142,16 +144,17 @@ final class KubernetesDiscoveryClientUtils {
 	 */
 	static Map<String, Integer> endpointSubsetsPortData(List<V1EndpointSubset> endpointSubsets) {
 		return endpointSubsets.stream()
-				.flatMap(endpointSubset -> Optional.ofNullable(endpointSubset.getPorts()).orElse(List.of()).stream())
-				.collect(Collectors.toMap(
-						endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
-						CoreV1EndpointPort::getPort));
+			.flatMap(endpointSubset -> Optional.ofNullable(endpointSubset.getPorts()).orElse(List.of()).stream())
+			.collect(Collectors.toMap(
+					endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
+					CoreV1EndpointPort::getPort));
 	}
 
 	static List<V1EndpointAddress> addresses(V1EndpointSubset endpointSubset,
 			KubernetesDiscoveryProperties properties) {
-		List<V1EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses()).map(ArrayList::new)
-				.orElse(new ArrayList<>());
+		List<V1EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses())
+			.map(ArrayList::new)
+			.orElse(new ArrayList<>());
 
 		if (properties.includeNotReadyAddresses()) {
 			List<V1EndpointAddress> notReadyAddresses = endpointSubset.getNotReadyAddresses();

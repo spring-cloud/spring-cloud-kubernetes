@@ -117,9 +117,9 @@ public class KubernetesNamespaceProvider {
 			// When using the binder we cannot use camelcase properties, it considers them
 			// invalid
 			serviceAccountNamespacePathString = binder
-					.bind("spring.cloud.kubernetes.client.service-account-namespace-path", Bindable.of(String.class),
-							bindHandler)
-					.orElse(SERVICE_ACCOUNT_NAMESPACE_PATH);
+				.bind("spring.cloud.kubernetes.client.service-account-namespace-path", Bindable.of(String.class),
+						bindHandler)
+				.orElse(SERVICE_ACCOUNT_NAMESPACE_PATH);
 		}
 		if (serviceAccountNamespace == null) {
 			serviceAccountNamespace = getNamespaceFromServiceAccountFile(serviceAccountNamespacePathString);

@@ -42,7 +42,7 @@ class Fabric8UtilsMockTests {
 	@Test
 	void testNamespaceResolutionFailed() {
 		assertThatThrownBy(() -> Fabric8Utils.getApplicationNamespace(mockClient, "", "target", null))
-				.isInstanceOf(NamespaceResolutionFailedException.class);
+			.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 }

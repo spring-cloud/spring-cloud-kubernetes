@@ -52,7 +52,7 @@ public class MeshUtils {
 			// TODO: We can improve this initial detection if better methods are found.
 			String resource = "http://localhost:" + this.istioClientProperties.getEnvoyPort();
 			ResponseEntity<String> response = this.restTemplate
-					.getForEntity(resource + "/" + this.istioClientProperties.getTestPath(), String.class);
+				.getForEntity(resource + "/" + this.istioClientProperties.getTestPath(), String.class);
 			if (response.getStatusCode().is2xxSuccessful()) {
 				LOG.info("Istio Resources Found.");
 				return true;

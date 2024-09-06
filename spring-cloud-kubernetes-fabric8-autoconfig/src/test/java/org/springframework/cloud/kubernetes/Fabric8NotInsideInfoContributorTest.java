@@ -50,8 +50,15 @@ class Fabric8NotInsideInfoContributorTest {
 	 */
 	@Test
 	void infoEndpointShouldContainKubernetes() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody().jsonPath("kubernetes.inside").isEqualTo("false");
+		this.webClient.get()
+			.uri("http://localhost:{port}/actuator/info", this.port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("kubernetes.inside")
+			.isEqualTo("false");
 	}
 
 }
