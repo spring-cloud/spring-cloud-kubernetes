@@ -25,32 +25,32 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Charles Moulliard
  */
 @RestController
-public class GreetingController {
+class GreetingController {
 
 	private final GreetingProperties properties;
 
 	@Autowired
-	public GreetingController(GreetingProperties properties) {
+	GreetingController(GreetingProperties properties) {
 		this.properties = properties;
 	}
 
 	@RequestMapping("/api/greeting")
-	public ResponseMessage greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
+	ResponseMessage greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getGreeting(), name));
 	}
 
 	@RequestMapping("/api/farewell")
-	public ResponseMessage farewell(@RequestParam(value = "name", defaultValue = "World") String name) {
+	ResponseMessage farewell(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getFarewell(), name));
 	}
 
 	@RequestMapping("/api/morning")
-	public ResponseMessage morning(@RequestParam(value = "name", defaultValue = "World") String name) {
+	ResponseMessage morning(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getMorning(), name));
 	}
 
 	@RequestMapping("/api/bonjour")
-	public ResponseMessage bonjour(@RequestParam(value = "name", defaultValue = "World") String name) {
+	ResponseMessage bonjour(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getBonjour(), name));
 	}
 
