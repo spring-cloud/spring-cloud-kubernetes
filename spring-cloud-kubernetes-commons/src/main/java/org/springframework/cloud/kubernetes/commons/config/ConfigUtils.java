@@ -329,7 +329,7 @@ public final class ConfigUtils {
 	}
 
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
-										  String name) {
+			String name) {
 		if (instance != null && !bootstrapContext.isRegistered(cls)) {
 			bootstrapContext.register(cls, BootstrapRegistry.InstanceSupplier.of(instance));
 			bootstrapContext.addCloseListener(event -> {
