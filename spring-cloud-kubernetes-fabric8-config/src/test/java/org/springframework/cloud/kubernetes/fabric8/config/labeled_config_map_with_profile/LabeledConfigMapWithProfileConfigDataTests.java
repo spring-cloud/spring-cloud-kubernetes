@@ -20,20 +20,15 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@ActiveProfiles({ "k8s", "prod" })
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = LabeledConfigMapWithProfileApp.class,
-		properties = { "spring.application.name=labeled-configmap-with-profile",
-				"spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./labeled-configmap-with-profile.yaml" })
+
+@TestPropertySource(properties = "spring.config.import=kubernetes:,classpath:./labeled-configmap-with-profile.yaml")
 @EnableKubernetesMockClient(crud = true, https = false)
-class LabeledConfigMapWithProfileConfigDataTests extends LabeledConfigMapWithProfileTests {
+class LabeledConfigMapWithProfileConfigDataTests extends LabeledConfigMapWithProfile {
 
 	private static KubernetesClient mockClient;
 
