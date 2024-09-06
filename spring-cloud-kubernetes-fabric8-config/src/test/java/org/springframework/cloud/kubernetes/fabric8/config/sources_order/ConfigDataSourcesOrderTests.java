@@ -20,16 +20,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SourcesOrderApp.class,
-		properties = { "spring.application.name=sources-order", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./sources-order.yaml" })
+@TestPropertySource(properties = { "spring.config.import=kubernetes:,classpath:./sources-order.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class ConfigDataSourcesOrderTests extends SourcesOrderTests {
+class ConfigDataSourcesOrderTests extends SourcesOrder {
 
 	private static KubernetesClient mockClient;
 
