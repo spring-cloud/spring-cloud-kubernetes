@@ -38,11 +38,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
-					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-					Fabric8AutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
-					KubernetesReactiveDiscoveryClientAutoConfiguration.class,
-					KubernetesDiscoveryPropertiesAutoConfiguration.class));
+		.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
+				ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+				Fabric8AutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
+				KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+				KubernetesDiscoveryPropertiesAutoConfiguration.class));
 
 	@Test
 	void shouldWorkWithDefaults() {
@@ -99,10 +99,11 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 	@Test
 	void worksWithoutActuator() {
 		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
-				.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate")).run(context -> {
-					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
-				});
+			.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate"))
+			.run(context -> {
+				assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
+				assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			});
 	}
 
 }

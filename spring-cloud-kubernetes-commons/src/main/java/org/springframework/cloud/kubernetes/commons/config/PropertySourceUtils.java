@@ -67,8 +67,9 @@ public final class PropertySourceUtils {
 	/**
 	 * Function to convert Properties to a Map.
 	 */
-	public static final Function<Properties, Map<String, Object>> PROPERTIES_TO_MAP = p -> p.entrySet().stream()
-			.collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
+	public static final Function<Properties, Map<String, Object>> PROPERTIES_TO_MAP = p -> p.entrySet()
+		.stream()
+		.collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
 
 	/**
 	 * Function to convert String into Properties with an environment.

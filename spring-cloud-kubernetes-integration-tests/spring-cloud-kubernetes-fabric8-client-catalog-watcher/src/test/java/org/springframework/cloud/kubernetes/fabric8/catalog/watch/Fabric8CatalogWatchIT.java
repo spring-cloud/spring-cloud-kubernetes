@@ -146,9 +146,9 @@ class Fabric8CatalogWatchIT {
 	 */
 	private void assertLogStatement() throws Exception {
 		String appPodName = K3S
-				.execInContainer("kubectl", "get", "pods", "-l",
-						"app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
-				.getStdout();
+			.execInContainer("kubectl", "get", "pods", "-l",
+					"app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
+			.getStdout();
 		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
 		Assertions.assertTrue(allLogs.contains("stateGenerator is of type: Fabric8EndpointsCatalogWatch"));
 	}
@@ -166,8 +166,10 @@ class Fabric8CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec())
+				.block();
 
 			// we get 3 pods as input, but because they are sorted by name in the catalog
 			// watcher implementation
@@ -202,8 +204,10 @@ class Fabric8CatalogWatchIT {
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-					.retrieve().bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-					.retryWhen(retrySpec()).block();
+				.retrieve()
+				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
+				.retryWhen(retrySpec())
+				.block();
 
 			// we need to get the event from KubernetesCatalogWatch, but that happens
 			// on periodic bases. So in order to be sure we got the event we care about

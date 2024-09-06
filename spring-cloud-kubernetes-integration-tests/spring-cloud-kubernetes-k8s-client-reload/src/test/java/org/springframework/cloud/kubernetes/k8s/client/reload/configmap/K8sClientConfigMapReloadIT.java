@@ -117,8 +117,11 @@ class K8sClientConfigMapReloadIT {
 				"added secret informer for namespace", "spring-k8s-client-reload");
 
 		WebClient webClient = builder().baseUrl("http://localhost/left").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		// we first read the initial value from the left-configmap
 		Assertions.assertEquals("left-initial", result);
@@ -130,8 +133,9 @@ class K8sClientConfigMapReloadIT {
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
@@ -174,22 +178,29 @@ class K8sClientConfigMapReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
@@ -217,20 +228,27 @@ class K8sClientConfigMapReloadIT {
 
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = builder().baseUrl("http://localhost/right").build();
-		String rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String rightResult = rightWebClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", rightResult);
 
 		// then read the initial value from the right-with-label-configmap
 		WebClient rightWithLabelWebClient = builder().baseUrl("http://localhost/with-label").build();
-		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("right-with-label-initial", rightWithLabelResult);
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
@@ -238,14 +256,18 @@ class K8sClientConfigMapReloadIT {
 		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
 
 		// nothing changes in our app, because we are watching only labeled configmaps
-		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		rightResult = rightWebClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", rightResult);
 
 		// then deploy a new version of right-with-label-configmap
 		V1ConfigMap rightWithLabelConfigMapAfterChange = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap-with-label"))
-				.withData(Map.of("right.with.label.value", "right-with-label-after-change")).build();
+			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap-with-label"))
+			.withData(Map.of("right.with.label.value", "right-with-label-after-change"))
+			.build();
 
 		replaceConfigMap(rightWithLabelConfigMapAfterChange, "right-configmap-with-label");
 
@@ -254,8 +276,11 @@ class K8sClientConfigMapReloadIT {
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/with-label").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
@@ -263,8 +288,11 @@ class K8sClientConfigMapReloadIT {
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
-		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		rightResult = rightWebClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("right-after-change", rightResult);
 		util.deleteAndWait("right", rightWithLabelConfigMap, null);
 	}
@@ -285,22 +313,29 @@ class K8sClientConfigMapReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		replaceConfigMap(rightConfigMapAfterChange, "right-configmap");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/right").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;

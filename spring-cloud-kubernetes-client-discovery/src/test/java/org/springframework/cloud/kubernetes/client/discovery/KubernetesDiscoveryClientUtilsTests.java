@@ -58,7 +58,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
 		Assertions.assertTrue(output.getOut()
-				.contains("service labels from properties are empty, service with name : 'my-service' will match"));
+			.contains("service labels from properties are empty, service with name : 'my-service' will match"));
 	}
 
 	/**
@@ -91,7 +91,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), propertiesLabels, "", null, 0, false);
 		V1Service service = new V1ServiceBuilder()
-				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
+			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
@@ -114,7 +115,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), propertiesLabels, "", null, 0, false);
 		V1Service service = new V1ServiceBuilder()
-				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
+			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertFalse(result);
@@ -137,7 +139,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), propertiesLabels, "", null, 0, false);
 		V1Service service = new V1ServiceBuilder()
-				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
+			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
@@ -160,7 +163,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				true, "", Set.of(), propertiesLabels, "", null, 0, false);
 		V1Service service = new V1ServiceBuilder()
-				.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service")).build();
+			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
+			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
 		Assertions.assertTrue(result);
@@ -172,9 +176,11 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testPortsDataOne() {
 		List<V1EndpointSubset> endpointSubsets = List.of(
 				new V1EndpointSubsetBuilder()
-						.withPorts(new CoreV1EndpointPortBuilder().withPort(8081).withName("").build()).build(),
+					.withPorts(new CoreV1EndpointPortBuilder().withPort(8081).withName("").build())
+					.build(),
 				new V1EndpointSubsetBuilder()
-						.withPorts(new CoreV1EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+					.withPorts(new CoreV1EndpointPortBuilder().withPort(8080).withName("https").build())
+					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
 		Assertions.assertEquals(portsData.size(), 2);
@@ -186,9 +192,11 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testPortsDataTwo() {
 		List<V1EndpointSubset> endpointSubsets = List.of(
 				new V1EndpointSubsetBuilder()
-						.withPorts(new CoreV1EndpointPortBuilder().withPort(8081).withName("http").build()).build(),
+					.withPorts(new CoreV1EndpointPortBuilder().withPort(8081).withName("http").build())
+					.build(),
 				new V1EndpointSubsetBuilder()
-						.withPorts(new CoreV1EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+					.withPorts(new CoreV1EndpointPortBuilder().withPort(8080).withName("https").build())
+					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
 		Assertions.assertEquals(portsData.size(), 2);
@@ -207,7 +215,8 @@ class KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void endpointSubsetPortsDataSinglePort() {
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
-				.withPorts(new CoreV1EndpointPortBuilder().withName("name").withPort(80).build()).build();
+			.withPorts(new CoreV1EndpointPortBuilder().withName("name").withPort(80).build())
+			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
 		Assertions.assertEquals(result.size(), 1);
@@ -217,7 +226,8 @@ class KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void endpointSubsetPortsDataSinglePortNoName() {
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
-				.withPorts(new CoreV1EndpointPortBuilder().withPort(80).build()).build();
+			.withPorts(new CoreV1EndpointPortBuilder().withPort(80).build())
+			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
 		Assertions.assertEquals(result.size(), 1);
@@ -252,9 +262,9 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
-				.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
-						new V1EndpointAddressBuilder().withHostname("two").build())
-				.build();
+			.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
+					new V1EndpointAddressBuilder().withHostname("two").build())
+			.build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 	}
@@ -271,9 +281,10 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
-				.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
-						new V1EndpointAddressBuilder().withHostname("two").build())
-				.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build()).build();
+			.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
+					new V1EndpointAddressBuilder().withHostname("two").build())
+			.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build())
+			.build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 2);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
@@ -292,9 +303,10 @@ class KubernetesDiscoveryClientUtilsTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
-				.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
-						new V1EndpointAddressBuilder().withHostname("two").build())
-				.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build()).build();
+			.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
+					new V1EndpointAddressBuilder().withHostname("two").build())
+			.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build())
+			.build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertEquals(addresses.size(), 3);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
@@ -303,8 +315,11 @@ class KubernetesDiscoveryClientUtilsTests {
 
 	// preserve order for testing reasons
 	private Map<String, String> ordered(Map<String, String> input) {
-		return input.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(
-				Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left, LinkedHashMap::new));
+		return input.entrySet()
+			.stream()
+			.sorted(Map.Entry.comparingByKey())
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left,
+					LinkedHashMap::new));
 	}
 
 }

@@ -48,16 +48,25 @@ abstract class ConfigMapsMixedTests {
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.morning", "Buenos Dias ConfigMap, %s");
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName(APPLICATION_NAME).endMetadata()
-				.addToData(data).build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName(APPLICATION_NAME)
+			.endMetadata()
+			.addToData(data)
+			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 	}
 
 	@Test
 	public void morningInputShouldReturnPropertyFromApi() {
-		this.webClient.get().uri("/api/morning").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Buenos Dias ConfigMap, World");
+		this.webClient.get()
+			.uri("/api/morning")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Buenos Dias ConfigMap, World");
 	}
 
 }

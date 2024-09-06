@@ -47,7 +47,7 @@ class ConfigFailFastEnabled {
 	@Test
 	void shouldDefineRequiredBeans() {
 		Map<String, RetryOperationsInterceptor> retryInterceptors = context
-				.getBeansOfType(RetryOperationsInterceptor.class);
+			.getBeansOfType(RetryOperationsInterceptor.class);
 		assertThat(retryInterceptors.containsKey("kubernetesConfigRetryInterceptor")).isTrue();
 		assertThat(retryInterceptors.containsKey("kubernetesSecretsRetryInterceptor")).isTrue();
 	}

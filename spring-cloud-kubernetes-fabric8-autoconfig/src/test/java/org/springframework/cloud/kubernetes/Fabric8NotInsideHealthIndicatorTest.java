@@ -77,10 +77,17 @@ class Fabric8NotInsideHealthIndicatorTest {
 	@Test
 	void healthEndpointShouldContainKubernetes() {
 
-		this.webClient.get().uri("http://localhost:{port}/actuator/health", this.port)
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-				.jsonPath("components.kubernetes.status").isEqualTo("UP")
-				.jsonPath("components.kubernetes.details.inside").isEqualTo("false");
+		this.webClient.get()
+			.uri("http://localhost:{port}/actuator/health", this.port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("components.kubernetes.status")
+			.isEqualTo("UP")
+			.jsonPath("components.kubernetes.details.inside")
+			.isEqualTo("false");
 
 	}
 

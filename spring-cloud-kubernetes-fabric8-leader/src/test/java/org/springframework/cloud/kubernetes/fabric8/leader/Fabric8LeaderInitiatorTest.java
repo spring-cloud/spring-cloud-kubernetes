@@ -34,18 +34,18 @@ import static org.mockito.internal.verification.VerificationModeFactory.atLeastO
 /**
  * @author Gytis Trikleris
  */
-public class LeaderInitiatorTest {
+class Fabric8LeaderInitiatorTest {
 
 	private final LeaderProperties leaderProperties = new LeaderProperties();
 
 	private final Fabric8LeadershipController mockFabric8LeadershipController = Mockito
-			.mock(Fabric8LeadershipController.class);
+		.mock(Fabric8LeadershipController.class);
 
 	private final Fabric8LeaderRecordWatcher mockFabric8LeaderRecordWatcher = Mockito
-			.mock(Fabric8LeaderRecordWatcher.class);
+		.mock(Fabric8LeaderRecordWatcher.class);
 
 	private final Fabric8PodReadinessWatcher mockFabric8PodReadinessWatcher = Mockito
-			.mock(Fabric8PodReadinessWatcher.class);
+		.mock(Fabric8PodReadinessWatcher.class);
 
 	private final Runnable runnable = Mockito.mock(Runnable.class);
 

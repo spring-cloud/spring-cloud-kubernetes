@@ -42,7 +42,7 @@ class SanitizeTests {
 	private static final boolean SHOW_UNSANITIZED = true;
 
 	private static final List<SanitizingFunction> SANITIZING_FUNCTIONS = List
-			.of(new KubernetesCommonsSanitizeAutoConfiguration().secretsPropertySourceSanitizingFunction());
+		.of(new KubernetesCommonsSanitizeAutoConfiguration().secretsPropertySourceSanitizingFunction());
 
 	@Test
 	void bootstrapPropertySourceNotSecrets() {

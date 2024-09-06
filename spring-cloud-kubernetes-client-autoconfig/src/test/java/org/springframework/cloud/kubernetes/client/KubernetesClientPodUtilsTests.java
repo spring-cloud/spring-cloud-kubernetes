@@ -84,8 +84,8 @@ class KubernetesClientPodUtilsTests {
 	@Test
 	void constructorThrowsIllegalArgumentExceptionWhenKubeClientIsNull() {
 		assertThatThrownBy(() -> new KubernetesClientPodUtils(null, "namespace", false))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Must provide an instance of KubernetesClient");
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("Must provide an instance of KubernetesClient");
 	}
 
 	@Test

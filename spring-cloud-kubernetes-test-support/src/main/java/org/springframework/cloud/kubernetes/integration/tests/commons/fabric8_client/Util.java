@@ -74,7 +74,7 @@ public final class Util {
 	public Util(K3sContainer container) {
 		this.container = container;
 		this.client = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(container.getKubeConfigYaml()))
-				.build();
+			.build();
 	}
 
 	/**
@@ -89,11 +89,19 @@ public final class Util {
 		try {
 
 			if (deployment != null) {
-				String imageFromDeployment = deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
-						.getImage();
+				String imageFromDeployment = deployment.getSpec()
+					.getTemplate()
+					.getSpec()
+					.getContainers()
+					.get(0)
+					.getImage();
 				if (changeVersion) {
-					deployment.getSpec().getTemplate().getSpec().getContainers().get(0)
-							.setImage(imageFromDeployment + ":" + pomVersion());
+					deployment.getSpec()
+						.getTemplate()
+						.getSpec()
+						.getContainers()
+						.get(0)
+						.setImage(imageFromDeployment + ":" + pomVersion());
 				}
 				else {
 					String[] image = imageFromDeployment.split(":", 2);
@@ -175,11 +183,17 @@ public final class Util {
 
 	public void createNamespace(String name) {
 		try {
-			client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
-					.create();
+			client.namespaces()
+				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
+				.create();
 
-			await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> client.namespaces()
-					.list().getItems().stream().anyMatch(x -> x.getMetadata().getName().equals(name)));
+			await().pollInterval(Duration.ofSeconds(1))
+				.atMost(30, TimeUnit.SECONDS)
+				.until(() -> client.namespaces()
+					.list()
+					.getItems()
+					.stream()
+					.anyMatch(x -> x.getMetadata().getName().equals(name)));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -188,11 +202,17 @@ public final class Util {
 
 	public void deleteNamespace(String name) {
 		try {
-			client.namespaces().resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
-					.delete();
+			client.namespaces()
+				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
+				.delete();
 
-			await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> client.namespaces()
-					.list().getItems().stream().noneMatch(x -> x.getMetadata().getName().equals(name)));
+			await().pollInterval(Duration.ofSeconds(1))
+				.atMost(30, TimeUnit.SECONDS)
+				.until(() -> client.namespaces()
+					.list()
+					.getItems()
+					.stream()
+					.noneMatch(x -> x.getMetadata().getName().equals(name)));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -212,8 +232,10 @@ public final class Util {
 
 		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).item();
 		serviceAccountFromStream.getMetadata().setNamespace(serviceAccountNamespace);
-		if (client.serviceAccounts().inNamespace(serviceAccountNamespace)
-				.withName(serviceAccountFromStream.getMetadata().getName()).get() == null) {
+		if (client.serviceAccounts()
+			.inNamespace(serviceAccountNamespace)
+			.withName(serviceAccountFromStream.getMetadata().getName())
+			.get() == null) {
 			client.serviceAccounts().inNamespace(serviceAccountNamespace).resource(serviceAccountFromStream).create();
 		}
 
@@ -221,8 +243,11 @@ public final class Util {
 		namespaces.forEach(namespace -> {
 			roleBindingFromStream.getMetadata().setNamespace(namespace);
 
-			if (client.rbac().roleBindings().inNamespace(namespace)
-					.withName(roleBindingFromStream.getMetadata().getName()).get() == null) {
+			if (client.rbac()
+				.roleBindings()
+				.inNamespace(namespace)
+				.withName(roleBindingFromStream.getMetadata().getName())
+				.get() == null) {
 				client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
 			}
 		});
@@ -265,8 +290,12 @@ public final class Util {
 		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
 		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
 
-		String imageWithoutVersion = istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0)
-				.getImage();
+		String imageWithoutVersion = istioctlDeployment.getSpec()
+			.getTemplate()
+			.getSpec()
+			.getContainers()
+			.get(0)
+			.getImage();
 		String imageWithVersion = imageWithoutVersion + ":" + Images.istioVersion();
 		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
@@ -281,8 +310,13 @@ public final class Util {
 	private void waitForConfigMap(String namespace, ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
-			int size = (int) client.configMaps().inNamespace(namespace).list().getItems().stream()
-					.filter(x -> x.getMetadata().getName().equals(configMapName)).count();
+			int size = (int) client.configMaps()
+				.inNamespace(namespace)
+				.list()
+				.getItems()
+				.stream()
+				.filter(x -> x.getMetadata().getName().equals(configMapName))
+				.count();
 			if (size == 0) {
 				return !phase.equals(Phase.CREATE);
 			}
@@ -349,8 +383,13 @@ public final class Util {
 	private void waitForSecret(String namespace, Secret secret, Phase phase) {
 		String secretName = secretName(secret);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
-			int size = (int) client.secrets().inNamespace(namespace).list().getItems().stream()
-					.filter(x -> x.getMetadata().getName().equals(secretName)).count();
+			int size = (int) client.secrets()
+				.inNamespace(namespace)
+				.list()
+				.getItems()
+				.stream()
+				.filter(x -> x.getMetadata().getName().equals(secretName))
+				.count();
 			if (size == 0) {
 				return !phase.equals(Phase.CREATE);
 			}
@@ -385,8 +424,9 @@ public final class Util {
 
 	private void waitForDeployment(String namespace, Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		await().pollInterval(Duration.ofSeconds(2)).atMost(600, TimeUnit.SECONDS)
-				.until(() -> isDeploymentReady(namespace, deploymentName));
+		await().pollInterval(Duration.ofSeconds(2))
+			.atMost(600, TimeUnit.SECONDS)
+			.until(() -> isDeploymentReady(namespace, deploymentName));
 	}
 
 	private boolean isDeploymentReady(String namespace, String deploymentName) {
@@ -439,16 +479,21 @@ public final class Util {
 			Map<String, String> labels) {
 		String body = patchBody.replace("image_name_here", imageName);
 
-		client.apps().deployments().inNamespace(namespace).withName(deploymentName)
-				.patch(PatchContext.of(PatchType.JSON_MERGE), body);
+		client.apps()
+			.deployments()
+			.inNamespace(namespace)
+			.withName(deploymentName)
+			.patch(PatchContext.of(PatchType.JSON_MERGE), body);
 
 		waitForDeploymentAfterPatch(deploymentName, namespace, labels);
 	}
 
 	private void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
 		try {
-			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(3)).atMost(60, TimeUnit.SECONDS)
-					.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
+			await().pollDelay(Duration.ofSeconds(4))
+				.pollInterval(Duration.ofSeconds(3))
+				.atMost(60, TimeUnit.SECONDS)
+				.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -464,8 +509,11 @@ public final class Util {
 			fail("No deployment with name " + deploymentName);
 		}
 
-		Deployment deployment = deployments.getItems().stream()
-				.filter(x -> x.getMetadata().getName().equals(deploymentName)).findFirst().orElseThrow();
+		Deployment deployment = deployments.getItems()
+			.stream()
+			.filter(x -> x.getMetadata().getName().equals(deploymentName))
+			.findFirst()
+			.orElseThrow();
 		// if no replicas are defined, it means only 1 is needed
 		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
 
@@ -482,23 +530,36 @@ public final class Util {
 
 	private void innerSetup(String namespace, InputStream serviceAccountAsStream, InputStream roleBindingAsStream,
 			InputStream roleAsStream) {
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().inNamespace(namespace)
-				.load(serviceAccountAsStream).item();
-		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccountFromStream.getMetadata().getName())
-				.get() == null) {
+		ServiceAccount serviceAccountFromStream = client.serviceAccounts()
+			.inNamespace(namespace)
+			.load(serviceAccountAsStream)
+			.item();
+		if (client.serviceAccounts()
+			.inNamespace(namespace)
+			.withName(serviceAccountFromStream.getMetadata().getName())
+			.get() == null) {
 			client.serviceAccounts().inNamespace(namespace).resource(serviceAccountFromStream).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().inNamespace(namespace)
-				.load(roleBindingAsStream).item();
-		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBindingFromStream.getMetadata().getName())
-				.get() == null) {
+		RoleBinding roleBindingFromStream = client.rbac()
+			.roleBindings()
+			.inNamespace(namespace)
+			.load(roleBindingAsStream)
+			.item();
+		if (client.rbac()
+			.roleBindings()
+			.inNamespace(namespace)
+			.withName(roleBindingFromStream.getMetadata().getName())
+			.get() == null) {
 			client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
 		}
 
 		Role roleFromStream = client.rbac().roles().inNamespace(namespace).load(roleAsStream).item();
-		if (client.rbac().roles().inNamespace(namespace).withName(roleFromStream.getMetadata().getName())
-				.get() == null) {
+		if (client.rbac()
+			.roles()
+			.inNamespace(namespace)
+			.withName(roleFromStream.getMetadata().getName())
+			.get() == null) {
 			client.rbac().roles().inNamespace(namespace).resource(roleFromStream).create();
 		}
 	}

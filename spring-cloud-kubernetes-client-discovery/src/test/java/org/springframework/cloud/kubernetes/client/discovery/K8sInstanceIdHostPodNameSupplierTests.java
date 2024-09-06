@@ -37,7 +37,8 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void instanceIdNoEndpointAddress() {
 		V1Service service = new V1ServiceBuilder().withSpec(new V1ServiceSpecBuilder().build())
-				.withMetadata(new V1ObjectMetaBuilder().withUid("123").build()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withUid("123").build())
+			.build();
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
@@ -49,9 +50,11 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void instanceIdWithEndpointAddress() {
 		V1EndpointAddress endpointAddress = new V1EndpointAddressBuilder()
-				.withTargetRef(new V1ObjectReferenceBuilder().withUid("456").build()).build();
+			.withTargetRef(new V1ObjectReferenceBuilder().withUid("456").build())
+			.build();
 		V1Service service = new V1ServiceBuilder().withSpec(new V1ServiceSpecBuilder().build())
-				.withMetadata(new V1ObjectMetaBuilder().withUid("123").build()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withUid("123").build())
+			.build();
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
 				service);
@@ -64,8 +67,9 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void hostNoEndpointAddress() {
 		V1Service service = new V1ServiceBuilder()
-				.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
-				.withMetadata(new V1ObjectMeta()).build();
+			.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
+			.withMetadata(new V1ObjectMeta())
+			.build();
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
@@ -78,8 +82,9 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	void hostWithEndpointAddress() {
 		V1EndpointAddress endpointAddress = new V1EndpointAddressBuilder().withIp("127.0.0.1").build();
 		V1Service service = new V1ServiceBuilder()
-				.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
-				.withMetadata(new V1ObjectMeta()).build();
+			.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
+			.withMetadata(new V1ObjectMeta())
+			.build();
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
 				service);
@@ -92,7 +97,8 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void testPodNameIsNull() {
 		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMetaBuilder().withUid("123").build())
-				.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build()).build();
+			.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
+			.build();
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
 
@@ -103,10 +109,12 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void podNameKindNotPod() {
 		V1EndpointAddress endpointAddress = new V1EndpointAddressBuilder()
-				.withTargetRef(new V1ObjectReferenceBuilder().withKind("Service").build()).build();
+			.withTargetRef(new V1ObjectReferenceBuilder().withKind("Service").build())
+			.build();
 		V1Service service = new V1ServiceBuilder()
-				.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
-				.withMetadata(new V1ObjectMeta()).build();
+			.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
+			.withMetadata(new V1ObjectMeta())
+			.build();
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
 				service);
@@ -119,10 +127,12 @@ class K8sInstanceIdHostPodNameSupplierTests {
 	@Test
 	void podNameKindIsPod() {
 		V1EndpointAddress endpointAddress = new V1EndpointAddressBuilder()
-				.withTargetRef(new V1ObjectReferenceBuilder().withKind("Pod").withName("my-pod").build()).build();
+			.withTargetRef(new V1ObjectReferenceBuilder().withKind("Pod").withName("my-pod").build())
+			.build();
 		V1Service service = new V1ServiceBuilder()
-				.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
-				.withMetadata(new V1ObjectMeta()).build();
+			.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
+			.withMetadata(new V1ObjectMeta())
+			.build();
 
 		K8sInstanceIdHostPodNameSupplier supplier = K8sInstanceIdHostPodNameSupplier.nonExternalName(endpointAddress,
 				service);

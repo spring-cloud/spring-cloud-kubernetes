@@ -65,10 +65,10 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 		clientUtilsMock
-				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn("default");
+			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+			.thenReturn("default");
 		stubConfigMapAndSecretsDefaults();
 	}
 
@@ -102,7 +102,8 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 
 		assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessage("Internal Server Error");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

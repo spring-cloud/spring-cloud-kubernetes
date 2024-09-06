@@ -76,7 +76,7 @@ public class Fabric8LeadershipControllerTest {
 		Resource<ConfigMap> mockResource = Mockito.mock(Resource.class);
 		@SuppressWarnings("unchecked")
 		NonNamespaceOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockNonNamespaceOperation = Mockito
-				.mock(NonNamespaceOperation.class);
+			.mock(NonNamespaceOperation.class);
 
 		Fabric8LeadershipController fabric8LeadershipController = new Fabric8LeadershipController(mockCandidate,
 				mockLeaderProperties, mockLeaderEventPublisher, mockKubernetesClient);

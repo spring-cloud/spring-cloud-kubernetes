@@ -57,7 +57,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Internal Server Error.");
+			.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Internal Server Error.");
 	}
 
 	@Test

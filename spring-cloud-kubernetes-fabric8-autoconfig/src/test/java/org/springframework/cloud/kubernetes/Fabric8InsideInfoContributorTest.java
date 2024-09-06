@@ -66,12 +66,27 @@ class Fabric8InsideInfoContributorTest {
 	 */
 	@Test
 	void test() {
-		this.webClient.get().uri("http://localhost:{port}/actuator/info", this.port).accept(MediaType.APPLICATION_JSON)
-				.exchange().expectStatus().isOk().expectBody().jsonPath("kubernetes.nodeName").isEqualTo("nodeName")
-				.jsonPath("kubernetes.podIp").isEqualTo("10.1.1.1").jsonPath("kubernetes.hostIp")
-				.isEqualTo("192.160.10.3").jsonPath("kubernetes.namespace").isEqualTo("namespace")
-				.jsonPath("kubernetes.podName").isEqualTo("pod").jsonPath("kubernetes.serviceAccount")
-				.isEqualTo("serviceAccountName").jsonPath("kubernetes.inside").isEqualTo("true");
+		this.webClient.get()
+			.uri("http://localhost:{port}/actuator/info", this.port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("kubernetes.nodeName")
+			.isEqualTo("nodeName")
+			.jsonPath("kubernetes.podIp")
+			.isEqualTo("10.1.1.1")
+			.jsonPath("kubernetes.hostIp")
+			.isEqualTo("192.160.10.3")
+			.jsonPath("kubernetes.namespace")
+			.isEqualTo("namespace")
+			.jsonPath("kubernetes.podName")
+			.isEqualTo("pod")
+			.jsonPath("kubernetes.serviceAccount")
+			.isEqualTo("serviceAccountName")
+			.jsonPath("kubernetes.inside")
+			.isEqualTo("true");
 
 	}
 
@@ -85,8 +100,13 @@ class Fabric8InsideInfoContributorTest {
 		spec.setServiceAccountName("serviceAccountName");
 		spec.setNodeName("nodeName");
 
-		return new PodBuilder().withNewMetadata().withName("pod").withNamespace("namespace").endMetadata()
-				.withStatus(status).withSpec(spec).build();
+		return new PodBuilder().withNewMetadata()
+			.withName("pod")
+			.withNamespace("namespace")
+			.endMetadata()
+			.withStatus(status)
+			.withSpec(spec)
+			.build();
 	}
 
 	@Configuration

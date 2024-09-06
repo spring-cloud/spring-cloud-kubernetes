@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +36,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 final class HttpRefreshTrigger implements RefreshTrigger {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientEventBasedSecretsChangeDetector.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(HttpRefreshTrigger.class));
 
 	private final KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
@@ -60,8 +58,12 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 			URI actuatorUri = getActuatorUri(si, k8SConfigurationProperties.getActuatorPath(),
 					k8SConfigurationProperties.getActuatorPort());
 			LOG.debug(() -> "Sending refresh request for " + appName + " to URI " + actuatorUri);
-			return webClient.post().uri(actuatorUri).retrieve().toBodilessEntity()
-					.doOnSuccess(onSuccess(appName, actuatorUri)).doOnError(onError(appName));
+			return webClient.post()
+				.uri(actuatorUri)
+				.retrieve()
+				.toBodilessEntity()
+				.doOnSuccess(onSuccess(appName, actuatorUri))
+				.doOnError(onError(appName));
 		}).then();
 	}
 
@@ -75,12 +77,13 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 	}
 
 	private URI getActuatorUri(ServiceInstance si, String actuatorPath, int actuatorPort) {
-		String metadataUri = si.getMetadata().getOrDefault(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
-				"");
+		String metadataUri = si.getMetadata()
+			.getOrDefault(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY, "");
 		LOG.debug(() -> "Metadata actuator uri is: " + metadataUri);
 
-		UriComponentsBuilder actuatorUriBuilder = UriComponentsBuilder.newInstance().scheme(si.getScheme())
-				.host(si.getHost());
+		UriComponentsBuilder actuatorUriBuilder = UriComponentsBuilder.newInstance()
+			.scheme(si.getScheme())
+			.host(si.getHost());
 
 		if (StringUtils.hasText(metadataUri)) {
 			LOG.debug(() -> "Found actuator URI in service instance metadata");

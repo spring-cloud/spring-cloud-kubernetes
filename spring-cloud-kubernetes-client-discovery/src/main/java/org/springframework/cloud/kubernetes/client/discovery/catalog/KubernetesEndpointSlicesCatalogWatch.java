@@ -60,7 +60,9 @@ final class KubernetesEndpointSlicesCatalogWatch
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoint slices in " + context.properties().namespaces());
 			List<V1EndpointSlice> inner = new ArrayList<>(context.properties().namespaces().size());
-			context.properties().namespaces().forEach(namespace -> inner
+			context.properties()
+				.namespaces()
+				.forEach(namespace -> inner
 					.addAll(namespacedEndpointSlices(api, namespace, context.properties().serviceLabels())));
 			endpointSlices = inner;
 		}
@@ -71,8 +73,10 @@ final class KubernetesEndpointSlicesCatalogWatch
 			endpointSlices = namespacedEndpointSlices(api, namespace, context.properties().serviceLabels());
 		}
 
-		Stream<V1ObjectReference> references = endpointSlices.stream().map(V1EndpointSlice::getEndpoints)
-				.flatMap(List::stream).map(V1Endpoint::getTargetRef);
+		Stream<V1ObjectReference> references = endpointSlices.stream()
+			.map(V1EndpointSlice::getEndpoints)
+			.flatMap(List::stream)
+			.map(V1Endpoint::getTargetRef);
 
 		return KubernetesCatalogWatchContext.state(references);
 
@@ -80,8 +84,10 @@ final class KubernetesEndpointSlicesCatalogWatch
 
 	private List<V1EndpointSlice> endpointSlices(DiscoveryV1Api api, Map<String, String> labels) {
 		try {
-			return api.listEndpointSliceForAllNamespaces(null, null, null, labelSelector(labels), null, null, null,
-					null, null, null, null).getItems();
+			return api
+				.listEndpointSliceForAllNamespaces(null, null, null, labelSelector(labels), null, null, null, null,
+						null, null, null)
+				.getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoint slices in all namespaces");
@@ -92,8 +98,10 @@ final class KubernetesEndpointSlicesCatalogWatch
 	private List<V1EndpointSlice> namespacedEndpointSlices(DiscoveryV1Api api, String namespace,
 			Map<String, String> labels) {
 		try {
-			return api.listNamespacedEndpointSlice(namespace, null, null, null, null, labelSelector(labels), null, null,
-					null, null, null, null).getItems();
+			return api
+				.listNamespacedEndpointSlice(namespace, null, null, null, null, labelSelector(labels), null, null, null,
+						null, null, null)
+				.getItems();
 		}
 		catch (ApiException e) {
 			LOG.warn(e, () -> "can not list endpoint slices in namespace " + namespace);

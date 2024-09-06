@@ -54,22 +54,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class KubernetesClientConfigMapPropertySourceTests {
 
 	private static final V1ConfigMapList PROPERTIES_CONFIGMAP_LIST = new V1ConfigMapList()
-			.addItemsItem(
-					new V1ConfigMapBuilder()
-							.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-640").withNamespace("default")
-									.withResourceVersion("1").build())
-							.addToData("application.properties",
-									"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
-											+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
-							.build());
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-640")
+				.withNamespace("default")
+				.withResourceVersion("1")
+				.build())
+			.addToData("application.properties",
+					"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
+							+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
+			.build());
 
 	private static final V1ConfigMapList YAML_CONFIGMAP_LIST = new V1ConfigMapList()
-			.addItemsItem(new V1ConfigMapBuilder()
-					.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-641").withNamespace("default")
-							.withResourceVersion("1").build())
-					.addToData("application.yaml",
-							"dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
-					.build());
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-641")
+				.withNamespace("default")
+				.withResourceVersion("1")
+				.build())
+			.addToData("application.yaml", "dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
+			.build());
 
 	private static WireMockServer wireMockServer;
 
@@ -100,7 +102,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 	public void propertiesFile() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
@@ -109,9 +111,9 @@ class KubernetesClientConfigMapPropertySourceTests {
 
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-				.isTrue();
+			.isTrue();
 		assertThat(propertySource.getProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-				.isEqualTo("0");
+			.isEqualTo("0");
 		assertThat(propertySource.containsProperty("logging.level.org.springframework.cloud.kubernetes")).isTrue();
 		assertThat(propertySource.getProperty("logging.level.org.springframework.cloud.kubernetes")).isEqualTo("TRACE");
 
@@ -121,7 +123,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 	public void yamlFile() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-641", "default", false, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
@@ -142,7 +144,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 	public void propertiesFileWithPrefix() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, prefix, true);
@@ -152,13 +154,13 @@ class KubernetesClientConfigMapPropertySourceTests {
 
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 		assertThat(propertySource.containsProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-				.isTrue();
+			.isTrue();
 		assertThat(propertySource.getProperty("prefix.spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-				.isEqualTo("0");
+			.isEqualTo("0");
 		assertThat(propertySource.containsProperty("prefix.logging.level.org.springframework.cloud.kubernetes"))
-				.isTrue();
+			.isTrue();
 		assertThat(propertySource.getProperty("prefix.logging.level.org.springframework.cloud.kubernetes"))
-				.isEqualTo("TRACE");
+			.isEqualTo("TRACE");
 	}
 
 	@Test
@@ -175,7 +177,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@Test
 	public void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+			.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", true, prefix, true);
@@ -183,14 +185,15 @@ class KubernetesClientConfigMapPropertySourceTests {
 				new MockEnvironment());
 
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(context))
-				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessage("Internal Server Error");
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 	}
 
 	@Test
 	public void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+			.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", false, prefix, true);

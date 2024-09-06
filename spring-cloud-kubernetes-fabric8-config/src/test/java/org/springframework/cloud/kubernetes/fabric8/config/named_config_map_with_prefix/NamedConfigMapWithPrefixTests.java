@@ -64,9 +64,10 @@ abstract class NamedConfigMapWithPrefixTests {
 	}
 
 	static void createConfigmap(String name, Map<String, String> data) {
-		mockClient.configMaps().inNamespace("spring-k8s")
-				.resource(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
-				.create();
+		mockClient.configMaps()
+			.inNamespace("spring-k8s")
+			.resource(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
+			.create();
 	}
 
 	/**
@@ -80,8 +81,13 @@ abstract class NamedConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testOne() {
-		this.webClient.get().uri("/named-config-map/prefix/one").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("one"));
+		this.webClient.get()
+			.uri("/named-config-map/prefix/one")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("one"));
 	}
 
 	/**
@@ -95,8 +101,13 @@ abstract class NamedConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testTwo() {
-		this.webClient.get().uri("/named-config-map/prefix/two").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("two"));
+		this.webClient.get()
+			.uri("/named-config-map/prefix/two")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("two"));
 	}
 
 	/**
@@ -110,8 +121,13 @@ abstract class NamedConfigMapWithPrefixTests {
 	 */
 	@Test
 	void testThree() {
-		this.webClient.get().uri("/named-config-map/prefix/three").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("three"));
+		this.webClient.get()
+			.uri("/named-config-map/prefix/three")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("three"));
 	}
 
 }

@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Gytis Trikleris
  */
-class LeaderTest {
+class Fabric8LeaderTest {
 
 	private static final String ROLE = "test-role";
 

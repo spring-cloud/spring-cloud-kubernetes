@@ -41,8 +41,10 @@ record KubernetesCatalogWatchContext(CoreV1Api coreV1Api, ApiClient apiClient, K
 		KubernetesNamespaceProvider namespaceProvider) {
 
 	static List<EndpointNameAndNamespace> state(Stream<V1ObjectReference> references) {
-		return references.filter(Objects::nonNull).map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
-				.sorted(Comparator.comparing(EndpointNameAndNamespace::endpointName, String::compareTo)).toList();
+		return references.filter(Objects::nonNull)
+			.map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
+			.sorted(Comparator.comparing(EndpointNameAndNamespace::endpointName, String::compareTo))
+			.toList();
 	}
 
 	static String labelSelector(Map<String, String> labels) {

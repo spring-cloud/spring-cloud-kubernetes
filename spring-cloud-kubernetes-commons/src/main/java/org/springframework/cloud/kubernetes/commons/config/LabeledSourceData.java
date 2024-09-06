@@ -49,8 +49,10 @@ public abstract class LabeledSourceData {
 			// is using provided labels,
 			// unlike when the data is present: when we use secret names
 			if (data.names().isEmpty()) {
-				String names = labels.keySet().stream().sorted()
-						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+				String names = labels.keySet()
+					.stream()
+					.sorted()
+					.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 				return SourceData.emptyRecord(ConfigUtils.sourceName(target, names, namespace));
 			}
 
@@ -61,8 +63,10 @@ public abstract class LabeledSourceData {
 					prefixToUse = prefix.prefixProvider().get();
 				}
 				else {
-					prefixToUse = data.names().stream().sorted()
-							.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+					prefixToUse = data.names()
+						.stream()
+						.sorted()
+						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 				}
 
 				PrefixContext prefixContext = new PrefixContext(data.data(), prefixToUse, namespace, data.names());

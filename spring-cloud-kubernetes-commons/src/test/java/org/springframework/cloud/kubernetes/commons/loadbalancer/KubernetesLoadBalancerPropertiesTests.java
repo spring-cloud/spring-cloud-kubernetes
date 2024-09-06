@@ -32,31 +32,31 @@ class KubernetesLoadBalancerPropertiesTests {
 	@Test
 	void testBindingWhenNoPropertiesProvided() {
 		new ApplicationContextRunner().withUserConfiguration(KubernetesLoadBalancerPropertiesTests.Config.class)
-				.run(context -> {
-					KubernetesLoadBalancerProperties props = context.getBean(KubernetesLoadBalancerProperties.class);
-					assertThat(props).isNotNull();
-					assertThat(props.getEnabled()).isTrue();
-					assertThat(props.getMode()).isEqualTo(KubernetesLoadBalancerMode.POD);
-					assertThat(props.getClusterDomain()).isEqualTo("cluster.local");
-					assertThat(props.getPortName()).isEqualTo("http");
-				});
+			.run(context -> {
+				KubernetesLoadBalancerProperties props = context.getBean(KubernetesLoadBalancerProperties.class);
+				assertThat(props).isNotNull();
+				assertThat(props.getEnabled()).isTrue();
+				assertThat(props.getMode()).isEqualTo(KubernetesLoadBalancerMode.POD);
+				assertThat(props.getClusterDomain()).isEqualTo("cluster.local");
+				assertThat(props.getPortName()).isEqualTo("http");
+			});
 	}
 
 	@Test
 	void testBindingWhenSomePropertiesProvided() {
 		new ApplicationContextRunner().withUserConfiguration(KubernetesLoadBalancerPropertiesTests.Config.class)
-				.withPropertyValues("spring.cloud.kubernetes.loadbalancer.enabled=false",
-						"spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
-						"spring.cloud.kubernetes.loadbalancer.clusterDomain=clusterDomain",
-						"spring.cloud.kubernetes.loadbalancer.portName=portName")
-				.run(context -> {
-					KubernetesLoadBalancerProperties props = context.getBean(KubernetesLoadBalancerProperties.class);
-					assertThat(props).isNotNull();
-					assertThat(props.getEnabled()).isFalse();
-					assertThat(props.getMode()).isEqualTo(KubernetesLoadBalancerMode.SERVICE);
-					assertThat(props.getClusterDomain()).isEqualTo("clusterDomain");
-					assertThat(props.getPortName()).isEqualTo("portName");
-				});
+			.withPropertyValues("spring.cloud.kubernetes.loadbalancer.enabled=false",
+					"spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
+					"spring.cloud.kubernetes.loadbalancer.clusterDomain=clusterDomain",
+					"spring.cloud.kubernetes.loadbalancer.portName=portName")
+			.run(context -> {
+				KubernetesLoadBalancerProperties props = context.getBean(KubernetesLoadBalancerProperties.class);
+				assertThat(props).isNotNull();
+				assertThat(props.getEnabled()).isFalse();
+				assertThat(props.getMode()).isEqualTo(KubernetesLoadBalancerMode.SERVICE);
+				assertThat(props.getClusterDomain()).isEqualTo("clusterDomain");
+				assertThat(props.getPortName()).isEqualTo("portName");
+			});
 	}
 
 	@Configuration

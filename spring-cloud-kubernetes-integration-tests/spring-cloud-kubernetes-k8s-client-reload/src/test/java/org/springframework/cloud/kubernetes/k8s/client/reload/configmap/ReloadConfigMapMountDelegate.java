@@ -83,8 +83,12 @@ final class ReloadConfigMapMountDelegate {
 				null);
 
 		await().timeout(Duration.ofSeconds(180))
-				.until(() -> webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-						.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec()).block().equals("as-mount-changed"));
+			.until(() -> webClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(K8sClientConfigMapReloadITUtil.retrySpec())
+				.block()
+				.equals("as-mount-changed"));
 
 	}
 

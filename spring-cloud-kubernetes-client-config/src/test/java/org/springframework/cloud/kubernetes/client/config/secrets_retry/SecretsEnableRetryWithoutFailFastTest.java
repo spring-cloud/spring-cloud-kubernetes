@@ -79,7 +79,7 @@ public class SecretsEnableRetryWithoutFailFastTest {
 
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 		stubConfigMapAndSecretsDefaults();
 	}
 
@@ -87,7 +87,7 @@ public class SecretsEnableRetryWithoutFailFastTest {
 		// return empty config map / secret list to not fail context creation
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
 		stubFor(get(SECRETS_API)
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
 	}
 
 	@AfterAll
@@ -108,7 +108,9 @@ public class SecretsEnableRetryWithoutFailFastTest {
 				ConfigurationPropertiesRebinderAutoConfiguration.class, KubernetesClientBootstrapConfiguration.class,
 				KubernetesClientRetryBootstrapConfiguration.class, KubernetesBootstrapConfiguration.class,
 				KubernetesClientConfigReloadAutoConfiguration.class)
-						.web(org.springframework.boot.WebApplicationType.NONE).properties(envArray).run();
+			.web(org.springframework.boot.WebApplicationType.NONE)
+			.properties(envArray)
+			.run();
 	}
 
 	@AfterEach

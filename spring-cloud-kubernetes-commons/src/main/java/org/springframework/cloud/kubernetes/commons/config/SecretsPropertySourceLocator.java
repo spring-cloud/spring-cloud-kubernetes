@@ -72,7 +72,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			if (this.properties.enableApi()) {
 				uniqueSources
-						.forEach(s -> composite.addPropertySource(getSecretsPropertySourceForSingleSecret(env, s)));
+					.forEach(s -> composite.addPropertySource(getSecretsPropertySourceForSingleSecret(env, s)));
 			}
 
 			cache.discardAll();

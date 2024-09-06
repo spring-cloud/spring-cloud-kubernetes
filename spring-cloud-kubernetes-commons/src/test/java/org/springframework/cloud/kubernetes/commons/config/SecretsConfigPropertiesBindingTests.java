@@ -91,24 +91,24 @@ class SecretsConfigPropertiesBindingTests {
 					Assertions.assertTrue(source.useNameAsPrefix());
 					Assertions.assertTrue(source.includeProfileSpecificSources());
 
-					Assertions.assertEquals(props.labels().size(), 1);
-					Assertions.assertEquals(props.labels().get("label-a"), "label-a");
+				Assertions.assertEquals(props.labels().size(), 1);
+				Assertions.assertEquals(props.labels().get("label-a"), "label-a");
 
-					Assertions.assertFalse(props.enabled());
-					Assertions.assertEquals(props.name(), "name");
-					Assertions.assertEquals(props.namespace(), "namespace");
-					Assertions.assertTrue(props.useNameAsPrefix());
-					Assertions.assertTrue(props.includeProfileSpecificSources());
-					Assertions.assertTrue(props.failFast());
+				Assertions.assertFalse(props.enabled());
+				Assertions.assertEquals(props.name(), "name");
+				Assertions.assertEquals(props.namespace(), "namespace");
+				Assertions.assertTrue(props.useNameAsPrefix());
+				Assertions.assertTrue(props.includeProfileSpecificSources());
+				Assertions.assertTrue(props.failFast());
 
-					RetryProperties retryProperties = props.retry();
-					Assertions.assertNotNull(retryProperties);
-					Assertions.assertEquals(retryProperties.initialInterval(), 1);
-					Assertions.assertEquals(retryProperties.multiplier(), 1.2);
-					Assertions.assertEquals(retryProperties.maxInterval(), 3);
-					Assertions.assertFalse(retryProperties.enabled());
+				RetryProperties retryProperties = props.retry();
+				Assertions.assertNotNull(retryProperties);
+				Assertions.assertEquals(retryProperties.initialInterval(), 1);
+				Assertions.assertEquals(retryProperties.multiplier(), 1.2);
+				Assertions.assertEquals(retryProperties.maxInterval(), 3);
+				Assertions.assertFalse(retryProperties.enabled());
 
-				});
+			});
 	}
 
 	@Configuration
