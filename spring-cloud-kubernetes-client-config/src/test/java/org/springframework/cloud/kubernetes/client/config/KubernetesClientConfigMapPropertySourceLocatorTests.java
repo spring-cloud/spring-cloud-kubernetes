@@ -97,7 +97,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	void locateWithoutSources() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
 				true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 		MockEnvironment mockEnvironment = new MockEnvironment();
@@ -159,7 +159,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	void testLocateWithoutNamespace() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
 				true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,

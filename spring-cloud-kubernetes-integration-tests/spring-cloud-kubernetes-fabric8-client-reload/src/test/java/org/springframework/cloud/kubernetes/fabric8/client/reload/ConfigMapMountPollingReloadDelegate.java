@@ -53,8 +53,11 @@ final class ConfigMapMountPollingReloadDelegate {
 	 */
 	static void testConfigMapMountPollingReload(KubernetesClient client, Util util) {
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key-no-mount").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 
 		// we first read the initial value from the configmap
 		Assertions.assertEquals("as-mount-initial", result);
@@ -78,8 +81,13 @@ final class ConfigMapMountPollingReloadDelegate {
 		configMapMount.getMetadata().setAnnotations(existingAnnotations);
 		TestUtil.replaceConfigMap(client, configMapMount, "default");
 
-		await().timeout(Duration.ofSeconds(180)).until(() -> webClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).retryWhen(TestUtil.retrySpec()).block().equals("as-mount-changed"));
+		await().timeout(Duration.ofSeconds(180))
+			.until(() -> webClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec())
+				.block()
+				.equals("as-mount-changed"));
 
 	}
 
