@@ -61,17 +61,17 @@ class ServicePortSecureResolverTest {
 		ServicePortSecureResolver secureResolver = new ServicePortSecureResolver(properties);
 
 		assertThat(secureResolver
-				.resolve(new Input(new ServicePortNameAndNumber(-1, "http"), "dummy", Map.of(), Map.of()))).isFalse();
+			.resolve(new Input(new ServicePortNameAndNumber(-1, "http"), "dummy", Map.of(), Map.of()))).isFalse();
 		assertThat(secureResolver
-				.resolve(new Input(new ServicePortNameAndNumber(8080, "http"), "dummy", Map.of(), Map.of()))).isFalse();
+			.resolve(new Input(new ServicePortNameAndNumber(8080, "http"), "dummy", Map.of(), Map.of()))).isFalse();
 		assertThat(secureResolver
-				.resolve(new Input(new ServicePortNameAndNumber(1234, "http"), "dummy", Map.of(), Map.of()))).isFalse();
+			.resolve(new Input(new ServicePortNameAndNumber(1234, "http"), "dummy", Map.of(), Map.of()))).isFalse();
 		assertThat(secureResolver
-				.resolve(new Input(new ServicePortNameAndNumber(443, "http"), "dummy", Map.of(), Map.of()))).isTrue();
+			.resolve(new Input(new ServicePortNameAndNumber(443, "http"), "dummy", Map.of(), Map.of()))).isTrue();
 		assertThat(secureResolver
-				.resolve(new Input(new ServicePortNameAndNumber(8443, "http"), "dummy", Map.of(), Map.of()))).isTrue();
+			.resolve(new Input(new ServicePortNameAndNumber(8443, "http"), "dummy", Map.of(), Map.of()))).isTrue();
 		assertThat(secureResolver
-				.resolve(new Input(new ServicePortNameAndNumber(12345, "http"), "dummy", Map.of(), Map.of()))).isTrue();
+			.resolve(new Input(new ServicePortNameAndNumber(12345, "http"), "dummy", Map.of(), Map.of()))).isTrue();
 	}
 
 	@Test
@@ -181,7 +181,7 @@ class ServicePortSecureResolverTest {
 		boolean result = secureResolver.resolve(input);
 		assertThat(result).isTrue();
 		assertThat(output.getOut())
-				.contains("Considering service with name: dummy and port 8080 to be secure since port-name is 'https'");
+			.contains("Considering service with name: dummy and port 8080 to be secure since port-name is 'https'");
 	}
 
 }

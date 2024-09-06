@@ -62,19 +62,24 @@ final class Fabric8InstanceIdHostPodNameSupplier implements Supplier<InstanceIdH
 
 	// instanceId is usually the pod-uid as seen in the .metadata.uid
 	private String instanceId() {
-		return Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef).map(ObjectReference::getUid)
-				.orElseGet(() -> service.getMetadata().getUid());
+		return Optional.ofNullable(endpointAddress)
+			.map(EndpointAddress::getTargetRef)
+			.map(ObjectReference::getUid)
+			.orElseGet(() -> service.getMetadata().getUid());
 	}
 
 	private String host() {
-		return Optional.ofNullable(endpointAddress).map(EndpointAddress::getIp)
-				.orElseGet(() -> service.getSpec().getExternalName());
+		return Optional.ofNullable(endpointAddress)
+			.map(EndpointAddress::getIp)
+			.orElseGet(() -> service.getSpec().getExternalName());
 	}
 
 	private String podName() {
-		return Optional.ofNullable(endpointAddress).map(EndpointAddress::getTargetRef)
-				.filter(objectReference -> "Pod".equals(objectReference.getKind())).map(ObjectReference::getName)
-				.orElse(null);
+		return Optional.ofNullable(endpointAddress)
+			.map(EndpointAddress::getTargetRef)
+			.filter(objectReference -> "Pod".equals(objectReference.getKind()))
+			.map(ObjectReference::getName)
+			.orElse(null);
 	}
 
 }

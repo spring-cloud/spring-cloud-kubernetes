@@ -101,21 +101,30 @@ class ActuatorRefreshMultipleNamespacesIT {
 	void testConfigMapActuatorRefreshMultipleNamespaces() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
 		await().timeout(Duration.ofSeconds(60))
-				.until(() -> WireMock
-						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-						.getResponse().wasConfigured());
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse()
+				.wasConfigured());
 
 		// left-config-map
 		V1ConfigMap leftConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
-				.withLabels(Map.of("spring.cloud.kubernetes.config", "true")).withName("service-wiremock")
-				.withNamespace(LEFT_NAMESPACE).endMetadata().addToData("color", "purple").build();
+			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withName("service-wiremock")
+			.withNamespace(LEFT_NAMESPACE)
+			.endMetadata()
+			.addToData("color", "purple")
+			.build();
 		util.createAndWait(LEFT_NAMESPACE, leftConfigMap, null);
 
 		// right-config-map
 		V1ConfigMap rightConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
-				.withLabels(Map.of("spring.cloud.kubernetes.config", "true")).withName("service-wiremock")
-				.withNamespace(RIGHT_NAMESPACE).endMetadata().addToData("color", "green").build();
+			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
+			.withName("service-wiremock")
+			.withNamespace(RIGHT_NAMESPACE)
+			.endMetadata()
+			.addToData("color", "green")
+			.build();
 		util.createAndWait(RIGHT_NAMESPACE, rightConfigMap, null);
 
 		// comes from handler::onAdd (and as such from "onEvent")
@@ -126,8 +135,9 @@ class ActuatorRefreshMultipleNamespacesIT {
 		Commons.assertReloadLogStatements("ConfigMap service-wiremock was added in namespace right", "",
 				"spring-cloud-kubernetes-configuration-watcher");
 
-		await().atMost(Duration.ofSeconds(30)).until(
-				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")))
+				.isEmpty());
 		WireMock.verify(WireMock.exactly(2), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
 		testSecretActuatorRefreshMultipleNamespaces();
@@ -145,24 +155,32 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 * </pre>
 	 */
 	void testSecretActuatorRefreshMultipleNamespaces() {
-		await().timeout(Duration.ofSeconds(60)).ignoreException(SocketTimeoutException.class)
-				.until(() -> WireMock
-						.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-								.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-						.getResponse().wasConfigured());
+		await().timeout(Duration.ofSeconds(60))
+			.ignoreException(SocketTimeoutException.class)
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse()
+				.wasConfigured());
 
 		// left-secret
 		V1Secret leftSecret = new V1SecretBuilder().editOrNewMetadata()
-				.withLabels(Map.of("spring.cloud.kubernetes.secret", "true")).withName("service-wiremock")
-				.withNamespace(LEFT_NAMESPACE).endMetadata()
-				.addToData("color", Base64.getEncoder().encode("purple".getBytes(StandardCharsets.UTF_8))).build();
+			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
+			.withName("service-wiremock")
+			.withNamespace(LEFT_NAMESPACE)
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encode("purple".getBytes(StandardCharsets.UTF_8)))
+			.build();
 		util.createAndWait(LEFT_NAMESPACE, null, leftSecret);
 
 		// right-secret
 		V1Secret rightSecret = new V1SecretBuilder().editOrNewMetadata()
-				.withLabels(Map.of("spring.cloud.kubernetes.secret", "true")).withName("service-wiremock")
-				.withNamespace(RIGHT_NAMESPACE).endMetadata()
-				.addToData("color", Base64.getEncoder().encode("green".getBytes(StandardCharsets.UTF_8))).build();
+			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
+			.withName("service-wiremock")
+			.withNamespace(RIGHT_NAMESPACE)
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encode("green".getBytes(StandardCharsets.UTF_8)))
+			.build();
 		util.createAndWait(RIGHT_NAMESPACE, null, rightSecret);
 
 		// comes from handler::onAdd (and as such from "onEvent")
@@ -173,17 +191,18 @@ class ActuatorRefreshMultipleNamespacesIT {
 		Commons.assertReloadLogStatements("Secret service-wiremock was added in namespace right", "",
 				"spring-cloud-kubernetes-configuration-watcher");
 
-		await().atMost(Duration.ofSeconds(30)).until(
-				() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh"))).isEmpty());
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")))
+				.isEmpty());
 		WireMock.verify(WireMock.exactly(4), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
 	}
 
 	private static void configWatcher(Phase phase) {
 		V1ConfigMap configMap = (V1ConfigMap) util
-				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 		V1Deployment deployment = (V1Deployment) util
-				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
 
 		List<V1EnvVar> envVars = List.of(
 				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0").value(LEFT_NAMESPACE),
@@ -193,7 +212,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		V1Service service = (V1Service) util
-				.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(DEFAULT_NAMESPACE, configMap, null);

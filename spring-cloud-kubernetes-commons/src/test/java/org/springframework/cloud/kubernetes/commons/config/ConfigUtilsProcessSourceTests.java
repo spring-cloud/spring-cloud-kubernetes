@@ -70,7 +70,7 @@ class ConfigUtilsProcessSourceTests {
 	@Test
 	void testProcessNamedDataOne() {
 		List<StrippedSourceContainer> strippedSources = List
-				.of(new StrippedSourceContainer(Map.of(), "configmap-a", Map.of("one", "1")));
+			.of(new StrippedSourceContainer(Map.of(), "configmap-a", Map.of("one", "1")));
 		Environment environment = new MockEnvironment();
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of("configmap-a"));
 		String namespace = "namespace-a";
@@ -148,7 +148,7 @@ class ConfigUtilsProcessSourceTests {
 		// @formatter:on
 		String sourceName = "account";
 		List<StrippedSourceContainer> strippedSources = List
-				.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
 		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", sourceName);
 		environment.setActiveProfiles("default");
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
@@ -241,7 +241,7 @@ class ConfigUtilsProcessSourceTests {
 		// @formatter:on
 		String sourceName = "account-default";
 		List<StrippedSourceContainer> strippedSources = List
-				.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
 		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", "account");
 		environment.setActiveProfiles("default");
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
@@ -353,7 +353,7 @@ class ConfigUtilsProcessSourceTests {
 		// @formatter:on
 		String sourceName = "account";
 		List<StrippedSourceContainer> strippedSources = List
-				.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
 		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", sourceName);
 		environment.setActiveProfiles("k8s");
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));
@@ -441,7 +441,7 @@ class ConfigUtilsProcessSourceTests {
 		// @formatter:on
 		String sourceName = "account-k8s";
 		List<StrippedSourceContainer> strippedSources = List
-				.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
+			.of(new StrippedSourceContainer(Map.of(), sourceName, sourceRawData));
 		MockEnvironment environment = new MockEnvironment().withProperty("spring.application.name", "account");
 		environment.setActiveProfiles("k8s");
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>(List.of(sourceName));

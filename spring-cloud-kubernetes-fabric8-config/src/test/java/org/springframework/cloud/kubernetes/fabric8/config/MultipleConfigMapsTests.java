@@ -78,9 +78,14 @@ abstract class MultipleConfigMapsTests {
 	private static void createConfigmap(KubernetesClient client, String configMapName, String namespace,
 			Map<String, String> data) {
 
-		client.configMaps().inNamespace(namespace).resource(
-				new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata().addToData(data).build())
-				.create();
+		client.configMaps()
+			.inNamespace(namespace)
+			.resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(configMapName)
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 	}
 
 	// the last configmap defined in 'multiplecms.yml' has the highest priority, so
@@ -106,8 +111,14 @@ abstract class MultipleConfigMapsTests {
 	}
 
 	private void assertResponse(String path, String expectedMessage) {
-		this.webClient.get().uri(path).exchange().expectStatus().isOk().expectBody().jsonPath("message")
-				.isEqualTo(expectedMessage);
+		this.webClient.get()
+			.uri(path)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("message")
+			.isEqualTo(expectedMessage);
 	}
 
 }

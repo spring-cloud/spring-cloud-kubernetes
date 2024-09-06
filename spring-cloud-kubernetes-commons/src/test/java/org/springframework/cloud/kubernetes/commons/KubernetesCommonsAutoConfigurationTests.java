@@ -38,8 +38,11 @@ class KubernetesCommonsAutoConfigurationTests {
 	void beansAreCreated() {
 		assertThat(context.getBeansOfType(KubernetesClientProperties.class)).hasSize(1);
 
-		KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class).values()
-				.stream().findFirst().get();
+		KubernetesClientProperties properties = context.getBeansOfType(KubernetesClientProperties.class)
+			.values()
+			.stream()
+			.findFirst()
+			.get();
 		assertThat(properties.password()).isEqualTo("mypassword");
 		assertThat(properties.proxyPassword()).isEqualTo("myproxypassword");
 	}

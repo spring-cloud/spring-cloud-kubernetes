@@ -49,7 +49,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 
 	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = Mockito
-			.mock(KubernetesNamespaceProvider.class);
+		.mock(KubernetesNamespaceProvider.class);
 
 	private static KubernetesMockServer mockServer;
 
@@ -87,7 +87,8 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 				false, "", Set.of(), Map.of(), "", null, 0, true, false);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
-				.withGroupVersion("discovery.k8s.io/v1").build();
+			.withGroupVersion("discovery.k8s.io/v1")
+			.build();
 		APIGroup apiGroup = new APIGroupBuilder().withApiVersion("v1").withVersions(forDiscovery).build();
 		APIGroupList groupList = new APIGroupListBuilder().withGroups(apiGroup).build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
@@ -127,13 +128,15 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 				NAMESPACE_PROVIDER);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
-				.withGroupVersion("discovery.k8s.io/v1").build();
+			.withGroupVersion("discovery.k8s.io/v1")
+			.build();
 		APIGroup apiGroup = new APIGroupBuilder().withApiVersion("v1").withVersions(forDiscovery).build();
 		APIGroupList groupList = new APIGroupListBuilder().withGroups(apiGroup).build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
 
-		APIResource apiResource = new APIResourceBuilder().withGroup("discovery.k8s.io/v1").withKind("EndpointSlice")
-				.build();
+		APIResource apiResource = new APIResourceBuilder().withGroup("discovery.k8s.io/v1")
+			.withKind("EndpointSlice")
+			.build();
 		APIResourceList apiResourceList = new APIResourceListBuilder().withResources(apiResource).build();
 		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
 

@@ -39,10 +39,13 @@ final class Fabric8DiscoveryBoostrapDelegate {
 	static void testAllServicesWithBootstrap() {
 		WebClient client = builder().baseUrl("http://localhost/services").build();
 
-		List<String> result = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> result = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(result.size(), 5);
 		Assertions.assertTrue(result.contains("kubernetes"));

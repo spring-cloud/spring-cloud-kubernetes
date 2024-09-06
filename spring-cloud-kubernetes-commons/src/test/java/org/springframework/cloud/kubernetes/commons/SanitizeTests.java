@@ -42,7 +42,7 @@ class SanitizeTests {
 	private static final boolean SHOW_UNSANITIZED = true;
 
 	private static final List<SanitizingFunction> SANITIZING_FUNCTIONS = List
-			.of(new KubernetesCommonsSanitizeAutoConfiguration().secretsPropertySourceSanitizingFunction());
+		.of(new KubernetesCommonsSanitizeAutoConfiguration().secretsPropertySourceSanitizingFunction());
 
 	@Test
 	void bootstrapPropertySourceNotSecrets() {
@@ -108,7 +108,7 @@ class SanitizeTests {
 		compositePropertySource.addFirstPropertySource(
 				new SecretsPropertySource(new SourceData("secret-source", Map.of("secret", "xyz"))));
 		compositePropertySource
-				.addFirstPropertySource(new MountConfigMapPropertySource("mount-source", Map.of("mount", "abc")));
+			.addFirstPropertySource(new MountConfigMapPropertySource("mount-source", Map.of("mount", "abc")));
 
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableDataSecret = new SanitizableData(compositePropertySource, "secret", "xyz");

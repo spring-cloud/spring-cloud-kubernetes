@@ -54,7 +54,7 @@ class Fabric8KubernetesDiscoveryClientFilterTest {
 	private final KubernetesClient kubernetesClient = Mockito.mock(KubernetesClient.class);
 
 	private final MixedOperation<Service, ServiceList, ServiceResource<Service>> serviceOperation = Mockito
-			.mock(MixedOperation.class);
+		.mock(MixedOperation.class);
 
 	private final FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> filterNested = Mockito
 			.mock(FilterNested.class);

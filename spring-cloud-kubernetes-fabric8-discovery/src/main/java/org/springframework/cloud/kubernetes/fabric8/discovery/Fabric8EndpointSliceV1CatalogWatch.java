@@ -41,8 +41,10 @@ final class Fabric8EndpointSliceV1CatalogWatch
 		List<EndpointSlice> endpointSlices = endpointSlices(context.properties(), context.kubernetesClient(),
 				context.namespaceProvider(), "catalog-watcher");
 
-		Stream<ObjectReference> references = endpointSlices.stream().map(EndpointSlice::getEndpoints)
-				.flatMap(List::stream).map(Endpoint::getTargetRef);
+		Stream<ObjectReference> references = endpointSlices.stream()
+			.map(EndpointSlice::getEndpoints)
+			.flatMap(List::stream)
+			.map(Endpoint::getTargetRef);
 
 		return Fabric8CatalogWatchContext.state(references);
 

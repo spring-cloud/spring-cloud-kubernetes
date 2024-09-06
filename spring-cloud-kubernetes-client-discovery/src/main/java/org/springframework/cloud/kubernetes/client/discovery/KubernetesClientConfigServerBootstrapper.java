@@ -64,12 +64,6 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 			return createKubernetesDiscoveryProperties(context);
 		});
 
-		registry.registerIfAbsent(KubernetesClientProperties.class, context -> {
-			if (!getDiscoveryEnabled(context)) {
-				return null;
-			}
-			return createKubernetesClientProperties(context);
-		});
 		registry.registerIfAbsent(ConfigServerInstanceProvider.Function.class, context -> {
 			if (!getDiscoveryEnabled(context)) {
 				return (id) -> Collections.emptyList();
@@ -87,19 +81,19 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 				ApiClient apiClient = context.getOrElseSupply(ApiClient.class, () -> defaultApiClient);
 
 				KubernetesNamespaceProvider kubernetesNamespaceProvider = clientAutoConfiguration
-						.kubernetesNamespaceProvider(getNamespaceEnvironment(propertyResolver));
+					.kubernetesNamespaceProvider(getNamespaceEnvironment(propertyResolver));
 				KubernetesDiscoveryProperties discoveryProperties = context.get(KubernetesDiscoveryProperties.class);
 				String namespace = getInformerNamespace(kubernetesNamespaceProvider, discoveryProperties);
 				SharedInformerFactory sharedInformerFactory = new SharedInformerFactory(apiClient);
 				GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
 						V1ServiceList.class, "", "v1", "services", apiClient);
 				SharedIndexInformer<V1Service> serviceSharedIndexInformer = sharedInformerFactory
-						.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, namespace);
+					.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, namespace);
 				Lister<V1Service> serviceLister = new Lister<>(serviceSharedIndexInformer.getIndexer());
 				GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
 						V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 				SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer = sharedInformerFactory
-						.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
+					.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
 				Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsSharedIndexInformer.getIndexer());
 				KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 						sharedInformerFactory, serviceLister, endpointsLister, serviceSharedIndexInformer,

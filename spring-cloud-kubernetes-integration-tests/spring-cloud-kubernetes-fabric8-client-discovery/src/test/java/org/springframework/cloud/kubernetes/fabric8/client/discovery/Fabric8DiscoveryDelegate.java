@@ -45,10 +45,13 @@ final class Fabric8DiscoveryDelegate {
 	static void testAllServices() {
 		WebClient client = builder().baseUrl("http://localhost/services").build();
 
-		List<String> result = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> result = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(result.size(), 5);
 		Assertions.assertTrue(result.contains("kubernetes"));
@@ -61,10 +64,13 @@ final class Fabric8DiscoveryDelegate {
 	static void testExternalNameServiceInstance() {
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/external-name-service").build();
-		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		DefaultKubernetesServiceInstance result = serviceInstances.get(0);
 

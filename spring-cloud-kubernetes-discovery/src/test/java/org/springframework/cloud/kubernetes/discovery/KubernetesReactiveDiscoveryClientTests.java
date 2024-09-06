@@ -98,11 +98,11 @@ class KubernetesReactiveDiscoveryClientTests {
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
 		stubFor(get("/apps")
-				.willReturn(aResponse().withStatus(200).withBody(APPS).withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200).withBody(APPS).withHeader("content-type", "application/json")));
 		stubFor(get("/apps/test-svc-3").willReturn(
 				aResponse().withStatus(200).withBody(APPS_NAME).withHeader("content-type", "application/json")));
 		stubFor(get("/apps/does-not-exist")
-				.willReturn(aResponse().withStatus(200).withBody("").withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200).withBody("").withHeader("content-type", "application/json")));
 	}
 
 	@Test
@@ -129,9 +129,9 @@ class KubernetesReactiveDiscoveryClientTests {
 		metadata.put("k8s", "true");
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-3"))
-				.expectNext(new DefaultKubernetesServiceInstance("uid2", "test-svc-3", "2.2.2.2", 8080, metadata, false,
-						"namespace1", null, null))
-				.verifyComplete();
+			.expectNext(new DefaultKubernetesServiceInstance("uid2", "test-svc-3", "2.2.2.2", 8080, metadata, false,
+					"namespace1", null, null))
+			.verifyComplete();
 	}
 
 }

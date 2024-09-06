@@ -78,7 +78,7 @@ abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 
 		assertRetryBean(context);
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("v1/namespaces/default/configmaps. Message: Internal Server Error");
+			.hasMessageContaining("v1/namespaces/default/configmaps. Message: Internal Server Error");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(psl, times(1)).locate(any());

@@ -70,16 +70,20 @@ public class SourcesOrderConfigurationStub {
 		configMapData.put("my.key", "from-configmap");
 		configMapData.put("my.two", "two");
 
-		V1ConfigMap myConfigMap = new V1ConfigMapBuilder().withMetadata(new V1ObjectMetaBuilder()
-				.withName("my-configmap").withNamespace("spring-k8s").withResourceVersion("1").build())
-				.addToData(configMapData).build();
+		V1ConfigMap myConfigMap = new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("my-configmap")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(configMapData)
+			.build();
 
 		V1ConfigMapList allConfigMaps = new V1ConfigMapList();
 		allConfigMaps.setItems(Collections.singletonList(myConfigMap));
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 
 	public static void stubSecretsData() {
@@ -88,15 +92,20 @@ public class SourcesOrderConfigurationStub {
 		secretData.put("my.key", "from-secret".getBytes(StandardCharsets.UTF_8));
 		secretData.put("my.one", "one".getBytes(StandardCharsets.UTF_8));
 
-		V1Secret mySecret = new V1SecretBuilder().withMetadata(new V1ObjectMetaBuilder().withName("my-secret")
-				.withNamespace("spring-k8s").withResourceVersion("1").build()).addToData(secretData).build();
+		V1Secret mySecret = new V1SecretBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("my-secret")
+				.withNamespace("spring-k8s")
+				.withResourceVersion("1")
+				.build())
+			.addToData(secretData)
+			.build();
 
 		V1SecretList allConfigMaps = new V1SecretList();
 		allConfigMaps.setItems(Collections.singletonList(mySecret));
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 
 }

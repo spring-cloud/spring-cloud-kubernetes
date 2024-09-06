@@ -48,7 +48,7 @@ class Fabric8ConfigDataLocationResolverTests {
 	private static final DeferredLogFactory FACTORY = Supplier::get;
 
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
-			.mock(ConfigDataLocationResolverContext.class);
+		.mock(ConfigDataLocationResolverContext.class);
 
 	private static final Fabric8ConfigDataLocationResolver RESOLVER = new Fabric8ConfigDataLocationResolver(FACTORY);
 
@@ -120,7 +120,7 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(Fabric8ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator.getClass());
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
@@ -162,7 +162,7 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(Fabric8ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator.getClass());
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
@@ -209,7 +209,7 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(ConfigDataRetryableConfigMapPropertySourceLocator.class,
 				configMapPropertySourceLocator.getClass());
 

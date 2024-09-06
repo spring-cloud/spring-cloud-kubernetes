@@ -110,8 +110,11 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnEmptyFluxOfServicesWhenNoInstancesFound() {
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
-				.andReturn(200, new ServiceListBuilder().build()).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services")
+			.andReturn(200, new ServiceListBuilder().build())
+			.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
@@ -123,9 +126,11 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnEmptyFluxForNonExistingService() {
-		kubernetesServer.expect().get()
-				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dnonexistent-service")
-				.andReturn(200, new EndpointsBuilder().build()).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dnonexistent-service")
+			.andReturn(200, new EndpointsBuilder().build())
+			.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
@@ -138,14 +143,24 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnEmptyFluxWhenServiceHasNoSubsets() {
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
-				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
-						.withLabels(Map.of("label", "value")).endMetadata().endItem().build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services")
+			.andReturn(200,
+					new ServiceListBuilder().addNewItem()
+						.withNewMetadata()
+						.withName("existing-service")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.endItem()
+						.build())
+			.once();
 
-		kubernetesServer.expect().get()
-				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
-				.andReturn(200, new EndpointsBuilder().build()).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
+			.andReturn(200, new EndpointsBuilder().build())
+			.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
@@ -158,14 +173,31 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnFlux() {
-		ServiceList services = new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
-				.withNamespace("test").withLabels(Map.of("label", "value")).endMetadata()
-				.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build();
+		ServiceList services = new ServiceListBuilder().addNewItem()
+			.withNewMetadata()
+			.withName("existing-service")
+			.withNamespace("test")
+			.withLabels(Map.of("label", "value"))
+			.endMetadata()
+			.withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+			.endItem()
+			.build();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
-				.withLabels(Map.of("label", "value")).endMetadata().addNewSubset().addNewAddress().withIp("ip1")
-				.withNewTargetRef().withUid("uid1").endTargetRef().endAddress()
-				.addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("existing-service")
+			.withNamespace("test")
+			.withLabels(Map.of("label", "value"))
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("uid1")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.endSubset()
+			.build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint);
@@ -173,12 +205,17 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 		EndpointsList endpoints = new EndpointsList();
 		endpoints.setItems(endpointsList);
 
-		kubernetesServer.expect().get()
-				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
-				.andReturn(200, endpoints).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
+			.andReturn(200, endpoints)
+			.once();
 
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service")
-				.andReturn(200, services.getItems().get(0)).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services/existing-service")
+			.andReturn(200, services.getItems().get(0))
+			.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
@@ -192,16 +229,34 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnFluxWithPrefixedMetadata() {
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
-				.andReturn(200,
-						new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
-								.withLabels(Map.of("label", "value")).endMetadata()
-								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services")
+			.andReturn(200,
+					new ServiceListBuilder().addNewItem()
+						.withNewMetadata()
+						.withName("existing-service")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+						.endItem()
+						.build())
+			.once();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
-				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP").endSubset().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("existing-service")
+			.withNamespace("test")
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("uid1")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.endSubset()
+			.build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint);
@@ -209,14 +264,23 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 		EndpointsList endpoints = new EndpointsList();
 		endpoints.setItems(endpointsList);
 
-		kubernetesServer.expect().get()
-				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
-				.andReturn(200, endpoints).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
+			.andReturn(200, endpoints)
+			.once();
 
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service").andReturn(200,
-				new ServiceBuilder().withNewMetadata().withName("existing-service").withLabels(Map.of("label", "value"))
-						.endMetadata().withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services/existing-service")
+			.andReturn(200,
+					new ServiceBuilder().withNewMetadata()
+						.withName("existing-service")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+						.build())
+			.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
@@ -229,17 +293,35 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnFluxWhenServiceHasMultiplePortsAndPrimaryPortNameIsSet() {
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
-				.andReturn(200,
-						new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
-								.withLabels(Map.of("label", "value")).endMetadata()
-								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services")
+			.andReturn(200,
+					new ServiceListBuilder().addNewItem()
+						.withNewMetadata()
+						.withName("existing-service")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+						.endItem()
+						.build())
+			.once();
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("existing-service").withNamespace("test")
-				.endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef().withUid("uid1")
-				.endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
-				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("existing-service")
+			.withNamespace("test")
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("uid1")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.addNewPort("https", "https_tcp", 443, "TCP")
+			.endSubset()
+			.build();
 
 		List<Endpoints> endpointsList = new ArrayList<>();
 		endpointsList.add(endPoint);
@@ -247,14 +329,23 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 		EndpointsList endpoints = new EndpointsList();
 		endpoints.setItems(endpointsList);
 
-		kubernetesServer.expect().get()
-				.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
-				.andReturn(200, endpoints).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/endpoints?fieldSelector=metadata.name%3Dexisting-service")
+			.andReturn(200, endpoints)
+			.once();
 
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service").andReturn(200,
-				new ServiceBuilder().withNewMetadata().withName("existing-service").withLabels(Map.of("label", "value"))
-						.endMetadata().withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services/existing-service")
+			.andReturn(200,
+					new ServiceBuilder().withNewMetadata()
+						.withName("existing-service")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+						.build())
+			.once();
 
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
@@ -267,28 +358,56 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnFluxOfServicesAcrossAllNamespaces() {
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
-				.andReturn(200,
-						new ServiceListBuilder().addNewItem().withNewMetadata().withName("existing-service")
-								.withLabels(Map.of("label", "value")).endMetadata()
-								.withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).endItem().build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services")
+			.andReturn(200,
+					new ServiceListBuilder().addNewItem()
+						.withNewMetadata()
+						.withName("existing-service")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+						.endItem()
+						.build())
+			.once();
 
-		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName("existing-service")
-				.withNamespace("test").endMetadata().addNewSubset().addNewAddress().withIp("ip1").withNewTargetRef()
-				.withUid("uid1").endTargetRef().endAddress().addNewPort("http", "http_tcp", 80, "TCP")
-				.addNewPort("https", "https_tcp", 443, "TCP").endSubset().build();
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata()
+			.withName("existing-service")
+			.withNamespace("test")
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withIp("ip1")
+			.withNewTargetRef()
+			.withUid("uid1")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", 80, "TCP")
+			.addNewPort("https", "https_tcp", 443, "TCP")
+			.endSubset()
+			.build();
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(singletonList(endpoints));
 
-		kubernetesServer.expect().get().withPath("/api/v1/endpoints?fieldSelector=metadata.name%3Dexisting-service")
-				.andReturn(200, endpointsList).once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/endpoints?fieldSelector=metadata.name%3Dexisting-service")
+			.andReturn(200, endpointsList)
+			.once();
 
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services/existing-service").andReturn(200,
-				new ServiceBuilder().withNewMetadata().withName("existing-service").withLabels(Map.of("label", "value"))
-						.endMetadata().withSpec(new ServiceSpecBuilder().withType("ExternalName").build()).build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services/existing-service")
+			.andReturn(200,
+					new ServiceBuilder().withNewMetadata()
+						.withName("existing-service")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.withSpec(new ServiceSpecBuilder().withType("ExternalName").build())
+						.build())
+			.once();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), "https_tcp", Metadata.DEFAULT, 0, true, false);

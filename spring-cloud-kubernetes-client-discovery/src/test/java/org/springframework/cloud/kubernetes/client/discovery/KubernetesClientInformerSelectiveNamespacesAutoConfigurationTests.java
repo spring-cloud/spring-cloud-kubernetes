@@ -54,44 +54,44 @@ class KubernetesClientInformerSelectiveNamespacesAutoConfigurationTests {
 	void testBeansCreates(CapturedOutput output) {
 
 		new ApplicationContextRunner()
-				.withPropertyValues("spring.cloud.discovery.enabled=true",
-						"spring.cloud.kubernetes.discovery.enabled=true",
-						"spring.cloud.kubernetes.discovery.namespaces[0]=" + NAMESPACE_A,
-						"spring.cloud.kubernetes.discovery.namespaces[1]=" + NAMESPACE_B,
-						"spring.main.cloud-platform=kubernetes")
-				.withConfiguration(
-						AutoConfigurations.of(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
-				.withUserConfiguration(Config.class).run(context -> {
-					assertThat(context.getBean("selectiveNamespaces")).isNotNull();
+			.withPropertyValues("spring.cloud.discovery.enabled=true", "spring.cloud.kubernetes.discovery.enabled=true",
+					"spring.cloud.kubernetes.discovery.namespaces[0]=" + NAMESPACE_A,
+					"spring.cloud.kubernetes.discovery.namespaces[1]=" + NAMESPACE_B,
+					"spring.main.cloud-platform=kubernetes")
+			.withConfiguration(
+					AutoConfigurations.of(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
+			.withUserConfiguration(Config.class)
+			.run(context -> {
+				assertThat(context.getBean("selectiveNamespaces")).isNotNull();
 
-					@SuppressWarnings("unchecked")
-					Set<String> selectiveNamespaces = context.getBean("selectiveNamespaces", Set.class);
-					Assertions.assertEquals(selectiveNamespaces, Set.of("a", "b"));
+				@SuppressWarnings("unchecked")
+				Set<String> selectiveNamespaces = context.getBean("selectiveNamespaces", Set.class);
+				Assertions.assertEquals(selectiveNamespaces, Set.of("a", "b"));
 
-					@SuppressWarnings("unchecked")
-					Set<String> namespaces = context.getBean("namespaces", Set.class);
-					Assertions.assertEquals(namespaces, Set.of("c", "d"));
-				});
+				@SuppressWarnings("unchecked")
+				Set<String> namespaces = context.getBean("namespaces", Set.class);
+				Assertions.assertEquals(namespaces, Set.of("c", "d"));
+			});
 
 		assertThat(output.getOut().contains("registering lister (for services) in namespace : " + NAMESPACE_A))
-				.isTrue();
+			.isTrue();
 		assertThat(output.getOut().contains("registering lister (for services) in namespace : " + NAMESPACE_B))
-				.isTrue();
+			.isTrue();
 
 		assertThat(output.getOut().contains("registering lister (for services) in namespace : " + NAMESPACE_C))
-				.isFalse();
+			.isFalse();
 		assertThat(output.getOut().contains("registering lister (for services) in namespace : " + NAMESPACE_D))
-				.isFalse();
+			.isFalse();
 
 		assertThat(output.getOut().contains("registering lister (for endpoints) in namespace : " + NAMESPACE_A))
-				.isTrue();
+			.isTrue();
 		assertThat(output.getOut().contains("registering lister (for endpoints) in namespace : " + NAMESPACE_B))
-				.isTrue();
+			.isTrue();
 
 		assertThat(output.getOut().contains("registering lister (for endpoints) in namespace : " + NAMESPACE_C))
-				.isFalse();
+			.isFalse();
 		assertThat(output.getOut().contains("registering lister (for endpoints) in namespace : " + NAMESPACE_D))
-				.isFalse();
+			.isFalse();
 	}
 
 	@Configuration

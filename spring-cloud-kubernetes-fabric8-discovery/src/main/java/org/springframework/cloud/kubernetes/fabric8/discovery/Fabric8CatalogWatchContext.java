@@ -40,8 +40,10 @@ record Fabric8CatalogWatchContext(KubernetesClient kubernetesClient, KubernetesD
 		KubernetesNamespaceProvider namespaceProvider) {
 
 	static List<EndpointNameAndNamespace> state(Stream<ObjectReference> references) {
-		return references.filter(Objects::nonNull).map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
-				.sorted(comparing(EndpointNameAndNamespace::endpointName, nullsLast(String::compareTo))).toList();
+		return references.filter(Objects::nonNull)
+			.map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
+			.sorted(comparing(EndpointNameAndNamespace::endpointName, nullsLast(String::compareTo)))
+			.toList();
 	}
 
 }

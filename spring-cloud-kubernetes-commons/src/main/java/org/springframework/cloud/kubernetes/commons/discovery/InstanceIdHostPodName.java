@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.discovery;
 
 /**
  * computes instanceId, host and podName. All needed when calculating ServiceInstance.
+ *
  * @author wind57
  */
 public record InstanceIdHostPodName(String instanceId, String host, String podName) {

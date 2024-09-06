@@ -60,19 +60,24 @@ final class K8sInstanceIdHostPodNameSupplier implements Supplier<InstanceIdHostP
 
 	// instanceId is usually the pod-uid as seen in the .metadata.uid
 	private String instanceId() {
-		return Optional.ofNullable(endpointAddress).map(V1EndpointAddress::getTargetRef).map(V1ObjectReference::getUid)
-				.orElseGet(() -> service.getMetadata().getUid());
+		return Optional.ofNullable(endpointAddress)
+			.map(V1EndpointAddress::getTargetRef)
+			.map(V1ObjectReference::getUid)
+			.orElseGet(() -> service.getMetadata().getUid());
 	}
 
 	private String host() {
-		return Optional.ofNullable(endpointAddress).map(V1EndpointAddress::getIp)
-				.orElseGet(() -> service.getSpec().getExternalName());
+		return Optional.ofNullable(endpointAddress)
+			.map(V1EndpointAddress::getIp)
+			.orElseGet(() -> service.getSpec().getExternalName());
 	}
 
 	private String podName() {
-		return Optional.ofNullable(endpointAddress).map(V1EndpointAddress::getTargetRef)
-				.filter(objectReference -> "Pod".equals(objectReference.getKind())).map(V1ObjectReference::getName)
-				.orElse(null);
+		return Optional.ofNullable(endpointAddress)
+			.map(V1EndpointAddress::getTargetRef)
+			.filter(objectReference -> "Pod".equals(objectReference.getKind()))
+			.map(V1ObjectReference::getName)
+			.orElse(null);
 	}
 
 }
