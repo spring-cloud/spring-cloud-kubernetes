@@ -41,7 +41,7 @@ public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<Strin
 		@DefaultValue List<String> paths, @DefaultValue List<Source> sources, @DefaultValue("true") boolean enabled,
 		String name, String namespace, boolean useNameAsPrefix,
 		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
-		@DefaultValue RetryProperties retry, @DefaultValue("true") boolean singleRead) {
+		@DefaultValue RetryProperties retry, @DefaultValue("true") boolean namespacedBatchRead) {
 
 	/**
 	 * Prefix for Kubernetes secrets configuration properties.

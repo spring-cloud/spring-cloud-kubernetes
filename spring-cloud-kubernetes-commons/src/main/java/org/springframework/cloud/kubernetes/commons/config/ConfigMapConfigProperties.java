@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -40,7 +39,7 @@ public record ConfigMapConfigProperties(@DefaultValue("true") boolean enableApi,
 		@DefaultValue List<Source> sources, @DefaultValue Map<String, String> labels,
 		@DefaultValue("true") boolean enabled, String name, String namespace, boolean useNameAsPrefix,
 		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
-		@DefaultValue RetryProperties retry, @DefaultValue("true") boolean singleRead) {
+		@DefaultValue RetryProperties retry, @DefaultValue("true") boolean namespacedBatchRead) {
 
 	/**
 	 * Prefix for Kubernetes config maps configuration properties.
@@ -67,7 +66,7 @@ public record ConfigMapConfigProperties(@DefaultValue("true") boolean enableApi,
 		return this.sources.stream()
 			.flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.includeProfileSpecificSources,
 					this.failFast, this.useNameAsPrefix, environment))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	/**

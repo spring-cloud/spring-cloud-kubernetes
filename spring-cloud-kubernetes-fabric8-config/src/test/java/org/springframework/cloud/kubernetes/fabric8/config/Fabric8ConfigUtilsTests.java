@@ -46,7 +46,7 @@ class Fabric8ConfigUtilsTests {
 
 	@AfterEach
 	void afterEach() {
-		new Fabric8ConfigMapsCache().discardAll();
+		new Fabric8ConfigMapsNamespaceBatched().discardAll();
 		new Fabric8SecretsCache().discardAll();
 	}
 

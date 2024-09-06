@@ -216,9 +216,10 @@ public final class ConfigUtils {
 
 				/*
 				 * In some cases we want to include properties from the default profile
-				 * along with any active profiles In these cases includeDefaultProfileData
-				 * will be true If includeDefaultProfileData is false then we want to make
-				 * sure that we only return properties from any active profiles
+				 * along with any active profiles. In these cases
+				 * includeDefaultProfileData will be true. If includeDefaultProfileData is
+				 * false then we want to make sure that we only return properties from any
+				 * active profiles
 				 */
 				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
 					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,

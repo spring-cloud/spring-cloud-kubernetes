@@ -53,7 +53,7 @@ class ConfigMapConfigPropertiesBindingTests {
 			Assertions.assertEquals(props.retry().maxInterval(), 2000L);
 			Assertions.assertEquals(props.retry().maxAttempts(), 6);
 			Assertions.assertTrue(props.retry().enabled());
-			Assertions.assertTrue(props.singleRead());
+			Assertions.assertTrue(props.namespacedBatchRead());
 		});
 	}
 
@@ -79,7 +79,7 @@ class ConfigMapConfigPropertiesBindingTests {
 					"spring.cloud.kubernetes.config.retry.max-interval=3",
 					"spring.cloud.kubernetes.config.retry.max-attempts=4",
 					"spring.cloud.kubernetes.config.retry.enabled=false",
-					"spring.cloud.kubernetes.config.single-read=false")
+					"spring.cloud.kubernetes.config.namespaced-batch-read=false")
 			.run(context -> {
 				ConfigMapConfigProperties props = context.getBean(ConfigMapConfigProperties.class);
 				Assertions.assertNotNull(props);
@@ -115,7 +115,7 @@ class ConfigMapConfigPropertiesBindingTests {
 				Assertions.assertEquals(retryProperties.multiplier(), 1.2);
 				Assertions.assertEquals(retryProperties.maxInterval(), 3);
 				Assertions.assertFalse(retryProperties.enabled());
-				Assertions.assertFalse(props.singleRead());
+				Assertions.assertFalse(props.namespacedBatchRead());
 			});
 	}
 

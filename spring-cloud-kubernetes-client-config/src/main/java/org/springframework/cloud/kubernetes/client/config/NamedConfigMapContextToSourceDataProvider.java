@@ -45,11 +45,11 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 			return new NamedSourceData() {
 				@Override
 				protected String generateSourceName(String target, String sourceName, String namespace,
-						String[] activeProfiles) {
+						String[] activeProfiles, boolean namespacedBatchRead) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}
-					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
+					return super.generateSourceName(target, sourceName, namespace, activeProfiles, namespacedBatchRead);
 				}
 
 				@Override
@@ -58,7 +58,9 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 							sourceNames, context.environment(), context.includeDefaultProfileData());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
+				source.failFast(), context.namespace(), context.environment().getActiveProfiles(),
+				context.si
+			);
 		};
 
 	}

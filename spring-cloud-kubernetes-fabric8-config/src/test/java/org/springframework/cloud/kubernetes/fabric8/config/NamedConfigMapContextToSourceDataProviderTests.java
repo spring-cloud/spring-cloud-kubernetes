@@ -71,7 +71,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.configMaps().inNamespace(NAMESPACE).delete();
-		new Fabric8ConfigMapsCache().discardAll();
+		new Fabric8ConfigMapsNamespaceBatched().discardAll();
 	}
 
 	/**

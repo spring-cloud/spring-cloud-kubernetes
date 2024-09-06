@@ -53,7 +53,7 @@ class SecretsConfigPropertiesBindingTests {
 			Assertions.assertEquals(props.retry().maxInterval(), 2000L);
 			Assertions.assertEquals(props.retry().maxAttempts(), 6);
 			Assertions.assertTrue(props.retry().enabled());
-			Assertions.assertTrue(props.singleRead());
+			Assertions.assertTrue(props.namespacedBatchRead());
 		});
 	}
 
@@ -115,7 +115,7 @@ class SecretsConfigPropertiesBindingTests {
 				Assertions.assertEquals(retryProperties.multiplier(), 1.2);
 				Assertions.assertEquals(retryProperties.maxInterval(), 3);
 				Assertions.assertFalse(retryProperties.enabled());
-				Assertions.assertFalse(props.singleRead());
+				Assertions.assertFalse(props.namespacedBatchRead());
 			});
 	}
 

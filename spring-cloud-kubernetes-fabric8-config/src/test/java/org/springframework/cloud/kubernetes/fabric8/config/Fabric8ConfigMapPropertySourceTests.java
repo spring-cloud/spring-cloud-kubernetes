@@ -44,7 +44,7 @@ class Fabric8ConfigMapPropertySourceTests {
 
 	@AfterEach
 	void afterEach() {
-		new Fabric8ConfigMapsCache().discardAll();
+		new Fabric8ConfigMapsNamespaceBatched().discardAll();
 	}
 
 	@Test

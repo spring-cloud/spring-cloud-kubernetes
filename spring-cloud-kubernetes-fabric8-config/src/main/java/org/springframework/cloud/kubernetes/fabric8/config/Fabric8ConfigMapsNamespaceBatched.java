@@ -18,9 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,15 +26,17 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapCache;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.strippedConfigMaps;
+
 /**
  * A cache of ConfigMaps per namespace. Makes sure we read config maps only once from a
  * namespace.
  *
  * @author wind57
  */
-final class Fabric8ConfigMapsCache implements ConfigMapCache {
+final class Fabric8ConfigMapsNamespaceBatched implements ConfigMapCache {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ConfigMapsCache.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ConfigMapsNamespaceBatched.class));
 
 	/**
 	 * at the moment our loading of config maps is using a single thread, but might change
@@ -64,13 +64,6 @@ final class Fabric8ConfigMapsCache implements ConfigMapCache {
 		}
 
 		return result;
-	}
-
-	private static List<StrippedSourceContainer> strippedConfigMaps(List<ConfigMap> configMaps) {
-		return configMaps.stream()
-			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
-					configMap.getMetadata().getName(), configMap.getData()))
-			.collect(Collectors.toList());
 	}
 
 }
