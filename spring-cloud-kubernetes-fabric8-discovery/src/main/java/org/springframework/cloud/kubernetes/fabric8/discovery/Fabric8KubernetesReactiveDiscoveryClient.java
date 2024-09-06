@@ -46,13 +46,13 @@ final class Fabric8KubernetesReactiveDiscoveryClient implements ReactiveDiscover
 	public Flux<ServiceInstance> getInstances(String serviceId) {
 		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
 		return Flux.defer(() -> Flux.fromIterable(fabric8KubernetesDiscoveryClient.getInstances(serviceId)))
-				.subscribeOn(Schedulers.boundedElastic());
+			.subscribeOn(Schedulers.boundedElastic());
 	}
 
 	@Override
 	public Flux<String> getServices() {
 		return Flux.defer(() -> Flux.fromIterable(fabric8KubernetesDiscoveryClient.getServices()))
-				.subscribeOn(Schedulers.boundedElastic());
+			.subscribeOn(Schedulers.boundedElastic());
 	}
 
 }

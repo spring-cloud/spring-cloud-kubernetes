@@ -50,7 +50,8 @@ class Fabric8DiscoveryClientPredicateAutoConfiguration {
 	Predicate<Service> predicate(KubernetesDiscoveryProperties properties) {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		SimpleEvaluationContext evaluationContext = SimpleEvaluationContext.forReadOnlyDataBinding()
-				.withInstanceMethods().build();
+			.withInstanceMethods()
+			.build();
 
 		String spelExpression = properties.filter();
 		Predicate<Service> predicate;

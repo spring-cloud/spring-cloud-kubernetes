@@ -75,7 +75,7 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 				Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(
 						kubernetesClient, discoveryProperties, new ServicePortSecureResolver(discoveryProperties),
 						new KubernetesNamespaceProvider(propertyResolver
-								.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)),
+							.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)),
 						new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(discoveryProperties));
 				return discoveryClient::getInstances;
 			}

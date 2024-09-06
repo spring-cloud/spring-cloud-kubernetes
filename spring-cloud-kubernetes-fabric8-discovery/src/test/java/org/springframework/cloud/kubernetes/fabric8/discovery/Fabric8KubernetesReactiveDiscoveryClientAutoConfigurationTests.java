@@ -37,20 +37,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
-					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-					Fabric8AutoConfiguration.class, Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
-					Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration.class,
-					KubernetesDiscoveryPropertiesAutoConfiguration.class));
+		.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
+				ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+				Fabric8AutoConfiguration.class, Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+				Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+				KubernetesDiscoveryPropertiesAutoConfiguration.class));
 
 	@Test
 	void shouldWorkWithDefaults() {
 		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
-				.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
-				.run(context -> {
-					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
-					assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
-				});
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.run(context -> {
+				assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
+				assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
+			});
 	}
 
 	@Test
@@ -100,11 +100,12 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 	@Test
 	void worksWithoutActuator() {
 		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
-				.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate")).run(context -> {
-					assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
-					assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
-				});
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate"))
+			.run(context -> {
+				assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
+				assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			});
 	}
 
 }

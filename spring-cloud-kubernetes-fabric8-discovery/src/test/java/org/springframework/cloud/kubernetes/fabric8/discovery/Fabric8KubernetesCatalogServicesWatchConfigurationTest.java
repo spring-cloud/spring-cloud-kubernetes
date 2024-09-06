@@ -84,8 +84,10 @@ class Fabric8KubernetesCatalogServicesWatchConfigurationTest {
 				KubernetesClientTestConfiguration.class, Fabric8KubernetesCatalogWatchAutoConfiguration.class,
 				Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
 				KubernetesDiscoveryPropertiesAutoConfiguration.class,
-				Fabric8DiscoveryClientPredicateAutoConfiguration.class).web(WebApplicationType.NONE)
-						.properties(envList.toArray(new String[0])).run();
+				Fabric8DiscoveryClientPredicateAutoConfiguration.class)
+			.web(WebApplicationType.NONE)
+			.properties(envList.toArray(new String[0]))
+			.run();
 	}
 
 	@Configuration(proxyBeanMethods = false)

@@ -152,20 +152,21 @@ class Fabric8KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						Fabric8DiscoveryClientPredicateAutoConfiguration.class))
-				.withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						Fabric8DiscoveryClientPredicateAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader(cls)).withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(cls))
+			.withPropertyValues(properties);
 	}
 
 }

@@ -51,7 +51,7 @@ class Fabric8KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=false");
 		applicationContextRunner
-				.run(context -> assertThat(context).doesNotHaveBean(Fabric8KubernetesCatalogWatch.class));
+			.run(context -> assertThat(context).doesNotHaveBean(Fabric8KubernetesCatalogWatch.class));
 	}
 
 	@Test
@@ -67,7 +67,7 @@ class Fabric8KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner
-				.run(context -> assertThat(context).doesNotHaveBean(Fabric8KubernetesCatalogWatch.class));
+			.run(context -> assertThat(context).doesNotHaveBean(Fabric8KubernetesCatalogWatch.class));
 	}
 
 	/**
@@ -129,11 +129,11 @@ class Fabric8KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(Fabric8KubernetesCatalogWatchAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						KubernetesDiscoveryPropertiesAutoConfiguration.class,
-						Fabric8DiscoveryClientPredicateAutoConfiguration.class))
-				.withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesCatalogWatchAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withPropertyValues(properties);
 	}
 
 }

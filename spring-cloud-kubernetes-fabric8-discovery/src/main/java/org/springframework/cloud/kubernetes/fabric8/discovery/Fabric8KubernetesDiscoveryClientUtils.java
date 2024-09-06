@@ -78,9 +78,8 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			LOG.debug(() -> "discovering endpoint slices in namespaces : " + properties.namespaces());
 			List<EndpointSlice> inner = new ArrayList<>(properties.namespaces().size());
 			properties.namespaces()
-					.forEach(namespace -> inner.addAll(filteredEndpointSlices(
-							client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(),
-							properties)));
+				.forEach(namespace -> inner.addAll(filteredEndpointSlices(
+						client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties)));
 			endpointSlices = inner;
 		}
 		else {
@@ -262,7 +261,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			KubernetesDiscoveryProperties properties) {
 
 		FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> partial = filterNested
-				.withLabels(properties.serviceLabels());
+			.withLabels(properties.serviceLabels());
 
 		return partial.endFilter().list().getItems();
 

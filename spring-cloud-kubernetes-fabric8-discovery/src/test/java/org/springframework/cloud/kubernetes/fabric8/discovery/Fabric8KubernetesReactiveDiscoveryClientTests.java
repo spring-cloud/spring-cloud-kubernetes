@@ -94,12 +94,29 @@ class Fabric8KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void shouldReturnFluxOfServices() {
-		kubernetesServer.expect().get().withPath("/api/v1/namespaces/test/services")
-				.andReturn(200, new ServiceListBuilder().addNewItem().withNewMetadata().withName("s1")
-						.withLabels(Map.of("label", "value")).endMetadata().endItem().addNewItem().withNewMetadata()
-						.withName("s2").withLabels(Map.of("label", "value", "label2", "value2")).endMetadata().endItem()
-						.addNewItem().withNewMetadata().withName("s3").endMetadata().endItem().build())
-				.once();
+		kubernetesServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/test/services")
+			.andReturn(200,
+					new ServiceListBuilder().addNewItem()
+						.withNewMetadata()
+						.withName("s1")
+						.withLabels(Map.of("label", "value"))
+						.endMetadata()
+						.endItem()
+						.addNewItem()
+						.withNewMetadata()
+						.withName("s2")
+						.withLabels(Map.of("label", "value", "label2", "value2"))
+						.endMetadata()
+						.endItem()
+						.addNewItem()
+						.withNewMetadata()
+						.withName("s3")
+						.endMetadata()
+						.endItem()
+						.build())
+			.once();
 		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(
 				kubernetesClient, KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER,
 				NAMESPACE_PROVIDER, x -> true);
