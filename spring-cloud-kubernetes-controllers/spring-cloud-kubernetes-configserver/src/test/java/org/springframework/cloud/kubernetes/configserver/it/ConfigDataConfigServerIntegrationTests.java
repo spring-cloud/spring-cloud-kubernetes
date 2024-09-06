@@ -36,7 +36,7 @@ import static org.mockito.Mockito.mockStatic;
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
 				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true" },
 		classes = { KubernetesConfigServerApplication.class, TestBootstrapConfig.class })
-class ConfigDataConfigServerIntegrationTest extends ConfigServerIntegrationTest {
+class ConfigDataConfigServerIntegrationTests extends ConfigServerIntegration {
 
 	private MockedStatic<KubernetesClientUtils> clientUtilsMock;
 
