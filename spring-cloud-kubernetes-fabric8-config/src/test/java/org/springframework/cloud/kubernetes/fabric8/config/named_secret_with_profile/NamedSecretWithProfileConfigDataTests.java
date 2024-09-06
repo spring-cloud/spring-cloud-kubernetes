@@ -20,18 +20,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@ActiveProfiles("k8s")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithProfileApp.class,
-		properties = { "spring.application.name=named-secret-with-profile", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./named-secret-with-profile.yaml" })
+@TestPropertySource(properties = { "spring.config.import=kubernetes:,classpath:./named-secret-with-profile.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class NamedSecretWithProfileConfigDataTests extends NamedSecretWithProfileTests {
+class NamedSecretWithProfileConfigDataTests extends NamedSecretWithProfile {
 
 	private static KubernetesClient mockClient;
 
