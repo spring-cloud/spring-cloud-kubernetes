@@ -38,7 +38,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 /**
  * @author wind57
  */
-@SpringBootTest(classes = HeartbeatTest.TestConfig.class,
+@SpringBootTest(classes = HeartbeatTests.TestConfig.class,
 		properties = { "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
 				/* disable kubernetes from liveness and readiness */
 				"management.health.livenessstate.enabled=true",
@@ -46,7 +46,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 				"management.health.readinessstate.enabled=true",
 				"management.endpoint.health.group.readiness.include=readinessState" })
 @AutoConfigureWebTestClient
-class HeartbeatTest {
+class HeartbeatTests {
 
 	@Autowired
 	private WebTestClient client;

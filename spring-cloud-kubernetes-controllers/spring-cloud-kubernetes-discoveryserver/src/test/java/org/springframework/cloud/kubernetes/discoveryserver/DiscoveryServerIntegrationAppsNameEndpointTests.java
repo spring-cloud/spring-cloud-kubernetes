@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.discoveryserver;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +29,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1ObjectReferenceBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.openapi.models.V1ServiceStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -52,37 +52,28 @@ import static org.mockito.Mockito.when;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = DiscoveryServerIntegrationAppsEndpointTest.TestConfig.class,
+		classes = DiscoveryServerIntegrationAppsNameEndpointTests.TestConfig.class,
 		properties = { "management.health.livenessstate.enabled=true",
 				/* disable kubernetes from liveness and readiness */
 				"management.endpoint.health.group.liveness.include=livenessState",
 				"management.health.readinessstate.enabled=true",
 				"management.endpoint.health.group.readiness.include=readinessState" })
-class DiscoveryServerIntegrationAppsEndpointTest {
+class DiscoveryServerIntegrationAppsNameEndpointTests {
 
 	private static final String NAMESPACE = "namespace";
 
 	private static final SharedInformerFactory SHARED_INFORMER_FACTORY = Mockito.mock(SharedInformerFactory.class);
 
-	private static final V1Service TEST_SERVICE_A = new V1Service()
-		.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE))
-		.spec(new V1ServiceSpec().type("ClusterIP"));
-
-	private static final V1Service TEST_SERVICE_B = new V1Service()
-		.metadata(new V1ObjectMeta().name("test-svc-2")
+	private static final V1Service TEST_SERVICE = new V1Service()
+		.metadata(new V1ObjectMeta().name("test-svc-3")
 			.namespace(NAMESPACE)
 			.putLabelsItem("spring", "true")
 			.putLabelsItem("k8s", "true"))
-		.spec(new V1ServiceSpec().type("ClusterIP"));
+		.spec(new V1ServiceSpec().loadBalancerIP("1.1.1.1").type("ClusterIP"))
+		.status(new V1ServiceStatus());
 
-	private static final V1Endpoints TEST_ENDPOINTS_A = new V1Endpoints()
-		.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE))
-		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
-			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
-				.targetRef(new V1ObjectReferenceBuilder().withUid("uid1").build())));
-
-	private static final V1Endpoints TEST_ENDPOINTS_B = new V1Endpoints()
-		.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE))
+	private static final V1Endpoints TEST_ENDPOINTS = new V1Endpoints()
+		.metadata(new V1ObjectMeta().name("test-svc-3").namespace(NAMESPACE))
 		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080).name("http"))
 			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
 				.targetRef(new V1ObjectReferenceBuilder().withUid("uid2").build())));
@@ -91,40 +82,26 @@ class DiscoveryServerIntegrationAppsEndpointTest {
 	private WebTestClient webTestClient;
 
 	@Test
-	void apps() {
-		Map<String, String> metadataA = new HashMap<>();
-		metadataA.put("type", "ClusterIP");
-		metadataA.put("port.http", "8080");
-		metadataA.put("k8s_namespace", "namespace");
+	void appsName() {
+		Map<String, String> metadata = new HashMap<>();
+		metadata.put("spring", "true");
+		metadata.put("port.http", "8080");
+		metadata.put("k8s_namespace", "namespace");
+		metadata.put("type", "ClusterIP");
+		metadata.put("k8s", "true");
 
-		Map<String, String> metadataB = new HashMap<>(metadataA);
-		metadataB.put("spring", "true");
-		metadataB.put("k8s", "true");
-
-		DefaultKubernetesServiceInstance kubernetesServiceInstance1 = new DefaultKubernetesServiceInstance(
-				TEST_ENDPOINTS_A.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
-				TEST_SERVICE_A.getMetadata().getName(),
-				TEST_ENDPOINTS_A.getSubsets().get(0).getAddresses().get(0).getIp(),
-				TEST_ENDPOINTS_A.getSubsets().get(0).getPorts().get(0).getPort(), metadataA, false,
-				TEST_SERVICE_A.getMetadata().getNamespace(), null);
-
-		DefaultKubernetesServiceInstance kubernetesServiceInstance2 = new DefaultKubernetesServiceInstance(
-				TEST_ENDPOINTS_B.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
-				TEST_SERVICE_B.getMetadata().getName(),
-				TEST_ENDPOINTS_B.getSubsets().get(0).getAddresses().get(0).getIp(),
-				TEST_ENDPOINTS_B.getSubsets().get(0).getPorts().get(0).getPort(), metadataB, false,
-				TEST_SERVICE_B.getMetadata().getNamespace(), null);
+		DefaultKubernetesServiceInstance kubernetesServiceInstance = new DefaultKubernetesServiceInstance(
+				TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
+				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
+				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
+				TEST_SERVICE.getMetadata().getNamespace(), null);
 
 		webTestClient.get()
-			.uri("/apps")
+			.uri("/apps/test-svc-3")
 			.exchange()
-			.expectBodyList(Util.InstanceForTest.class)
-			.hasSize(2)
-			.contains(
-					new Util.InstanceForTest(TEST_SERVICE_A.getMetadata().getName(),
-							Collections.singletonList(kubernetesServiceInstance1)),
-					new Util.InstanceForTest(TEST_SERVICE_B.getMetadata().getName(),
-							Collections.singletonList(kubernetesServiceInstance2)));
+			.expectBodyList(DefaultKubernetesServiceInstance.class)
+			.hasSize(1)
+			.contains(kubernetesServiceInstance);
 	}
 
 	@TestConfiguration
@@ -144,8 +121,8 @@ class DiscoveryServerIntegrationAppsEndpointTest {
 
 		private KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient() {
 
-			Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE_A, TEST_SERVICE_B);
-			Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS_A, TEST_ENDPOINTS_B);
+			Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE);
+			Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS);
 
 			return new KubernetesInformerDiscoveryClient(SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null,
 					null, KubernetesDiscoveryProperties.DEFAULT);

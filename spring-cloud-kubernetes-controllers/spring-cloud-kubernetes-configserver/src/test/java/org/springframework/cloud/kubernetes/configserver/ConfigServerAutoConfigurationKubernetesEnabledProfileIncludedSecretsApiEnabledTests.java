@@ -28,16 +28,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.profiles.include=kubernetes,kubernetesdisabled" },
-		classes = { KubernetesConfigServerApplication.class, MockConfig.class })
-class ConfigServerAutoConfigurationKubernetesDisabled {
+		classes = { KubernetesConfigServerApplication.class },
+		properties = { "spring.profiles.include=kubernetes", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.secrets.enableApi=true" })
+class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiEnabledTests {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
 	void runTest() {
-		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(0);
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(2);
 	}
 
 }
