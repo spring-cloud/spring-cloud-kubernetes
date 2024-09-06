@@ -67,10 +67,10 @@ abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
 		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-				.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 		clientUtilsMock
-				.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
-				.thenReturn("default");
+			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.any(), Mockito.any(), Mockito.any()))
+			.thenReturn("default");
 		stubConfigMapAndSecretsDefaults();
 	}
 
@@ -78,7 +78,7 @@ abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 		// return empty config map / secret list to not fail context creation
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
 		stubFor(get(SECRETS_API)
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
 	}
 
 	@AfterAll
@@ -114,7 +114,8 @@ abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 		// TODO not in bootstrap
 		// assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isTrue();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessage("Internal Server Error");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

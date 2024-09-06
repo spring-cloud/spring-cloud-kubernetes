@@ -114,8 +114,15 @@ abstract class LabeledSecretWithProfileTests {
 	}
 
 	private static void createSecret(String name, Map<String, String> data, Map<String, String> labels) {
-		mockClient.secrets().inNamespace("spring-k8s").resource(new SecretBuilder().withNewMetadata().withName(name)
-				.withLabels(labels).endMetadata().addToData(data).build()).create();
+		mockClient.secrets()
+			.inNamespace("spring-k8s")
+			.resource(new SecretBuilder().withNewMetadata()
+				.withName(name)
+				.withLabels(labels)
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 	}
 
 	/**
@@ -127,8 +134,13 @@ abstract class LabeledSecretWithProfileTests {
 	 */
 	@Test
 	void testBlue() {
-		this.webClient.get().uri("/labeled-secret/profile/blue").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("1"));
+		this.webClient.get()
+			.uri("/labeled-secret/profile/blue")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("1"));
 	}
 
 	/**
@@ -141,8 +153,13 @@ abstract class LabeledSecretWithProfileTests {
 	 */
 	@Test
 	void testGreen() {
-		this.webClient.get().uri("/labeled-secret/profile/green").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("2#6#7#eight-ish"));
+		this.webClient.get()
+			.uri("/labeled-secret/profile/green")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("2#6#7#eight-ish"));
 	}
 
 }

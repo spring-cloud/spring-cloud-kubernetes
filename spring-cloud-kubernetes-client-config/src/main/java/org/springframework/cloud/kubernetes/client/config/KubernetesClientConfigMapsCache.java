@@ -55,8 +55,10 @@ public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			try {
 				b[0] = true;
-				return strippedConfigMaps(coreV1Api.listNamespacedConfigMap(namespace, null, null, null, null, null,
-						null, null, null, null, null, null).getItems());
+				return strippedConfigMaps(coreV1Api
+					.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null,
+							null)
+					.getItems());
 			}
 			catch (ApiException apiException) {
 				throw new RuntimeException(apiException.getResponseBody(), apiException);
@@ -74,8 +76,10 @@ public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 	}
 
 	private static List<StrippedSourceContainer> strippedConfigMaps(List<V1ConfigMap> configMaps) {
-		return configMaps.stream().map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
-				configMap.getMetadata().getName(), configMap.getData())).collect(Collectors.toList());
+		return configMaps.stream()
+			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
+					configMap.getMetadata().getName(), configMap.getData()))
+			.collect(Collectors.toList());
 	}
 
 }

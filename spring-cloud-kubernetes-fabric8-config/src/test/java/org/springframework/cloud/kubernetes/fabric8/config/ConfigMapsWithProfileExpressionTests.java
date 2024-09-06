@@ -49,14 +49,26 @@ abstract class ConfigMapsWithProfileExpressionTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", ConfigMapTestUtil.readResourceFile("application-with-profiles.yaml"));
-		mockClient.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
-				.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
+		mockClient.configMaps()
+			.inNamespace("test")
+			.resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(APPLICATION_NAME)
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap production and us-east, World!");
+		this.webClient.get()
+			.uri("/api/greeting")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Hello ConfigMap production and us-east, World!");
 	}
 
 }

@@ -57,8 +57,13 @@ abstract class NamedSecretWithPrefixTests {
 	 */
 	@Test
 	void testOne() {
-		this.webClient.get().uri("/named-secret/prefix/one").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("one"));
+		this.webClient.get()
+			.uri("/named-secret/prefix/one")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("one"));
 	}
 
 	/**
@@ -72,8 +77,13 @@ abstract class NamedSecretWithPrefixTests {
 	 */
 	@Test
 	void testTwo() {
-		this.webClient.get().uri("/named-secret/prefix/two").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("two"));
+		this.webClient.get()
+			.uri("/named-secret/prefix/two")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("two"));
 	}
 
 	/**
@@ -87,8 +97,13 @@ abstract class NamedSecretWithPrefixTests {
 	 */
 	@Test
 	void testThree() {
-		this.webClient.get().uri("/named-secret/prefix/three").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("three"));
+		this.webClient.get()
+			.uri("/named-secret/prefix/three")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("three"));
 	}
 
 }

@@ -239,15 +239,21 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	}
 
 	private Endpoints createEndpoints(String name, String namespace) {
-		Endpoints endpoints = new EndpointsBuilder().withNewMetadata().withName(name).withNamespace(namespace)
-				.endMetadata().build();
+		Endpoints endpoints = new EndpointsBuilder().withNewMetadata()
+			.withName(name)
+			.withNamespace(namespace)
+			.endMetadata()
+			.build();
 		client.endpoints().inNamespace(namespace).resource(endpoints).create();
 		return endpoints;
 	}
 
 	private void createService(String name, String namespace) {
-		Service service = new ServiceBuilder().withNewMetadata().withName(name).withNamespace(namespace).endMetadata()
-				.build();
+		Service service = new ServiceBuilder().withNewMetadata()
+			.withName(name)
+			.withNamespace(namespace)
+			.endMetadata()
+			.build();
 		client.services().inNamespace(namespace).resource(service).create();
 	}
 

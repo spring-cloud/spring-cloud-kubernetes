@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
  */
 class EventBasedConfigurationChangeDetectorTests {
 
-	@SuppressWarnings({ "unchecked", "raw" })
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void verifyConfigChangesAccountsForBootstrapPropertySources() {
 		MockEnvironment env = new MockEnvironment();
@@ -72,7 +72,7 @@ class EventBasedConfigurationChangeDetectorTests {
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
 		List<Fabric8ConfigMapPropertySource> sources = ConfigReloadUtil
-				.findPropertySources(Fabric8ConfigMapPropertySource.class, env);
+			.findPropertySources(Fabric8ConfigMapPropertySource.class, env);
 		assertThat(sources.size()).isEqualTo(1);
 		assertThat(sources.get(0).getProperty("foo")).isEqualTo("bar");
 	}

@@ -37,7 +37,7 @@ class KubernetesClientConfigUtilsTests {
 				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
 				Duration.ofMillis(15000), Set.of("non-default"), false, Duration.ofSeconds(2));
 		Set<String> namespaces = KubernetesClientConfigUtils
-				.namespaces(new KubernetesNamespaceProvider(new MockEnvironment()), properties, "configmap");
+			.namespaces(new KubernetesNamespaceProvider(new MockEnvironment()), properties, "configmap");
 		Assertions.assertEquals(1, namespaces.size());
 		Assertions.assertEquals(namespaces.iterator().next(), "non-default");
 	}

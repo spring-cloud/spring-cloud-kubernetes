@@ -84,8 +84,9 @@ class NamedSecretContextToSourceDataProviderTests {
 	void singleSecretMatchAgainstLabels() {
 
 		V1Secret red = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
@@ -111,16 +112,19 @@ class NamedSecretContextToSourceDataProviderTests {
 	void twoSecretMatchAgainstLabels() {
 
 		V1Secret red = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1Secret blue = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("blue").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("blue").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1Secret pink = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("pink").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("pink").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1SecretList secretList = new V1SecretListBuilder().addToItems(red).addToItems(blue).addToItems(pink).build();
 
@@ -148,8 +152,9 @@ class NamedSecretContextToSourceDataProviderTests {
 	void testSecretNoMatch() {
 
 		V1Secret secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
 		stubCall(secretList);
@@ -178,8 +183,9 @@ class NamedSecretContextToSourceDataProviderTests {
 	void namespaceMatch() {
 
 		V1Secret secret = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
 		stubCall(secretList);
@@ -205,12 +211,14 @@ class NamedSecretContextToSourceDataProviderTests {
 	void matchIncludeSingleProfile() {
 
 		V1Secret red = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1Secret mango = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-profile").build())
-				.addToData("taste", "mango".getBytes()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-profile").build())
+			.addToData("taste", "mango".getBytes())
+			.build();
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango);
 
@@ -243,12 +251,14 @@ class NamedSecretContextToSourceDataProviderTests {
 	void matchIncludeSingleProfileWithPrefix() {
 
 		V1Secret red = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1Secret mango = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
-				.addToData("taste", "mango".getBytes()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
+			.addToData("taste", "mango".getBytes())
+			.build();
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango);
 
@@ -280,16 +290,19 @@ class NamedSecretContextToSourceDataProviderTests {
 	void matchIncludeTwoProfilesWithPrefix() {
 
 		V1Secret red = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
-				.addToData(COLOR_REALLY_RED).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
+			.addToData(COLOR_REALLY_RED)
+			.build();
 
 		V1Secret mango = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
-				.addToData("taste", "mango".getBytes()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
+			.addToData("taste", "mango".getBytes())
+			.build();
 
 		V1Secret shape = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-shape").build())
-				.addToData("shape", "round".getBytes()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-shape").build())
+			.addToData("shape", "round".getBytes())
+			.build();
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango).addItemsItem(shape);
 
@@ -321,8 +334,9 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void testSingleYaml() {
 		V1Secret singleYaml = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("single-yaml").withNamespace(NAMESPACE).build())
-				.addToData("single.yaml", "key: value".getBytes()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("single-yaml").withNamespace(NAMESPACE).build())
+			.addToData("single.yaml", "key: value".getBytes())
+			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(singleYaml);
 
 		stubCall(secretList);
@@ -351,12 +365,14 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void cache(CapturedOutput output) {
 		V1Secret red = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
-				.addToData("color", "red".getBytes()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
+			.addToData("color", "red".getBytes())
+			.build();
 
 		V1Secret green = new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("green").withNamespace(NAMESPACE).build())
-				.addToData("color", "green".getBytes()).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("green").withNamespace(NAMESPACE).build())
+			.addToData("color", "green".getBytes())
+			.build();
 
 		V1SecretList configMapList = new V1SecretList().addItemsItem(red).addItemsItem(green);
 
@@ -396,7 +412,7 @@ class NamedSecretContextToSourceDataProviderTests {
 
 	private void stubCall(V1SecretList list) {
 		stubFor(get("/api/v1/namespaces/default/secrets")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 	}
 
 }

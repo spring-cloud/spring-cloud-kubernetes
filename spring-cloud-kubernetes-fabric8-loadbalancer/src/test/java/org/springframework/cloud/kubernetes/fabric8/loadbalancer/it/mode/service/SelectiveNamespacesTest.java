@@ -74,7 +74,7 @@ class SelectiveNamespacesTest {
 	private static WireMockServer serviceCMockServer;
 
 	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
-			.mockStatic(KubernetesServiceInstanceMapper.class);
+		.mockStatic(KubernetesServiceInstanceMapper.class);
 
 	@Autowired
 	private WebClient.Builder builder;
@@ -104,13 +104,13 @@ class SelectiveNamespacesTest {
 		// we mock host creation so that it becomes something like : localhost:8888
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
-				.thenReturn("localhost");
+			.thenReturn("localhost");
 
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "b", "cluster.local"))
-				.thenReturn("localhost");
+			.thenReturn("localhost");
 
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "c", "cluster.local"))
-				.thenReturn("localhost");
+			.thenReturn("localhost");
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, "http://localhost:" + wireMockServer.port());
@@ -154,28 +154,36 @@ class SelectiveNamespacesTest {
 		String serviceCJson = Serialization.asJson(serviceC);
 
 		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/a/services/my-service"))
-				.willReturn(WireMock.aResponse().withBody(serviceAJson).withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody(serviceAJson).withStatus(200)));
 
 		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/b/services/my-service"))
-				.willReturn(WireMock.aResponse().withBody(serviceBJson).withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody(serviceBJson).withStatus(200)));
 
 		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/c/services/my-service"))
-				.willReturn(WireMock.aResponse().withBody(serviceCJson).withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody(serviceCJson).withStatus(200)));
 
 		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-				.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
 
 		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-				.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
 
 		serviceCMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-				.willReturn(WireMock.aResponse().withBody("service-c-reached").withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody("service-c-reached").withStatus(200)));
 
-		String firstCallResult = builder.baseUrl(MY_SERVICE_URL).build().method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).block();
+		String firstCallResult = builder.baseUrl(MY_SERVICE_URL)
+			.build()
+			.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.block();
 
-		String secondCallResult = builder.baseUrl(MY_SERVICE_URL).build().method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).block();
+		String secondCallResult = builder.baseUrl(MY_SERVICE_URL)
+			.build()
+			.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.block();
 
 		// since selective namespaces is a Set, we need to be careful with assertion order
 		if (firstCallResult.equals("service-a-reached")) {
@@ -187,7 +195,9 @@ class SelectiveNamespacesTest {
 		}
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
-				.getIfAvailable().getProvider("my-service", ServiceInstanceListSupplier.class).getIfAvailable();
+			.getIfAvailable()
+			.getProvider("my-service", ServiceInstanceListSupplier.class)
+			.getIfAvailable();
 		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(Fabric8ServicesListSupplier.class);
 
 		Assertions.assertThat(output.getOut()).contains("serviceID : my-service");

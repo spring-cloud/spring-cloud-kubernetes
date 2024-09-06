@@ -74,15 +74,16 @@ public class SingleSourceMultipleFilesConfigurationStub {
 		one.put("fruit-shape.properties", "shape.when.raw=small-sphere\nshape.when.ripe=bigger-sphere");
 
 		V1ConfigMap configMap = new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("my-configmap").withNamespace("spring-k8s").build())
-				.addToData(one).build();
+			.withMetadata(new V1ObjectMetaBuilder().withName("my-configmap").withNamespace("spring-k8s").build())
+			.addToData(one)
+			.build();
 
 		V1ConfigMapList allConfigMaps = new V1ConfigMapList();
 		allConfigMaps.addItemsItem(configMap);
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-				.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
 	}
 
 }

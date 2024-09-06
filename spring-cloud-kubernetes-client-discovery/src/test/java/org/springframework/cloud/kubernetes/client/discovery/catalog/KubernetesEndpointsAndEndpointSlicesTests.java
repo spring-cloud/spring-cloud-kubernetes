@@ -55,7 +55,7 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = Mockito.mock(KubernetesNamespaceProvider.class);
 
 	static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
-			.forClass(HeartbeatEvent.class);
+		.forClass(HeartbeatEvent.class);
 
 	static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito.mock(ApplicationEventPublisher.class);
 
@@ -164,19 +164,22 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	}
 
 	V1EndpointsList endpoints(String name, String namespace) {
-		return new V1EndpointsListBuilder().addToItems(new V1EndpointsBuilder()
-				.addToSubsets(new V1EndpointSubsetBuilder().addToAddresses(new V1EndpointAddressBuilder()
-						.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
-						.build()).build())
-				.build()).build();
+		return new V1EndpointsListBuilder().addToItems(
+				new V1EndpointsBuilder().addToSubsets(
+						new V1EndpointSubsetBuilder().addToAddresses(new V1EndpointAddressBuilder()
+							.withTargetRef(
+									new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
+							.build()).build())
+					.build())
+			.build();
 	}
 
 	V1EndpointSliceList endpointSlices(String name, String namespace) {
 		return new V1EndpointSliceListBuilder()
-				.addToItems(new V1EndpointSliceBuilder().addToEndpoints(new V1EndpointBuilder()
-						.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
-						.build()).build())
-				.build();
+			.addToItems(new V1EndpointSliceBuilder().addToEndpoints(new V1EndpointBuilder()
+				.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
+				.build()).build())
+			.build();
 	}
 
 	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {

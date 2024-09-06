@@ -90,8 +90,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void singleConfigMapMatchAgainstLabels() {
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("test-configmap").withLabels(LABELS)
-				.endMetadata().addToData("name", "value").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("test-configmap")
+			.withLabels(LABELS)
+			.endMetadata()
+			.addToData("name", "value")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -114,14 +118,26 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void twoConfigMapsMatchAgainstLabels() {
 
-		ConfigMap redOne = new ConfigMapBuilder().withNewMetadata().withName("red-configmap").withLabels(RED_LABEL)
-				.endMetadata().addToData("colorOne", "really-red").build();
+		ConfigMap redOne = new ConfigMapBuilder().withNewMetadata()
+			.withName("red-configmap")
+			.withLabels(RED_LABEL)
+			.endMetadata()
+			.addToData("colorOne", "really-red")
+			.build();
 
-		ConfigMap redTwo = new ConfigMapBuilder().withNewMetadata().withName("red-configmap-again")
-				.withLabels(RED_LABEL).endMetadata().addToData("colorTwo", "really-red-again").build();
+		ConfigMap redTwo = new ConfigMapBuilder().withNewMetadata()
+			.withName("red-configmap-again")
+			.withLabels(RED_LABEL)
+			.endMetadata()
+			.addToData("colorTwo", "really-red-again")
+			.build();
 
-		ConfigMap blue = new ConfigMapBuilder().withNewMetadata().withName("blue-configmap").withLabels(BLUE_LABEL)
-				.endMetadata().addToData("color", "blue").build();
+		ConfigMap blue = new ConfigMapBuilder().withNewMetadata()
+			.withName("blue-configmap")
+			.withLabels(BLUE_LABEL)
+			.endMetadata()
+			.addToData("color", "blue")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(redOne).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(redTwo).create();
@@ -147,8 +163,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void configMapNoMatch() {
 
-		ConfigMap pink = new ConfigMapBuilder().withNewMetadata().withName("pink-configmap").withLabels(PINK_LABEL)
-				.endMetadata().addToData("color", "pink").build();
+		ConfigMap pink = new ConfigMapBuilder().withNewMetadata()
+			.withName("pink-configmap")
+			.withLabels(PINK_LABEL)
+			.endMetadata()
+			.addToData("color", "pink")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(pink).create();
 
@@ -172,8 +192,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void namespaceMatch() {
 
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("test-configmap").withLabels(LABELS)
-				.endMetadata().addToData("name", "value").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("test-configmap")
+			.withLabels(LABELS)
+			.endMetadata()
+			.addToData("name", "value")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -198,9 +222,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testWithPrefix() {
-		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("blue-configmap")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata()
-				.addToData("what-color", "blue-color").build();
+		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("blue-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("what-color", "blue-color")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 
@@ -229,12 +256,19 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testTwoConfigmapsWithPrefix() {
-		ConfigMap blueConfigMap = new ConfigMapBuilder().withNewMetadata().withName("blue-configmap")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata().addToData("first", "blue").build();
+		ConfigMap blueConfigMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("blue-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("first", "blue")
+			.build();
 
-		ConfigMap anotherBlue = new ConfigMapBuilder().withNewMetadata().withName("another-blue-configmap")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata().addToData("second", "blue")
-				.build();
+		ConfigMap anotherBlue = new ConfigMapBuilder().withNewMetadata()
+			.withName("another-blue-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("second", "blue")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(blueConfigMap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(anotherBlue).create();
@@ -272,11 +306,18 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsNoConfigmapsFound() {
-		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata().withName("color-configmap")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata().addToData("one", "1").build();
+		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", "1")
+			.build();
 
-		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata().withName("color-configmap-k8s")
-				.endMetadata().addToData("two", "2").build();
+		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap-k8s")
+			.endMetadata()
+			.addToData("two", "2")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
@@ -302,11 +343,18 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFound() {
-		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata().withName("color-configmap")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata().addToData("one", "1").build();
+		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", "1")
+			.build();
 
-		ConfigMap shapeConfigmap = new ConfigMapBuilder().withNewMetadata().withName("shape-configmap").endMetadata()
-				.addToData("two", "2").build();
+		ConfigMap shapeConfigmap = new ConfigMapBuilder().withNewMetadata()
+			.withName("shape-configmap")
+			.endMetadata()
+			.addToData("two", "2")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmap).create();
@@ -334,11 +382,19 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
-		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata().withName("color-configmap")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata().addToData("one", "1").build();
+		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", "1")
+			.build();
 
-		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata().withName("color-configmap-k8s")
-				.withLabels(Collections.singletonMap("color", "red")).endMetadata().addToData("two", "2").build();
+		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap-k8s")
+			.withLabels(Collections.singletonMap("color", "red"))
+			.endMetadata()
+			.addToData("two", "2")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
@@ -370,20 +426,40 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void searchWithLabelsTwoConfigMapsFoundAndOneFromProfileFound() {
-		ConfigMap colorConfigMap = new ConfigMapBuilder().withNewMetadata().withName("color-configmap")
-				.withLabels(Collections.singletonMap("color", "blue")).endMetadata().addToData("one", "1").build();
+		ConfigMap colorConfigMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", "1")
+			.build();
 
-		ConfigMap shapeConfigmap = new ConfigMapBuilder().withNewMetadata().withName("shape-configmap")
-				.withLabels(Map.of("color", "blue", "shape", "round")).endMetadata().addToData("two", "2").build();
+		ConfigMap shapeConfigmap = new ConfigMapBuilder().withNewMetadata()
+			.withName("shape-configmap")
+			.withLabels(Map.of("color", "blue", "shape", "round"))
+			.endMetadata()
+			.addToData("two", "2")
+			.build();
 
-		ConfigMap noFit = new ConfigMapBuilder().withNewMetadata().withName("no-fit")
-				.withLabels(Map.of("tag", "no-fit")).endMetadata().addToData("three", "3").build();
+		ConfigMap noFit = new ConfigMapBuilder().withNewMetadata()
+			.withName("no-fit")
+			.withLabels(Map.of("tag", "no-fit"))
+			.endMetadata()
+			.addToData("three", "3")
+			.build();
 
-		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata().withName("color-configmap-k8s")
-				.withLabels(Map.of("color", "red")).endMetadata().addToData("four", "4").build();
+		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap-k8s")
+			.withLabels(Map.of("color", "red"))
+			.endMetadata()
+			.addToData("four", "4")
+			.build();
 
-		ConfigMap shapeConfigmapK8s = new ConfigMapBuilder().withNewMetadata().withName("shape-configmap-k8s")
-				.withLabels(Map.of("shape", "triangle")).endMetadata().addToData("five", "5").build();
+		ConfigMap shapeConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
+			.withName("shape-configmap-k8s")
+			.withLabels(Map.of("shape", "triangle"))
+			.endMetadata()
+			.addToData("five", "5")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigMap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmap).create();
@@ -403,13 +479,13 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 4);
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
 		Assertions.assertEquals(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
+			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
 
 		Assertions.assertEquals(sourceData.sourceName(),
 				"configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
@@ -426,11 +502,19 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 */
 	@Test
 	void cache(CapturedOutput output) {
-		ConfigMap redConfigMap = new ConfigMapBuilder().withNewMetadata().withName("red-configmap")
-				.withLabels(Collections.singletonMap("color", "red")).endMetadata().addToData("one", "1").build();
+		ConfigMap redConfigMap = new ConfigMapBuilder().withNewMetadata()
+			.withName("red-configmap")
+			.withLabels(Collections.singletonMap("color", "red"))
+			.endMetadata()
+			.addToData("one", "1")
+			.build();
 
-		ConfigMap greenConfigmap = new ConfigMapBuilder().withNewMetadata().withName("green-configmap")
-				.withLabels(Map.of("color", "green")).endMetadata().addToData("two", "2").build();
+		ConfigMap greenConfigmap = new ConfigMapBuilder().withNewMetadata()
+			.withName("green-configmap")
+			.withLabels(Map.of("color", "green"))
+			.endMetadata()
+			.addToData("two", "2")
+			.build();
 
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(redConfigMap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(greenConfigmap).create();

@@ -34,76 +34,77 @@ class KubernetesDiscoveryPropertiesTests {
 	@Test
 	void testBindingWhenNoPropertiesProvided() {
 		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
-				.run(context -> {
-					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
-					assertThat(props).isNotNull();
-					assertThat(props.metadata().labelsPrefix()).isNull();
-					assertThat(props.metadata().addPorts()).isTrue();
-					assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
+			.run(context -> {
+				KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
+				assertThat(props).isNotNull();
+				assertThat(props.metadata().labelsPrefix()).isNull();
+				assertThat(props.metadata().addPorts()).isTrue();
+				assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
 
-					assertThat(props.enabled()).isTrue();
-					assertThat(props.allNamespaces()).isFalse();
-					assertThat(props.namespaces()).isEmpty();
-					assertThat(props.waitCacheReady()).isTrue();
-					assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
-					assertThat(props.includeNotReadyAddresses()).isFalse();
-					assertThat(props.filter()).isNull();
-					assertThat(props.knownSecurePorts()).isEqualTo(Set.of(443, 8443));
-					assertThat(props.serviceLabels()).isEmpty();
-					assertThat(props.primaryPortName()).isNull();
-					assertThat(props.order()).isZero();
-					assertThat(props.useEndpointSlices()).isFalse();
-					assertThat(props.includeExternalNameServices()).isFalse();
-					assertThat(props.discoveryServerUrl()).isNull();
-				});
+				assertThat(props.enabled()).isTrue();
+				assertThat(props.allNamespaces()).isFalse();
+				assertThat(props.namespaces()).isEmpty();
+				assertThat(props.waitCacheReady()).isTrue();
+				assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
+				assertThat(props.includeNotReadyAddresses()).isFalse();
+				assertThat(props.filter()).isNull();
+				assertThat(props.knownSecurePorts()).isEqualTo(Set.of(443, 8443));
+				assertThat(props.serviceLabels()).isEmpty();
+				assertThat(props.primaryPortName()).isNull();
+				assertThat(props.order()).isZero();
+				assertThat(props.useEndpointSlices()).isFalse();
+				assertThat(props.includeExternalNameServices()).isFalse();
+				assertThat(props.discoveryServerUrl()).isNull();
+			});
 	}
 
 	@Test
 	void testBindingWhenSomePropertiesProvided() {
 		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
-				.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter",
-						"spring.cloud.kubernetes.discovery.knownSecurePorts[0]=222",
-						"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix",
-						"spring.cloud.kubernetes.discovery.use-endpoint-slices=true",
-						"spring.cloud.kubernetes.discovery.namespaces[0]=ns1",
-						"spring.cloud.kubernetes.discovery.namespaces[1]=ns2",
-						"spring.cloud.kubernetes.discovery.include-external-name-services=true",
-						"spring.cloud.kubernetes.discovery.discovery-server-url=http://example")
-				.run(context -> {
-					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
-					assertThat(props).isNotNull();
-					assertThat(props.metadata().labelsPrefix()).isEqualTo("labelsPrefix");
-					assertThat(props.metadata().addPorts()).isTrue();
-					assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
+			.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter",
+					"spring.cloud.kubernetes.discovery.knownSecurePorts[0]=222",
+					"spring.cloud.kubernetes.discovery.metadata.labelsPrefix=labelsPrefix",
+					"spring.cloud.kubernetes.discovery.use-endpoint-slices=true",
+					"spring.cloud.kubernetes.discovery.namespaces[0]=ns1",
+					"spring.cloud.kubernetes.discovery.namespaces[1]=ns2",
+					"spring.cloud.kubernetes.discovery.include-external-name-services=true",
+					"spring.cloud.kubernetes.discovery.discovery-server-url=http://example")
+			.run(context -> {
+				KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
+				assertThat(props).isNotNull();
+				assertThat(props.metadata().labelsPrefix()).isEqualTo("labelsPrefix");
+				assertThat(props.metadata().addPorts()).isTrue();
+				assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
 
-					assertThat(props.enabled()).isTrue();
-					assertThat(props.allNamespaces()).isFalse();
-					assertThat(props.namespaces()).containsExactlyInAnyOrder("ns1", "ns2");
-					assertThat(props.waitCacheReady()).isTrue();
-					assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
-					assertThat(props.includeNotReadyAddresses()).isFalse();
-					assertThat(props.filter()).isEqualTo("some-filter");
-					assertThat(props.knownSecurePorts()).isEqualTo(Set.of(222));
-					assertThat(props.serviceLabels()).isEmpty();
-					assertThat(props.primaryPortName()).isNull();
-					assertThat(props.order()).isZero();
-					assertThat(props.useEndpointSlices()).isTrue();
-					assertThat(props.includeExternalNameServices()).isTrue();
-					assertThat(props.discoveryServerUrl()).isEqualTo("http://example");
-				});
+				assertThat(props.enabled()).isTrue();
+				assertThat(props.allNamespaces()).isFalse();
+				assertThat(props.namespaces()).containsExactlyInAnyOrder("ns1", "ns2");
+				assertThat(props.waitCacheReady()).isTrue();
+				assertThat(props.cacheLoadingTimeoutSeconds()).isEqualTo(60);
+				assertThat(props.includeNotReadyAddresses()).isFalse();
+				assertThat(props.filter()).isEqualTo("some-filter");
+				assertThat(props.knownSecurePorts()).isEqualTo(Set.of(222));
+				assertThat(props.serviceLabels()).isEmpty();
+				assertThat(props.primaryPortName()).isNull();
+				assertThat(props.order()).isZero();
+				assertThat(props.useEndpointSlices()).isTrue();
+				assertThat(props.includeExternalNameServices()).isTrue();
+				assertThat(props.discoveryServerUrl()).isEqualTo("http://example");
+			});
 	}
 
 	// when we do not specify metadata, @DefaultValue is going to be picked up
 	@Test
 	void metadataSetToNotNull() {
 		new ApplicationContextRunner().withUserConfiguration(KubernetesDiscoveryPropertiesMetadataTests.Config.class)
-				.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter").run(context -> {
-					KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
-					assertThat(props).isNotNull();
-					assertThat(props.metadata().labelsPrefix()).isNull();
-					assertThat(props.metadata().addPorts()).isTrue();
-					assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
-				});
+			.withPropertyValues("spring.cloud.kubernetes.discovery.filter=some-filter")
+			.run(context -> {
+				KubernetesDiscoveryProperties props = context.getBean(KubernetesDiscoveryProperties.class);
+				assertThat(props).isNotNull();
+				assertThat(props.metadata().labelsPrefix()).isNull();
+				assertThat(props.metadata().addPorts()).isTrue();
+				assertThat(props.metadata().portsPrefix()).isEqualTo("port.");
+			});
 	}
 
 	@Configuration

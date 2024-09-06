@@ -76,8 +76,10 @@ class KubernetesDiscoveryClientFilterTests {
 
 		List<V1Service> unfiltered = List.of(a, b);
 		Predicate<V1Service> predicate = KubernetesDiscoveryClientUtils.filter(properties);
-		List<V1Service> filtered = unfiltered.stream().filter(predicate)
-				.sorted(Comparator.comparing(service -> service.getMetadata().getName())).toList();
+		List<V1Service> filtered = unfiltered.stream()
+			.filter(predicate)
+			.sorted(Comparator.comparing(service -> service.getMetadata().getName()))
+			.toList();
 		Assertions.assertEquals(filtered.get(0).getMetadata().getName(), "a");
 		Assertions.assertEquals(filtered.get(1).getMetadata().getName(), "a");
 	}
@@ -96,8 +98,10 @@ class KubernetesDiscoveryClientFilterTests {
 
 		List<V1Service> unfiltered = List.of(a, b);
 		Predicate<V1Service> predicate = KubernetesDiscoveryClientUtils.filter(properties);
-		List<V1Service> filtered = unfiltered.stream().filter(predicate)
-				.sorted(Comparator.comparing(service -> service.getMetadata().getName())).toList();
+		List<V1Service> filtered = unfiltered.stream()
+			.filter(predicate)
+			.sorted(Comparator.comparing(service -> service.getMetadata().getName()))
+			.toList();
 		Assertions.assertEquals(filtered.size(), 0);
 	}
 
@@ -115,8 +119,10 @@ class KubernetesDiscoveryClientFilterTests {
 
 		List<V1Service> unfiltered = List.of(a, b);
 		Predicate<V1Service> predicate = KubernetesDiscoveryClientUtils.filter(properties);
-		List<V1Service> filtered = unfiltered.stream().filter(predicate)
-				.sorted(Comparator.comparing(service -> service.getMetadata().getName())).toList();
+		List<V1Service> filtered = unfiltered.stream()
+			.filter(predicate)
+			.sorted(Comparator.comparing(service -> service.getMetadata().getName()))
+			.toList();
 		Assertions.assertEquals(filtered.size(), 0);
 	}
 

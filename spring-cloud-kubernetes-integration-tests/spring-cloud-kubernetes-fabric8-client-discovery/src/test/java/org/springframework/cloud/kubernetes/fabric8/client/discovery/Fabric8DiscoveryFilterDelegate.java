@@ -51,21 +51,28 @@ final class Fabric8DiscoveryFilterDelegate {
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
 		@SuppressWarnings("unchecked")
-		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(retrySpec()).block();
+		List<String> services = (List<String>) clientServices.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(List.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(services.size(), 1);
 		Assertions.assertTrue(services.contains("service-wiremock"));
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
-		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(serviceInstances.size(), 2);
 		List<DefaultKubernetesServiceInstance> sorted = serviceInstances.stream()
-				.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::getNamespace)).toList();
+			.sorted(Comparator.comparing(DefaultKubernetesServiceInstance::getNamespace))
+			.toList();
 
 		DefaultKubernetesServiceInstance first = sorted.get(0);
 		Assertions.assertEquals(first.getServiceId(), "service-wiremock");
@@ -100,17 +107,23 @@ final class Fabric8DiscoveryFilterDelegate {
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
 		@SuppressWarnings("unchecked")
-		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(retrySpec()).block();
+		List<String> services = (List<String>) clientServices.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(List.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(services.size(), 1);
 		Assertions.assertTrue(services.contains("service-wiremock"));
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
-		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(serviceInstances.size(), 1);
 

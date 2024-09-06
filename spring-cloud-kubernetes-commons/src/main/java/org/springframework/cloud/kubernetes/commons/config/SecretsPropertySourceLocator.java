@@ -87,7 +87,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			if (this.properties.enableApi()) {
 				uniqueSources
-						.forEach(s -> composite.addPropertySource(getSecretsPropertySourceForSingleSecret(env, s)));
+					.forEach(s -> composite.addPropertySource(getSecretsPropertySourceForSingleSecret(env, s)));
 			}
 
 			cache.discardAll();
@@ -125,8 +125,11 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				LOG.warn("Error walking properties files", e);
 				return null;
 			}
-		}).filter(Objects::nonNull).filter(Files::isRegularFile).collect(new SecretsPropertySourceCollector())
-				.forEach(composite::addPropertySource);
+		})
+			.filter(Objects::nonNull)
+			.filter(Files::isRegularFile)
+			.collect(new SecretsPropertySourceCollector())
+			.forEach(composite::addPropertySource);
 	}
 
 	/**

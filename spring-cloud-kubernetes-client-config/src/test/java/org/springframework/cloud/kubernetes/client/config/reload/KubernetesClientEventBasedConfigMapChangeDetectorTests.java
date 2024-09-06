@@ -95,7 +95,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 	void watch() {
 		GsonBuilder builder = new GsonBuilder();
 		builder.excludeFieldsWithModifiers(Modifier.STATIC, Modifier.TRANSIENT, Modifier.VOLATILE)
-				.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
+			.registerTypeAdapter(OffsetDateTime.class, new GsonOffsetDateTimeAdapter());
 		Gson gson = builder.create();
 
 		Map<String, String> data = new HashMap<>();
@@ -105,41 +105,50 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		updateData.put("application.properties", "spring.cloud.kubernetes.configuration.watcher.refreshDelay=1\n"
 				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
 		V1ConfigMap applicationConfig = new V1ConfigMap().kind("ConfigMap")
-				.metadata(new V1ObjectMeta().namespace("default").name("bar1")).data(data);
+			.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
+			.data(data);
 		V1ConfigMapList configMapList = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("0"))
-				.items(List.of(applicationConfig));
+			.items(List.of(applicationConfig));
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-				.whenScenarioStateIs(STARTED).withQueryParam("watch", equalTo("false"))
-				.willReturn(aResponse().withStatus(200).withBody(gson.toJson(configMapList))).willSetStateTo("update"));
+			.whenScenarioStateIs(STARTED)
+			.withQueryParam("watch", equalTo("false"))
+			.willReturn(aResponse().withStatus(200).withBody(gson.toJson(configMapList)))
+			.willSetStateTo("update"));
 
-		Watch.Response<V1ConfigMap> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), new V1ConfigMap()
-				.kind("ConfigMap").metadata(new V1ObjectMeta().namespace("default").name("bar1")).data(updateData));
+		Watch.Response<V1ConfigMap> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(),
+				new V1ConfigMap().kind("ConfigMap")
+					.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
+					.data(updateData));
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-				.whenScenarioStateIs("update").withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(watchResponse)))
-				.willSetStateTo("add"));
-
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-				.whenScenarioStateIs("add").withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200)
-						.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
-								new V1ConfigMap().kind("ConfigMap")
-										.metadata(new V1ObjectMeta().namespace("default").name("bar3"))
-										.putDataItem("application.properties", "debug=true")))))
-				.willSetStateTo("delete"));
+			.whenScenarioStateIs("update")
+			.withQueryParam("watch", equalTo("true"))
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(watchResponse)))
+			.willSetStateTo("add"));
 
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-				.whenScenarioStateIs("delete").withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200)
-						.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
-								new V1ConfigMap().kind("ConfigMap")
-										.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
-										.putDataItem("application.properties", "debug=true")))))
-				.willSetStateTo("done"));
+			.whenScenarioStateIs("add")
+			.withQueryParam("watch", equalTo("true"))
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
+						new V1ConfigMap().kind("ConfigMap")
+							.metadata(new V1ObjectMeta().namespace("default").name("bar3"))
+							.putDataItem("application.properties", "debug=true")))))
+			.willSetStateTo("delete"));
 
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-				.whenScenarioStateIs("done").withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200)));
+			.whenScenarioStateIs("delete")
+			.withQueryParam("watch", equalTo("true"))
+			.willReturn(aResponse().withStatus(200)
+				.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
+						new V1ConfigMap().kind("ConfigMap")
+							.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
+							.putDataItem("application.properties", "debug=true")))))
+			.willSetStateTo("done"));
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
+			.whenScenarioStateIs("done")
+			.withQueryParam("watch", equalTo("true"))
+			.willReturn(aResponse().withStatus(200)));
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
 		apiClient.setHttpClient(httpClient);
@@ -152,7 +161,8 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
 
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
-				mock(KubernetesClientConfigMapPropertySource.class)).withProperty("debug", "true");
+				mock(KubernetesClientConfigMapPropertySource.class))
+			.withProperty("debug", "true");
 		KubernetesClientConfigMapPropertySourceLocator locator = mock(
 				KubernetesClientConfigMapPropertySourceLocator.class);
 		when(locator.locate(environment)).thenAnswer(x -> new MockPropertySource().withProperty("debug", "false"));

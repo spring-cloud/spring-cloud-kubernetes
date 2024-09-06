@@ -270,8 +270,11 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void testExternalName() {
 		Service service = new ServiceBuilder()
-				.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring").build())
-				.withNewMetadata().withName("external-name-service").and().build();
+			.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring").build())
+			.withNewMetadata()
+			.withName("external-name-service")
+			.and()
+			.build();
 		client.services().inNamespace("test").resource(service).create();
 
 		boolean allNamespaces = false;
@@ -288,9 +291,10 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testPortsDataOne() {
 		List<EndpointSubset> endpointSubsets = List.of(
 				new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("").build())
-						.build(),
+					.build(),
 				new EndpointSubsetBuilder()
-						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+					.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build())
+					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
 		Assertions.assertEquals(portsData.size(), 2);
@@ -302,9 +306,10 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	void testPortsDataTwo() {
 		List<EndpointSubset> endpointSubsets = List.of(
 				new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(8081).withName("http").build())
-						.build(),
+					.build(),
 				new EndpointSubsetBuilder()
-						.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build()).build());
+					.withPorts(new EndpointPortBuilder().withPort(8080).withName("https").build())
+					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
 		Assertions.assertEquals(portsData.size(), 2);
@@ -323,7 +328,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void endpointSubsetPortsDataSinglePort() {
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withName("name").withPort(80).build()).build();
+			.withPorts(new EndpointPortBuilder().withName("name").withPort(80).build())
+			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
 		Assertions.assertEquals(result.size(), 1);
@@ -333,7 +339,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	@Test
 	void endpointSubsetPortsDataSinglePortNoName() {
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
-				.withPorts(new EndpointPortBuilder().withPort(80).build()).build();
+			.withPorts(new EndpointPortBuilder().withPort(80).build())
+			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
 		Assertions.assertEquals(result.size(), 1);
@@ -341,8 +348,12 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 	}
 
 	private void service(String name, String namespace, Map<String, String> labels) {
-		Service service = new ServiceBuilder().withNewMetadata().withName(name).withLabels(labels)
-				.withNamespace(namespace).and().build();
+		Service service = new ServiceBuilder().withNewMetadata()
+			.withName(name)
+			.withLabels(labels)
+			.withNamespace(namespace)
+			.and()
+			.build();
 		client.services().inNamespace(namespace).resource(service).create();
 	}
 

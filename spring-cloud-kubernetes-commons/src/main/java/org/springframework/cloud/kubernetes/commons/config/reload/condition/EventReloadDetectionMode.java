@@ -38,7 +38,7 @@ public final class EventReloadDetectionMode implements Condition {
 			return true;
 		}
 		return ConfigReloadProperties.ReloadDetectionMode.EVENT.name()
-				.equalsIgnoreCase(environment.getProperty(Constants.RELOAD_MODE));
+			.equalsIgnoreCase(environment.getProperty(Constants.RELOAD_MODE));
 	}
 
 }

@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  * General configuration for the configuration reload.
+ *
  * @param enabled Enables the Kubernetes configuration reload on change.
  * @param monitoringConfigMaps Enables monitoring on secrets to detect changes.
  * @param monitoringSecrets Monitor secrets or not.
@@ -40,7 +41,6 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * avoid having all instances of the same application restart at the same time. This
  * property configures the maximum of amount of wait time from the moment the signal is
  * received that a restart is needed until the moment the restart is actually triggered
- *
  * @author Nicola Ferraro
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.reload")

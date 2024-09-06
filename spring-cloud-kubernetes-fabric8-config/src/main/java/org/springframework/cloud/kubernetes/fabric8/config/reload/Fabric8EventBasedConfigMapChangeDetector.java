@@ -83,8 +83,10 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		namespaces.forEach(namespace -> {
 			SharedIndexInformer<ConfigMap> informer;
 			if (enableReloadFiltering) {
-				informer = kubernetesClient.configMaps().inNamespace(namespace)
-						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true")).inform();
+				informer = kubernetesClient.configMaps()
+					.inNamespace(namespace)
+					.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
+					.inform();
 				LOG.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
 			}
 			else {

@@ -40,8 +40,9 @@ public abstract class KubernetesConfigServerBootstrapper implements BootstrapReg
 
 	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(Binder binder,
 			BindHandler bindHandler) {
-		return binder.bind(KubernetesDiscoveryProperties.PREFIX, Bindable.of(KubernetesDiscoveryProperties.class),
-				bindHandler).orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
+		return binder
+			.bind(KubernetesDiscoveryProperties.PREFIX, Bindable.of(KubernetesDiscoveryProperties.class), bindHandler)
+			.orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
 	}
 
 	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(BootstrapContext bootstrapContext) {
@@ -52,21 +53,19 @@ public abstract class KubernetesConfigServerBootstrapper implements BootstrapReg
 
 	public static KubernetesClientProperties createKubernetesClientProperties(Binder binder, BindHandler bindHandler) {
 		return binder.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
-				.withNamespace(new KubernetesNamespaceProvider(binder, bindHandler).getNamespace());
+			.withNamespace(new KubernetesNamespaceProvider(binder, bindHandler).getNamespace());
 	}
 
 	public static KubernetesClientProperties createKubernetesClientProperties(BootstrapContext bootstrapContext) {
 		PropertyResolver propertyResolver = getPropertyResolver(bootstrapContext);
 		return getPropertyResolver(bootstrapContext)
-				.resolveOrCreateConfigurationProperties(KubernetesClientProperties.PREFIX,
-						KubernetesClientProperties.class)
-				.withNamespace(
-						propertyResolver.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null));
+			.resolveOrCreateConfigurationProperties(KubernetesClientProperties.PREFIX, KubernetesClientProperties.class)
+			.withNamespace(propertyResolver.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null));
 	}
 
 	public static Boolean getDiscoveryEnabled(Binder binder, BindHandler bindHandler) {
 		return binder.bind(ConfigClientProperties.CONFIG_DISCOVERY_ENABLED, Bindable.of(Boolean.class), bindHandler)
-				.orElse(false);
+			.orElse(false);
 	}
 
 	public static Boolean getDiscoveryEnabled(BootstrapContext bootstrapContext) {

@@ -44,7 +44,8 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		Service service = buildService("test", "test-namespace", "abc", 8080, null, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
-				KubernetesDiscoveryProperties.DEFAULT).map(service);
+				KubernetesDiscoveryProperties.DEFAULT)
+			.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -59,7 +60,8 @@ class Fabric8ServiceInstanceMapperTests {
 		ports.add(new ServicePortBuilder().withPort(9000).withName("http").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of());
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
-				KubernetesDiscoveryProperties.DEFAULT).map(service);
+				KubernetesDiscoveryProperties.DEFAULT)
+			.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -76,7 +78,7 @@ class Fabric8ServiceInstanceMapperTests {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
-				.map(service);
+			.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -93,7 +95,7 @@ class Fabric8ServiceInstanceMapperTests {
 		ports.add(new ServicePortBuilder().withPort(443).build());
 		Service service = buildService("test", "test-namespace", "abc", ports, null, null);
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
-				.map(service);
+			.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -106,7 +108,8 @@ class Fabric8ServiceInstanceMapperTests {
 		Map<String, String> labels = Map.of("secured", "true", "label1", "123");
 		Service service = buildService("test", "test-namespace", "abc", 8080, null, labels);
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
-				KubernetesDiscoveryProperties.DEFAULT).map(service);
+				KubernetesDiscoveryProperties.DEFAULT)
+			.map(service);
 		Assertions.assertNotNull(instance);
 		Assertions.assertEquals("test", instance.getServiceId());
 		Assertions.assertEquals("abc", instance.getInstanceId());
@@ -130,7 +133,7 @@ class Fabric8ServiceInstanceMapperTests {
 
 		Service service = buildService("test", "test-namespace", "abc", ports, labels, annotations);
 		Map<String, String> result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-				.serviceMetadata(service);
+			.serviceMetadata(service);
 		Assertions.assertEquals(result.size(), 4);
 		Assertions.assertEquals(result.get("k8s_namespace"), "test-namespace");
 		Assertions.assertEquals(result.get("type"), "ClusterIP");
@@ -153,11 +156,11 @@ class Fabric8ServiceInstanceMapperTests {
 		List<ServicePort> ports = List.of();
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-				.map(service);
+			.map(service);
 
 		Assertions.assertNull(result);
 		Assertions.assertTrue(output.getOut()
-				.contains("service : test does not have any ServicePort(s), will not consider it for load balancing"));
+			.contains("service : test does not have any ServicePort(s), will not consider it for load balancing"));
 
 	}
 
@@ -178,11 +181,12 @@ class Fabric8ServiceInstanceMapperTests {
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-				.map(service);
+			.map(service);
 
 		Assertions.assertNotNull(result);
-		Assertions.assertTrue(output.getOut().contains(
-				"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+		Assertions.assertTrue(output.getOut()
+			.contains(
+					"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 
 	}
 
@@ -206,11 +210,12 @@ class Fabric8ServiceInstanceMapperTests {
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-				.map(service);
+			.map(service);
 
 		Assertions.assertNotNull(result);
-		Assertions.assertTrue(output.getOut().contains(
-				"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+		Assertions.assertTrue(output.getOut()
+			.contains(
+					"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
 
 	}
 
@@ -232,7 +237,7 @@ class Fabric8ServiceInstanceMapperTests {
 				new ServicePortBuilder().withPort(8081).withName("two").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-				.map(service);
+			.map(service);
 
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(output.getOut().contains("'spring.cloud.kubernetes.loadbalancer.portName' is not set"));
@@ -257,7 +262,7 @@ class Fabric8ServiceInstanceMapperTests {
 				new ServicePortBuilder().withPort(8081).withName("two").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-				.map(service);
+			.map(service);
 
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(output.getOut().contains("found port name that matches : one"));
@@ -282,7 +287,7 @@ class Fabric8ServiceInstanceMapperTests {
 				new ServicePortBuilder().withPort(8081).withName("two").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
-				.map(service);
+			.map(service);
 
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(output.getOut().contains("Did not find a port name that is equal to the value three"));
@@ -298,9 +303,18 @@ class Fabric8ServiceInstanceMapperTests {
 
 	private Service buildService(String name, String namespace, String uid, List<ServicePort> ports,
 			Map<String, String> labels, Map<String, String> annotations) {
-		return new ServiceBuilder().withNewMetadata().withNamespace(namespace).withName(name).withUid(uid)
-				.addToLabels(labels).withAnnotations(annotations).endMetadata().withNewSpec().addAllToPorts(ports)
-				.withType("ClusterIP").endSpec().build();
+		return new ServiceBuilder().withNewMetadata()
+			.withNamespace(namespace)
+			.withName(name)
+			.withUid(uid)
+			.addToLabels(labels)
+			.withAnnotations(annotations)
+			.endMetadata()
+			.withNewSpec()
+			.addAllToPorts(ports)
+			.withType("ClusterIP")
+			.endSpec()
+			.build();
 	}
 
 	private Service buildService(String name, String namespace, String uid, List<ServicePort> ports,

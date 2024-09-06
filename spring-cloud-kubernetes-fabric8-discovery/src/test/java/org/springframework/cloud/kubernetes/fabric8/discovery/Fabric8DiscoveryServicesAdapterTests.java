@@ -243,7 +243,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 
 		utils.when(() -> Fabric8Utils.getApplicationNamespace(Mockito.any(KubernetesClient.class),
 				Mockito.nullable(String.class), Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
-				.thenReturn("namespaceA");
+			.thenReturn("namespaceA");
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
@@ -285,7 +285,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 
 		utils.when(() -> Fabric8Utils.getApplicationNamespace(Mockito.any(KubernetesClient.class),
 				Mockito.nullable(String.class), Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
-				.thenReturn("namespaceA");
+			.thenReturn("namespaceA");
 
 		service("namespaceA", "serviceA", Map.of("color", "red"));
 		service("namespaceA", "serviceB", Map.of("color", "purple"));
@@ -332,7 +332,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 
 		utils.when(() -> Fabric8Utils.getApplicationNamespace(Mockito.any(KubernetesClient.class),
 				Mockito.nullable(String.class), Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
-				.thenReturn("namespaceA");
+			.thenReturn("namespaceA");
 
 		service("namespaceA", "serviceA", Map.of("color", "red", "number", "1"));
 		service("namespaceA", "serviceB", Map.of("color", "purple", "cycle", "create"));
@@ -471,9 +471,10 @@ class Fabric8DiscoveryServicesAdapterTests {
 	}
 
 	private void service(String namespace, String name, Map<String, String> labels) {
-		client.services().inNamespace(namespace)
-				.resource(new ServiceBuilder().withNewMetadata().withName(name).withLabels(labels).and().build())
-				.create();
+		client.services()
+			.inNamespace(namespace)
+			.resource(new ServiceBuilder().withNewMetadata().withName(name).withLabels(labels).and().build())
+			.create();
 	}
 
 }

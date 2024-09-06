@@ -1,2 +1,5 @@
 org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherAutoConfiguration
 org.springframework.cloud.kubernetes.configuration.watcher.ConfigUpdateStrategyAutoConfiguration
+org.springframework.cloud.kubernetes.configuration.watcher.BusKafkaAutoConfiguration
+org.springframework.cloud.kubernetes.configuration.watcher.BusRabbitAutoConfiguration
+org.springframework.cloud.kubernetes.configuration.watcher.RefreshTriggerAutoConfiguration

@@ -53,26 +53,25 @@ class ConfigReloadPropertiesTests {
 	@Test
 	void testNonDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
-				.withPropertyValues("spring.cloud.kubernetes.reload.enabled=true",
-						"spring.cloud.kubernetes.reload.monitoring-config-maps=false",
-						"spring.cloud.kubernetes.reload.monitoring-secrets=true",
-						"spring.cloud.kubernetes.reload.strategy=SHUTDOWN",
-						"spring.cloud.kubernetes.reload.mode=POLLING", "spring.cloud.kubernetes.reload.period=1000ms",
-						"spring.cloud.kubernetes.reload.namespaces[0]=a",
-						"spring.cloud.kubernetes.reload.namespaces[1]=b",
-						"spring.cloud.kubernetes.reload.max-wait-for-restart=5s")
-				.run(context -> {
-					ConfigReloadProperties properties = context.getBean(ConfigReloadProperties.class);
-					Assertions.assertNotNull(properties);
-					Assertions.assertTrue(properties.enabled());
-					Assertions.assertFalse(properties.monitoringConfigMaps());
-					Assertions.assertTrue(properties.monitoringSecrets());
-					Assertions.assertEquals(ConfigReloadProperties.ReloadStrategy.SHUTDOWN, properties.strategy());
-					Assertions.assertEquals(ConfigReloadProperties.ReloadDetectionMode.POLLING, properties.mode());
-					Assertions.assertEquals(Duration.ofMillis(1000), properties.period());
-					Assertions.assertEquals(Set.of("a", "b"), properties.namespaces());
-					Assertions.assertEquals(Duration.ofSeconds(5), properties.maxWaitForRestart());
-				});
+			.withPropertyValues("spring.cloud.kubernetes.reload.enabled=true",
+					"spring.cloud.kubernetes.reload.monitoring-config-maps=false",
+					"spring.cloud.kubernetes.reload.monitoring-secrets=true",
+					"spring.cloud.kubernetes.reload.strategy=SHUTDOWN", "spring.cloud.kubernetes.reload.mode=POLLING",
+					"spring.cloud.kubernetes.reload.period=1000ms", "spring.cloud.kubernetes.reload.namespaces[0]=a",
+					"spring.cloud.kubernetes.reload.namespaces[1]=b",
+					"spring.cloud.kubernetes.reload.max-wait-for-restart=5s")
+			.run(context -> {
+				ConfigReloadProperties properties = context.getBean(ConfigReloadProperties.class);
+				Assertions.assertNotNull(properties);
+				Assertions.assertTrue(properties.enabled());
+				Assertions.assertFalse(properties.monitoringConfigMaps());
+				Assertions.assertTrue(properties.monitoringSecrets());
+				Assertions.assertEquals(ConfigReloadProperties.ReloadStrategy.SHUTDOWN, properties.strategy());
+				Assertions.assertEquals(ConfigReloadProperties.ReloadDetectionMode.POLLING, properties.mode());
+				Assertions.assertEquals(Duration.ofMillis(1000), properties.period());
+				Assertions.assertEquals(Set.of("a", "b"), properties.namespaces());
+				Assertions.assertEquals(Duration.ofSeconds(5), properties.maxWaitForRestart());
+			});
 	}
 
 	@Configuration

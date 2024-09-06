@@ -156,20 +156,21 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContextTests 
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
-						ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class,
-						KubernetesDiscoveryPropertiesAutoConfiguration.class))
-				.withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
+					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class))
+			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(String name, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
-						ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class,
-						KubernetesDiscoveryPropertiesAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader(name)).withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
+					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(name))
+			.withPropertyValues(properties);
 	}
 
 }
