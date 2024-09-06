@@ -515,14 +515,19 @@ public final class Util {
 	private void innerSetup(String namespace, InputStream serviceAccountAsStream, InputStream roleBindingAsStream,
 			InputStream roleAsStream) {
 		ServiceAccount serviceAccount = Serialization.unmarshal(serviceAccountAsStream, ServiceAccount.class);
-		if (client.serviceAccounts().inNamespace(namespace).withName(serviceAccount.getMetadata().getName())
-				.get() == null) {
+		if (client.serviceAccounts()
+			.inNamespace(namespace)
+			.withName(serviceAccount.getMetadata().getName())
+			.get() == null) {
 			client.serviceAccounts().inNamespace(namespace).resource(serviceAccount).create();
 		}
 
 		RoleBinding roleBinding = Serialization.unmarshal(roleBindingAsStream, RoleBinding.class);
-		if (client.rbac().roleBindings().inNamespace(namespace).withName(roleBinding.getMetadata().getName())
-				.get() == null) {
+		if (client.rbac()
+			.roleBindings()
+			.inNamespace(namespace)
+			.withName(roleBinding.getMetadata().getName())
+			.get() == null) {
 			client.rbac().roleBindings().inNamespace(namespace).resource(roleBinding).create();
 		}
 
