@@ -35,14 +35,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ SpringExtension.class, OutputCaptureExtension.class })
 @ClassPathExclusions({ "spring-boot-actuator-autoconfigure-*.jar", "spring-boot-starter-actuator-*.jar" })
-public class MissingActuatorTest {
+class MissingActuatorTest {
 
 	private static ConfigurableApplicationContext getApplicationContext(String... properties) {
 		return new SpringApplicationBuilder(Config.class).web(WebApplicationType.NONE).properties(properties).run();
 	}
 
 	@Test
-	public void unknownClassProtected(CapturedOutput capturedOutput) {
+	void unknownClassProtected(CapturedOutput capturedOutput) {
 		try (ConfigurableApplicationContext context = getApplicationContext("debug=true",
 				"spring.cloud.kubernetes.client.namespace=default")) {
 			String output = capturedOutput.toString();

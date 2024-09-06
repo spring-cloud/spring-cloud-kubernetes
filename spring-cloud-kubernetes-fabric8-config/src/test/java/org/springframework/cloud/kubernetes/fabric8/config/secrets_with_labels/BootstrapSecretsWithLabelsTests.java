@@ -20,16 +20,16 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SecretsWithLabelsApp.class,
-		properties = { "spring.cloud.bootstrap.name=secret-with-labels-config", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
+
+@TestPropertySource(
+		properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.bootstrap.name=secret-with-labels-config" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class BootstrapSecretsWithLabelsTests extends SecretsWithLabelsTests {
+class BootstrapSecretsWithLabelsTests extends SecretsWithLabels {
 
 	private static KubernetesClient mockClient;
 

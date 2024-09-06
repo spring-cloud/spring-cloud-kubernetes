@@ -30,27 +30,27 @@ class Properties {
 
 	private String two;
 
-	public String getKey() {
+	String getKey() {
 		return key;
 	}
 
-	public void setKey(String key) {
+	void setKey(String key) {
 		this.key = key;
 	}
 
-	public String getOne() {
+	String getOne() {
 		return one;
 	}
 
-	public void setOne(String one) {
+	void setOne(String one) {
 		this.one = one;
 	}
 
-	public String getTwo() {
+	String getTwo() {
 		return two;
 	}
 
-	public void setTwo(String two) {
+	void setTwo(String two) {
 		this.two = two;
 	}
 

@@ -23,25 +23,25 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  **/
 
 @ConfigurationProperties("secrets")
-public class MultiSecretsProperties {
+class MultiSecretsProperties {
 
 	private String secret1;
 
 	private String secret2;
 
-	public String getSecret1() {
+	String getSecret1() {
 		return secret1;
 	}
 
-	public void setSecret1(String secret1) {
+	void setSecret1(String secret1) {
 		this.secret1 = secret1;
 	}
 
-	public String getSecret2() {
+	String getSecret2() {
 		return secret2;
 	}
 
-	public void setSecret2(String secret2) {
+	void setSecret2(String secret2) {
 		this.secret2 = secret2;
 	}
 
