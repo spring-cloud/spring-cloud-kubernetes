@@ -52,13 +52,13 @@ import static org.mockito.Mockito.when;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = DiscoveryServerIntegrationAppsNameEndpointTest.TestConfig.class,
+		classes = DiscoveryServerIntegrationInstanceEndpointTests.TestConfig.class,
 		properties = { "management.health.livenessstate.enabled=true",
 				/* disable kubernetes from liveness and readiness */
 				"management.endpoint.health.group.liveness.include=livenessState",
 				"management.health.readinessstate.enabled=true",
 				"management.endpoint.health.group.readiness.include=readinessState" })
-class DiscoveryServerIntegrationAppsNameEndpointTest {
+class DiscoveryServerIntegrationInstanceEndpointTests {
 
 	private static final String NAMESPACE = "namespace";
 
@@ -82,7 +82,7 @@ class DiscoveryServerIntegrationAppsNameEndpointTest {
 	private WebTestClient webTestClient;
 
 	@Test
-	void appsName() {
+	void instanceDeprecated() {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("spring", "true");
 		metadata.put("port.http", "8080");
@@ -95,13 +95,32 @@ class DiscoveryServerIntegrationAppsNameEndpointTest {
 				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
 				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
 				TEST_SERVICE.getMetadata().getNamespace(), null);
-
 		webTestClient.get()
-			.uri("/apps/test-svc-3")
+			.uri("/app/test-svc-3/uid2")
 			.exchange()
-			.expectBodyList(DefaultKubernetesServiceInstance.class)
-			.hasSize(1)
-			.contains(kubernetesServiceInstance);
+			.expectBody(DefaultKubernetesServiceInstance.class)
+			.isEqualTo(kubernetesServiceInstance);
+	}
+
+	@Test
+	void instance() {
+		Map<String, String> metadata = new HashMap<>();
+		metadata.put("spring", "true");
+		metadata.put("port.http", "8080");
+		metadata.put("k8s_namespace", "namespace");
+		metadata.put("type", "ClusterIP");
+		metadata.put("k8s", "true");
+
+		DefaultKubernetesServiceInstance kubernetesServiceInstance = new DefaultKubernetesServiceInstance(
+				TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
+				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
+				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
+				TEST_SERVICE.getMetadata().getNamespace(), null);
+		webTestClient.get()
+			.uri("/apps/test-svc-3/uid2")
+			.exchange()
+			.expectBody(DefaultKubernetesServiceInstance.class)
+			.isEqualTo(kubernetesServiceInstance);
 	}
 
 	@TestConfiguration

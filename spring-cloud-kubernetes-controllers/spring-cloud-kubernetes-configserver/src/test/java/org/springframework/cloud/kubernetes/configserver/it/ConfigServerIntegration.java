@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ryan Baxter
  */
-abstract class ConfigServerIntegrationTest {
+abstract class ConfigServerIntegration {
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
