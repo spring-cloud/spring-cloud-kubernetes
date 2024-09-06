@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.log.LogAccessor;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.keysWithPrefix;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
@@ -75,8 +76,9 @@ public final class DiscoveryClientUtils {
 		}
 
 		if (metadataProps.addPorts()) {
-			Map<String, String> portsDataValueAsString = portsData.entrySet().stream()
-					.collect(Collectors.toMap(Map.Entry::getKey, en -> Integer.toString(en.getValue())));
+			Map<String, String> portsDataValueAsString = portsData.entrySet()
+				.stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, en -> Integer.toString(en.getValue())));
 			Map<String, String> portMetadata = keysWithPrefix(portsDataValueAsString,
 					properties.metadata().portsPrefix());
 			if (!portMetadata.isEmpty()) {
@@ -125,7 +127,8 @@ public final class DiscoveryClientUtils {
 				return portData.get();
 			}
 
-			logWarnings();
+			logServiceSpecificWarning(serviceMetadata.name(), primaryPortName);
+			logGenericWarning();
 			Map.Entry<String, Integer> first = existingPorts.entrySet().iterator().next();
 			return new ServicePortNameAndNumber(first.getValue(), first.getKey());
 
@@ -166,8 +169,8 @@ public final class DiscoveryClientUtils {
 
 		// the value from labels takes precedence over the one from properties
 		String primaryPortName = Optional
-				.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
-				.orElse(primaryPortNameFromProperties);
+			.ofNullable(Optional.ofNullable(serviceLabels).orElse(Map.of()).get(PRIMARY_PORT_NAME_LABEL_KEY))
+			.orElse(primaryPortNameFromProperties);
 
 		if (primaryPortName == null) {
 			LOG.debug(
@@ -222,11 +225,21 @@ public final class DiscoveryClientUtils {
 		}
 	}
 
-	private static void logWarnings() {
+	private static void logServiceSpecificWarning(String serviceName, String primaryPortName) {
+		if (StringUtils.hasText(primaryPortName)) {
+			LOG.warn(() -> "Could not find a port named '" + primaryPortName + "', 'https', or 'http' for service '"
+					+ serviceName + "'.");
+		}
+		else {
+			LOG.warn(() -> "Could not find a port named 'https' or 'http' for service '" + serviceName + "'.");
+		}
+	}
+
+	private static void logGenericWarning() {
 		LOG.warn(() -> """
 				Make sure that either the primary-port-name label has been added to the service,
 				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
-				Alternatively name the primary port 'https' or 'http'
+				Alternatively name the primary port 'https' or 'http'.
 				An incorrect configuration may result in non-deterministic behaviour.""");
 	}
 

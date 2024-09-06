@@ -436,9 +436,9 @@ final class K8sClientConfigMapReloadITUtil {
 	static String logs(String appLabelValue, K3sContainer k3sContainer) {
 		try {
 			String appPodName = k3sContainer
-					.execInContainer("sh", "-c",
-							"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'")
-					.getStdout();
+				.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + appLabelValue + " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
 
 			Container.ExecResult execResult = k3sContainer.execInContainer("sh", "-c",
 					"kubectl logs " + appPodName.trim());

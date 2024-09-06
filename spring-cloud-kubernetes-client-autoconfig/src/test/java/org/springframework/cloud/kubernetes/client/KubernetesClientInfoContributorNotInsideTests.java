@@ -40,7 +40,7 @@ public class KubernetesClientInfoContributorNotInsideTests {
 	@Test
 	public void test() {
 		assertThatThrownBy(() -> context.getBean(KubernetesClientInfoContributor.class))
-				.isInstanceOf(NoSuchBeanDefinitionException.class);
+			.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 }

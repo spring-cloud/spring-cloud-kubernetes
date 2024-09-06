@@ -57,14 +57,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class KubernetesClientConfigMapPropertySourceLocatorTests {
 
 	private static final V1ConfigMapList PROPERTIES_CONFIGMAP_LIST = new V1ConfigMapList()
-			.addItemsItem(
-					new V1ConfigMapBuilder()
-							.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-640").withNamespace("default")
-									.withResourceVersion("1").build())
-							.addToData("application.properties",
-									"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
-											+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
-							.build());
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("bootstrap-640")
+				.withNamespace("default")
+				.withResourceVersion("1")
+				.build())
+			.addToData("application.properties",
+					"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
+							+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
+			.build());
 
 	private static WireMockServer wireMockServer;
 
@@ -96,22 +97,23 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	void locateWithoutSources() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
 				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", "default");
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, new KubernetesNamespaceProvider(mockEnvironment)).locate(ENV);
+				configMapConfigProperties, new KubernetesNamespaceProvider(mockEnvironment))
+			.locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-				.isTrue();
+			.isTrue();
 	}
 
 	@Test
 	void locateWithSources() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
 		ConfigMapConfigProperties.Source source = new ConfigMapConfigProperties.Source("bootstrap-640", "default",
 				Collections.emptyMap(), null, null, null);
@@ -119,9 +121,10 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				List.of(source), Map.of(), true, "fake-name", null, false, false, false, RetryProperties.DEFAULT);
 
 		PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(api,
-				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment())).locate(ENV);
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()))
+			.locate(ENV);
 		assertThat(propertySource.containsProperty("spring.cloud.kubernetes.configuration.watcher.refreshDelay"))
-				.isTrue();
+			.isTrue();
 	}
 
 	/**
@@ -135,14 +138,14 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	void testLocateWithoutNamespaceConstructor() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
 				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				new KubernetesNamespaceProvider(new MockEnvironment())).locate(ENV))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				new KubernetesNamespaceProvider(new MockEnvironment()))
+			.locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	/**
@@ -156,19 +159,19 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	void testLocateWithoutNamespace() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
 				Map.of(), true, "bootstrap-640", null, false, false, false, RetryProperties.DEFAULT);
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySourceLocator(api, configMapConfigProperties,
-				new KubernetesNamespaceProvider(ENV)).locate(ENV))
-						.isInstanceOf(NamespaceResolutionFailedException.class);
+				new KubernetesNamespaceProvider(ENV))
+			.locate(ENV)).isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 
 	@Test
 	public void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+			.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
 				Map.of(), true, "bootstrap-640", "default", false, false, true, RetryProperties.DEFAULT);
@@ -177,14 +180,14 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		assertThatThrownBy(() -> locator.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)
-				.hasMessage("Internal Server Error");
+			.hasMessage("Internal Server Error");
 	}
 
 	@Test
 	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-				.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+			.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
 				Map.of(), true, "bootstrap-640", "default", false, false, false, RetryProperties.DEFAULT);

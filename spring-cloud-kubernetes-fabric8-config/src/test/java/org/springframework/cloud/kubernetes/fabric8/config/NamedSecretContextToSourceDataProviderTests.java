@@ -79,8 +79,11 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void singleSecretMatchAgainstLabels() {
 
-		Secret secret = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret secret = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
@@ -103,14 +106,23 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void twoSecretMatchAgainstLabels() {
 
-		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret red = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes()))
+			.build();
 
-		Secret blue = new SecretBuilder().withNewMetadata().withName("blue").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-blue".getBytes())).build();
+		Secret blue = new SecretBuilder().withNewMetadata()
+			.withName("blue")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-blue".getBytes()))
+			.build();
 
-		Secret yellow = new SecretBuilder().withNewMetadata().withName("yellow").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-yellow".getBytes())).build();
+		Secret yellow = new SecretBuilder().withNewMetadata()
+			.withName("yellow")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-yellow".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(blue).create();
@@ -135,8 +147,11 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void testSecretNoMatch() {
 
-		Secret pink = new SecretBuilder().withNewMetadata().withName("pink").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes())).build();
+		Secret pink = new SecretBuilder().withNewMetadata()
+			.withName("pink")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("pink".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(pink).create();
 
@@ -160,8 +175,11 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void namespaceMatch() {
 
-		Secret secret = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret secret = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
@@ -184,11 +202,17 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void matchIncludeSingleProfile() {
 
-		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret red = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes()))
+			.build();
 
-		Secret redWithProfile = new SecretBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
-				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+		Secret redWithProfile = new SecretBuilder().withNewMetadata()
+			.withName("red-with-profile")
+			.endMetadata()
+			.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(redWithProfile).create();
@@ -219,11 +243,17 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void matchIncludeSingleProfileWithPrefix() {
 
-		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret red = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes()))
+			.build();
 
-		Secret redWithProfile = new SecretBuilder().withNewMetadata().withName("red-with-profile").endMetadata()
-				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+		Secret redWithProfile = new SecretBuilder().withNewMetadata()
+			.withName("red-with-profile")
+			.endMetadata()
+			.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(redWithProfile).create();
@@ -255,14 +285,23 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void matchIncludeTwoProfilesWithPrefix() {
 
-		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes())).build();
+		Secret red = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("really-red".getBytes()))
+			.build();
 
-		Secret redWithTaste = new SecretBuilder().withNewMetadata().withName("red-with-taste").endMetadata()
-				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+		Secret redWithTaste = new SecretBuilder().withNewMetadata()
+			.withName("red-with-taste")
+			.endMetadata()
+			.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes()))
+			.build();
 
-		Secret redWithShape = new SecretBuilder().withNewMetadata().withName("red-with-shape").endMetadata()
-				.addToData("shape", Base64.getEncoder().encodeToString("round".getBytes())).build();
+		Secret redWithShape = new SecretBuilder().withNewMetadata()
+			.withName("red-with-shape")
+			.endMetadata()
+			.addToData("shape", Base64.getEncoder().encodeToString("round".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(redWithTaste).create();
@@ -295,8 +334,11 @@ class NamedSecretContextToSourceDataProviderTests {
 	 */
 	@Test
 	void testSingleYaml() {
-		Secret secret = new SecretBuilder().withNewMetadata().withName("single-yaml").endMetadata()
-				.addToData("single.yaml", Base64.getEncoder().encodeToString("key: value".getBytes())).build();
+		Secret secret = new SecretBuilder().withNewMetadata()
+			.withName("single-yaml")
+			.endMetadata()
+			.addToData("single.yaml", Base64.getEncoder().encodeToString("key: value".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
@@ -322,11 +364,17 @@ class NamedSecretContextToSourceDataProviderTests {
 	@Test
 	void cache(CapturedOutput output) {
 
-		Secret red = new SecretBuilder().withNewMetadata().withName("red").endMetadata()
-				.addToData("color", Base64.getEncoder().encodeToString("red".getBytes())).build();
+		Secret red = new SecretBuilder().withNewMetadata()
+			.withName("red")
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encodeToString("red".getBytes()))
+			.build();
 
-		Secret green = new SecretBuilder().withNewMetadata().withName("green").endMetadata()
-				.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes())).build();
+		Secret green = new SecretBuilder().withNewMetadata()
+			.withName("green")
+			.endMetadata()
+			.addToData("taste", Base64.getEncoder().encodeToString("mango".getBytes()))
+			.build();
 
 		mockClient.secrets().inNamespace(NAMESPACE).resource(red).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(green).create();

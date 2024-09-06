@@ -103,7 +103,8 @@ class DiscoveryServerControllerTests {
 	void appInstances() {
 		DiscoveryServerController controller = new DiscoveryServerController(discoveryClient);
 		StepVerifier.create(controller.appInstances("serviceA"))
-				.expectNext(SERVICE_A_INSTANCE_1, SERVICE_A_INSTANCE_2, SERVICE_A_INSTANCE_3).verifyComplete();
+			.expectNext(SERVICE_A_INSTANCE_1, SERVICE_A_INSTANCE_2, SERVICE_A_INSTANCE_3)
+			.verifyComplete();
 		StepVerifier.create(controller.appInstances("serviceB")).expectNext(SERVICE_B_INSTANCE_1).verifyComplete();
 		StepVerifier.create(controller.appInstances("serviceC")).expectNext(SERVICE_C_INSTANCE_1).verifyComplete();
 		StepVerifier.create(controller.appInstances("serviceD")).expectNextCount(0).verifyComplete();
@@ -112,8 +113,9 @@ class DiscoveryServerControllerTests {
 	@Test
 	void appInstance() {
 		DiscoveryServerController controller = new DiscoveryServerController(discoveryClient);
-		StepVerifier.create(controller.appInstance("serviceA", "serviceAInstance2")).expectNext(SERVICE_A_INSTANCE_2)
-				.verifyComplete();
+		StepVerifier.create(controller.appInstance("serviceA", "serviceAInstance2"))
+			.expectNext(SERVICE_A_INSTANCE_2)
+			.verifyComplete();
 		StepVerifier.create(controller.appInstance("serviceB", "doesnotexist")).expectNextCount(0).verifyComplete();
 	}
 

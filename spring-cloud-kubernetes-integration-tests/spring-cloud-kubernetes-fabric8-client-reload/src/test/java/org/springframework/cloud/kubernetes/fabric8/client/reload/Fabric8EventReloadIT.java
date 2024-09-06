@@ -103,22 +103,29 @@ class Fabric8EventReloadIT {
 				"added secret informer for namespace", IMAGE_NAME);
 
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/left").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 
 		// we first read the initial value from the left-configmap
 		Assertions.assertEquals("left-initial", result);
 
 		// then read the value from the right-configmap
 		webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(TestUtil.retrySpec())
-				.block();
+		result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
@@ -126,8 +133,11 @@ class Fabric8EventReloadIT {
 
 		WebClient finalWebClient = webClient;
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(30)).until(() -> {
-			String innerResult = finalWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(TestUtil.retrySpec()).block();
+			String innerResult = finalWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec())
+				.block();
 			// left configmap has not changed, no restart of app has happened
 			return "left-initial".equals(innerResult);
 		});
@@ -160,22 +170,29 @@ class Fabric8EventReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(TestUtil.retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec())
+				.block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
@@ -202,35 +219,45 @@ class Fabric8EventReloadIT {
 
 		// read the initial value from the right-configmap
 		WebClient rightWebClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		String rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		String rightResult = rightWebClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", rightResult);
 
 		// then read the initial value from the right-with-label-configmap
 		WebClient rightWithLabelWebClient = TestUtil.builder().baseUrl("http://localhost/with-label").build();
-		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		String rightWithLabelResult = rightWithLabelWebClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 		Assertions.assertEquals("right-with-label-initial", rightWithLabelResult);
 
 		// then deploy a new version of right-configmap
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		// nothing changes in our app, because we are watching only labeled configmaps
 		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(30)).until(() -> {
-			String innerRightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(TestUtil.retrySpec()).block();
+			String innerRightResult = rightWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec())
+				.block();
 			return "right-initial".equals(innerRightResult);
 		});
 
 		// then deploy a new version of right-with-label-configmap
 		ConfigMap rightWithLabelConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(
-						new ObjectMetaBuilder().withNamespace("right").withName("right-configmap-with-label").build())
-				.withData(Map.of("right.with.label.value", "right-with-label-after-change")).build();
+			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap-with-label").build())
+			.withData(Map.of("right.with.label.value", "right-with-label-after-change"))
+			.build();
 
 		TestUtil.replaceConfigMap(client, rightWithLabelConfigMapAfterChange, "right");
 
@@ -239,8 +266,11 @@ class Fabric8EventReloadIT {
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = TestUtil.builder().baseUrl("http://localhost/with-label").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(TestUtil.retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec())
+				.block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});
@@ -248,8 +278,11 @@ class Fabric8EventReloadIT {
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
-		rightResult = rightWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		rightResult = rightWebClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 		Assertions.assertEquals("right-after-change", rightResult);
 	}
 
@@ -273,22 +306,29 @@ class Fabric8EventReloadIT {
 
 		// read the value from the right-configmap
 		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec()).block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(TestUtil.retrySpec())
+			.block();
 		Assertions.assertEquals("right-initial", result);
 
 		// then deploy a new version of right-configmap
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
-				.withData(Map.of("right.value", "right-after-change")).build();
+			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
+			.withData(Map.of("right.value", "right-after-change"))
+			.build();
 
 		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
 
 		String[] resultAfterChange = new String[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(TestUtil.retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(TestUtil.retrySpec())
+				.block();
 			resultAfterChange[0] = innerResult;
 			return innerResult != null;
 		});

@@ -162,18 +162,20 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 	}
 
 	private void setup(String... properties) {
-		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
-				AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class, Fabric8AutoConfiguration.class,
-						KubernetesCommonsAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class))
-				.withPropertyValues(properties);
+		applicationContextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class))
+			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
-						Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-						KubernetesDiscoveryPropertiesAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader(cls)).withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					KubernetesDiscoveryPropertiesAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(cls))
+			.withPropertyValues(properties);
 	}
 
 }

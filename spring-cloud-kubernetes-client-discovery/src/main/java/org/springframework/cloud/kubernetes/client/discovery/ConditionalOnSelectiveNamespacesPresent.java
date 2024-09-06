@@ -42,7 +42,8 @@ public final class ConditionalOnSelectiveNamespacesPresent implements Configurat
 	public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
 
 		Set<String> selectiveNamespaces = Binder.get(context.getEnvironment())
-				.bind("spring.cloud.kubernetes.discovery.namespaces", Bindable.setOf(String.class)).orElse(Set.of());
+			.bind("spring.cloud.kubernetes.discovery.namespaces", Bindable.setOf(String.class))
+			.orElse(Set.of());
 		boolean selectiveNamespacesPresent = !selectiveNamespaces.isEmpty();
 		if (selectiveNamespacesPresent) {
 			LOG.debug(() -> "found selective namespaces : " + selectiveNamespaces.stream().sorted().toList());

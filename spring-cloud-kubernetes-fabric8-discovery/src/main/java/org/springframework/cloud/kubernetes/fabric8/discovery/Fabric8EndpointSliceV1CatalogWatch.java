@@ -49,14 +49,20 @@ final class Fabric8EndpointSliceV1CatalogWatch
 
 		if (context.properties().allNamespaces()) {
 			LOG.debug(() -> "discovering endpoint slices in all namespaces");
-			endpointSlices = client.discovery().v1().endpointSlices().inAnyNamespace()
-					.withLabels(context.properties().serviceLabels()).list().getItems();
+			endpointSlices = client.discovery()
+				.v1()
+				.endpointSlices()
+				.inAnyNamespace()
+				.withLabels(context.properties().serviceLabels())
+				.list()
+				.getItems();
 		}
 		else if (!context.properties().namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoint slices in " + context.properties().namespaces());
 			List<EndpointSlice> inner = new ArrayList<>(context.properties().namespaces().size());
-			context.properties().namespaces()
-					.forEach(namespace -> inner.addAll(endpointSlices(context, namespace, client)));
+			context.properties()
+				.namespaces()
+				.forEach(namespace -> inner.addAll(endpointSlices(context, namespace, client)));
 			endpointSlices = inner;
 		}
 		else {
@@ -66,8 +72,10 @@ final class Fabric8EndpointSliceV1CatalogWatch
 			endpointSlices = endpointSlices(context, namespace, client);
 		}
 
-		Stream<ObjectReference> references = endpointSlices.stream().map(EndpointSlice::getEndpoints)
-				.flatMap(List::stream).map(Endpoint::getTargetRef);
+		Stream<ObjectReference> references = endpointSlices.stream()
+			.map(EndpointSlice::getEndpoints)
+			.flatMap(List::stream)
+			.map(Endpoint::getTargetRef);
 
 		return Fabric8CatalogWatchContext.state(references);
 
@@ -75,8 +83,13 @@ final class Fabric8EndpointSliceV1CatalogWatch
 
 	private List<EndpointSlice> endpointSlices(Fabric8CatalogWatchContext context, String namespace,
 			KubernetesClient client) {
-		return client.discovery().v1().endpointSlices().inNamespace(namespace)
-				.withLabels(context.properties().serviceLabels()).list().getItems();
+		return client.discovery()
+			.v1()
+			.endpointSlices()
+			.inNamespace(namespace)
+			.withLabels(context.properties().serviceLabels())
+			.list()
+			.getItems();
 	}
 
 }

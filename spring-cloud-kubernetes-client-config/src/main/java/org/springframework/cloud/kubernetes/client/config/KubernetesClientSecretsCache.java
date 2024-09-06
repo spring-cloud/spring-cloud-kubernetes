@@ -57,8 +57,9 @@ public class KubernetesClientSecretsCache implements SecretsCache {
 		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			try {
 				b[0] = true;
-				return strippedSecrets(coreV1Api.listNamespacedSecret(namespace, null, null, null, null, null, null,
-						null, null, null, null, null).getItems());
+				return strippedSecrets(coreV1Api
+					.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null, null)
+					.getItems());
 			}
 			catch (ApiException apiException) {
 				throw new RuntimeException(apiException.getResponseBody(), apiException);
@@ -76,8 +77,10 @@ public class KubernetesClientSecretsCache implements SecretsCache {
 	}
 
 	private static List<StrippedSourceContainer> strippedSecrets(List<V1Secret> secrets) {
-		return secrets.stream().map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(),
-				secret.getMetadata().getName(), transform(secret.getData()))).collect(Collectors.toList());
+		return secrets.stream()
+			.map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(), secret.getMetadata().getName(),
+					transform(secret.getData())))
+			.collect(Collectors.toList());
 	}
 
 	private static Map<String, String> transform(Map<String, byte[]> in) {

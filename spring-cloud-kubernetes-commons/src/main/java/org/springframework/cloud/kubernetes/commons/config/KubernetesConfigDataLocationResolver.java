@@ -162,7 +162,7 @@ public abstract class KubernetesConfigDataLocationResolver
 
 			String applicationName = binder.bind("spring.application.name", String.class).orElse(null);
 			String namespace = binder.bind("spring.cloud.kubernetes.client.namespace", String.class)
-					.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
+				.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
 
 			KubernetesClientProperties kubernetesClientProperties = clientProperties(context, namespace);
 			ConfigMapAndSecrets both = ConfigMapAndSecrets.of(binder);
@@ -176,13 +176,14 @@ public abstract class KubernetesConfigDataLocationResolver
 			KubernetesClientProperties kubernetesClientProperties;
 
 			if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
-				kubernetesClientProperties = context.getBootstrapContext().get(KubernetesClientProperties.class)
-						.withNamespace(namespace);
+				kubernetesClientProperties = context.getBootstrapContext()
+					.get(KubernetesClientProperties.class)
+					.withNamespace(namespace);
 			}
 			else {
 				kubernetesClientProperties = context.getBinder()
-						.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
-						.withNamespace(namespace);
+					.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
+					.withNamespace(namespace);
 			}
 
 			return kubernetesClientProperties;

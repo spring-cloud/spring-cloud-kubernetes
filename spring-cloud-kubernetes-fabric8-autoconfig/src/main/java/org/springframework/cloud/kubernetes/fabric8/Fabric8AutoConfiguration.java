@@ -61,41 +61,40 @@ public class Fabric8AutoConfiguration {
 	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
 		Config base = Config.autoConfigure(null);
 		ConfigBuilder builder = new ConfigBuilder(base)
-				// Only set values that have been explicitly specified
-				.withMasterUrl(or(kubernetesClientProperties.masterUrl(), base.getMasterUrl()))
-				.withApiVersion(or(kubernetesClientProperties.apiVersion(), base.getApiVersion()))
-				.withNamespace(or(kubernetesClientProperties.namespace(), base.getNamespace()))
-				.withUsername(or(kubernetesClientProperties.username(), base.getUsername()))
-				.withPassword(or(kubernetesClientProperties.password(), base.getPassword()))
+			// Only set values that have been explicitly specified
+			.withMasterUrl(or(kubernetesClientProperties.masterUrl(), base.getMasterUrl()))
+			.withApiVersion(or(kubernetesClientProperties.apiVersion(), base.getApiVersion()))
+			.withNamespace(or(kubernetesClientProperties.namespace(), base.getNamespace()))
+			.withUsername(or(kubernetesClientProperties.username(), base.getUsername()))
+			.withPassword(or(kubernetesClientProperties.password(), base.getPassword()))
 
-				.withOauthToken(or(kubernetesClientProperties.oauthToken(), base.getOauthToken()))
-				.withCaCertFile(or(kubernetesClientProperties.caCertFile(), base.getCaCertFile()))
-				.withCaCertData(or(kubernetesClientProperties.caCertData(), base.getCaCertData()))
+			.withOauthToken(or(kubernetesClientProperties.oauthToken(), base.getOauthToken()))
+			.withCaCertFile(or(kubernetesClientProperties.caCertFile(), base.getCaCertFile()))
+			.withCaCertData(or(kubernetesClientProperties.caCertData(), base.getCaCertData()))
 
-				.withClientKeyFile(or(kubernetesClientProperties.clientKeyFile(), base.getClientKeyFile()))
-				.withClientKeyData(or(kubernetesClientProperties.clientKeyData(), base.getClientKeyData()))
+			.withClientKeyFile(or(kubernetesClientProperties.clientKeyFile(), base.getClientKeyFile()))
+			.withClientKeyData(or(kubernetesClientProperties.clientKeyData(), base.getClientKeyData()))
 
-				.withClientCertFile(or(kubernetesClientProperties.clientCertFile(), base.getClientCertFile()))
-				.withClientCertData(or(kubernetesClientProperties.clientCertData(), base.getClientCertData()))
+			.withClientCertFile(or(kubernetesClientProperties.clientCertFile(), base.getClientCertFile()))
+			.withClientCertData(or(kubernetesClientProperties.clientCertData(), base.getClientCertData()))
 
-				// No magic is done for the properties below so we leave them as is.
-				.withClientKeyAlgo(or(kubernetesClientProperties.clientKeyAlgo(), base.getClientKeyAlgo()))
-				.withClientKeyPassphrase(
-						or(kubernetesClientProperties.clientKeyPassphrase(), base.getClientKeyPassphrase()))
-				.withConnectionTimeout(
-						orDurationInt(kubernetesClientProperties.connectionTimeout(), base.getConnectionTimeout()))
-				.withRequestTimeout(
-						orDurationInt(kubernetesClientProperties.requestTimeout(), base.getRequestTimeout()))
-				.withTrustCerts(or(kubernetesClientProperties.trustCerts(), base.isTrustCerts()))
-				.withHttpProxy(or(kubernetesClientProperties.httpProxy(), base.getHttpProxy()))
-				.withHttpsProxy(or(kubernetesClientProperties.httpsProxy(), base.getHttpsProxy()))
-				.withProxyUsername(or(kubernetesClientProperties.proxyUsername(), base.getProxyUsername()))
-				.withProxyPassword(or(kubernetesClientProperties.proxyPassword(), base.getProxyPassword()))
-				.withNoProxy(or(kubernetesClientProperties.noProxy(), base.getNoProxy()))
-				// Disable the built-in retry functionality since Spring Cloud Kubernetes
-				// provides it
-				// See https://github.com/fabric8io/kubernetes-client/issues/4863
-				.withRequestRetryBackoffLimit(0);
+			// No magic is done for the properties below so we leave them as is.
+			.withClientKeyAlgo(or(kubernetesClientProperties.clientKeyAlgo(), base.getClientKeyAlgo()))
+			.withClientKeyPassphrase(
+					or(kubernetesClientProperties.clientKeyPassphrase(), base.getClientKeyPassphrase()))
+			.withConnectionTimeout(
+					orDurationInt(kubernetesClientProperties.connectionTimeout(), base.getConnectionTimeout()))
+			.withRequestTimeout(orDurationInt(kubernetesClientProperties.requestTimeout(), base.getRequestTimeout()))
+			.withTrustCerts(or(kubernetesClientProperties.trustCerts(), base.isTrustCerts()))
+			.withHttpProxy(or(kubernetesClientProperties.httpProxy(), base.getHttpProxy()))
+			.withHttpsProxy(or(kubernetesClientProperties.httpsProxy(), base.getHttpsProxy()))
+			.withProxyUsername(or(kubernetesClientProperties.proxyUsername(), base.getProxyUsername()))
+			.withProxyPassword(or(kubernetesClientProperties.proxyPassword(), base.getProxyPassword()))
+			.withNoProxy(or(kubernetesClientProperties.noProxy(), base.getNoProxy()))
+			// Disable the built-in retry functionality since Spring Cloud Kubernetes
+			// provides it
+			// See https://github.com/fabric8io/kubernetes-client/issues/4863
+			.withRequestRetryBackoffLimit(0);
 
 		String userAgent = or(base.getUserAgent(), KubernetesClientProperties.DEFAULT_USER_AGENT);
 		if (!kubernetesClientProperties.userAgent().equals(KubernetesClientProperties.DEFAULT_USER_AGENT)) {

@@ -78,7 +78,7 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		public InitializingBean indicatorInitializer(ApplicationEventPublisher applicationEventPublisher,
 				ApplicationContext applicationContext) {
 			return () -> applicationEventPublisher
-					.publishEvent(new InstanceRegisteredEvent<>(applicationContext.getId(), null));
+				.publishEvent(new InstanceRegisteredEvent<>(applicationContext.getId(), null));
 
 		}
 
