@@ -105,11 +105,11 @@ class KubernetesDiscoveryClientTests {
 		wireMockServer.start();
 		WireMock.configureFor(wireMockServer.port());
 		stubFor(get("/apps")
-				.willReturn(aResponse().withStatus(200).withBody(APPS).withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200).withBody(APPS).withHeader("content-type", "application/json")));
 		stubFor(get("/apps/test-svc-3").willReturn(
 				aResponse().withStatus(200).withBody(APPS_NAME).withHeader("content-type", "application/json")));
 		stubFor(get("/apps/does-not-exist")
-				.willReturn(aResponse().withStatus(200).withBody("").withHeader("content-type", "application/json")));
+			.willReturn(aResponse().withStatus(200).withBody("").withHeader("content-type", "application/json")));
 	}
 
 	@Test
@@ -158,7 +158,7 @@ class KubernetesDiscoveryClientTests {
 				wireMockServer.baseUrl());
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(rest, properties);
 		assertThat(discoveryClient.getInstances(serviceId)).map(ServiceInstance::getInstanceId)
-				.containsExactlyInAnyOrderElementsOf(expectedInstances);
+			.containsExactlyInAnyOrderElementsOf(expectedInstances);
 	}
 
 	private static Stream<Arguments> servicesFilteredByNamespacesSource() {

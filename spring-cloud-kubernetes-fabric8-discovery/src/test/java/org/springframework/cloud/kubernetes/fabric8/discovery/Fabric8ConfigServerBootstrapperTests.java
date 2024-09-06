@@ -79,16 +79,32 @@ class Fabric8ConfigServerBootstrapperTests {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		Endpoints endPoint = new EndpointsBuilder().withNewMetadata().withName("spring-cloud-kubernetes-configserver")
-				.withNamespace("test").withLabels(new HashMap<>()).endMetadata().addNewSubset().addNewAddress()
-				.withHostname("localhost").withIp("localhost").withNewTargetRef().withUid("10").endTargetRef()
-				.endAddress().addNewPort("http", "http_tcp", wireMockServer.port(), "TCP").endSubset().build();
+		Endpoints endPoint = new EndpointsBuilder().withNewMetadata()
+			.withName("spring-cloud-kubernetes-configserver")
+			.withNamespace("test")
+			.withLabels(new HashMap<>())
+			.endMetadata()
+			.addNewSubset()
+			.addNewAddress()
+			.withHostname("localhost")
+			.withIp("localhost")
+			.withNewTargetRef()
+			.withUid("10")
+			.endTargetRef()
+			.endAddress()
+			.addNewPort("http", "http_tcp", wireMockServer.port(), "TCP")
+			.endSubset()
+			.build();
 
 		mockClient.endpoints().inNamespace("test").create(endPoint);
 
-		Service service = new ServiceBuilder().withNewMetadata().withName("spring-cloud-kubernetes-configserver")
-				.withNamespace("test").withLabels(new HashMap<>()).endMetadata()
-				.withSpec(new ServiceSpecBuilder().withType("NodePort").build()).build();
+		Service service = new ServiceBuilder().withNewMetadata()
+			.withName("spring-cloud-kubernetes-configserver")
+			.withNamespace("test")
+			.withLabels(new HashMap<>())
+			.endMetadata()
+			.withSpec(new ServiceSpecBuilder().withType("NodePort").build())
+			.build();
 
 		mockClient.services().inNamespace("test").create(service);
 
@@ -98,9 +114,9 @@ class Fabric8ConfigServerBootstrapperTests {
 		org.springframework.cloud.config.environment.PropertySource p = new PropertySource("p1", properties);
 		environment.add(p);
 		ObjectMapper objectMapper = new ObjectMapper();
-		stubFor(get("/application/default")
-				.willReturn(aResponse().withStatus(200).withBody(objectMapper.writeValueAsString(environment))
-						.withHeader("content-type", "application/json")));
+		stubFor(get("/application/default").willReturn(aResponse().withStatus(200)
+			.withBody(objectMapper.writeValueAsString(environment))
+			.withHeader("content-type", "application/json")));
 	}
 
 	@AfterEach
@@ -119,7 +135,7 @@ class Fabric8ConfigServerBootstrapperTests {
 
 	SpringApplicationBuilder setup(String... env) {
 		SpringApplicationBuilder builder = new SpringApplicationBuilder(TestConfig.class)
-				.properties(addDefaultEnv(env));
+			.properties(addDefaultEnv(env));
 		builder.addBootstrapRegistryInitializer(new Fabric8ConfigServerBootstrapper());
 		return builder;
 	}

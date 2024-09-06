@@ -61,9 +61,10 @@ abstract class SecretsWithLabelsTests {
 	}
 
 	private static void createSecret(String name, Map<String, String> data) {
-		mockClient.secrets().inNamespace("spring-k8s")
-				.resource(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
-				.create();
+		mockClient.secrets()
+			.inNamespace("spring-k8s")
+			.resource(new SecretBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
+			.create();
 	}
 
 	/**
@@ -77,8 +78,13 @@ abstract class SecretsWithLabelsTests {
 	 */
 	@Test
 	void testOne() {
-		this.webClient.get().uri("secrets/labels/one").exchange().expectStatus().isOk().expectBody(String.class)
-				.value(Matchers.equalTo("value"));
+		this.webClient.get()
+			.uri("secrets/labels/one")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("value"));
 	}
 
 }

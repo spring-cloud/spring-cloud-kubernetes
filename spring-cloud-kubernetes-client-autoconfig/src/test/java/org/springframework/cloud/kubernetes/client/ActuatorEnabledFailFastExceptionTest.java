@@ -77,7 +77,7 @@ class ActuatorEnabledFailFastExceptionTest {
 		pathsMockedStatic = Mockito.mockStatic(Paths.class);
 
 		envReaderMockedStatic.when(() -> EnvReader.getEnv(KubernetesClientPodUtils.KUBERNETES_SERVICE_HOST))
-				.thenReturn("k8s-host");
+			.thenReturn("k8s-host");
 		envReaderMockedStatic.when(() -> EnvReader.getEnv(KubernetesClientPodUtils.HOSTNAME)).thenReturn("host");
 
 		Path serviceAccountTokenPath = Mockito.mock(Path.class);
@@ -104,7 +104,7 @@ class ActuatorEnabledFailFastExceptionTest {
 			mocks();
 
 			Mockito.when(coreV1Api.readNamespacedPod("host", "my-namespace", null))
-					.thenThrow(new RuntimeException("just because"));
+				.thenThrow(new RuntimeException("just because"));
 
 			return new KubernetesClientPodUtils(coreV1Api, "my-namespace", FAIL_FAST);
 		}

@@ -52,27 +52,49 @@ abstract class ConfigMapsWithActiveProfilesNameTests {
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
-		mockClient.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
-				.withName(APPLICATION_NAME).endMetadata().addToData(data).build()).create();
+		mockClient.configMaps()
+			.inNamespace("test")
+			.resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(APPLICATION_NAME)
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 
 		HashMap<String, String> dataWithName = new HashMap<>();
 		dataWithName.put("application.yml", readResourceFile("application-with-active-profiles-name.yaml"));
-		mockClient
-				.configMaps().inNamespace("test").resource(new ConfigMapBuilder().withNewMetadata()
-						.withName(APPLICATION_NAME + "-development").endMetadata().addToData(dataWithName).build())
-				.create();
+		mockClient.configMaps()
+			.inNamespace("test")
+			.resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(APPLICATION_NAME + "-development")
+				.endMetadata()
+				.addToData(dataWithName)
+				.build())
+			.create();
 	}
 
 	@Test
 	public void testGreetingEndpoint() {
-		this.webClient.get().uri("/api/greeting").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Hello ConfigMap Active Profile Name, World!");
+		this.webClient.get()
+			.uri("/api/greeting")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Hello ConfigMap Active Profile Name, World!");
 	}
 
 	@Test
 	public void testFarewellEndpoint() {
-		this.webClient.get().uri("/api/farewell").exchange().expectStatus().isOk().expectBody().jsonPath("content")
-				.isEqualTo("Goodbye ConfigMap default, World!");
+		this.webClient.get()
+			.uri("/api/farewell")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("content")
+			.isEqualTo("Goodbye ConfigMap default, World!");
 	}
 
 }

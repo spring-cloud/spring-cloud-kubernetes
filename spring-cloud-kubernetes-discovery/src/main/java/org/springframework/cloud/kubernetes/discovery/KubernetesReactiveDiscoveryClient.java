@@ -58,15 +58,17 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 	@Override
 	@Cacheable("serviceinstances")
 	public Flux<ServiceInstance> getInstances(String serviceId) {
-		return webClient.get().uri("/apps/" + serviceId)
-				.exchangeToFlux(clientResponse -> clientResponse.bodyToFlux(DefaultKubernetesServiceInstance.class));
+		return webClient.get()
+			.uri("/apps/" + serviceId)
+			.exchangeToFlux(clientResponse -> clientResponse.bodyToFlux(DefaultKubernetesServiceInstance.class));
 	}
 
 	@Override
 	@Cacheable("services")
 	public Flux<String> getServices() {
-		return webClient.get().uri("/apps")
-				.exchangeToFlux(clientResponse -> clientResponse.bodyToFlux(Service.class).map(Service::name));
+		return webClient.get()
+			.uri("/apps")
+			.exchangeToFlux(clientResponse -> clientResponse.bodyToFlux(Service.class).map(Service::name));
 	}
 
 }

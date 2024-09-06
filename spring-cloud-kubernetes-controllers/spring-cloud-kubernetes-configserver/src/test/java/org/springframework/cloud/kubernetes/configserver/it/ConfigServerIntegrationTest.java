@@ -51,32 +51,33 @@ abstract class ConfigServerIntegrationTest {
 
 	@BeforeEach
 	void beforeEach() {
-		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default")
-						.withResourceVersion("1").build())
-				.addToData("test-cm-dev.yaml",
-						"dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: false\n")
-				.addToData("test-cm-qa.yaml",
-						"dummy:\n  property:\n    string2: \"qa\"\n    int2: 2\n    bool2: true\n")
-				.addToData("test-cm-prod.yaml",
-						"dummy:\n  property:\n    string2: \"prod\"\n    int2: 3\n    bool2: true\n")
-				.addToData("test-cm.yaml",
-						"dummy:\n  property:\n    string2: \"default\"\n    int2: 4\n    bool2: true\n")
-				.addToData("app.name", "test").build());
+		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
+				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").withResourceVersion("1").build())
+			.addToData("test-cm-dev.yaml", "dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: false\n")
+			.addToData("test-cm-qa.yaml", "dummy:\n  property:\n    string2: \"qa\"\n    int2: 2\n    bool2: true\n")
+			.addToData("test-cm-prod.yaml",
+					"dummy:\n  property:\n    string2: \"prod\"\n    int2: 3\n    bool2: true\n")
+			.addToData("test-cm.yaml", "dummy:\n  property:\n    string2: \"default\"\n    int2: 4\n    bool2: true\n")
+			.addToData("app.name", "test")
+			.build());
 
 		V1SecretList TEST_SECRET = new V1SecretListBuilder()
-				.withMetadata(new V1ListMetaBuilder().withResourceVersion("1").build())
-				.addToItems(new V1SecretBuilder()
-						.withMetadata(new V1ObjectMetaBuilder().withName("test-cm").withResourceVersion("0")
-								.withNamespace("default").build())
-						.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build())
-				.build();
+			.withMetadata(new V1ListMetaBuilder().withResourceVersion("1").build())
+			.addToItems(new V1SecretBuilder()
+				.withMetadata(new V1ObjectMetaBuilder().withName("test-cm")
+					.withResourceVersion("0")
+					.withNamespace("default")
+					.build())
+				.addToData("password", "p455w0rd".getBytes())
+				.addToData("username", "user".getBytes())
+				.build())
+			.build();
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_CONFIGMAP))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_CONFIGMAP))));
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*"))
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_SECRET))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_SECRET))));
 	}
 
 	@Test

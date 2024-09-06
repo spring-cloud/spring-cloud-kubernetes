@@ -38,7 +38,7 @@ public final class PollingReloadDetectionMode implements Condition {
 			return false;
 		}
 		return ConfigReloadProperties.ReloadDetectionMode.POLLING.name()
-				.equalsIgnoreCase(environment.getProperty(Constants.RELOAD_MODE));
+			.equalsIgnoreCase(environment.getProperty(Constants.RELOAD_MODE));
 	}
 
 }

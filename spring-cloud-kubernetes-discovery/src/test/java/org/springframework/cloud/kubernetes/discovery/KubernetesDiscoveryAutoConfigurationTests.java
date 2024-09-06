@@ -272,15 +272,16 @@ class KubernetesDiscoveryAutoConfigurationTests {
 
 		if (cls != null) {
 			applicationContextRunner = new ApplicationContextRunner()
-					.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientBlockingAutoConfiguration.class,
-							KubernetesDiscoveryClientReactiveAutoConfiguration.class))
-					.withClassLoader(new FilteredClassLoader(cls)).withPropertyValues(properties);
+				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientBlockingAutoConfiguration.class,
+						KubernetesDiscoveryClientReactiveAutoConfiguration.class))
+				.withClassLoader(new FilteredClassLoader(cls))
+				.withPropertyValues(properties);
 		}
 		else {
 			applicationContextRunner = new ApplicationContextRunner()
-					.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientBlockingAutoConfiguration.class,
-							KubernetesDiscoveryClientReactiveAutoConfiguration.class))
-					.withPropertyValues(properties);
+				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientBlockingAutoConfiguration.class,
+						KubernetesDiscoveryClientReactiveAutoConfiguration.class))
+				.withPropertyValues(properties);
 		}
 
 	}

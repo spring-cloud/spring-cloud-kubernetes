@@ -57,14 +57,15 @@ class KubernetesDiscoveryClientHealthIndicatorInitializerTests {
 	@SuppressWarnings("unchecked")
 	void testInstanceRegistrationEventPublishedWhenInsideK8s() {
 		new ApplicationContextRunner()
-				.withUserConfiguration(InstanceRegistrationEventPublishedInsideK8sConfiguration.class)
-				.run(context -> assertThat(context).hasSingleBean(PodUtils.class));
+			.withUserConfiguration(InstanceRegistrationEventPublishedInsideK8sConfiguration.class)
+			.run(context -> assertThat(context).hasSingleBean(PodUtils.class));
 
 		ArgumentCaptor<InstanceRegisteredEvent<RegisteredEventSource>> captor = ArgumentCaptor
-				.forClass(InstanceRegisteredEvent.class);
+			.forClass(InstanceRegisteredEvent.class);
 		Mockito.verify(publisher, Mockito.times(1)).publishEvent(captor.capture());
 		KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource source = (KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) captor
-				.getValue().getSource();
+			.getValue()
+			.getSource();
 		assertThat(source.cloudPlatform()).isEqualTo("kubernetes");
 		assertThat(source.inside()).isTrue();
 		assertThat(source.pod()).isSameAs(POD);
@@ -75,14 +76,15 @@ class KubernetesDiscoveryClientHealthIndicatorInitializerTests {
 	@SuppressWarnings("unchecked")
 	void testInstanceRegistrationEventPublishedWhenOutsideK8s() {
 		new ApplicationContextRunner()
-				.withUserConfiguration(InstanceRegistrationEventPublishedOutsideK8sConfiguration.class)
-				.run(context -> assertThat(context).hasSingleBean(PodUtils.class));
+			.withUserConfiguration(InstanceRegistrationEventPublishedOutsideK8sConfiguration.class)
+			.run(context -> assertThat(context).hasSingleBean(PodUtils.class));
 
 		ArgumentCaptor<InstanceRegisteredEvent<RegisteredEventSource>> captor = ArgumentCaptor
-				.forClass(InstanceRegisteredEvent.class);
+			.forClass(InstanceRegisteredEvent.class);
 		Mockito.verify(publisher, Mockito.times(1)).publishEvent(captor.capture());
 		KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource source = (KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) captor
-				.getValue().getSource();
+			.getValue()
+			.getSource();
 		assertThat(source.cloudPlatform()).isEqualTo("kubernetes");
 		assertThat(source.inside()).isFalse();
 		assertThat(source.pod()).isNotNull();

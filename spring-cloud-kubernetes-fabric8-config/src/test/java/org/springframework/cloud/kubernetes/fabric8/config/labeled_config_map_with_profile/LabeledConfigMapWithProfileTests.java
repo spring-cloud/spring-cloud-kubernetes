@@ -103,8 +103,15 @@ abstract class LabeledConfigMapWithProfileTests {
 	}
 
 	private static void createConfigMap(String name, Map<String, String> data, Map<String, String> labels) {
-		mockClient.configMaps().inNamespace("spring-k8s").resource(new ConfigMapBuilder().withNewMetadata()
-				.withName(name).withLabels(labels).endMetadata().addToData(data).build()).create();
+		mockClient.configMaps()
+			.inNamespace("spring-k8s")
+			.resource(new ConfigMapBuilder().withNewMetadata()
+				.withName(name)
+				.withLabels(labels)
+				.endMetadata()
+				.addToData(data)
+				.build())
+			.create();
 	}
 
 	/**
@@ -116,8 +123,13 @@ abstract class LabeledConfigMapWithProfileTests {
 	 */
 	@Test
 	void testBlue() {
-		this.webClient.get().uri("/labeled-configmap/profile/blue").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("1"));
+		this.webClient.get()
+			.uri("/labeled-configmap/profile/blue")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("1"));
 	}
 
 	/**
@@ -130,8 +142,13 @@ abstract class LabeledConfigMapWithProfileTests {
 	 */
 	@Test
 	void testGreen() {
-		this.webClient.get().uri("/labeled-configmap/profile/green").exchange().expectStatus().isOk()
-				.expectBody(String.class).value(Matchers.equalTo("2#6#7#eight-ish"));
+		this.webClient.get()
+			.uri("/labeled-configmap/profile/green")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.value(Matchers.equalTo("2#6#7#eight-ish"));
 	}
 
 }

@@ -73,7 +73,7 @@ class SpecificNamespaceTest {
 	private static WireMockServer serviceBMockServer;
 
 	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
-			.mockStatic(KubernetesServiceInstanceMapper.class);
+		.mockStatic(KubernetesServiceInstanceMapper.class);
 
 	private static MockedStatic<KubernetesClientUtils> clientUtils;
 
@@ -102,10 +102,10 @@ class SpecificNamespaceTest {
 		// we mock host creation so that it becomes something like : localhost:8888
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
-				.thenReturn("localhost");
+			.thenReturn("localhost");
 
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "b", "cluster.local"))
-				.thenReturn("localhost");
+			.thenReturn("localhost");
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		// we need to not mock 'getApplicationNamespace'
@@ -137,19 +137,25 @@ class SpecificNamespaceTest {
 	void test() {
 
 		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-				.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
 
 		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-				.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
+			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
 
-		String serviceAResult = builder.baseUrl(SERVICE_A_URL).build().method(HttpMethod.GET).retrieve()
-				.bodyToMono(String.class).block();
+		String serviceAResult = builder.baseUrl(SERVICE_A_URL)
+			.build()
+			.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.block();
 		Assertions.assertThat(serviceAResult).isEqualTo("service-a-reached");
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
-				.getIfAvailable().getProvider("my-service", ServiceInstanceListSupplier.class).getIfAvailable();
+			.getIfAvailable()
+			.getProvider("my-service", ServiceInstanceListSupplier.class)
+			.getIfAvailable();
 		Assertions.assertThat(supplier.getDelegate().getClass())
-				.isSameAs(DiscoveryClientServiceInstanceListSupplier.class);
+			.isSameAs(DiscoveryClientServiceInstanceListSupplier.class);
 	}
 
 	private static void mockWatchers() {
@@ -157,11 +163,15 @@ class SpecificNamespaceTest {
 		V1Service serviceB = Util.service("b", "my-service", SERVICE_B_PORT);
 
 		V1ServiceList serviceListA = new V1ServiceListBuilder()
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(serviceA).build();
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(serviceA)
+			.build();
 		V1ServiceList serviceListB = new V1ServiceListBuilder()
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(serviceB).build();
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(serviceB)
+			.build();
 
 		Util.servicesInNamespacePodMode(wireMockServer, serviceListA, "a");
 		Util.servicesInNamespacePodMode(wireMockServer, serviceListB, "b");
@@ -170,11 +180,15 @@ class SpecificNamespaceTest {
 		V1Endpoints endpointsB = Util.endpoints("b", "my-service", SERVICE_B_PORT, "127.0.0.1");
 
 		V1EndpointsList endpointsListA = new V1EndpointsListBuilder()
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(endpointsA).build();
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(endpointsA)
+			.build();
 		V1EndpointsList endpointsListB = new V1EndpointsListBuilder()
-				.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build()).endMetadata()
-				.withItems(endpointsB).build();
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(endpointsB)
+			.build();
 
 		Util.endpointsInNamespacePodMode(wireMockServer, endpointsListA, "a");
 		Util.endpointsInNamespacePodMode(wireMockServer, endpointsListB, "b");

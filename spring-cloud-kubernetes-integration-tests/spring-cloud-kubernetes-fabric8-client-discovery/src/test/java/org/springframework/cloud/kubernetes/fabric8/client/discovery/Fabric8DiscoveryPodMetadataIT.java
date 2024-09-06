@@ -141,7 +141,8 @@ class Fabric8DiscoveryPodMetadataIT {
 
 		// find both pods
 		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-				.getStdout().split("\n");
+			.getStdout()
+			.split("\n");
 		// add a label to first pod
 		K3S.execInContainer("sh", "-c",
 				"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
@@ -150,30 +151,43 @@ class Fabric8DiscoveryPodMetadataIT {
 				"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
 
 		WebClient client = builder().baseUrl("http://localhost/service-instances/busybox-service").build();
-		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
-				.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
 		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomLabel.getInstanceId());
 		Assertions.assertNotNull(withCustomLabel.getHost());
 		Assertions.assertEquals(withCustomLabel.getMetadata(),
 				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomLabel.podMetadata().get("labels").entrySet().stream()
-				.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
+		Assertions.assertTrue(withCustomLabel.podMetadata()
+			.get("labels")
+			.entrySet()
+			.stream()
+			.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
 
 		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
-				.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty()).toList().get(0);
+			.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
 		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
 		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
 		Assertions.assertNotNull(withCustomAnnotation.getHost());
 		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
 				Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomAnnotation.podMetadata().get("annotations").entrySet().stream().anyMatch(
-				x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
+		Assertions.assertTrue(withCustomAnnotation.podMetadata()
+			.get("annotations")
+			.entrySet()
+			.stream()
+			.anyMatch(x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
 
 		testAllOther();
 	}
@@ -247,12 +261,15 @@ class Fabric8DiscoveryPodMetadataIT {
 		List<EnvVar> existing = new ArrayList<>(
 				deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv());
 		existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODLABELS")
-				.withValue("true").build());
+			.withValue("true")
+			.build());
 		existing.add(new EnvVarBuilder().withName("SPRING_CLOUD_KUBERNETES_DISCOVERY_METADATA_ADDPODANNOTATIONS")
-				.withValue("true").build());
-		existing.add(
-				new EnvVarBuilder().withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY")
-						.withValue("DEBUG").build());
+			.withValue("true")
+			.build());
+		existing
+			.add(new EnvVarBuilder().withName("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY")
+				.withValue("DEBUG")
+				.build());
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(existing);
 
 		Service externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);

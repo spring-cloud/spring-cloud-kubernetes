@@ -35,7 +35,7 @@ class Fabric8CatalogWatchContextTests {
 	void stateWithASingleElementNameNotNull() {
 
 		Stream<ObjectReference> referenceStream = Stream
-				.of(new ObjectReferenceBuilder().withName("a").withNamespace("default").build());
+			.of(new ObjectReferenceBuilder().withName("a").withNamespace("default").build());
 
 		List<EndpointNameAndNamespace> result = Fabric8CatalogWatchContext.state(referenceStream);
 		Assertions.assertEquals(result.size(), 1);
@@ -48,7 +48,7 @@ class Fabric8CatalogWatchContextTests {
 	void stateWithASingleElementNameNull() {
 
 		Stream<ObjectReference> referenceStream = Stream
-				.of(new ObjectReferenceBuilder().withName(null).withNamespace("default").build());
+			.of(new ObjectReferenceBuilder().withName(null).withNamespace("default").build());
 
 		List<EndpointNameAndNamespace> result = Fabric8CatalogWatchContext.state(referenceStream);
 		Assertions.assertEquals(result.size(), 1);

@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * Use for discovery service implementation.
+ *
  * @author wind57
  */
 public record Service(String name, List<DefaultKubernetesServiceInstance> serviceInstances) {

@@ -152,10 +152,10 @@ class KubernetesCatalogWatchAutoConfigurationTests {
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
-						KubernetesDiscoveryClientBlockingAutoConfiguration.class,
-						KubernetesDiscoveryClientReactiveAutoConfiguration.class))
-				.withPropertyValues(properties);
+			.withConfiguration(AutoConfigurations.of(KubernetesCatalogWatchAutoConfiguration.class,
+					KubernetesDiscoveryClientBlockingAutoConfiguration.class,
+					KubernetesDiscoveryClientReactiveAutoConfiguration.class))
+			.withPropertyValues(properties);
 	}
 
 }
