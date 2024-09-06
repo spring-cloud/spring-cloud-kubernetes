@@ -334,8 +334,9 @@ public final class ConfigUtils {
 			bootstrapContext.register(cls, BootstrapRegistry.InstanceSupplier.of(instance));
 			bootstrapContext.addCloseListener(event -> {
 				if (event.getApplicationContext().getBeanFactory().getSingleton(name) == null) {
-					event.getApplicationContext().getBeanFactory().registerSingleton(name,
-						event.getBootstrapContext().get(cls));
+					event.getApplicationContext()
+						.getBeanFactory()
+						.registerSingleton(name, event.getBootstrapContext().get(cls));
 				}
 			});
 		}
