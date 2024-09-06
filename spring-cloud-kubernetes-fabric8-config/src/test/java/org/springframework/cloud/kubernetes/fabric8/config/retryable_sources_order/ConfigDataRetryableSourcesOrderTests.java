@@ -20,16 +20,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RetryableSourcesOrderApp.class,
-		properties = { "spring.application.name=sources-order", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./retryable-sources-order.yaml" })
+@TestPropertySource(properties = { "spring.config.import=kubernetes:,classpath:./retryable-sources-order.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class ConfigDataRetryableSourcesOrderTests extends RetryableSourcesOrderTests {
+class ConfigDataRetryableSourcesOrderTests extends RetryableSourcesOrder {
 
 	private static KubernetesClient mockClient;
 
