@@ -106,8 +106,11 @@ class Fabric8IstioIT {
 		WebClient client = builder().baseUrl("http://localhost/profiles").build();
 
 		@SuppressWarnings("unchecked")
-		List<String> result = client.method(HttpMethod.GET).retrieve().bodyToMono(List.class).retryWhen(retrySpec())
-				.block();
+		List<String> result = client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(List.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		// istio profile is present
 		Assertions.assertTrue(result.contains("istio"));
@@ -144,9 +147,10 @@ class Fabric8IstioIT {
 	private static String istioctlPodName() {
 		try {
 			return K3S
-					.execInContainer("sh", "-c",
-							"kubectl get pods -n istio-test -l app=istio-ctl -o=name --no-headers | tr -d '\n'")
-					.getStdout().split("/")[1];
+				.execInContainer("sh", "-c",
+						"kubectl get pods -n istio-test -l app=istio-ctl -o=name --no-headers | tr -d '\n'")
+				.getStdout()
+				.split("/")[1];
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);

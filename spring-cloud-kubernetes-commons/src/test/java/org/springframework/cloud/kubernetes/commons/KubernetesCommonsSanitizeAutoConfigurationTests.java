@@ -34,25 +34,25 @@ class KubernetesCommonsSanitizeAutoConfigurationTests {
 	@Test
 	void sanitizeSecretsNotEnabled() {
 		contextRunner(false, false)
-				.run(context -> assertThat(context.getBeansOfType(SanitizingFunction.class)).isEmpty());
+			.run(context -> assertThat(context.getBeansOfType(SanitizingFunction.class)).isEmpty());
 	}
 
 	@Test
 	void sanitizeSecretsEnabled() {
 		contextRunner(true, false)
-				.run(context -> assertThat(context.getBeansOfType(SanitizingFunction.class)).hasSize(1));
+			.run(context -> assertThat(context.getBeansOfType(SanitizingFunction.class)).hasSize(1));
 	}
 
 	@Test
 	void sanitizeSecretsEnabledSanitizedClassNotPresent() {
 		contextRunner(true, true)
-				.run(context -> assertThat(context.getBeansOfType(SanitizingFunction.class)).isEmpty());
+			.run(context -> assertThat(context.getBeansOfType(SanitizingFunction.class)).isEmpty());
 	}
 
 	private ApplicationContextRunner contextRunner(boolean enableSanitizeSecrets, boolean filterSanitizedDataClass) {
 
 		ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(KubernetesCommonsSanitizeAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(KubernetesCommonsSanitizeAutoConfiguration.class));
 
 		if (enableSanitizeSecrets) {
 			contextRunner = contextRunner.withPropertyValues(ConditionalOnSanitizeSecrets.VALUE + "=true");

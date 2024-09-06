@@ -58,24 +58,34 @@ final class DataChangesInConfigMapReloadDelegate {
 				"added secret informer for namespace", IMAGE_NAME);
 
 		WebClient webClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
-		String result = webClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		// we first read the initial value from the left-configmap
 		Assertions.assertEquals("left-initial", result);
 
 		// then deploy a new version of left-configmap, but without changing its data,
 		// only add a label
-		ConfigMap configMap = new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder()
-				.withLabels(Map.of("new-label", "abc")).withNamespace("left").withName("left-configmap").build())
-				.withData(Map.of("left.value", "left-initial")).build();
+		ConfigMap configMap = new ConfigMapBuilder()
+			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("new-label", "abc"))
+				.withNamespace("left")
+				.withName("left-configmap")
+				.build())
+			.withData(Map.of("left.value", "left-initial"))
+			.build();
 
 		replaceConfigMap(client, configMap, "left");
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 			return "left-initial".equals(innerResult);
 		});
 
@@ -85,16 +95,22 @@ final class DataChangesInConfigMapReloadDelegate {
 
 		// change data
 		configMap = new ConfigMapBuilder()
-				.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("new-label", "abc")).withNamespace("left")
-						.withName("left-configmap").build())
-				.withData(Map.of("left.value", "left-after-change")).build();
+			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("new-label", "abc"))
+				.withNamespace("left")
+				.withName("left-configmap")
+				.build())
+			.withData(Map.of("left.value", "left-after-change"))
+			.build();
 
 		replaceConfigMap(client, configMap, "left");
 
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(90)).until(() -> {
 			WebClient innerWebClient = builder().baseUrl("http://localhost/" + LEFT_NAMESPACE).build();
-			String innerResult = innerWebClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-					.retryWhen(retrySpec()).block();
+			String innerResult = innerWebClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block();
 			return "left-after-change".equals(innerResult);
 		});
 

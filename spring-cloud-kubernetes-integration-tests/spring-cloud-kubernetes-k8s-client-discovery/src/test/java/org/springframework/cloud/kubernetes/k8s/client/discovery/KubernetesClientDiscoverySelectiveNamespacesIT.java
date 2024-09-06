@@ -241,7 +241,7 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	void testTwoNamespacesBothBlockingAndReactive() {
 		KubernetesClientDiscoveryClientUtils.patchToAddBlockingSupport(DEPLOYMENT_NAME, NAMESPACE);
 		new KubernetesClientDiscoveryMultipleSelectiveNamespacesITDelegate()
-				.testTwoNamespacesBothBlockingAndReactive(K3S);
+			.testTwoNamespacesBothBlockingAndReactive(K3S);
 	}
 
 	private static void manifests(Phase phase) {
@@ -257,7 +257,7 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 		if (phase.equals(Phase.CREATE)) {
 			List<V1EnvVar> envVars = new ArrayList<>(
 					Optional.ofNullable(deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getEnv())
-							.orElse(List.of()));
+						.orElse(List.of()));
 			V1EnvVar debugLevel = new V1EnvVar()
 					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY").value("DEBUG");
 
@@ -265,10 +265,10 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 					.name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_DISCOVERY").value("DEBUG");
 
 			V1EnvVar selectiveNamespaceA = new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0")
-					.value(NAMESPACE_A);
+				.value(NAMESPACE_A);
 
 			V1EnvVar disableReactiveEnvVar = new V1EnvVar().name("SPRING_CLOUD_DISCOVERY_REACTIVE_ENABLED")
-					.value("FALSE");
+				.value("FALSE");
 			envVars.add(disableReactiveEnvVar);
 
 			envVars.add(debugLevel);
@@ -282,21 +282,27 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	private void reactiveCheck() {
 		WebClient servicesClient = builder().baseUrl("http://localhost/reactive/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(servicesResult.size(), 1);
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
 		WebClient ourServiceClient = builder().baseUrl("http://localhost/reactive/service-instances/service-wiremock")
-				.build();
+			.build();
 
-		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(ourServiceInstances.size(), 1);
 
@@ -309,20 +315,26 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 	private void blockingCheck() {
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(servicesResult.size(), 1);
 		Assertions.assertTrue(servicesResult.contains("service-wiremock"));
 
 		WebClient ourServiceClient = builder().baseUrl("http://localhost/service-instances/service-wiremock").build();
 
-		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+		List<DefaultKubernetesServiceInstance> ourServiceInstances = ourServiceClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
 
-				}).retryWhen(retrySpec()).block();
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(ourServiceInstances.size(), 1);
 
@@ -334,8 +346,10 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 
 	private String logs() {
 		try {
-			String appPodName = K3S.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'").getStdout();
+			String appPodName = K3S
+				.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + IMAGE_NAME + " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
 
 			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
 			return execResult.getStdout();

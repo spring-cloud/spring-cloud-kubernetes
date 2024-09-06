@@ -88,5 +88,5 @@ crashlytics-build.properties
 node
 node_modules
 build
-package.json
+/package.json
 package-lock.json

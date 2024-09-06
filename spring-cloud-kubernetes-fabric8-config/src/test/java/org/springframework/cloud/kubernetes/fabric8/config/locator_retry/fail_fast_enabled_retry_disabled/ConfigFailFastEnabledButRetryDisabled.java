@@ -74,8 +74,8 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 
 		assertThat(context.containsBean("kubernetesConfigRetryInterceptor")).isFalse();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Not Found.");
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessageContaining("api/v1/namespaces/default/configmaps. Message: Not Found.");
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

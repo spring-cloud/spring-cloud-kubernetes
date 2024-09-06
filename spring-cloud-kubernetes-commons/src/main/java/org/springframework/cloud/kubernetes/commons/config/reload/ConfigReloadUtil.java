@@ -72,8 +72,9 @@ public final class ConfigReloadUtil {
 			ConfigurableEnvironment environment) {
 		List<S> managedSources = new ArrayList<>();
 
-		List<PropertySource<?>> sources = environment.getPropertySources().stream()
-				.collect(Collectors.toCollection(ArrayList::new));
+		List<PropertySource<?>> sources = environment.getPropertySources()
+			.stream()
+			.collect(Collectors.toCollection(ArrayList::new));
 		LOG.debug(() -> "environment from findPropertySources: " + environment);
 		LOG.debug(() -> "environment sources from findPropertySources : " + sources);
 

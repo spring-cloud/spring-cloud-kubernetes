@@ -40,7 +40,7 @@ class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedSecretsApiDis
 		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)[0])
-				.isEqualTo("configMapPropertySourceSupplier");
+			.isEqualTo("configMapPropertySourceSupplier");
 	}
 
 }

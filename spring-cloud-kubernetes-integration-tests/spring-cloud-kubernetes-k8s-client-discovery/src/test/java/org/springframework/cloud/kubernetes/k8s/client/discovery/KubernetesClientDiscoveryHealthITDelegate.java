@@ -74,20 +74,24 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
-		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String healthResult = healthClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS)
-				.isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathArrayValue(
-						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
-						"external-name-service");
+			.extractingJsonPathStringValue(BLOCKING_STATUS)
+			.isEqualTo("UP");
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+					"external-name-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
@@ -113,19 +117,25 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 
-		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
+		String healthResult = healthClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS)
-				.isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathStringValue(REACTIVE_STATUS)
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
-						"external-name-service");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathArrayValue(
+					"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+					"external-name-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
@@ -133,9 +143,12 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/reactive/services").build();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
-				}).retryWhen(retrySpec()).block();
+		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(servicesResult).contains("spring-cloud-kubernetes-k8s-client-discovery");
 		Assertions.assertThat(servicesResult).contains("kubernetes");
@@ -158,35 +171,44 @@ class KubernetesClientDiscoveryHealthITDelegate {
 		WebClient healthClient = builder().baseUrl("http://localhost/actuator/health").build();
 		WebClient infoClient = builder().baseUrl("http://localhost/actuator/info").build();
 
-		String healthResult = healthClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class)
-				.retryWhen(retrySpec()).block();
-		String infoResult = infoClient.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec())
-				.block();
+		String healthResult = healthClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
+		String infoResult = infoClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
-				.isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathArrayValue(
-						"$.components.discoveryComposite.components.discoveryClient.details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
-						"external-name-service");
+			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+					"external-name-service");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
-				.isEqualTo("UP");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathStringValue(
+					"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].status")
+			.isEqualTo("UP");
 
-		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
-				.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
-						"external-name-service");
+		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathArrayValue(
+					"$.components.reactiveDiscoveryClients.components.['Kubernetes Reactive Discovery Client'].details.services")
+			.containsExactlyInAnyOrder("spring-cloud-kubernetes-k8s-client-discovery", "kubernetes",
+					"external-name-service");
 
 		// assert health/info also
 		assertHealth(healthResult);
@@ -195,55 +217,70 @@ class KubernetesClientDiscoveryHealthITDelegate {
 
 	private void assertHealth(String healthResult) {
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.status").isEqualTo("UP");
+			.extractingJsonPathStringValue("$.components.kubernetes.status")
+			.isEqualTo("UP");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.details.hostIp").isNotEmpty();
+			.extractingJsonPathStringValue("$.components.kubernetes.details.hostIp")
+			.isNotEmpty();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathBooleanValue("$.components.kubernetes.details.inside").isEqualTo(true);
+			.extractingJsonPathBooleanValue("$.components.kubernetes.details.inside")
+			.isEqualTo(true);
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.details.labels.app")
-				.isEqualTo("spring-cloud-kubernetes-k8s-client-discovery");
+			.extractingJsonPathStringValue("$.components.kubernetes.details.labels.app")
+			.isEqualTo("spring-cloud-kubernetes-k8s-client-discovery");
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.details.namespace").isNotEmpty();
+			.extractingJsonPathStringValue("$.components.kubernetes.details.namespace")
+			.isNotEmpty();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.details.nodeName").isNotEmpty();
+			.extractingJsonPathStringValue("$.components.kubernetes.details.nodeName")
+			.isNotEmpty();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.details.podIp").isNotEmpty();
+			.extractingJsonPathStringValue("$.components.kubernetes.details.podIp")
+			.isNotEmpty();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.details.podName").isNotEmpty();
+			.extractingJsonPathStringValue("$.components.kubernetes.details.podName")
+			.isNotEmpty();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(healthResult))
-				.extractingJsonPathStringValue("$.components.kubernetes.details.serviceAccount").isNotEmpty();
+			.extractingJsonPathStringValue("$.components.kubernetes.details.serviceAccount")
+			.isNotEmpty();
 	}
 
 	private void assertInfo(String infoResult) {
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.hostIp")
-				.isNotEmpty();
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathBooleanValue("$.kubernetes.inside")
-				.isEqualTo(true);
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
+			.extractingJsonPathStringValue("$.kubernetes.hostIp")
+			.isNotEmpty();
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
-				.extractingJsonPathStringValue("$.kubernetes.namespace").isNotEmpty();
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.nodeName")
-				.isNotEmpty();
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.podIp")
-				.isNotEmpty();
-
-		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult)).extractingJsonPathStringValue("$.kubernetes.podName")
-				.isNotEmpty();
+			.extractingJsonPathBooleanValue("$.kubernetes.inside")
+			.isEqualTo(true);
 
 		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
-				.extractingJsonPathStringValue("$.kubernetes.serviceAccount").isNotEmpty();
+			.extractingJsonPathStringValue("$.kubernetes.namespace")
+			.isNotEmpty();
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
+			.extractingJsonPathStringValue("$.kubernetes.nodeName")
+			.isNotEmpty();
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
+			.extractingJsonPathStringValue("$.kubernetes.podIp")
+			.isNotEmpty();
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
+			.extractingJsonPathStringValue("$.kubernetes.podName")
+			.isNotEmpty();
+
+		Assertions.assertThat(BASIC_JSON_TESTER.from(infoResult))
+			.extractingJsonPathStringValue("$.kubernetes.serviceAccount")
+			.isNotEmpty();
 	}
 
 	private WebClient.Builder builder() {
@@ -257,17 +294,19 @@ class KubernetesClientDiscoveryHealthITDelegate {
 	private void assertLogStatement(K3sContainer container, String message) {
 		try {
 			String appPodName = container
-					.execInContainer("sh", "-c",
-							"kubectl get pods -l app=" + DEPLOYMENT_NAME + " -o=name --no-headers | tr -d '\n'")
-					.getStdout();
+				.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + DEPLOYMENT_NAME + " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
 
-			await().pollDelay(Duration.ofSeconds(4)).pollInterval(Duration.ofSeconds(1)).atMost(20, TimeUnit.SECONDS)
-					.until(() -> {
-						Container.ExecResult execResult = container.execInContainer("sh", "-c",
-								"kubectl logs " + appPodName.trim());
-						String ok = execResult.getStdout();
-						return ok.contains(message);
-					});
+			await().pollDelay(Duration.ofSeconds(4))
+				.pollInterval(Duration.ofSeconds(1))
+				.atMost(20, TimeUnit.SECONDS)
+				.until(() -> {
+					Container.ExecResult execResult = container.execInContainer("sh", "-c",
+							"kubectl logs " + appPodName.trim());
+					String ok = execResult.getStdout();
+					return ok.contains(message);
+				});
 		}
 		catch (Exception e) {
 			e.printStackTrace();

@@ -71,8 +71,9 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in namespaces : " + properties.namespaces());
 			List<Endpoints> inner = new ArrayList<>(properties.namespaces().size());
-			properties.namespaces().forEach(namespace -> inner.addAll(filteredEndpoints(
-					client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceName)));
+			properties.namespaces()
+				.forEach(namespace -> inner.addAll(filteredEndpoints(
+						client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceName)));
 			endpoints = inner;
 		}
 		else if (properties.allNamespaces()) {
@@ -103,19 +104,27 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		// group by namespace in order to make a single API call per namespace when
 		// retrieving services
 		Map<String, List<Endpoints>> endpointsByNamespace = endpoints.stream()
-				.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
+			.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
 
 		for (Map.Entry<String, List<Endpoints>> entry : endpointsByNamespace.entrySet()) {
 			// get all services in the namespace that match the filter
-			Set<String> filteredServiceNames = client.services().inNamespace(entry.getKey()).list().getItems().stream()
-					.filter(filter).map(service -> service.getMetadata().getName()).collect(Collectors.toSet());
+			Set<String> filteredServiceNames = client.services()
+				.inNamespace(entry.getKey())
+				.list()
+				.getItems()
+				.stream()
+				.filter(filter)
+				.map(service -> service.getMetadata().getName())
+				.collect(Collectors.toSet());
 
 			// in the previous step we might have taken "too many" services, so in the
 			// next one take only those that have a matching endpoints, by name.
 			// This way we only get the endpoints that have a matching service with an
 			// applied filter, it's like we filtered endpoints by that filter.
-			result.addAll(entry.getValue().stream()
-					.filter(endpoint -> filteredServiceNames.contains(endpoint.getMetadata().getName())).toList());
+			result.addAll(entry.getValue()
+				.stream()
+				.filter(endpoint -> filteredServiceNames.contains(endpoint.getMetadata().getName()))
+				.toList());
 
 		}
 
@@ -131,7 +140,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			KubernetesDiscoveryProperties properties, @Nullable String serviceName) {
 
 		FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> partial = filterNested
-				.withLabels(properties.serviceLabels());
+			.withLabels(properties.serviceLabels());
 
 		if (serviceName != null) {
 			partial = partial.withField("metadata.name", serviceName);
@@ -142,8 +151,9 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	}
 
 	static List<EndpointAddress> addresses(EndpointSubset endpointSubset, KubernetesDiscoveryProperties properties) {
-		List<EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses()).map(ArrayList::new)
-				.orElse(new ArrayList<>());
+		List<EndpointAddress> addresses = Optional.ofNullable(endpointSubset.getAddresses())
+			.map(ArrayList::new)
+			.orElse(new ArrayList<>());
 
 		if (properties.includeNotReadyAddresses()) {
 			List<EndpointAddress> notReadyAddresses = endpointSubset.getNotReadyAddresses();
@@ -170,9 +180,10 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		else if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering services in namespaces : " + properties.namespaces());
 			List<Service> inner = new ArrayList<>(properties.namespaces().size());
-			properties.namespaces().forEach(
-					namespace -> inner.addAll(filteredServices(client.services().inNamespace(namespace).withNewFilter(),
-							properties, predicate, fieldFilters)));
+			properties.namespaces()
+				.forEach(namespace -> inner
+					.addAll(filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties,
+							predicate, fieldFilters)));
 			services = inner;
 		}
 		else {
@@ -189,10 +200,11 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 	 * a service is allowed to have a single port defined without a name.
 	 */
 	static Map<String, Integer> endpointSubsetsPortData(List<EndpointSubset> endpointSubsets) {
-		return endpointSubsets.stream().flatMap(endpointSubset -> endpointSubset.getPorts().stream())
-				.collect(Collectors.toMap(
-						endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
-						EndpointPort::getPort));
+		return endpointSubsets.stream()
+			.flatMap(endpointSubset -> endpointSubset.getPorts().stream())
+			.collect(Collectors.toMap(
+					endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
+					EndpointPort::getPort));
 	}
 
 	/**
@@ -204,7 +216,7 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 			@Nullable Map<String, String> fieldFilters) {
 
 		FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> partial = filterNested
-				.withLabels(properties.serviceLabels());
+			.withLabels(properties.serviceLabels());
 
 		if (fieldFilters != null) {
 			partial = partial.withFields(fieldFilters);

@@ -52,7 +52,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 	private static final DeferredLogFactory FACTORY = Supplier::get;
 
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
-			.mock(ConfigDataLocationResolverContext.class);
+		.mock(ConfigDataLocationResolverContext.class);
 
 	private static final KubernetesClientConfigDataLocationResolver RESOLVER = new KubernetesClientConfigDataLocationResolver(
 			FACTORY);
@@ -125,7 +125,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(KubernetesClientConfigMapPropertySourceLocator.class,
 				configMapPropertySourceLocator.getClass());
 
@@ -169,7 +169,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(KubernetesClientConfigMapPropertySourceLocator.class,
 				configMapPropertySourceLocator.getClass());
 
@@ -178,8 +178,8 @@ class KubernetesClientConfigDataLocationResolverTests {
 				secretsPropertySourceLocator.getClass());
 
 		Assertions.assertTrue(capturedOutput.getOut()
-				.contains("Could not create the Kubernetes ApiClient in a cluster environment, because connection port "
-						+ "was not provided."));
+			.contains("Could not create the Kubernetes ApiClient in a cluster environment, because connection port "
+					+ "was not provided."));
 	}
 
 	/*
@@ -222,7 +222,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(ConfigDataRetryableConfigMapPropertySourceLocator.class,
 				configMapPropertySourceLocator.getClass());
 

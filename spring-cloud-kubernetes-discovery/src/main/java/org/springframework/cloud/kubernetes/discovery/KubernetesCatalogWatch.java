@@ -65,7 +65,7 @@ final class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	public void catalogServicesWatch() {
 		try {
 			List<EndpointNameAndNamespace> currentState = restTemplate.exchange("/state", HttpMethod.GET, null, TYPE)
-					.getBody();
+				.getBody();
 
 			if (!catalogState.get().equals(currentState)) {
 				LOG.debug(() -> "Received update from kubernetes discovery http client: " + currentState);

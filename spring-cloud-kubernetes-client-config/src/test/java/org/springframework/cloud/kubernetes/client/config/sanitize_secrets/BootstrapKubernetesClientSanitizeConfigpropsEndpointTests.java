@@ -47,24 +47,42 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 		@Test
 		void test() {
 			// configmap is sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
-					.isEqualTo(SanitizableData.SANITIZED_VALUE);
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
+				.isEqualTo(SanitizableData.SANITIZED_VALUE);
 
 			// secret is sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
-					.isEqualTo(SanitizableData.SANITIZED_VALUE);
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
+				.isEqualTo(SanitizableData.SANITIZED_VALUE);
 
 			// secret is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/secret", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeSecretValue");
+			webClient.get()
+				.uri("http://localhost:{port}/secret", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeSecretValue");
 
 			// configmap is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/configmap", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeConfigMapValue");
+			webClient.get()
+				.uri("http://localhost:{port}/configmap", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeConfigMapValue");
 		}
 
 	}
@@ -87,24 +105,46 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 		@Test
 		void test() {
 			// configmap is sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
-					.isEqualTo(SanitizableData.SANITIZED_VALUE);
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
+				.isEqualTo(SanitizableData.SANITIZED_VALUE);
 
 			// secret is sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
-					.isEqualTo(SanitizableData.SANITIZED_VALUE);
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
+				.isEqualTo(SanitizableData.SANITIZED_VALUE);
 
 			// secret is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/secret", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeSecretValue");
+			webClient.get()
+				.uri("http://localhost:{port}/secret", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeSecretValue");
 
 			// configmap is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/configmap", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeConfigMapValue");
+			webClient.get()
+				.uri("http://localhost:{port}/configmap", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeConfigMapValue");
 		}
 
 	}
@@ -137,24 +177,46 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 		@Test
 		void test() {
 			// configmap is not sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
-					.isEqualTo("sanitizeConfigMapValue");
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
+				.isEqualTo("sanitizeConfigMapValue");
 
 			// secret is not sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
-					.isEqualTo("sanitizeSecretValue");
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
+				.isEqualTo("sanitizeSecretValue");
 
 			// secret is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/secret", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeSecretValue");
+			webClient.get()
+				.uri("http://localhost:{port}/secret", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeSecretValue");
 
 			// configmap is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/configmap", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeConfigMapValue");
+			webClient.get()
+				.uri("http://localhost:{port}/configmap", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeConfigMapValue");
 		}
 
 	}
@@ -187,30 +249,57 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 		@Test
 		void test() {
 			// configmap is not sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
-					.isEqualTo("sanitizeConfigMapValue");
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeConfigMapName")
+				.isEqualTo("sanitizeConfigMapValue");
 
 			// first secret is sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
-					.isEqualTo(SanitizableData.SANITIZED_VALUE);
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretName")
+				.isEqualTo(SanitizableData.SANITIZED_VALUE);
 
 			// second secret is sanitized
-			webClient.get().uri("http://localhost:{port}/actuator/configprops", this.port)
-					.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectBody()
-					.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretNameTwo")
-					.isEqualTo(SanitizableData.SANITIZED_VALUE);
+			webClient.get()
+				.uri("http://localhost:{port}/actuator/configprops", this.port)
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("contexts.['sanitize-1'].beans.[*].properties.sanitizeSecretNameTwo")
+				.isEqualTo(SanitizableData.SANITIZED_VALUE);
 
 			// secret is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/secret", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeSecretValue");
+			webClient.get()
+				.uri("http://localhost:{port}/secret", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeSecretValue");
 
 			// configmap is usable from configuration properties
-			webClient.get().uri("http://localhost:{port}/configmap", this.port).exchange().expectStatus().isOk()
-					.expectBody().jsonPath("$").isEqualTo("sanitizeConfigMapValue");
+			webClient.get()
+				.uri("http://localhost:{port}/configmap", this.port)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody()
+				.jsonPath("$")
+				.isEqualTo("sanitizeConfigMapValue");
 		}
 
 	}

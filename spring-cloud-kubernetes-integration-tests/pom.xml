@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>3.1.2-SNAPSHOT</version>
+		<version>3.2.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
@@ -18,11 +18,12 @@
 	<properties>
 		<java.version>17</java.version>
 		<docker-java.version>3.2.13</docker-java.version>
-		<testcontainers.version>1.18.0</testcontainers.version>
+		<testcontainers.version>1.18.3</testcontainers.version>
 	</properties>
 
 	<build>
 		<plugins>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
@@ -48,7 +49,7 @@
 						</configuration>
 						<phase>package</phase>
 						<goals>
-							<goal>build-image</goal>
+							<goal>build-image-no-fork</goal>
 						</goals>
 					</execution>
 					<execution>

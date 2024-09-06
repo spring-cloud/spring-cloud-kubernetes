@@ -59,15 +59,24 @@ class KubernetesClientSecretsPropertySourceTests {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
 
-	private static final V1SecretList SECRET_LIST = new V1SecretListBuilder().addToItems(new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("db-secret").withResourceVersion("0")
-					.withNamespace("default").build())
-			.addToData("password", "p455w0rd".getBytes()).addToData("username", "user".getBytes()).build()).build();
+	private static final V1SecretList SECRET_LIST = new V1SecretListBuilder()
+		.addToItems(
+				new V1SecretBuilder()
+					.withMetadata(new V1ObjectMetaBuilder().withName("db-secret")
+						.withResourceVersion("0")
+						.withNamespace("default")
+						.build())
+					.addToData("password", "p455w0rd".getBytes())
+					.addToData("username", "user".getBytes())
+					.build())
+		.build();
 
 	private static final V1SecretList EMPTY_DATA_SECRET_LIST = new V1SecretListBuilder()
-			.addToItems(new V1SecretBuilder().withMetadata(new V1ObjectMetaBuilder().withName("db-secret")
-					.withResourceVersion("0").withNamespace("default").build()).build())
-			.build();
+		.addToItems(new V1SecretBuilder().withMetadata(new V1ObjectMetaBuilder().withName("db-secret")
+			.withResourceVersion("0")
+			.withNamespace("default")
+			.build()).build())
+		.build();
 
 	private static final String LIST_API_WITH_LABEL = "/api/v1/namespaces/default/secrets";
 
@@ -124,7 +133,7 @@ class KubernetesClientSecretsPropertySourceTests {
 	void emptyDataSecretTest() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API)
-				.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(EMPTY_DATA_SECRET_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(EMPTY_DATA_SECRET_LIST))));
 
 		NormalizedSource source = new NamedSecretNormalizedSource("db-secret", "default", false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
@@ -177,7 +186,8 @@ class KubernetesClientSecretsPropertySourceTests {
 				new MockEnvironment());
 
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySource(context))
-				.isInstanceOf(IllegalStateException.class).hasMessage("Internal Server Error");
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessage("Internal Server Error");
 		verify(getRequestedFor(urlEqualTo(API)));
 	}
 

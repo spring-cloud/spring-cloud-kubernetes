@@ -29,6 +29,16 @@ import org.springframework.boot.convert.DurationUnit;
 public class ConfigurationWatcherConfigurationProperties {
 
 	/**
+	 * AMQP profile name.
+	 */
+	public static final String AMQP = "bus-amqp";
+
+	/**
+	 * Kafka profile name.
+	 */
+	public static final String KAFKA = "bus-kafka";
+
+	/**
 	 * label to enable refresh/restart when using configmaps.
 	 */
 	public static final String CONFIG_MAP_LABEL = "spring.cloud.kubernetes.config";
