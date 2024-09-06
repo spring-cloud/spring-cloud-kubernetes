@@ -49,7 +49,7 @@ record Properties(KubernetesClientProperties clientProperties, ConfigMapConfigPr
 		}
 
 		String namespace = binder.bind("spring.cloud.kubernetes.client.namespace", String.class)
-				.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
+			.orElse(binder.bind("kubernetes.namespace", String.class).orElse(""));
 		KubernetesClientProperties clientProperties = clientProperties(context, namespace);
 
 		return new Properties(clientProperties, configMapConfigProperties, secretsProperties);
@@ -59,13 +59,14 @@ record Properties(KubernetesClientProperties clientProperties, ConfigMapConfigPr
 			String namespace) {
 		KubernetesClientProperties kubernetesClientProperties;
 		if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
-			kubernetesClientProperties = context.getBootstrapContext().get(KubernetesClientProperties.class)
-					.withNamespace(namespace);
+			kubernetesClientProperties = context.getBootstrapContext()
+				.get(KubernetesClientProperties.class)
+				.withNamespace(namespace);
 		}
 		else {
 			kubernetesClientProperties = context.getBinder()
-					.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
-					.withNamespace(namespace);
+				.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
+				.withNamespace(namespace);
 		}
 		return kubernetesClientProperties;
 	}
