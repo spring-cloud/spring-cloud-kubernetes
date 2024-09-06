@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
- *
  * @author wind57 Kubernetes config retry properties.
  * @param initialInterval Initial retry interval in milliseconds.
  * @param multiplier Maximum interval for backoff.

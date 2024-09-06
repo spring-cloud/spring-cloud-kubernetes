@@ -41,17 +41,23 @@ final class Fabric8DiscoveryNamespaceDelegate {
 		WebClient clientServices = builder().baseUrl("http://localhost/services").build();
 
 		@SuppressWarnings("unchecked")
-		List<String> services = (List<String>) clientServices.method(HttpMethod.GET).retrieve().bodyToMono(List.class)
-				.retryWhen(retrySpec()).block();
+		List<String> services = (List<String>) clientServices.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(List.class)
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(services.size(), 1);
 		Assertions.assertTrue(services.contains("service-wiremock"));
 
 		WebClient clientEndpoints = builder().baseUrl("http://localhost/endpoints/service-wiremock").build();
 
-		List<Endpoints> endpoints = clientEndpoints.method(HttpMethod.GET).retrieve()
-				.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {
-				}).retryWhen(retrySpec()).block();
+		List<Endpoints> endpoints = clientEndpoints.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(new ParameterizedTypeReference<List<Endpoints>>() {
+			})
+			.retryWhen(retrySpec())
+			.block();
 
 		Assertions.assertEquals(endpoints.size(), 1);
 		Assertions.assertEquals(endpoints.get(0).getMetadata().getNamespace(), "namespace-left");

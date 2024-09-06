@@ -40,7 +40,7 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 
 		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
 		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof KubernetesDiscoveryClient))
-				.isTrue();
+			.isTrue();
 	}
 
 	@SpringBootApplication

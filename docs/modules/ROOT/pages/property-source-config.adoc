@@ -16,3 +16,5 @@ If you would like to load Kubernetes ``PropertySource``s during the bootstrap ph
 you can either add `spring-cloud-starter-bootstrap` to your application's classpath or set `spring.cloud.bootstrap.enabled=true`
 as an environment variable.
 
+NOTE: It is not supported to load properties during Bootstrap (using `spring-cloud-starter-bootstrap` or `spring.cloud.bootstrap.enabled=true` and load properties using `spring.config.import`.  You must use one or the other method.
+

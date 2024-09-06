@@ -62,19 +62,19 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	private final SharedInformerFactory sharedInformerFactory = Mockito.mock(SharedInformerFactory.class);
 
 	private static final V1Service TEST_SERVICE_1 = new V1Service().spec(new V1ServiceSpec().type("ClusterIP"))
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE_1));
+		.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE_1));
 
 	private static final V1Service TEST_SERVICE_2 = new V1Service().spec(new V1ServiceSpec().type("ClusterIP"))
-			.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE_2));
+		.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE_2));
 
 	// same name as TEST_SERVICE_1, to test distinct
 	private static final V1Service TEST_SERVICE_3 = new V1Service()
-			.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE_2));
+		.metadata(new V1ObjectMeta().name("test-svc-2").namespace(NAMESPACE_2));
 
 	private static final V1Endpoints TEST_ENDPOINTS_1 = new V1Endpoints()
-			.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE_1))
-			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-					.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+		.metadata(new V1ObjectMeta().name("test-svc-1").namespace(NAMESPACE_1))
+		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
 	@AfterEach
 	void afterEach() {
@@ -96,8 +96,9 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		StepVerifier.create(discoveryClient.getServices())
-				.expectNext(TEST_SERVICE_1.getMetadata().getName(), TEST_SERVICE_2.getMetadata().getName())
-				.expectComplete().verify();
+			.expectNext(TEST_SERVICE_1.getMetadata().getName(), TEST_SERVICE_2.getMetadata().getName())
+			.expectComplete()
+			.verify();
 
 	}
 
@@ -110,8 +111,10 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
 						KubernetesDiscoveryProperties.DEFAULT));
 
-		StepVerifier.create(discoveryClient.getServices()).expectNext(TEST_SERVICE_1.getMetadata().getName())
-				.expectComplete().verify();
+		StepVerifier.create(discoveryClient.getServices())
+			.expectNext(TEST_SERVICE_1.getMetadata().getName())
+			.expectComplete()
+			.verify();
 
 	}
 
@@ -129,10 +132,11 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
-				.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
-						Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
-						"namespace1", null))
-				.expectComplete().verify();
+			.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
+					Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
+					"namespace1", null))
+			.expectComplete()
+			.verify();
 
 	}
 
@@ -150,10 +154,11 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
-				.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
-						Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
-						"namespace1", null))
-				.expectComplete().verify();
+			.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
+					Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
+					"namespace1", null))
+			.expectComplete()
+			.verify();
 
 	}
 
@@ -238,22 +243,22 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		boolean allNamespaces = true;
 
 		V1Service serviceXNamespaceA = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
-				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+			.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		V1Service serviceXNamespaceB = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
-				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+			.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		serviceCache.add(serviceXNamespaceA);
 		serviceCache.add(serviceXNamespaceB);
 
 		V1Endpoints endpointsXNamespaceA = new V1Endpoints()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
-				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-						.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+				.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 		V1Endpoints endpointsXNamespaceB = new V1Endpoints()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
-				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-						.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+				.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 		endpointsCache.add(endpointsXNamespaceA);
 		endpointsCache.add(endpointsXNamespaceB);
 
@@ -289,22 +294,22 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		boolean allNamespaces = true;
 
 		V1Service serviceXNamespaceA = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
-				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+			.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		V1Service serviceXNamespaceB = new V1Service()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
-				.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+			.spec(new V1ServiceSpecBuilder().withType("ClusterIP").build());
 		serviceCache.add(serviceXNamespaceA);
 		serviceCache.add(serviceXNamespaceB);
 
 		V1Endpoints endpointsXNamespaceA = new V1Endpoints()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
-				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-						.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-a"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+				.addAddressesItem(new V1EndpointAddress().ip("1.1.1.1")));
 		V1Endpoints endpointsXNamespaceB = new V1Endpoints()
-				.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
-				.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
-						.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
+			.metadata(new V1ObjectMeta().name("endpoints-x").namespace("namespace-b"))
+			.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
+				.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 		endpointsCache.add(endpointsXNamespaceA);
 		endpointsCache.add(endpointsXNamespaceB);
 

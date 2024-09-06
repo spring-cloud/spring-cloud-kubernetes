@@ -110,8 +110,11 @@ public final class Images {
 	private static String imageVersion(String imageNameForDownload) {
 		BufferedReader reader = new BufferedReader(
 				new InputStreamReader(Commons.class.getClassLoader().getResourceAsStream("current-images.txt")));
-		return reader.lines().filter(line -> line.contains(imageNameForDownload)).map(line -> line.split(":")[1])
-				.findFirst().orElseThrow();
+		return reader.lines()
+			.filter(line -> line.contains(imageNameForDownload))
+			.map(line -> line.split(":")[1])
+			.findFirst()
+			.orElseThrow();
 	}
 
 }

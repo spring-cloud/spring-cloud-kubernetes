@@ -43,7 +43,7 @@ import org.springframework.mock.env.MockEnvironment;
 class Fabric8ConfigDataLocationResolverTests {
 
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
-			.mock(ConfigDataLocationResolverContext.class);
+		.mock(ConfigDataLocationResolverContext.class);
 
 	private static final Fabric8ConfigDataLocationResolver RESOLVER = new Fabric8ConfigDataLocationResolver();
 
@@ -115,7 +115,7 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(Fabric8ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator.getClass());
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
@@ -157,7 +157,7 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(Fabric8ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator.getClass());
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
@@ -204,7 +204,7 @@ class Fabric8ConfigDataLocationResolverTests {
 		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
-				.get(ConfigMapPropertySourceLocator.class);
+			.get(ConfigMapPropertySourceLocator.class);
 		Assertions.assertSame(ConfigDataRetryableConfigMapPropertySourceLocator.class,
 				configMapPropertySourceLocator.getClass());
 

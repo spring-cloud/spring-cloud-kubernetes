@@ -90,8 +90,11 @@ public final class Commons {
 	public static final String TEMP_FOLDER = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
-			.configureFixedPorts(EXPOSED_PORTS).withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
-			.withFileSystemBind(TMP_IMAGES, TMP_IMAGES).withCommand(Commons.RANCHER_COMMAND).withReuse(true);
+		.configureFixedPorts(EXPOSED_PORTS)
+		.withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
+		.withFileSystemBind(TMP_IMAGES, TMP_IMAGES)
+		.withCommand(Commons.RANCHER_COMMAND)
+		.withReuse(true);
 
 	public static K3sContainer container() {
 		return CONTAINER;
@@ -107,36 +110,40 @@ public final class Commons {
 	public static void assertReloadLogStatements(String left, String right, String appLabel) {
 
 		try {
-			String appPodName = CONTAINER.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + appLabel + " -o=name --no-headers | tr -d '\n'").getStdout();
+			String appPodName = CONTAINER
+				.execInContainer("sh", "-c",
+						"kubectl get pods -l app=" + appLabel + " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
 			LOG.info("appPodName : ->" + appPodName + "<-");
 			// we issue a pollDelay to let the logs sync in, otherwise the results are not
 			// going to be correctly asserted
-			await().pollDelay(20, TimeUnit.SECONDS).pollInterval(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(120))
-					.until(() -> {
+			await().pollDelay(20, TimeUnit.SECONDS)
+				.pollInterval(Duration.ofSeconds(5))
+				.atMost(Duration.ofSeconds(120))
+				.until(() -> {
 
-						Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
-								"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
-						String error = result.getStderr();
-						String ok = result.getStdout();
+					Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
+							"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
+					String error = result.getStderr();
+					String ok = result.getStdout();
 
-						LOG.info("error is : -->" + error + "<--");
+					LOG.info("error is : -->" + error + "<--");
 
-						if (ok != null && !ok.isBlank()) {
+					if (ok != null && !ok.isBlank()) {
 
-							if (!right.isBlank()) {
-								String notPresent = CONTAINER
-										.execInContainer("sh", "-c",
-												"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
-										.getStdout();
-								Assertions.assertTrue(notPresent == null || notPresent.isBlank());
-							}
-
-							return true;
+						if (!right.isBlank()) {
+							String notPresent = CONTAINER
+								.execInContainer("sh", "-c",
+										"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
+								.getStdout();
+							Assertions.assertTrue(notPresent == null || notPresent.isBlank());
 						}
-						LOG.info("log statement not yet present");
-						return false;
-					});
+
+						return true;
+					}
+					LOG.info("log statement not yet present");
+					return false;
+				});
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -175,8 +182,10 @@ public final class Commons {
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();
 			if (tars != null && tars.length > 0) {
-				Optional<String> found = Arrays.stream(tars).map(File::getName).filter(x -> x.contains(tarName))
-						.findFirst();
+				Optional<String> found = Arrays.stream(tars)
+					.map(File::getName)
+					.filter(x -> x.contains(tarName))
+					.findFirst();
 				if (found.isPresent()) {
 					LOG.info("running in github actions, will load from : " + Commons.TMP_IMAGES + " tar : "
 							+ found.get());
@@ -233,10 +242,11 @@ public final class Commons {
 		try (ListImagesCmd listImagesCmd = container.getDockerClient().listImagesCmd()) {
 			List<Image> images = listImagesCmd.exec();
 			images.stream()
-					.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
-							.anyMatch(y -> y.contains(image)))
-					.findFirst().orElseThrow(() -> new IllegalArgumentException("Image : " + image
-							+ " not build locally. " + "You need to build it first, and then run the test"));
+				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
+					.anyMatch(y -> y.contains(image)))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
+						+ "You need to build it first, and then run the test"));
 		}
 	}
 
@@ -291,14 +301,15 @@ public final class Commons {
 
 			await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(4)).until(() -> {
 
-				String appPodName = k3sContainer.execInContainer("sh", "-c",
-						"kubectl get pods -l app=" + appLabelValue
-								+ " -o custom-columns=POD:metadata.name,STATUS:status.phase"
-								+ " | grep -i 'running' | awk '{print $1}' | tr -d '\n' ")
-						.getStdout();
+				String appPodName = k3sContainer
+					.execInContainer("sh", "-c",
+							"kubectl get pods -l app=" + appLabelValue
+									+ " -o custom-columns=POD:metadata.name,STATUS:status.phase"
+									+ " | grep -i 'running' | awk '{print $1}' | tr -d '\n' ")
+					.getStdout();
 
 				String execResult = k3sContainer.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim())
-						.getStdout();
+					.getStdout();
 				return execResult.contains(message);
 			});
 		}

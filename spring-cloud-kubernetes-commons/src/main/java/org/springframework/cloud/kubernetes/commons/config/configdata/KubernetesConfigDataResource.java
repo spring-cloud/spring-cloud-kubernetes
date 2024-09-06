@@ -117,8 +117,9 @@ public class KubernetesConfigDataResource extends ConfigDataResource {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("optional", optional).append("profiles", profiles.getAccepted())
-				.toString();
+		return new ToStringCreator(this).append("optional", optional)
+			.append("profiles", profiles.getAccepted())
+			.toString();
 
 	}
 

@@ -194,7 +194,7 @@ public final class ConfigUtils {
 			boolean includeDefaultProfileData) {
 
 		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
-				.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
+			.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
 
 		LinkedHashSet<String> foundSourceNames = new LinkedHashSet<>();
 		Map<String, Object> data = new HashMap<>();
@@ -237,7 +237,7 @@ public final class ConfigUtils {
 		boolean emptyActiveProfiles = activeProfiles.isEmpty();
 
 		boolean profileBasedSourceName = activeProfiles.stream()
-				.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile));
+			.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile));
 
 		boolean defaultProfilePresent = activeProfiles.contains("default");
 
@@ -255,9 +255,12 @@ public final class ConfigUtils {
 	 */
 	static BooleanSupplier rawDataContainsProfileBasedSource(List<String> activeProfiles,
 			Map<String, String> sourceRawData) {
-		return () -> Optional.ofNullable(sourceRawData).orElse(Map.of()).keySet().stream()
-				.anyMatch(keyName -> activeProfiles.stream()
-						.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
+		return () -> Optional.ofNullable(sourceRawData)
+			.orElse(Map.of())
+			.keySet()
+			.stream()
+			.anyMatch(keyName -> activeProfiles.stream()
+				.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
 	}
 
 	/**
@@ -293,7 +296,8 @@ public final class ConfigUtils {
 		// profiles based sources from the above. This would get all sources
 		// we are interested in.
 		List<StrippedSourceContainer> byProfile = containers.stream()
-				.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name())).toList();
+			.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name()))
+			.toList();
 
 		// this makes sure that we first have "app" and then "app-dev" in the list
 		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
@@ -326,15 +330,14 @@ public final class ConfigUtils {
 
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
 			String name) {
-		if (instance != null && !bootstrapContext.isRegistered(cls)) {
-			bootstrapContext.register(cls, BootstrapRegistry.InstanceSupplier.of(instance));
-			bootstrapContext.addCloseListener(event -> {
-				if (event.getApplicationContext().getBeanFactory().getSingleton(name) == null) {
-					event.getApplicationContext().getBeanFactory().registerSingleton(name,
-						event.getBootstrapContext().get(cls));
-				}
-			});
-		}
+		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
+		bootstrapContext.addCloseListener(event -> {
+			if (event.getApplicationContext().getBeanFactory().getSingleton(name) == null) {
+				event.getApplicationContext()
+					.getBeanFactory()
+					.registerSingleton(name, event.getBootstrapContext().get(cls));
+			}
+		});
 	}
 
 	/**
