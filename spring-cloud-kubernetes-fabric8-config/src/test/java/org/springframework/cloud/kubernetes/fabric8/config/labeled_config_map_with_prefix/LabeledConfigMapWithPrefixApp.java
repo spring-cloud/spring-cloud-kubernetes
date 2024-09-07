@@ -26,7 +26,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_wi
 
 @SpringBootApplication
 @EnableConfigurationProperties({ One.class, Two.class, Three.class, Four.class })
-public class LabeledConfigMapWithPrefixApp {
+class LabeledConfigMapWithPrefixApp {
 
 	public static void main(String[] args) {
 		SpringApplication.run(LabeledConfigMapWithPrefixApp.class, args);

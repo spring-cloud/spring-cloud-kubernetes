@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.config.example2;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.fabric8.config.example.App;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,51 +27,41 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExampleApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(App.class, args);
+		SpringApplication.run(ExampleApp.class, args);
 	}
 
 	@RestController
-	public static class Controller {
+	static class Controller {
 
 		private final ExampleAppProps exampleAppProps;
 
-		public Controller(ExampleAppProps exampleAppProps) {
+		Controller(ExampleAppProps exampleAppProps) {
 			this.exampleAppProps = exampleAppProps;
 		}
 
 		@GetMapping("/common")
-		public Response commonMessage() {
+		Response commonMessage() {
 			return new Response(this.exampleAppProps.getCommonMessage());
 		}
 
 		@GetMapping("/m1")
-		public Response message1() {
+		Response message1() {
 			return new Response(this.exampleAppProps.getMessage1());
 		}
 
 		@GetMapping("/m2")
-		public Response message2() {
+		Response message2() {
 			return new Response(this.exampleAppProps.getMessage2());
 		}
 
 		@GetMapping("/m3")
-		public Response message3() {
+		Response message3() {
 			return new Response(this.exampleAppProps.getMessage3());
 		}
 
 	}
 
-	public static class Response {
-
-		private final String message;
-
-		public Response(String message) {
-			this.message = message;
-		}
-
-		public String getMessage() {
-			return this.message;
-		}
+	record Response(String message) {
 
 	}
 
