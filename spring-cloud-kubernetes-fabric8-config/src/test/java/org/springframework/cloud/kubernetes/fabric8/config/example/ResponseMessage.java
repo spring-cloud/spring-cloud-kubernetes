@@ -19,20 +19,5 @@ package org.springframework.cloud.kubernetes.fabric8.config.example;
 /**
  * @author Charles Moulliard
  */
-public class ResponseMessage {
-
-	private final String content;
-
-	public ResponseMessage() {
-		this.content = null;
-	}
-
-	public ResponseMessage(String content) {
-		this.content = content;
-	}
-
-	public String getContent() {
-		return this.content;
-	}
-
+record ResponseMessage(String content) {
 }
