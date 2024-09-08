@@ -101,7 +101,7 @@ abstract class SecretsRetryEnabled {
 		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
 	}
 
-	//@Test
+	// @Test
 	void locateShouldRetryAndRecover() {
 		Map<String, String> data = new HashMap<>();
 		data.put("some.sensitive.prop", Base64.getEncoder().encodeToString("theSensitiveValue".getBytes()));
@@ -127,7 +127,7 @@ abstract class SecretsRetryEnabled {
 		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
 	}
 
-	//@Test
+	// @Test
 	void locateShouldRetryAndFail() {
 		// fail all the 5 requests
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").times(5);
