@@ -20,19 +20,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
 
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@ActiveProfiles("color")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = SingleSourceMultipleFilesApp.class,
-		properties = { "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:,classpath:./single-source-multiple-files.yaml" })
+@TestPropertySource(properties = { "spring.config.import=kubernetes:,classpath:./single-source-multiple-files.yaml" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class SingleSourceMultipleFilesConfigDataTests extends SingleSourceMultipleFilesTests {
+class SingleSourceMultipleFilesConfigDataTests extends SingleSourceMultipleFiles {
 
 	private static KubernetesClient mockClient;
 

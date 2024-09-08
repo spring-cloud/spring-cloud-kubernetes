@@ -24,7 +24,9 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -36,6 +38,12 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		properties = { "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.cloud.kubernetes.secrets.retry.enabled=false",
+				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.secrets.name=my-secret",
+				"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES" },
+		classes = TestApplication.class)
 abstract class SecretsRetryDisabledButConfigRetryEnabled {
 
 	private static final String SECRET_API = "/api/v1/namespaces/default/secrets";

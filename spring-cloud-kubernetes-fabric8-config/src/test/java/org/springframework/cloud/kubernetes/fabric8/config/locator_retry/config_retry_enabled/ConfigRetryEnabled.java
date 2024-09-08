@@ -27,7 +27,9 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -40,6 +42,11 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Isik Erhan
  */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+		properties = { "spring.cloud.kubernetes.secrets.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.config.fail-fast=true",
+				"spring.cloud.kubernetes.config.retry.max-attempts=5", "spring.main.cloud-platform=KUBERNETES" },
+		classes = TestApplication.class)
 abstract class ConfigRetryEnabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps";
