@@ -16,16 +16,15 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.example3;
 
-/**
- * @author Haytham Mohamed
- **/
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * @author Haytham Mohamed
+ **/
 @SpringBootApplication
 @EnableConfigurationProperties(MultiSecretsProperties.class)
 public class MultiSecretsApp {
@@ -35,38 +34,27 @@ public class MultiSecretsApp {
 	}
 
 	@RestController
-	public static class Controller {
+	static class Controller {
 
 		private final MultiSecretsProperties properties;
 
-		public Controller(MultiSecretsProperties properties) {
+		Controller(MultiSecretsProperties properties) {
 			this.properties = properties;
 		}
 
 		@GetMapping("/secret1")
-		public Response secret1() {
+		Response secret1() {
 			return new Response(this.properties.getSecret1());
 		}
 
 		@GetMapping("/secret2")
-		public Response secret2() {
+		Response secret2() {
 			return new Response(this.properties.getSecret2());
 		}
 
 	}
 
-	public static class Response {
-
-		private final String secret;
-
-		public Response(String secret) {
-			this.secret = secret;
-		}
-
-		public String getSecret() {
-			return this.secret;
-		}
-
+	record Response(String secret) {
 	}
 
 }
