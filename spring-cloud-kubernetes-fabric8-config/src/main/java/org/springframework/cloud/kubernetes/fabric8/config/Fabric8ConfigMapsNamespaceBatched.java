@@ -49,7 +49,7 @@ final class Fabric8ConfigMapsNamespaceBatched implements ConfigMapCache {
 		CACHE.clear();
 	}
 
-	static List<StrippedSourceContainer> byNamespace(KubernetesClient client, String namespace) {
+	static List<StrippedSourceContainer> configMapsByNamespace(KubernetesClient client, String namespace) {
 		boolean[] b = new boolean[1];
 		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			b[0] = true;

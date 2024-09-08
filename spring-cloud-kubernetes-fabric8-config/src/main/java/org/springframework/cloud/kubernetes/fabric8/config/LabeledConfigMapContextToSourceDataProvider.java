@@ -57,7 +57,7 @@ final class LabeledConfigMapContextToSourceDataProvider implements Supplier<Fabr
 				@Override
 				public MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles) {
 					return Fabric8ConfigUtils.configMapsDataByLabels(context.client(), context.namespace(), labels,
-							context.environment(), profiles);
+							context.environment(), profiles, context.namespacedBatchRead());
 				}
 
 			}.compute(source.labels(), source.prefix(), source.target(), source.profileSpecificSources(),

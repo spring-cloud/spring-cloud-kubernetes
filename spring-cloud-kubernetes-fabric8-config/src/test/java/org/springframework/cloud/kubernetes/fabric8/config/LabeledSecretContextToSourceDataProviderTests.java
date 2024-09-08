@@ -83,7 +83,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
-		new Fabric8SecretsCache().discardAll();
+		new Fabric8SecretsNamespaceBatched().discardAll();
 	}
 
 	/**

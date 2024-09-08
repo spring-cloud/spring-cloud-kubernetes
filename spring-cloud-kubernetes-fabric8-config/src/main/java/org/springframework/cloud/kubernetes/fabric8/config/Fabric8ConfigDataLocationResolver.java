@@ -75,7 +75,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 					kubernetesClient, secretsProperties, namespaceProvider);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
 				secretsPropertySourceLocator = new ConfigDataRetryableSecretsPropertySourceLocator(
-						secretsPropertySourceLocator, secretsProperties, new Fabric8SecretsCache());
+						secretsPropertySourceLocator, secretsProperties, new Fabric8SecretsNamespaceBatched());
 			}
 
 			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class, secretsPropertySourceLocator,

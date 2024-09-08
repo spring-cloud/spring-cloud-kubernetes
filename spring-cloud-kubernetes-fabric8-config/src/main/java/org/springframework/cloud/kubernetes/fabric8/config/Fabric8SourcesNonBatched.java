@@ -22,12 +22,14 @@ import java.util.List;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.strippedConfigMaps;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.strippedSecrets;
 
 /**
  * non batch reads (not reading in the whole namespace) of configmaps
@@ -46,7 +48,7 @@ final class Fabric8SourcesNonBatched {
 	/**
 	 * read configmaps by name, one by one, without caching them.
 	 */
-	static List<StrippedSourceContainer> byName(KubernetesClient client, String namespace,
+	static List<StrippedSourceContainer> configMapsByName(KubernetesClient client, String namespace,
 			LinkedHashSet<String> sourceNames) {
 
 		List<ConfigMap> configMaps = new ArrayList<>(sourceNames.size());
@@ -63,9 +65,28 @@ final class Fabric8SourcesNonBatched {
 	}
 
 	/**
+	 * read secrets by name, one by one, without caching them.
+	 */
+	static List<StrippedSourceContainer> secretsByName(KubernetesClient client, String namespace,
+			LinkedHashSet<String> sourceNames) {
+
+		List<Secret> secrets = new ArrayList<>(sourceNames.size());
+
+		for (String sourceName : sourceNames) {
+			Secret secret = client.secrets().inNamespace(namespace).withName(sourceName).get();
+			if (secret != null) {
+				LOG.debug("Loaded config map '" + sourceName + "'");
+				secrets.add(secret);
+			}
+		}
+
+		return strippedSecrets(secrets);
+	}
+
+	/**
 	 * read configmaps by labels, without caching them.
 	 */
-	static List<StrippedSourceContainer> byLabels(KubernetesClient client, String namespace,
+	static List<StrippedSourceContainer> configMapsByLabels(KubernetesClient client, String namespace,
 			Map<String, String> labels) {
 
 		List<ConfigMap> configMaps = client.configMaps()
@@ -75,6 +96,21 @@ final class Fabric8SourcesNonBatched {
 			.getItems();
 
 		return strippedConfigMaps(configMaps);
+	}
+
+	/**
+	 * read secrets by labels, without caching them.
+	 */
+	static List<StrippedSourceContainer> secretsByLabels(KubernetesClient client, String namespace,
+			Map<String, String> labels) {
+
+		List<Secret> secrets = client.secrets()
+			.inNamespace(namespace)
+			.withLabels(labels)
+			.list()
+			.getItems();
+
+		return strippedSecrets(secrets);
 	}
 
 }

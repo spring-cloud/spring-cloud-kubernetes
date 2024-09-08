@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,9 +35,12 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPr
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.env.Environment;
 
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonBatched.byLabels;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonBatched.byName;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapsNamespaceBatched.byNamespace;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonBatched.configMapsByLabels;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonBatched.configMapsByName;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonBatched.secretsByLabels;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonBatched.secretsByName;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapsNamespaceBatched.configMapsByNamespace;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsNamespaceBatched.secretsByNamespace;
 
 /**
  * Utility class that works with configuration properties.
@@ -74,11 +78,20 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
-		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(client, namespace);
-		if (strippedSecrets.isEmpty()) {
-			return MultipleSourcesContainer.empty();
+			Map<String, String> labels, Environment environment, Set<String> profiles, boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedSecrets;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all secrets in namespace : " + namespace);
+			strippedSecrets = strippedSecretsBatchRead(client, namespace);
 		}
+		else {
+			LOG.debug("Will read individual secrets in namespace : " + namespace + " with labels : "
+				+ labels);
+			strippedSecrets = strippedSecretsByLabels(client, namespace, labels);
+		}
+
 		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, profiles, true);
 	}
 
@@ -104,7 +117,7 @@ public final class Fabric8ConfigUtils {
 		else {
 			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with labels : "
 				+ labels);
-			strippedConfigMaps = strippedConfigMapsByLabel(client, namespace, labels);
+			strippedConfigMaps = strippedConfigMapsByLabels(client, namespace, labels);
 		}
 
 		if (strippedConfigMaps.isEmpty()) {
@@ -128,12 +141,14 @@ public final class Fabric8ConfigUtils {
 		List<StrippedSourceContainer> strippedSecrets;
 
 		if (namespacedBatchRead) {
+			LOG.debug("Will read all secrets in namespace : " + namespace);
 			strippedSecrets = strippedSecretsBatchRead(client, namespace);
 		}
 		else {
-
+			LOG.debug("Will read individual secrets in namespace : " + namespace + " with names : "
+				+ sourceNames);
+			strippedSecrets = strippedSecretsByName(client, namespace, sourceNames);
 		}
-
 
 		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
@@ -177,13 +192,20 @@ public final class Fabric8ConfigUtils {
 			.toList();
 	}
 
+	static List<StrippedSourceContainer> strippedSecrets(List<Secret> secrets) {
+		return secrets.stream()
+			.map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(), secret.getMetadata().getName(),
+				secret.getData()))
+			.toList();
+	}
+
 	/**
 	 * read specific configmaps (by name) in the given namespaces, and strip them down
 	 * to only needed fields.
 	 */
 	private static List<StrippedSourceContainer> strippedConfigMapsByName(
 		KubernetesClient client, String namespace, LinkedHashSet<String> sourceNames) {
-		List<StrippedSourceContainer> strippedConfigMaps = byName(client, namespace, sourceNames);
+		List<StrippedSourceContainer> strippedConfigMaps = configMapsByName(client, namespace, sourceNames);
 		if (strippedConfigMaps.isEmpty()) {
 			LOG.debug("No configmaps in namespace '" + namespace + "'");
 		}
@@ -198,6 +220,20 @@ public final class Fabric8ConfigUtils {
 	private static List<StrippedSourceContainer> strippedSecretsByName(
 		KubernetesClient client, String namespace, LinkedHashSet<String> sourceNames) {
 		List<StrippedSourceContainer> strippedSecrets = secretsByName(client, namespace, sourceNames);
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug("No secrets in namespace '" + namespace + "'");
+		}
+
+		return strippedSecrets;
+	}
+
+	/**
+	 * read specific configmaps (by labels) in the given namespaces, and strip them down
+	 * to only needed fields.
+	 */
+	private static List<StrippedSourceContainer> strippedConfigMapsByLabels(
+		KubernetesClient client, String namespace, Map<String, String> labels) {
+		List<StrippedSourceContainer> strippedConfigMaps = configMapsByLabels(client, namespace, labels);
 		if (strippedConfigMaps.isEmpty()) {
 			LOG.debug("No configmaps in namespace '" + namespace + "'");
 		}
@@ -209,14 +245,14 @@ public final class Fabric8ConfigUtils {
 	 * read specific configmaps (by labels) in the given namespaces, and strip them down
 	 * to only needed fields.
 	 */
-	private static List<StrippedSourceContainer> strippedConfigMapsByLabel(
+	private static List<StrippedSourceContainer> strippedSecretsByLabels(
 		KubernetesClient client, String namespace, Map<String, String> labels) {
-		List<StrippedSourceContainer> strippedConfigMaps = byLabels(client, namespace, labels);
-		if (strippedConfigMaps.isEmpty()) {
-			LOG.debug("No configmaps in namespace '" + namespace + "'");
+		List<StrippedSourceContainer> strippedSecrets = secretsByLabels(client, namespace, labels);
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug("No secrets in namespace '" + namespace + "'");
 		}
 
-		return strippedConfigMaps;
+		return strippedSecrets;
 	}
 
 	/**
@@ -224,7 +260,7 @@ public final class Fabric8ConfigUtils {
 	 * to only needed fields.
 	 */
 	private static List<StrippedSourceContainer> strippedConfigMapsBatchRead(KubernetesClient client, String namespace) {
-		List<StrippedSourceContainer> strippedConfigMaps = byNamespace(client, namespace);
+		List<StrippedSourceContainer> strippedConfigMaps = configMapsByNamespace(client, namespace);
 		if (strippedConfigMaps.isEmpty()) {
 			LOG.debug("No configmaps in namespace '" + namespace + "'");
 		}
@@ -233,7 +269,7 @@ public final class Fabric8ConfigUtils {
 	}
 
 	private static List<StrippedSourceContainer> strippedSecretsBatchRead(KubernetesClient client, String namespace) {
-		List<StrippedSourceContainer> strippedSecrets = byNamespace(client, namespace);
+		List<StrippedSourceContainer> strippedSecrets = secretsByNamespace(client, namespace);
 		if (strippedSecrets.isEmpty()) {
 			LOG.debug("No secrets in namespace '" + namespace + "'");
 		}

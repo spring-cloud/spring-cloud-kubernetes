@@ -18,9 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
@@ -28,15 +26,17 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsCache;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.strippedSecrets;
+
 /**
  * A cache of ConfigMaps per namespace. Makes sure we read config maps only once from a
  * namespace.
  *
  * @author wind57
  */
-final class Fabric8SecretsCache implements SecretsCache {
+final class Fabric8SecretsNamespaceBatched implements SecretsCache {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8SecretsCache.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8SecretsNamespaceBatched.class));
 
 	/**
 	 * at the moment our loading of config maps is using a single thread, but might change
@@ -49,7 +49,7 @@ final class Fabric8SecretsCache implements SecretsCache {
 		CACHE.clear();
 	}
 
-	static List<StrippedSourceContainer> byNamespace(KubernetesClient client, String namespace) {
+	static List<StrippedSourceContainer> secretsByNamespace(KubernetesClient client, String namespace) {
 		boolean[] b = new boolean[1];
 		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
 			b[0] = true;
@@ -64,13 +64,6 @@ final class Fabric8SecretsCache implements SecretsCache {
 		}
 
 		return result;
-	}
-
-	private static List<StrippedSourceContainer> strippedSecrets(List<Secret> secrets) {
-		return secrets.stream()
-			.map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(), secret.getMetadata().getName(),
-					secret.getData()))
-			.collect(Collectors.toList());
 	}
 
 }

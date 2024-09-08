@@ -47,7 +47,7 @@ class Fabric8ConfigUtilsTests {
 	@AfterEach
 	void afterEach() {
 		new Fabric8ConfigMapsNamespaceBatched().discardAll();
-		new Fabric8SecretsCache().discardAll();
+		new Fabric8SecretsNamespaceBatched().discardAll();
 	}
 
 	// secret "my-secret" is deployed without any labels; we search for it by labels
