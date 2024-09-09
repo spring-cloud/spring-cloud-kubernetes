@@ -86,7 +86,7 @@ public class TestsDiscovery {
 	// /tmp/deps.txt is created by the pipeline
 	private static List<String> entireClasspath() throws Exception {
 		try (Stream<String> lines = Files.lines(Paths.get("/tmp/deps.txt"))) {
-			return lines.distinct().collect(Collectors.toList());
+			return lines.distinct().toList();
 		}
 	}
 
