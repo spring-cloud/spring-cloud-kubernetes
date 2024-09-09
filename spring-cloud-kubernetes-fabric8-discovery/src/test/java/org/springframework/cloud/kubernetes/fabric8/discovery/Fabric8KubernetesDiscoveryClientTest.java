@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
@@ -302,7 +301,7 @@ class Fabric8KubernetesDiscoveryClientTest {
 		assertThat(result_endpoints.stream()
 			.map(Endpoints::getMetadata)
 			.map(ObjectMeta::getNamespace)
-			.collect(Collectors.toList())).containsOnly(namespace1, namespace3);
+			.toList()).containsOnly(namespace1, namespace3);
 	}
 
 	@Test

@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -79,7 +78,7 @@ public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 		return configMaps.stream()
 			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
 					configMap.getMetadata().getName(), configMap.getData()))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 }
