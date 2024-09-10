@@ -25,9 +25,9 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
