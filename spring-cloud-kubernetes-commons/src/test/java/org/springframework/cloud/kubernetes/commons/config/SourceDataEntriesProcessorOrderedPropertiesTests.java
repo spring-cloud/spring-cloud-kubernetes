@@ -53,7 +53,7 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 	@Test
 	void testSingleFileProperty() {
 		Map<String, String> map = new LinkedHashMap<>();
-		map.put("application.properties", "my-key=from-app");
+		map.put(Constants.APPLICATION_PROPERTIES, "my-key=from-app");
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, mockEnvironment);
@@ -78,7 +78,7 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 	void testThree() {
 
 		Map<String, String> map = new LinkedHashMap<>();
-		map.put("application.properties", """
+		map.put(Constants.APPLICATION_PROPERTIES, """
 				firstKey=firstFromProperties
 				secondKey=secondFromProperties""");
 		map.put("firstKey", "abc");
@@ -114,7 +114,7 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 	void testFour() {
 
 		Map<String, String> map = new LinkedHashMap<>();
-		map.put("application.properties", """
+		map.put(Constants.APPLICATION_PROPERTIES, """
 				firstKey=firstFromProperties
 				secondKey=secondFromProperties
 				thirdKey=thirdFromProperties""");
@@ -158,7 +158,7 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 	void testFive() {
 
 		Map<String, String> map = new LinkedHashMap<>();
-		map.put("application.properties", """
+		map.put(Constants.APPLICATION_PROPERTIES, """
 				firstKey=firstFromProperties
 				secondKey=secondFromProperties
 				thirdKey=thirdFromProperties""");

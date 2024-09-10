@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -68,7 +69,7 @@ final class SecretsEventsReloadDelegate {
 				.withNamespace("default")
 				.withName("event-reload")
 				.build())
-			.withData(Map.of("application.properties",
+			.withData(Map.of(Constants.APPLICATION_PROPERTIES,
 					Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial".getBytes())))
 			.build();
 		client.secrets().inNamespace("default").resource(secret).createOrReplace();
@@ -89,7 +90,7 @@ final class SecretsEventsReloadDelegate {
 		// change data
 		secret = new SecretBuilder()
 			.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
-			.withData(Map.of("application.properties",
+			.withData(Map.of(Constants.APPLICATION_PROPERTIES,
 					Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
 			.build();
 

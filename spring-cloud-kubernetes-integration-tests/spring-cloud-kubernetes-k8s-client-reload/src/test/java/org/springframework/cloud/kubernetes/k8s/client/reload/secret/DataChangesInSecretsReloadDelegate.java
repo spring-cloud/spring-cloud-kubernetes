@@ -25,6 +25,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -71,7 +72,7 @@ final class DataChangesInSecretsReloadDelegate {
 				.withNamespace(NAMESPACE)
 				.withName("event-reload")
 				.build())
-			.withData(Map.of("application.properties", "from.properties.key=initial".getBytes()))
+			.withData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=initial".getBytes()))
 			.build();
 
 		replaceSecret(secret, "event-reload");
@@ -96,7 +97,7 @@ final class DataChangesInSecretsReloadDelegate {
 				.withNamespace(NAMESPACE)
 				.withName("event-reload")
 				.build())
-			.withData(Map.of("application.properties", "from.properties.key=change-initial".getBytes()))
+			.withData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=change-initial".getBytes()))
 			.build();
 
 		replaceSecret(secret, "event-reload");
