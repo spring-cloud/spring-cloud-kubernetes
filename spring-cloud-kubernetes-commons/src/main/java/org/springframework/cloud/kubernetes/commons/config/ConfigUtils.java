@@ -29,14 +29,16 @@ import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -52,7 +54,9 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  */
 public final class ConfigUtils {
 
-	private static final Log LOG = LogFactory.getLog(ConfigUtils.class);
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ConfigUtils.class));
+
+	private static final Pattern ENDS_WITH_PROFILE = Pattern.compile("^.+?-(.+$)");
 
 	// sourceName (configmap or secret name) ends with : "-dev.yaml" or the like.
 	private static final BiPredicate<String, String> ENDS_WITH_PROFILE_AND_EXTENSION = (sourceName,
@@ -150,7 +154,7 @@ public final class ConfigUtils {
 		if (failFast) {
 			throw new IllegalStateException(e.getMessage(), e);
 		}
-		LOG.warn(e.getMessage() + ". Ignoring.", e);
+		LOG.warn(e, () -> e.getMessage() + ". Ignoring.");
 	}
 
 	/*
@@ -274,52 +278,100 @@ public final class ConfigUtils {
 			Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
 			boolean decode) {
 
-		// find sources by provided labels
-		List<StrippedSourceContainer> byLabels = containers.stream().filter(one -> {
+		// find sources that match the provided labels
+		List<StrippedSourceContainer> allByLabels = containers.stream().filter(one -> {
 			Map<String, String> sourceLabels = one.labels();
 			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
 		}).toList();
 
-		// compute profile based source names (based on the ones we found by labels)
-		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
-		if (profiles != null && !profiles.isEmpty()) {
-			for (StrippedSourceContainer one : byLabels) {
-				for (String profile : profiles) {
-					String name = one.name() + "-" + profile;
-					sourceNamesByLabelsWithProfile.add(name);
+		List<StrippedSourceContainer> allByLabelsNonProfileBased = new ArrayList<>();
+
+		if (profiles == null || profiles.isEmpty()) {
+			for (StrippedSourceContainer oneByLabel : allByLabels) {
+				String name = oneByLabel.name();
+				Matcher matcher = ENDS_WITH_PROFILE.matcher(name);
+				if (matcher.matches()) {
+					LOG.debug(() -> "skipping source with name : '" + name +
+						"' because it ends in : '" +  matcher.group(1) +
+						"' and we assume that is a profile name (and there are no active profiles)");
+				}
+				else {
+					LOG.debug(() -> "taking source with name : '" + name + "'");
+					allByLabelsNonProfileBased.add(oneByLabel);
+				}
+			}
+		}
+		else {
+			for (StrippedSourceContainer oneByLabel : allByLabels) {
+				String name = oneByLabel.name();
+				Matcher matcher = ENDS_WITH_PROFILE.matcher(name);
+				if (matcher.matches()) {
+					String profile = matcher.group(1);
+					if (profiles.contains(profile)) {
+
+					}
+					else {
+						LOG.debug(() -> "skipping source with name : '" + name +
+							"' because it ends in : '" +  matcher.group(1) +
+							"' and it does not match any of the active profiles : " + profiles);
+					}
+
+
+				}
+				else {
+					LOG.debug(() -> "taking source with name : '" + name + "'");
+					allByLabelsNonProfileBased.add(oneByLabel);
 				}
 			}
 		}
 
-		// once we know sources by labels (and thus their names), we can find out
-		// profiles based sources from the above. This would get all sources
-		// we are interested in.
-		List<StrippedSourceContainer> byProfile = containers.stream()
-			.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name()))
-			.toList();
 
-		// this makes sure that we first have "app" and then "app-dev" in the list
-		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
-		all.addAll(byLabels);
-		all.addAll(byProfile);
 
-		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
-		Map<String, Object> result = new HashMap<>();
+//		// find sources by provided labels
 
-		all.forEach(source -> {
-			String foundSourceName = source.name();
-			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
-			sourceNames.add(foundSourceName);
+//
+//		// compute profile based source names (based on the ones we found by labels)
+//		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
+//		if (profiles != null && !profiles.isEmpty()) {
+//			for (StrippedSourceContainer one : byLabels) {
+//				for (String profile : profiles) {
+//					String name = one.name() + "-" + profile;
+//					sourceNamesByLabelsWithProfile.add(name);
+//				}
+//			}
+//		}
+//
+//		// once we know sources by labels (and thus their names), we can find out
+//		// profiles based sources from the above. This would get all sources
+//		// we are interested in.
+//		List<StrippedSourceContainer> byProfile = containers.stream()
+//			.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name()))
+//			.toList();
+//
+//		// this makes sure that we first have "app" and then "app-dev" in the list
+//		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
+//		all.addAll(byLabels);
+//		all.addAll(byProfile);
+//
+//		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
+//		Map<String, Object> result = new HashMap<>();
+//
+//		all.forEach(source -> {
+//			String foundSourceName = source.name();
+//			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
+//			sourceNames.add(foundSourceName);
+//
+//			Map<String, String> rawData = source.data();
+//			if (decode) {
+//				rawData = decodeData(rawData);
+//			}
+//			result.putAll(SourceDataEntriesProcessor.processAllEntries(rawData, environment));
+//		});
+//
+//		return new MultipleSourcesContainer(sourceNames, result);
 
-			Map<String, String> rawData = source.data();
-			if (decode) {
-				rawData = decodeData(rawData);
-			}
-			result.putAll(SourceDataEntriesProcessor.processAllEntries(rawData, environment));
-		});
-
-		return new MultipleSourcesContainer(sourceNames, result);
+		return null;
 	}
 
 	private static Map<String, String> decodeData(Map<String, String> data) {

@@ -193,8 +193,26 @@ spring:
 ----
 
 This will search for every configmap in namespace `spring-k8s` that has labels `{letter : a}`. The important
-thing to notice here is that unlike reading a configmap by name, this can result in _multiple_ config maps read.
-As usual, the same feature is supported for secrets.
+thing to notice here is that unlike reading a configmap by name, this can result in _multiple_ config maps read. The same feature is supported for secrets.
+
+Another important point is that if you plan to use `labels` searching coupled with `includeProfileSpecificSources` functionality, we strongly encourage such configmaps (and secrets) names to have zero or one dashes (`-`) (as defined in the `.metadata.name`). The reason for this is simple, suppose you define two configmaps that have the same labels:
+
+[source,yaml]
+----
+my-app
+my-app-dev
+----
+
+when we look up for them, how do we know what is the profile name : `app`, `app-dev`, or simply `dev`? Or may be these names don't have a profile at all. The only reasonable assumption we can do is that everything that follows a dash is a profile name, be that active or not. So the above should be changed to:
+
+[source,yaml]
+----
+my_app
+my_app-dev
+----
+
+Then `my_app` is the non-profile based name and `my_app-dev` is the source we will be using _only_ if `dev` is an active profile.
+
 
 You can also configure Spring Boot applications differently depending on active profiles that are merged together
 when the `ConfigMap` is read. You can provide different property values for different profiles by using an
