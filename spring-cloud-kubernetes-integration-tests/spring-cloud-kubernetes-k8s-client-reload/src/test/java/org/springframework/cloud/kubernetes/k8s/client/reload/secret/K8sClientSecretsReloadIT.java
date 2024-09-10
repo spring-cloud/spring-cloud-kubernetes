@@ -27,6 +27,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -121,7 +122,7 @@ class K8sClientSecretsReloadIT {
 
 		V1Secret v1Secret = (V1Secret) util.yaml("secret.yaml");
 		Map<String, byte[]> secretData = v1Secret.getData();
-		secretData.replace("application.properties", "from.properties.key: after-change".getBytes());
+		secretData.replace(Constants.APPLICATION_PROPERTIES, "from.properties.key: after-change".getBytes());
 		v1Secret.setData(secretData);
 		coreV1Api.replaceNamespacedSecret("event-reload", NAMESPACE, v1Secret, null, null, null, null);
 

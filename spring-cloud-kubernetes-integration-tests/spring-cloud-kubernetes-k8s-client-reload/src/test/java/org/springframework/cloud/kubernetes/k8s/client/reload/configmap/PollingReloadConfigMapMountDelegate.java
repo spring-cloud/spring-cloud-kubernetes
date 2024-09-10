@@ -22,6 +22,7 @@ import java.util.Map;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -82,7 +83,7 @@ final class PollingReloadConfigMapMountDelegate {
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
 		V1ConfigMap configMap = (V1ConfigMap) util.yaml("configmap-mount.yaml");
-		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
+		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		new CoreV1Api().replaceNamespacedConfigMap("poll-reload-as-mount", "default", configMap, null, null, null,
 				null);
 
