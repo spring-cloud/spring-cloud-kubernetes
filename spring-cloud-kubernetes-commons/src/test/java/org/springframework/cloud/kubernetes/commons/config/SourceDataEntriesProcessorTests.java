@@ -106,7 +106,7 @@ class SourceDataEntriesProcessorTests {
 	void twoEntriesBothTaken() {
 
 		Map.Entry<String, String> one = Map.entry("one", "1");
-		Map.Entry<String, String> application = Map.entry("application.yaml", "color: \n blue");
+		Map.Entry<String, String> application = Map.entry(Constants.APPLICATION_YAML, "color: \n blue");
 		Map<String, String> map = Map.ofEntries(one, application);
 
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, new MockEnvironment());
@@ -127,7 +127,7 @@ class SourceDataEntriesProcessorTests {
 	void threeEntriesAllTaken() {
 
 		Map.Entry<String, String> one = Map.entry("one", "1");
-		Map.Entry<String, String> application = Map.entry("application.properties", "color=blue");
+		Map.Entry<String, String> application = Map.entry(Constants.APPLICATION_PROPERTIES, "color=blue");
 		Map.Entry<String, String> applicationDev = Map.entry("application-dev.properties", "fit=sport");
 		Map<String, String> map = Map.ofEntries(one, application, applicationDev);
 
