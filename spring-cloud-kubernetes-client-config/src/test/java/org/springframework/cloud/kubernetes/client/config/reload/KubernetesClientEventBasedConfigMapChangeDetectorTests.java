@@ -103,8 +103,9 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		data.put(Constants.APPLICATION_PROPERTIES, "spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
 				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
 		Map<String, String> updateData = new HashMap<>();
-		updateData.put(Constants.APPLICATION_PROPERTIES, "spring.cloud.kubernetes.configuration.watcher.refreshDelay=1\n"
-				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
+		updateData.put(Constants.APPLICATION_PROPERTIES,
+				"spring.cloud.kubernetes.configuration.watcher.refreshDelay=1\n"
+						+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
 		V1ConfigMap applicationConfig = new V1ConfigMap().kind("ConfigMap")
 			.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
 			.data(data);

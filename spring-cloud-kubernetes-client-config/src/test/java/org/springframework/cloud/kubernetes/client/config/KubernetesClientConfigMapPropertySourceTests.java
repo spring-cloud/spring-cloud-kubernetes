@@ -71,7 +71,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 				.withNamespace("default")
 				.withResourceVersion("1")
 				.build())
-			.addToData(Constants.APPLICATION_YAML, "dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
+			.addToData(Constants.APPLICATION_YAML,
+					"dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
 			.build());
 
 	private static WireMockServer wireMockServer;
