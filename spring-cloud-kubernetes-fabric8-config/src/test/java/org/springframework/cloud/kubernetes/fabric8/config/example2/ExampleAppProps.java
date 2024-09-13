@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config.example2;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("bean")
-public class ExampleAppProps {
+class ExampleAppProps {
 
 	private String commonMessage;
 
@@ -29,35 +29,35 @@ public class ExampleAppProps {
 
 	private String message3;
 
-	public String getCommonMessage() {
+	String getCommonMessage() {
 		return this.commonMessage;
 	}
 
-	public void setCommonMessage(String commonMessage) {
+	void setCommonMessage(String commonMessage) {
 		this.commonMessage = commonMessage;
 	}
 
-	public String getMessage1() {
+	String getMessage1() {
 		return this.message1;
 	}
 
-	public void setMessage1(String message1) {
+	void setMessage1(String message1) {
 		this.message1 = message1;
 	}
 
-	public String getMessage2() {
+	String getMessage2() {
 		return this.message2;
 	}
 
-	public void setMessage2(String message2) {
+	void setMessage2(String message2) {
 		this.message2 = message2;
 	}
 
-	public String getMessage3() {
+	String getMessage3() {
 		return this.message3;
 	}
 
-	public void setMessage3(String message3) {
+	void setMessage3(String message3) {
 		this.message3 = message3;
 	}
 

@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
  */
 class EventBasedConfigurationChangeDetectorTests {
 
-	@SuppressWarnings({ "unchecked", "raw" })
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void verifyConfigChangesAccountsForBootstrapPropertySources() {
 		MockEnvironment env = new MockEnvironment();

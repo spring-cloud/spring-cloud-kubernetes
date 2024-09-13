@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -180,7 +181,7 @@ class KubernetesPropertySourceSupplierTests {
 		return new V1ConfigMapBuilder()
 			.withMetadata(
 					new V1ObjectMetaBuilder().withName(name).withNamespace(namespace).withResourceVersion("1").build())
-			.addToData("application.yaml", "dummy:\n  property:\n    string: \"" + name + "\"\n")
+			.addToData(Constants.APPLICATION_YAML, "dummy:\n  property:\n    string: \"" + name + "\"\n")
 			.build();
 	}
 
