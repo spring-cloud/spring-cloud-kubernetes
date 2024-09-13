@@ -32,6 +32,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
@@ -59,7 +60,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 				.withNamespace("default")
 				.withResourceVersion("1")
 				.build())
-			.addToData("application.properties",
+			.addToData(Constants.APPLICATION_PROPERTIES,
 					"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
 							+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
 			.build());
@@ -70,7 +71,8 @@ class KubernetesClientConfigMapPropertySourceTests {
 				.withNamespace("default")
 				.withResourceVersion("1")
 				.build())
-			.addToData("application.yaml", "dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
+			.addToData(Constants.APPLICATION_YAML,
+					"dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n")
 			.build());
 
 	private static WireMockServer wireMockServer;

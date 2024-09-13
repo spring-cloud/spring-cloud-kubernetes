@@ -38,6 +38,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -74,15 +75,15 @@ class KubernetesEnvironmentRepositoryTests {
 	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = new V1ConfigMapList()
 		.addItemsItem(new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("application").withNamespace(DEFAULT_NAMESPACE).build())
-			.addToData("application.yaml", VALUE)
+			.addToData(Constants.APPLICATION_YAML, VALUE)
 			.build())
 		.addItemsItem(new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace(DEFAULT_NAMESPACE).build())
-			.addToData("application.yaml", VALUE)
+			.addToData(Constants.APPLICATION_YAML, VALUE)
 			.build())
 		.addItemsItem(new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("stores-dev").withNamespace(DEFAULT_NAMESPACE).build())
-			.addToData("application.yaml",
+			.addToData(Constants.APPLICATION_YAML,
 					"dummy:\n  property:\n    string1: \"a\"\n    string2: \"b\"\n    int2: 2\n    bool2: false\n")
 			.build());
 
@@ -90,7 +91,8 @@ class KubernetesEnvironmentRepositoryTests {
 		.addItemsItem(new V1ConfigMapBuilder()
 			.withMetadata(
 					new V1ObjectMetaBuilder().withName("stores").withNamespace("dev").withResourceVersion("1").build())
-			.addToData("application.yaml", "dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: true\n")
+			.addToData(Constants.APPLICATION_YAML,
+					"dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: true\n")
 			.build());
 
 	private static final V1SecretList SECRET_LIST = new V1SecretListBuilder()
