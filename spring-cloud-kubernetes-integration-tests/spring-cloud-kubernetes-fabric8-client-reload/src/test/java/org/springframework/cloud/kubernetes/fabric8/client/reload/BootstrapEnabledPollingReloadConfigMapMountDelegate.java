@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.Assertions;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
@@ -71,7 +72,7 @@ final class BootstrapEnabledPollingReloadConfigMapMountDelegate {
 		// our polling will detect that and restart the app
 		InputStream configMapStream = util.inputStream("configmap.yaml");
 		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
-		configMap.setData(Map.of("application.properties", "from.properties.key=as-mount-changed"));
+		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
 		await().timeout(Duration.ofSeconds(360))
