@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestUtil;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -45,20 +46,18 @@ abstract class ConfigMapsFromFilePaths {
 
 	protected static final String FILES_SUB_PATH = "another-directory";
 
-	protected static final String FIRST_FILE_NAME = "application.properties";
-
 	protected static final String SECOND_FILE_NAME = "extra.properties";
 
 	protected static final String UNUSED_FILE_NAME = "unused.properties";
 
-	protected static final String FIRST_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + FIRST_FILE_NAME;
+	protected static final String FIRST_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + Constants.APPLICATION_PROPERTIES;
 
 	protected static final String SECOND_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + SECOND_FILE_NAME;
 
 	protected static final String UNUSED_FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + UNUSED_FILE_NAME;
 
 	protected static final String FIRST_FILE_NAME_DUPLICATED_FULL_PATH = FILES_ROOT_PATH + "/" + FILES_SUB_PATH + "/"
-			+ FIRST_FILE_NAME;
+			+ Constants.APPLICATION_PROPERTIES;
 
 	@Autowired
 	private WebTestClient webClient;

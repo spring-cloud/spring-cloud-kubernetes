@@ -36,6 +36,8 @@ import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContai
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YAML;
+
 /**
  * @author wind57
  */
@@ -322,7 +324,7 @@ class Fabric8ConfigUtilsTests {
 		client.configMaps()
 			.inNamespace("spring-k8s")
 			.resource(new ConfigMapBuilder().withMetadata(new ObjectMetaBuilder().withName("my-config-map").build())
-				.addToData(Map.of("application.yaml", "key1: value1"))
+				.addToData(Map.of(APPLICATION_YAML, "key1: value1"))
 				.build())
 			.create();
 
