@@ -80,7 +80,7 @@ public class KubernetesClientSecretsCache implements SecretsCache {
 		return secrets.stream()
 			.map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(), secret.getMetadata().getName(),
 					transform(secret.getData())))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	private static Map<String, String> transform(Map<String, byte[]> in) {

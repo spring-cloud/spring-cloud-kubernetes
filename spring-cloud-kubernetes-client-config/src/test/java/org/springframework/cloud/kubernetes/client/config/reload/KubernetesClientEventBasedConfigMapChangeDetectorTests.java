@@ -51,6 +51,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.mock.env.MockPropertySource;
@@ -99,11 +100,12 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		Gson gson = builder.create();
 
 		Map<String, String> data = new HashMap<>();
-		data.put("application.properties", "spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
+		data.put(Constants.APPLICATION_PROPERTIES, "spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
 				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
 		Map<String, String> updateData = new HashMap<>();
-		updateData.put("application.properties", "spring.cloud.kubernetes.configuration.watcher.refreshDelay=1\n"
-				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
+		updateData.put(Constants.APPLICATION_PROPERTIES,
+				"spring.cloud.kubernetes.configuration.watcher.refreshDelay=1\n"
+						+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
 		V1ConfigMap applicationConfig = new V1ConfigMap().kind("ConfigMap")
 			.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
 			.data(data);
@@ -132,7 +134,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 				.withBody(new JSON().serialize(new Watch.Response<>(EventType.ADDED.name(),
 						new V1ConfigMap().kind("ConfigMap")
 							.metadata(new V1ObjectMeta().namespace("default").name("bar3"))
-							.putDataItem("application.properties", "debug=true")))))
+							.putDataItem(Constants.APPLICATION_PROPERTIES, "debug=true")))))
 			.willSetStateTo("delete"));
 
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
@@ -142,7 +144,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 				.withBody(new JSON().serialize(new Watch.Response<>(EventType.DELETED.name(),
 						new V1ConfigMap().kind("ConfigMap")
 							.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
-							.putDataItem("application.properties", "debug=true")))))
+							.putDataItem(Constants.APPLICATION_PROPERTIES, "debug=true")))))
 			.willSetStateTo("done"));
 
 		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
