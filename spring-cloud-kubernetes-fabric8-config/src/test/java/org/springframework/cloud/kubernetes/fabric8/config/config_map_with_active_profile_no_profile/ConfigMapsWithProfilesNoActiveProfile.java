@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -54,7 +55,7 @@ abstract class ConfigMapsWithProfilesNoActiveProfile {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		HashMap<String, String> data = new HashMap<>();
-		data.put("application.yml", readResourceFile("application-with-profiles.yaml"));
+		data.put(Constants.APPLICATION_YML, readResourceFile("application-with-profiles.yaml"));
 		mockClient.configMaps()
 			.inNamespace("test")
 			.resource(new ConfigMapBuilder().withNewMetadata()

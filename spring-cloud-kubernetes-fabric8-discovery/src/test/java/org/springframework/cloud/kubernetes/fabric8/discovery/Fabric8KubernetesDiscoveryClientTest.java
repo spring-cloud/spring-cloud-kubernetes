@@ -298,10 +298,8 @@ class Fabric8KubernetesDiscoveryClientTest {
 		List<Endpoints> result_endpoints = discoveryClient.getEndPointsList("endpoint");
 
 		assertThat(result_endpoints).hasSize(2);
-		assertThat(result_endpoints.stream()
-			.map(Endpoints::getMetadata)
-			.map(ObjectMeta::getNamespace)
-			.toList()).containsOnly(namespace1, namespace3);
+		assertThat(result_endpoints.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).toList())
+			.containsOnly(namespace1, namespace3);
 	}
 
 	@Test
