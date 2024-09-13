@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.core.env.PropertySource;
@@ -62,7 +63,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 				.withNamespace("default")
 				.withResourceVersion("1")
 				.build())
-			.addToData("application.properties",
+			.addToData(Constants.APPLICATION_PROPERTIES,
 					"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
 							+ "logging.level.org.springframework.cloud.kubernetes=TRACE")
 			.build());

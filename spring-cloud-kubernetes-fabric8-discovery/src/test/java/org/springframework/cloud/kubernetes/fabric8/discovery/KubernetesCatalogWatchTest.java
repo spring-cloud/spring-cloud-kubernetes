@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
@@ -318,7 +317,7 @@ class KubernetesCatalogWatchTest {
 	private EndpointsList createEndpointsListByServiceName(String namespace, String... serviceNames) {
 		List<Endpoints> endpoints = stream(serviceNames)
 			.map(s -> createEndpointsByPodName(namespace, s + "-singlePodUniqueId"))
-			.collect(Collectors.toList());
+			.toList();
 
 		EndpointsList endpointsList = new EndpointsList();
 		endpointsList.setItems(endpoints);

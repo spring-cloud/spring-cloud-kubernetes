@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -70,7 +69,7 @@ final class Fabric8ConfigMapsCache implements ConfigMapCache {
 		return configMaps.stream()
 			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
 					configMap.getMetadata().getName(), configMap.getData()))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 }
