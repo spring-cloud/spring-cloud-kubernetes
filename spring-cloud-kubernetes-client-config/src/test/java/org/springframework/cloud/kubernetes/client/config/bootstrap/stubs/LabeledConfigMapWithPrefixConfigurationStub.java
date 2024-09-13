@@ -67,7 +67,7 @@ public class LabeledConfigMapWithPrefixConfigurationStub {
 	public static void stubData() {
 
 		V1ConfigMap one = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-one")
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap_one")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "a"))
 				.build())
@@ -75,7 +75,7 @@ public class LabeledConfigMapWithPrefixConfigurationStub {
 			.build();
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-two")
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap_two")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "b"))
 				.build())
@@ -83,7 +83,7 @@ public class LabeledConfigMapWithPrefixConfigurationStub {
 			.build();
 
 		V1ConfigMap three = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-three")
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap_three")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "c"))
 				.build())
@@ -91,7 +91,7 @@ public class LabeledConfigMapWithPrefixConfigurationStub {
 			.build();
 
 		V1ConfigMap four = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("configmap-four")
+			.withMetadata(new V1ObjectMetaBuilder().withName("configmap_four")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "d"))
 				.build())

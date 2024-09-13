@@ -39,29 +39,6 @@ import org.springframework.mock.env.MockEnvironment;
 class ConfigUtilsProcessSourceTests {
 
 	/**
-	 * <pre>
-	 *		- includeDefaultProfileData         = true
-	 *		- emptyActiveProfiles               = does not matter
-	 *		- profileBasedSourceName            = does not matter
-	 * 		- defaultProfilePresent             = does not matter
-	 * 		- rawDataContainsProfileBasedSource = does not matter
-	 * </pre>
-	 *
-	 * Since 'includeDefaultProfileData=true', all other arguments are irrelevant and
-	 * method must return 'true'.
-	 */
-	@Test
-	void testProcessSourceOne() {
-		boolean includeDefaultProfileData = true;
-		Environment environment = new MockEnvironment();
-		String sourceName = "account";
-		Map<String, String> sourceRawData = Map.of();
-
-		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
-		Assertions.assertTrue(result);
-	}
-
-	/**
 	 * this case is not very "interesting" because 'includeDefaultProfileData = true'
 	 * which denotes a request not from config server; and such cases are tested in
 	 * various other tests, before we fixed:
@@ -82,29 +59,6 @@ class ConfigUtilsProcessSourceTests {
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(result.names().toString(), "[configmap-a]");
 		Assertions.assertEquals(result.data(), Map.of("one", "1"));
-	}
-
-	/**
-	 * <pre>
-	 *		- includeDefaultProfileData         = false
-	 * 		- emptyActiveProfiles               = false
-	 *		- profileBasedSourceName            = false
-	 * 		- defaultProfilePresent             = true
-	 * 		- rawDataContainsProfileBasedSource = does not matter
-	 * </pre>
-	 *
-	 * Since 'defaultProfilePresent=true', this method must return 'true'.
-	 */
-	@Test
-	void testProcessSourceTwo() {
-		boolean includeDefaultProfileData = false;
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("default");
-		String sourceName = "account";
-		Map<String, String> sourceRawData = Map.of();
-
-		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
-		Assertions.assertTrue(result);
 	}
 
 	/**
@@ -175,29 +129,6 @@ class ConfigUtilsProcessSourceTests {
 		 */
 		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
 		Assertions.assertTrue(output.getOut().contains("entry : account-k8s.properties will be skipped"));
-	}
-
-	/**
-	 * <pre>
-	 *		- includeDefaultProfileData         = false
-	 * 		- emptyActiveProfiles               = false
-	 * 		- profileBasedSourceName            = true
-	 * 		- defaultProfilePresent             = false
-	 * 		- rawDataContainsProfileBasedSource = does not matter
-	 * </pre>
-	 *
-	 * Since 'profileBasedSourceName=true', this method must return 'true'.
-	 */
-	@Test
-	void testProcessSourceThree() {
-		boolean includeDefaultProfileData = false;
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("default");
-		String sourceName = "account-default";
-		Map<String, String> sourceRawData = Map.of();
-
-		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
-		Assertions.assertTrue(result);
 	}
 
 	/**
@@ -275,50 +206,6 @@ class ConfigUtilsProcessSourceTests {
 
 	/**
 	 * <pre>
-	 *		- includeDefaultProfileData         = false
-	 * 		- emptyActiveProfiles               = false
-	 *		- profileBasedSourceName            = false
-	 *		- defaultProfilePresent             = false
-	 *		- rawDataContainsProfileBasedSource = false
-	 * </pre>
-	 *
-	 */
-	@Test
-	void testProcessSourceFour() {
-		boolean includeDefaultProfileData = false;
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
-		String sourceName = "account";
-		Map<String, String> sourceRawData = Map.of("one", "1");
-
-		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
-		Assertions.assertFalse(result);
-	}
-
-	/**
-	 * <pre>
-	 *		- includeDefaultProfileData         = false
-	 * 		- emptyActiveProfiles               = false
-	 * 		- profileBasedSourceName            = false
-	 * 		- defaultProfilePresent             = false
-	 * 		- rawDataContainsProfileBasedSource = true
-	 * </pre>
-	 *
-	 */
-	@Test
-	void testProcessSourceFive() {
-		boolean includeDefaultProfileData = false;
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
-		String sourceName = "account";
-		Map<String, String> sourceRawData = Map.of("one", "1", "account-k8s.properties", "one=11");
-
-		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
-		Assertions.assertTrue(result);
-	}
-
-	/**
-	 * <pre>
 	 *		- request is coming from config server
 	 *		- activeProfile = ['k8s']
 	 *		- sourceName = 'account'
@@ -375,28 +262,6 @@ class ConfigUtilsProcessSourceTests {
 		Assertions.assertTrue(output.getOut().contains("entry : account.properties will be skipped"));
 		Assertions.assertTrue(output.getOut().contains("entry : account-default.properties will be skipped"));
 
-	}
-
-	/**
-	 * <pre>
-	 *		- includeDefaultProfileData         = false
-	 *		- emptyActiveProfiles               = false
-	 *		- profileBasedSourceName            = true
-	 * 		- defaultProfilePresent             = does not matter
-	 * 		- rawDataContainsProfileBasedSource = does not matter
-	 * </pre>
-	 *
-	 */
-	@Test
-	void testProcessSourceSix() {
-		boolean includeDefaultProfileData = false;
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
-		String sourceName = "account-k8s";
-		Map<String, String> sourceRawData = Map.of("one", "1", "account-k8s.properties", "one=11");
-
-		boolean result = ConfigUtils.processSource(includeDefaultProfileData, environment, sourceName, sourceRawData);
-		Assertions.assertTrue(result);
 	}
 
 	/**

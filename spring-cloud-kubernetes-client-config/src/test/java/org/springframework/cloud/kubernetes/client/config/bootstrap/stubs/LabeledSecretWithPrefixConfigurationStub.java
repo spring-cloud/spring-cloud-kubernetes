@@ -66,7 +66,7 @@ public class LabeledSecretWithPrefixConfigurationStub {
 
 	public static void stubData() {
 		V1Secret one = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("secret-one")
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret_one")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "a"))
 				.withResourceVersion("1")
@@ -75,7 +75,7 @@ public class LabeledSecretWithPrefixConfigurationStub {
 			.build();
 
 		V1Secret two = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("secret-two")
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret_two")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "b"))
 				.withResourceVersion("1")
@@ -84,7 +84,7 @@ public class LabeledSecretWithPrefixConfigurationStub {
 			.build();
 
 		V1Secret three = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("secret-three")
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret_three")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "c"))
 				.withResourceVersion("1")
@@ -93,7 +93,7 @@ public class LabeledSecretWithPrefixConfigurationStub {
 			.build();
 
 		V1Secret four = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("secret-four")
+			.withMetadata(new V1ObjectMetaBuilder().withName("secret_four")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("letter", "d"))
 				.withResourceVersion("1")

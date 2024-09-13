@@ -65,26 +65,24 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 	}
 
 	/**
-	 * <pre>
-	 *     - configmap with name "color-configmap", with labels: "{color: blue}" and "explicitPrefix: blue"
-	 *     - configmap with name "green-configmap", with labels: "{color: green}" and "explicitPrefix: blue-again"
-	 *     - configmap with name "red-configmap", with labels "{color: not-red}" and "useNameAsPrefix: true"
-	 *     - configmap with name "yellow-configmap" with labels "{color: not-yellow}" and useNameAsPrefix: true
-	 *     - configmap with name "color-configmap-k8s", with labels : "{color: not-blue}"
-	 *     - configmap with name "green-configmap-k8s", with labels : "{color: green-k8s}"
-	 *     - configmap with name "green-configmap-prod", with labels : "{color: green-prod}"
-	 *
-	 *     # a test that proves order: first read non-profile based configmaps, thus profile based
-	 *     # configmaps override non-profile ones.
-	 *     - configmap with name "green-purple-configmap", labels "{color: green, shape: round}", data: "{eight: 8}"
-	 *     - configmap with name "green-purple-configmap-k8s", labels "{color: black}", data: "{eight: eight-ish}"
+	 * a test that proves order: first read non-profile based configmaps, thus profile
+	 * based configmaps override non-profile ones. <pre>
+	 *     - configmap with name "color_configmap", with labels: "{color: blue}" and "explicitPrefix: blue"
+	 *     - configmap with name "green_configmap", with labels: "{color: green}" and "explicitPrefix: blue-again"
+	 *     - configmap with name "red_configmap", with labels "{color: not-red}" and "useNameAsPrefix: true"
+	 *     - configmap with name "yellow_configmap" with labels "{color: not-yellow}" and useNameAsPrefix: true
+	 *     - configmap with name "color_configmap-k8s", with labels : "{color: not-blue}"
+	 *     - configmap with name "green_configmap-k8s", with labels : "{color: green-k8s}"
+	 *     - configmap with name "green_configmap-prod", with labels : "{color: green-prod}"
+	 *     - configmap with name "green_purple_configmap", labels "{color: green, shape: round}", data: "{eight: 8}"
+	 *     - configmap with name "green_purple_configmap-k8s", labels "{color: black}", data: "{eight: eight-ish}"
 	 * </pre>
 	 */
 	public static void stubData() {
 
 		// is found by labels
 		V1ConfigMap colorConfigMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap")
+			.withMetadata(new V1ObjectMetaBuilder().withName("color_configmap")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "blue"))
 				.build())
@@ -93,7 +91,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 
 		// is not taken, since "profileSpecificSources=false" for the above
 		V1ConfigMap colorConfigMapK8s = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
+			.withMetadata(new V1ObjectMetaBuilder().withName("color_configmap-k8s")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "not-blue"))
 				.build())
@@ -102,7 +100,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 
 		// is found by labels
 		V1ConfigMap greenConfigMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_configmap")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "green"))
 				.build())
@@ -110,25 +108,25 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 			.build();
 
 		V1ConfigMap greenConfigMapK8s = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-k8s")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_configmap-k8s")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "green-k8s"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("six", "6"))
 			.build();
 
 		// is taken because prod profile is active and "profileSpecificSources=true"
 		V1ConfigMap greenConfigMapProd = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-prod")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_configmap-prod")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "green-prod"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("seven", "7"))
 			.build();
 
 		// not taken
 		V1ConfigMap redConfigMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("red-configmap")
+			.withMetadata(new V1ObjectMetaBuilder().withName("red_configmap")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "red"))
 				.build())
@@ -137,7 +135,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 
 		// not taken
 		V1ConfigMap yellowConfigMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("yellow-configmap")
+			.withMetadata(new V1ObjectMetaBuilder().withName("yellow_configmap")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "yellow"))
 				.build())
@@ -146,7 +144,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 
 		// is found by labels
 		V1ConfigMap greenPurpleConfigMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-configmap")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_purple_configmap")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "green", "shape", "round"))
 				.build())
@@ -155,9 +153,9 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 
 		// is taken and thus overrides the above
 		V1ConfigMap greenPurpleConfigMapK8s = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-configmap-k8s")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_purple_configmap-k8s")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "black"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("eight", "eight-ish"))
 			.build();

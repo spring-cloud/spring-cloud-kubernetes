@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
@@ -36,6 +37,9 @@ abstract class LabeledConfigMapWithProfileTests {
 	@Autowired
 	private WebTestClient webClient;
 
+	@Autowired
+	private Environment environment;
+
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
@@ -48,8 +52,8 @@ abstract class LabeledConfigMapWithProfileTests {
 
 	/**
 	 * <pre>
-	 *     this one is taken from : "blue.one". We find "color-configmap" by labels, and
-	 *     "color-configmap-k8s" exists, but "includeProfileSpecificSources=false", thus not taken.
+	 *     this one is taken from : "blue.one". We find "color_configmap" by labels, and
+	 *     "color_configmap-k8s" exists, but "includeProfileSpecificSources=false", thus not taken.
 	 *     Since "explicitPrefix=blue", we take "blue.one"
 	 * </pre>
 	 */
@@ -66,14 +70,16 @@ abstract class LabeledConfigMapWithProfileTests {
 
 	/**
 	 * <pre>
-	 *   this one is taken from : ""green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s"".
-	 *   We find "green-configmap" by labels, also "green-configmap-k8s", "green-configmap-prod" exists,
-	 *   because "includeProfileSpecificSources=true" is set. Also "green-purple-configmap" and "green-purple-configmap-k8s"
+	 *   this one is taken from : "green_configmap.green_configmap-k8s.green_configmap-prod.green_purple_configmap.green_purple_configmap-k8s"".
+	 *   We find "green_configmap" by labels, also "green_configmap-k8s", "green_configmap-prod" exists,
+	 *   because "includeProfileSpecificSources=true" is set. Also "green_purple_configmap" and "green_purple_configmap-k8s"
 	 *   are found.
 	 * </pre>
 	 */
 	@Test
 	void testGreen() {
+		// green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s
+		System.out.println(environment);
 		this.webClient.get()
 			.uri("/labeled-configmap/profile/green")
 			.exchange()

@@ -64,25 +64,25 @@ class Fabric8ConfigUtilsTests {
 		Assertions.assertTrue(result.names().isEmpty());
 	}
 
-	// secret "my-secret" is deployed with label {color:pink}; we search for it by same
+	// secret "my_secret" is deployed with label {color:pink}; we search for it by same
 	// label and find it.
 	@Test
 	void testSecretDataByLabelsSecretFound() {
 		client.secrets()
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
+				.withMetadata(new ObjectMetaBuilder().withName("my_secret").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes())))
 				.build())
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
+		Assertions.assertEquals(Set.of("my_secret"), result.names());
 		Assertions.assertEquals(Map.of("property", "value"), result.data());
 	}
 
-	// secret "my-secret" is deployed with label {color:pink}; we search for it by same
+	// secret "my_secret" is deployed with label {color:pink}; we search for it by same
 	// label and find it. This secret contains a single .yaml property, as such
 	// it gets some special treatment.
 	@Test
@@ -90,25 +90,25 @@ class Fabric8ConfigUtilsTests {
 		client.secrets()
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
+				.withMetadata(new ObjectMetaBuilder().withName("my_secret").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("application.yaml", Base64.getEncoder().encodeToString("key1: value1".getBytes())))
 				.build())
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
+		Assertions.assertEquals(Set.of("my_secret"), result.names());
 		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
 	}
 
-	// secrets "my-secret" and "my-secret-2" are deployed with label {color:pink};
+	// secrets "my_secret" and "my_secret_2" are deployed with label {color:pink};
 	// we search for them by same label and find them.
 	@Test
 	void testSecretDataByLabelsTwoSecretsFound() {
 		client.secrets()
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("my-secret").withLabels(Map.of("color", "pink")).build())
+				.withMetadata(new ObjectMetaBuilder().withName("my_secret").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("property", Base64.getEncoder().encodeToString("value".getBytes())))
 				.build())
 			.create();
@@ -117,15 +117,15 @@ class Fabric8ConfigUtilsTests {
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
 				.withMetadata(
-						new ObjectMetaBuilder().withName("my-secret-2").withLabels(Map.of("color", "pink")).build())
+						new ObjectMetaBuilder().withName("my_secret_2").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes())))
 				.build())
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertTrue(result.names().contains("my-secret"));
-		Assertions.assertTrue(result.names().contains("my-secret-2"));
+		Assertions.assertTrue(result.names().contains("my_secret"));
+		Assertions.assertTrue(result.names().contains("my_secret_2"));
 
 		Assertions.assertEquals(2, result.data().size());
 		Assertions.assertEquals("value", result.data().get("property"));
@@ -134,15 +134,13 @@ class Fabric8ConfigUtilsTests {
 
 	/**
 	 * <pre>
-	 *     - secret deployed with name "blue-circle-secret" and labels "color=blue, shape=circle, tag=fit"
-	 *     - secret deployed with name "blue-square-secret" and labels "color=blue, shape=square, tag=fit"
-	 *     - secret deployed with name "blue-triangle-secret" and labels "color=blue, shape=triangle, tag=no-fit"
-	 *     - secret deployed with name "blue-square-secret-k8s" and labels "color=blue, shape=triangle, tag=no-fit"
+	 *     - secret deployed with name "blue_circle_secret" and labels "color=blue, shape=circle, tag=fit"
+	 *     - secret deployed with name "blue_square_secret" and labels "color=blue, shape=square, tag=fit"
+	 *     - secret deployed with name "blue_triangle_secret" and labels "color=blue, shape=triangle, tag=no-fit"
+	 *     - secret deployed with name "blue_square_secret-k8s" and labels "color=blue, shape=triangle, tag=fit"
 	 *
-	 *     - we search by labels "color=blue, tag=fits", as such first find two secrets: "blue-circle-secret"
-	 *       and "blue-square-secret".
-	 *     - since "k8s" profile is enabled, we also take "blue-square-secret-k8s". Notice that this one does not match
-	 *       the initial labels (it has "tag=no-fit"), but it does not matter, we take it anyway.
+	 *     - we search by labels "color=blue, tag=fits", as such first find three secrets: "blue_circle_secret",
+	 *       "blue_square_secret" and "blue_square_secret-k8s"
 	 * </pre>
 	 */
 	@Test
@@ -150,7 +148,7 @@ class Fabric8ConfigUtilsTests {
 		client.secrets()
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("blue-circle-secret")
+				.withMetadata(new ObjectMetaBuilder().withName("blue_circle_secret")
 					.withLabels(Map.of("color", "blue", "shape", "circle", "tag", "fit"))
 					.build())
 				.addToData(Map.of("one", Base64.getEncoder().encodeToString("1".getBytes())))
@@ -160,7 +158,7 @@ class Fabric8ConfigUtilsTests {
 		client.secrets()
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("blue-square-secret")
+				.withMetadata(new ObjectMetaBuilder().withName("blue_square_secret")
 					.withLabels(Map.of("color", "blue", "shape", "square", "tag", "fit"))
 					.build())
 				.addToData(Map.of("two", Base64.getEncoder().encodeToString("2".getBytes())))
@@ -170,7 +168,7 @@ class Fabric8ConfigUtilsTests {
 		client.secrets()
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("blue-triangle-secret")
+				.withMetadata(new ObjectMetaBuilder().withName("blue_triangle_secret")
 					.withLabels(Map.of("color", "blue", "shape", "triangle", "tag", "no-fit"))
 					.build())
 				.addToData(Map.of("three", Base64.getEncoder().encodeToString("3".getBytes())))
@@ -180,8 +178,8 @@ class Fabric8ConfigUtilsTests {
 		client.secrets()
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
-				.withMetadata(new ObjectMetaBuilder().withName("blue-square-secret-k8s")
-					.withLabels(Map.of("color", "blue", "shape", "triangle", "tag", "no-fit"))
+				.withMetadata(new ObjectMetaBuilder().withName("blue_square_secret-k8s")
+					.withLabels(Map.of("color", "blue", "shape", "triangle", "tag", "fit"))
 					.build())
 				.addToData(Map.of("four", Base64.getEncoder().encodeToString("4".getBytes())))
 				.build())
@@ -190,9 +188,9 @@ class Fabric8ConfigUtilsTests {
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
 
-		Assertions.assertTrue(result.names().contains("blue-circle-secret"));
-		Assertions.assertTrue(result.names().contains("blue-square-secret"));
-		Assertions.assertTrue(result.names().contains("blue-square-secret-k8s"));
+		Assertions.assertTrue(result.names().contains("blue_circle_secret"));
+		Assertions.assertTrue(result.names().contains("blue_square_secret"));
+		Assertions.assertTrue(result.names().contains("blue_square_secret-k8s"));
 
 		Assertions.assertEquals(3, result.data().size());
 		Assertions.assertEquals("1", result.data().get("one"));

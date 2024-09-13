@@ -195,7 +195,7 @@ spring:
 This will search for every configmap in namespace `spring-k8s` that has labels `{letter : a}`. The important
 thing to notice here is that unlike reading a configmap by name, this can result in _multiple_ config maps read. The same feature is supported for secrets.
 
-Another important point is that if you plan to use `labels` searching coupled with `includeProfileSpecificSources` functionality, we strongly encourage such configmaps (and secrets) names to have zero or one dashes (`-`) (as defined in the `.metadata.name`). The reason for this is simple, suppose you define two configmaps that have the same labels:
+Another important point is that if you plan to use `labels` searching, we strongly encourage such configmaps (and secrets) names to have zero or one dashes (`-`) (as defined in the `.metadata.name`). The reason for this is simple, suppose you define two configmaps that have the same labels:
 
 [source,yaml]
 ----

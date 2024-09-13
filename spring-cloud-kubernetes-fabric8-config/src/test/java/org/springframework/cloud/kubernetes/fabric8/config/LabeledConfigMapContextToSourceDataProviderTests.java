@@ -59,11 +59,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 	private static KubernetesClient mockClient;
 
-	static {
-		LABELS.put("label2", "value2");
-		LABELS.put("label1", "value1");
-	}
-
 	@BeforeAll
 	static void beforeAll() {
 
@@ -74,6 +69,9 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, NAMESPACE);
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+
+		LABELS.put("label2", "value2");
+		LABELS.put("label1", "value1");
 
 	}
 
@@ -91,7 +89,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	void singleConfigMapMatchAgainstLabels() {
 
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
-			.withName("test-configmap")
+			.withName("test_configmap")
 			.withLabels(LABELS)
 			.endMetadata()
 			.addToData("name", "value")
@@ -106,7 +104,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("configmap.test-configmap.default", sourceData.sourceName());
+		Assertions.assertEquals("configmap.test_configmap.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("name", "value"), sourceData.sourceData());
 
 	}
@@ -119,21 +117,21 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	void twoConfigMapsMatchAgainstLabels() {
 
 		ConfigMap redOne = new ConfigMapBuilder().withNewMetadata()
-			.withName("red-configmap")
+			.withName("red_configmap")
 			.withLabels(RED_LABEL)
 			.endMetadata()
 			.addToData("colorOne", "really-red")
 			.build();
 
 		ConfigMap redTwo = new ConfigMapBuilder().withNewMetadata()
-			.withName("red-configmap-again")
+			.withName("red_configmap_again")
 			.withLabels(RED_LABEL)
 			.endMetadata()
 			.addToData("colorTwo", "really-red-again")
 			.build();
 
 		ConfigMap blue = new ConfigMapBuilder().withNewMetadata()
-			.withName("blue-configmap")
+			.withName("blue_configmap")
 			.withLabels(BLUE_LABEL)
 			.endMetadata()
 			.addToData("color", "blue")
@@ -150,7 +148,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red-configmap.red-configmap-again.default");
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.red_configmap.red_configmap_again.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
 		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red");
 		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-again");
@@ -193,7 +191,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	void namespaceMatch() {
 
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
-			.withName("test-configmap")
+			.withName("test_configmap")
 			.withLabels(LABELS)
 			.endMetadata()
 			.addToData("name", "value")
@@ -210,12 +208,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("configmap.test-configmap.default", sourceData.sourceName());
+		Assertions.assertEquals("configmap.test_configmap.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("name", "value"), sourceData.sourceData());
 	}
 
 	/**
-	 * one configmap with name : "blue-configmap" and labels "color=blue" is deployed. we
+	 * one configmap with name : "blue_configmap" and labels "color=blue" is deployed. we
 	 * search it with the same labels, find it, and assert that name of the SourceData (it
 	 * must use its name, not its labels) and values in the SourceData must be prefixed
 	 * (since we have provided an explicit prefix).
@@ -223,7 +221,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void testWithPrefix() {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
-			.withName("blue-configmap")
+			.withName("blue_configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("what-color", "blue-color")
@@ -240,12 +238,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("configmap.blue-configmap.default", sourceData.sourceName());
+		Assertions.assertEquals("configmap.blue_configmap.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
 	}
 
 	/**
-	 * two configmaps are deployed (name:blue-configmap, name:another-blue-configmap) and
+	 * two configmaps are deployed (name:blue_configmap, name:another_blue_configmap) and
 	 * labels "color=blue" (on both). we search with the same labels, find them, and
 	 * assert that name of the SourceData (it must use its name, not its labels) and
 	 * values in the SourceData must be prefixed (since we have provided a delayed
@@ -257,14 +255,14 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void testTwoConfigmapsWithPrefix() {
 		ConfigMap blueConfigMap = new ConfigMapBuilder().withNewMetadata()
-			.withName("blue-configmap")
+			.withName("blue_configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("first", "blue")
 			.build();
 
 		ConfigMap anotherBlue = new ConfigMapBuilder().withNewMetadata()
-			.withName("another-blue-configmap")
+			.withName("another_blue_configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("second", "blue")
@@ -281,7 +279,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.another-blue-configmap.blue-configmap.default");
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.another_blue_configmap.blue_configmap.default");
 
 		Map<String, Object> properties = sourceData.sourceData();
 		Assertions.assertEquals(2, properties.size());
@@ -290,10 +288,14 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-configmap.blue-configmap.first");
+			Assertions.assertEquals(firstKey, "another_blue_configmap.blue_configmap.first");
+			Assertions.assertEquals(secondKey, "another_blue_configmap.blue_configmap.second");
+		}
+		else {
+			Assertions.assertEquals(firstKey, "another_blue_configmap.blue_configmap.second");
+			Assertions.assertEquals(secondKey, "another_blue_configmap.blue_configmap.first");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-configmap.blue-configmap.second");
 		Assertions.assertEquals(properties.get(firstKey), "blue");
 		Assertions.assertEquals(properties.get(secondKey), "blue");
 	}
@@ -337,21 +339,21 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
-	 * "shape-configmap" with label: "{shape:round}". We search by "{color:blue}" and find
+	 * two configmaps are deployed: "color_configmap" with label: "{color:blue}" and
+	 * "shape_configmap" with label: "{shape:round}". We search by "{color:blue}" and find
 	 * one configmap. profile based sources are enabled, but it has no effect.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFound() {
 		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap")
+			.withName("color_configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("one", "1")
 			.build();
 
 		ConfigMap shapeConfigmap = new ConfigMapBuilder().withNewMetadata()
-			.withName("shape-configmap")
+			.withName("shape_configmap")
 			.endMetadata()
 			.addToData("two", "2")
 			.build();
@@ -370,28 +372,28 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.default");
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.color_configmap.default");
 
 	}
 
 	/**
-	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
-	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
+	 * two configmaps are deployed: "color_configmap" with label: "{color:blue}" and
+	 * "color_configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
 	 * find one configmap. Since profiles are enabled, we will also be reading
-	 * "color-configmap-k8s", even if its labels do not match provided ones.
+	 * "color_configmap-k8s"
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
 		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap")
+			.withName("color_configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("one", "1")
 			.build();
 
 		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap-k8s")
-			.withLabels(Collections.singletonMap("color", "red"))
+			.withName("color_configmap-k8s")
+			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("two", "2")
 			.build();
@@ -409,54 +411,54 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.color-configmap-k8s.default");
+		Assertions.assertEquals(sourceData.sourceData().get("color_configmap.color_configmap-k8s.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color_configmap.color_configmap-k8s.two"), "2");
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.color_configmap.color_configmap-k8s.default");
 
 	}
 
 	/**
 	 * <pre>
-	 *     - configmap "color-configmap" with label "{color:blue}"
-	 *     - configmap "shape-configmap" with labels "{color:blue, shape:round}"
-	 *     - configmap "no-fit" with labels "{tag:no-fit}"
-	 *     - configmap "color-configmap-k8s" with label "{color:red}"
-	 *     - configmap "shape-configmap-k8s" with label "{shape:triangle}"
+	 *     - configmap "color_configmap" with label "{color:blue}"
+	 *     - configmap "shape_configmap" with labels "{color:blue, shape:round}"
+	 *     - configmap "no_fit" with labels "{tag:no-fit}"
+	 *     - configmap "color_configmap-k8s" with label "{color:blue}"
+	 *     - configmap "shape_configmap-k8s" with label "{shape:triangle, color: blue}"
 	 * </pre>
 	 */
 	@Test
 	void searchWithLabelsTwoConfigMapsFoundAndOneFromProfileFound() {
 		ConfigMap colorConfigMap = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap")
+			.withName("color_configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("one", "1")
 			.build();
 
 		ConfigMap shapeConfigmap = new ConfigMapBuilder().withNewMetadata()
-			.withName("shape-configmap")
+			.withName("shape_configmap")
 			.withLabels(Map.of("color", "blue", "shape", "round"))
 			.endMetadata()
 			.addToData("two", "2")
 			.build();
 
 		ConfigMap noFit = new ConfigMapBuilder().withNewMetadata()
-			.withName("no-fit")
+			.withName("no_fit")
 			.withLabels(Map.of("tag", "no-fit"))
 			.endMetadata()
 			.addToData("three", "3")
 			.build();
 
 		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap-k8s")
-			.withLabels(Map.of("color", "red"))
+			.withName("color_configmap-k8s")
+			.withLabels(Map.of("color", "blue"))
 			.endMetadata()
 			.addToData("four", "4")
 			.build();
 
 		ConfigMap shapeConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
-			.withName("shape-configmap-k8s")
-			.withLabels(Map.of("shape", "triangle"))
+			.withName("shape_configmap-k8s")
+			.withLabels(Map.of("shape", "triangle", "color", "blue"))
 			.endMetadata()
 			.addToData("five", "5")
 			.build();
@@ -479,23 +481,23 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 4);
 		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
+			.get("color_configmap.color_configmap-k8s.shape_configmap.shape_configmap-k8s.one"), "1");
 		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
+			.get("color_configmap.color_configmap-k8s.shape_configmap.shape_configmap-k8s.two"), "2");
 		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
+			.get("color_configmap.color_configmap-k8s.shape_configmap.shape_configmap-k8s.four"), "4");
 		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
+			.get("color_configmap.color_configmap-k8s.shape_configmap.shape_configmap-k8s.five"), "5");
 
 		Assertions.assertEquals(sourceData.sourceName(),
-				"configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
+				"configmap.color_configmap.color_configmap-k8s.shape_configmap.shape_configmap-k8s.default");
 
 	}
 
 	/**
 	 * <pre>
-	 *     - configmap "red-configmap" with label "{color:red}"
-	 *     - configmap "green-configmap" with labels "{color:green}"
+	 *     - configmap "red_configmap" with label "{color:red}"
+	 *     - configmap "green_configmap" with labels "{color:green}"
 	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
 	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
 	 * </pre>
@@ -503,14 +505,14 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@Test
 	void cache(CapturedOutput output) {
 		ConfigMap redConfigMap = new ConfigMapBuilder().withNewMetadata()
-			.withName("red-configmap")
+			.withName("red_configmap")
 			.withLabels(Collections.singletonMap("color", "red"))
 			.endMetadata()
 			.addToData("one", "1")
 			.build();
 
 		ConfigMap greenConfigmap = new ConfigMapBuilder().withNewMetadata()
-			.withName("green-configmap")
+			.withName("green_configmap")
 			.withLabels(Map.of("color", "green"))
 			.endMetadata()
 			.addToData("two", "2")
@@ -529,7 +531,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		SourceData redSourceData = redData.apply(redContext);
 
 		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(redSourceData.sourceData().get("red-configmap.one"), "1");
+		Assertions.assertEquals(redSourceData.sourceData().get("red_configmap.one"), "1");
 		Assertions.assertTrue(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
 
 		NormalizedSource greenNormalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
@@ -540,7 +542,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		SourceData greenSourceData = greenData.apply(greenContext);
 
 		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(greenSourceData.sourceData().get("green-configmap.two"), "2");
+		Assertions.assertEquals(greenSourceData.sourceData().get("green_configmap.two"), "2");
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all config maps in namespace");

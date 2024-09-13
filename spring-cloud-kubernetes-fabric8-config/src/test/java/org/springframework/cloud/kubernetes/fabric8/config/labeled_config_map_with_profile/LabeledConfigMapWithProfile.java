@@ -45,19 +45,18 @@ abstract class LabeledConfigMapWithProfile {
 	private WebTestClient webClient;
 
 	/**
-	 * <pre>
-	 *     - configmap with name "color-configmap", with labels: "{color: blue}" and "explicitPrefix: blue"
-	 *     - configmap with name "green-configmap", with labels: "{color: green}" and "explicitPrefix: blue-again"
-	 *     - configmap with name "red-configmap", with labels "{color: not-red}" and "useNameAsPrefix: true"
-	 *     - configmap with name "yellow-configmap" with labels "{color: not-yellow}" and useNameAsPrefix: true
-	 *     - configmap with name "color-configmap-k8s", with labels : "{color: not-blue}"
-	 *     - configmap with name "green-configmap-k8s", with labels : "{color: green-k8s}"
-	 *     - configmap with name "green-configmap-prod", with labels : "{color: green-prod}"
+	 * a test that proves order: profile based configmaps override non-profile ones.
 	 *
-	 *     # a test that proves order: first read non-profile based configmaps, thus profile based
-	 *     # configmaps override non-profile ones.
-	 *     - configmap with name "green-purple-configmap", labels "{color: green, shape: round}", data: "{eight: 8}"
-	 *     - configmap with name "green-purple-configmap-k8s", labels "{color: black}", data: "{eight: eight-ish}"
+	 * <pre>
+	 *     - configmap with name "color_configmap", with labels: "{color: blue}" and "explicitPrefix: blue"
+	 *     - configmap with name "green_configmap", with labels: "{color: green}" and "explicitPrefix: blue-again"
+	 *     - configmap with name "red_configmap", with labels "{color: not-red}" and "useNameAsPrefix: true"
+	 *     - configmap with name "yellow_configmap" with labels "{color: not-yellow}" and useNameAsPrefix: true
+	 *     - configmap with name "color_configmap-k8s", with labels : "{color: not-blue}"
+	 *     - configmap with name "green_configmap-k8s", with labels : "{color: green}"
+	 *     - configmap with name "green_configmap-prod", with labels : "{color: green}"
+	 *     - configmap with name "green_purple_configmap", labels "{color: green, shape: round}", data: "{eight: 8}"
+	 *     - configmap with name "green_purple_configmap-k8s", labels "{color: green}", data: "{eight: eight-ish}"
 	 * </pre>
 	 */
 	static void setUpBeforeClass(KubernetesClient mockClient) {
@@ -72,39 +71,39 @@ abstract class LabeledConfigMapWithProfile {
 
 		// is found by labels
 		Map<String, String> colorConfigMap = Collections.singletonMap("one", "1");
-		createConfigMap("color-configmap", colorConfigMap, Collections.singletonMap("color", "blue"));
+		createConfigMap("color_configmap", colorConfigMap, Collections.singletonMap("color", "blue"));
 
 		// is not taken, since "profileSpecificSources=false" for the above
 		Map<String, String> colorConfigMapK8s = Collections.singletonMap("five", "5");
-		createConfigMap("color-configmap-k8s", colorConfigMapK8s, Collections.singletonMap("color", "not-blue"));
+		createConfigMap("color_configmap-k8s", colorConfigMapK8s, Collections.singletonMap("color", "not-blue"));
 
 		// is found by labels
 		Map<String, String> greenConfigMap = Collections.singletonMap("two", "2");
-		createConfigMap("green-configmap", greenConfigMap, Collections.singletonMap("color", "green"));
+		createConfigMap("green_configmap", greenConfigMap, Collections.singletonMap("color", "green"));
 
 		// is taken because k8s profile is active and "profileSpecificSources=true"
 		Map<String, String> greenConfigMapK8s = Collections.singletonMap("six", "6");
-		createConfigMap("green-configmap-k8s", greenConfigMapK8s, Collections.singletonMap("color", "green-k8s"));
+		createConfigMap("green_configmap-k8s", greenConfigMapK8s, Collections.singletonMap("color", "green"));
 
 		// is taken because prod profile is active and "profileSpecificSources=true"
 		Map<String, String> greenConfigMapProd = Collections.singletonMap("seven", "7");
-		createConfigMap("green-configmap-prod", greenConfigMapProd, Collections.singletonMap("color", "green-prod"));
+		createConfigMap("green_configmap-prod", greenConfigMapProd, Collections.singletonMap("color", "green"));
 
 		// not taken
 		Map<String, String> redConfigMap = Collections.singletonMap("three", "3");
-		createConfigMap("red-configmap", redConfigMap, Collections.singletonMap("color", "not-red"));
+		createConfigMap("red_configmap", redConfigMap, Collections.singletonMap("color", "not-red"));
 
 		// not taken
 		Map<String, String> yellowConfigMap = Collections.singletonMap("four", "4");
-		createConfigMap("yellow-configmap", yellowConfigMap, Collections.singletonMap("color", "not-yellow"));
+		createConfigMap("yellow_configmap", yellowConfigMap, Collections.singletonMap("color", "not-yellow"));
 
 		// is found by labels
 		Map<String, String> greenPurple = Collections.singletonMap("eight", "8");
-		createConfigMap("green-purple-configmap", greenPurple, Map.of("color", "green", "shape", "round"));
+		createConfigMap("green_purple_configmap", greenPurple, Map.of("color", "green", "shape", "round"));
 
 		// is taken and thus overrides the above
 		Map<String, String> greenPurpleK8s = Collections.singletonMap("eight", "eight-ish");
-		createConfigMap("green-purple-configmap-k8s", greenPurpleK8s, Map.of("color", "black"));
+		createConfigMap("green_purple_configmap-k8s", greenPurpleK8s, Map.of("color", "green"));
 
 	}
 
@@ -122,8 +121,8 @@ abstract class LabeledConfigMapWithProfile {
 
 	/**
 	 * <pre>
-	 *     this one is taken from : "blue.one". We find "color-configmap" by labels, and
-	 *     "color-configmap-k8s" exists, but "includeProfileSpecificSources=false", thus not taken.
+	 *     this one is taken from : "blue.one". We find "color_configmap" by labels, and
+	 *     "color_configmap-k8s" exists, but "includeProfileSpecificSources=false", thus not taken.
 	 *     Since "explicitPrefix=blue", we take "blue.one"
 	 * </pre>
 	 */
@@ -140,9 +139,9 @@ abstract class LabeledConfigMapWithProfile {
 
 	/**
 	 * <pre>
-	 *   this one is taken from : "green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s".
-	 *   We find "green-configmap" by labels, also "green-configmap-k8s" and "green-configmap-prod" exists,
-	 *   because "includeProfileSpecificSources=true" is set. Also "green-purple-configmap" and "green-purple-configmap-k8s"
+	 *   this one is taken from : "green_configmap.green_configmap-k8s.green_configmap-prod.green_purple_configmap.green_purple_configmap-k8s".
+	 *   We find "green_configmap" by labels, also "green_configmap-k8s" and "green_configmap-prod" exists,
+	 *   because "includeProfileSpecificSources=true" is set. Also "green_purple_configmap" and "green_purple_configmap-k8s"
 	 * 	 are found.
 	 * </pre>
 	 */

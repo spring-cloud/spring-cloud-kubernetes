@@ -62,7 +62,7 @@ class KubernetesClientSecretsPropertySourceTests {
 	private static final V1SecretList SECRET_LIST = new V1SecretListBuilder()
 		.addToItems(
 				new V1SecretBuilder()
-					.withMetadata(new V1ObjectMetaBuilder().withName("db-secret")
+					.withMetadata(new V1ObjectMetaBuilder().withName("db_secret")
 						.withResourceVersion("0")
 						.withNamespace("default")
 						.build())
@@ -72,7 +72,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		.build();
 
 	private static final V1SecretList EMPTY_DATA_SECRET_LIST = new V1SecretListBuilder()
-		.addToItems(new V1SecretBuilder().withMetadata(new V1ObjectMetaBuilder().withName("db-secret")
+		.addToItems(new V1SecretBuilder().withMetadata(new V1ObjectMetaBuilder().withName("db_secret")
 			.withResourceVersion("0")
 			.withNamespace("default")
 			.build()).build())
@@ -80,28 +80,54 @@ class KubernetesClientSecretsPropertySourceTests {
 
 	private static final String LIST_API_WITH_LABEL = "/api/v1/namespaces/default/secrets";
 
-	private static final String LIST_BODY = "{\n" + "\t\"kind\": \"SecretList\",\n" + "\t\"apiVersion\": \"v1\",\n"
-			+ "\t\"metadata\": {\n" + "\t\t\"selfLink\": \"/api/v1/secrets\",\n"
-			+ "\t\t\"resourceVersion\": \"163035\"\n" + "\t},\n" + "\t\"items\": [{\n" + "\t\t\t\"metadata\": {\n"
-			+ "\t\t\t\t\"name\": \"db-secret\",\n" + "\t\t\t\t\"namespace\": \"default\",\n"
-			+ "\t\t\t\t\"selfLink\": \"/api/v1/namespaces/default/secrets/db-secret\",\n"
-			+ "\t\t\t\t\"uid\": \"59ba8e6a-a2d4-416c-b016-22597c193f23\",\n"
-			+ "\t\t\t\t\"resourceVersion\": \"1462\",\n" + "\t\t\t\t\"creationTimestamp\": \"2020-10-28T14:45:02Z\",\n"
-			+ "\t\t\t\t\"labels\": {\n" + "\t\t\t\t\t\"spring.cloud.kubernetes.secret\": \"true\"\n" + "\t\t\t\t}\n"
-			+ "\t\t\t},\n" + "\t\t\t\"data\": {\n" + "\t\t\t\t\"password\": \"cDQ1NXcwcmQ=\",\n"
-			+ "\t\t\t\t\"username\": \"dXNlcg==\"\n" + "\t\t\t},\n" + "\t\t\t\"type\": \"Opaque\"\n" + "\t\t},\n"
-			+ "\t\t{\n" + "\t\t\t\"metadata\": {\n" + "\t\t\t\t\"name\": \"rabbit-password\",\n"
-			+ "\t\t\t\t\"namespace\": \"default\",\n"
-			+ "\t\t\t\t\"selfLink\": \"/api/v1/namespaces/default/secrets/rabbit-password\",\n"
-			+ "\t\t\t\t\"uid\": \"bc211cb4-e7ff-4556-b26e-c54911301740\",\n"
-			+ "\t\t\t\t\"resourceVersion\": \"162708\",\n"
-			+ "\t\t\t\t\"creationTimestamp\": \"2020-10-29T19:47:36Z\",\n" + "\t\t\t\t\"labels\": {\n"
-			+ "\t\t\t\t\t\"spring.cloud.kubernetes.secret\": \"true\"\n" + "\t\t\t\t},\n"
-			+ "\t\t\t\t\"annotations\": {\n"
-			+ "\t\t\t\t\t\"kubectl.kubernetes.io/last-applied-configuration\": \"{\\\"apiVersion\\\":\\\"v1\\\",\\\"data\\\":{\\\"spring.rabbitmq.password\\\":\\\"password\\\"},\\\"kind\\\":\\\"Secret\\\",\\\"metadata\\\":{\\\"annotations\\\":{},\\\"labels\\\":{\\\"spring.cloud.kubernetes.secret\\\":\\\"true\\\"},\\\"name\\\":\\\"rabbit-password\\\",\\\"namespace\\\":\\\"default\\\"},\\\"type\\\":\\\"Opaque\\\"}\\n\"\n"
-			+ "\t\t\t\t}\n" + "\t\t\t},\n" + "\t\t\t\"data\": {\n"
-			+ "\t\t\t\t\"spring.rabbitmq.password\": \"cGFzc3dvcmQ=\"\n" + "\t\t\t},\n" + "\t\t\t\"type\": \"Opaque\"\n"
-			+ "\t\t}\n" + "\t]\n" + "}";
+	private static final String LIST_BODY = """
+			{
+			\t"kind": "SecretList",
+			\t"apiVersion": "v1",
+			\t"metadata": {
+			\t\t"selfLink": "/api/v1/secrets",
+			\t\t"resourceVersion": "163035"
+			\t},
+			\t"items": [{
+			\t\t\t"metadata": {
+			\t\t\t\t"name": "db_secret",
+			\t\t\t\t"namespace": "default",
+			\t\t\t\t"selfLink": "/api/v1/namespaces/default/secrets/db_secret",
+			\t\t\t\t"uid": "59ba8e6a-a2d4-416c-b016-22597c193f23",
+			\t\t\t\t"resourceVersion": "1462",
+			\t\t\t\t"creationTimestamp": "2020-10-28T14:45:02Z",
+			\t\t\t\t"labels": {
+			\t\t\t\t\t"spring.cloud.kubernetes.secret": "true"
+			\t\t\t\t}
+			\t\t\t},
+			\t\t\t"data": {
+			\t\t\t\t"password": "cDQ1NXcwcmQ=",
+			\t\t\t\t"username": "dXNlcg=="
+			\t\t\t},
+			\t\t\t"type": "Opaque"
+			\t\t},
+			\t\t{
+			\t\t\t"metadata": {
+			\t\t\t\t"name": "rabbit_password",
+			\t\t\t\t"namespace": "default",
+			\t\t\t\t"selfLink": "/api/v1/namespaces/default/secrets/rabbit-password",
+			\t\t\t\t"uid": "bc211cb4-e7ff-4556-b26e-c54911301740",
+			\t\t\t\t"resourceVersion": "162708",
+			\t\t\t\t"creationTimestamp": "2020-10-29T19:47:36Z",
+			\t\t\t\t"labels": {
+			\t\t\t\t\t"spring.cloud.kubernetes.secret": "true"
+			\t\t\t\t},
+			\t\t\t\t"annotations": {
+			\t\t\t\t\t"kubectl.kubernetes.io/last-applied-configuration": "{\\"apiVersion\\":\\"v1\\",\\"data\\":{\\"spring.rabbitmq.password\\":\\"password\\"},\\"kind\\":\\"Secret\\",\\"metadata\\":{\\"annotations\\":{},\\"labels\\":{\\"spring.cloud.kubernetes.secret\\":\\"true\\"},\\"name\\":\\"rabbit-password\\",\\"namespace\\":\\"default\\"},\\"type\\":\\"Opaque\\"}\\n"
+			\t\t\t\t}
+			\t\t\t},
+			\t\t\t"data": {
+			\t\t\t\t"spring.rabbitmq.password": "cGFzc3dvcmQ="
+			\t\t\t},
+			\t\t\t"type": "Opaque"
+			\t\t}
+			\t]
+			}""";
 
 	private static WireMockServer wireMockServer;
 
@@ -149,7 +175,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_LIST))));
 
-		NormalizedSource source = new NamedSecretNormalizedSource("db-secret", "default", false, false);
+		NormalizedSource source = new NamedSecretNormalizedSource("db_secret", "default", false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 
@@ -196,7 +222,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		NormalizedSource source = new NamedSecretNormalizedSource("secret", "db-secret", false, false);
+		NormalizedSource source = new NamedSecretNormalizedSource("secret", "db_secret", false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 

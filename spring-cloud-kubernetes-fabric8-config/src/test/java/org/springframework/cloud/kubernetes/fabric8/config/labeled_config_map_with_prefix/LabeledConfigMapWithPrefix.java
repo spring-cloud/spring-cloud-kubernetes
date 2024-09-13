@@ -53,16 +53,16 @@ abstract class LabeledConfigMapWithPrefix {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		Map<String, String> one = Collections.singletonMap("one.property", "one");
-		createConfigMap("configmap-one", one, Collections.singletonMap("letter", "a"));
+		createConfigMap("configmap_one", one, Collections.singletonMap("letter", "a"));
 
 		Map<String, String> two = Collections.singletonMap("property", "two");
-		createConfigMap("configmap-two", two, Collections.singletonMap("letter", "b"));
+		createConfigMap("configmap_two", two, Collections.singletonMap("letter", "b"));
 
 		Map<String, String> three = Collections.singletonMap("property", "three");
-		createConfigMap("configmap-three", three, Collections.singletonMap("letter", "c"));
+		createConfigMap("configmap_three", three, Collections.singletonMap("letter", "c"));
 
 		Map<String, String> four = Collections.singletonMap("property", "four");
-		createConfigMap("configmap-four", four, Collections.singletonMap("letter", "d"));
+		createConfigMap("configmap_four", four, Collections.singletonMap("letter", "d"));
 
 	}
 

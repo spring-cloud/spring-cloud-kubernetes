@@ -56,19 +56,19 @@ abstract class LabeledSecretWithPrefix {
 		Map<String, String> one = Collections.singletonMap("one.property",
 				Base64.getEncoder().encodeToString("one".getBytes(StandardCharsets.UTF_8)));
 
-		createSecret("secret-one", one, Collections.singletonMap("letter", "a"));
+		createSecret("secret_one", one, Collections.singletonMap("letter", "a"));
 
 		Map<String, String> two = Collections.singletonMap("property",
 				Base64.getEncoder().encodeToString("two".getBytes(StandardCharsets.UTF_8)));
-		createSecret("secret-two", two, Collections.singletonMap("letter", "b"));
+		createSecret("secret_two", two, Collections.singletonMap("letter", "b"));
 
 		Map<String, String> three = Collections.singletonMap("property",
 				Base64.getEncoder().encodeToString("three".getBytes(StandardCharsets.UTF_8)));
-		createSecret("secret-three", three, Collections.singletonMap("letter", "c"));
+		createSecret("secret_three", three, Collections.singletonMap("letter", "c"));
 
 		Map<String, String> four = Collections.singletonMap("property",
 				Base64.getEncoder().encodeToString("four".getBytes(StandardCharsets.UTF_8)));
-		createSecret("secret-four", four, Collections.singletonMap("letter", "d"));
+		createSecret("secret_four", four, Collections.singletonMap("letter", "d"));
 
 	}
 

@@ -16,21 +16,11 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiPredicate;
-import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.LogFactory;
@@ -55,14 +45,6 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
 public final class ConfigUtils {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ConfigUtils.class));
-
-	private static final Pattern ENDS_WITH_PROFILE = Pattern.compile("^.+?-(.+$)");
-
-	// sourceName (configmap or secret name) ends with : "-dev.yaml" or the like.
-	private static final BiPredicate<String, String> ENDS_WITH_PROFILE_AND_EXTENSION = (sourceName,
-			activeProfile) -> sourceName.endsWith("-" + activeProfile + ".yml")
-					|| sourceName.endsWith("-" + activeProfile + ".yaml")
-					|| sourceName.endsWith("-" + activeProfile + ".properties");
 
 	private ConfigUtils() {
 	}
@@ -196,75 +178,8 @@ public final class ConfigUtils {
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
 			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode,
 			boolean includeDefaultProfileData) {
-
-		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
-			.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
-
-		LinkedHashSet<String> foundSourceNames = new LinkedHashSet<>();
-		Map<String, Object> data = new HashMap<>();
-
-		// this is an ordered stream, and it means that non-profile based sources will be
-		// processed before profile based sources. This way, we replicate that
-		// "application-dev.yaml"
-		// overrides properties from "application.yaml"
-		sourceNames.forEach(sourceName -> {
-			StrippedSourceContainer stripped = hashByName.get(sourceName);
-			if (stripped != null) {
-				LOG.debug("Found source with name : '" + sourceName + " in namespace: '" + namespace + "'");
-				foundSourceNames.add(sourceName);
-				// see if data is a single yaml/properties file and if it needs decoding
-				Map<String, String> rawData = stripped.data();
-				if (decode) {
-					rawData = decodeData(rawData);
-				}
-
-				/*
-				 * In some cases we want to include properties from the default profile
-				 * along with any active profiles In these cases includeDefaultProfileData
-				 * will be true If includeDefaultProfileData is false then we want to make
-				 * sure that we only return properties from any active profiles
-				 */
-				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
-					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
-							environment, includeDefaultProfileData));
-				}
-			}
-		});
-
-		return new MultipleSourcesContainer(foundSourceNames, data);
-	}
-
-	static boolean processSource(boolean includeDefaultProfileData, Environment environment, String sourceName,
-			Map<String, String> sourceRawData) {
-		List<String> activeProfiles = Arrays.stream(environment.getActiveProfiles()).toList();
-
-		boolean emptyActiveProfiles = activeProfiles.isEmpty();
-
-		boolean profileBasedSourceName = activeProfiles.stream()
-			.anyMatch(activeProfile -> sourceName.endsWith("-" + activeProfile));
-
-		boolean defaultProfilePresent = activeProfiles.contains("default");
-
-		return includeDefaultProfileData || emptyActiveProfiles || profileBasedSourceName || defaultProfilePresent
-				|| rawDataContainsProfileBasedSource(activeProfiles, sourceRawData).getAsBoolean();
-	}
-
-	/*
-	 * this one is not inlined into 'processSource' because other filters, that come
-	 * before it, might have already resolved to 'true', so no need to compute it at all.
-	 *
-	 * This method is supposed to answer the question if raw data that a certain source
-	 * (configmap or secret) has entries that are themselves profile based
-	 * yaml/yml/properties. For example: 'account-k8s.yaml' or the like.
-	 */
-	static BooleanSupplier rawDataContainsProfileBasedSource(List<String> activeProfiles,
-			Map<String, String> sourceRawData) {
-		return () -> Optional.ofNullable(sourceRawData)
-			.orElse(Map.of())
-			.keySet()
-			.stream()
-			.anyMatch(keyName -> activeProfiles.stream()
-				.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
+		return ConfigUtilsDataProcessor.processNamedData(strippedSources, environment, sourceNames, namespace, decode,
+				includeDefaultProfileData);
 	}
 
 	/**
@@ -277,107 +192,8 @@ public final class ConfigUtils {
 	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> containers,
 			Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
 			boolean decode) {
-
-		// find sources that match the provided labels
-		List<StrippedSourceContainer> allByLabels = containers.stream().filter(one -> {
-			Map<String, String> sourceLabels = one.labels();
-			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
-			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
-		}).toList();
-
-		List<StrippedSourceContainer> allByLabelsNonProfileBased = new ArrayList<>();
-
-		if (profiles == null || profiles.isEmpty()) {
-			for (StrippedSourceContainer oneByLabel : allByLabels) {
-				String name = oneByLabel.name();
-				Matcher matcher = ENDS_WITH_PROFILE.matcher(name);
-				if (matcher.matches()) {
-					LOG.debug(() -> "skipping source with name : '" + name +
-						"' because it ends in : '" +  matcher.group(1) +
-						"' and we assume that is a profile name (and there are no active profiles)");
-				}
-				else {
-					LOG.debug(() -> "taking source with name : '" + name + "'");
-					allByLabelsNonProfileBased.add(oneByLabel);
-				}
-			}
-		}
-		else {
-			for (StrippedSourceContainer oneByLabel : allByLabels) {
-				String name = oneByLabel.name();
-				Matcher matcher = ENDS_WITH_PROFILE.matcher(name);
-				if (matcher.matches()) {
-					String profile = matcher.group(1);
-					if (profiles.contains(profile)) {
-
-					}
-					else {
-						LOG.debug(() -> "skipping source with name : '" + name +
-							"' because it ends in : '" +  matcher.group(1) +
-							"' and it does not match any of the active profiles : " + profiles);
-					}
-
-
-				}
-				else {
-					LOG.debug(() -> "taking source with name : '" + name + "'");
-					allByLabelsNonProfileBased.add(oneByLabel);
-				}
-			}
-		}
-
-
-
-//		// find sources by provided labels
-
-//
-//		// compute profile based source names (based on the ones we found by labels)
-//		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
-//		if (profiles != null && !profiles.isEmpty()) {
-//			for (StrippedSourceContainer one : byLabels) {
-//				for (String profile : profiles) {
-//					String name = one.name() + "-" + profile;
-//					sourceNamesByLabelsWithProfile.add(name);
-//				}
-//			}
-//		}
-//
-//		// once we know sources by labels (and thus their names), we can find out
-//		// profiles based sources from the above. This would get all sources
-//		// we are interested in.
-//		List<StrippedSourceContainer> byProfile = containers.stream()
-//			.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name()))
-//			.toList();
-//
-//		// this makes sure that we first have "app" and then "app-dev" in the list
-//		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
-//		all.addAll(byLabels);
-//		all.addAll(byProfile);
-//
-//		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
-//		Map<String, Object> result = new HashMap<>();
-//
-//		all.forEach(source -> {
-//			String foundSourceName = source.name();
-//			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
-//			sourceNames.add(foundSourceName);
-//
-//			Map<String, String> rawData = source.data();
-//			if (decode) {
-//				rawData = decodeData(rawData);
-//			}
-//			result.putAll(SourceDataEntriesProcessor.processAllEntries(rawData, environment));
-//		});
-//
-//		return new MultipleSourcesContainer(sourceNames, result);
-
-		return null;
-	}
-
-	private static Map<String, String> decodeData(Map<String, String> data) {
-		Map<String, String> result = new HashMap<>(CollectionUtils.newHashMap(data.size()));
-		data.forEach((key, value) -> result.put(key, new String(Base64.getDecoder().decode(value)).trim()));
-		return result;
+		return ConfigUtilsDataProcessor.processLabeledData(containers, environment, labels, namespace, profiles,
+				decode);
 	}
 
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,

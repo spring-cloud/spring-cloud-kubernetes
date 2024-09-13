@@ -94,7 +94,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	void singleSecretMatchAgainstLabels() {
 
 		Secret secret = new SecretBuilder().withNewMetadata()
-			.withName("test-secret")
+			.withName("test_secret")
 			.withLabels(LABELS)
 			.endMetadata()
 			.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes()))
@@ -109,7 +109,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.test-secret.default", sourceData.sourceName());
+		Assertions.assertEquals("secret.test_secret.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
 
 	}
@@ -122,21 +122,21 @@ class LabeledSecretContextToSourceDataProviderTests {
 	void twoSecretsMatchAgainstLabels() {
 
 		Secret redOne = new SecretBuilder().withNewMetadata()
-			.withName("red-secret")
+			.withName("red_secret")
 			.withLabels(RED_LABEL)
 			.endMetadata()
 			.addToData("colorOne", Base64.getEncoder().encodeToString("really-red".getBytes()))
 			.build();
 
 		Secret redTwo = new SecretBuilder().withNewMetadata()
-			.withName("red-secret-again")
+			.withName("red_secret_again")
 			.withLabels(RED_LABEL)
 			.endMetadata()
 			.addToData("colorTwo", Base64.getEncoder().encodeToString("really-red-again".getBytes()))
 			.build();
 
 		Secret blue = new SecretBuilder().withNewMetadata()
-			.withName("blue-secret")
+			.withName("blue_secret")
 			.withLabels(BLUE_LABEL)
 			.endMetadata()
 			.addToData("color", Base64.getEncoder().encodeToString("blue".getBytes()))
@@ -153,7 +153,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red-secret.red-secret-again.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.red_secret.red_secret_again.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
 		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red");
 		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-again");
@@ -196,7 +196,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	void namespaceMatch() {
 
 		Secret secret = new SecretBuilder().withNewMetadata()
-			.withName("test-secret")
+			.withName("test_secret")
 			.withLabels(LABELS)
 			.endMetadata()
 			.addToData("secretName", Base64.getEncoder().encodeToString("secretValue".getBytes()))
@@ -212,12 +212,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.test-secret.default", sourceData.sourceName());
+		Assertions.assertEquals("secret.test_secret.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
 	}
 
 	/**
-	 * one secret with name : "blue-secret" and labels "color=blue" is deployed. we search
+	 * one secret with name : "blue_secret" and labels "color=blue" is deployed. we search
 	 * it with the same labels, find it, and assert that name of the SourceData (it must
 	 * use its name, not its labels) and values in the SourceData must be prefixed (since
 	 * we have provided an explicit prefix).
@@ -225,7 +225,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void testWithPrefix() {
 		Secret secret = new SecretBuilder().withNewMetadata()
-			.withName("blue-secret")
+			.withName("blue_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("what-color", Base64.getEncoder().encodeToString("blue-color".getBytes()))
@@ -242,12 +242,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.blue-secret.default", sourceData.sourceName());
+		Assertions.assertEquals("secret.blue_secret.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
 	}
 
 	/**
-	 * two secrets are deployed (name:blue-secret, name:another-blue-secret) and labels
+	 * two secrets are deployed (name:blue_secret, name:another_blue_secret) and labels
 	 * "color=blue" (on both). we search with the same labels, find them, and assert that
 	 * name of the SourceData (it must use its name, not its labels) and values in the
 	 * SourceData must be prefixed (since we have provided a delayed prefix).
@@ -258,14 +258,14 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void testTwoSecretsWithPrefix() {
 		Secret blueSecret = new SecretBuilder().withNewMetadata()
-			.withName("blue-secret")
+			.withName("blue_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("first", Base64.getEncoder().encodeToString("blue".getBytes()))
 			.build();
 
 		Secret anotherBlue = new SecretBuilder().withNewMetadata()
-			.withName("another-blue-secret")
+			.withName("another_blue_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("second", Base64.getEncoder().encodeToString("blue".getBytes()))
@@ -282,7 +282,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.another-blue-secret.blue-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.another_blue_secret.blue_secret.default");
 
 		Map<String, Object> properties = sourceData.sourceData();
 		Assertions.assertEquals(2, properties.size());
@@ -291,31 +291,35 @@ class LabeledSecretContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-secret.blue-secret.first");
+			Assertions.assertEquals(firstKey, "another_blue_secret.blue_secret.first");
+			Assertions.assertEquals(secondKey, "another_blue_secret.blue_secret.second");
+		}
+		else {
+			Assertions.assertEquals(secondKey, "another_blue_secret.blue_secret.first");
+			Assertions.assertEquals(firstKey, "another_blue_secret.blue_secret.second");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-secret.blue-secret.second");
 		Assertions.assertEquals(properties.get(firstKey), "blue");
 		Assertions.assertEquals(properties.get(secondKey), "blue");
 	}
 
 	/**
-	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "color-secret-k8s" with no labels. We search by "{color:red}", do not find anything
+	 * two secrets are deployed: secret "color_secret" with label: "{color:blue}" and
+	 * "color_secret-k8s" with no labels. We search by "{color:red}", do not find anything
 	 * and thus have an empty SourceData. profile based sources are enabled, but it has no
 	 * effect.
 	 */
 	@Test
 	void searchWithLabelsNoSecretFound() {
 		Secret colorSecret = new SecretBuilder().withNewMetadata()
-			.withName("color-secret")
+			.withName("color_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
 			.build();
 
 		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
-			.withName("color-secret-k8s")
+			.withName("color_secret-k8s")
 			.endMetadata()
 			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
 			.build();
@@ -338,21 +342,21 @@ class LabeledSecretContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "shape-secret" with label: "{shape:round}". We search by "{color:blue}" and find
+	 * two secrets are deployed: secret "color_secret" with label: "{color:blue}" and
+	 * "shape_secret" with label: "{shape:round}". We search by "{color:blue}" and find
 	 * one secret. profile based sources are enabled, but it has no effect.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFound() {
 		Secret colorSecret = new SecretBuilder().withNewMetadata()
-			.withName("color-secret")
+			.withName("color_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
 			.build();
 
 		Secret shapeSecret = new SecretBuilder().withNewMetadata()
-			.withName("shape-secret")
+			.withName("shape_secret")
 			.endMetadata()
 			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
 			.build();
@@ -371,28 +375,28 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color_secret.default");
 
 	}
 
 	/**
-	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
-	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
+	 * two secrets are deployed: secret "color_secret" with label: "{color:blue}" and
+	 * "color_secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
+	 * one secret. Since profiles are enabled, we will also be reading "color_secret-k8s",
 	 * even if its labels do not match provided ones.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFoundAndOneFromProfileFound() {
 		Secret colorSecret = new SecretBuilder().withNewMetadata()
-			.withName("color-secret")
+			.withName("color_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
 			.build();
 
 		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
-			.withName("color-secret-k8s")
-			.withLabels(Collections.singletonMap("color", "red"))
+			.withName("color_secret-k8s")
+			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
 			.build();
@@ -410,54 +414,54 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.color-secret-k8s.default");
+		Assertions.assertEquals(sourceData.sourceData().get("color_secret.color_secret-k8s.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color_secret.color_secret-k8s.two"), "2");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color_secret.color_secret-k8s.default");
 
 	}
 
 	/**
 	 * <pre>
-	 *     - secret "color-secret" with label "{color:blue}"
-	 *     - secret "shape-secret" with labels "{color:blue, shape:round}"
-	 *     - secret "no-fit" with labels "{tag:no-fit}"
-	 *     - secret "color-secret-k8s" with label "{color:red}"
-	 *     - secret "shape-secret-k8s" with label "{shape:triangle}"
+	 *     - secret "color_secret" with label "{color:blue}"
+	 *     - secret "shape_secret" with labels "{color:blue, shape:round}"
+	 *     - secret "no_fit" with labels "{tag:no-fit}"
+	 *     - secret "color_secret-k8s" with label "{color:blue}"
+	 *     - secret "shape_secret-k8s" with label "{shape:triangle, color:blue}"
 	 * </pre>
 	 */
 	@Test
 	void searchWithLabelsTwoSecretsFoundAndOneFromProfileFound() {
 		Secret colorSecret = new SecretBuilder().withNewMetadata()
-			.withName("color-secret")
+			.withName("color_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
 			.build();
 
 		Secret shapeSecret = new SecretBuilder().withNewMetadata()
-			.withName("shape-secret")
+			.withName("shape_secret")
 			.withLabels(Map.of("color", "blue", "shape", "round"))
 			.endMetadata()
 			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
 			.build();
 
 		Secret noFit = new SecretBuilder().withNewMetadata()
-			.withName("no-fit")
+			.withName("no_fit")
 			.withLabels(Map.of("tag", "no-fit"))
 			.endMetadata()
 			.addToData("three", Base64.getEncoder().encodeToString("3".getBytes()))
 			.build();
 
 		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
-			.withName("color-secret-k8s")
-			.withLabels(Map.of("color", "red"))
+			.withName("color_secret-k8s")
+			.withLabels(Map.of("color", "blue"))
 			.endMetadata()
 			.addToData("four", Base64.getEncoder().encodeToString("4".getBytes()))
 			.build();
 
 		Secret shapeSecretK8s = new SecretBuilder().withNewMetadata()
-			.withName("shape-secret-k8s")
-			.withLabels(Map.of("shape", "triangle"))
+			.withName("shape_secret-k8s")
+			.withLabels(Map.of("shape", "triangle", "color", "blue"))
 			.endMetadata()
 			.addToData("five", Base64.getEncoder().encodeToString("5".getBytes()))
 			.build();
@@ -480,16 +484,16 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 4);
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"), "1");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.one"), "1");
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"), "2");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.two"), "2");
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"), "4");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.four"), "4");
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"), "5");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.five"), "5");
 
 		Assertions.assertEquals(sourceData.sourceName(),
-				"secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
+				"secret.color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.default");
 
 	}
 
@@ -499,7 +503,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void testYaml() {
 		Secret colorSecret = new SecretBuilder().withNewMetadata()
-			.withName("color-secret")
+			.withName("color_secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
 			.endMetadata()
 			.addToData("test.yaml", Base64.getEncoder().encodeToString("color: blue".getBytes()))
@@ -517,7 +521,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color_secret.default");
 	}
 
 	/**

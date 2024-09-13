@@ -67,25 +67,22 @@ public class LabeledSecretWithProfileConfigurationStub {
 
 	/**
 	 * <pre>
-	 *     - secret with name "color-secret", with labels: "{color: blue}" and "explicitPrefix: blue"
-	 *     - secret with name "green-secret", with labels: "{color: green}" and "explicitPrefix: blue-again"
-	 *     - secret with name "red-secret", with labels "{color: not-red}" and "useNameAsPrefix: true"
-	 *     - secret with name "yellow-secret" with labels "{color: not-yellow}" and useNameAsPrefix: true
-	 *     - secret with name "color-secret-k8s", with labels : "{color: not-blue}"
-	 *     - secret with name "green-secret-k8s", with labels : "{color: green-k8s}"
-	 *     - secret with name "green-secret-prod", with labels : "{color: green-prod}"
-	 *
-	 *     # a test that proves order: first read non-profile based secrets, thus profile based
-	 *     # secrets override non-profile ones.
-	 *     - secret with name "green-purple-secret", labels "{color: green, shape: round}", data: "{eight: 8}"
-	 *     - secret with name "green-purple-secret-k8s", labels "{color: black}", data: "{eight: eight-ish}"
+	 *     - secret with name "color_secret", with labels: "{color: blue}" and "explicitPrefix: blue"
+	 *     - secret with name "green_secret", with labels: "{color: green}" and "explicitPrefix: blue-again"
+	 *     - secret with name "red_secret", with labels "{color: not-red}" and "useNameAsPrefix: true"
+	 *     - secret with name "yellow_secret" with labels "{color: not-yellow}" and useNameAsPrefix: true
+	 *     - secret with name "color_secret-k8s", with labels : "{color: not-blue}"
+	 *     - secret with name "green_secret-k8s", with labels : "{color: green-k8s}"
+	 *     - secret with name "green_secret-prod", with labels : "{color: green-prod}"
+	 *     - secret with name "green_purple_secret", labels "{color: green, shape: round}", data: "{eight: 8}"
+	 *     - secret with name "green_purple_secret-k8s", labels "{color: black}", data: "{eight: eight-ish}"
 	 * </pre>
 	 */
 	public static void stubData() {
 
 		// is found by labels
 		V1Secret colorSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("color-secret")
+			.withMetadata(new V1ObjectMetaBuilder().withName("color_secret")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "blue"))
 				.build())
@@ -94,7 +91,7 @@ public class LabeledSecretWithProfileConfigurationStub {
 
 		// is not taken, since "profileSpecificSources=false" for the above
 		V1Secret colorSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("color-secret-k8s")
+			.withMetadata(new V1ObjectMetaBuilder().withName("color_secret-k8s")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "not-blue"))
 				.build())
@@ -103,7 +100,7 @@ public class LabeledSecretWithProfileConfigurationStub {
 
 		// is found by labels
 		V1Secret greenSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-secret")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_secret")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "green"))
 				.build())
@@ -111,25 +108,25 @@ public class LabeledSecretWithProfileConfigurationStub {
 			.build();
 
 		V1Secret greenSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-secret-k8s")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_secret-k8s")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "green-k8s"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("six", "6".getBytes(StandardCharsets.UTF_8)))
 			.build();
 
 		// is taken because prod profile is active and "profileSpecificSources=true"
 		V1Secret shapeSecretProd = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-secret-prod")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_secret-prod")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "green-prod"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("seven", "7".getBytes(StandardCharsets.UTF_8)))
 			.build();
 
 		// not taken
 		V1Secret redSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("red-secret")
+			.withMetadata(new V1ObjectMetaBuilder().withName("red_secret")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "not-red"))
 				.build())
@@ -138,7 +135,7 @@ public class LabeledSecretWithProfileConfigurationStub {
 
 		// not taken
 		V1Secret yellowSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("yellow-secret")
+			.withMetadata(new V1ObjectMetaBuilder().withName("yellow_secret")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "not-yellow"))
 				.build())
@@ -147,7 +144,7 @@ public class LabeledSecretWithProfileConfigurationStub {
 
 		// is found by labels
 		V1Secret greenPurpleSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-secret")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_purple_secret")
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "green", "shape", "round"))
 				.build())
@@ -156,9 +153,9 @@ public class LabeledSecretWithProfileConfigurationStub {
 
 		// is taken and thus overrides the above
 		V1Secret greenPurpleSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-secret-k8s")
+			.withMetadata(new V1ObjectMetaBuilder().withName("green_purple_secret-k8s")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "black"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("eight", "eight-ish".getBytes(StandardCharsets.UTF_8)))
 			.build();
