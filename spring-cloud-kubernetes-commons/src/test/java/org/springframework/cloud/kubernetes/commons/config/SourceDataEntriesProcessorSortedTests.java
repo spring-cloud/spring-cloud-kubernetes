@@ -66,13 +66,13 @@ class SourceDataEntriesProcessorSortedTests {
 	void testSingleFileProperty() {
 
 		Map<String, String> k8sSource = new LinkedHashMap<>();
-		k8sSource.put("application.properties", "key=value");
+		k8sSource.put(Constants.APPLICATION_PROPERTIES, "key=value");
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
 		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getKey(), "application.properties");
+		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
 		Assertions.assertEquals(result.get(0).getValue(), "key=value");
 	}
 
@@ -80,14 +80,14 @@ class SourceDataEntriesProcessorSortedTests {
 	void testApplicationAndSimpleProperty() {
 
 		Map<String, String> k8sSource = new LinkedHashMap<>();
-		k8sSource.put("application.properties", "key=value");
+		k8sSource.put(Constants.APPLICATION_PROPERTIES, "key=value");
 		k8sSource.put("simple", "other_value");
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
 		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).getKey(), "application.properties");
+		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
 		Assertions.assertEquals(result.get(0).getValue(), "key=value");
 
 		Assertions.assertEquals(result.get(1).getKey(), "simple");
@@ -99,13 +99,13 @@ class SourceDataEntriesProcessorSortedTests {
 
 		Map<String, String> k8sSource = new LinkedHashMap<>();
 		k8sSource.put("simple", "other_value");
-		k8sSource.put("application.properties", "key=value");
+		k8sSource.put(Constants.APPLICATION_PROPERTIES, "key=value");
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
 		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).getKey(), "application.properties");
+		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
 		Assertions.assertEquals(result.get(0).getValue(), "key=value");
 
 		Assertions.assertEquals(result.get(1).getKey(), "simple");
@@ -117,7 +117,7 @@ class SourceDataEntriesProcessorSortedTests {
 
 		Map<String, String> k8sSource = new LinkedHashMap<>();
 		k8sSource.put("simple", "other_value");
-		k8sSource.put("application.properties", "key=value");
+		k8sSource.put(Constants.APPLICATION_PROPERTIES, "key=value");
 		k8sSource.put("application-dev.properties", "key-dev=value-dev");
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
@@ -125,7 +125,7 @@ class SourceDataEntriesProcessorSortedTests {
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
 		Assertions.assertEquals(result.size(), 3);
-		Assertions.assertEquals(result.get(0).getKey(), "application.properties");
+		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
 		Assertions.assertEquals(result.get(0).getValue(), "key=value");
 
 		Assertions.assertEquals(result.get(1).getKey(), "application-dev.properties");
@@ -140,7 +140,7 @@ class SourceDataEntriesProcessorSortedTests {
 
 		Map<String, String> k8sSource = new LinkedHashMap<>();
 		k8sSource.put("simple", "other_value");
-		k8sSource.put("application.properties", "key=value");
+		k8sSource.put(Constants.APPLICATION_PROPERTIES, "key=value");
 		k8sSource.put("application-dev.properties", "key-dev=value-dev");
 
 		MockEnvironment mockEnvironment = new MockEnvironment();
@@ -159,7 +159,7 @@ class SourceDataEntriesProcessorSortedTests {
 		Map<String, String> k8sSource = new LinkedHashMap<>();
 		k8sSource.put("simple", "other_value");
 		k8sSource.put("second-simple", "second_other_value");
-		k8sSource.put("application.properties", "key=value");
+		k8sSource.put(Constants.APPLICATION_PROPERTIES, "key=value");
 		k8sSource.put("application-dev.properties", "key-dev=value-dev");
 		k8sSource.put("application-k8s.properties", "key-k8s=value-k8s");
 		k8sSource.put("ignored.properties", "key-ignored=value-ignored");
@@ -169,7 +169,7 @@ class SourceDataEntriesProcessorSortedTests {
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
 		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result.get(0).getKey(), "application.properties");
+		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
 		Assertions.assertEquals(result.get(0).getValue(), "key=value");
 
 		Assertions.assertEquals(result.get(1).getKey(), "application-k8s.properties");
@@ -188,7 +188,7 @@ class SourceDataEntriesProcessorSortedTests {
 		Map<String, String> k8sSource = new LinkedHashMap<>();
 		k8sSource.put("simple", "other_value");
 		k8sSource.put("second-simple", "second_other_value");
-		k8sSource.put("application.properties", "key=value");
+		k8sSource.put(Constants.APPLICATION_PROPERTIES, "key=value");
 		k8sSource.put("application-dev.properties", "key-dev=value-dev");
 		k8sSource.put("application-k8s.properties", "key-k8s=value-k8s");
 		k8sSource.put("ignored.properties", "key-ignored=value-ignored");

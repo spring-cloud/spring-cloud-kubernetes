@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -66,7 +65,7 @@ public record ConfigMapConfigProperties(@DefaultValue("true") boolean enableApi,
 		return this.sources.stream()
 			.flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.includeProfileSpecificSources,
 					this.failFast, this.useNameAsPrefix, environment))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	/**
