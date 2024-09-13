@@ -64,13 +64,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	private static final String NAMESPACE = "default";
 
-	static {
-		LABELS.put("label2", "value2");
-		LABELS.put("label1", "value1");
-	}
-
 	@BeforeAll
 	static void setup() {
+
+		LABELS.put("label2", "value2");
+		LABELS.put("label1", "value1");
+
 		WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
 
 		wireMockServer.start();
@@ -127,7 +126,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	void singleSecretMatchAgainstLabels() {
 
 		V1Secret red = new V1SecretBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withLabels(LABELS).withNamespace(NAMESPACE).withName("test-secret").build())
+				new V1ObjectMetaBuilder().withLabels(LABELS).withNamespace(NAMESPACE).withName("test_secret").build())
 			.addToData("color", "really-red".getBytes())
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
@@ -142,7 +141,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.test_secret.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
 
 	}
@@ -154,12 +153,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 	void twoSecretsMatchAgainstLabels() {
 
 		V1Secret one = new V1SecretBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withLabels(RED_LABEL).withNamespace(NAMESPACE).withName("color-one").build())
+				new V1ObjectMetaBuilder().withLabels(RED_LABEL).withNamespace(NAMESPACE).withName("color_one").build())
 			.addToData("colorOne", "really-red-one".getBytes())
 			.build();
 
 		V1Secret two = new V1SecretBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withLabels(RED_LABEL).withNamespace(NAMESPACE).withName("color-two").build())
+				new V1ObjectMetaBuilder().withLabels(RED_LABEL).withNamespace(NAMESPACE).withName("color_two").build())
 			.addToData("colorTwo", "really-red-two".getBytes())
 			.build();
 
@@ -174,7 +173,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-one.color-two.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color_one.color_two.default");
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
 		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red-one");
 		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-two");
@@ -184,7 +183,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@Test
 	void namespaceMatch() {
 		V1Secret one = new V1SecretBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withLabels(LABELS).withNamespace(NAMESPACE).withName("test-secret").build())
+				new V1ObjectMetaBuilder().withLabels(LABELS).withNamespace(NAMESPACE).withName("test_secret").build())
 			.addToData("color", "really-red".getBytes())
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(one);
@@ -199,7 +198,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.test_secret.default");
 		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
 	}
 
@@ -215,7 +214,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret one = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("blue-secret")
+				.withName("blue_secret")
 				.build())
 			.addToData("what-color", "blue-color".getBytes())
 			.build();
@@ -233,12 +232,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.blue-secret.default", sourceData.sourceName());
+		Assertions.assertEquals("secret.blue_secret.default", sourceData.sourceName());
 		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
 	}
 
 	/**
-	 * two secrets are deployed (name:blue-secret, name:another-blue-secret) and labels
+	 * two secrets are deployed (name:blue_secret, name:another_blue_secret) and labels
 	 * "color=blue" (on both). we search with the same labels, find them, and assert that
 	 * name of the SourceData (it must use its name, not its labels) and values in the
 	 * SourceData must be prefixed (since we have provided a delayed prefix).
@@ -252,7 +251,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret one = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("blue-secret")
+				.withName("blue_secret")
 				.build())
 			.addToData("first", "blue".getBytes())
 			.build();
@@ -260,7 +259,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret two = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("another-blue-secret")
+				.withName("another_blue_secret")
 				.build())
 			.addToData("second", "blue".getBytes())
 			.build();
@@ -281,8 +280,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		// maps don't have a defined order, so assert components separately
 		Assertions.assertEquals(46, sourceData.sourceName().length());
 		Assertions.assertTrue(sourceData.sourceName().contains("secret"));
-		Assertions.assertTrue(sourceData.sourceName().contains("blue-secret"));
-		Assertions.assertTrue(sourceData.sourceName().contains("another-blue-secret"));
+		Assertions.assertTrue(sourceData.sourceName().contains("blue_secret"));
+		Assertions.assertTrue(sourceData.sourceName().contains("another_blue_secret"));
 		Assertions.assertTrue(sourceData.sourceName().contains("default"));
 
 		Map<String, Object> properties = sourceData.sourceData();
@@ -292,17 +291,21 @@ class LabeledSecretContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-secret.blue-secret.first");
+			Assertions.assertEquals(firstKey, "another_blue_secret.blue_secret.first");
+			Assertions.assertEquals(secondKey, "another_blue_secret.blue_secret.second");
+		}
+		else {
+			Assertions.assertEquals(secondKey, "another_blue_secret.blue_secret.first");
+			Assertions.assertEquals(firstKey, "another_blue_secret.blue_secret.second");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-secret.blue-secret.second");
 		Assertions.assertEquals(properties.get(firstKey), "blue");
 		Assertions.assertEquals(properties.get(secondKey), "blue");
 	}
 
 	/**
-	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "shape-secret" with label: "{shape:round}". We search by "{color:blue}" and find
+	 * two secrets are deployed: secret "color_secret" with label: "{color:blue}" and
+	 * "shape_secret" with label: "{shape:round}". We search by "{color:blue}" and find
 	 * one secret. profile based sources are enabled, but it has no effect.
 	 */
 	@Test
@@ -311,7 +314,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret colorSecret = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("color-secret")
+				.withName("color_secret")
 				.build())
 			.addToData("one", "1".getBytes())
 			.build();
@@ -319,7 +322,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret shapeSecret = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("shape", "round"))
 				.withNamespace(NAMESPACE)
-				.withName("shape-secret")
+				.withName("shape_secret")
 				.build())
 			.addToData("two", "2".getBytes())
 			.build();
@@ -339,14 +342,14 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color_secret.default");
 
 	}
 
 	/**
-	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
-	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
+	 * two secrets are deployed: secret "color_secret" with label: "{color:blue}" and
+	 * "color_secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
+	 * one secret. Since profiles are enabled, we will also be reading "color_secret-k8s",
 	 * even if its labels do not match provided ones.
 	 */
 	@Test
@@ -355,15 +358,15 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret colorSecret = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("color-secret")
+				.withName("color_secret")
 				.build())
 			.addToData("one", "1".getBytes())
 			.build();
 
 		V1Secret shapeSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("color-secret-k8s")
+				.withName("color_secret-k8s")
 				.build())
 			.addToData("two", "2".getBytes())
 			.build();
@@ -383,19 +386,19 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.color-secret-k8s.default");
+		Assertions.assertEquals(sourceData.sourceData().get("color_secret.color_secret-k8s.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color_secret.color_secret-k8s.two"), "2");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color_secret.color_secret-k8s.default");
 
 	}
 
 	/**
 	 * <pre>
-	 *     - secret "color-secret" with label "{color:blue}"
-	 *     - secret "shape-secret" with labels "{color:blue, shape:round}"
-	 *     - secret "no-fit" with labels "{tag:no-fit}"
-	 *     - secret "color-secret-k8s" with label "{color:red}"
-	 *     - secret "shape-secret-k8s" with label "{shape:triangle}"
+	 *     - secret "color_secret" with label "{color:blue}"
+	 *     - secret "shape_secret" with labels "{color:blue, shape:round}"
+	 *     - secret "no_fit" with labels "{tag:no-fit}"
+	 *     - secret "color_secret-k8s" with label "{color:red}"
+	 *     - secret "shape_secret-k8s" with label "{shape:triangle}"
 	 * </pre>
 	 */
 	@Test
@@ -404,7 +407,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret colorSecret = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("color-secret")
+				.withName("color_secret")
 				.build())
 			.addToData("one", "1".getBytes())
 			.build();
@@ -412,7 +415,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret shapeSecret = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue", "shape", "round"))
 				.withNamespace(NAMESPACE)
-				.withName("shape-secret")
+				.withName("shape_secret")
 				.build())
 			.addToData("two", "2".getBytes())
 			.build();
@@ -420,23 +423,23 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret noFit = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("tag", "no-fit"))
 				.withNamespace(NAMESPACE)
-				.withName("no-fit")
+				.withName("no_fit")
 				.build())
 			.addToData("three", "3".getBytes())
 			.build();
 
 		V1Secret colorSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("color-secret-k8s")
+				.withName("color_secret-k8s")
 				.build())
 			.addToData("four", "4".getBytes())
 			.build();
 
 		V1Secret shapeSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("shape", "triangle"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("shape", "triangle", "color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("shape-secret-k8s")
+				.withName("shape_secret-k8s")
 				.build())
 			.addToData("five", "5".getBytes())
 			.build();
@@ -461,16 +464,16 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 4);
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"), "1");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.one"), "1");
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"), "2");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.two"), "2");
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"), "4");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.four"), "4");
 		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"), "5");
+				sourceData.sourceData().get("color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.five"), "5");
 
 		Assertions.assertEquals(sourceData.sourceName(),
-				"secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
+				"secret.color_secret.color_secret-k8s.shape_secret.shape_secret-k8s.default");
 
 	}
 
@@ -482,7 +485,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		V1Secret colorSecret = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
-				.withName("color-secret")
+				.withName("color_secret")
 				.build())
 			.addToData("test.yaml", "color: blue".getBytes())
 			.build();
@@ -502,7 +505,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color_secret.default");
 	}
 
 	/**
