@@ -73,7 +73,7 @@
 		<spring-cloud-commons.version>4.1.5-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>4.1.4-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>4.1.3-SNAPSHOT</spring-cloud-bus.version>
-		<spring-cloud-contract.version>4.1.5-SNAPSHOT</spring-cloud-contract.version>
+		<spring-cloud-contract.version>4.2.0-M1</spring-cloud-contract.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
