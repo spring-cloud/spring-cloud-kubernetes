@@ -13,7 +13,7 @@
 
 	<properties>
 		<awaitility.version>4.1.0</awaitility.version>
-		<testcontainers.version>1.18.3</testcontainers.version>
+		<testcontainers.version>1.19.0</testcontainers.version>
 	</properties>
 	<dependencies>
 
