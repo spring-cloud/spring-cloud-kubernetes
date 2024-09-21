@@ -79,7 +79,7 @@ class SecretsConfigPropertiesBindingTests {
 					"spring.cloud.kubernetes.secrets.retry.max-interval=3",
 					"spring.cloud.kubernetes.secrets.retry.max-attempts=4",
 					"spring.cloud.kubernetes.secrets.retry.enabled=false",
-					"spring.cloud.kubernetes.secrets.single-read=false")
+					"spring.cloud.kubernetes.secrets.namespaced-batch-read=false")
 			.run(context -> {
 				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 				Assertions.assertNotNull(props);

@@ -101,7 +101,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, LABELS, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -145,7 +145,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -174,7 +174,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -205,7 +205,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE + "nope", LABELS, true,
 				false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -235,7 +235,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, mePrefix, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -276,7 +276,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -301,8 +301,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "color-configmap-k8s" with no labels. We search by "{color:red}", do not find
-	 * anything and thus have an empty SourceData. profile based sources are enabled, but
-	 * it has no effect.
+	 * anything and thus have an empty SourceData.
 	 */
 	@Test
 	void searchWithLabelsNoConfigmapsFound() {
@@ -322,11 +321,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DEFAULT, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -339,7 +338,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "shape-configmap" with label: "{shape:round}". We search by "{color:blue}" and find
-	 * one configmap. profile based sources are enabled, but it has no effect.
+	 * one configmap.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFound() {
@@ -359,11 +358,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmap).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -371,47 +370,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Assertions.assertEquals(sourceData.sourceData().size(), 1);
 		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.default");
-
-	}
-
-	/**
-	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
-	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
-	 * find one configmap. Since profiles are enabled, we will also be reading
-	 * "color-configmap-k8s", even if its labels do not match provided ones.
-	 */
-	@Test
-	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
-		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap")
-			.withLabels(Collections.singletonMap("color", "blue"))
-			.endMetadata()
-			.addToData("one", "1")
-			.build();
-
-		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap-k8s")
-			.withLabels(Collections.singletonMap("color", "red"))
-			.endMetadata()
-			.addToData("two", "2")
-			.build();
-
-		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
-		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
-
-		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
-
-		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
-		SourceData sourceData = data.apply(context);
-
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.color-configmap-k8s.default");
 
 	}
 
@@ -425,7 +383,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 * </pre>
 	 */
 	@Test
-	void searchWithLabelsTwoConfigMapsFoundAndOneFromProfileFound() {
+	void searchWithLabelsTwoConfigMapsFound() {
 		ConfigMap colorConfigMap = new ConfigMapBuilder().withNewMetadata()
 			.withName("color-configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
@@ -468,27 +426,20 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmapK8s).create();
 
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				true);
 
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 4);
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.shape-configmap.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.shape-configmap.two"), "2");
 
-		Assertions.assertEquals(sourceData.sourceName(),
-				"configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
+		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.shape-configmap.default");
 
 	}
 
@@ -524,7 +475,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource redNormalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DELAYED, true);
 		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE,
-				environment);
+				environment, true);
 		Fabric8ContextToSourceData redData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
@@ -535,7 +486,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource greenNormalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED, true);
 		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE,
-				environment);
+				environment, true);
 		Fabric8ContextToSourceData greenData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 

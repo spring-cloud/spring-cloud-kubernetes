@@ -31,6 +31,8 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_PROPERTIES;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_YAML;
 
 /**
  * @author Charles Moulliard
@@ -84,12 +86,12 @@ class ConfigMapsTest {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
 			.withName(configMapName)
 			.endMetadata()
-			.addToData("application.properties", ConfigMapTestUtil.readResourceFile("application.properties"))
+			.addToData(APPLICATION_PROPERTIES, ConfigMapTestUtil.readResourceFile(APPLICATION_PROPERTIES))
 			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(), true);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -104,12 +106,12 @@ class ConfigMapsTest {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
 			.withName(configMapName)
 			.endMetadata()
-			.addToData("application.yaml", ConfigMapTestUtil.readResourceFile("application.yaml"))
+			.addToData(APPLICATION_YAML, ConfigMapTestUtil.readResourceFile(APPLICATION_YAML))
 			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(), true);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -129,7 +131,7 @@ class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(), true);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -144,12 +146,12 @@ class ConfigMapsTest {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
 			.withName(configMapName)
 			.endMetadata()
-			.addToData("application.properties", "somevalue")
+			.addToData(APPLICATION_PROPERTIES, "somevalue")
 			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(), true);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -162,12 +164,12 @@ class ConfigMapsTest {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
 			.withName(configMapName)
 			.endMetadata()
-			.addToData("application.yaml", "somevalue")
+			.addToData(APPLICATION_YAML, "somevalue")
 			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(), true);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -180,13 +182,13 @@ class ConfigMapsTest {
 		ConfigMap configMap = new ConfigMapBuilder().withNewMetadata()
 			.withName(configMapName)
 			.endMetadata()
-			.addToData("application.properties", ConfigMapTestUtil.readResourceFile("application.properties"))
+			.addToData(APPLICATION_PROPERTIES, ConfigMapTestUtil.readResourceFile(APPLICATION_PROPERTIES))
 			.addToData("adhoc.properties", ConfigMapTestUtil.readResourceFile("adhoc.properties"))
 			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(), true);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 

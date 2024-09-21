@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -24,7 +23,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -267,13 +265,11 @@ public final class ConfigUtils {
 	/**
 	 * transforms raw data from one or multiple sources into an entry of source names and
 	 * flattened data that they all hold (potentially overriding entries without any
-	 * defined order). This method first searches by labels, find the sources, then uses
-	 * these names to find any profile based sources.
+	 * defined order).
 	 */
 
 	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> containers,
-			Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
-			boolean decode) {
+			Environment environment, Map<String, String> labels, String namespace, boolean decode) {
 
 		// find sources by provided labels
 		List<StrippedSourceContainer> byLabels = containers.stream().filter(one -> {
@@ -282,33 +278,10 @@ public final class ConfigUtils {
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
 		}).toList();
 
-		// compute profile based source names (based on the ones we found by labels)
-		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
-		if (profiles != null && !profiles.isEmpty()) {
-			for (StrippedSourceContainer one : byLabels) {
-				for (String profile : profiles) {
-					String name = one.name() + "-" + profile;
-					sourceNamesByLabelsWithProfile.add(name);
-				}
-			}
-		}
-
-		// once we know sources by labels (and thus their names), we can find out
-		// profiles based sources from the above. This would get all sources
-		// we are interested in.
-		List<StrippedSourceContainer> byProfile = containers.stream()
-			.filter(one -> sourceNamesByLabelsWithProfile.contains(one.name()))
-			.toList();
-
-		// this makes sure that we first have "app" and then "app-dev" in the list
-		List<StrippedSourceContainer> all = new ArrayList<>(byLabels.size() + byProfile.size());
-		all.addAll(byLabels);
-		all.addAll(byProfile);
-
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
 		Map<String, Object> result = new HashMap<>();
 
-		all.forEach(source -> {
+		byLabels.forEach(source -> {
 			String foundSourceName = source.name();
 			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
 			sourceNames.add(foundSourceName);

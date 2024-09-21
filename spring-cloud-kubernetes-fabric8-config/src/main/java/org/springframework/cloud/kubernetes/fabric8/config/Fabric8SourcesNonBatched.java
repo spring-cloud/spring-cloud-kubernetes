@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
@@ -32,8 +33,7 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.strippedSecrets;
 
 /**
- * non batch reads (not reading in the whole namespace) of configmaps
- * and secrets.
+ * non batch reads (not reading in the whole namespace) of configmaps and secrets.
  *
  * @author wind57
  */
@@ -89,11 +89,7 @@ final class Fabric8SourcesNonBatched {
 	static List<StrippedSourceContainer> configMapsByLabels(KubernetesClient client, String namespace,
 			Map<String, String> labels) {
 
-		List<ConfigMap> configMaps = client.configMaps()
-			.inNamespace(namespace)
-			.withLabels(labels)
-			.list()
-			.getItems();
+		List<ConfigMap> configMaps = client.configMaps().inNamespace(namespace).withLabels(labels).list().getItems();
 
 		return strippedConfigMaps(configMaps);
 	}
@@ -104,11 +100,7 @@ final class Fabric8SourcesNonBatched {
 	static List<StrippedSourceContainer> secretsByLabels(KubernetesClient client, String namespace,
 			Map<String, String> labels) {
 
-		List<Secret> secrets = client.secrets()
-			.inNamespace(namespace)
-			.withLabels(labels)
-			.list()
-			.getItems();
+		List<Secret> secrets = client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
 
 		return strippedSecrets(secrets);
 	}
