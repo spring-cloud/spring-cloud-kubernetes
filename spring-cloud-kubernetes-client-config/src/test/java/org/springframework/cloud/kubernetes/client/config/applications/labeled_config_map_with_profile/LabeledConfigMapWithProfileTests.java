@@ -66,10 +66,8 @@ abstract class LabeledConfigMapWithProfileTests {
 
 	/**
 	 * <pre>
-	 *   this one is taken from : ""green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s"".
-	 *   We find "green-configmap" by labels, also "green-configmap-k8s", "green-configmap-prod" exists,
-	 *   because "includeProfileSpecificSources=true" is set. Also "green-purple-configmap" and "green-purple-configmap-k8s"
-	 *   are found.
+	 *   this one is taken from : "green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s".
+	 *   We find "green-configmap", "green-configmap-k8s", "green-configmap-prod" by labels.
 	 * </pre>
 	 */
 	@Test
