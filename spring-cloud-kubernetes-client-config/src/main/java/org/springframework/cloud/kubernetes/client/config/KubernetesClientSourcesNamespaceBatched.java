@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,40 +21,45 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapCache;
+import org.springframework.cloud.kubernetes.commons.config.SecretsCache;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
 /**
- * A cache of V1ConfigMap(s) per namespace. Makes sure we read config maps only once from
- * a namespace.
- *
  * @author wind57
  */
-public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
+final class KubernetesClientSourcesNamespaceBatched implements SecretsCache, ConfigMapCache {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientConfigMapsCache.class));
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesClientSourcesNamespaceBatched.class));
 
 	/**
 	 * at the moment our loading of config maps is using a single thread, but might change
 	 * in the future, thus a thread safe structure.
 	 */
-	private static final ConcurrentHashMap<String, List<StrippedSourceContainer>> CACHE = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<String, List<StrippedSourceContainer>> SECRETS_CACHE = new ConcurrentHashMap<>();
+
+	private static final ConcurrentHashMap<String, List<StrippedSourceContainer>> CONFIG_MAPS_CACHE = new ConcurrentHashMap<>();
 
 	@Override
-	public void discardAll() {
-		CACHE.clear();
+	public void discardSecrets() {
+		SECRETS_CACHE.clear();
 	}
 
-	static List<StrippedSourceContainer> byNamespace(CoreV1Api coreV1Api, String namespace) {
+	@Override
+	public void discardConfigMaps() {
+		CONFIG_MAPS_CACHE.clear();
+	}
+
+	static List<StrippedSourceContainer> strippedConfigMapsBatchRead(CoreV1Api coreV1Api, String namespace) {
 		boolean[] b = new boolean[1];
-		List<StrippedSourceContainer> result = CACHE.computeIfAbsent(namespace, x -> {
+		List<StrippedSourceContainer> result = CONFIG_MAPS_CACHE.computeIfAbsent(namespace, x -> {
 			try {
 				b[0] = true;
-				return strippedConfigMaps(coreV1Api
+				return KubernetesClientSourcesStripper.strippedConfigMaps(coreV1Api
 					.listNamespacedConfigMap(namespace, null, null, null, null, null, null, null, null, null, null,
 							null)
 					.getItems());
@@ -74,11 +79,28 @@ public final class KubernetesClientConfigMapsCache implements ConfigMapCache {
 		return result;
 	}
 
-	private static List<StrippedSourceContainer> strippedConfigMaps(List<V1ConfigMap> configMaps) {
-		return configMaps.stream()
-			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
-					configMap.getMetadata().getName(), configMap.getData()))
-			.toList();
+	static List<StrippedSourceContainer> strippedSecretsBatchRead(CoreV1Api coreV1Api, String namespace) {
+		boolean[] b = new boolean[1];
+		List<StrippedSourceContainer> result = SECRETS_CACHE.computeIfAbsent(namespace, x -> {
+			try {
+				b[0] = true;
+				return KubernetesClientSourcesStripper.strippedSecrets(coreV1Api
+					.listNamespacedSecret(namespace, null, null, null, null, null, null, null, null, null, null, null)
+					.getItems());
+			}
+			catch (ApiException apiException) {
+				throw new RuntimeException(apiException.getResponseBody(), apiException);
+			}
+		});
+
+		if (b[0]) {
+			LOG.debug(() -> "Loaded all secrets in namespace '" + namespace + "'");
+		}
+		else {
+			LOG.debug(() -> "Loaded (from cache) all secrets in namespace '" + namespace + "'");
+		}
+
+		return result;
 	}
 
 }

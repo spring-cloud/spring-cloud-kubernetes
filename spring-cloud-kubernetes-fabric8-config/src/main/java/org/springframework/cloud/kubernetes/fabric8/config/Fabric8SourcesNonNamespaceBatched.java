@@ -29,26 +29,23 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.strippedConfigMaps;
-import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.strippedSecrets;
-
 /**
  * non batch reads (not reading in the whole namespace) of configmaps and secrets.
  *
  * @author wind57
  */
-final class Fabric8SourcesNonBatched {
+final class Fabric8SourcesNonNamespaceBatched {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8SourcesNonBatched.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8SourcesNonNamespaceBatched.class));
 
-	private Fabric8SourcesNonBatched() {
+	private Fabric8SourcesNonNamespaceBatched() {
 
 	}
 
 	/**
 	 * read configmaps by name, one by one, without caching them.
 	 */
-	static List<StrippedSourceContainer> configMapsByName(KubernetesClient client, String namespace,
+	static List<StrippedSourceContainer> strippedConfigMapsNonBatchRead(KubernetesClient client, String namespace,
 			LinkedHashSet<String> sourceNames) {
 
 		List<ConfigMap> configMaps = new ArrayList<>(sourceNames.size());
@@ -61,13 +58,19 @@ final class Fabric8SourcesNonBatched {
 			}
 		}
 
-		return strippedConfigMaps(configMaps);
+		List<StrippedSourceContainer> strippedConfigMaps = Fabric8SourcesStripper.strippedConfigMaps(configMaps);
+
+		if (strippedConfigMaps.isEmpty()) {
+			LOG.debug("No configmaps in namespace '" + namespace + "'");
+		}
+
+		return strippedConfigMaps;
 	}
 
 	/**
 	 * read secrets by name, one by one, without caching them.
 	 */
-	static List<StrippedSourceContainer> secretsByName(KubernetesClient client, String namespace,
+	static List<StrippedSourceContainer> strippedSecretsNonBatchRead(KubernetesClient client, String namespace,
 			LinkedHashSet<String> sourceNames) {
 
 		List<Secret> secrets = new ArrayList<>(sourceNames.size());
@@ -80,29 +83,51 @@ final class Fabric8SourcesNonBatched {
 			}
 		}
 
-		return strippedSecrets(secrets);
+		List<StrippedSourceContainer> strippedSecrets = Fabric8SourcesStripper.strippedSecrets(secrets);
+
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug("No secrets in namespace '" + namespace + "'");
+		}
+
+		return strippedSecrets;
 	}
 
 	/**
 	 * read configmaps by labels, without caching them.
 	 */
-	static List<StrippedSourceContainer> configMapsByLabels(KubernetesClient client, String namespace,
+	static List<StrippedSourceContainer> strippedConfigMapsNonBatchRead(KubernetesClient client, String namespace,
 			Map<String, String> labels) {
 
 		List<ConfigMap> configMaps = client.configMaps().inNamespace(namespace).withLabels(labels).list().getItems();
+		for (ConfigMap configMap : configMaps) {
+			LOG.debug("Loaded config map '" + configMap.getMetadata().getName() + "'");
+		}
 
-		return strippedConfigMaps(configMaps);
+		List<StrippedSourceContainer> strippedConfigMaps = Fabric8SourcesStripper.strippedConfigMaps(configMaps);
+		if (strippedConfigMaps.isEmpty()) {
+			LOG.debug("No configmaps in namespace '" + namespace + "'");
+		}
+
+		return strippedConfigMaps;
 	}
 
 	/**
 	 * read secrets by labels, without caching them.
 	 */
-	static List<StrippedSourceContainer> secretsByLabels(KubernetesClient client, String namespace,
+	static List<StrippedSourceContainer> strippedSecretsNonBatchRead(KubernetesClient client, String namespace,
 			Map<String, String> labels) {
 
 		List<Secret> secrets = client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
+		for (Secret secret : secrets) {
+			LOG.debug("Loaded secret '" + secret.getMetadata().getName() + "'");
+		}
 
-		return strippedSecrets(secrets);
+		List<StrippedSourceContainer> strippedSecrets = Fabric8SourcesStripper.strippedSecrets(secrets);
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug("No secrets in namespace '" + namespace + "'");
+		}
+
+		return strippedSecrets;
 	}
 
 }

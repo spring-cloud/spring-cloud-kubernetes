@@ -81,7 +81,7 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
-		new Fabric8SecretsNamespaceBatched().discardAll();
+		new Fabric8SourcesNamespaceBatched().discardSecrets();
 	}
 
 	/**

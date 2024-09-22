@@ -47,8 +47,8 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 	@AfterEach
 	void afterEach() {
-		new Fabric8ConfigMapsNamespaceBatched().discardAll();
-		new Fabric8SecretsNamespaceBatched().discardAll();
+		new Fabric8SourcesNamespaceBatched().discardSecrets();
+		new Fabric8SourcesNamespaceBatched().discardConfigMaps();
 	}
 
 	/**

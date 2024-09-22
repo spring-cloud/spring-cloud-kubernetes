@@ -87,7 +87,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 			addPropertySourcesFromPaths(environment, composite);
 
-			cache.discardAll();
+			cache.discardConfigMaps();
 			return composite;
 		}
 		return null;

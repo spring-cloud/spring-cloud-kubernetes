@@ -55,12 +55,11 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Kubern
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
 					return KubernetesClientConfigUtils.configMapsDataByName(context.client(), context.namespace(),
-							sourceNames, context.environment(), context.includeDefaultProfileData());
+							sourceNames, context.environment(), context.namespacedBatchRead());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
-				source.failFast(), context.namespace(), context.environment().getActiveProfiles(),
-				context.si
-			);
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles(),
+					context.namespacedBatchRead());
 		};
 
 	}

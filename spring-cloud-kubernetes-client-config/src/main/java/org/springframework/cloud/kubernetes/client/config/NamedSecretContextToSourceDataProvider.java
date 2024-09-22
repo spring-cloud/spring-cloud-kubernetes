@@ -44,11 +44,12 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 			return new NamedSourceData() {
 				@Override
 				protected String generateSourceName(String target, String sourceName, String namespace,
-						String[] activeProfiles) {
+						String[] activeProfiles, boolean namesspacedBatchRead) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}
-					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
+					return super.generateSourceName(target, sourceName, namespace, activeProfiles,
+							namesspacedBatchRead);
 				}
 
 				@Override
@@ -57,7 +58,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 							sourceNames, context.environment(), context.includeDefaultProfileData());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles(),
+					context.namespacedBatchRead());
 		};
 	}
 

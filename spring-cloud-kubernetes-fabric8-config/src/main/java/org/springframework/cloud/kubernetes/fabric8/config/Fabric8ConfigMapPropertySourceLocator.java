@@ -45,7 +45,7 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 
 	Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
-		super(properties, new Fabric8ConfigMapsNamespaceBatched());
+		super(properties, new Fabric8SourcesNamespaceBatched());
 		this.client = client;
 		this.provider = provider;
 	}

@@ -90,7 +90,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 						getSecretsPropertySourceForSingleSecret(env, s, properties.namespacedBatchRead())));
 			}
 
-			cache.discardAll();
+			cache.discardSecrets();
 			return composite;
 		}
 		return null;

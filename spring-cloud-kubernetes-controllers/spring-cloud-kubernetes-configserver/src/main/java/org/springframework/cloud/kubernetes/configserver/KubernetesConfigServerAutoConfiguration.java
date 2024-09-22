@@ -80,7 +80,7 @@ public class KubernetesConfigServerAutoConfiguration {
 				NamedConfigMapNormalizedSource source = new NamedConfigMapNormalizedSource(applicationName, space,
 						false, ConfigUtils.Prefix.DEFAULT, true, true);
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
-						springEnv, false);
+						springEnv, false, true);
 
 				propertySources.add(new KubernetesClientConfigMapPropertySource(context));
 			});
@@ -100,7 +100,7 @@ public class KubernetesConfigServerAutoConfiguration {
 				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false,
 						ConfigUtils.Prefix.DEFAULT, true, true);
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
-						springEnv, false);
+						springEnv, false, true);
 				propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			});
 

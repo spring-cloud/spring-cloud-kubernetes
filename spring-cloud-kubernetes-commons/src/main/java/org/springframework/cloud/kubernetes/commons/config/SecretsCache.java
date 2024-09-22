@@ -24,7 +24,7 @@ public interface SecretsCache {
 	/**
 	 * Discards all stored entries from the cache.
 	 */
-	void discardAll();
+	void discardSecrets();
 
 	/**
 	 * an implementation that does nothing. In the next major release it will become
@@ -33,7 +33,7 @@ public interface SecretsCache {
 	class NOOPCache implements SecretsCache {
 
 		@Override
-		public void discardAll() {
+		public void discardSecrets() {
 		}
 
 	}

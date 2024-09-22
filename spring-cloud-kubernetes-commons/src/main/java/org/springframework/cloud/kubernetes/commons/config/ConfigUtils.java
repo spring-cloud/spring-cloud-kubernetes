@@ -179,6 +179,9 @@ public final class ConfigUtils {
 
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
 			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
+		if (strippedSources.isEmpty()) {
+			return MultipleSourcesContainer.empty();
+		}
 		return processNamedData(strippedSources, environment, sourceNames, namespace, decode, true);
 	}
 

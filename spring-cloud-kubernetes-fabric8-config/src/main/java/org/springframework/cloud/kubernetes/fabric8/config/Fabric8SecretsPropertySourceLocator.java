@@ -45,7 +45,7 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 
 	Fabric8SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
-		super(properties, new Fabric8SecretsNamespaceBatched());
+		super(properties, new Fabric8SourcesNamespaceBatched());
 		this.client = client;
 		this.provider = provider;
 	}

@@ -57,6 +57,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 @ExtendWith(OutputCaptureExtension.class)
 class LabeledConfigMapContextToSourceDataProviderTests {
 
+	private static final boolean NAMESPACED_BATCH_READ = true;
+
 	private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
 	private static final Map<String, String> RED_LABEL = Map.of("color", "red");
@@ -87,7 +89,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
-		new KubernetesClientConfigMapsCache().discardAll();
+		new KubernetesClientSourcesNamespaceBatched().discardConfigMaps();
 	}
 
 	/**
@@ -111,7 +113,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, LABELS, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -161,7 +163,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -193,7 +195,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -226,7 +228,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		String wrongNamespace = NAMESPACE + "nope";
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(wrongNamespace, LABELS, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -258,7 +260,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigUtils.Prefix mePrefix = ConfigUtils.findPrefix("me", false, false, "irrelevant");
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, mePrefix, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -304,7 +306,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DELAYED, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -356,7 +358,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -395,7 +397,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -438,7 +440,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DELAYED, true);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -514,7 +517,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DELAYED, true);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -569,7 +573,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource redSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "red"), false,
 				ConfigUtils.Prefix.DEFAULT, false);
 		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData redData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
@@ -581,7 +585,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource greenSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT, false);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData greenData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
