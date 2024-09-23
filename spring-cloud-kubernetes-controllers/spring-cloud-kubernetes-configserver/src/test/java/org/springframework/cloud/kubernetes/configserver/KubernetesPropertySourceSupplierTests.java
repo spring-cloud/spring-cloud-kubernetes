@@ -33,8 +33,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
+
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesNamespaceBatched;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
