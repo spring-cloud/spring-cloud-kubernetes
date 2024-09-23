@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,7 +56,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
-class LabeledConfigMapContextToSourceDataProviderTests {
+class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 
 	private static final boolean NAMESPACED_BATCH_READ = true;
 
@@ -90,6 +91,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	void afterEach() {
 		WireMock.reset();
 		new KubernetesClientSourcesNamespaceBatched().discardConfigMaps();
+	}
+
+	@AfterAll
+	static void afterAll() {
+		WireMock.shutdownServer();
 	}
 
 	/**
@@ -580,7 +586,9 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
 		Assertions.assertEquals(redSourceData.sourceData().get("color"), "red");
 		Assertions.assertEquals(redSourceData.sourceName(), "configmap.red-configmap.default");
+
 		Assertions.assertTrue(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
+		Assertions.assertFalse(output.getAll().contains("Will read individual configmaps in namespace"));
 
 		NormalizedSource greenSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT, false);

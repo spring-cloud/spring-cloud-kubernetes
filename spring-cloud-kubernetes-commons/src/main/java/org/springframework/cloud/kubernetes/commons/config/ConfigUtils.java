@@ -194,6 +194,10 @@ public final class ConfigUtils {
 			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode,
 			boolean includeDefaultProfileData) {
 
+		if (strippedSources.isEmpty()) {
+			return MultipleSourcesContainer.empty();
+		}
+
 		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
 			.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
 
@@ -271,11 +275,15 @@ public final class ConfigUtils {
 	 * defined order).
 	 */
 
-	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> containers,
+	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> strippedSources,
 			Environment environment, Map<String, String> labels, String namespace, boolean decode) {
 
+		if (strippedSources.isEmpty()) {
+			return MultipleSourcesContainer.empty();
+		}
+
 		// find sources by provided labels
-		List<StrippedSourceContainer> byLabels = containers.stream().filter(one -> {
+		List<StrippedSourceContainer> byLabels = strippedSources.stream().filter(one -> {
 			Map<String, String> sourceLabels = one.labels();
 			Map<String, String> labelsToSearchAgainst = sourceLabels == null ? Map.of() : sourceLabels;
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));

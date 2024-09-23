@@ -49,12 +49,12 @@ final class KubernetesClientSourcesNonNamespaceBatched {
 		List<V1ConfigMap> configMaps = new ArrayList<>(sourceNames.size());
 
 		for (String sourceName : sourceNames) {
-			V1ConfigMap configMap;
+			V1ConfigMap configMap = null;
 			try {
-				configMap = client.readNamespacedConfigMap(namespace, sourceName, null);
+				configMap = client.readNamespacedConfigMap(sourceName, namespace, null);
 			}
 			catch (ApiException e) {
-				throw new RuntimeException(e.getResponseBody(), e);
+				KubernetesClientSourcesStripper.handleApiException(e, sourceName);
 			}
 			if (configMap != null) {
 				LOG.debug("Loaded config map '" + sourceName + "'");
@@ -81,12 +81,12 @@ final class KubernetesClientSourcesNonNamespaceBatched {
 		List<V1Secret> secrets = new ArrayList<>(sourceNames.size());
 
 		for (String sourceName : sourceNames) {
-			V1Secret secret;
+			V1Secret secret = null;
 			try {
 				secret = client.readNamespacedSecret(sourceName, namespace, null);
 			}
 			catch (ApiException e) {
-				throw new RuntimeException(e.getResponseBody(), e);
+				KubernetesClientSourcesStripper.handleApiException(e, sourceName);
 			}
 			if (secret != null) {
 				LOG.debug("Loaded config map '" + sourceName + "'");

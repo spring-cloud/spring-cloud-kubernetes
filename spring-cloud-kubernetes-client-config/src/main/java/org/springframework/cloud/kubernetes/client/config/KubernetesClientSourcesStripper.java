@@ -20,16 +20,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Secret;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.util.ObjectUtils;
 
 /**
  * @author wind57
  */
 interface KubernetesClientSourcesStripper {
+
+	LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientSourcesStripper.class));
 
 	static List<StrippedSourceContainer> strippedSecrets(List<V1Secret> secrets) {
 		return secrets.stream()
@@ -43,6 +48,15 @@ interface KubernetesClientSourcesStripper {
 			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
 					configMap.getMetadata().getName(), configMap.getData()))
 			.toList();
+	}
+
+	static void handleApiException(ApiException e, String sourceName) {
+		if (e.getCode() == 404) {
+			LOG.warn("source with name : " + sourceName + " not found. Ignoring");
+		}
+		else {
+			throw new RuntimeException(e.getResponseBody(), e);
+		}
 	}
 
 	private static Map<String, String> transform(Map<String, byte[]> in) {

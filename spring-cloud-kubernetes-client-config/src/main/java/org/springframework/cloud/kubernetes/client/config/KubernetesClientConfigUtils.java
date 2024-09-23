@@ -74,7 +74,8 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByName(CoreV1Api client, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment, boolean namespacedBatchRead) {
+			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData,
+			boolean namespacedBatchRead) {
 
 		List<StrippedSourceContainer> strippedConfigMaps;
 
@@ -87,7 +88,8 @@ public final class KubernetesClientConfigUtils {
 			strippedConfigMaps = strippedConfigMapsNonBatchRead(client, namespace, sourceNames);
 		}
 
-		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false);
+		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false,
+				includeDefaultProfileData);
 	}
 
 	/**
@@ -99,7 +101,8 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByName(CoreV1Api client, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment, boolean namespacedBatchRead) {
+			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData,
+			boolean namespacedBatchRead) {
 
 		List<StrippedSourceContainer> strippedSecrets;
 
@@ -112,7 +115,8 @@ public final class KubernetesClientConfigUtils {
 			strippedSecrets = strippedSecretsNonBatchRead(client, namespace, sourceNames);
 		}
 
-		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, false);
+		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, false,
+				includeDefaultProfileData);
 	}
 
 	/**

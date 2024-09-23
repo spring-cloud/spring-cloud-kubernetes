@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,9 +57,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
-class LabeledSecretContextToSourceDataProviderTests {
+public class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 
-	private static final boolean NAMESPACED_BATCH_READ = true;
+	private static final boolean NAMESPACED_BATCH_READ = false;
 
 	private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
@@ -89,6 +90,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 		new KubernetesClientSourcesNamespaceBatched().discardSecrets();
 	}
 
+	@AfterAll
+	static void afterAll() {
+		WireMock.shutdownServer();
+	}
+
 	/**
 	 * we have a single secret deployed. it does not match our query.
 	 */
@@ -104,7 +110,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dred");
+		stubCall(new V1SecretList(), "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		// blue does not match red
@@ -134,7 +141,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false);
@@ -166,7 +173,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(one).addItemsItem(two);
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dred");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false);
@@ -191,7 +198,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(one);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false);
@@ -223,7 +230,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(one);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("me", false, false, null);
@@ -268,7 +275,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(one).addItemsItem(two);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
@@ -327,7 +334,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(colorSecret).addItemsItem(shapeSecret);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
@@ -370,7 +377,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(colorSecret).addItemsItem(shapeSecret);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
 
@@ -447,7 +454,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.addItemsItem(colorSecretK8s)
 			.addItemsItem(shapeSecretK8s);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
 
@@ -489,7 +496,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(colorSecret);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
@@ -511,11 +518,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 *     - one secret is deployed with label {"color", "green"}
 	 *
 	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
-	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * 	   - we then search for the "green" one, and it is not retrieved from the cache.
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void nonCache(CapturedOutput output) {
 		V1Secret red = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
 				.withNamespace(NAMESPACE)
@@ -532,9 +539,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.addToData("color", "green".getBytes())
 			.build();
 
-		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(green);
+		V1SecretList secretListRed = new V1SecretList().addItemsItem(red);
+		stubCall(secretListRed, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dred");
 
-		stubCall(secretList);
+		V1SecretList secretListGreen = new V1SecretList().addItemsItem(green);
+		stubCall(secretListGreen, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dgreen");
+
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource redSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), false,
@@ -547,7 +557,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
 		Assertions.assertEquals(redSourceData.sourceData().get("color"), "red");
 		Assertions.assertEquals(redSourceData.sourceName(), "secret.red.default");
-		Assertions.assertTrue(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+
+		Assertions.assertFalse(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+		Assertions.assertTrue(output.getAll().contains("Will read individual secrets in namespace"));
 
 		NormalizedSource greenSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT);
@@ -562,16 +574,15 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertEquals(out.length, 2);
+		Assertions.assertEquals(out.length, 1);
 
 		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
-		Assertions.assertEquals(out.length, 2);
+		out = output.getAll().split("Will read individual secrets in namespace");
+		Assertions.assertEquals(out.length, 3);
 	}
 
-	private void stubCall(V1SecretList list) {
-		stubFor(get("/api/v1/namespaces/default/secrets")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+	private void stubCall(V1SecretList configMapList, String path) {
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 	}
 
 }
