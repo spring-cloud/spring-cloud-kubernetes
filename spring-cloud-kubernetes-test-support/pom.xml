@@ -12,7 +12,7 @@
 	<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 
 	<properties>
-		<awaitility.version>4.1.0</awaitility.version>
+		<awaitility.version>4.1.1</awaitility.version>
 		<testcontainers.version>1.18.3</testcontainers.version>
 	</properties>
 	<dependencies>
