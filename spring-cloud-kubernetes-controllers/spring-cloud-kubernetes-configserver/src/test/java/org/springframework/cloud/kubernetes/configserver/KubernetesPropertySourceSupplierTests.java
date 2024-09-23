@@ -28,10 +28,15 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.mockito.Mockito;
 import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesNamespaceBatched;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,7 +76,7 @@ class KubernetesPropertySourceSupplierTests {
 		.build();
 
 	@BeforeAll
-	public static void before() throws ApiException {
+	static void beforeAll() throws ApiException {
 		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEFAULT_LIST);
@@ -91,6 +96,23 @@ class KubernetesPropertySourceSupplierTests {
 		when(coreApi.listNamespacedSecret(eq("team-b"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(SECRET_TEAM_B_LIST);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		Mockito.reset(coreApi);
+	}
+
+	@AfterEach
+	void afterEach() {
+		new KubernetesClientSourcesNamespaceBatched().discardConfigMaps();
+		new KubernetesClientSourcesNamespaceBatched().discardSecrets();
+	}
+
+	@BeforeEach
+	void beforeEach() {
+		new KubernetesClientSourcesNamespaceBatched().discardConfigMaps();
+		new KubernetesClientSourcesNamespaceBatched().discardSecrets();
 	}
 
 	@Test

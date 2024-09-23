@@ -31,7 +31,7 @@ import org.springframework.core.log.LogAccessor;
 /**
  * @author wind57
  */
-final class KubernetesClientSourcesNamespaceBatched implements SecretsCache, ConfigMapCache {
+public final class KubernetesClientSourcesNamespaceBatched implements SecretsCache, ConfigMapCache {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientSourcesNamespaceBatched.class));
