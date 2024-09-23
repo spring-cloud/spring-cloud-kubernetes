@@ -173,7 +173,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
-				true, NAMESPACED_BATCH_READ);
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);

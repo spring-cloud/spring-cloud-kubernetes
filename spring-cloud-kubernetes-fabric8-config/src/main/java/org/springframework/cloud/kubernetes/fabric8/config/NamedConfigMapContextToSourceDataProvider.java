@@ -53,11 +53,11 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 
 				@Override
 				protected String generateSourceName(String target, String sourceName, String namespace,
-						String[] activeProfiles, boolean namespacedBatchRead) {
+						String[] activeProfiles) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}
-					return super.generateSourceName(target, sourceName, namespace, activeProfiles, namespacedBatchRead);
+					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
 				}
 
 				@Override
@@ -66,8 +66,7 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 							context.environment(), context.namespacedBatchRead());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles(),
-					context.namespacedBatchRead());
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
 
 	}

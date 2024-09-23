@@ -80,8 +80,6 @@ public abstract class LabeledSourceData {
 	 * Implementation specific (fabric8 or k8s-native) way to get the data from then given
 	 * source names.
 	 * @param labels the ones that have been configured
-	 * @param profiles profiles to taken into account when gathering source data. Can be
-	 * empty.
 	 * @return a container that holds the names of the source that were found and their
 	 * data
 	 */

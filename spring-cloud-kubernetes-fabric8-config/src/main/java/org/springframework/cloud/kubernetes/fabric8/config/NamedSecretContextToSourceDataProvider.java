@@ -43,11 +43,11 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 			return new NamedSourceData() {
 				@Override
 				protected String generateSourceName(String target, String sourceName, String namespace,
-						String[] activeProfiles, boolean namespacedBatchRead) {
+						String[] activeProfiles) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}
-					return super.generateSourceName(target, sourceName, namespace, activeProfiles, namespacedBatchRead);
+					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
 				}
 
 				@Override
@@ -56,8 +56,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 							context.environment(), context.namespacedBatchRead());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles(),
-					context.namespacedBatchRead());
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
 	}
 

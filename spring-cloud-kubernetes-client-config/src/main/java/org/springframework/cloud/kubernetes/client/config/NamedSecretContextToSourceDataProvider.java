@@ -44,22 +44,20 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 			return new NamedSourceData() {
 				@Override
 				protected String generateSourceName(String target, String sourceName, String namespace,
-						String[] activeProfiles, boolean namesspacedBatchRead) {
+						String[] activeProfiles) {
 					if (source.appendProfileToName()) {
 						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
 					}
-					return super.generateSourceName(target, sourceName, namespace, activeProfiles,
-							namesspacedBatchRead);
+					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
 				}
 
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
 					return KubernetesClientConfigUtils.secretsDataByName(context.client(), context.namespace(),
-							sourceNames, context.environment(), context.includeDefaultProfileData());
+							sourceNames, context.environment(), context.namespacedBatchRead());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles(),
-					context.namespacedBatchRead());
+					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
 		};
 	}
 

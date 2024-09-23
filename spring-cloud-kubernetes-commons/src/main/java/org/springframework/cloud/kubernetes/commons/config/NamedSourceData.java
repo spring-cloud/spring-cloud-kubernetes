@@ -32,7 +32,7 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
 public abstract class NamedSourceData {
 
 	public final SourceData compute(String sourceName, ConfigUtils.Prefix prefix, String target, boolean profileSources,
-			boolean failFast, String namespace, String[] activeProfiles, boolean namespacedBatchRead) {
+			boolean failFast, String namespace, String[] activeProfiles) {
 
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
 		// first comes non-profile based source
@@ -67,12 +67,10 @@ public abstract class NamedSourceData {
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(generateSourceName(target, names, namespace, activeProfiles, namespacedBatchRead),
-				data.data());
+		return new SourceData(generateSourceName(target, names, namespace, activeProfiles), data.data());
 	}
 
-	protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles,
-			boolean namespacedBatchRead) {
+	protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfile) {
 		return ConfigUtils.sourceName(target, sourceName, namespace);
 	}
 
