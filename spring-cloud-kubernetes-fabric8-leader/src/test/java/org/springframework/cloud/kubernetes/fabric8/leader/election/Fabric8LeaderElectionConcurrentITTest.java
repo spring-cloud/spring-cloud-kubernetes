@@ -46,7 +46,7 @@ class Fabric8LeaderElectionConcurrentITTest {
 
 	private static final LeaderElectionProperties PROPERTIES = new LeaderElectionProperties(false, false,
 		Duration.ofSeconds(15), "default", "lease-lock", Duration.ofSeconds(5), Duration.ofSeconds(2),
-		Duration.ofSeconds(5));
+		Duration.ofSeconds(5), false);
 
 	private static K3sContainer container;
 
