@@ -110,8 +110,15 @@ class Fabric8LeaderElectionAutoConfiguration {
 			.isPresent();
 
 		if (leaseSupported) {
-			LOG.info(() -> "will use lease as the lock for leader election");
-			return new LeaseLock(properties.lockNamespace(), properties.lockName(), holderIdentity);
+			if (properties.useConfigMapAsLock()) {
+				LOG.info(() -> "leases are supported on the cluster, but config map will be used " +
+					"(because 'spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true')");
+				return new ConfigMapLock(properties.lockNamespace(), properties.lockName(), holderIdentity);
+			}
+			else {
+				LOG.info(() -> "will use lease as the lock for leader election");
+				return new LeaseLock(properties.lockNamespace(), properties.lockName(), holderIdentity);
+			}
 		}
 		else {
 			LOG.info(() -> "will use configmap as the lock for leader election");

@@ -37,7 +37,14 @@ To be able to use it, you need to set the property:
 spring.cloud.kubernetes.leader.election.enabled=true
 ----
 
-Unlike the old implementation, this one will use either the `Lease` _or_ `ConfigMap` as the lock, depending on your cluster version. The name of that `Lease` or `ConfigMap` can be defined using the property (default value is `spring-k8s-leader-election-lock`):
+Unlike the old implementation, this one will use either the `Lease` _or_ `ConfigMap` as the lock, depending on your cluster version. You can force using configMap still, even if leases are supported, via :
+
+[source]
+----
+spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true
+----
+
+The name of that `Lease` or `ConfigMap` can be defined using the property (default value is `spring-k8s-leader-election-lock`):
 
 [source]
 ----
@@ -94,6 +101,15 @@ A different story happens when `podA` dies with an OutOfMemory for example, with
 ----
 
 The condition is not fulfilled, so it can't become the leader. Same result will be at `12:00:08`, `12:00:10` and so on, until `12:00:16` and this is where the TTL (`leaseDuration`) of the lock will expire and `podB` can acquire it. As such, a lower value of `leaseDuration` will mean a faster acquiring of leadership by other pods.
+
+You might have to give proper RBAC to be able to use this functionality, for example:
+
+[source]
+----
+ - apiGroups: [ "coordination.k8s.io" ]
+   resources: [ "leases" ]
+   verbs: [ "get", "update", "create"]
+----
 
 
 

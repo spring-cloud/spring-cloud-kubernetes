@@ -43,6 +43,7 @@ class LeaderElectionPropertiesTests {
 			Assertions.assertEquals(Duration.ofSeconds(10), properties.renewDeadline());
 			Assertions.assertEquals(Duration.ofSeconds(2), properties.retryPeriod());
 			Assertions.assertEquals(Duration.ofSeconds(0), properties.waitAfterRenewalFailure());
+			Assertions.assertFalse(properties.useConfigMapAsLock());
 		});
 	}
 
@@ -56,7 +57,8 @@ class LeaderElectionPropertiesTests {
 					"spring.cloud.kubernetes.leader.election.lock-name=lock-name",
 					"spring.cloud.kubernetes.leader.election.renew-deadline=2d",
 					"spring.cloud.kubernetes.leader.election.retry-period=3m",
-					"spring.cloud.kubernetes.leader.election.wait-after-renewal-failure=13m")
+					"spring.cloud.kubernetes.leader.election.wait-after-renewal-failure=13m",
+					"spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true")
 			.run(context -> {
 				LeaderElectionProperties properties = context.getBean(LeaderElectionProperties.class);
 				Assertions.assertNotNull(properties);
@@ -68,6 +70,7 @@ class LeaderElectionPropertiesTests {
 				Assertions.assertEquals(Duration.ofDays(2), properties.renewDeadline());
 				Assertions.assertEquals(Duration.ofMinutes(3), properties.retryPeriod());
 				Assertions.assertEquals(Duration.ofMinutes(13), properties.waitAfterRenewalFailure());
+				Assertions.assertTrue(properties.useConfigMapAsLock());
 			});
 	}
 

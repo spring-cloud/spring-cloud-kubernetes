@@ -34,7 +34,8 @@ public record LeaderElectionProperties(
 	@DefaultValue("spring-k8s-leader-election-lock") String lockName,
 	@DefaultValue("10s") Duration renewDeadline,
 	@DefaultValue("2s") Duration retryPeriod,
-	@DefaultValue("0s") Duration waitAfterRenewalFailure) {
+	@DefaultValue("0s") Duration waitAfterRenewalFailure,
+	@DefaultValue("false") boolean useConfigMapAsLock) {
 // @formatter:on
 
 	/**
