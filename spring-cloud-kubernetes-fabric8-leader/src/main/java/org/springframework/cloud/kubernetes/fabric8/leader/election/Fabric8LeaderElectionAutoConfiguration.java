@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import java.time.Duration;
-
 import io.fabric8.kubernetes.api.model.APIResource;
 import io.fabric8.kubernetes.api.model.APIResourceList;
 import io.fabric8.kubernetes.api.model.GroupVersionForDiscovery;
