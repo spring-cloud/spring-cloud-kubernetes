@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.leader.election;
 
+import java.time.Duration;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
@@ -27,12 +29,12 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record LeaderElectionProperties(
 	@DefaultValue("true") boolean waitForPodReady,
 	@DefaultValue("true") boolean publishEvents,
-	@DefaultValue("15") int leaseDuration,
+	@DefaultValue("15s") Duration leaseDuration,
 	@DefaultValue("default") String lockNamespace,
 	@DefaultValue("spring-k8s-leader-election-lock") String lockName,
-	@DefaultValue("10") int renewDeadline,
-	@DefaultValue("2") int retryPeriod,
-	@DefaultValue("0") int waitAfterRenewalFailure) {
+	@DefaultValue("10s") Duration renewDeadline,
+	@DefaultValue("2s") Duration retryPeriod,
+	@DefaultValue("0s") Duration waitAfterRenewalFailure) {
 // @formatter:on
 
 	/**

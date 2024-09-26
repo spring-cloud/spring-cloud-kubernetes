@@ -85,10 +85,10 @@ class Fabric8LeaderElectionAutoConfiguration {
 			Fabric8LeaderElectionCallbacks fabric8LeaderElectionCallbacks) {
 		return new LeaderElectionConfigBuilder().withReleaseOnCancel()
 			.withName("Spring k8s leader election")
-			.withLeaseDuration(Duration.ofSeconds(properties.leaseDuration()))
+			.withLeaseDuration(properties.leaseDuration())
 			.withLock(lock)
-			.withRenewDeadline(Duration.ofSeconds(properties.renewDeadline()))
-			.withRetryPeriod(Duration.ofSeconds(properties.retryPeriod()))
+			.withRenewDeadline(properties.renewDeadline())
+			.withRetryPeriod(properties.retryPeriod())
 			.withLeaderCallbacks(fabric8LeaderElectionCallbacks)
 			.build();
 	}

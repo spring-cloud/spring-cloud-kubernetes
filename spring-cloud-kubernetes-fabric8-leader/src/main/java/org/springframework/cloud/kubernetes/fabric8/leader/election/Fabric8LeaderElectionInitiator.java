@@ -197,9 +197,9 @@ final class Fabric8LeaderElectionInitiator {
 				if (error instanceof CancellationException) {
 					if (!destroyCalled.get()) {
 						LOG.warn(() -> "renewal failed for  : " + holderIdentity + ", will re-start it after : " +
-							leaderElectionProperties.waitAfterRenewalFailure() + " seconds");
+							leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
 						try {
-							TimeUnit.SECONDS.sleep(leaderElectionProperties.waitAfterRenewalFailure());
+							TimeUnit.SECONDS.sleep(leaderElectionProperties.waitAfterRenewalFailure().toSeconds());
 						}
 						catch (InterruptedException e) {
 							throw new RuntimeException(e);

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.leader.election;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -35,11 +37,12 @@ class LeaderElectionPropertiesTests {
 			Assertions.assertNotNull(properties);
 			Assertions.assertTrue(properties.publishEvents());
 			Assertions.assertTrue(properties.waitForPodReady());
-			Assertions.assertEquals(15, properties.leaseDuration());
+			Assertions.assertEquals(Duration.ofSeconds(15), properties.leaseDuration());
 			Assertions.assertEquals("default", properties.lockNamespace());
 			Assertions.assertEquals("spring-k8s-leader-election-lock", properties.lockName());
-			Assertions.assertEquals(10, properties.renewDeadline());
-			Assertions.assertEquals(2, properties.retryPeriod());
+			Assertions.assertEquals(Duration.ofSeconds(10), properties.renewDeadline());
+			Assertions.assertEquals(Duration.ofSeconds(2), properties.retryPeriod());
+			Assertions.assertEquals(Duration.ofSeconds(0), properties.waitAfterRenewalFailure());
 		});
 	}
 
@@ -48,21 +51,23 @@ class LeaderElectionPropertiesTests {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
 			.withPropertyValues("spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false",
 					"spring.cloud.kubernetes.leader.election.publish-events=false",
-					"spring.cloud.kubernetes.leader.election.lease-duration=10",
+					"spring.cloud.kubernetes.leader.election.lease-duration=10s",
 					"spring.cloud.kubernetes.leader.election.lock-namespace=lock-namespace",
 					"spring.cloud.kubernetes.leader.election.lock-name=lock-name",
-					"spring.cloud.kubernetes.leader.election.renew-deadline=1",
-					"spring.cloud.kubernetes.leader.election.retry-period=3")
+					"spring.cloud.kubernetes.leader.election.renew-deadline=2d",
+					"spring.cloud.kubernetes.leader.election.retry-period=3m",
+					"spring.cloud.kubernetes.leader.election.wait-after-renewal-failure=13m")
 			.run(context -> {
 				LeaderElectionProperties properties = context.getBean(LeaderElectionProperties.class);
 				Assertions.assertNotNull(properties);
 				Assertions.assertFalse(properties.waitForPodReady());
 				Assertions.assertFalse(properties.publishEvents());
-				Assertions.assertEquals(10, properties.leaseDuration());
+				Assertions.assertEquals(Duration.ofSeconds(10), properties.leaseDuration());
 				Assertions.assertEquals("lock-namespace", properties.lockNamespace());
 				Assertions.assertEquals("lock-name", properties.lockName());
-				Assertions.assertEquals(1, properties.renewDeadline());
-				Assertions.assertEquals(3, properties.retryPeriod());
+				Assertions.assertEquals(Duration.ofDays(2), properties.renewDeadline());
+				Assertions.assertEquals(Duration.ofMinutes(3), properties.retryPeriod());
+				Assertions.assertEquals(Duration.ofMinutes(13), properties.waitAfterRenewalFailure());
 			});
 	}
 

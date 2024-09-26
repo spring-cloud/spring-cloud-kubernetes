@@ -44,8 +44,9 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 @ExtendWith(OutputCaptureExtension.class)
 class Fabric8LeaderElectionConcurrentITTest {
 
-	private static final LeaderElectionProperties PROPERTIES = new LeaderElectionProperties(false, false, 15, "default",
-			"lease-lock", 10, 2, 5);
+	private static final LeaderElectionProperties PROPERTIES = new LeaderElectionProperties(false, false,
+		Duration.ofSeconds(15), "default", "lease-lock", Duration.ofSeconds(5), Duration.ofSeconds(2),
+		Duration.ofSeconds(5));
 
 	private static K3sContainer container;
 
@@ -171,10 +172,10 @@ class Fabric8LeaderElectionConcurrentITTest {
 
 		return new LeaderElectionConfigBuilder().withReleaseOnCancel()
 			.withName("leader-election-config")
-			.withLeaseDuration(Duration.ofSeconds(PROPERTIES.leaseDuration()))
+			.withLeaseDuration(PROPERTIES.leaseDuration())
 			.withLock(lock)
-			.withRenewDeadline(Duration.ofSeconds(PROPERTIES.renewDeadline()))
-			.withRetryPeriod(Duration.ofSeconds(PROPERTIES.retryPeriod()))
+			.withRenewDeadline(PROPERTIES.renewDeadline())
+			.withRetryPeriod(PROPERTIES.retryPeriod())
 			.withLeaderCallbacks(callbacks)
 			.build();
 	}
