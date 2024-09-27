@@ -154,8 +154,8 @@ class DiscoveryClientIT {
 		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		// create .tar outside k3s container
-		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+		Commons.createTarFile(DISCOVERY_SERVER_APP_NAME, K3S);
+		Commons.createTarFile(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		// start k3s container and thus copy tars into it (see Commons::container)
 		K3S.start();

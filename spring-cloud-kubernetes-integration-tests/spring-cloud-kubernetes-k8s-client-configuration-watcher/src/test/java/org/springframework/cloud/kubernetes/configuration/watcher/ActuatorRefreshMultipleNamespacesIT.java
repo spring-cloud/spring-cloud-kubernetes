@@ -64,7 +64,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.createTarFile(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		K3S.start();
 		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 

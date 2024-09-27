@@ -66,7 +66,7 @@ class K8sClientSecretsReloadIT {
 	@BeforeAll
 	static void setup() throws Exception {
 		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+		Commons.createTarFile(IMAGE_NAME, K3S);
 		K3S.start();
 		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 

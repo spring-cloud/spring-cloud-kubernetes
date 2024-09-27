@@ -79,7 +79,7 @@ class K8sClientConfigMapReloadIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 
 		// create .tar outside k3s container
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+		Commons.createTarFile(IMAGE_NAME, K3S);
 
 		// start k3s container and thus copy tars into it (see Commons::container)
 		K3S.start();

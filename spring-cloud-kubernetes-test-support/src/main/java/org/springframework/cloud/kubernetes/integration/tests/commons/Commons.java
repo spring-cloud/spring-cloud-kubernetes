@@ -116,7 +116,7 @@ public final class Commons {
 		return CONTAINER;
 	}
 
-	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) throws Exception {
+	public static void createTarFile(String project, K3sContainer container) throws Exception {
 		loadImage("springcloud/" + project, pomVersion(), project, container);
 	}
 
