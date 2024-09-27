@@ -57,15 +57,22 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 	private static final String RIGHT_NAMESPACE = "right";
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final K3sContainer K3S = Commons.container(List.of(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME),
+			List.of());
 
 	private static Util util;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+
+		// create .tar outside k3s container
 		Commons.createTarFile(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+
+		// start k3s container and thus copy tars into it (see Commons::container)
 		K3S.start();
+
+		// make .tars available inside k3s via 'ctr i import'
 		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 
 		util = new Util(K3S);

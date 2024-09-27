@@ -59,9 +59,8 @@ class ActuatorRefreshIT {
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME + ":"
 			+ Commons.pomVersion();
 
-	private static final K3sContainer K3S = Commons.container(
-		List.of(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME), List.of(Images.WIREMOCK_TAR)
-	);
+	private static final K3sContainer K3S = Commons.container(List.of(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME),
+			List.of(Images.WIREMOCK_TAR));
 
 	private static Util util;
 

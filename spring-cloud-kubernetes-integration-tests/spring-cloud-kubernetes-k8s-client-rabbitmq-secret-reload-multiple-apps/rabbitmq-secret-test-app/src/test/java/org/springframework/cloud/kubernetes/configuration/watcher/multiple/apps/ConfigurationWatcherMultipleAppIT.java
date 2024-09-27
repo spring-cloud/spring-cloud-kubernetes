@@ -62,9 +62,8 @@ class ConfigurationWatcherMultipleAppIT {
 	private static final String NAMESPACE = "default";
 
 	private static final K3sContainer K3S = Commons.container(
-		List.of(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, CONFIG_WATCHER_APP_A_IMAGE, CONFIG_WATCHER_APP_B_IMAGE),
-		List.of(Images.RABBITMQ_TAR)
-	);
+			List.of(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, CONFIG_WATCHER_APP_A_IMAGE, CONFIG_WATCHER_APP_B_IMAGE),
+			List.of(Images.RABBITMQ_TAR));
 
 	private static Util util;
 

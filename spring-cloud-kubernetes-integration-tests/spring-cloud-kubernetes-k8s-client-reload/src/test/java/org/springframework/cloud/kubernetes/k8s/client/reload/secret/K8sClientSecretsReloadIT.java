@@ -58,9 +58,7 @@ class K8sClientSecretsReloadIT {
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + Commons.pomVersion();
 
-	private static final K3sContainer K3S = Commons.container(
-		List.of(IMAGE_NAME), List.of()
-	);
+	private static final K3sContainer K3S = Commons.container(List.of(IMAGE_NAME), List.of());
 
 	private static Util util;
 

@@ -138,9 +138,8 @@ class DiscoveryClientIT {
 	private static final String NAMESPACE_RIGHT = "right";
 
 	private static final K3sContainer K3S = Commons.container(
-		List.of(DISCOVERY_SERVER_APP_NAME, SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME),
-		List.of(Images.WIREMOCK_TAR)
-	);
+			List.of(DISCOVERY_SERVER_APP_NAME, SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME),
+			List.of(Images.WIREMOCK_TAR));
 
 	private static Util util;
 
