@@ -37,15 +37,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Assertions;
 import org.testcontainers.containers.Container;
-import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
-import org.testcontainers.utility.MountableFile;
 
 import static org.awaitility.Awaitility.await;
 
@@ -94,7 +93,8 @@ public final class Commons {
 	static {
 		try {
 			TEMP_FOLDER = Files.createTempDirectory("");
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
