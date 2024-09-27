@@ -113,7 +113,6 @@ final class Fabric8LeaderElectionInitiator {
 					LOG.error(() -> "exception waiting for pod : " + e.getMessage());
 					LOG.error(() -> "leader election for " + holderIdentity + "  was not successful");
 					podReadyFuture.completeExceptionally(e);
-					throw new RuntimeException(e);
 				}
 
 			}, 1, 1, TimeUnit.SECONDS));
