@@ -110,8 +110,8 @@ public final class Commons {
 			.forEach(x -> CONTAINER.withCopyFileToContainer(MountableFile.forHostPath(TEMP_FOLDER + "/" + x + ".tar"),
 					TEMP_FOLDER.toAbsolutePath() + "/" + x + ".tar"));
 
-		images.forEach(x -> CONTAINER.withCopyFileToContainer(MountableFile.forHostPath(TEMP_FOLDER + "/" + x + ".tar"),
-				TEMP_FOLDER.toAbsolutePath() + "/" + x + ".tar"));
+		images.forEach(x -> CONTAINER.withCopyFileToContainer(MountableFile.forHostPath(TMP_IMAGES + "/" + x + ".tar"),
+				TMP_IMAGES.toAbsolutePath() + "/" + x + ".tar"));
 
 		return CONTAINER;
 	}
