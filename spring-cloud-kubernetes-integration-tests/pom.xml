@@ -12,14 +12,28 @@
 	<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
 	<packaging>pom</packaging>
 
+	<!-- we need this fix : https://github.com/testcontainers/testcontainers-java/issues/4203,
+		which is present in 1.20.0 and upwards. spring-boot-dependencies brings 1.19.8,
+		this we override the version here. In future this has to be removed.
+	-->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers</artifactId>
+				<version>1.20.1</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>k3s</artifactId>
+				<version>1.20.1</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<name>Spring Cloud Kubernetes :: Integration Tests</name>
 	<description>Integration tests where SCK applications are run inside a Kubernetes cluster</description>
-
-	<properties>
-		<java.version>17</java.version>
-		<docker-java.version>3.2.13</docker-java.version>
-		<testcontainers.version>1.20.1</testcontainers.version>
-	</properties>
 
 	<build>
 		<plugins>
@@ -92,18 +106,6 @@
 		</plugins>
 
 	</build>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>k3s</artifactId>
-				<version>${testcontainers.version}</version>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-
-	</dependencyManagement>
 
 	<modules>
 
