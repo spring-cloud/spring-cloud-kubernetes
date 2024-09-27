@@ -37,6 +37,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Assertions;
 import org.testcontainers.containers.Container;
+import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -91,8 +92,8 @@ public final class Commons {
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
 		.configureFixedPorts(EXPOSED_PORTS)
-		.withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
-		.withFileSystemBind(TMP_IMAGES, TMP_IMAGES)
+		.withCopyToContainer(Transferable.of(TEMP_FOLDER), TEMP_FOLDER)
+		.withCopyToContainer(Transferable.of(TMP_IMAGES), TMP_IMAGES)
 		.withCommand(Commons.RANCHER_COMMAND)
 		.withReuse(true);
 
