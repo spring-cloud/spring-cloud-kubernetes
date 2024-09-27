@@ -65,7 +65,9 @@ class KubernetesClientCatalogWatchIT {
 
 	private static final String NAMESPACE_B = "namespaceb";
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final K3sContainer K3S = Commons.container(
+		List.of(APP_NAME), List.of(Images.BUSYBOX_TAR)
+	);
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + APP_NAME + ":" + Commons.pomVersion();
 
@@ -74,10 +76,15 @@ class KubernetesClientCatalogWatchIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		Commons.validateImage(APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
-		K3S.start();
-		Commons.importImageIntoTheContainer(APP_NAME, K3S);
 
+		// create .tar outside k3s container
+		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
+
+		// start k3s container and thus copy tars into it (see Commons::container)
+		K3S.start();
+
+		// make .tars available inside k3s via 'ctr i import'
+		Commons.importImageIntoTheContainer(APP_NAME, K3S);
 		Images.loadBusybox(K3S);
 
 		util = new Util(K3S);

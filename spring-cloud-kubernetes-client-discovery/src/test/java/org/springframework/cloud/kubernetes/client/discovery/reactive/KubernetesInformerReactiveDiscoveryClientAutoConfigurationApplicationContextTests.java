@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.discovery.reactive;
 
 import java.io.StringReader;
+import java.util.List;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.Config;
@@ -459,7 +460,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 		@Bean
 		@Primary
 		ApiClient apiClient() throws Exception {
-			container = Commons.container();
+			container = Commons.container(List.of(), List.of());
 			container.start();
 
 			return Config.fromConfig(new StringReader(container.getKubeConfigYaml()));

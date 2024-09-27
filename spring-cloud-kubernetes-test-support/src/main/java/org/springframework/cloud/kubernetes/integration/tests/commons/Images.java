@@ -28,31 +28,52 @@ public final class Images {
 
 	private static final String BUSYBOX = "busybox";
 
-	private static final String BUSYBOX_TAR = BUSYBOX + ":" + busyboxVersion();
+	/**
+	 * busybox version for the tar file.
+	 */
+	public static final String BUSYBOX_TAR = BUSYBOX + ":" + busyboxVersion();
 
 	private static final String WIREMOCK = "wiremock/wiremock";
 
-	private static final String WIREMOCK_TAR = WIREMOCK.replace('/', '-') + ":" + wiremockVersion();
+	/**
+	 * wiremock version for the tar file.
+	 */
+	public static final String WIREMOCK_TAR = WIREMOCK.replace('/', '-') + ":" + wiremockVersion();
 
 	private static final String ISTIOCTL = "istio/istioctl";
 
-	private static final String ISTIOCTL_TAR = ISTIOCTL.replace('/', '-') + ":" + istioVersion();
+	/**
+	 * istio ctl version for the tar file.
+	 */
+	public static final String ISTIOCTL_TAR = ISTIOCTL.replace('/', '-') + ":" + istioVersion();
 
 	private static final String ISTIO_PROXY_V2 = "istio/proxyv2";
 
-	private static final String ISTIO_PROXY_V2_TAR = ISTIO_PROXY_V2.replace('/', '-') + ":" + istioVersion();
+	/**
+	 * istio proxy v2 version for the tar file.
+	 */
+	public static final String ISTIO_PROXY_V2_TAR = ISTIO_PROXY_V2.replace('/', '-') + ":" + istioVersion();
 
 	private static final String ISTIO_PILOT = "istio/pilot";
 
-	private static final String ISTIO_PILOT_TAR = ISTIO_PILOT.replace('/', '-') + ":" + istioVersion();
+	/**
+	 * istio pilot version for the tar file.
+	 */
+	public static final String ISTIO_PILOT_TAR = ISTIO_PILOT.replace('/', '-') + ":" + istioVersion();
 
 	private static final String KAFKA = "confluentinc/cp-kafka";
 
-	private static final String KAFKA_TAR = KAFKA.replace('/', '-') + kafkaVersion();
+	/**
+	 * kafka version for the tar file.
+	 */
+	public static final String KAFKA_TAR = KAFKA.replace('/', '-') + kafkaVersion();
 
 	private static final String RABBITMQ = "rabbitmq";
 
-	private static final String RABBITMQ_TAR = "rabbitmq";
+	/**
+	 * rabbit version for the tar file.
+	 */
+	public static final String RABBITMQ_TAR = "rabbitmq";
 
 	private Images() {
 

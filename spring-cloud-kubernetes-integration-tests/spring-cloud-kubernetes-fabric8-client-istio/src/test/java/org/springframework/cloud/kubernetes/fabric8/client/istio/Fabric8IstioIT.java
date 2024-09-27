@@ -55,17 +55,22 @@ class Fabric8IstioIT {
 
 	private static Util util;
 
-	private static K3sContainer K3S;
+	private static final K3sContainer K3S = Commons.container(
+		List.of(IMAGE_NAME), List.of(Images.ISTIOCTL_TAR, Images.ISTIO_PROXY_V2_TAR, Images.ISTIO_PILOT_TAR));
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		K3S = Commons.container();
 		util = new Util(K3S);
 		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-		K3S.start();
-		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 
+		// create .tar outside k3s container
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		// start k3s container and thus copy tars into it (see Commons::container)
+		K3S.start();
+
+		// make .tars available inside k3s via 'ctr i import'
+		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 		Images.loadIstioCtl(K3S);
 		Images.loadIstioProxyV2(K3S);
 		Images.loadIstioPilot(K3S);

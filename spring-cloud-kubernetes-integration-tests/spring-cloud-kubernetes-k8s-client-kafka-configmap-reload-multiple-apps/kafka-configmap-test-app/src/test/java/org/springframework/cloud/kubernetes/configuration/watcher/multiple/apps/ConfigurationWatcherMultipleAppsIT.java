@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher.multiple.apps;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Objects;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -60,7 +61,10 @@ class ConfigurationWatcherMultipleAppsIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final K3sContainer K3S = Commons.container(
+		List.of(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, CONFIG_WATCHER_APP_A_IMAGE, CONFIG_WATCHER_APP_B_IMAGE),
+		List.of(Images.KAFKA_TAR)
+	);
 
 	private static Util util;
 
@@ -69,17 +73,21 @@ class ConfigurationWatcherMultipleAppsIT {
 		util = new Util(K3S);
 
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-
 		Commons.validateImage(CONFIG_WATCHER_APP_A_IMAGE, K3S);
-		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_APP_A_IMAGE, K3S);
-
 		Commons.validateImage(CONFIG_WATCHER_APP_B_IMAGE, K3S);
+
+		// create .tar outside k3s container
+		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_APP_A_IMAGE, K3S);
 		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_APP_B_IMAGE, K3S);
 
+		// start k3s container and thus copy tars into it (see Commons::container)
 		K3S.start();
-		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 
+		// make .tars available inside k3s via 'ctr i import'
+		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		Commons.importImageIntoTheContainer(CONFIG_WATCHER_APP_A_IMAGE, K3S);
+		Commons.importImageIntoTheContainer(CONFIG_WATCHER_APP_B_IMAGE, K3S);
 		Images.loadKafka(K3S);
 
 		util = new Util(K3S);

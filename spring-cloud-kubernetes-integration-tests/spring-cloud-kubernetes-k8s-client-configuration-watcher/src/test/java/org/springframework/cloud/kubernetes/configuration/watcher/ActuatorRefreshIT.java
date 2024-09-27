@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.SocketTimeoutException;
 import java.time.Duration;
+import java.util.List;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -58,17 +59,24 @@ class ActuatorRefreshIT {
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME + ":"
 			+ Commons.pomVersion();
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final K3sContainer K3S = Commons.container(
+		List.of(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME), List.of(Images.WIREMOCK_TAR)
+	);
 
 	private static Util util;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		K3S.start();
-		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 
+		// create .tar outside k3s container
+		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+
+		// start k3s container and thus copy tars into it (see Commons::container)
+		K3S.start();
+
+		// make .tars available inside k3s via 'ctr i import'
+		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Images.loadWiremock(K3S);
 
 		util = new Util(K3S);

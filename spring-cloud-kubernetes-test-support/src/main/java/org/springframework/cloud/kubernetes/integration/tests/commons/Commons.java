@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -101,12 +102,17 @@ public final class Commons {
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
 		.configureFixedPorts(EXPOSED_PORTS)
-		.withCopyFileToContainer(MountableFile.forHostPath(TEMP_FOLDER), TEMP_FOLDER.toAbsolutePath().toString())
-		.withCopyFileToContainer(MountableFile.forHostPath(TMP_IMAGES), TMP_IMAGES.toAbsolutePath().toString())
 		.withCommand(Commons.RANCHER_COMMAND)
 		.withReuse(true);
 
-	public static K3sContainer container() {
+	public static K3sContainer container(List<String> ourImages, List<String> images) {
+		ourImages
+			.forEach(x -> CONTAINER.withCopyFileToContainer(MountableFile.forHostPath(TEMP_FOLDER + "/" + x + ".tar"),
+					TEMP_FOLDER.toAbsolutePath() + "/" + x + ".tar"));
+
+		images.forEach(x -> CONTAINER.withCopyFileToContainer(MountableFile.forHostPath(TEMP_FOLDER + "/" + x + ".tar"),
+				TEMP_FOLDER.toAbsolutePath() + "/" + x + ".tar"));
+
 		return CONTAINER;
 	}
 
@@ -167,8 +173,7 @@ public final class Commons {
 			InputStream imageStream = saveImageCmd.withTag(tag).exec();
 
 			Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
-			Files.deleteIfExists(imagePath);
-			Files.copy(imageStream, imagePath);
+			Files.copy(imageStream, imagePath, StandardCopyOption.REPLACE_EXISTING);
 		}
 	}
 
@@ -177,7 +182,7 @@ public final class Commons {
 		// container
 		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
 			Container.ExecResult result = container.execInContainer("ctr", "i", "import",
-				TEMP_FOLDER + "/" + tarName + ".tar");
+					TEMP_FOLDER + "/" + tarName + ".tar");
 			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
 			if (!noErrors) {
 				LOG.info("error is : " + result.getStderr());

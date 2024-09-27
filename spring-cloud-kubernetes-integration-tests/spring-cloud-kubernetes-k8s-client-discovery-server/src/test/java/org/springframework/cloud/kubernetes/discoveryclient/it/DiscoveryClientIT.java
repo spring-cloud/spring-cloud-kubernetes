@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -136,7 +137,10 @@ class DiscoveryClientIT {
 
 	private static final String NAMESPACE_RIGHT = "right";
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final K3sContainer K3S = Commons.container(
+		List.of(DISCOVERY_SERVER_APP_NAME, SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME),
+		List.of(Images.WIREMOCK_TAR)
+	);
 
 	private static Util util;
 
@@ -147,13 +151,18 @@ class DiscoveryClientIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		Commons.validateImage(DISCOVERY_SERVER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
-		K3S.start();
-		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
-
 		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
+
+		// create .tar outside k3s container
+		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
+		// start k3s container and thus copy tars into it (see Commons::container)
+		K3S.start();
+
+		// make .tars available inside k3s via 'ctr i import'
+		Commons.importImageIntoTheContainer(DISCOVERY_SERVER_APP_NAME, K3S);
+		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 		Images.loadWiremock(K3S);
 
 		util = new Util(K3S);

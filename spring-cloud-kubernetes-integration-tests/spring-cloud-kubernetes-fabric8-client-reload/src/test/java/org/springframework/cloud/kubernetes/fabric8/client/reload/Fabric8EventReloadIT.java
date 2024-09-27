@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,7 +57,9 @@ class Fabric8EventReloadIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final K3sContainer K3S = Commons.container(
+		List.of(IMAGE_NAME), List.of()
+	);
 
 	private static Util util;
 
@@ -65,8 +68,14 @@ class Fabric8EventReloadIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		Commons.validateImage(IMAGE_NAME, K3S);
+
+		// create .tar outside k3s container
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		// start k3s container and thus copy tars into it (see Commons::container)
 		K3S.start();
+
+		// make .tars available inside k3s via 'ctr i import'
 		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);

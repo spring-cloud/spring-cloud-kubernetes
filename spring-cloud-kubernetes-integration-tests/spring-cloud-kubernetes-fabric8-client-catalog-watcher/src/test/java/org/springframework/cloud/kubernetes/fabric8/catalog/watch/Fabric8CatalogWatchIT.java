@@ -64,17 +64,22 @@ class Fabric8CatalogWatchIT {
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + pomVersion();
 
-	private static final K3sContainer K3S = Commons.container();
+	private static final K3sContainer K3S = Commons.container(List.of(IMAGE_NAME), List.of(Images.BUSYBOX_TAR));
 
 	private static Util util;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-		K3S.start();
-		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 
+		// create .tar outside k3s container
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		// start k3s container and thus copy tars into it (see Commons::container)
+		K3S.start();
+
+		// make .tars available inside k3s via 'ctr i import'
+		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 		Images.loadBusybox(K3S);
 
 		util = new Util(K3S);
@@ -112,9 +117,9 @@ class Fabric8CatalogWatchIT {
 		assertLogStatement();
 		test();
 
-		// testCatalogWatchWithEndpointSlices();
-		// testCatalogWatchWithNamespaceFilterAndEndpoints();
-		// testCatalogWatchWithNamespaceFilterAndEndpointSlices();
+		testCatalogWatchWithEndpointSlices();
+		testCatalogWatchWithNamespaceFilterAndEndpoints();
+		testCatalogWatchWithNamespaceFilterAndEndpointSlices();
 	}
 
 	void testCatalogWatchWithEndpointSlices() {
