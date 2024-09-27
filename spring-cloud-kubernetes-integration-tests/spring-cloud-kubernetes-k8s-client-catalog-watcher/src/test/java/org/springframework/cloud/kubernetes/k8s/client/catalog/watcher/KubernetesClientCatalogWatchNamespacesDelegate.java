@@ -29,7 +29,6 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
@@ -51,8 +50,6 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 
 	private static final String NAMESPACE_B = "namespaceb";
 
-	private static final K3sContainer K3S = Commons.container();
-
 	private static Util util;
 
 	/**
@@ -65,21 +62,22 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 	 *     - assert that we receive only spring-cloud-kubernetes-client-catalog-watcher pod
 	 * </pre>
 	 */
-	static void testCatalogWatchWithEndpointsNamespaces(String deploymentName) {
-		waitForLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch", K3S, deploymentName);
-		testForNamespacesFilter();
+	static void testCatalogWatchWithEndpointsNamespaces(String deploymentName, K3sContainer container) {
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch", container, deploymentName);
+		testForNamespacesFilter(container);
 	}
 
-	static void testCatalogWatchWithEndpointSlicesNamespaces(String deploymentName) {
-		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", K3S, deploymentName);
-		testForNamespacesFilter();
+	static void testCatalogWatchWithEndpointSlicesNamespaces(String deploymentName, K3sContainer container) {
+		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", container,
+				deploymentName);
+		testForNamespacesFilter(container);
 	}
 
 	/**
 	 * the test is the same for both endpoints and endpoint slices, the set-up for them is
 	 * different.
 	 */
-	private static void testForNamespacesFilter() {
+	private static void testForNamespacesFilter(K3sContainer container) {
 
 		WebClient client = builder().baseUrl("http://localhost/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[4];
@@ -124,7 +122,7 @@ final class KubernetesClientCatalogWatchNamespacesDelegate {
 		Assertions.assertEquals(NAMESPACE_B, sorted.get(2).namespace());
 		Assertions.assertEquals(NAMESPACE_B, sorted.get(3).namespace());
 
-		util = new Util(K3S);
+		util = new Util(container);
 		util.busybox(NAMESPACE_A, Phase.DELETE);
 		util.busybox(NAMESPACE_B, Phase.DELETE);
 

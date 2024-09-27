@@ -65,9 +65,7 @@ class KubernetesClientCatalogWatchIT {
 
 	private static final String NAMESPACE_B = "namespaceb";
 
-	private static final K3sContainer K3S = Commons.container(
-		List.of(APP_NAME), List.of(Images.BUSYBOX_TAR)
-	);
+	private static final K3sContainer K3S = Commons.container(List.of(APP_NAME), List.of(Images.BUSYBOX_TAR));
 
 	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + APP_NAME + ":" + Commons.pomVersion();
 
@@ -139,12 +137,12 @@ class KubernetesClientCatalogWatchIT {
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 
 		KubernetesClientCatalogWatchUtils.patchForEndpointsNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces(APP_NAME);
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointsNamespaces(APP_NAME, K3S);
 
 		util.busybox(NAMESPACE_A, Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
 		KubernetesClientCatalogWatchUtils.patchForEndpointSlicesNamespaces(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces(APP_NAME);
+		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces(APP_NAME, K3S);
 	}
 
 	/**

@@ -57,9 +57,7 @@ class Fabric8EventReloadIT {
 
 	private static final String NAMESPACE = "default";
 
-	private static final K3sContainer K3S = Commons.container(
-		List.of(IMAGE_NAME), List.of()
-	);
+	private static final K3sContainer K3S = Commons.container(List.of(IMAGE_NAME), List.of());
 
 	private static Util util;
 

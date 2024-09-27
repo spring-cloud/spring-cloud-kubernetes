@@ -73,9 +73,8 @@ class KubernetesClientDiscoveryClientIT {
 
 	private static Util util;
 
-	private static final K3sContainer K3S = Commons.container(
-		List.of(IMAGE_NAME), List.of(Images.WIREMOCK_TAR, Images.BUSYBOX_TAR)
-	);
+	private static final K3sContainer K3S = Commons.container(List.of(IMAGE_NAME),
+			List.of(Images.WIREMOCK_TAR, Images.BUSYBOX_TAR));
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
