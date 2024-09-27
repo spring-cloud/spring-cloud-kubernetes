@@ -49,8 +49,6 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 	private static final String WIREMOCK_HOST = "localhost";
 
-	private static final String WIREMOCK_PATH = "/";
-
 	private static final int WIREMOCK_PORT = 80;
 
 	private static final String DEFAULT_NAMESPACE = "default";
@@ -65,9 +63,11 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		K3S.start();
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		K3S.start();
+		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+
 		util = new Util(K3S);
 		util.createNamespace(LEFT_NAMESPACE);
 		util.createNamespace(RIGHT_NAMESPACE);

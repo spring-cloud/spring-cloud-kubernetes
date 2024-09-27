@@ -62,7 +62,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_ONE_WITH_BOOTSTRAP = """
 			{
@@ -91,7 +91,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_TWO = """
 			{
@@ -128,7 +128,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_THREE = """
 			{
@@ -173,7 +173,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_FOUR = """
 			{
@@ -214,7 +214,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_FIVE = """
 			{
@@ -251,7 +251,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_SIX = """
 			{
@@ -288,7 +288,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_SEVEN = """
 			{
@@ -313,7 +313,7 @@ final class Fabric8DiscoveryClientUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static WebClient.Builder builder() {
 		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));

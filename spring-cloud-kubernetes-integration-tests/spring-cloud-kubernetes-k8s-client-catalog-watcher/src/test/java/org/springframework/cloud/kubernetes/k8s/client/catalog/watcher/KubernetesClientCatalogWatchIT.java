@@ -73,9 +73,10 @@ class KubernetesClientCatalogWatchIT {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		K3S.start();
 		Commons.validateImage(APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(APP_NAME, K3S);
+		K3S.start();
+		Commons.importImageIntoTheContainer(APP_NAME, K3S);
 
 		Images.loadBusybox(K3S);
 

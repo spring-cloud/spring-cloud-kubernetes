@@ -73,9 +73,11 @@ class K8sClientConfigMapReloadIT {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+		K3S.start();
+		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
+
 		util = new Util(K3S);
 		util.createNamespace("left");
 		util.createNamespace("right");

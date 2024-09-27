@@ -64,9 +64,10 @@ class ActuatorRefreshIT {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		K3S.start();
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
+		K3S.start();
+		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 
 		Images.loadWiremock(K3S);
 

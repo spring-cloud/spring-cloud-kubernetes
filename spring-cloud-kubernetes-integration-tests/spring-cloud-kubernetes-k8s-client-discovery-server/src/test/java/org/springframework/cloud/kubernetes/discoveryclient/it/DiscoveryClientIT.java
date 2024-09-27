@@ -83,7 +83,7 @@ class DiscoveryClientIT {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_TWO = """
 			{
@@ -116,7 +116,7 @@ class DiscoveryClientIT {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final Map<String, String> POD_LABELS = Map.of("app",
 			"spring-cloud-kubernetes-k8s-client-discovery-server");
@@ -146,10 +146,10 @@ class DiscoveryClientIT {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		K3S.start();
-
 		Commons.validateImage(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
+		K3S.start();
+		Commons.importImageIntoTheContainer(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 
 		Commons.validateImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);

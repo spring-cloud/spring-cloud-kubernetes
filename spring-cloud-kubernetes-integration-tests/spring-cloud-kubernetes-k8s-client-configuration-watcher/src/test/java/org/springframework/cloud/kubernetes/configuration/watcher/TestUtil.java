@@ -59,7 +59,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static void patchForDisabledReload(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);

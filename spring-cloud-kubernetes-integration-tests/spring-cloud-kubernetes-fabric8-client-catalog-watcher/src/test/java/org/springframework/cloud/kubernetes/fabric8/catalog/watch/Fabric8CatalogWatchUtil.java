@@ -63,7 +63,7 @@ final class Fabric8CatalogWatchUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_TWO = """
 			{
@@ -96,7 +96,7 @@ final class Fabric8CatalogWatchUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static final String BODY_THREE = """
 			{
@@ -129,7 +129,7 @@ final class Fabric8CatalogWatchUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static void patchForEndpointSlices(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_ONE, POD_LABELS);

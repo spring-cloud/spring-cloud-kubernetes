@@ -60,10 +60,11 @@ class Fabric8IstioIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S = Commons.container();
-		K3S.start();
 		util = new Util(K3S);
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+		K3S.start();
+		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 
 		Images.loadIstioCtl(K3S);
 		Images.loadIstioProxyV2(K3S);

@@ -55,7 +55,7 @@ final class KubernetesClientCatalogWatchUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_TWO = """
 			{
@@ -88,7 +88,7 @@ final class KubernetesClientCatalogWatchUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_THREE = """
 			{
@@ -121,7 +121,7 @@ final class KubernetesClientCatalogWatchUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static void patchForEndpointSlices(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);

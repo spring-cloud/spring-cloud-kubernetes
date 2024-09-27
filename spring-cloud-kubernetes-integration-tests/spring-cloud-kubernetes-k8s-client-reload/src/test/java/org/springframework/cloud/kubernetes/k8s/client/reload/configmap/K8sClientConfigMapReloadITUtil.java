@@ -90,7 +90,7 @@ final class K8sClientConfigMapReloadITUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_TWO = """
 			{
@@ -141,7 +141,7 @@ final class K8sClientConfigMapReloadITUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_THREE = """
 			{
@@ -196,7 +196,7 @@ final class K8sClientConfigMapReloadITUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_FOUR = """
 			{
@@ -251,7 +251,7 @@ final class K8sClientConfigMapReloadITUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_FIVE = """
 			{
@@ -325,7 +325,7 @@ final class K8sClientConfigMapReloadITUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_SIX = """
 			{
@@ -399,7 +399,7 @@ final class K8sClientConfigMapReloadITUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	static void patchOne(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);

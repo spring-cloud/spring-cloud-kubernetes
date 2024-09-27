@@ -45,7 +45,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_TWO = """
 			{
@@ -85,7 +85,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	// this one patches on top of BODY_TWO, so it essentially enables both blocking and
 	// reactive implementations
@@ -106,7 +106,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	// this one patches on top of BODY_TWO, so it essentially enables both blocking and
 	// reactive implementations
@@ -142,7 +142,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	// patch to include all namespaces + external name services
 	private static final String BODY_FIVE = """
@@ -167,7 +167,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	// disable all namespaces and include a single namespace to be discoverable
 	private static final String BODY_SIX = """
@@ -192,7 +192,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_SEVEN = """
 			{
@@ -229,7 +229,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_EIGHT = """
 			{
@@ -253,7 +253,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_NINE = """
 			{
@@ -277,7 +277,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_TEN = """
 			{
@@ -301,7 +301,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_ELEVEN = """
 			{
@@ -321,7 +321,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_TWELVE = """
 			{
@@ -354,7 +354,7 @@ final class KubernetesClientDiscoveryClientUtils {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private KubernetesClientDiscoveryClientUtils() {
 

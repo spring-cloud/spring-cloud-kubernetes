@@ -89,9 +89,10 @@ class Fabric8DiscoveryPodMetadataIT {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
-		K3S.start();
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+		K3S.start();
+		Commons.importImageIntoTheContainer(IMAGE_NAME, K3S);
 
 		Images.loadBusybox(K3S);
 		Images.loadWiremock(K3S);

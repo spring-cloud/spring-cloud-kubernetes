@@ -69,7 +69,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_TWO = """
 			{
@@ -98,7 +98,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_THREE = """
 			{
@@ -131,7 +131,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_FOUR = """
 			{
@@ -168,7 +168,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_FIVE = """
 			{
@@ -220,7 +220,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_SIX = """
 			{
@@ -272,7 +272,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private static final String BODY_SEVEN = """
 			{
@@ -293,7 +293,7 @@ final class TestUtil {
 					}
 				}
 			}
-						""";
+					\t""";
 
 	private TestUtil() {
 
