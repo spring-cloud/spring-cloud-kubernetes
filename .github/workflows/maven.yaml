@@ -51,6 +51,9 @@ jobs:
             for (const cache of caches.data.actions_caches) {
               console.log(cache)
             }  
+            
+            console.log('------------------------')
+            console.log(caches)
 
       - name: maven build with dry-run for tests
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
