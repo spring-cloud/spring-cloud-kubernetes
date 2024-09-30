@@ -31,6 +31,7 @@ runs:
       with:
         path: |
           /tmp/docker/images
+        key: docker-images-github-cache-${{ hashFiles('**/current-images.txt') }}
 
     - name: print images
       shell: bash
