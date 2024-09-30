@@ -53,7 +53,7 @@ jobs:
             }  
             
             console.log('------------------------')
-            console.log(caches)
+            console.log(caches.data)
 
       - name: maven build with dry-run for tests
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
