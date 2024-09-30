@@ -48,11 +48,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
             })
-            for (const cache of caches.data.actions_caches) {
-              console.log(cache)
-            }  
-            
-            console.log('------------------------')
             console.log(caches.data)
 
       - name: maven build with dry-run for tests
