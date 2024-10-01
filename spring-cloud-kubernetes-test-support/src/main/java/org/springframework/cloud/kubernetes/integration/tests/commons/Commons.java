@@ -94,7 +94,7 @@ public final class Commons {
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
 		.configureFixedPorts()
-		.addVolumes()
+		.addBinds()
 		.withCommand(Commons.RANCHER_COMMAND)
 		.withReuse(true);
 
@@ -340,7 +340,7 @@ public final class Commons {
 			return this;
 		}
 
-		private FixedPortsK3sContainer addVolumes() {
+		private FixedPortsK3sContainer addBinds() {
 			super.withCreateContainerCmdModifier(cmd -> {
 				HostConfig hostConfig = Objects.requireNonNull(cmd.getHostConfig());
 				hostConfig.withBinds(Bind.parse(TEMP_FOLDER + ":" + TEMP_FOLDER));
