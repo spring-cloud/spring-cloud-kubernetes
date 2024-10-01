@@ -343,10 +343,8 @@ public final class Commons {
 		private FixedPortsK3sContainer addBinds() {
 			super.withCreateContainerCmdModifier(cmd -> {
 				HostConfig hostConfig = Objects.requireNonNull(cmd.getHostConfig());
-				hostConfig.withBinds(
-					Bind.parse(TEMP_FOLDER + ":" + TEMP_FOLDER),
-					Bind.parse(TMP_IMAGES + ":" + TMP_IMAGES)
-				);
+				hostConfig.withBinds(Bind.parse(TEMP_FOLDER + ":" + TEMP_FOLDER),
+						Bind.parse(TMP_IMAGES + ":" + TMP_IMAGES));
 			});
 
 			return this;
