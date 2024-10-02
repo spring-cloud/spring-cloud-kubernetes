@@ -11,10 +11,6 @@
 
 	<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 
-	<properties>
-		<awaitility.version>4.0.3</awaitility.version>
-		<testcontainers.version>1.18.3</testcontainers.version>
-	</properties>
 	<dependencies>
 
 		<dependency>
@@ -38,13 +34,11 @@
 		<dependency>
 			<groupId>org.awaitility</groupId>
 			<artifactId>awaitility</artifactId>
-			<version>${awaitility.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>k3s</artifactId>
-			<version>${testcontainers.version}</version>
 		</dependency>
 
 	</dependencies>
