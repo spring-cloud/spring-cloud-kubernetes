@@ -26,12 +26,15 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.command.ListImagesCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.SaveImageCmd;
+import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Image;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -90,9 +93,8 @@ public final class Commons {
 	public static final String TEMP_FOLDER = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
 
 	private static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(Commons.RANCHER))
-		.configureFixedPorts(EXPOSED_PORTS)
-		.withFileSystemBind(TEMP_FOLDER, TEMP_FOLDER)
-		.withFileSystemBind(TMP_IMAGES, TMP_IMAGES)
+		.configureFixedPorts()
+		.addBinds()
 		.withCommand(Commons.RANCHER_COMMAND)
 		.withReuse(true);
 
@@ -331,10 +333,20 @@ public final class Commons {
 			super(dockerImageName);
 		}
 
-		private FixedPortsK3sContainer configureFixedPorts(int[] ports) {
-			for (int port : ports) {
+		private FixedPortsK3sContainer configureFixedPorts() {
+			for (int port : Commons.EXPOSED_PORTS) {
 				super.addFixedExposedPort(port, port);
 			}
+			return this;
+		}
+
+		private FixedPortsK3sContainer addBinds() {
+			super.withCreateContainerCmdModifier(cmd -> {
+				HostConfig hostConfig = Objects.requireNonNull(cmd.getHostConfig());
+				hostConfig.withBinds(Bind.parse(TEMP_FOLDER + ":" + TEMP_FOLDER),
+						Bind.parse(TMP_IMAGES + ":" + TMP_IMAGES));
+			});
+
 			return this;
 		}
 
