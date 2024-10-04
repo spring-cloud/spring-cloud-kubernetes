@@ -30,6 +30,16 @@
 			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-suite-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-suite-engine</artifactId>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<resources>
@@ -43,5 +53,12 @@
 			</resource>
 		</resources>
 	</build>
+	<repositories>
+		<repository>
+			<id>maven_central</id>
+			<name>Maven Central</name>
+			<url>https://repo.maven.apache.org/maven2/</url>
+		</repository>
+	</repositories>
 
 </project>

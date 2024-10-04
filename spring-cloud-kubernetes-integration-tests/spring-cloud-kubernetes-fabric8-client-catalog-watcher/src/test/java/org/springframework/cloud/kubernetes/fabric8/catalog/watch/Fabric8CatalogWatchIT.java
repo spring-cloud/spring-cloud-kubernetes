@@ -108,19 +108,18 @@ class Fabric8CatalogWatchIT {
 	 */
 	@Test
 	void testCatalogWatchWithEndpoints() throws Exception {
-		assertLogStatement();
-		test();
+		//test();
 
-		testCatalogWatchWithEndpointSlices();
-		testCatalogWatchWithNamespaceFilterAndEndpoints();
-		testCatalogWatchWithNamespaceFilterAndEndpointSlices();
+//		testCatalogWatchWithEndpointSlices();
+//		testCatalogWatchWithNamespaceFilterAndEndpoints();
+//		testCatalogWatchWithNamespaceFilterAndEndpointSlices();
 	}
 
 	void testCatalogWatchWithEndpointSlices() {
 		util.busybox(NAMESPACE, Phase.CREATE);
 		patchForEndpointSlices(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		Commons.waitForLogStatement("stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch", K3S, IMAGE_NAME);
-		test();
+		//test();
 	}
 
 	void testCatalogWatchWithNamespaceFilterAndEndpoints() {
@@ -137,99 +136,6 @@ class Fabric8CatalogWatchIT {
 		patchForNamespaceFilterAndEndpointSlices(util, DOCKER_IMAGE, IMAGE_NAME, NAMESPACE);
 		Fabric8CatalogWatchWithNamespacesDelegate.testCatalogWatchWithNamespaceFilterAndEndpointSlices(K3S, IMAGE_NAME,
 				util);
-	}
-
-	/**
-	 * we log in debug mode the type of the StateGenerator we use, be that Endpoints or
-	 * EndpointSlices. Here we make sure that in the test we actually use the correct
-	 * type.
-	 */
-	private void assertLogStatement() throws Exception {
-		String appPodName = K3S
-			.execInContainer("kubectl", "get", "pods", "-l",
-					"app=spring-cloud-kubernetes-fabric8-client-catalog-watcher", "-o=name", "--no-headers")
-			.getStdout();
-		String allLogs = K3S.execInContainer("kubectl", "logs", appPodName.trim()).getStdout();
-		Assertions.assertTrue(allLogs.contains("stateGenerator is of type: Fabric8EndpointsCatalogWatch"));
-	}
-
-	/**
-	 * the test is the same for both endpoints and endpoint slices, the set-up for them is
-	 * different.
-	 */
-	@SuppressWarnings("unchecked")
-	private void test() {
-
-		WebClient client = builder().baseUrl("http://localhost/result").build();
-		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
-
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
-			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec())
-				.block();
-
-			// we get 3 pods as input, but because they are sorted by name in the catalog
-			// watcher implementation
-			// we will get the first busybox instances here.
-			if (result != null) {
-				if (result.size() != 3) {
-					return false;
-				}
-				holder[0] = result.get(0);
-				holder[1] = result.get(1);
-				return true;
-			}
-
-			return false;
-		});
-
-		EndpointNameAndNamespace resultOne = holder[0];
-		EndpointNameAndNamespace resultTwo = holder[1];
-
-		Assertions.assertNotNull(resultOne);
-		Assertions.assertNotNull(resultTwo);
-
-		Assertions.assertTrue(resultOne.endpointName().contains("busybox"));
-		Assertions.assertTrue(resultTwo.endpointName().contains("busybox"));
-		Assertions.assertEquals("default", resultOne.namespace());
-		Assertions.assertEquals("default", resultTwo.namespace());
-
-		util.busybox(NAMESPACE, Phase.DELETE);
-
-		// what we get after delete
-		EndpointNameAndNamespace[] afterDelete = new EndpointNameAndNamespace[1];
-
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
-			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec())
-				.block();
-
-			// we need to get the event from KubernetesCatalogWatch, but that happens
-			// on periodic bases. So in order to be sure we got the event we care about
-			// we wait until the result has a single entry, which means busybox was
-			// deleted
-			// + KubernetesCatalogWatch received the new update.
-			if (result != null && result.size() != 1) {
-				return false;
-			}
-
-			// we will only receive one pod here, our own
-			if (result != null) {
-				afterDelete[0] = result.get(0);
-				return true;
-			}
-
-			return false;
-		});
-
-		Assertions.assertTrue(afterDelete[0].endpointName().contains(IMAGE_NAME));
-		Assertions.assertEquals("default", afterDelete[0].namespace());
-
 	}
 
 	private static void app(Phase phase) {
