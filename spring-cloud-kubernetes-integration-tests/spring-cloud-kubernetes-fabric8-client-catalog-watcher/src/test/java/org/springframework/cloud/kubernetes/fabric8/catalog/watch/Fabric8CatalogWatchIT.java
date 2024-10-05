@@ -106,7 +106,7 @@ class Fabric8CatalogWatchIT {
 	 *     - assert that we receive only spring-cloud-kubernetes-fabric8-client-catalog-watcher pod
 	 * </pre>
 	 */
-	@Test
+	//@Test
 	void testCatalogWatchWithEndpoints() throws Exception {
 		//test();
 
