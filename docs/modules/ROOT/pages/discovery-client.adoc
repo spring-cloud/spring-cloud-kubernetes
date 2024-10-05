@@ -126,7 +126,7 @@ Once namespaces have been configured, the next question to answer is what servic
 spring.cloud.kubernetes.discovery.filter='#root.metadata.namespace matches "^.+A$"'
 ----
 
-which tells discovery client to only get services that have the `metadata.namespace` that ends in upper case `A`.
+which tells discovery client to only get services that have the `metadata.namespace` that ends in upper case `MySuite`.
 
 If your discovery client is based on k8s-native client, then the SpEL expression must be based on `io.kubernetes.client.openapi.models.V1Service` class. The same filter showed above would work here.
 

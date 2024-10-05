@@ -87,22 +87,6 @@
 
 	</build>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.junit.platform</groupId>
-				<artifactId>junit-platform-suite-api</artifactId>
-				<version>1.11.2</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.junit.platform</groupId>
-				<artifactId>junit-platform-suite-engine</artifactId>
-				<version>1.11.2</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
 	<modules>
 
 		<!-- catalog-watcher -->

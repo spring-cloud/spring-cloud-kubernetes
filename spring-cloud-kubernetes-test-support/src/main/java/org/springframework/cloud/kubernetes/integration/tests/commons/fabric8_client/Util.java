@@ -395,10 +395,12 @@ public final class Util {
 
 		Map<String, String> matchLabels = deployment.getSpec().getSelector().getMatchLabels();
 
+		long start = System.currentTimeMillis();
 		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
 			Deployment inner = client.apps().deployments().inNamespace(namespace).withName(deploymentName).get();
 			return inner == null;
 		});
+		System.out.println("Ended in " + (System.currentTimeMillis() - start) + "ms");
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(60, TimeUnit.SECONDS).until(() -> {
 			List<Pod> podList = client.pods().inNamespace(namespace).withLabels(matchLabels).list().getItems();
