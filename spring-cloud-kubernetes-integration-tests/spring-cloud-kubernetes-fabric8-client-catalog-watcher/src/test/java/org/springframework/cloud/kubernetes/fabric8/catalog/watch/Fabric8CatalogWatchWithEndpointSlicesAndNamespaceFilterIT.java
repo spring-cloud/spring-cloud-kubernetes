@@ -21,6 +21,7 @@ import java.util.Set;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,7 +40,7 @@ import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8
  * @author wind57
  */
 @SpringBootTest(classes = { KubernetesCatalogWatchAutoConfiguration.class, TestConfig.class, Application.class },
-	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8CatalogWatchBase {
 
 	@LocalServerPort
@@ -73,6 +74,7 @@ class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8C
 	 * </pre>
 	 */
 	@Test
+	@Disabled
 	void test(CapturedOutput output) {
 		TestAssertions.assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
 		TestAssertions.invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);

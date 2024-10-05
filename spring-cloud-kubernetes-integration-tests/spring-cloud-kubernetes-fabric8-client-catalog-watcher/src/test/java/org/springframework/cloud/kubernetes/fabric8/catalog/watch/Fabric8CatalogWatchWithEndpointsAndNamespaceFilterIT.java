@@ -39,7 +39,7 @@ import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8
  * @author wind57
  */
 @SpringBootTest(classes = { KubernetesCatalogWatchAutoConfiguration.class, TestConfig.class, Application.class },
-	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Fabric8CatalogWatchWithEndpointsAndNamespaceFilterIT extends Fabric8CatalogWatchBase {
 
 	@LocalServerPort

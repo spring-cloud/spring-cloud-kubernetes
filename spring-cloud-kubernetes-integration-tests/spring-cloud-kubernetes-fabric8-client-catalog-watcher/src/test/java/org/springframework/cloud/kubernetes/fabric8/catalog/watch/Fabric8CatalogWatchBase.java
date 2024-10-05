@@ -30,17 +30,17 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
-
 import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
 
-@TestPropertySource(properties = {"spring.main.cloud-platform=kubernetes", "spring.cloud.config.import-check.enabled=false",
-	"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=2000",
-	"spring.cloud.kubernetes.client.namespace=default",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG"})
+@TestPropertySource(
+		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.import-check.enabled=false",
+				"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=2000",
+				"spring.cloud.kubernetes.client.namespace=default",
+				"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG" })
 @ExtendWith(OutputCaptureExtension.class)
 abstract class Fabric8CatalogWatchBase {
 
@@ -62,8 +62,8 @@ abstract class Fabric8CatalogWatchBase {
 
 	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices) {
 		return new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE, NAMESPACE_A),
-			true, 60, false, null, Set.of(443, 8443), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices , false, null);
+			true, 60, false, null, Set.of(443, 8443),
+			Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices, false, null);
 	}
 
 	protected static KubernetesClient client() {
