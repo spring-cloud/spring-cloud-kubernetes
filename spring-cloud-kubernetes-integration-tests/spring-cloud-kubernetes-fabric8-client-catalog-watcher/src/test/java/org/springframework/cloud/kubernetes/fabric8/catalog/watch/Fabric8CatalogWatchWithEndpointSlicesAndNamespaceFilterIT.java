@@ -21,7 +21,6 @@ import java.util.Set;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -74,7 +73,6 @@ class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8C
 	 * </pre>
 	 */
 	@Test
-	@Disabled
 	void test(CapturedOutput output) {
 		TestAssertions.assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
 		TestAssertions.invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
