@@ -19,8 +19,11 @@ package org.springframework.cloud.kubernetes.fabric8.config.retry.secrets_enable
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
+import org.mockito.internal.util.MockUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
@@ -49,10 +52,22 @@ class ConfigDataSecretsRetryEnabledTests extends SecretsRetryEnabled {
 	}
 
 	@BeforeEach
-	public void beforeEach() {
+	void beforeEach() {
 		psl = configDataRetryableSecretsPropertySourceLocator;
-		verifiablePsl = spy(configDataRetryableSecretsPropertySourceLocator.getSecretsPropertySourceLocator());
-		configDataRetryableSecretsPropertySourceLocator.setSecretsPropertySourceLocator(verifiablePsl);
+		// latest Mockito does not allow to do something like Mockito.spy(spy)
+		// so this works around that
+		if (!MockUtil.isSpy(configDataRetryableSecretsPropertySourceLocator.getSecretsPropertySourceLocator())) {
+			verifiablePsl = spy(configDataRetryableSecretsPropertySourceLocator.getSecretsPropertySourceLocator());
+			configDataRetryableSecretsPropertySourceLocator.setSecretsPropertySourceLocator(verifiablePsl);
+		}
+		else {
+			verifiablePsl = configDataRetryableSecretsPropertySourceLocator.getSecretsPropertySourceLocator();
+		}
+	}
+
+	@AfterEach
+	void afterEach() {
+		Mockito.reset(verifiablePsl);
 	}
 
 }
