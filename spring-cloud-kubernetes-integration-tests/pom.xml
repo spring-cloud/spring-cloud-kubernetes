@@ -32,6 +32,9 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
+				</configuration>
 				<executions>
 					<execution>
 						<id>build-image</id>
