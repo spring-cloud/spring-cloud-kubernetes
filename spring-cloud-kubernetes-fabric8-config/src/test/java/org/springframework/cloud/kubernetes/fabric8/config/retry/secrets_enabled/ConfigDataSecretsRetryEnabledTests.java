@@ -22,9 +22,9 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
 import org.springframework.test.context.TestPropertySource;
