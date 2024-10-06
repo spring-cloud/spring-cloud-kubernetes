@@ -53,7 +53,6 @@ class Fabric8DiscoveryController {
 
 	@GetMapping("/service-instances/{serviceId}")
 	List<ServiceInstance> serviceInstances(@PathVariable("serviceId") String serviceId) {
-		discoveryClient.getServices();
 		return discoveryClient.getInstances(serviceId);
 	}
 

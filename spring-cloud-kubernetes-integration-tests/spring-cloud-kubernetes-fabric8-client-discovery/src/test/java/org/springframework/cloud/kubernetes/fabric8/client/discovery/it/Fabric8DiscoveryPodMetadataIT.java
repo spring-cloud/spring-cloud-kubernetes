@@ -67,21 +67,20 @@ class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 	 * <pre>
 	 * 		- there is a 'busybox-service' service deployed with two pods
 	 * 		- find each of the pod, add annotation to one and labels to another
-	 * 		- call
+	 * 		- call DiscoveryClient::getInstances with this serviceId and assert fields returned
 	 * </pre>
 	 */
 	@Test
 	void test() throws Exception {
-		// find both pods
-		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+		String[] busyboxPods = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
 			.getStdout()
 			.split("\n");
-		// add a label to first pod
-		K3S.execInContainer("sh", "-c",
-			"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
-		// add annotation to the second pod
-		K3S.execInContainer("sh", "-c",
-			"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
+
+		String podOne = busyboxPods[0].split("/")[1];
+		String podTwo = busyboxPods[1].split("/")[1];
+
+		K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
+		K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
 	}
 
 	@TestConfiguration

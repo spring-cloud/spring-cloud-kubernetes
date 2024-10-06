@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.client.discovery.it;
 import java.time.Duration;
 import java.util.Objects;
 
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
@@ -30,6 +31,10 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author wind57
  */
 class TestAssertions {
+
+	static void assertPodMetadata(DiscoveryClient discoveryClient) {
+
+	}
 
 	static WebClient.Builder builder() {
 		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
