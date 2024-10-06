@@ -24,48 +24,54 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertPodMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.filterMatchesOneNamespaceViaThePredicate;
 
 /**
  * @author wind57
  */
-class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
+@TestPropertySource(properties = {
+	"spring.cloud.kubernetes.discovery.namespaces[0]=a-uat",
+	"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat",
+	"spring.cloud.kubernetes.discovery.filter=#root.metadata.namespace matches 'a-uat$'",
+	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG"
+
+})
+class Fabric8DiscoveryFilterMatchOneNamespaceIT extends Fabric8DiscoveryBase {
+
+	private static final String NAMESPACE_A_UAT = "a-uat";
+
+	private static final String NAMESPACE_B_UAT = "b-uat";
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
 
 	@BeforeEach
 	void beforeEach() {
-		Images.loadBusybox(K3S);
-		util.busybox(NAMESPACE, Phase.CREATE);
+		Images.loadWiremock(K3S);
+
+		util.createNamespace(NAMESPACE_A_UAT);
+		util.createNamespace(NAMESPACE_B_UAT);
+
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE, false);
+
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.busybox(NAMESPACE, Phase.DELETE);
+
+		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE, false);
+
+		util.deleteNamespace(NAMESPACE_A_UAT);
+		util.deleteNamespace(NAMESPACE_B_UAT);
 	}
 
-	/**
-	 * <pre>
-	 * 		- there is a 'busybox-service' service deployed with two pods
-	 * 		- find each of the pod, add annotation to one, and labels to another
-	 * 		- call DiscoveryClient::getInstances with this serviceId and assert fields returned
-	 * </pre>
-	 */
 	@Test
-	void test() throws Exception {
-		String[] busyboxPods = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-			.getStdout()
-			.split("\n");
-
-		String podOne = busyboxPods[0].split("/")[1];
-		String podTwo = busyboxPods[1].split("/")[1];
-
-		K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
-		K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
-
-		assertPodMetadata(discoveryClient);
+	void test() {
+		filterMatchesOneNamespaceViaThePredicate(discoveryClient);
 	}
 
 }

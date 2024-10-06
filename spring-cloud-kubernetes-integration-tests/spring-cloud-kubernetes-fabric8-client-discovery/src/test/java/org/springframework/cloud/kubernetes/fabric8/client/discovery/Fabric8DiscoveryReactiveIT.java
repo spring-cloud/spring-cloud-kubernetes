@@ -20,20 +20,28 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertPodMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.testReactiveConfiguration;
 
 /**
  * @author wind57
  */
-class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
+@TestPropertySource(properties = {
+	"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG",
+	"logging.level.org.springframework.cloud.client.discovery.health.reactive=DEBUG",
+	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
+	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
+	"spring.cloud.discovery.blocking.enabled=false"
+})
+class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
-	@Autowired
-	private DiscoveryClient discoveryClient;
+	@LocalManagementPort
+	private int port;
 
 	@BeforeEach
 	void beforeEach() {
@@ -46,26 +54,9 @@ class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 		util.busybox(NAMESPACE, Phase.DELETE);
 	}
 
-	/**
-	 * <pre>
-	 * 		- there is a 'busybox-service' service deployed with two pods
-	 * 		- find each of the pod, add annotation to one, and labels to another
-	 * 		- call DiscoveryClient::getInstances with this serviceId and assert fields returned
-	 * </pre>
-	 */
 	@Test
-	void test() throws Exception {
-		String[] busyboxPods = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-			.getStdout()
-			.split("\n");
-
-		String podOne = busyboxPods[0].split("/")[1];
-		String podTwo = busyboxPods[1].split("/")[1];
-
-		K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
-		K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
-
-		assertPodMetadata(discoveryClient);
+	void test(CapturedOutput output) {
+		testReactiveConfiguration(output, port);
 	}
 
 }

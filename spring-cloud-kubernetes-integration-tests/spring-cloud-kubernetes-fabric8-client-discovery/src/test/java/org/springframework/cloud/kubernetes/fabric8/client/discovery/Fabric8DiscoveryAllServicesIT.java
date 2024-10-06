@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.client.discovery.it;
+package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,17 +27,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryApp;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.TestAssertions.assertAllServices;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertAllServices;
 
 /**
  * @author wind57
