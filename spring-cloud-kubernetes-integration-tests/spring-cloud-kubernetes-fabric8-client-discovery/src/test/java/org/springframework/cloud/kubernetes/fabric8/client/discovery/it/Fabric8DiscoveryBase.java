@@ -28,18 +28,19 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.test.context.TestPropertySource;
 
+/**
+ * @author wind57
+ */
 @TestPropertySource(
 	properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.import-check.enabled=false",
 		"spring.cloud.kubernetes.client.namespace=default",
-		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG" })
+		"spring.cloud.kubernetes.discovery.metadata.add-pod-labels=true",
+		"spring.cloud.kubernetes.discovery.metadata.add-pod-annotations=true" ,
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=debug" })
 @ExtendWith(OutputCaptureExtension.class)
 abstract class Fabric8DiscoveryBase {
 
 	protected static final String NAMESPACE = "default";
-
-	protected static final String NAMESPACE_A = "a";
-
-	protected static final String NAMESPACE_B = "b";
 
 	protected static final K3sContainer K3S = Commons.container();
 

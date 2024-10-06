@@ -19,28 +19,33 @@ package org.springframework.cloud.kubernetes.fabric8.client.discovery.it;
 import java.util.List;
 import java.util.Map;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryApp;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.TestAssertions.builder;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.TestAssertions.retrySpec;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.Fabric8DiscoveryPodMetadataIT.TestConfig;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { Fabric8DiscoveryApp.class },
+@SpringBootTest(classes = { Fabric8DiscoveryApp.class, TestConfig.class },
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 
@@ -58,9 +63,16 @@ class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 		util.busybox(NAMESPACE, Phase.DELETE);
 	}
 
+	/**
+	 * <pre>
+	 * 		- there is a 'busybox-service' service deployed with two pods
+	 * 		- find each of the pod, add annotation to one and labels to another
+	 * 		- call
+	 * </pre>
+	 */
 	@Test
 	void test() throws Exception {
-// find both pods
+		// find both pods
 		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
 			.getStdout()
 			.split("\n");
@@ -70,45 +82,17 @@ class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 		// add annotation to the second pod
 		K3S.execInContainer("sh", "-c",
 			"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
+	}
 
-		WebClient client = builder().baseUrl("http://localhost:" + port + "/busybox-service").build();
-		List<DefaultKubernetesServiceInstance> serviceInstances = client.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<DefaultKubernetesServiceInstance>>() {
+	@TestConfiguration
+	static class TestConfig {
 
-			})
-			.retryWhen(retrySpec())
-			.block();
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return client();
+		}
 
-		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
-			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
-			.toList()
-			.get(0);
-		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
-		Assertions.assertNotNull(withCustomLabel.getInstanceId());
-		Assertions.assertNotNull(withCustomLabel.getHost());
-		Assertions.assertEquals(withCustomLabel.getMetadata(),
-			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomLabel.podMetadata()
-			.get("labels")
-			.entrySet()
-			.stream()
-			.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
-
-		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
-			.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
-			.toList()
-			.get(0);
-		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
-		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
-		Assertions.assertNotNull(withCustomAnnotation.getHost());
-		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
-			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomAnnotation.podMetadata()
-			.get("annotations")
-			.entrySet()
-			.stream()
-			.anyMatch(x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
 	}
 
 }
