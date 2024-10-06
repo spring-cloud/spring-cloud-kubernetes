@@ -23,6 +23,8 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 
+import static java.util.AbstractMap.SimpleEntry;
+import static java.util.Map.Entry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -44,6 +46,11 @@ final class TestAssertions {
 			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
 			.toList()
 			.get(0);
+		List<Entry<String, String>> podMetadataLabels = withCustomLabel.podMetadata()
+				.get("labels")
+				.entrySet()
+				.stream()
+				.toList();
 
 		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
 		assertThat(withCustomLabel.getInstanceId()).isNotNull();
@@ -51,28 +58,45 @@ final class TestAssertions {
 		assertThat(withCustomLabel.getMetadata()).isEqualTo(
 			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80")
 		);
+		assertThat(podMetadataLabels).contains(new SimpleEntry<>("my-label", "my-value"));
 
-		Assertions.assertTrue(withCustomLabel.podMetadata()
-			.get("labels")
-			.entrySet()
-			.stream()
-			.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
-
+		// if annotation are present, we got the one with annotations here
 		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
 			.map(instance -> (DefaultKubernetesServiceInstance) instance)
 			.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
 			.toList()
 			.get(0);
-		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
-		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
-		Assertions.assertNotNull(withCustomAnnotation.getHost());
-		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
-			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		Assertions.assertTrue(withCustomAnnotation.podMetadata()
+		List<Entry<String, String>> podMetadataAnnotations = withCustomAnnotation.podMetadata()
 			.get("annotations")
 			.entrySet()
 			.stream()
-			.anyMatch(x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
+			.toList();
+
+		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
+		assertThat(withCustomLabel.getInstanceId()).isNotNull();
+		assertThat(withCustomLabel.getHost()).isNotNull();
+		assertThat(withCustomLabel.getMetadata()).isEqualTo(
+			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80")
+		);
+		assertThat(podMetadataAnnotations).contains(new SimpleEntry<>("my-annotation", "my-value"));
+	}
+
+	static void assertAllServices(DiscoveryClient discoveryClient) {
+
+		List<String> services = discoveryClient.getServices();
+		assertThat(services).containsExactlyInAnyOrder("kubernetes", "busybox-service", "external-name-service");
+
+		ServiceInstance externalNameInstance = discoveryClient.getInstances("external-name-service").get(0);
+
+		assertThat(externalNameInstance.getServiceId()).isEqualTo("external-name-service");
+		assertThat(externalNameInstance.getInstanceId()).isNotNull();
+		assertThat(externalNameInstance.getHost()).isEqualTo("spring.io");
+		assertThat(externalNameInstance.getPort()).isEqualTo(-1);
+		assertThat(externalNameInstance.getMetadata()).isEqualTo(
+			Map.of("k8s_namespace", "default", "type", "ExternalName"));
+		assertThat(externalNameInstance.isSecure()).isFalse();
+		assertThat(externalNameInstance.getUri().toASCIIString()).isEqualTo("spring.io");
+		assertThat(externalNameInstance.getScheme()).isEqualTo("http");
 	}
 
 }

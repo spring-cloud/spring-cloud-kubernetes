@@ -37,8 +37,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.T
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { Fabric8DiscoveryApp.class, TestConfig.class },
-	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { Fabric8DiscoveryApp.class, TestConfig.class })
 class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 
 	@Autowired
@@ -58,7 +57,7 @@ class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 	/**
 	 * <pre>
 	 * 		- there is a 'busybox-service' service deployed with two pods
-	 * 		- find each of the pod, add annotation to one and labels to another
+	 * 		- find each of the pod, add annotation to one, and labels to another
 	 * 		- call DiscoveryClient::getInstances with this serviceId and assert fields returned
 	 * </pre>
 	 */

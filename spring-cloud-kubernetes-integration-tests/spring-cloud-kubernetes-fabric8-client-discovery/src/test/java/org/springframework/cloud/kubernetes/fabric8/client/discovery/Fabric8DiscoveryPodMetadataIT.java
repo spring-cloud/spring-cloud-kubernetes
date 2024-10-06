@@ -137,30 +137,12 @@ class Fabric8DiscoveryPodMetadataIT {
 	}
 
 	private void testAllOther() {
-		testAllServices();
-		testAllServicesWithBootstrap();
-		testExternalNameServiceInstance();
 		testBlockingConfiguration();
 		testDefaultConfiguration();
 		testReactiveConfiguration();
 		filterMatchesBothNamespacesViaThePredicate();
 		filterMatchesOneNamespaceViaThePredicate();
 		namespaceFilter();
-	}
-
-	private void testAllServices() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE, Map.of("app", IMAGE_NAME));
-		Fabric8DiscoveryDelegate.testAllServices();
-	}
-
-	private void testAllServicesWithBootstrap() {
-		util.patchWithReplace(DOCKER_IMAGE, DEPLOYMENT_NAME, NAMESPACE, BODY_ONE_WITH_BOOTSTRAP,
-				Map.of("app", IMAGE_NAME));
-		Fabric8DiscoveryBoostrapDelegate.testAllServicesWithBootstrap();
-	}
-
-	private void testExternalNameServiceInstance() {
-		Fabric8DiscoveryDelegate.testExternalNameServiceInstance();
 	}
 
 	private void testBlockingConfiguration() {

@@ -21,6 +21,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryApp;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -38,6 +43,7 @@ import org.springframework.test.context.TestPropertySource;
 		"spring.cloud.kubernetes.discovery.metadata.add-pod-annotations=true" ,
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=debug" })
 @ExtendWith(OutputCaptureExtension.class)
+@SpringBootTest(classes = { Fabric8DiscoveryApp.class, Fabric8DiscoveryAllServicesIT.TestConfig.class })
 abstract class Fabric8DiscoveryBase {
 
 	protected static final String NAMESPACE = "default";
@@ -56,6 +62,17 @@ abstract class Fabric8DiscoveryBase {
 		String kubeConfigYaml = K3S.getKubeConfigYaml();
 		Config config = Config.fromKubeconfig(kubeConfigYaml);
 		return new KubernetesClientBuilder().withConfig(config).build();
+	}
+
+	@TestConfiguration
+	static class TestConfig {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return client();
+		}
+
 	}
 
 }
