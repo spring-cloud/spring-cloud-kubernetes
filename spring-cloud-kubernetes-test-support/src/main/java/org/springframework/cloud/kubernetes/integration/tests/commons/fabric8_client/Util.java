@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -151,10 +152,20 @@ public final class Util {
 			@Nullable Ingress ingress) {
 		try {
 
+			long startTime = System.currentTimeMillis();
 			if (deployment != null) {
-				client.apps().deployments().inNamespace(namespace).resource(deployment).delete();
+
+				List<Pod> deploymentPods = client.pods()
+					.inNamespace(namespace)
+					.withLabels(deployment.getSpec().getSelector().getMatchLabels())
+					.list()
+					.getItems();
+
+				client.resourceList(new PodListBuilder().withItems(deploymentPods).build()).withGracePeriod(0).delete();
+				client.apps().deployments().inNamespace(namespace).resource(deployment).withGracePeriod(0).delete();
 				waitForDeploymentToBeDeleted(namespace, deployment);
 			}
+			System.out.println("Ended deployment delete in " + (System.currentTimeMillis() - startTime) + "ms");
 
 			client.services().inNamespace(namespace).resource(service).delete();
 
