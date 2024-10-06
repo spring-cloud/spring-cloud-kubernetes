@@ -16,31 +16,23 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery.it;
 
-import java.util.List;
-import java.util.Map;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.fabric8.client.discovery.Fabric8DiscoveryApp;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.TestAssertions.builder;
-import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.TestAssertions.retrySpec;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.Fabric8DiscoveryPodMetadataIT.TestConfig;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.TestAssertions.assertPodMetadata;
 
 /**
  * @author wind57
@@ -49,8 +41,8 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.it.F
 	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 
-	@LocalServerPort
-	private int port;
+	@Autowired
+	private DiscoveryClient discoveryClient;
 
 	@BeforeEach
 	void beforeEach() {
@@ -81,6 +73,8 @@ class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 
 		K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
 		K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
+
+		assertPodMetadata(discoveryClient);
 	}
 
 	@TestConfiguration

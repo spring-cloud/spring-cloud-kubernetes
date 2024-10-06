@@ -16,32 +16,60 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery.it;
 
-import java.time.Duration;
-import java.util.Objects;
+import java.util.List;
+import java.util.Map;
 
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
-class TestAssertions {
+final class TestAssertions {
+
+	private TestAssertions() {
+
+	}
 
 	static void assertPodMetadata(DiscoveryClient discoveryClient) {
 
-	}
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("busybox-service");
 
-	static WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
+		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
+			.map(instance -> (DefaultKubernetesServiceInstance) instance)
+			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
 
-	static RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
+		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
+		Assertions.assertNotNull(withCustomLabel.getInstanceId());
+		Assertions.assertNotNull(withCustomLabel.getHost());
+		Assertions.assertEquals(withCustomLabel.getMetadata(),
+			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		Assertions.assertTrue(withCustomLabel.podMetadata()
+			.get("labels")
+			.entrySet()
+			.stream()
+			.anyMatch(x -> x.getKey().equals("custom-label") && x.getValue().equals("custom-label-value")));
+
+		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
+			.map(instance -> (DefaultKubernetesServiceInstance) instance)
+			.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
+		Assertions.assertEquals(withCustomAnnotation.getServiceId(), "busybox-service");
+		Assertions.assertNotNull(withCustomAnnotation.getInstanceId());
+		Assertions.assertNotNull(withCustomAnnotation.getHost());
+		Assertions.assertEquals(withCustomAnnotation.getMetadata(),
+			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		Assertions.assertTrue(withCustomAnnotation.podMetadata()
+			.get("annotations")
+			.entrySet()
+			.stream()
+			.anyMatch(x -> x.getKey().equals("custom-annotation") && x.getValue().equals("custom-annotation-value")));
 	}
 
 }
