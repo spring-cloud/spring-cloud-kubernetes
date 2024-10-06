@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wind57
  */
 @RestController
-public class Fabric8DiscoveryController {
+class Fabric8DiscoveryController {
 
 	private final KubernetesDiscoveryClient discoveryClient;
 
@@ -42,17 +42,17 @@ public class Fabric8DiscoveryController {
 	}
 
 	@GetMapping("/services")
-	public List<String> allServices() {
+	List<String> allServices() {
 		return discoveryClient.getServices();
 	}
 
 	@GetMapping("/endpoints/{serviceId}")
-	public List<Endpoints> getEndPointsList(@PathVariable("serviceId") String serviceId) {
+	List<Endpoints> getEndPointsList(@PathVariable("serviceId") String serviceId) {
 		return discoveryClient.getEndPointsList(serviceId);
 	}
 
 	@GetMapping("/service-instances/{serviceId}")
-	public List<ServiceInstance> serviceInstances(@PathVariable("serviceId") String serviceId) {
+	List<ServiceInstance> serviceInstances(@PathVariable("serviceId") String serviceId) {
 		return discoveryClient.getInstances(serviceId);
 	}
 

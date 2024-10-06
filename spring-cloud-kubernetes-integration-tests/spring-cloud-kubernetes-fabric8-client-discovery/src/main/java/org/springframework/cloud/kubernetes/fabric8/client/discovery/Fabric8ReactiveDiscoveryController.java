@@ -31,11 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wind57
  */
 @RestController
-public class Fabric8ReactiveDiscoveryController {
+class Fabric8ReactiveDiscoveryController {
 
 	private final KubernetesReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	public Fabric8ReactiveDiscoveryController(
+	Fabric8ReactiveDiscoveryController(
 			ObjectProvider<KubernetesReactiveDiscoveryClient> reactiveDiscoveryClient) {
 		KubernetesReactiveDiscoveryClient[] local = new KubernetesReactiveDiscoveryClient[1];
 		reactiveDiscoveryClient.ifAvailable(x -> local[0] = x);
@@ -43,12 +43,12 @@ public class Fabric8ReactiveDiscoveryController {
 	}
 
 	@GetMapping("/reactive/services")
-	public Mono<List<String>> allServices() {
+	Mono<List<String>> allServices() {
 		return reactiveDiscoveryClient.getServices().collectList();
 	}
 
 	@GetMapping("/reactive/service-instances/{serviceId}")
-	public Mono<List<ServiceInstance>> serviceInstances(@PathVariable("serviceId") String serviceId) {
+	Mono<List<ServiceInstance>> serviceInstances(@PathVariable("serviceId") String serviceId) {
 		return reactiveDiscoveryClient.getInstances(serviceId).collectList();
 	}
 

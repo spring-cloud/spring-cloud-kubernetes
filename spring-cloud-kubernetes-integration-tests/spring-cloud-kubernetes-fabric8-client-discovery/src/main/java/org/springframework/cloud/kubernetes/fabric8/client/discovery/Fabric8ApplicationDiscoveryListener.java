@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
  * @author wind57
  */
 @Component
-public class Fabric8ApplicationDiscoveryListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
+class Fabric8ApplicationDiscoveryListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(Fabric8ApplicationDiscoveryListener.class));

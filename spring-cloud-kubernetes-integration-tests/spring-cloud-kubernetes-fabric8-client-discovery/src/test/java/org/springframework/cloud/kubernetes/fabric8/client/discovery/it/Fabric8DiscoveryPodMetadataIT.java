@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.client.discovery;
+package org.springframework.cloud.kubernetes.fabric8.client.discovery.it;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author wind57
  */
-@SpringBootApplication
-class Fabric8DiscoveryApp {
+class Fabric8DiscoveryPodMetadataIT extends Fabric8DiscoveryBase {
 
-	public static void main(String[] args) {
-		SpringApplication.run(Fabric8DiscoveryApp.class, args);
+	@Test
+	void test() {
+
 	}
 
 }
