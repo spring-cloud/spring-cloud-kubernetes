@@ -37,6 +37,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
@@ -88,14 +89,14 @@ final class TestAssertions {
 		EndpointNameAndNamespace resultOne = holder[0];
 		EndpointNameAndNamespace resultTwo = holder[1];
 
-		Assertions.assertThat(resultOne).isNotNull();
-		Assertions.assertThat(resultTwo).isNotNull();
+		assertThat(resultOne).isNotNull();
+		assertThat(resultTwo).isNotNull();
 
-		Assertions.assertThat(resultOne.endpointName()).contains("busybox");
-		Assertions.assertThat(resultTwo.endpointName()).contains("busybox");
+		assertThat(resultOne.endpointName()).contains("busybox");
+		assertThat(resultTwo.endpointName()).contains("busybox");
 
-		Assertions.assertThat(resultOne.namespace()).isEqualTo(assertionNamespace);
-		Assertions.assertThat(resultTwo.namespace()).isEqualTo(assertionNamespace);
+		assertThat(resultOne.namespace()).isEqualTo(assertionNamespace);
+		assertThat(resultTwo.namespace()).isEqualTo(assertionNamespace);
 
 		namespaces.forEach(namespace -> util.busybox(namespace, Phase.DELETE));
 
