@@ -28,6 +28,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesCatalogWatchAutoConfiguration;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -46,6 +47,7 @@ class Fabric8CatalogWatchWithEndpointsIT extends Fabric8CatalogWatchBase {
 
 	@BeforeEach
 	void beforeEach() {
+		Images.loadBusybox(K3S);
 		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 

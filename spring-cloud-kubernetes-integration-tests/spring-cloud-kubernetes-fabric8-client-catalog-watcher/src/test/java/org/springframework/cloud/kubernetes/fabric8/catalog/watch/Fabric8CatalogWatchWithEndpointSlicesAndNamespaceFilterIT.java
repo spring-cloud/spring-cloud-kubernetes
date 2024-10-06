@@ -29,6 +29,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesCatalogWatchAutoConfiguration;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -50,6 +51,8 @@ class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8C
 
 		util.createNamespace(NAMESPACE_A);
 		util.createNamespace(NAMESPACE_B);
+
+		Images.loadBusybox(K3S);
 
 		util.busybox(NAMESPACE_A, Phase.CREATE);
 		util.busybox(NAMESPACE_B, Phase.CREATE);
