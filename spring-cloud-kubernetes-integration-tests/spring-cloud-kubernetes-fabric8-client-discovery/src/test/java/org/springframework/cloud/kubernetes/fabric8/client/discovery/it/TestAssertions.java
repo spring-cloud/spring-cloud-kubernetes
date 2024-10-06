@@ -38,17 +38,20 @@ final class TestAssertions {
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("busybox-service");
 
+		// if annotations are empty, we got the other pod, with labels here
 		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
 			.map(instance -> (DefaultKubernetesServiceInstance) instance)
 			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
 			.toList()
 			.get(0);
 
-		Assertions.assertEquals(withCustomLabel.getServiceId(), "busybox-service");
-		Assertions.assertNotNull(withCustomLabel.getInstanceId());
-		Assertions.assertNotNull(withCustomLabel.getHost());
-		Assertions.assertEquals(withCustomLabel.getMetadata(),
-			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
+		assertThat(withCustomLabel.getInstanceId()).isNotNull();
+		assertThat(withCustomLabel.getHost()).isNotNull();
+		assertThat(withCustomLabel.getMetadata()).isEqualTo(
+			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80")
+		);
+
 		Assertions.assertTrue(withCustomLabel.podMetadata()
 			.get("labels")
 			.entrySet()
