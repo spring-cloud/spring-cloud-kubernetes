@@ -16,11 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.stereotype.Component;
@@ -36,10 +34,7 @@ class Fabric8ApplicationDiscoveryListener implements ApplicationListener<Instanc
 
 	@Override
 	public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
-		Pod pod = (Pod) ((KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource) event.getSource())
-			.pod();
-		LOG.info(() -> "received InstanceRegisteredEvent from pod with 'app' label value : "
-				+ pod.getMetadata().getLabels().get("app"));
+		LOG.info(() -> "received InstanceRegisteredEvent: " + event);
 	}
 
 }
