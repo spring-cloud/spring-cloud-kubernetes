@@ -39,6 +39,21 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
  */
 class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
+	private void externalNameServices(Phase phase) {
+		try (InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml")) {
+			Service externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
+			if (phase == Phase.CREATE) {
+				util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
+			}
+			else {
+				util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
+			}
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Nested
 	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.include-external-name-services=true" })
 	class NonBootstrap {
@@ -69,11 +84,12 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 		void test() {
 			assertAllServices(discoveryClient);
 		}
+
 	}
 
 	@Nested
 	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.include-external-name-services=true",
-		"spring.cloud.bootstrap.enabled=true"})
+			"spring.cloud.bootstrap.enabled=true" })
 	class Bootstrap {
 
 		@Autowired
@@ -102,21 +118,7 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 		void test() {
 			assertAllServices(discoveryClient);
 		}
-	}
 
-	private void externalNameServices(Phase phase) {
-		try (InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml")) {
-			Service externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
-			if (phase == Phase.CREATE) {
-				util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
-			}
-			else {
-				util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
-			}
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 }

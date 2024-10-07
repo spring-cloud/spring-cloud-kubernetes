@@ -22,23 +22,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.boot.test.json.BasicJsonTester;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import org.springframework.boot.test.json.BasicJsonTester;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import static java.util.AbstractMap.SimpleEntry;
 import static java.util.Map.Entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -66,17 +67,16 @@ final class TestAssertions {
 			.toList()
 			.get(0);
 		List<Entry<String, String>> podMetadataLabels = withCustomLabel.podMetadata()
-				.get("labels")
-				.entrySet()
-				.stream()
-				.toList();
+			.get("labels")
+			.entrySet()
+			.stream()
+			.toList();
 
 		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
 		assertThat(withCustomLabel.getInstanceId()).isNotNull();
 		assertThat(withCustomLabel.getHost()).isNotNull();
-		assertThat(withCustomLabel.getMetadata()).isEqualTo(
-			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80")
-		);
+		assertThat(withCustomLabel.getMetadata())
+			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
 		assertThat(podMetadataLabels).contains(new SimpleEntry<>("my-label", "my-value"));
 
 		// if annotation are present, we got the one with annotations here
@@ -94,9 +94,8 @@ final class TestAssertions {
 		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
 		assertThat(withCustomLabel.getInstanceId()).isNotNull();
 		assertThat(withCustomLabel.getHost()).isNotNull();
-		assertThat(withCustomLabel.getMetadata()).isEqualTo(
-			Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80")
-		);
+		assertThat(withCustomLabel.getMetadata())
+			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
 		assertThat(podMetadataAnnotations).contains(new SimpleEntry<>("my-annotation", "my-value"));
 	}
 
@@ -111,8 +110,8 @@ final class TestAssertions {
 		assertThat(externalNameInstance.getInstanceId()).isNotNull();
 		assertThat(externalNameInstance.getHost()).isEqualTo("spring.io");
 		assertThat(externalNameInstance.getPort()).isEqualTo(-1);
-		assertThat(externalNameInstance.getMetadata()).isEqualTo(
-			Map.of("k8s_namespace", "default", "type", "ExternalName"));
+		assertThat(externalNameInstance.getMetadata())
+			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ExternalName"));
 		assertThat(externalNameInstance.isSecure()).isFalse();
 		assertThat(externalNameInstance.getUri().toASCIIString()).isEqualTo("spring.io");
 		assertThat(externalNameInstance.getScheme()).isEqualTo("http");
@@ -132,7 +131,6 @@ final class TestAssertions {
 		waitForLogStatement(output, "publishing InstanceRegisteredEvent");
 		waitForLogStatement(output, "Discovery Client has been initialized");
 
-
 		WebClient healthClient = builder().baseUrl("http://localhost:" + port + "/actuator/health").build();
 
 		String healthResult = healthClient.method(HttpMethod.GET)
@@ -145,9 +143,7 @@ final class TestAssertions {
 			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
 			.isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue(BLOCKING_STATUS)
-			.isEqualTo("UP");
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS).isEqualTo("UP");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult))
 			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
@@ -191,13 +187,11 @@ final class TestAssertions {
 			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
 			.isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue(
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status")
 			.isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue(
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
 			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
 	}
@@ -210,7 +204,7 @@ final class TestAssertions {
 	 * We assert for logs and call '/health' endpoint to see that reactive discovery
 	 * client was initialized.
 	 */
-	static void testReactiveConfiguration(CapturedOutput output, int port) {
+	static void testReactiveConfiguration(ReactiveDiscoveryClient discoveryClient, CapturedOutput output, int port) {
 
 		waitForLogStatement(output, "Will publish InstanceRegisteredEvent from reactive implementation");
 		waitForLogStatement(output, "publishing InstanceRegisteredEvent");
@@ -228,29 +222,18 @@ final class TestAssertions {
 			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
 			.isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue(REACTIVE_STATUS)
-			.isEqualTo("UP");
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS).isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue(
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
 				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
 			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
 
-		// test for services also:
-		WebClient servicesClient = builder().baseUrl("http://localhost:" + port + "/reactive/services").build();
+		List<String> services = discoveryClient.getServices().toStream().toList();
 
-		List<String> servicesResult = servicesClient.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(new ParameterizedTypeReference<List<String>>() {
-			})
-			.retryWhen(retrySpec())
-			.block();
-
-		assertThat(servicesResult).contains("busybox-service");
-		assertThat(servicesResult).contains("kubernetes");
+		assertThat(services).contains("busybox-service");
+		assertThat(services).contains("kubernetes");
 
 	}
 
@@ -287,7 +270,7 @@ final class TestAssertions {
 		assertThat(first.getPort()).isEqualTo(8080);
 		assertThat(first.getNamespace()).isEqualTo("a-uat");
 		assertThat(first.getMetadata()).isEqualTo(
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
 		DefaultKubernetesServiceInstance second = sorted.get(1);
 		assertThat(second.getServiceId()).isEqualTo("service-wiremock");
@@ -295,7 +278,7 @@ final class TestAssertions {
 		assertThat(second.getPort()).isEqualTo(8080);
 		assertThat(second.getNamespace()).isEqualTo("b-uat");
 		assertThat(second.getMetadata()).isEqualTo(
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 
 	}
 
@@ -316,9 +299,9 @@ final class TestAssertions {
 		assertThat(services).contains("service-wiremock");
 
 		List<DefaultKubernetesServiceInstance> serviceInstances = discoveryClient.getInstances("service-wiremock")
-				.stream()
-				.map(x -> (DefaultKubernetesServiceInstance) x)
-				.toList();
+			.stream()
+			.map(x -> (DefaultKubernetesServiceInstance) x)
+			.toList();
 
 		assertThat(serviceInstances.size()).isEqualTo(1);
 
@@ -328,7 +311,7 @@ final class TestAssertions {
 		assertThat(first.getPort()).isEqualTo(8080);
 		assertThat(first.getNamespace()).isEqualTo("a-uat");
 		assertThat(first.getMetadata()).isEqualTo(
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
 	}
 

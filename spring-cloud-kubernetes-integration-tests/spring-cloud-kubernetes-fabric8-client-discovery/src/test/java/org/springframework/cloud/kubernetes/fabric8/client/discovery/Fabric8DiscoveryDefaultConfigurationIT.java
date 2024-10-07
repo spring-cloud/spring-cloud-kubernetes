@@ -31,12 +31,11 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 /**
  * @author wind57
  */
-@TestPropertySource(properties = {
-	"logging.level.org.springframework.cloud.client.discovery.health.reactive=DEBUG",
-	"logging.level.org.springframework.cloud.client.discovery.health=DEBUG",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
-	"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG" })
+@TestPropertySource(properties = { "logging.level.org.springframework.cloud.client.discovery.health.reactive=DEBUG",
+		"logging.level.org.springframework.cloud.client.discovery.health=DEBUG",
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
+		"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG" })
 class Fabric8DiscoveryDefaultConfigurationIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort

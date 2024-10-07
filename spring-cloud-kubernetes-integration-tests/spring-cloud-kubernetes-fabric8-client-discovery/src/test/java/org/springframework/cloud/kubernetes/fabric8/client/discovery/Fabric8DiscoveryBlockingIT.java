@@ -32,8 +32,8 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.discovery.reactive.enabled=false",
-	"logging.level.org.springframework.cloud.client.discovery.health=DEBUG",
-	"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG" })
+		"logging.level.org.springframework.cloud.client.discovery.health=DEBUG",
+		"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG" })
 class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort

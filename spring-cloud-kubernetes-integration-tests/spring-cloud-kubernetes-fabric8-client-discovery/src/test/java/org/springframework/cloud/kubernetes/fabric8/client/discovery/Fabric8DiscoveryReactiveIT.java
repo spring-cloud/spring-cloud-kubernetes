@@ -20,8 +20,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.TestPropertySource;
@@ -31,17 +33,18 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 /**
  * @author wind57
  */
-@TestPropertySource(properties = {
-	"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG",
-	"logging.level.org.springframework.cloud.client.discovery.health.reactive=DEBUG",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
-	"spring.cloud.discovery.blocking.enabled=false"
-})
+@TestPropertySource(properties = { "logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG",
+		"logging.level.org.springframework.cloud.client.discovery.health.reactive=DEBUG",
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
+		"spring.cloud.discovery.blocking.enabled=false" })
 class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort
 	private int port;
+
+	@Autowired
+	private ReactiveDiscoveryClient discoveryClient;
 
 	@BeforeEach
 	void beforeEach() {
@@ -56,7 +59,7 @@ class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
 	@Test
 	void test(CapturedOutput output) {
-		testReactiveConfiguration(output, port);
+		testReactiveConfiguration(discoveryClient, output, port);
 	}
 
 }
