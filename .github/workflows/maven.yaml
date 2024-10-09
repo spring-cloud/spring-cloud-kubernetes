@@ -41,7 +41,7 @@ jobs:
         uses: ./.github/workflows/composites/cache
 
       - name: Show caches
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const caches = await github.rest.actions.getActionsCacheList({
