@@ -63,7 +63,7 @@ jobs:
 
       - name: check test times cache exists
         id: check_files
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: /tmp/sorted.txt
 
