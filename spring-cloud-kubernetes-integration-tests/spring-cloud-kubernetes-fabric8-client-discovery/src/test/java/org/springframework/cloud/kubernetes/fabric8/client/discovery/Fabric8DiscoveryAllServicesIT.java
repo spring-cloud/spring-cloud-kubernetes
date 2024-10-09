@@ -39,18 +39,18 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
  */
 class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
+	private static final Service externalServiceName;
+
+	static {
+		InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml");
+		externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
+	}
+
 	private void externalNameServices(Phase phase) {
-		try (InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml")) {
-			Service externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
-			if (phase == Phase.CREATE) {
-				util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
-			}
-			else {
-				util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
-			}
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
+		if (phase == Phase.CREATE) {
+			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
+		} else {
+			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
 		}
 	}
 
