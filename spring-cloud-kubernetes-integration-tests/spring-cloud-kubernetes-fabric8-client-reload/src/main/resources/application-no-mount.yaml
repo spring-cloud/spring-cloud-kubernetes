@@ -13,6 +13,4 @@ spring:
         enabled: true
         monitoring-config-maps: true
         strategy: shutdown
-        mode: polling
-        period: 5000
 
