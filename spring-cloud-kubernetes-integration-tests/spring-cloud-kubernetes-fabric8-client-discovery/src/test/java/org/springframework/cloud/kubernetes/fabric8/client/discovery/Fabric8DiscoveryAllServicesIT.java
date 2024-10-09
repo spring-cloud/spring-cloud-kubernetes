@@ -22,6 +22,7 @@ import java.io.InputStream;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,9 +40,10 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
  */
 class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
-	private static final Service externalServiceName;
+	private static Service externalServiceName;
 
-	static {
+	@BeforeAll
+	static void beforeAllInNested() {
 		InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml");
 		externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
 	}
