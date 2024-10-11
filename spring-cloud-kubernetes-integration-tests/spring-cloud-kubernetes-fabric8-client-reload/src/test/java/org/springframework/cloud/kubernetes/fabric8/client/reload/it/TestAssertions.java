@@ -16,7 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.test.system.CapturedOutput;
+
+import java.time.Duration;
+
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -32,6 +38,21 @@ final class TestAssertions {
 	 */
 	static void assertReloadLogStatements(String left, String right, CapturedOutput output) {
 
+		await().pollDelay(Duration.ofSeconds(5))
+			.atMost(Duration.ofSeconds(15))
+			.pollInterval(Duration.ofSeconds(1))
+			.until(() -> {
+				boolean leftIsPresent = output.getOut().contains(left);
+				if (leftIsPresent) {
+					boolean rightIsPresent = output.getOut().contains(right);
+					return !rightIsPresent;
+				}
+				return false;
+			});
+	}
+
+	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {
+		client.configMaps().inNamespace(namespace).resource(configMap).createOrReplace();
 	}
 
 }

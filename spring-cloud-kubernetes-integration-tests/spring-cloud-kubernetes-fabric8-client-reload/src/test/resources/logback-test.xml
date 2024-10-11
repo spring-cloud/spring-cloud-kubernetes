@@ -12,4 +12,6 @@
 	<logger name="org.testcontainers" level="INFO"/>
 	<logger name="com.github.dockerjava" level="WARN"/>
 	<logger name="io.fabric8.kubernetes.client" level="ERROR"/>
+	<logger name="org.springframework" level="INFO"/>
+	<logger name ="okhttp3.internal" level="ERROR" />
 </configuration>

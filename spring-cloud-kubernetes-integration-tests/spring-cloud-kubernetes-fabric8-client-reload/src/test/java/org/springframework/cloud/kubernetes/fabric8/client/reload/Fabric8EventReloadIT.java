@@ -89,14 +89,6 @@ class Fabric8EventReloadIT {
 		manifests(Phase.DELETE);
 	}
 
-	/**
-	 * <pre>
-	 *     - there are two namespaces : left and right
-	 *     - each of the namespaces has one configmap
-	 *     - we watch the "left" namespace, but make a change in the configmap in the right namespace
-	 *     - as such, no event is triggered and "left-configmap" stays as-is
-	 * </pre>
-	 */
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() {
 		Commons.assertReloadLogStatements("added configmap informer for namespace",

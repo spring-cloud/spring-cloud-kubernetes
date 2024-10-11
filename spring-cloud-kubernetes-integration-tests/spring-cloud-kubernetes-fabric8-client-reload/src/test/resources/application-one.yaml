@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: event-reload
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+        strategy: refresh
+        mode: event
+        namespaces:
+          - left
+        monitoring-config-maps: true

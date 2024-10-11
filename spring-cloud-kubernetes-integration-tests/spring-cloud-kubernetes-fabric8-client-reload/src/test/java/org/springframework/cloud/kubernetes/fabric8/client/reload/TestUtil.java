@@ -314,7 +314,7 @@ final class TestUtil {
 	}
 
 	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {
-		client.configMaps().inNamespace(namespace).resource(configMap).createOrReplace();
+		client.configMaps().inNamespace(namespace).resource(configMap).serverSideApply();
 	}
 
 	static void patchOne(Util util, String dockerImage, String deploymentName, String namespace) {
