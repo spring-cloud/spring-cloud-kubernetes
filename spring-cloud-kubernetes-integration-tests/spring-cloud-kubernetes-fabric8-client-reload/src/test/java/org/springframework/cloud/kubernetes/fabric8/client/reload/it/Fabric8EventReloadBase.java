@@ -18,16 +18,16 @@ package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.cloud.kubernetes.fabric8.client.reload.App;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.kubernetes.fabric8.client.reload.App;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 
 @ExtendWith(OutputCaptureExtension.class)
-@SpringBootTest(classes = { App.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { App.class })
 abstract class Fabric8EventReloadBase {
 
 	protected static final K3sContainer K3S = Commons.container();

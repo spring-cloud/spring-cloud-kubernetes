@@ -91,49 +91,6 @@ class Fabric8EventReloadIT {
 
 	@Test
 	void testInformFromOneNamespaceEventNotTriggered() {
-		Commons.assertReloadLogStatements("added configmap informer for namespace",
-				"added secret informer for namespace", IMAGE_NAME);
-
-		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/left").build();
-		String result = webClient.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(String.class)
-			.retryWhen(TestUtil.retrySpec())
-			.block();
-
-		// we first read the initial value from the left-configmap
-		Assertions.assertEquals("left-initial", result);
-
-		// then read the value from the right-configmap
-		webClient = TestUtil.builder().baseUrl("http://localhost/right").build();
-		result = webClient.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(String.class)
-			.retryWhen(TestUtil.retrySpec())
-			.block();
-		Assertions.assertEquals("right-initial", result);
-
-		// then deploy a new version of right-configmap
-		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
-			.withData(Map.of("right.value", "right-after-change"))
-			.build();
-
-		TestUtil.replaceConfigMap(client, rightConfigMapAfterChange, "right");
-
-		webClient = TestUtil.builder().baseUrl("http://localhost/left").build();
-
-		WebClient finalWebClient = webClient;
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(30)).until(() -> {
-			String innerResult = finalWebClient.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec())
-				.block();
-			// left configmap has not changed, no restart of app has happened
-			return "left-initial".equals(innerResult);
-		});
-
 		testInformFromOneNamespaceEventTriggered();
 		testInform();
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();

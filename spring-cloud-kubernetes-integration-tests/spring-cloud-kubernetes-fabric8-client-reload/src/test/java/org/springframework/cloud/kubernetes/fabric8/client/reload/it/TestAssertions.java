@@ -16,11 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
 
+import java.time.Duration;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.springframework.boot.test.system.CapturedOutput;
 
-import java.time.Duration;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
@@ -52,7 +55,16 @@ final class TestAssertions {
 	}
 
 	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {
-		client.configMaps().inNamespace(namespace).resource(configMap).createOrReplace();
+		client.configMaps().inNamespace(namespace).resource(configMap).update();
+	}
+
+	static void configMap(Phase phase, Util util, ConfigMap configMap, String namespace) {
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(namespace, configMap, null);
+		}
+		else {
+			util.deleteAndWait(namespace, configMap, null);
+		}
 	}
 
 }
