@@ -34,6 +34,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchWithEndpointsIT.TestConfig;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.assertLogStatement;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.invokeAndAssert;
 
 /**
  * @author wind57
@@ -62,8 +64,8 @@ class Fabric8CatalogWatchWithEndpointsIT extends Fabric8CatalogWatchBase {
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		TestAssertions.assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointsCatalogWatch");
-		TestAssertions.invokeAndAssert(util, Set.of(NAMESPACE), port, NAMESPACE);
+		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointsCatalogWatch");
+		invokeAndAssert(util, Set.of(NAMESPACE), port, NAMESPACE);
 	}
 
 	@TestConfiguration

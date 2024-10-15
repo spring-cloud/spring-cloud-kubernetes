@@ -35,6 +35,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT.TestConfig;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.assertLogStatement;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.invokeAndAssert;
 
 /**
  * @author wind57
@@ -77,8 +79,8 @@ class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8C
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		TestAssertions.assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
-		TestAssertions.invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
+		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
+		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
 	@TestConfiguration
