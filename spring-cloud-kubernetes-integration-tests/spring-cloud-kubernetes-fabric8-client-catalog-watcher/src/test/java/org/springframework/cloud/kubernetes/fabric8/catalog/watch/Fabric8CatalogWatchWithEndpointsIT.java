@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 import java.util.Set;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +52,12 @@ class Fabric8CatalogWatchWithEndpointsIT extends Fabric8CatalogWatchBase {
 	void beforeEach() {
 		Images.loadBusybox(K3S);
 		util.busybox(NAMESPACE, Phase.CREATE);
+	}
+
+	@AfterEach
+	void afterEach() {
+		// empty on purpose
+		// busybox is deleted as part of the test itself, thus not seen here
 	}
 
 	/**

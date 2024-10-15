@@ -63,6 +63,7 @@ class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8C
 
 	@AfterEach
 	void afterEach() {
+		// busybox is deleted as part of the test itself, thus not seen here
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}
