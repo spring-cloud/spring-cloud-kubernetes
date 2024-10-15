@@ -216,7 +216,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(DEFAULT_NAMESPACE, configMap, null);
-			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(DEFAULT_NAMESPACE, deployment, service, null, true);
 		}
 		else {
 			util.deleteAndWait(DEFAULT_NAMESPACE, configMap, null);

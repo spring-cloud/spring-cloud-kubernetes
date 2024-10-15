@@ -488,8 +488,8 @@ class KubernetesClientDiscoveryClientIT {
 			envVars.add(commonsLevel);
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
-			util.createAndWait(NAMESPACE, null, null, externalNameService, null, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, externalNameService, null, true);
 		}
 
 	}

@@ -128,7 +128,7 @@ class Fabric8IstioIT {
 		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 		}
 		else {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);

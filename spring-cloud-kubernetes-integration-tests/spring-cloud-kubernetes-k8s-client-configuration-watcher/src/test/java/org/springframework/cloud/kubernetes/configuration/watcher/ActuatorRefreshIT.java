@@ -172,7 +172,7 @@ class ActuatorRefreshIT {
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, configMap, null);
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, deployment, service, null, true);
 		}
 		else {
 			util.deleteAndWait(NAMESPACE, configMap, null);

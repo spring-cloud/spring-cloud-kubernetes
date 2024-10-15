@@ -363,7 +363,7 @@ class K8sClientConfigMapReloadIT {
 				util.createAndWait(NAMESPACE, mountConfigMap, null);
 				util.createAndWait("left", leftConfigMap, null);
 				util.createAndWait("right", rightConfigMap, null);
-				util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+				util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 			}
 
 			if (phase.equals(Phase.DELETE)) {

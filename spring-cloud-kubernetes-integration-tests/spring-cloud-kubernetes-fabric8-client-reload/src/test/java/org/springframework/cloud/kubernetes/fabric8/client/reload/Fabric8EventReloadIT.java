@@ -386,7 +386,7 @@ class Fabric8EventReloadIT {
 			util.createAndWait("right", rightConfigMap, null);
 			util.createAndWait("right", rightWithLabelConfigMap, null);
 			util.createAndWait(NAMESPACE, configMap, secret);
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 		}
 		else {
 			util.deleteAndWait("left", leftConfigMap, null);

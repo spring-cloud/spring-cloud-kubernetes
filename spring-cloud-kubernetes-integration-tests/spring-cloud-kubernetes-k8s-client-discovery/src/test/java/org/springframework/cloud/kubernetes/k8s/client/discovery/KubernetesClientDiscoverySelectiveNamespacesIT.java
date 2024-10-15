@@ -271,7 +271,7 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 			envVars.add(debugLevel);
 			envVars.add(selectiveNamespaceA);
 			deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 		}
 	}
 

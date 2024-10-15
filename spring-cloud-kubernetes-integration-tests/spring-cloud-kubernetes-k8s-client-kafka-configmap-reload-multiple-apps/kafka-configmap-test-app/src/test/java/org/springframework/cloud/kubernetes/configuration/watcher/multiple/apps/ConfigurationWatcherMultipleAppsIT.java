@@ -163,7 +163,7 @@ class ConfigurationWatcherMultipleAppsIT {
 			.yaml("ingress/spring-cloud-kubernetes-configuration-watcher-multiple-apps-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
@@ -175,7 +175,7 @@ class ConfigurationWatcherMultipleAppsIT {
 		V1Service service = (V1Service) util.yaml("app-b/app-b-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, deployment, service, null, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, null);
@@ -189,7 +189,7 @@ class ConfigurationWatcherMultipleAppsIT {
 			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, deployment, service, null, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, null);

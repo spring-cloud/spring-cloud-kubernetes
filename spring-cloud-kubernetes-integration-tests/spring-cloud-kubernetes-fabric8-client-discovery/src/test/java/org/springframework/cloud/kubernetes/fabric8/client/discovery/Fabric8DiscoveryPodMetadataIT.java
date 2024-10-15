@@ -279,8 +279,8 @@ class Fabric8DiscoveryPodMetadataIT {
 		ClusterRoleBinding clusterRoleBinding = Serialization.unmarshal(getAdminRole(), ClusterRoleBinding.class);
 		if (phase.equals(Phase.CREATE)) {
 			client.rbac().clusterRoleBindings().resource(clusterRoleBinding).create();
-			util.createAndWait(NAMESPACE, IMAGE_NAME, deployment, discoveryService, ingress, true);
-			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
+			util.createAndWait(NAMESPACE, deployment, discoveryService, ingress, true);
+			util.createAndWait(NAMESPACE, null, externalServiceName, null, true);
 		}
 		else {
 			client.rbac().clusterRoleBindings().resource(clusterRoleBinding).delete();

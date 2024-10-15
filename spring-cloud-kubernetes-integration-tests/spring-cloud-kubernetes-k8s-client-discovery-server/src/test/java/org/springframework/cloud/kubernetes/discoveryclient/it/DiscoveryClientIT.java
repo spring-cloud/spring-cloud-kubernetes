@@ -286,7 +286,7 @@ class DiscoveryClientIT {
 		V1Ingress ingress = (V1Ingress) util.yaml("ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 		}
 		else {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
@@ -299,7 +299,7 @@ class DiscoveryClientIT {
 		V1Service service = (V1Service) util.yaml("server/spring-cloud-kubernetes-discoveryserver-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, deployment, service, null, true);
 		}
 		else {
 			util.deleteAndWait(NAMESPACE, deployment, service, null);

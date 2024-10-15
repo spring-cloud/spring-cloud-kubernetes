@@ -224,7 +224,7 @@ class KubernetesClientCatalogWatchIT {
 		V1Ingress ingress = (V1Ingress) util.yaml("app/watcher-ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);

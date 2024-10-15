@@ -149,7 +149,7 @@ class K8sClientSecretsReloadIT {
 		V1Secret secret = (V1Secret) util.yaml("secret.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, deployment, service, ingress, true);
 			util.createAndWait(NAMESPACE, null, secret);
 		}
 		else if (phase.equals(Phase.DELETE)) {
