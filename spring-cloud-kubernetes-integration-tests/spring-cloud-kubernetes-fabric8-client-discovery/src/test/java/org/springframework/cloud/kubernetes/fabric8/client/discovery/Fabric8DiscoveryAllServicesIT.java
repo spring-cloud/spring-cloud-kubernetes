@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import io.fabric8.kubernetes.api.model.Service;
