@@ -54,9 +54,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
 
 /**
  * @author wind57
@@ -103,11 +101,6 @@ public final class Util {
 						.getContainers()
 						.get(0)
 						.setImage(imageFromDeployment + ":" + pomVersion());
-				}
-				else {
-					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], container);
-					loadImage(image[0], image[1], name, container);
 				}
 
 				client.apps().deployments().inNamespace(namespace).resource(deployment).create();
