@@ -82,8 +82,6 @@ public final class Util {
 
 	private final RbacAuthorizationV1Api rbacApi;
 
-	private final K3sContainer container;
-
 	public Util(K3sContainer container) {
 
 		ApiClient client;
@@ -97,7 +95,6 @@ public final class Util {
 		client.setDebugging(false);
 		Configuration.setDefaultApiClient(client);
 
-		this.container = container;
 		this.coreV1Api = new CoreV1Api();
 		this.appsV1Api = new AppsV1Api();
 		this.networkingV1Api = new NetworkingV1Api();
@@ -111,8 +108,8 @@ public final class Util {
 	 * tight as possible, providing reasonable defaults.
 	 *
 	 */
-	public void createAndWait(String namespace, String name, V1Deployment deployment, V1Service service,
-			@Nullable V1Ingress ingress, boolean changeVersion) {
+	public void createAndWait(String namespace, V1Deployment deployment, V1Service service, @Nullable V1Ingress ingress,
+			boolean changeVersion) {
 		try {
 
 			coreV1Api.createNamespacedService(namespace, service, null, null, null, null);
@@ -245,7 +242,7 @@ public final class Util {
 
 		V1Service service = (V1Service) yaml("busybox/service.yaml");
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "busybox", deployment, service, null, false);
+			createAndWait(namespace, deployment, service, null, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait(namespace, deployment, service, null);
@@ -264,7 +261,7 @@ public final class Util {
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, configMap, null);
-			createAndWait(namespace, "kafka", deployment, service, null, false);
+			createAndWait(namespace, deployment, service, null, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait(namespace, configMap, null);
@@ -282,7 +279,7 @@ public final class Util {
 		V1Service service = (V1Service) yaml("rabbitmq/rabbitmq-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "rabbitmq", deployment, service, null, false);
+			createAndWait(namespace, deployment, service, null, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait(namespace, deployment, service, null);
@@ -472,7 +469,7 @@ public final class Util {
 
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
+			createAndWait(namespace, deployment, service, ingress, false);
 		}
 		else {
 			if (withIngress) {

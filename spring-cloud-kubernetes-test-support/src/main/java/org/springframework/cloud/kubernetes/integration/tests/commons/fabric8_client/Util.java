@@ -63,15 +63,9 @@ public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
 
-	/** Image we get {@code istioctl} from in order to install Istio. */
-	public static final String ISTIO_ISTIOCTL = "istio/istioctl";
-
-	private final K3sContainer container;
-
 	private final KubernetesClient client;
 
 	public Util(K3sContainer container) {
-		this.container = container;
 		this.client = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(container.getKubeConfigYaml()))
 			.build();
 	}
@@ -83,7 +77,7 @@ public final class Util {
 	 * tight as possible, providing reasonable defaults.
 	 *
 	 */
-	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, @Nullable Service service,
+	public void createAndWait(String namespace, @Nullable Deployment deployment, @Nullable Service service,
 			@Nullable Ingress ingress, boolean changeVersion) {
 		try {
 
@@ -134,7 +128,7 @@ public final class Util {
 		Service service = client.services().load(serviceStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "busybox", deployment, service, null, false);
+			createAndWait(namespace, deployment, service, null, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait(namespace, deployment, service, null);
@@ -304,7 +298,7 @@ public final class Util {
 		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, null, istioctlDeployment, null, null, false);
+			createAndWait(namespace, istioctlDeployment, null, null, false);
 		}
 		else {
 			deleteAndWait(namespace, istioctlDeployment, null, null);
@@ -355,7 +349,7 @@ public final class Util {
 
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
+			createAndWait(namespace, deployment, service, ingress, false);
 		}
 		else {
 
