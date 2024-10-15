@@ -20,9 +20,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -159,8 +161,7 @@ public final class Commons {
 			InputStream imageStream = saveImageCmd.withTag(tag).exec();
 
 			Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
-			Files.deleteIfExists(imagePath);
-			Files.copy(imageStream, imagePath);
+			Files.copy(imageStream, imagePath, StandardCopyOption.REPLACE_EXISTING);
 			// import image with ctr. this works because TEMP_FOLDER is mounted in the
 			// container
 			await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
