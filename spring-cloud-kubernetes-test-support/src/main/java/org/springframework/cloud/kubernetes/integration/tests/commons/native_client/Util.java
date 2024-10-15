@@ -134,11 +134,6 @@ public final class Util {
 						.get(0)
 						.setImage(imageFromDeployment + ":" + pomVersion());
 				}
-				else {
-					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], container);
-					loadImage(image[0], image[1], name, container);
-				}
 
 				appsV1Api.createNamespacedDeployment(namespace, deployment, null, null, null, null);
 				waitForDeployment(namespace, deployment);

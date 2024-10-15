@@ -85,27 +85,39 @@ public final class Images {
 	}
 
 	public static void loadWiremock(K3sContainer container) {
-		Commons.load(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
+		if (!imageAlreadyInK3s(container, WIREMOCK_TAR)) {
+			Commons.load(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
+		}
 	}
 
 	public static void loadIstioCtl(K3sContainer container) {
-		Commons.load(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
+		if (!imageAlreadyInK3s(container, ISTIOCTL_TAR)) {
+			Commons.load(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
+		}
 	}
 
 	public static void loadIstioProxyV2(K3sContainer container) {
-		Commons.load(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
+		if (!imageAlreadyInK3s(container, ISTIO_PROXY_V2_TAR)) {
+			Commons.load(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
+		}
 	}
 
 	public static void loadIstioPilot(K3sContainer container) {
-		Commons.load(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
+		if (!imageAlreadyInK3s(container, ISTIO_PILOT_TAR)) {
+			Commons.load(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
+		}
 	}
 
 	public static void loadKafka(K3sContainer container) {
-		Commons.load(container, KAFKA_TAR, KAFKA, kafkaVersion());
+		if (!imageAlreadyInK3s(container, KAFKA_TAR)) {
+			Commons.load(container, KAFKA_TAR, KAFKA, kafkaVersion());
+		}
 	}
 
 	public static void loadRabbitmq(K3sContainer container) {
-		Commons.load(container, RABBITMQ_TAR, RABBITMQ, rabbitMqVersion());
+		if (!imageAlreadyInK3s(container, RABBITMQ_TAR)) {
+			Commons.load(container, RABBITMQ_TAR, RABBITMQ, rabbitMqVersion());
+		}
 	}
 
 	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
