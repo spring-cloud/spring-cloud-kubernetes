@@ -85,7 +85,7 @@ class K8sClientConfigMapReloadIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
+	static void afterAll() {
 		util.deleteClusterWide(NAMESPACE, Set.of("left", "right"));
 		manifests(Phase.DELETE);
 		util.deleteNamespace("left");
