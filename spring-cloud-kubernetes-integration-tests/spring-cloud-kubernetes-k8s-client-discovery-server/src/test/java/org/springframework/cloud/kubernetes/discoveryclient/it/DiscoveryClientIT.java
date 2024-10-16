@@ -189,7 +189,6 @@ class DiscoveryClientIT {
 
 		discoveryServer(Phase.DELETE);
 		discoveryClient(Phase.DELETE);
-		Commons.systemPrune();
 	}
 
 	@Test

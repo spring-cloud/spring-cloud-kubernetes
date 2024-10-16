@@ -78,7 +78,6 @@ class K8sClientSecretsReloadIT {
 	static void afterAll() throws Exception {
 		configK8sClientIt(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 	}
 
 	@Test
