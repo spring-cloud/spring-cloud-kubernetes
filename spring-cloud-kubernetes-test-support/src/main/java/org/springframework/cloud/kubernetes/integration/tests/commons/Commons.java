@@ -156,7 +156,7 @@ public final class Commons {
 					.findFirst();
 				if (found.isPresent()) {
 					LOG.info("running in github actions, will load from : " + TMP_IMAGES + " tar : " + found.get());
-					Commons.loadImageFromPath(found.get(), container);
+					loadImageFromPath(found.get(), container);
 					return;
 				}
 				else {
@@ -174,8 +174,8 @@ public final class Commons {
 		try {
 			LOG.info("no tars found, will resort to pulling the image");
 			LOG.info("using : " + imageVersion + " for : " + imageNameForDownload);
-			Commons.pullImage(imageNameForDownload, imageVersion, container);
-			Commons.loadImage(imageNameForDownload, imageVersion, tarName, container);
+			pullImage(imageNameForDownload, imageVersion, container);
+			loadImage(imageNameForDownload, imageVersion, tarName, container);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -196,10 +196,6 @@ public final class Commons {
 	public static void cleanUp(String image, K3sContainer container) throws Exception {
 		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + pomVersion());
 		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
-	}
-
-	public static void cleanUpDownloadedImage(String image) throws Exception {
-		CONTAINER.execInContainer("crictl", "rmi", image);
 	}
 
 	/**
@@ -230,19 +226,6 @@ public final class Commons {
 		}
 
 		return execResult.getStdout();
-	}
-
-	/**
-	 * equivalent of 'docker system prune', but for crictl.
-	 */
-	public static void systemPrune() {
-		try {
-			CONTAINER.execInContainer("sh", "-c",
-					"crictl ps -a | grep -v Running | awk '{print $1}' | xargs crictl rm && crictl rmi --prune");
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	public static String pomVersion() {

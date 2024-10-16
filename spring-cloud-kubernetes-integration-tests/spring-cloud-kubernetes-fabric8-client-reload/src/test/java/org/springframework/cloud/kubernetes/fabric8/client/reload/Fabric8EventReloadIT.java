@@ -84,7 +84,6 @@ class Fabric8EventReloadIT {
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 
 		manifests(Phase.DELETE);
 	}

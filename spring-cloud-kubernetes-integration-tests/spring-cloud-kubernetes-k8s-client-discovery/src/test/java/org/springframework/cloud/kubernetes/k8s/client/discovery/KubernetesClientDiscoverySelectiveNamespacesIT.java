@@ -104,7 +104,6 @@ class KubernetesClientDiscoverySelectiveNamespacesIT {
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 		manifests(Phase.DELETE);
-		Commons.systemPrune();
 	}
 
 	/**
