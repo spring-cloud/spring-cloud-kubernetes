@@ -178,9 +178,6 @@ class DiscoveryClientIT {
 	static void afterAll() throws Exception {
 		rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null, null,
 				null);
-		Commons.cleanUp(DISCOVERY_SERVER_APP_NAME, K3S);
-		Commons.cleanUp(SPRING_CLOUD_K8S_DISCOVERY_CLIENT_APP_NAME, K3S);
-
 		util.wiremock(NAMESPACE_LEFT, "/wiremock-" + NAMESPACE_LEFT, Phase.DELETE, false);
 		util.wiremock(NAMESPACE_RIGHT, "/wiremock-" + NAMESPACE_RIGHT, Phase.DELETE, false);
 

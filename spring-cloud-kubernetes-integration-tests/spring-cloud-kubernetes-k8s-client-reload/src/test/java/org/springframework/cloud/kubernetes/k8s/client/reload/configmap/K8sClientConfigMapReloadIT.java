@@ -90,7 +90,6 @@ class K8sClientConfigMapReloadIT {
 		manifests(Phase.DELETE);
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
-		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	/**

@@ -120,6 +120,9 @@ public final class Commons {
 
 	}
 
+	/**
+	 * create a tar, copy it in the running k3s and load this tar as an image.
+	 */
 	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
 		// save image
 		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
@@ -182,22 +185,6 @@ public final class Commons {
 		}
 	}
 
-	private static void loadImageFromPath(String tarName, K3sContainer container) {
-		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
-			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TMP_IMAGES + "/" + tarName);
-			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
-			if (!noErrors) {
-				LOG.info("error is : " + result.getStderr());
-			}
-			return noErrors;
-		});
-	}
-
-	public static void cleanUp(String image, K3sContainer container) throws Exception {
-		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + pomVersion());
-		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
-	}
-
 	/**
 	 * validates that the provided image does exist in the local docker registry.
 	 */
@@ -218,14 +205,6 @@ public final class Commons {
 			pullImageCmd.withTag(tag).start().awaitCompletion();
 		}
 
-	}
-
-	public static String processExecResult(Container.ExecResult execResult) {
-		if (execResult.getExitCode() != 0) {
-			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
-		}
-
-		return execResult.getStdout();
 	}
 
 	public static String pomVersion() {
@@ -267,6 +246,17 @@ public final class Commons {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	private static void loadImageFromPath(String tarName, K3sContainer container) {
+		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TMP_IMAGES + "/" + tarName);
+			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
+			if (!noErrors) {
+				LOG.info("error is : " + result.getStderr());
+			}
+			return noErrors;
+		});
 	}
 
 }
