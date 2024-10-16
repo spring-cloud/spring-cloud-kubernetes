@@ -79,7 +79,9 @@ public final class Images {
 	}
 
 	public static void loadBusybox(K3sContainer container) {
-		Commons.load(container, BUSYBOX_TAR, BUSYBOX, busyboxVersion());
+		if (!imageAlreadyInK3s(container, BUSYBOX_TAR)) {
+			Commons.load(container, BUSYBOX_TAR, BUSYBOX, busyboxVersion());
+		}
 	}
 
 	public static void loadWiremock(K3sContainer container) {
@@ -104,6 +106,25 @@ public final class Images {
 
 	public static void loadRabbitmq(K3sContainer container) {
 		Commons.load(container, RABBITMQ_TAR, RABBITMQ, rabbitMqVersion());
+	}
+
+	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
+		try {
+			boolean present = container.execInContainer("sh", "-c", "ctr images list | grep " + tarName)
+				.getStdout()
+				.contains(tarName);
+			if (present) {
+				System.out.println("image : " + tarName + " already in k3s, skipping");
+				return true;
+			}
+			else {
+				System.out.println("image : " + tarName + " not in k3s");
+				return false;
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	// find the image version from current-images.txt
