@@ -90,9 +90,8 @@ class KubernetesClientDiscoveryClientIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
+	static void afterAll() {
 		manifests(Phase.DELETE);
-		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	/**

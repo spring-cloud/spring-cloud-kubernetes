@@ -24,7 +24,6 @@ import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -81,13 +80,6 @@ class ConfigurationWatcherMultipleAppIT {
 
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
-	}
-
-	@AfterAll
-	static void afterAll() throws Exception {
-		Commons.cleanUp(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.cleanUp(CONFIG_WATCHER_APP_A_IMAGE, K3S);
-		Commons.cleanUp(CONFIG_WATCHER_APP_B_IMAGE, K3S);
 	}
 
 	@BeforeEach

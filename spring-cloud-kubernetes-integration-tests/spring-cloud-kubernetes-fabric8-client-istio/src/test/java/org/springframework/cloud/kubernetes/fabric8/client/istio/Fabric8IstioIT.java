@@ -29,6 +29,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
@@ -41,8 +42,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_cl
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.processExecResult;
 
 /**
  * @author wind57
@@ -89,9 +88,8 @@ class Fabric8IstioIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
+	static void afterAll() {
 		util.deleteNamespace("istio-system");
-		Commons.cleanUp(IMAGE_NAME, K3S);
 	}
 
 	@AfterAll
@@ -154,6 +152,14 @@ class Fabric8IstioIT {
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static String processExecResult(Container.ExecResult execResult) {
+		if (execResult.getExitCode() != 0) {
+			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
+		}
+
+		return execResult.getStdout();
 	}
 
 }
