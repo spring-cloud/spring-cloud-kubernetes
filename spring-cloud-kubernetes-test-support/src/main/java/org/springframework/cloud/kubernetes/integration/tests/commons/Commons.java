@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -41,7 +40,6 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
@@ -60,21 +58,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Fix
 public final class Commons {
 
 	private static String POM_VERSION;
-
-	static {
-		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
-			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
-			if (StringUtils.hasText(version)) {
-				version = version.trim();
-			}
-			POM_VERSION = version;
-		}
-		catch (IOException e) {
-			ReflectionUtils.rethrowRuntimeException(e);
-		}
-		// not reachable since exception rethrown at runtime
-		POM_VERSION = null;
-	}
 
 	private static final Log LOG = LogFactory.getLog(Commons.class);
 
@@ -224,6 +207,18 @@ public final class Commons {
 	}
 
 	public static String pomVersion() {
+		if (POM_VERSION == null) {
+			try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
+				String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+				if (StringUtils.hasText(version)) {
+					POM_VERSION = version.trim();
+				}
+			}
+			catch(Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		return POM_VERSION;
 	}
 
