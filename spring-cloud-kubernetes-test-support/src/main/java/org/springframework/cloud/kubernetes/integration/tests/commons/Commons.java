@@ -156,7 +156,7 @@ public final class Commons {
 					.findFirst();
 				if (found.isPresent()) {
 					LOG.info("running in github actions, will load from : " + TMP_IMAGES + " tar : " + found.get());
-					Commons.loadImageFromPath(found.get(), container);
+					loadImageFromPath(found.get(), container);
 					return;
 				}
 				else {
@@ -174,8 +174,8 @@ public final class Commons {
 		try {
 			LOG.info("no tars found, will resort to pulling the image");
 			LOG.info("using : " + imageVersion + " for : " + imageNameForDownload);
-			Commons.pullImage(imageNameForDownload, imageVersion, container);
-			Commons.loadImage(imageNameForDownload, imageVersion, tarName, container);
+			pullImage(imageNameForDownload, imageVersion, container);
+			loadImage(imageNameForDownload, imageVersion, tarName, container);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
