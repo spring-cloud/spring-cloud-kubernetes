@@ -198,10 +198,6 @@ public final class Commons {
 		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
 	}
 
-	public static void cleanUpDownloadedImage(String image) throws Exception {
-		CONTAINER.execInContainer("crictl", "rmi", image);
-	}
-
 	/**
 	 * validates that the provided image does exist in the local docker registry.
 	 */
