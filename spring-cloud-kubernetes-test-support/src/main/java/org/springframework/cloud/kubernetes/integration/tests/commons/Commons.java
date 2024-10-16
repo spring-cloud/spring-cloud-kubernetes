@@ -120,6 +120,9 @@ public final class Commons {
 
 	}
 
+	/**
+	 * create a tar, copy it in the running k3s and load this tar as an image.
+	 */
 	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
 		// save image
 		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
@@ -180,22 +183,6 @@ public final class Commons {
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	private static void loadImageFromPath(String tarName, K3sContainer container) {
-		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
-			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TMP_IMAGES + "/" + tarName);
-			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
-			if (!noErrors) {
-				LOG.info("error is : " + result.getStderr());
-			}
-			return noErrors;
-		});
-	}
-
-	public static void cleanUp(String image, K3sContainer container) throws Exception {
-		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + pomVersion());
-		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
 	}
 
 	/**
@@ -259,6 +246,17 @@ public final class Commons {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	private static void loadImageFromPath(String tarName, K3sContainer container) {
+		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TMP_IMAGES + "/" + tarName);
+			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
+			if (!noErrors) {
+				LOG.info("error is : " + result.getStderr());
+			}
+			return noErrors;
+		});
 	}
 
 }
