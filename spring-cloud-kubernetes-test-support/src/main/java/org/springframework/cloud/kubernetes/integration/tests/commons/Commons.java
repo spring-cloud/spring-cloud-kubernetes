@@ -214,7 +214,7 @@ public final class Commons {
 					POM_VERSION = version.trim();
 				}
 			}
-			catch(Exception e) {
+			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
