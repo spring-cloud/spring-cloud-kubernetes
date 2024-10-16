@@ -59,6 +59,23 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Fix
  */
 public final class Commons {
 
+	private static String POM_VERSION;
+
+	static {
+		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
+			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+			if (StringUtils.hasText(version)) {
+				version = version.trim();
+			}
+			POM_VERSION = version;
+		}
+		catch (IOException e) {
+			ReflectionUtils.rethrowRuntimeException(e);
+		}
+		// not reachable since exception rethrown at runtime
+		POM_VERSION = null;
+	}
+
 	private static final Log LOG = LogFactory.getLog(Commons.class);
 
 	private Commons() {
@@ -204,22 +221,10 @@ public final class Commons {
 		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(image)) {
 			pullImageCmd.withTag(tag).start().awaitCompletion();
 		}
-
 	}
 
 	public static String pomVersion() {
-		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
-			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
-			if (StringUtils.hasText(version)) {
-				version = version.trim();
-			}
-			return version;
-		}
-		catch (IOException e) {
-			ReflectionUtils.rethrowRuntimeException(e);
-		}
-		// not reachable since exception rethrown at runtime
-		return null;
+		return POM_VERSION;
 	}
 
 	/**
