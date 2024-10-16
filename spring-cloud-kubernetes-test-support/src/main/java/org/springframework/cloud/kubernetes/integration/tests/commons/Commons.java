@@ -220,14 +220,6 @@ public final class Commons {
 
 	}
 
-	public static String processExecResult(Container.ExecResult execResult) {
-		if (execResult.getExitCode() != 0) {
-			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
-		}
-
-		return execResult.getStdout();
-	}
-
 	public static String pomVersion() {
 		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
 			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
