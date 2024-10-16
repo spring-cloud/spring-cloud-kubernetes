@@ -35,6 +35,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchWithEndpointsAndNamespaceFilterIT.TestConfig;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.assertLogStatement;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.invokeAndAssert;
 
 /**
  * @author wind57
@@ -61,6 +63,7 @@ class Fabric8CatalogWatchWithEndpointsAndNamespaceFilterIT extends Fabric8Catalo
 
 	@AfterEach
 	void afterEach() {
+		// busybox is deleted as part of the assertions, thus not seen here
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}
@@ -77,8 +80,8 @@ class Fabric8CatalogWatchWithEndpointsAndNamespaceFilterIT extends Fabric8Catalo
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		TestAssertions.assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointsCatalogWatch");
-		TestAssertions.invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
+		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointsCatalogWatch");
+		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
 	@TestConfiguration

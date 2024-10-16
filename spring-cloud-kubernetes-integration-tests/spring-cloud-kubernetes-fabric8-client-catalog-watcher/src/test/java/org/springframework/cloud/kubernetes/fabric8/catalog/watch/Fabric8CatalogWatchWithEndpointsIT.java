@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
 import java.util.Set;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +35,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchWithEndpointsIT.TestConfig;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.assertLogStatement;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.invokeAndAssert;
 
 /**
  * @author wind57
@@ -51,6 +54,12 @@ class Fabric8CatalogWatchWithEndpointsIT extends Fabric8CatalogWatchBase {
 		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 
+	@AfterEach
+	void afterEach() {
+		// empty on purpose
+		// busybox is deleted as part of the test itself, thus not seen here
+	}
+
 	/**
 	 * <pre>
 	 *     - we deploy a busybox service with 2 replica pods
@@ -62,8 +71,8 @@ class Fabric8CatalogWatchWithEndpointsIT extends Fabric8CatalogWatchBase {
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		TestAssertions.assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointsCatalogWatch");
-		TestAssertions.invokeAndAssert(util, Set.of(NAMESPACE), port, NAMESPACE);
+		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointsCatalogWatch");
+		invokeAndAssert(util, Set.of(NAMESPACE), port, NAMESPACE);
 	}
 
 	@TestConfiguration
