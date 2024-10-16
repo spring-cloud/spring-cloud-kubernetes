@@ -77,7 +77,7 @@ class ActuatorRefreshIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
+	static void afterAll() {
 		configWatcher(Phase.DELETE);
 	}
 
