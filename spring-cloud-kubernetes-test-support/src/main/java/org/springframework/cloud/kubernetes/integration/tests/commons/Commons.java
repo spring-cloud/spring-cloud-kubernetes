@@ -149,6 +149,11 @@ public final class Commons {
 	 * either get the tar from '/tmp/docker/images', or pull the image.
 	 */
 	public static void load(K3sContainer container, String tarName, String imageNameForDownload, String imageVersion) {
+
+		if (imageAlreadyInK3s(container, tarName)) {
+			return;
+		}
+
 		File dockerImagesRootDir = Paths.get(TMP_IMAGES).toFile();
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();
@@ -257,6 +262,25 @@ public final class Commons {
 			}
 			return noErrors;
 		});
+	}
+
+	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
+		try {
+			boolean present = container.execInContainer("sh", "-c", "ctr images list | grep " + tarName)
+				.getStdout()
+				.contains(tarName);
+			if (present) {
+				System.out.println("image : " + tarName + " already in k3s, skipping");
+				return true;
+			}
+			else {
+				System.out.println("image : " + tarName + " not in k3s");
+				return false;
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
