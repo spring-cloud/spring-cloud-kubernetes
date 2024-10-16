@@ -92,7 +92,6 @@ class Fabric8IstioIT {
 	static void afterAll() throws Exception {
 		util.deleteNamespace("istio-system");
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 	}
 
 	@AfterAll

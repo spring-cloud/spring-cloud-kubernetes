@@ -133,7 +133,6 @@ class Fabric8DiscoveryPodMetadataIT {
 
 		manifests(Phase.DELETE);
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 	}
 
 	@Test
