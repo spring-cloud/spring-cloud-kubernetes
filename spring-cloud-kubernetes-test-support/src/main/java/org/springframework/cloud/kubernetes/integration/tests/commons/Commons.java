@@ -124,6 +124,11 @@ public final class Commons {
 	 * create a tar, copy it in the running k3s and load this tar as an image.
 	 */
 	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
+
+		if (imageAlreadyInK3s(container, tarName)) {
+			return;
+		}
+
 		// save image
 		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
 			InputStream imageStream = saveImageCmd.withTag(tag).exec();
@@ -182,7 +187,7 @@ public final class Commons {
 		try {
 			LOG.info("no tars found, will resort to pulling the image");
 			LOG.info("using : " + imageVersion + " for : " + imageNameForDownload);
-			pullImage(imageNameForDownload, imageVersion, container);
+			pullImage(imageNameForDownload, imageVersion, tarName, container);
 			loadImage(imageNameForDownload, imageVersion, tarName, container);
 		}
 		catch (Exception e) {
@@ -205,7 +210,13 @@ public final class Commons {
 		}
 	}
 
-	public static void pullImage(String image, String tag, K3sContainer container) throws InterruptedException {
+	public static void pullImage(String image, String tag, String tarName, K3sContainer container)
+			throws InterruptedException {
+
+		if (imageAlreadyInK3s(container, tarName)) {
+			return;
+		}
+
 		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(image)) {
 			pullImageCmd.withTag(tag).start().awaitCompletion();
 		}
@@ -265,6 +276,11 @@ public final class Commons {
 	}
 
 	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
+
+		if (tarName == null) {
+			return false;
+		}
+
 		try {
 			boolean present = container.execInContainer("sh", "-c", "ctr images list | grep " + tarName)
 				.getStdout()
