@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -41,7 +40,6 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
@@ -58,6 +56,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Fix
  * @author wind57
  */
 public final class Commons {
+
+	private static String POM_VERSION;
 
 	private static final Log LOG = LogFactory.getLog(Commons.class);
 
@@ -120,6 +120,9 @@ public final class Commons {
 
 	}
 
+	/**
+	 * create a tar, copy it in the running k3s and load this tar as an image.
+	 */
 	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
 		// save image
 		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
@@ -146,6 +149,11 @@ public final class Commons {
 	 * either get the tar from '/tmp/docker/images', or pull the image.
 	 */
 	public static void load(K3sContainer container, String tarName, String imageNameForDownload, String imageVersion) {
+
+		if (imageAlreadyInK3s(container, tarName)) {
+			return;
+		}
+
 		File dockerImagesRootDir = Paths.get(TMP_IMAGES).toFile();
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();
@@ -182,22 +190,6 @@ public final class Commons {
 		}
 	}
 
-	private static void loadImageFromPath(String tarName, K3sContainer container) {
-		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
-			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TMP_IMAGES + "/" + tarName);
-			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
-			if (!noErrors) {
-				LOG.info("error is : " + result.getStderr());
-			}
-			return noErrors;
-		});
-	}
-
-	public static void cleanUp(String image, K3sContainer container) throws Exception {
-		container.execInContainer("crictl", "rmi", "docker.io/springcloud/" + image + ":" + pomVersion());
-		container.execInContainer("rm", TEMP_FOLDER + "/" + image + ".tar");
-	}
-
 	/**
 	 * validates that the provided image does exist in the local docker registry.
 	 */
@@ -217,30 +209,22 @@ public final class Commons {
 		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(image)) {
 			pullImageCmd.withTag(tag).start().awaitCompletion();
 		}
-
-	}
-
-	public static String processExecResult(Container.ExecResult execResult) {
-		if (execResult.getExitCode() != 0) {
-			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
-		}
-
-		return execResult.getStdout();
 	}
 
 	public static String pomVersion() {
-		try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
-			String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
-			if (StringUtils.hasText(version)) {
-				version = version.trim();
+		if (POM_VERSION == null) {
+			try (InputStream in = new ClassPathResource(KUBERNETES_VERSION_FILE).getInputStream()) {
+				String version = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+				if (StringUtils.hasText(version)) {
+					POM_VERSION = version.trim();
+				}
 			}
-			return version;
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
-		catch (IOException e) {
-			ReflectionUtils.rethrowRuntimeException(e);
-		}
-		// not reachable since exception rethrown at runtime
-		return null;
+
+		return POM_VERSION;
 	}
 
 	/**
@@ -267,6 +251,36 @@ public final class Commons {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	private static void loadImageFromPath(String tarName, K3sContainer container) {
+		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+			Container.ExecResult result = container.execInContainer("ctr", "i", "import", TMP_IMAGES + "/" + tarName);
+			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
+			if (!noErrors) {
+				LOG.info("error is : " + result.getStderr());
+			}
+			return noErrors;
+		});
+	}
+
+	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
+		try {
+			boolean present = container.execInContainer("sh", "-c", "ctr images list | grep " + tarName)
+				.getStdout()
+				.contains(tarName);
+			if (present) {
+				System.out.println("image : " + tarName + " already in k3s, skipping");
+				return true;
+			}
+			else {
+				System.out.println("image : " + tarName + " not in k3s");
+				return false;
+			}
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
