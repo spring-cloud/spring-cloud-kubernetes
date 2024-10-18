@@ -83,9 +83,7 @@ public final class Images {
 	}
 
 	public static void loadWiremock(K3sContainer container) {
-		if (!imageAlreadyInK3s(container, WIREMOCK_TAR)) {
-			Commons.load(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
-		}
+		Commons.load(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
 	}
 
 	public static void loadIstioCtl(K3sContainer container) {
