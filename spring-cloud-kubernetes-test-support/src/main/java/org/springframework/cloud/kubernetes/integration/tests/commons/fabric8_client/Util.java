@@ -103,7 +103,7 @@ public final class Util {
 				}
 				else {
 					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], container);
+					pullImage(image[0], image[1], name, container);
 					loadImage(image[0], image[1], name, container);
 				}
 
