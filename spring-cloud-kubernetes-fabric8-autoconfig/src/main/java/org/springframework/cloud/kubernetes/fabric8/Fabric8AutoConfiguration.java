@@ -121,7 +121,13 @@ public class Fabric8AutoConfiguration {
 
 	@PreDestroy
 	void preDestroy() {
-		context.getBean("kubernetesClient", KubernetesClient.class).close();
+		context.getBeansOfType(KubernetesClient.class).values().forEach(KubernetesClient::close);
+
+		// in case of bootstrap
+		ApplicationContext parent = context.getParent();
+		if (parent != null) {
+			parent.getBeansOfType(KubernetesClient.class).values().forEach(KubernetesClient::close);
+		}
 	}
 
 }
