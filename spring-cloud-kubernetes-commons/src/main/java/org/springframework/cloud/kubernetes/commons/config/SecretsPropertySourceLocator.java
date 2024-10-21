@@ -87,11 +87,11 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			putPathConfig(composite);
 
 			if (this.properties.enableApi()) {
-				uniqueSources
-					.forEach(s -> composite.addPropertySource(getSecretsPropertySourceForSingleSecret(env, s)));
+				uniqueSources.forEach(s -> composite.addPropertySource(
+						getSecretsPropertySourceForSingleSecret(env, s, properties.namespacedBatchRead())));
 			}
 
-			cache.discardAll();
+			cache.discardSecrets();
 			return composite;
 		}
 		return null;
@@ -103,13 +103,13 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	private SecretsPropertySource getSecretsPropertySourceForSingleSecret(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource) {
+			NormalizedSource normalizedSource, boolean namespacedBatchRead) {
 
-		return getPropertySource(environment, normalizedSource);
+		return getPropertySource(environment, normalizedSource, namespacedBatchRead);
 	}
 
 	protected abstract SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource);
+			NormalizedSource normalizedSource, boolean namespacedBatchRead);
 
 	protected void putPathConfig(CompositePropertySource composite) {
 

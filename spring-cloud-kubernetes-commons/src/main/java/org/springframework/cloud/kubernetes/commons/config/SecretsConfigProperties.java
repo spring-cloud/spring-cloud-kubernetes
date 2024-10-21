@@ -40,7 +40,7 @@ public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<Strin
 		@DefaultValue List<String> paths, @DefaultValue List<Source> sources, @DefaultValue("true") boolean enabled,
 		String name, String namespace, boolean useNameAsPrefix,
 		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
-		@DefaultValue RetryProperties retry) {
+		@DefaultValue RetryProperties retry, @DefaultValue("true") boolean namespacedBatchRead) {
 
 	/**
 	 * Prefix for Kubernetes secrets configuration properties.
@@ -59,7 +59,7 @@ public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<Strin
 
 			if (!labels.isEmpty()) {
 				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.failFast,
-						ConfigUtils.Prefix.DEFAULT, false));
+						ConfigUtils.Prefix.DEFAULT));
 			}
 			return result;
 		}
@@ -105,7 +105,7 @@ public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<Strin
 
 			if (!normalizedLabels.isEmpty()) {
 				NormalizedSource labeledBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels,
-						failFast, prefix, includeProfileSpecificSources);
+						failFast, prefix);
 				normalizedSources.add(labeledBasedSource);
 			}
 

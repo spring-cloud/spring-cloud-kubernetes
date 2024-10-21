@@ -40,7 +40,7 @@ class SecretsConfigPropertiesTests {
 	void emptySourcesSecretName() {
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
-				null, "namespace", false, true, false, RetryProperties.DEFAULT);
+				null, "namespace", false, true, false, RetryProperties.DEFAULT, true);
 
 		List<NormalizedSource> source = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(source.size(), 1);
@@ -81,7 +81,7 @@ class SecretsConfigPropertiesTests {
 				Map.of("three", "3"), null, false, false);
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
-				List.of(one, two, three), true, null, "namespace", false, true, false, RetryProperties.DEFAULT);
+				List.of(one, two, three), true, null, "namespace", false, true, false, RetryProperties.DEFAULT, true);
 
 		List<NormalizedSource> result = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(result.size(), 6);
@@ -126,7 +126,7 @@ class SecretsConfigPropertiesTests {
 	void testUseNameAsPrefixUnsetEmptySources() {
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
-				"secret-a", "namespace", false, true, false, RetryProperties.DEFAULT);
+				"secret-a", "namespace", false, true, false, RetryProperties.DEFAULT, true);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
@@ -152,7 +152,7 @@ class SecretsConfigPropertiesTests {
 	void testUseNameAsPrefixSetEmptySources() {
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
-				"secret-a", "namespace", true, true, false, RetryProperties.DEFAULT);
+				"secret-a", "namespace", true, true, false, RetryProperties.DEFAULT, true);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "empty sources must generate a List with a single NormalizedSource");
@@ -184,7 +184,7 @@ class SecretsConfigPropertiesTests {
 				null, true, false);
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(one), true,
-				"secret-one", null, false, true, false, RetryProperties.DEFAULT);
+				"secret-one", null, false, true, false, RetryProperties.DEFAULT, true);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 1, "a single NormalizedSource is expected");
@@ -227,7 +227,7 @@ class SecretsConfigPropertiesTests {
 				Map.of(), null, true, false);
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
-				List.of(one, two, three), true, "secret-one", null, false, true, false, RetryProperties.DEFAULT);
+				List.of(one, two, three), true, "secret-one", null, false, true, false, RetryProperties.DEFAULT, true);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 3, "3 NormalizedSources are expected");
@@ -277,7 +277,7 @@ class SecretsConfigPropertiesTests {
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
 				List.of(one, two, three, four), true, "secret-one", "spring-k8s", false, false, false,
-				RetryProperties.DEFAULT);
+				RetryProperties.DEFAULT, true);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertEquals(sources.size(), 4, "4 NormalizedSources are expected");
@@ -307,7 +307,6 @@ class SecretsConfigPropertiesTests {
 	 *          - labels:
 	 *          	- name: second-label
 	 * 	          	  value: secret-two
-	 * 	          includeProfileSpecificSources: true
 	 *            useNameAsPrefix: true
 	 *            explicitPrefix: two
 	 *          - labels:
@@ -336,8 +335,8 @@ class SecretsConfigPropertiesTests {
 				Map.of("fourth-label", "secret-four"), null, false, false);
 
 		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
-				List.of(one, two, three, four), false, null, "spring-k8s", false, false, false,
-				RetryProperties.DEFAULT);
+				List.of(one, two, three, four), false, null, "spring-k8s", false, false, false, RetryProperties.DEFAULT,
+				true);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		// we get 8 property sources, since "named" ones with "application" are
@@ -348,19 +347,15 @@ class SecretsConfigPropertiesTests {
 
 		LabeledSecretNormalizedSource labeled1 = (LabeledSecretNormalizedSource) sources.get(1);
 		Assertions.assertEquals(labeled1.prefix().prefixProvider().get(), "one");
-		Assertions.assertFalse(labeled1.profileSpecificSources());
 
 		LabeledSecretNormalizedSource labeled3 = (LabeledSecretNormalizedSource) sources.get(3);
 		Assertions.assertEquals(labeled3.prefix().prefixProvider().get(), "two");
-		Assertions.assertTrue(labeled3.profileSpecificSources());
 
 		LabeledSecretNormalizedSource labeled5 = (LabeledSecretNormalizedSource) sources.get(5);
 		Assertions.assertEquals(labeled5.prefix().prefixProvider().get(), "three");
-		Assertions.assertFalse(labeled5.profileSpecificSources());
 
 		LabeledSecretNormalizedSource labeled7 = (LabeledSecretNormalizedSource) sources.get(7);
 		Assertions.assertSame(labeled7.prefix(), ConfigUtils.Prefix.DEFAULT);
-		Assertions.assertFalse(labeled7.profileSpecificSources());
 
 		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
 		Assertions.assertEquals(5, set.size());
