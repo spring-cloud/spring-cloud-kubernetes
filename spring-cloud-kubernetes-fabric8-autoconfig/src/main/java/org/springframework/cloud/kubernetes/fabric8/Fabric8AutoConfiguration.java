@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import jakarta.annotation.PreDestroy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -107,7 +106,7 @@ public class Fabric8AutoConfiguration {
 
 	}
 
-	@Bean
+	@Bean(destroyMethod = "close")
 	@ConditionalOnMissingBean
 	public KubernetesClient kubernetesClient(Config config) {
 		return new KubernetesClientBuilder().withConfig(config).build();
@@ -117,17 +116,6 @@ public class Fabric8AutoConfiguration {
 	@ConditionalOnMissingBean
 	public Fabric8PodUtils kubernetesPodUtils(KubernetesClient client) {
 		return new Fabric8PodUtils(client);
-	}
-
-	@PreDestroy
-	void preDestroy() {
-		context.getBeansOfType(KubernetesClient.class).values().forEach(KubernetesClient::close);
-
-		// in case of bootstrap
-		ApplicationContext parent = context.getParent();
-		if (parent != null) {
-			parent.getBeansOfType(KubernetesClient.class).values().forEach(KubernetesClient::close);
-		}
 	}
 
 }
