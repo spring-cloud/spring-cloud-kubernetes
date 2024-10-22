@@ -6,7 +6,7 @@ spring:
       reload:
         enabled: true
         monitoring-config-maps: true
-        strategy: refresh
+        strategy: shutdown
         mode: polling
         period: 5000
       config:
