@@ -93,9 +93,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 
 		KubernetesClient kubernetesClient = new Fabric8AutoConfiguration().kubernetesClient(config);
 		registerSingle(bootstrapContext, KubernetesClient.class, kubernetesClient, "configKubernetesClient",
-				(ApplicationListener<ContextClosedEvent>) event -> {
-					kubernetesClient.close();
-				});
+				(ApplicationListener<ContextClosedEvent>) event -> kubernetesClient.close());
 		return kubernetesClient;
 	}
 

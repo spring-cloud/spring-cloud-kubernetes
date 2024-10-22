@@ -61,6 +61,8 @@ public final class ConfigUtils {
 					|| sourceName.endsWith("-" + activeProfile + ".yaml")
 					|| sourceName.endsWith("-" + activeProfile + ".properties");
 
+	private static final ApplicationListener<?> NO_OP = (e) -> { };
+
 	private ConfigUtils() {
 	}
 
@@ -344,8 +346,7 @@ public final class ConfigUtils {
 
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
 			String name) {
-		registerSingle(bootstrapContext, cls, instance, name, event -> {
-		});
+		registerSingle(bootstrapContext, cls, instance, name, NO_OP);
 	}
 
 	/**
