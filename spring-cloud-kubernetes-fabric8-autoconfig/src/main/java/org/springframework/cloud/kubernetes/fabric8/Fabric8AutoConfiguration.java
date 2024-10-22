@@ -23,12 +23,16 @@ import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
+import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,16 +48,15 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
 public class Fabric8AutoConfiguration {
 
+	@Autowired
+	private ConfigurableApplicationContext context;
+
 	private static <D> D or(D left, D right) {
 		return left != null ? left : right;
 	}
 
 	private static Integer orDurationInt(Duration left, Integer right) {
 		return left != null ? (int) left.toMillis() : right;
-	}
-
-	private static Long orDurationLong(Duration left, Long right) {
-		return left != null ? left.toMillis() : right;
 	}
 
 	@Bean
@@ -115,6 +118,17 @@ public class Fabric8AutoConfiguration {
 	@ConditionalOnMissingBean
 	public Fabric8PodUtils kubernetesPodUtils(KubernetesClient client) {
 		return new Fabric8PodUtils(client);
+	}
+
+	@PreDestroy
+	void preDestroy() {
+		context.getBeansOfType(KubernetesClient.class).values().forEach(KubernetesClient::close);
+
+		// in case of bootstrap
+		ApplicationContext parent = context.getParent();
+		if (parent != null) {
+			parent.getBeansOfType(KubernetesClient.class).values().forEach(KubernetesClient::close);
+		}
 	}
 
 }

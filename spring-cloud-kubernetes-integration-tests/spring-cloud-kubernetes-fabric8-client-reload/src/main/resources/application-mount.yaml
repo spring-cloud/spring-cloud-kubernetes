@@ -1,12 +1,20 @@
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          kubernetes:
+            commons: debug
+
 spring:
   application:
-    name: poll-reload-mount
+    name: poll-reload
   cloud:
     kubernetes:
       reload:
         enabled: true
         monitoring-config-maps: true
-        strategy: shutdown
+        strategy: refresh
         mode: polling
         period: 5000
       config:

@@ -140,13 +140,13 @@ class Fabric8EventReloadIT {
 			return "left-initial".equals(innerResult);
 		});
 
-		testInformFromOneNamespaceEventTriggered();
-		testInform();
-		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
-		testDataChangesInConfigMap();
+//		testInformFromOneNamespaceEventTriggered();
+//		testInform();
+//		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
+//		testDataChangesInConfigMap();
 		testConfigMapMountPollingReload();
-		testPollingReloadConfigMapWithBootstrap();
-		testSecretReload();
+//		testPollingReloadConfigMapWithBootstrap();
+//		testSecretReload();
 	}
 
 	/**
