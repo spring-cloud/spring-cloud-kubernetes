@@ -5,4 +5,4 @@ metadata:
   namespace: default
 data:
   application.properties: |
-      from.properties.key=as-mount-initial-3
+      from.properties.key=as-mount-initial

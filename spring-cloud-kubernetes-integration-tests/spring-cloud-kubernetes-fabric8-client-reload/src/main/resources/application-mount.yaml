@@ -1,14 +1,6 @@
-logging:
-  level:
-    org:
-      springframework:
-        cloud:
-          kubernetes:
-            commons: debug
-
 spring:
   application:
-    name: poll-reload
+    name: poll-reload-mount
   cloud:
     kubernetes:
       reload:
