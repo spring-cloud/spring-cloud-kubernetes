@@ -60,13 +60,13 @@ import static org.mockito.Mockito.when;
  * @author Oleg Vyukov
  */
 @SuppressWarnings({ "unchecked" })
-class KubernetesCatalogWatchTest {
+class Fabric8KubernetesCatalogWatchTest {
 
 	private static final KubernetesClient CLIENT = Mockito.mock(KubernetesClient.class);
 
 	private final KubernetesNamespaceProvider namespaceProvider = Mockito.mock(KubernetesNamespaceProvider.class);
 
-	private KubernetesCatalogWatch kubernetesCatalogWatch;
+	private Fabric8KubernetesCatalogWatch kubernetesCatalogWatch;
 
 	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
 		.mock(ApplicationEventPublisher.class);
@@ -403,9 +403,9 @@ class KubernetesCatalogWatchTest {
 
 		// all-namespaces = true
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false, false);
 
-		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
+		kubernetesCatalogWatch = new Fabric8KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		kubernetesCatalogWatch.postConstruct();
 
@@ -422,9 +422,9 @@ class KubernetesCatalogWatchTest {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false, false);
 
-		kubernetesCatalogWatch = new KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
+		kubernetesCatalogWatch = new Fabric8KubernetesCatalogWatch(CLIENT, properties, namespaceProvider);
 		kubernetesCatalogWatch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		kubernetesCatalogWatch.postConstruct();
 
