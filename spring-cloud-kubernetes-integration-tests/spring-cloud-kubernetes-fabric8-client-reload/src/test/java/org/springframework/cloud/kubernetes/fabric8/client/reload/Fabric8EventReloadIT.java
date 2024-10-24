@@ -80,11 +80,9 @@ class Fabric8EventReloadIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
+	static void afterAll() {
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
-		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 
 		manifests(Phase.DELETE);
 	}

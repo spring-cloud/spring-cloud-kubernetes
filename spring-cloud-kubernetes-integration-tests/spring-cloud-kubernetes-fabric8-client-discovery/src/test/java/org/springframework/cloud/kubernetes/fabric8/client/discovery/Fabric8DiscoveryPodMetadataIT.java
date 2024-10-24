@@ -117,7 +117,7 @@ class Fabric8DiscoveryPodMetadataIT {
 	}
 
 	@AfterAll
-	static void after() throws Exception {
+	static void after() {
 		util.wiremock(NAMESPACE, "/wiremock", Phase.DELETE, false);
 		util.busybox(NAMESPACE, Phase.DELETE);
 
@@ -132,8 +132,6 @@ class Fabric8DiscoveryPodMetadataIT {
 		util.deleteNamespace(NAMESPACE_RIGHT);
 
 		manifests(Phase.DELETE);
-		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 	}
 
 	@Test
