@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-rm ~/.testcontainers.properties
+if [ -f "~/.testcontainers.properties" ]; then
+    rm ~/.testcontainers.properties
+fi
 echo 'testcontainers.reuse.enable=true' > ~/.testcontainers.properties
 
 ./mvnw clean install -B -Pdocs ${@}
