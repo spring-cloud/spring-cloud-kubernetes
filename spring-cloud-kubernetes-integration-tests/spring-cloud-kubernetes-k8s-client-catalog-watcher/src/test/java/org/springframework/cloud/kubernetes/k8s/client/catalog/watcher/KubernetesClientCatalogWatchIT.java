@@ -90,7 +90,6 @@ class KubernetesClientCatalogWatchIT {
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 		app(Phase.DELETE);
-		Commons.systemPrune();
 	}
 
 	@BeforeEach

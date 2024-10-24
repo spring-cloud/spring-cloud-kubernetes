@@ -75,10 +75,8 @@ class K8sClientSecretsReloadIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
+	static void afterAll() {
 		configK8sClientIt(Phase.DELETE);
-		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 	}
 
 	@Test
