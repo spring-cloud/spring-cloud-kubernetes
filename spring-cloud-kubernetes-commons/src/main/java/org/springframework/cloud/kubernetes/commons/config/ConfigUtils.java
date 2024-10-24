@@ -61,7 +61,8 @@ public final class ConfigUtils {
 					|| sourceName.endsWith("-" + activeProfile + ".yaml")
 					|| sourceName.endsWith("-" + activeProfile + ".properties");
 
-	private static final ApplicationListener<?> NO_OP = (e) -> { };
+	private static final ApplicationListener<?> NO_OP = (e) -> {
+	};
 
 	private ConfigUtils() {
 	}
