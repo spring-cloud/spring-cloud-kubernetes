@@ -123,9 +123,11 @@ public class Fabric8AutoConfiguration {
 
 	@EventListener
 	void onContextClosed(ContextClosedEvent event) {
-		// Clean up any open connections from the KubernetesClient when the context is closed
-		BeanFactoryUtils.beansOfTypeIncludingAncestors(event.getApplicationContext(), KubernetesClient.class).values()
-				.forEach(Client::close);
+		// Clean up any open connections from the KubernetesClient when the context is
+		// closed
+		BeanFactoryUtils.beansOfTypeIncludingAncestors(event.getApplicationContext(), KubernetesClient.class)
+			.values()
+			.forEach(Client::close);
 	}
 
 }

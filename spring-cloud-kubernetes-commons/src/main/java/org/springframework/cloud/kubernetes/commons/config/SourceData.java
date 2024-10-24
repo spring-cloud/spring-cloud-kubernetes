@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author wind57
  */
-public final record SourceData(String sourceName, Map<String, Object> sourceData) {
+public record SourceData(String sourceName, Map<String, Object> sourceData) {
 
 	public static SourceData emptyRecord(String sourceName) {
 		return new SourceData(sourceName, Collections.emptyMap());
