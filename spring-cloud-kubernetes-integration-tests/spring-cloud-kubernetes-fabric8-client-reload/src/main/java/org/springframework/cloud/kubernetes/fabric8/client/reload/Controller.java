@@ -35,14 +35,17 @@ public class Controller {
 
 	private final SecretProperties secretProperties;
 
+	private final ConfigMapNoMountProperties configMapNoMountProperties;
+
 	public Controller(LeftProperties leftProperties, RightProperties rightProperties,
 			RightWithLabelsProperties rightWithLabelsProperties, ConfigMapProperties configMapProperties,
-			SecretProperties secretProperties) {
+			SecretProperties secretProperties, ConfigMapNoMountProperties configMapNoMountProperties) {
 		this.leftProperties = leftProperties;
 		this.rightProperties = rightProperties;
 		this.rightWithLabelsProperties = rightWithLabelsProperties;
 		this.configMapProperties = configMapProperties;
 		this.secretProperties = secretProperties;
+		this.configMapNoMountProperties = configMapNoMountProperties;
 	}
 
 	@GetMapping("/left")
@@ -63,6 +66,11 @@ public class Controller {
 	@GetMapping("/key")
 	public String key() {
 		return configMapProperties.getKey();
+	}
+
+	@GetMapping("/key-no-mount")
+	public String keyNoMount() {
+		return configMapNoMountProperties.getKey();
 	}
 
 	@GetMapping("/key-from-secret")
