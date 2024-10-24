@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -63,9 +64,6 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
-
-	/** Image we get {@code istioctl} from in order to install Istio. */
-	public static final String ISTIO_ISTIOCTL = "istio/istioctl";
 
 	private final K3sContainer container;
 
@@ -105,7 +103,7 @@ public final class Util {
 				}
 				else {
 					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], container);
+					pullImage(image[0], image[1], name, container);
 					loadImage(image[0], image[1], name, container);
 				}
 
@@ -151,10 +149,20 @@ public final class Util {
 			@Nullable Ingress ingress) {
 		try {
 
+			long startTime = System.currentTimeMillis();
 			if (deployment != null) {
-				client.apps().deployments().inNamespace(namespace).resource(deployment).delete();
+
+				List<Pod> deploymentPods = client.pods()
+					.inNamespace(namespace)
+					.withLabels(deployment.getSpec().getSelector().getMatchLabels())
+					.list()
+					.getItems();
+
+				client.resourceList(new PodListBuilder().withItems(deploymentPods).build()).withGracePeriod(0).delete();
+				client.apps().deployments().inNamespace(namespace).resource(deployment).withGracePeriod(0).delete();
 				waitForDeploymentToBeDeleted(namespace, deployment);
 			}
+			System.out.println("Ended deployment delete in " + (System.currentTimeMillis() - startTime) + "ms");
 
 			client.services().inNamespace(namespace).resource(service).delete();
 
@@ -395,10 +403,12 @@ public final class Util {
 
 		Map<String, String> matchLabels = deployment.getSpec().getSelector().getMatchLabels();
 
+		long start = System.currentTimeMillis();
 		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
 			Deployment inner = client.apps().deployments().inNamespace(namespace).withName(deploymentName).get();
 			return inner == null;
 		});
+		System.out.println("Ended in " + (System.currentTimeMillis() - start) + "ms");
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(60, TimeUnit.SECONDS).until(() -> {
 			List<Pod> podList = client.pods().inNamespace(namespace).withLabels(matchLabels).list().getItems();
