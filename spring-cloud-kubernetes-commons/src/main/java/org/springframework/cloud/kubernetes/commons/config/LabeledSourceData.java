@@ -45,8 +45,7 @@ public abstract class LabeledSourceData {
 			data = dataSupplier(labels, profiles);
 
 			// need this check because when there is no data, the name of the property
-			// source
-			// is using provided labels,
+			// source is using provided labels,
 			// unlike when the data is present: when we use secret names
 			if (data.names().isEmpty()) {
 				String names = labels.keySet()

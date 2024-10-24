@@ -42,6 +42,7 @@ import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
 /**
@@ -87,8 +88,17 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			putPathConfig(composite);
 
 			if (this.properties.enableApi()) {
-				uniqueSources
-					.forEach(s -> composite.addPropertySource(getSecretsPropertySourceForSingleSecret(env, s)));
+				uniqueSources.forEach(s -> {
+
+					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(env, s);
+
+					if (propertySource.getPropertyNames().length == 0) {
+						LOG.info("Skipping empty secret property source source " + propertySource.getName());
+					}
+					else {
+						composite.addPropertySource(propertySource);
+					}
+				});
 			}
 
 			cache.discardAll();

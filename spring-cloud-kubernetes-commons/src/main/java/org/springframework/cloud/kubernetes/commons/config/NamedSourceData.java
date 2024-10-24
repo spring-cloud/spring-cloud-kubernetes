@@ -64,6 +64,7 @@ public abstract class NamedSourceData {
 		}
 		catch (Exception e) {
 			onException(failFast, e);
+			return SourceData.emptyRecord("generated-on-failure");
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));

@@ -48,7 +48,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(SourceDataEntriesProcessor.class);
 
-	private static Predicate<String> ENDS_IN_EXTENSION = x -> x.endsWith(".yml") || x.endsWith(".yaml")
+	private static final Predicate<String> ENDS_IN_EXTENSION = x -> x.endsWith(".yml") || x.endsWith(".yaml")
 			|| x.endsWith(".properties");
 
 	public SourceDataEntriesProcessor(SourceData sourceData) {
