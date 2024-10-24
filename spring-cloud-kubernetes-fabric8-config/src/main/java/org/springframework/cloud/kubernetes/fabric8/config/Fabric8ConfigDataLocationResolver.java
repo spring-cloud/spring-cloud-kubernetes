@@ -34,6 +34,8 @@ import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataL
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
@@ -90,7 +92,8 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 		registerSingle(bootstrapContext, Config.class, config, "fabric8Config");
 
 		KubernetesClient kubernetesClient = new Fabric8AutoConfiguration().kubernetesClient(config);
-		registerSingle(bootstrapContext, KubernetesClient.class, kubernetesClient, "configKubernetesClient");
+		registerSingle(bootstrapContext, KubernetesClient.class, kubernetesClient, "configKubernetesClient",
+				(ApplicationListener<ContextClosedEvent>) event -> kubernetesClient.close());
 		return kubernetesClient;
 	}
 
