@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -167,7 +168,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			try {
 				String content = new String(Files.readAllBytes(filePath)).trim();
-				String sourceName = fileName.toLowerCase();
+				String sourceName = fileName.toLowerCase(Locale.ROOT);
 				SourceData sourceData = new SourceData(sourceName, Collections.singletonMap(fileName, content));
 				return new SecretsPropertySource(sourceData);
 			}

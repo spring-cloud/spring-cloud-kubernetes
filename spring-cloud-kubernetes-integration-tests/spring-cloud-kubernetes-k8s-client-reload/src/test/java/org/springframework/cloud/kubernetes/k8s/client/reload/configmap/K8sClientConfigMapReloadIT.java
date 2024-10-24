@@ -85,13 +85,11 @@ class K8sClientConfigMapReloadIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
+	static void afterAll() {
 		util.deleteClusterWide(NAMESPACE, Set.of("left", "right"));
 		manifests(Phase.DELETE);
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
-		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
 	}
 
 	/**
