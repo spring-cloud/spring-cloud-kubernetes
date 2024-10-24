@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.CollectionUtils;
@@ -57,6 +58,8 @@ public final class ConfigUtils {
 			activeProfile) -> sourceName.endsWith("-" + activeProfile + ".yml")
 					|| sourceName.endsWith("-" + activeProfile + ".yaml")
 					|| sourceName.endsWith("-" + activeProfile + ".properties");
+
+	private static final ApplicationListener<?> NO_OP = (e) -> { };
 
 	private ConfigUtils() {
 	}
@@ -302,15 +305,21 @@ public final class ConfigUtils {
 	}
 
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
-			String name) {
+			String name, ApplicationListener<?> listener) {
 		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
 		bootstrapContext.addCloseListener(event -> {
 			if (event.getApplicationContext().getBeanFactory().getSingleton(name) == null) {
 				event.getApplicationContext()
 					.getBeanFactory()
 					.registerSingleton(name, event.getBootstrapContext().get(cls));
+				event.getApplicationContext().addApplicationListener(listener);
 			}
 		});
+	}
+
+	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
+			String name) {
+		registerSingle(bootstrapContext, cls, instance, name, NO_OP);
 	}
 
 	/**
