@@ -85,9 +85,10 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 				sources.forEach(s -> {
 					MapPropertySource propertySource = getMapPropertySource(s, env);
 					if (propertySource.getPropertyNames().length == 0) {
-						LOG.info("Skipping empty config map property source source " + propertySource.getName());
+						LOG.debug("Skipping empty config map property source source " + propertySource.getName());
 					}
 					else {
+						LOG.debug("Adding config map property source " + propertySource.getName());
 						composite.addPropertySource(propertySource);
 					}
 				});
