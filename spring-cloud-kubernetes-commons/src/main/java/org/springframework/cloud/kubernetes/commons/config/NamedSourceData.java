@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
