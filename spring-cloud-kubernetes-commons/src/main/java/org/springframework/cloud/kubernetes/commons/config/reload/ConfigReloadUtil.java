@@ -144,10 +144,10 @@ public final class ConfigReloadUtil {
 	static boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
 		if (left.size() != right.size()) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("left size: " + left.size());
+				LOG.debug("from k8s property sources size: " + left.size());
 				left.forEach(item -> LOG.debug(item.toString()));
 
-				LOG.debug("right size: " + right.size());
+				LOG.debug("app property sources size size: " + right.size());
 				right.forEach(item -> LOG.debug(item.toString()));
 			}
 			LOG.warn(() -> "The current number of ConfigMap PropertySources does not match "
