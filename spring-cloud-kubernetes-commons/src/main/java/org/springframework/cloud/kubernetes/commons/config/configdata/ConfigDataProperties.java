@@ -42,14 +42,20 @@ public record ConfigDataProperties(KubernetesClientProperties clientProperties,
 			SecretsConfigProperties secretsProperties) {
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
+
 		registerSingle(bootstrapContext, KubernetesClientProperties.class, clientProperties,
 				"configDataKubernetesClientProperties");
 
-		registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
+		if (configMapProperties != null) {
+			registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
 				"configDataConfigMapConfigProperties");
+		}
 
-		registerSingle(bootstrapContext, SecretsConfigProperties.class, secretsProperties,
+		if (secretsProperties != null) {
+			registerSingle(bootstrapContext, SecretsConfigProperties.class, secretsProperties,
 				"configDataSecretsConfigProperties");
+		}
+
 	}
 
 	@FunctionalInterface
