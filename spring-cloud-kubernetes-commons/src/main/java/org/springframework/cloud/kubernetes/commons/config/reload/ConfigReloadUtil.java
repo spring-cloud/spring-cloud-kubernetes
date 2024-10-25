@@ -144,7 +144,7 @@ public final class ConfigReloadUtil {
 	static boolean changed(List<? extends MapPropertySource> k8sSources, List<? extends MapPropertySource> appSources) {
 		if (k8sSources.size() != appSources.size()) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("from k8s property sources size: " + k8sSources.size());
+				LOG.debug("k8s property sources size: " + k8sSources.size());
 				k8sSources.forEach(item -> LOG.debug(item.toString()));
 
 				LOG.debug("app property sources size size: " + appSources.size());
