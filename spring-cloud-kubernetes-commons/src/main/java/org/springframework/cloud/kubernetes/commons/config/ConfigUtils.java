@@ -210,7 +210,7 @@ public final class ConfigUtils {
 		sourceNames.forEach(sourceName -> {
 			StrippedSourceContainer stripped = hashByName.get(sourceName);
 			if (stripped != null) {
-				LOG.debug("Found source with name : '" + sourceName + " in namespace: '" + namespace + "'");
+				LOG.debug("Found source with name : '" + sourceName + "' in namespace: '" + namespace + "'");
 				foundSourceNames.add(sourceName);
 				// see if data is a single yaml/properties file and if it needs decoding
 				Map<String, String> rawData = stripped.data();
