@@ -28,7 +28,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesCatalogWatchAutoConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesCatalogWatchAutoConfiguration;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +41,7 @@ import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAss
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { KubernetesCatalogWatchAutoConfiguration.class, TestConfig.class, Application.class },
+@SpringBootTest(classes = { Fabric8KubernetesCatalogWatchAutoConfiguration.class, TestConfig.class, Application.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8CatalogWatchBase {
 

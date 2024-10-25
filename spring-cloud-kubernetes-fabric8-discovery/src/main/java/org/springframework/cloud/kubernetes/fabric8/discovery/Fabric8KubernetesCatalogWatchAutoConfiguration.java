@@ -37,7 +37,7 @@ import org.springframework.core.env.Environment;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesCatalogWatcherEnabled
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-class Fabric8KubernetesCatalogWatchAutoConfiguration {
+public class Fabric8KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
