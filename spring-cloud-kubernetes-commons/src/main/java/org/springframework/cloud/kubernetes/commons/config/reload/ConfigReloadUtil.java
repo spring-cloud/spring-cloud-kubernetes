@@ -141,23 +141,23 @@ public final class ConfigReloadUtil {
 		return result;
 	}
 
-	static boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
-		if (left.size() != right.size()) {
+	static boolean changed(List<? extends MapPropertySource> k8sSources, List<? extends MapPropertySource> appSources) {
+		if (k8sSources.size() != appSources.size()) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("from k8s property sources size: " + left.size());
-				left.forEach(item -> LOG.debug(item.toString()));
+				LOG.debug("from k8s property sources size: " + k8sSources.size());
+				k8sSources.forEach(item -> LOG.debug(item.toString()));
 
-				LOG.debug("app property sources size size: " + right.size());
-				right.forEach(item -> LOG.debug(item.toString()));
+				LOG.debug("app property sources size size: " + appSources.size());
+				appSources.forEach(item -> LOG.debug(item.toString()));
 			}
 			LOG.warn(() -> "The current number of ConfigMap PropertySources does not match "
 					+ "the ones loaded from Kubernetes - No reload will take place");
 			return false;
 		}
 
-		for (int i = 0; i < left.size(); i++) {
-			MapPropertySource leftPropertySource = left.get(i);
-			MapPropertySource rightPropertySource = right.get(i);
+		for (int i = 0; i < k8sSources.size(); i++) {
+			MapPropertySource leftPropertySource = k8sSources.get(i);
+			MapPropertySource rightPropertySource = appSources.get(i);
 			if (changed(leftPropertySource, rightPropertySource)) {
 				LOG.debug(() -> "found change in : " + leftPropertySource);
 				return true;
