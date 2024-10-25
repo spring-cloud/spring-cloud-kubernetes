@@ -51,7 +51,7 @@ public abstract class NamedSourceData {
 			data = dataSupplier(sourceNames);
 
 			if (data.names().isEmpty()) {
-				return new SourceData(ConfigUtils.sourceName(target, sourceName, namespace), Map.of());
+				return SourceData.emptyRecord(ConfigUtils.sourceName(target, sourceName, namespace));
 			}
 
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
