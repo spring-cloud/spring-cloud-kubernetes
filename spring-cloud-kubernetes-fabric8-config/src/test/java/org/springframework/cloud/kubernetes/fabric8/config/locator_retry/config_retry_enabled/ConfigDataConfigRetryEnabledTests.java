@@ -19,8 +19,11 @@ package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
+import org.mockito.internal.util.MockUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -56,8 +59,20 @@ class ConfigDataConfigRetryEnabledTests extends ConfigRetryEnabled {
 	@BeforeEach
 	void beforeEach() {
 		psl = propertySourceLocator;
-		verifiablePsl = spy(propertySourceLocator.getConfigMapPropertySourceLocator());
-		propertySourceLocator.setConfigMapPropertySourceLocator(verifiablePsl);
+		// latest Mockito does not allow to do something like Mockito.spy(spy)
+		// so this works around that
+		if (!MockUtil.isSpy(propertySourceLocator.getConfigMapPropertySourceLocator())) {
+			verifiablePsl = spy(propertySourceLocator.getConfigMapPropertySourceLocator());
+			propertySourceLocator.setConfigMapPropertySourceLocator(verifiablePsl);
+		}
+		else {
+			verifiablePsl = propertySourceLocator.getConfigMapPropertySourceLocator();
+		}
+	}
+
+	@AfterEach
+	void afterEach() {
+		Mockito.reset(verifiablePsl);
 	}
 
 }
