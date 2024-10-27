@@ -156,10 +156,12 @@ public final class ConfigReloadUtil {
 		}
 
 		for (int i = 0; i < k8sSources.size(); i++) {
-			MapPropertySource leftPropertySource = k8sSources.get(i);
-			MapPropertySource rightPropertySource = appSources.get(i);
-			if (changed(leftPropertySource, rightPropertySource)) {
-				LOG.debug(() -> "found change in : " + leftPropertySource);
+			MapPropertySource k8sSource = k8sSources.get(i);
+			MapPropertySource appSource = appSources.get(i);
+			if (changed(k8sSource, appSource)) {
+				LOG.debug(() -> "k8sSource : " + k8sSource);
+				LOG.debug(() -> "appSource : " + appSource);
+				LOG.debug(() -> "found change in : " + k8sSource);
 				return true;
 			}
 		}
