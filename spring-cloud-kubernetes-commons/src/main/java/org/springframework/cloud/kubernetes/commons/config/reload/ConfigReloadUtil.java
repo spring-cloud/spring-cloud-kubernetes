@@ -171,19 +171,19 @@ public final class ConfigReloadUtil {
 
 	/**
 	 * Determines if two property sources are different.
-	 * @param left left map property sources
-	 * @param right right map property sources
+	 * @param k8sSource left map property sources
+	 * @param appSource right map property sources
 	 * @return {@code true} if source has changed
 	 */
-	static boolean changed(MapPropertySource left, MapPropertySource right) {
-		if (left == right) {
+	static boolean changed(MapPropertySource k8sSource, MapPropertySource appSource) {
+		if (k8sSource == appSource) {
 			return false;
 		}
-		if (left == null || right == null) {
+		if (k8sSource == null || appSource == null) {
 			return true;
 		}
-		Map<String, Object> leftMap = left.getSource();
-		Map<String, Object> rightMap = right.getSource();
+		Map<String, Object> leftMap = k8sSource.getSource();
+		Map<String, Object> rightMap = appSource.getSource();
 		return !Objects.equals(leftMap, rightMap);
 	}
 
