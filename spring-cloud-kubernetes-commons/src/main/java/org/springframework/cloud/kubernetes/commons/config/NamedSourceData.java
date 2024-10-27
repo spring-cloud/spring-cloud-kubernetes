@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,8 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  * prefix based properties and single file yaml/properties.
  */
 public abstract class NamedSourceData {
+
+	private static final Log LOG = LogFactory.getLog(NamedSourceData.class);
 
 	public final SourceData compute(String sourceName, ConfigUtils.Prefix prefix, String target, boolean profileSources,
 			boolean failFast, String namespace, String[] activeProfiles) {
@@ -50,7 +55,9 @@ public abstract class NamedSourceData {
 			data = dataSupplier(sourceNames);
 
 			if (data.names().isEmpty()) {
-				return SourceData.emptyRecord(ConfigUtils.sourceName(target, sourceName, namespace));
+				String emptySourceName = ConfigUtils.sourceName(target, sourceName, namespace);
+				LOG.debug("Will return empty source with name : " + emptySourceName);
+				return SourceData.emptyRecord(emptySourceName);
 			}
 
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
