@@ -182,9 +182,9 @@ public final class ConfigReloadUtil {
 		if (k8sSource == null || appSource == null) {
 			return true;
 		}
-		Map<String, Object> leftMap = k8sSource.getSource();
-		Map<String, Object> rightMap = appSource.getSource();
-		return !Objects.equals(leftMap, rightMap);
+		Map<String, Object> k8sMap = k8sSource.getSource();
+		Map<String, Object> appMap = appSource.getSource();
+		return !Objects.equals(k8sMap, appMap);
 	}
 
 }
