@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
@@ -42,7 +42,7 @@ public abstract class NamedSourceData {
 		// first comes non-profile based source
 		sourceNames.add(sourceName);
 
-		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
+		MultipleSourcesContainer data;
 
 		try {
 			if (profileSources) {
