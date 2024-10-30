@@ -150,7 +150,7 @@ public final class ConfigReloadUtil {
 				LOG.debug("app property sources size size: " + appSources.size());
 				appSources.forEach(item -> LOG.debug(item.toString()));
 			}
-			LOG.warn(() -> "The current number of ConfigMap PropertySources does not match "
+			LOG.warn(() -> "The current number of PropertySources does not match "
 					+ "the ones loaded from Kubernetes - No reload will take place");
 			return false;
 		}
