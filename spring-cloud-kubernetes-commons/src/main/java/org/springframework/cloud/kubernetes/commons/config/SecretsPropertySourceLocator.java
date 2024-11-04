@@ -91,7 +91,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				uniqueSources.forEach(s -> {
 					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(env, s);
 					LOG.debug("Adding secret property source " + propertySource.getName());
-					composite.addPropertySource(propertySource);
+					composite.addFirstPropertySource(propertySource);
 				});
 			}
 

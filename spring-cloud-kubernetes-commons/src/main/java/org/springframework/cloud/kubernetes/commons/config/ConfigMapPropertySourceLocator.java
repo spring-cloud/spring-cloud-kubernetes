@@ -85,7 +85,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 				sources.forEach(s -> {
 					MapPropertySource propertySource = getMapPropertySource(s, env);
 					LOG.debug("Adding config map property source " + propertySource.getName());
-					composite.addPropertySource(propertySource);
+					composite.addFirstPropertySource(propertySource);
 				});
 			}
 
