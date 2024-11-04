@@ -42,7 +42,7 @@ public abstract class NamedSourceData {
 		// first comes non-profile based source
 		sourceNames.add(sourceName);
 
-		MultipleSourcesContainer data;
+		MultipleSourcesContainer data = MultipleSourcesContainer.empty();;
 
 		try {
 			if (profileSources) {
@@ -70,7 +70,6 @@ public abstract class NamedSourceData {
 		}
 		catch (Exception e) {
 			onException(failFast, e);
-			return SourceData.emptyRecord("generated-on-failure");
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
