@@ -42,7 +42,7 @@ public abstract class NamedSourceData {
 		// first comes non-profile based source
 		sourceNames.add(sourceName);
 
-		MultipleSourcesContainer data = MultipleSourcesContainer.empty();;
+		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 
 		try {
 			if (profileSources) {
