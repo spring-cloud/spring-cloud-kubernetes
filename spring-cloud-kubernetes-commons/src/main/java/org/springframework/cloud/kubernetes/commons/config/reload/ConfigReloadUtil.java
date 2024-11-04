@@ -159,8 +159,6 @@ public final class ConfigReloadUtil {
 			MapPropertySource k8sSource = k8sSources.get(i);
 			MapPropertySource appSource = appSources.get(i);
 			if (changed(k8sSource, appSource)) {
-				LOG.debug(() -> "k8sSource : " + k8sSource);
-				LOG.debug(() -> "appSource : " + appSource);
 				LOG.debug(() -> "found change in : " + k8sSource);
 				return true;
 			}
