@@ -229,6 +229,9 @@ public final class ConfigUtils {
 							environment, includeDefaultProfileData));
 				}
 			}
+			else {
+				LOG.warn("sourceName : " + sourceName + " was requested, but not found in namespace : " + namespace);
+			}
 		});
 
 		return new MultipleSourcesContainer(foundSourceNames, data);
