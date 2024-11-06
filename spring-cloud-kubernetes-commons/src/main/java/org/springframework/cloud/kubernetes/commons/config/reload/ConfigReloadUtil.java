@@ -141,25 +141,25 @@ public final class ConfigReloadUtil {
 		return result;
 	}
 
-	static boolean changed(List<? extends MapPropertySource> left, List<? extends MapPropertySource> right) {
-		if (left.size() != right.size()) {
+	static boolean changed(List<? extends MapPropertySource> k8sSources, List<? extends MapPropertySource> appSources) {
+		if (k8sSources.size() != appSources.size()) {
 			if (LOG.isDebugEnabled()) {
-				LOG.debug("left size: " + left.size());
-				left.forEach(item -> LOG.debug(item.toString()));
+				LOG.debug("k8s property sources size: " + k8sSources.size());
+				k8sSources.forEach(item -> LOG.debug(item.toString()));
 
-				LOG.debug("right size: " + right.size());
-				right.forEach(item -> LOG.debug(item.toString()));
+				LOG.debug("app property sources size size: " + appSources.size());
+				appSources.forEach(item -> LOG.debug(item.toString()));
 			}
-			LOG.warn(() -> "The current number of ConfigMap PropertySources does not match "
+			LOG.warn(() -> "The current number of PropertySources does not match "
 					+ "the ones loaded from Kubernetes - No reload will take place");
 			return false;
 		}
 
-		for (int i = 0; i < left.size(); i++) {
-			MapPropertySource leftPropertySource = left.get(i);
-			MapPropertySource rightPropertySource = right.get(i);
-			if (changed(leftPropertySource, rightPropertySource)) {
-				LOG.debug(() -> "found change in : " + leftPropertySource);
+		for (int i = 0; i < k8sSources.size(); i++) {
+			MapPropertySource k8sSource = k8sSources.get(i);
+			MapPropertySource appSource = appSources.get(i);
+			if (changed(k8sSource, appSource)) {
+				LOG.debug(() -> "found change in : " + k8sSource);
 				return true;
 			}
 		}
@@ -169,20 +169,20 @@ public final class ConfigReloadUtil {
 
 	/**
 	 * Determines if two property sources are different.
-	 * @param left left map property sources
-	 * @param right right map property sources
+	 * @param k8sSource left map property sources
+	 * @param appSource right map property sources
 	 * @return {@code true} if source has changed
 	 */
-	static boolean changed(MapPropertySource left, MapPropertySource right) {
-		if (left == right) {
+	static boolean changed(MapPropertySource k8sSource, MapPropertySource appSource) {
+		if (k8sSource == appSource) {
 			return false;
 		}
-		if (left == null || right == null) {
+		if (k8sSource == null || appSource == null) {
 			return true;
 		}
-		Map<String, Object> leftMap = left.getSource();
-		Map<String, Object> rightMap = right.getSource();
-		return !Objects.equals(leftMap, rightMap);
+		Map<String, Object> k8sMap = k8sSource.getSource();
+		Map<String, Object> appMap = appSource.getSource();
+		return !Objects.equals(k8sMap, appMap);
 	}
 
 }
