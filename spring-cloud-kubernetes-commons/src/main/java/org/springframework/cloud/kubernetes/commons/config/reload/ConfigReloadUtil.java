@@ -60,8 +60,13 @@ public final class ConfigReloadUtil {
 	public static boolean reload(PropertySourceLocator locator, ConfigurableEnvironment environment,
 			Class<? extends MapPropertySource> existingSourcesType) {
 
-		List<? extends MapPropertySource> sourceFromK8s = locateMapPropertySources(locator, environment);
 		List<? extends MapPropertySource> existingSources = findPropertySources(existingSourcesType, environment);
+
+		if (existingSources.isEmpty()) {
+			LOG.debug(() -> "no existingSources found, reload will not happen");
+		}
+
+		List<? extends MapPropertySource> sourceFromK8s = locateMapPropertySources(locator, environment);
 
 		boolean changed = changed(sourceFromK8s, existingSources);
 		if (changed) {
