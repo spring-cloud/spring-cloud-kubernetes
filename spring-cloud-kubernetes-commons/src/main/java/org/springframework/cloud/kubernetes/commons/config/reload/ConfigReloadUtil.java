@@ -64,6 +64,7 @@ public final class ConfigReloadUtil {
 
 		if (existingSources.isEmpty()) {
 			LOG.debug(() -> "no existingSources found, reload will not happen");
+			return false;
 		}
 
 		List<? extends MapPropertySource> sourceFromK8s = locateMapPropertySources(locator, environment);
