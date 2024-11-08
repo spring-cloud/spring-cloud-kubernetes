@@ -44,12 +44,30 @@ public final class ConfigReloadUtil {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ConfigReloadUtil.class));
 
-	public static boolean reload(String target, String eventSourceType, PropertySourceLocator locator,
+	/**
+	 * used for the event based reloading.
+	 */
+	public static boolean reload(String target, String sourceAsString, PropertySourceLocator locator,
 			ConfigurableEnvironment environment, Class<? extends MapPropertySource> existingSourcesType) {
-		LOG.debug(() -> "onEvent " + target + ": " + eventSourceType);
+		LOG.debug(() -> "onEvent " + target + ": " + sourceAsString);
+
+		return reload(locator, environment, existingSourcesType);
+	}
+
+	/**
+	 * used for the poll based reloading.
+	 */
+	public static boolean reload(PropertySourceLocator locator, ConfigurableEnvironment environment,
+			Class<? extends MapPropertySource> existingSourcesType) {
+
+		List<? extends MapPropertySource> existingSources = findPropertySources(existingSourcesType, environment);
+
+		if (existingSources.isEmpty()) {
+			LOG.debug(() -> "no existingSources found, reload will not happen");
+			return false;
+		}
 
 		List<? extends MapPropertySource> sourceFromK8s = locateMapPropertySources(locator, environment);
-		List<? extends MapPropertySource> existingSources = findPropertySources(existingSourcesType, environment);
 
 		boolean changed = changed(sourceFromK8s, existingSources);
 		if (changed) {
@@ -67,7 +85,9 @@ public final class ConfigReloadUtil {
 	 * @param <S> property source type
 	 * @param sourceClass class for which property sources will be found
 	 * @return finds all registered property sources of the given type
+	 * @deprecated this method will not be public in the next major release.
 	 */
+	@Deprecated(forRemoval = false)
 	public static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
 			ConfigurableEnvironment environment) {
 		List<S> managedSources = new ArrayList<>();
