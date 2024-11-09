@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
@@ -42,6 +43,11 @@ class Fabric8ConfigMapPropertySourceTests {
 
 	private static final ConfigUtils.Prefix DEFAULT = ConfigUtils.findPrefix("default", false, false, "irrelevant");
 
+	@BeforeEach
+	void beforeEach() {
+		mockClient.getConfiguration().setRequestRetryBackoffLimit(1);
+	}
+
 	@AfterEach
 	void afterEach() {
 		new Fabric8ConfigMapsCache().discardAll();
@@ -51,7 +57,7 @@ class Fabric8ConfigMapPropertySourceTests {
 	void constructorShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
 		String name = "my-config";
 		String namespace = "default";
-		String path = String.format("/api/v1/namespaces/%s/configmaps", namespace);
+		String path = "/api/v1/namespaces/" + namespace + "/configmaps";
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, DEFAULT, true);
@@ -64,11 +70,11 @@ class Fabric8ConfigMapPropertySourceTests {
 	void constructorShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
 		String name = "my-config";
 		String namespace = "default";
-		String path = String.format("/api/v1/namespaces/%s/configmaps/%s", namespace, name);
+		String path = "/api/v1/namespaces/" + namespace + "/configmaps";
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
 		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(context));
 	}
 
