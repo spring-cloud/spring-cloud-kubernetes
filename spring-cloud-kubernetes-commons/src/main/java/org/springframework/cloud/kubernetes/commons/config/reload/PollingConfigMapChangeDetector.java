@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.time.Duration;
-import java.util.List;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
@@ -28,10 +27,6 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
-
-import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.changed;
-import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.findPropertySources;
-import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.locateMapPropertySources;
 
 /**
  * A change detector that periodically retrieves configmaps and fire a reload when
@@ -75,22 +70,12 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 	}
 
 	private void executeCycle() {
-
-		boolean changedConfigMap = false;
 		if (monitorConfigMaps) {
-			log.debug("Polling for changes in config maps");
-			List<? extends MapPropertySource> currentConfigMapSources = findPropertySources(propertySourceClass,
-					environment);
-
-			if (!currentConfigMapSources.isEmpty()) {
-				changedConfigMap = changed(locateMapPropertySources(this.propertySourceLocator, this.environment),
-						currentConfigMapSources);
+			boolean changedConfigMap = ConfigReloadUtil.reload(propertySourceLocator, environment, propertySourceClass);
+			if (changedConfigMap) {
+				log.info("Detected change in config maps");
+				reloadProperties();
 			}
-		}
-
-		if (changedConfigMap) {
-			log.info("Detected change in config maps");
-			reloadProperties();
 		}
 	}
 

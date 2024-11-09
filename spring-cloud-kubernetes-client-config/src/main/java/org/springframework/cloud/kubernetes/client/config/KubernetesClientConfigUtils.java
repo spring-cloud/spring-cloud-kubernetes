@@ -143,7 +143,7 @@ public final class KubernetesClientConfigUtils {
 	private static List<StrippedSourceContainer> strippedSecrets(CoreV1Api coreV1Api, String namespace) {
 		List<StrippedSourceContainer> strippedSecrets = KubernetesClientSecretsCache.byNamespace(coreV1Api, namespace);
 		if (strippedSecrets.isEmpty()) {
-			LOG.debug("No configmaps in namespace '" + namespace + "'");
+			LOG.debug("No secrets in namespace '" + namespace + "'");
 		}
 		return strippedSecrets;
 	}

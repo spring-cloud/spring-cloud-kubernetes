@@ -59,7 +59,8 @@ public final class ConfigUtils {
 					|| sourceName.endsWith("-" + activeProfile + ".yaml")
 					|| sourceName.endsWith("-" + activeProfile + ".properties");
 
-	private static final ApplicationListener<?> NO_OP = (e) -> { };
+	private static final ApplicationListener<?> NO_OP = (e) -> {
+	};
 
 	private ConfigUtils() {
 	}
@@ -207,7 +208,7 @@ public final class ConfigUtils {
 		sourceNames.forEach(sourceName -> {
 			StrippedSourceContainer stripped = hashByName.get(sourceName);
 			if (stripped != null) {
-				LOG.debug("Found source with name : '" + sourceName + " in namespace: '" + namespace + "'");
+				LOG.debug("Found source with name : '" + sourceName + "' in namespace: '" + namespace + "'");
 				foundSourceNames.add(sourceName);
 				// see if data is a single yaml/properties file and if it needs decoding
 				Map<String, String> rawData = stripped.data();
@@ -225,6 +226,9 @@ public final class ConfigUtils {
 					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
 							environment, includeDefaultProfileData));
 				}
+			}
+			else {
+				LOG.warn("sourceName : " + sourceName + " was requested, but not found in namespace : " + namespace);
 			}
 		});
 
