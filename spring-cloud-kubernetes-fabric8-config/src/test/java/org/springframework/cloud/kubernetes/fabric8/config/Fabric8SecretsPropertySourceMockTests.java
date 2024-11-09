@@ -22,6 +22,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
@@ -42,6 +43,11 @@ class Fabric8SecretsPropertySourceMockTests {
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient client;
+
+	@BeforeAll
+	static void beforeAll() {
+		client.getConfiguration().setRequestRetryBackoffInterval(1);
+	}
 
 	@Test
 	void namedStrategyShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {

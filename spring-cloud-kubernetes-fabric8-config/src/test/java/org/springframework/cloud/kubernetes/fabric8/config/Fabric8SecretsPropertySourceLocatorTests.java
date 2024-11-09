@@ -22,6 +22,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -38,9 +39,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @EnableKubernetesMockClient
 class Fabric8SecretsPropertySourceLocatorTests {
 
-	KubernetesMockServer mockServer;
+	private static KubernetesMockServer mockServer;
 
-	KubernetesClient mockClient;
+	private static KubernetesClient mockClient;
+
+	@BeforeAll
+	static void beforeAll() {
+		mockClient.getConfiguration().setRequestRetryBackoffInterval(1);
+	}
 
 	@Test
 	void locateShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
