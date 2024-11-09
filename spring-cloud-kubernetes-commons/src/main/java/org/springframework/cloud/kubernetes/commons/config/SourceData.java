@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -25,10 +24,10 @@ import java.util.Map;
  *
  * @author wind57
  */
-public final record SourceData(String sourceName, Map<String, Object> sourceData) {
+public record SourceData(String sourceName, Map<String, Object> sourceData) {
 
 	public static SourceData emptyRecord(String sourceName) {
-		return new SourceData(sourceName, Collections.emptyMap());
+		return new SourceData(sourceName, Map.of());
 	}
 
 }
