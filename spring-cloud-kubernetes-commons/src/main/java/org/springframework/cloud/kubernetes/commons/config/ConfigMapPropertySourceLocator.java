@@ -82,7 +82,11 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
-				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
+				sources.forEach(s -> {
+					MapPropertySource propertySource = getMapPropertySource(s, env);
+					LOG.debug("Adding config map property source " + propertySource.getName());
+					composite.addFirstPropertySource(propertySource);
+				});
 			}
 
 			addPropertySourcesFromPaths(environment, composite);
