@@ -21,8 +21,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import static org.springframework.cloud.kubernetes.commons.config.SourceData.EMPTY_SOURCE_NAME_ON_ERROR;
 
 /**
  * @author wind57
@@ -32,10 +36,12 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  */
 public abstract class LabeledSourceData {
 
+	private static final Log LOG = LogFactory.getLog(LabeledSourceData.class);
+
 	public final SourceData compute(Map<String, String> labels, ConfigUtils.Prefix prefix, String target,
 			boolean profileSources, boolean failFast, String namespace, String[] activeProfiles) {
 
-		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
+		MultipleSourcesContainer data;
 
 		try {
 			Set<String> profiles = Set.of();
@@ -73,7 +79,9 @@ public abstract class LabeledSourceData {
 			}
 		}
 		catch (Exception e) {
+			LOG.warn("failure in reading labeled sources");
 			onException(failFast, e);
+			return SourceData.emptyRecord(EMPTY_SOURCE_NAME_ON_ERROR);
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));

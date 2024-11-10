@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import static org.springframework.cloud.kubernetes.commons.config.SourceData.EMPTY_SOURCE_NAME_ON_ERROR;
 
 /**
  * @author wind57
@@ -42,7 +43,7 @@ public abstract class NamedSourceData {
 		// first comes non-profile based source
 		sourceNames.add(sourceName);
 
-		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
+		MultipleSourcesContainer data;
 
 		try {
 			if (profileSources) {
@@ -69,7 +70,9 @@ public abstract class NamedSourceData {
 
 		}
 		catch (Exception e) {
+			LOG.warn("failure in reading named sources");
 			onException(failFast, e);
+			return SourceData.emptyRecord(EMPTY_SOURCE_NAME_ON_ERROR);
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
