@@ -1,0 +1,374 @@
+/*
+ * Copyright 2013-2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.kubernetes.client.config;
+
+import java.util.List;
+import java.util.Map;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
+import io.kubernetes.client.util.ClientBuilder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
+import org.springframework.core.env.CompositePropertySource;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.PropertySource;
+import org.springframework.mock.env.MockEnvironment;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * @author wind57
+ */
+@ExtendWith(OutputCaptureExtension.class)
+class KubernetesClientConfigMapErrorOnReadingSourceTests {
+
+	private static final V1ConfigMapList SINGLE_CONFIGMAP_LIST = new V1ConfigMapList()
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(
+					new V1ObjectMetaBuilder().withName("two").withNamespace("default").withResourceVersion("1").build())
+			.build());
+
+	private static final V1ConfigMapList DOUBLE_CONFIGMAP_LIST = new V1ConfigMapList()
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(
+					new V1ObjectMetaBuilder().withName("one").withNamespace("default").withResourceVersion("1").build())
+			.build())
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(
+					new V1ObjectMetaBuilder().withName("two").withNamespace("default").withResourceVersion("1").build())
+			.build());
+
+	private static WireMockServer wireMockServer;
+
+	@BeforeAll
+	public static void setup() {
+		wireMockServer = new WireMockServer(options().dynamicPort());
+
+		wireMockServer.start();
+		WireMock.configureFor("localhost", wireMockServer.port());
+
+		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
+		client.setDebugging(true);
+		Configuration.setDefaultApiClient(client);
+	}
+
+	@AfterAll
+	public static void after() {
+		wireMockServer.stop();
+	}
+
+	@AfterEach
+	public void afterEach() {
+		WireMock.reset();
+	}
+
+	/**
+	 * <pre>
+	 *     we try to read all config maps in a namespace and fail,
+	 *     thus generate a well defined name for the source.
+	 * </pre>
+	 */
+	@Test
+	void namedSingleConfigMapFails() {
+		String name = "my-config";
+		String namespace = "spring-k8s";
+		String path = "/api/v1/namespaces/" + namespace + "/configmaps";
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
+				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
+
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
+		MapPropertySource mapPropertySource = (MapPropertySource) propertySource.getPropertySources()
+			.stream()
+			.findAny()
+			.orElseThrow();
+
+		assertThat(mapPropertySource.getName()).isEqualTo(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+
+	}
+
+	/**
+	 * <pre>
+	 *     there are two sources and we try to read them.
+	 *     one fails and one passes.
+	 * </pre>
+	 */
+	@Test
+	void namedTwoConfigMapsOneFails(CapturedOutput output) {
+		String configMapNameOne = "one";
+		String configMapNameTwo = "two";
+		String namespace = "default";
+		String path = "/api/v1/namespaces/default/configmaps";
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.willSetStateTo("go-to-next"));
+
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SINGLE_CONFIGMAP_LIST)))
+			.inScenario("started")
+			.whenScenarioStateIs("go-to-next")
+			.willSetStateTo("done"));
+
+		ConfigMapConfigProperties.Source sourceOne = new ConfigMapConfigProperties.Source(configMapNameOne, namespace,
+				Map.of(), null, null, null);
+		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(configMapNameTwo, namespace,
+				Map.of(), null, null, null);
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
+				RetryProperties.DEFAULT);
+
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
+		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
+
+		// two sources are present, one being empty
+		assertThat(names).containsExactly("configmap.two.default", SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(output.getOut())
+			.doesNotContain("sourceName : two was requested, but not found in namespace : default");
+
+	}
+
+	/**
+	 * <pre>
+	 *     there are two sources and we try to read them.
+	 *     both fail.
+	 * </pre>
+	 */
+	@Test
+	void namedTwoConfigMapsBothFail(CapturedOutput output) {
+		String configMapNameOne = "one";
+		String configMapNameTwo = "two";
+		String namespace = "default";
+		String path = "/api/v1/namespaces/default/configmaps";
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.willSetStateTo("go-to-next"));
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.whenScenarioStateIs("go-to-next")
+			.willSetStateTo("done"));
+
+		ConfigMapConfigProperties.Source sourceOne = new ConfigMapConfigProperties.Source(configMapNameOne, namespace,
+				Map.of(), null, null, null);
+		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(configMapNameTwo, namespace,
+				Map.of(), null, null, null);
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
+				RetryProperties.DEFAULT);
+
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
+		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
+
+		assertThat(names).containsExactly(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(output.getOut())
+			.doesNotContain("sourceName : one was requested, but not found in namespace : default");
+		assertThat(output.getOut())
+			.doesNotContain("sourceName : two was requested, but not found in namespace : default");
+	}
+
+	/**
+	 * <pre>
+	 *     we try to read all config maps in a namespace and fail,
+	 *     thus generate a well defined name for the source.
+	 * </pre>
+	 */
+	@Test
+	void labeledSingleConfigMapFails(CapturedOutput output) {
+		Map<String, String> labels = Map.of("a", "b");
+		String namespace = "spring-k8s";
+		String path = "/api/v1/namespaces/" + namespace + "/configmaps";
+
+		// one for the 'application' named configmap
+		// the other for the labeled config map
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.willSetStateTo("go-to-next"));
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.whenScenarioStateIs("go-to-next")
+			.willSetStateTo("done"));
+
+		ConfigMapConfigProperties.Source configMapSource = new ConfigMapConfigProperties.Source(null, namespace, labels,
+				null, null, null);
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+				List.of(configMapSource), labels, true, null, namespace, false, true, false, RetryProperties.DEFAULT);
+
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
+		List<String> sourceNames = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
+
+		assertThat(sourceNames).containsExactly(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(output).contains("failure in reading labeled sources");
+		assertThat(output).contains("failure in reading named sources");
+	}
+
+	/**
+	 * <pre>
+	 *     there are two sources and we try to read them.
+	 *     one fails and one passes.
+	 * </pre>
+	 */
+	@Test
+	void labeledTwoConfigMapsOneFails(CapturedOutput output) {
+		String configMapNameOne = "one";
+		String configMapNameTwo = "two";
+
+		Map<String, String> configMapOneLabels = Map.of("one", "1");
+		Map<String, String> configMapTwoLabels = Map.of("two", "2");
+
+		String namespace = "default";
+		String path = "/api/v1/namespaces/default/configmaps";
+
+		// one for 'application' named configmap and one for the first labeled configmap
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.willSetStateTo("first"));
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.whenScenarioStateIs("first")
+			.willSetStateTo("second"));
+
+		// one that passes
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(DOUBLE_CONFIGMAP_LIST)))
+			.inScenario("started")
+			.whenScenarioStateIs("second")
+			.willSetStateTo("done"));
+
+		ConfigMapConfigProperties.Source sourceOne = new ConfigMapConfigProperties.Source(null, namespace,
+				configMapOneLabels, null, null, null);
+		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(null, namespace,
+				configMapTwoLabels, null, null, null);
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
+				false, RetryProperties.DEFAULT);
+
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
+		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
+
+		// two sources are present, one being empty
+		assertThat(names).containsExactly("configmap.two.default", SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+
+		assertThat(output).contains("failure in reading labeled sources");
+		assertThat(output).contains("failure in reading named sources");
+
+	}
+
+	/**
+	 * <pre>
+	 *     there are two sources and we try to read them.
+	 *     both fail.
+	 * </pre>
+	 */
+	@Test
+	void labeledTwoConfigMapsBothFail(CapturedOutput output) {
+
+		Map<String, String> configMapOneLabels = Map.of("one", "1");
+		Map<String, String> configMapTwoLabels = Map.of("two", "2");
+
+		String namespace = "default";
+		String path = "/api/v1/namespaces/default/configmaps";
+
+		// one for 'application' named configmap and two for the labeled configmaps
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.willSetStateTo("first"));
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.whenScenarioStateIs("first")
+			.willSetStateTo("second"));
+
+		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario("started")
+			.whenScenarioStateIs("second")
+			.willSetStateTo("done"));
+
+		ConfigMapConfigProperties.Source sourceOne = new ConfigMapConfigProperties.Source(null, namespace,
+				configMapOneLabels, null, null, null);
+		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(null, namespace,
+				configMapTwoLabels, null, null, null);
+
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
+				false, RetryProperties.DEFAULT);
+
+		CoreV1Api api = new CoreV1Api();
+		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
+				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
+
+		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
+		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
+
+		// all 3 sources ('application' named source, and two labeled sources)
+		assertThat(names).containsExactly(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+
+		assertThat(output).contains("failure in reading labeled sources");
+		assertThat(output).contains("failure in reading named sources");
+
+	}
+
+}
