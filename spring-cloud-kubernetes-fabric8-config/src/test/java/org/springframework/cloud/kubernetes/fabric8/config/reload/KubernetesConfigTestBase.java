@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload_simple;
+package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -27,7 +27,6 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.bootstrap.BootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPropertiesAutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8ConfigReloadAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**

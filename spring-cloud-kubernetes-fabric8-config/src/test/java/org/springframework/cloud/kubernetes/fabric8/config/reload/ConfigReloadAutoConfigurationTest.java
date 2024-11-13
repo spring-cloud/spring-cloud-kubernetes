@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload_simple;
+package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -35,8 +35,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedSecretsChangeDetector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
