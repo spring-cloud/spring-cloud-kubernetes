@@ -19,16 +19,16 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 
 /**
- * Only needed to make Fabric8ConfigMapPropertySourceLocator visible for testing purposes
+ * Only needed to make Fabric8SecretsPropertySourceLocator visible for testing purposes
  *
  * @author wind57
  */
-public class VisibleFabric8ConfigMapPropertySourceLocator extends Fabric8ConfigMapPropertySourceLocator {
+public class VisibleFabric8SecretsPropertySourceLocator extends Fabric8SecretsPropertySourceLocator {
 
-	public VisibleFabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
+	public VisibleFabric8SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
 		super(client, properties, provider);
 	}

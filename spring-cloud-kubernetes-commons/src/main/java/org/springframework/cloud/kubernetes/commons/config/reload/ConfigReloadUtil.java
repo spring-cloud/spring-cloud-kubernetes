@@ -72,11 +72,11 @@ public final class ConfigReloadUtil {
 
 		boolean changed = changed(sourceFromK8s, existingSources);
 		if (changed) {
-			LOG.info("Detected change in config maps/secrets");
+			LOG.info("Detected change in config maps/secrets, reload will ne triggered");
 			return true;
 		}
 		else {
-			LOG.debug("No change detected in config maps/secrets, reload will not happen");
+			LOG.debug("reloadable condition was not satisfied, reload will not be triggered");
 		}
 
 		return false;
