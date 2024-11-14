@@ -49,12 +49,16 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.PollingSecretsChangeDetector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
@@ -168,13 +172,13 @@ class PollingReloadSecretTest {
 
 		@Bean
 		@Primary
-		PollingConfigMapChangeDetector pollingConfigMapChangeDetector(AbstractEnvironment environment,
+		PollingSecretsChangeDetector pollingSecretsChangeDetector(AbstractEnvironment environment,
 				ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
-																	  KubernetesClientConfigMapPropertySourceLocator kubernetesClientConfigMapPropertySourceLocator) {
+				KubernetesClientSecretsPropertySourceLocator kubernetesClientSecretsPropertySourceLocator) {
 			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 			scheduler.initialize();
-			return new PollingConfigMapChangeDetector(environment, configReloadProperties, configurationUpdateStrategy,
-				KubernetesClientConfigMapPropertySource.class, kubernetesClientConfigMapPropertySourceLocator, scheduler);
+			return new PollingSecretsChangeDetector(environment, configReloadProperties, configurationUpdateStrategy,
+				KubernetesClientSecretsPropertySource.class, kubernetesClientSecretsPropertySourceLocator, scheduler);
 		}
 
 		@Bean
@@ -207,8 +211,8 @@ class PollingReloadSecretTest {
 
 		@Bean
 		@Primary
-		ConfigMapConfigProperties configMapConfigProperties() {
-			return new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true, SECRET_NAME, NAMESPACE,
+		SecretsConfigProperties configMapConfigProperties() {
+			return new SecretsConfigProperties(true, List.of(), List.of(), Map.of(), true, SECRET_NAME, NAMESPACE,
 				false, true, FAIL_FAST, RetryProperties.DEFAULT);
 		}
 
@@ -228,7 +232,7 @@ class PollingReloadSecretTest {
 
 		@Bean
 		@Primary
-		KubernetesClientConfigMapPropertySourceLocator kubernetesClientConfigMapPropertySourceLocator(
+		KubernetesClientSecretsPropertySourceLocator kubernetesClientSecretsPropertySourceLocator(
 			ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
 			return new KubernetesClientConfigMapPropertySourceLocator(coreV1Api, configMapConfigProperties,
 				namespaceProvider);
