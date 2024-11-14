@@ -54,14 +54,10 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
- * set 'spring.cloud.kubernetes.reload.enabled=false' so that auto-configuration does not
- * kick in, as we create our own config for the test here.
- *
  * @author wind57
  */
 @SpringBootTest(
-		properties = { "spring.main.cloud-platform=kubernetes", "spring.main.allow-bean-definition-overriding=true",
-				"spring.cloud.kubernetes.reload.enabled=false",
+		properties = { "spring.main.allow-bean-definition-overriding=true",
 				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { EventReloadConfigMapTest.TestConfig.class })
 @EnableKubernetesMockClient(crud = true)

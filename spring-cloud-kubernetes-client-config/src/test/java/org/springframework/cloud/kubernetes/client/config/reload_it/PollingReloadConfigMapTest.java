@@ -62,14 +62,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
- * set 'spring.cloud.kubernetes.reload.enabled=false' so that auto-configuration does not
- * kick in, as we create our own config for the test here.
- *
  * @author wind57
  */
 @SpringBootTest(
-	properties = { "spring.main.cloud-platform=kubernetes", "spring.main.allow-bean-definition-overriding=true",
-		"spring.cloud.kubernetes.reload.enabled=false",
+	properties = {"spring.main.allow-bean-definition-overriding=true",
 		"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 	classes = { PollingReloadConfigMapTest.TestConfig.class })
 @ExtendWith(OutputCaptureExtension.class)
@@ -108,9 +104,11 @@ class PollingReloadConfigMapTest {
 		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
 			.inScenario("my-test").willSetStateTo("go-to-fail"));
 
+		// first reload call fails
 		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
 			.inScenario("my-test").whenScenarioStateIs("go-to-fail").willSetStateTo("go-to-ok"));
 
+		// second reload call passes
 		V1ConfigMap configMapTwo = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
 		V1ConfigMapList listTwo = new V1ConfigMapList().addItemsItem(configMapTwo);
 		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listTwo)))
