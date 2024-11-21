@@ -27,7 +27,7 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
 
 /**
  * @param enabled if kubernetes discovery is enabled
- * @param allNamespaces if discover is enabled for all namespaces
+ * @param allNamespaces if discovery is enabled for all namespaces
  * @param namespaces If set and allNamespaces is false, then only the services and
  * endpoints matching these namespaces will be fetched from the Kubernetes API server.
  * @param waitCacheReady wait for the discovery cache (service and endpoints) to be fully
