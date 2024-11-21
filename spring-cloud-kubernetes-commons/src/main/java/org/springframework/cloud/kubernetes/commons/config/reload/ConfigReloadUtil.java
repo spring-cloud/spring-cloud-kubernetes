@@ -27,12 +27,13 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 
 /**
  * @author wind57
@@ -164,7 +165,7 @@ public final class ConfigReloadUtil {
 
 	static boolean changed(List<? extends MapPropertySource> k8sSources, List<? extends MapPropertySource> appSources) {
 
-		if (k8sSources.stream().anyMatch(source -> source.getName().equals(SourceData.EMPTY_SOURCE_NAME_ON_ERROR))) {
+		if (k8sSources.stream().anyMatch(source -> "true".equals(source.getProperty(ERROR_PROPERTY)))) {
 			LOG.info(() -> "there was an error while reading config maps/secrets, no reload will happen");
 			return false;
 		}

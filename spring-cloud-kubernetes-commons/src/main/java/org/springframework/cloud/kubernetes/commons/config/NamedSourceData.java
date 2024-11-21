@@ -17,14 +17,15 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
-import static org.springframework.cloud.kubernetes.commons.config.SourceData.EMPTY_SOURCE_NAME_ON_ERROR;
 
 /**
  * @author wind57
@@ -43,7 +44,7 @@ public abstract class NamedSourceData {
 		// first comes non-profile based source
 		sourceNames.add(sourceName);
 
-		MultipleSourcesContainer data;
+		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 
 		try {
 			if (profileSources) {
@@ -72,7 +73,7 @@ public abstract class NamedSourceData {
 		catch (Exception e) {
 			LOG.warn("failure in reading named sources");
 			onException(failFast, e);
-			return SourceData.emptyRecord(EMPTY_SOURCE_NAME_ON_ERROR);
+			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));

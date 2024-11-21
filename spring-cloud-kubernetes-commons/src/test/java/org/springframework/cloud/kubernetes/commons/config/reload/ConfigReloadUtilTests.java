@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
@@ -154,9 +154,8 @@ class ConfigReloadUtilTests {
 	@Test
 	void testEmptySourceNameOnError() {
 		Object value = new Object();
-		Map<String, Object> rightMap = new HashMap<>();
-		rightMap.put("key", value);
-		MapPropertySource left = new MapPropertySource(SourceData.EMPTY_SOURCE_NAME_ON_ERROR, Map.of());
+		Map<String, Object> rightMap = Map.of("key", value);
+		MapPropertySource left = new MapPropertySource("on-error", Map.of(Constants.ERROR_PROPERTY, "true"));
 		MapPropertySource right = new MapPropertySource("right", rightMap);
 		boolean changed = ConfigReloadUtil.changed(List.of(left), List.of(right));
 		assertThat(changed).isFalse();

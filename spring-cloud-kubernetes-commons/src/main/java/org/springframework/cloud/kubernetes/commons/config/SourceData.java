@@ -26,12 +26,6 @@ import java.util.Map;
  */
 public record SourceData(String sourceName, Map<String, Object> sourceData) {
 
-	/**
-	 * source name that is generated when there is an error reading the underlying
-	 * configmap(s) or secret(s).
-	 */
-	public static final String EMPTY_SOURCE_NAME_ON_ERROR = "source-generate-on-error";
-
 	public static SourceData emptyRecord(String sourceName) {
 		return new SourceData(sourceName, Map.of());
 	}
