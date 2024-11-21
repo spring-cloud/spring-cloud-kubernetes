@@ -61,8 +61,41 @@ final class TestUtil {
 			}
 						""";
 
+	private static final String USE_SHUTDOWN = """
+			{
+				"spec": {
+					"template": {
+						"spec": {
+							"containers": [{
+								"name": "spring-cloud-kubernetes-configuration-watcher",
+								"image": "image_name_here",
+								"env": [
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
+									"value": "DEBUG"
+								},
+								{
+									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CONFIGURATION_WATCHER",
+									"value": "DEBUG"
+								},
+								{
+									"name": "SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESH_STRATEGY",
+									"value": "shutdown"
+								}
+								]
+							}]
+						}
+					}
+				}
+			}
+						""";
+
 	static void patchForDisabledReload(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);
+	}
+
+	static void patchForShutdownRefresh(String deploymentName, String namespace, String imageName) {
+		patchWithReplace(imageName, deploymentName, namespace, USE_SHUTDOWN, POD_LABELS);
 	}
 
 }
