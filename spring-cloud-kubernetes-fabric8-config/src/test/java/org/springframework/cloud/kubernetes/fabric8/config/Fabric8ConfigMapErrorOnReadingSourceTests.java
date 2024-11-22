@@ -33,8 +33,8 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
-import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
@@ -85,7 +85,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 			.findAny()
 			.orElseThrow();
 
-		assertThat(mapPropertySource.getName()).isEqualTo(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(mapPropertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
 
 	}
 
@@ -123,8 +123,9 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		// two sources are present, one being empty
-		assertThat(names).containsExactly("configmap.two.default", SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		// two sources are present
+		assertThat(names).containsExactly("configmap.two.default", "configmap..default");
+		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
 
 	}
 
@@ -157,7 +158,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(names).containsExactly(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(names).containsExactly("configmap..default");
+		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
 
 	}
 
@@ -188,7 +190,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> sourceNames = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(sourceNames).containsExactly(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(sourceNames).containsExactly("configmap..spring-k8s");
+		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
 		assertThat(output).contains("failure in reading labeled sources");
 		assertThat(output).contains("failure in reading named sources");
 	}
@@ -234,7 +237,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
 		// two sources are present, one being empty
-		assertThat(names).containsExactly("configmap.two.default", SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(names).containsExactly("configmap.two.default", "configmap..default");
+		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
 
 		assertThat(output).contains("failure in reading labeled sources");
 		assertThat(output).contains("failure in reading named sources");
@@ -272,8 +276,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		// all 3 sources ('application' named source, and two labeled sources)
-		assertThat(names).containsExactly(SourceData.EMPTY_SOURCE_NAME_ON_ERROR);
+		assertThat(names).containsExactly("configmap..default");
+		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
 
 		assertThat(output).contains("failure in reading labeled sources");
 		assertThat(output).contains("failure in reading named sources");
