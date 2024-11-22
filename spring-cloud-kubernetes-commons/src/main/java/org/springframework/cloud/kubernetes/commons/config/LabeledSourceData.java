@@ -21,7 +21,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
@@ -31,6 +35,8 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.PROP
  * prefix based properties and single file yaml/properties.
  */
 public abstract class LabeledSourceData {
+
+	private static final Log LOG = LogFactory.getLog(LabeledSourceData.class);
 
 	public final SourceData compute(Map<String, String> labels, ConfigUtils.Prefix prefix, String target,
 			boolean profileSources, boolean failFast, String namespace, String[] activeProfiles) {
@@ -73,7 +79,9 @@ public abstract class LabeledSourceData {
 			}
 		}
 		catch (Exception e) {
+			LOG.warn("failure in reading labeled sources");
 			onException(failFast, e);
+			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
 		}
 
 		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
