@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +36,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
+import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -55,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Ryan Baxter
  * @author Isik Erhan
  */
+@ExtendWith(OutputCaptureExtension.class)
 class KubernetesClientConfigMapPropertySourceLocatorTests {
 
 	private static final V1ConfigMapList PROPERTIES_CONFIGMAP_LIST = new V1ConfigMapList()
@@ -185,7 +191,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 	}
 
 	@Test
-	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled() {
+	public void locateShouldNotThrowExceptionOnFailureWhenFailFastIsDisabled(CapturedOutput output) {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
 			.willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
@@ -196,7 +202,18 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
-		assertThatNoException().isThrownBy(() -> locator.locate(new MockEnvironment()));
+		List<PropertySource<?>> result = new ArrayList<>();
+		assertThatNoException().isThrownBy(() -> {
+			PropertySource<?> source = locator.locate(new MockEnvironment());
+			result.add(source);
+		});
+
+		assertThat(result.get(0)).isInstanceOf(CompositePropertySource.class);
+		CompositePropertySource composite = (CompositePropertySource) result.get(0);
+		assertThat(composite.getPropertySources()).hasSize(0);
+		assertThat(output.getOut()).contains("Failed to load source:");
+
+
 	}
 
 }

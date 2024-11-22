@@ -85,7 +85,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 				sources.forEach(s -> {
 					MapPropertySource propertySource = getMapPropertySource(s, env);
 					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
-						LOG.warn("Failed to load config map: " + s.name());
+						LOG.warn("Failed to load source: " + s);
 					}
 					else {
 						LOG.debug("Adding config map property source " + propertySource.getName());
