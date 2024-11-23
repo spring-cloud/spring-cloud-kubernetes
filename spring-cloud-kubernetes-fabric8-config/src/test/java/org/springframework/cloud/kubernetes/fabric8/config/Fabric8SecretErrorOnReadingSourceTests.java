@@ -77,7 +77,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		assertThat(propertySource.getPropertySources()).isEmpty();;
+		assertThat(propertySource.getPropertySources()).isEmpty();
 		assertThat(output.getOut()).contains("Failure in reading named sources");
 		assertThat(output.getOut()).contains("Failed to load source: { secret name : 'Optional[my-secret]'");
 
