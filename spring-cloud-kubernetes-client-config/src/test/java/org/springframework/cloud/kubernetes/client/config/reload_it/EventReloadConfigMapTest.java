@@ -201,8 +201,7 @@ class EventReloadConfigMapTest {
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-					List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true, FAIL_FAST,
-					RetryProperties.DEFAULT);
+					Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,
@@ -224,7 +223,7 @@ class EventReloadConfigMapTest {
 		@Bean
 		@Primary
 		ConfigMapConfigProperties configMapConfigProperties() {
-			return new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE,
+			return new ConfigMapConfigProperties(true, List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE,
 					false, true, FAIL_FAST, RetryProperties.DEFAULT);
 		}
 
