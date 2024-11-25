@@ -31,6 +31,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConditionalOnKubernet
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
+import org.springframework.cloud.util.ConditionalOnBootstrapEnabled;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -41,6 +42,7 @@ import org.springframework.context.annotation.Import;
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(KubernetesBootstrapConfiguration.class)
 @Import({ KubernetesCommonsAutoConfiguration.class, KubernetesClientAutoConfiguration.class })
+@ConditionalOnBootstrapEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public class KubernetesClientBootstrapConfiguration {
 
