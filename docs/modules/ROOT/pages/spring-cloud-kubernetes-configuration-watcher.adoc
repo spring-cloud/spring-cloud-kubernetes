@@ -193,6 +193,9 @@ change to a ConfigMap or Secret occurs then the HTTP implementation will use the
 instances of the application which match the name of the ConfigMap or Secret and send an HTTP POST request to the application's actuator
 `/refresh` endpoint.  By default, it will send the post request to `/actuator/refresh` using the port registered in the discovery client.
 
+You can also configure the configuration watcher to call the instances `shutdown` actuator endpoint.  To do this you can set
+`spring.cloud.kubernetes.configuration.watcher.refresh-strategy=shutdown`.
+
 ### Non-Default Management Port and Actuator Path
 
 If the application is using a non-default actuator path and/or using a different port for the management endpoints, the Kubernetes service for the application
@@ -224,7 +227,13 @@ Another way you can choose to configure the actuator path and/or management port
 ## Messaging Implementation
 
 The messaging implementation can be enabled by setting profile to either `bus-amqp` (RabbitMQ) or `bus-kafka` (Kafka) when the Spring Cloud Kubernetes Configuration Watcher
-application is deployed to Kubernetes.
+application is deployed to Kubernetes.  By default, when using the messaging implementation the configuration watcher will send a `RefreshRemoteApplicationEvent` using
+Spring Cloud Bus to all application instances.  This will cause the application instances to refresh the application's configuration properties without
+restarting the instance.
+
+You can also configure the configuration to shut down the application instances in order to refresh the application's configuration properties.
+When the application shuts down, Kubernetes will restart the application instance and the new configuration properties will be loaded.  To use
+this strategy set `spring.cloud.kubernetes.configuration.watcher.refresh-strategy=shutdown`.
 
 ## Configuring RabbitMQ
 

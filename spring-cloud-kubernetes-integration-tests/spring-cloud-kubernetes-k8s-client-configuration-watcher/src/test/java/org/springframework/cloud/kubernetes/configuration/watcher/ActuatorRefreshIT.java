@@ -126,6 +126,32 @@ class ActuatorRefreshIT {
 
 	}
 
+	void testActuatorShutdown() {
+		TestUtil.patchForShutdownRefresh(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, NAMESPACE, DOCKER_IMAGE);
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
+		await().timeout(Duration.ofSeconds(60))
+			.ignoreException(SocketTimeoutException.class)
+			.until(() -> WireMock
+				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/shutdown"))
+					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
+				.getResponse()
+				.wasConfigured());
+
+		createConfigMap();
+
+		// Wait a bit before we verify
+		await().atMost(Duration.ofSeconds(30))
+			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/shutdown")))
+				.isEmpty());
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/shutdown")));
+
+		deleteConfigMap();
+
+		// the other test
+		testActuatorRefreshReloadDisabled();
+
+	}
+
 	/*
 	 * same test as above, but reload is disabled.
 	 */
