@@ -57,7 +57,7 @@
 |spring.cloud.kubernetes.config.retry |  | 
 |spring.cloud.kubernetes.config.sources |  | 
 |spring.cloud.kubernetes.config.use-name-as-prefix | `+++false+++` | 
-|spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | if discover is enabled for all namespaces
+|spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | if discovery is enabled for all namespaces
 |spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | timeout for initializing discovery cache, will abort the application if exceeded.
 |spring.cloud.kubernetes.discovery.discovery-server-url |  | 
 |spring.cloud.kubernetes.discovery.enabled | `+++true+++` | if kubernetes discovery is enabled

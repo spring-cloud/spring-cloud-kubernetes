@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
+
+import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
@@ -145,6 +147,16 @@ class ConfigReloadUtilTests {
 		Assertions.assertEquals("plain", result.get(0).getProperty(""));
 		Assertions.assertEquals("from-bootstrap", result.get(1).getProperty(""));
 		Assertions.assertEquals("from-inner-two-composite", result.get(2).getProperty(""));
+	}
+
+	@Test
+	void testEmptySourceNameOnError() {
+		Object value = new Object();
+		Map<String, Object> rightMap = Map.of("key", value);
+		MapPropertySource left = new MapPropertySource("on-error", Map.of(Constants.ERROR_PROPERTY, "true"));
+		MapPropertySource right = new MapPropertySource("right", rightMap);
+		boolean changed = ConfigReloadUtil.changed(List.of(left), List.of(right));
+		assertThat(changed).isFalse();
 	}
 
 	private static final class OneComposite extends CompositePropertySource {
