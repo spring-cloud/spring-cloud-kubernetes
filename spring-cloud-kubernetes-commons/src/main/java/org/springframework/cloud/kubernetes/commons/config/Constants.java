@@ -63,6 +63,12 @@ public final class Constants {
 	 */
 	public static final String RELOAD_MODE = "spring.cloud.kubernetes.reload.mode";
 
+	/**
+	 * property set to true when there was an error reading config maps or secrets, when
+	 * generating a property source.
+	 */
+	public static final String ERROR_PROPERTY = "spring.cloud.k8s.error.reading.property.source";
+
 	private Constants() {
 	}
 
