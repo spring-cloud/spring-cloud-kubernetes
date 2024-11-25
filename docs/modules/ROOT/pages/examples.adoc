@@ -10,7 +10,7 @@ The same applies for `PropertySourceLocator`, where you need to add to the class
 
 The following projects highlight the usage of these dependencies and demonstrate how you can use these libraries from any Spring Boot application:
 
-* https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-examples[Spring Cloud Kubernetes Examples]: the ones located inside this repository.
+* https://github.com/spring-cloud/spring-cloud-kubernetes/tree/main/spring-cloud-kubernetes-examples[Spring Cloud Kubernetes Examples]: the ones located inside this repository.
 * Spring Cloud Kubernetes Full Example: Minions and Boss
 	** https://github.com/salaboy/spring-cloud-k8s-minion[Minion]
 	** https://github.com/salaboy/spring-cloud-k8s-boss[Boss]
