@@ -58,6 +58,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(OutputCaptureExtension.class)
 class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
+	private static final boolean NAMESPACE_BATCHED = true;
+
 	private static final V1ConfigMapList SINGLE_CONFIGMAP_LIST = new V1ConfigMapList()
 		.addItemsItem(new V1ConfigMapBuilder()
 			.withMetadata(
@@ -113,7 +115,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT, false);
+				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT, NAMESPACE_BATCHED);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -159,7 +161,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
 				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
-				RetryProperties.DEFAULT, false);
+				RetryProperties.DEFAULT, NAMESPACE_BATCHED);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -205,7 +207,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
 				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
-				RetryProperties.DEFAULT, false);
+				RetryProperties.DEFAULT, NAMESPACE_BATCHED);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -250,7 +252,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
 				List.of(configMapSource), labels, true, null, namespace, false, true, false, RetryProperties.DEFAULT,
-				false);
+				NAMESPACE_BATCHED);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -303,7 +305,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
 				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
-				false, RetryProperties.DEFAULT, false);
+				false, RetryProperties.DEFAULT, NAMESPACE_BATCHED);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -358,7 +360,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
 				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
-				false, RetryProperties.DEFAULT, false);
+				false, RetryProperties.DEFAULT, NAMESPACE_BATCHED);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,

@@ -50,6 +50,8 @@ import static org.springframework.cloud.kubernetes.commons.config.SecretsConfigP
 @ExtendWith(OutputCaptureExtension.class)
 class Fabric8SecretErrorOnReadingSourceTests {
 
+	private static final boolean NAMESPACED_BATCHED = true;
+
 	private static KubernetesMockServer mockServer;
 
 	private static KubernetesClient mockClient;
@@ -74,7 +76,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT, false);
+				List.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT, NAMESPACED_BATCHED);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -114,7 +116,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
 				List.of(sourceOne, sourceTwo), true, null, namespace, false, true, false, RetryProperties.DEFAULT,
-				false);
+				NAMESPACED_BATCHED);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -149,7 +151,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
 				List.of(sourceOne, sourceTwo), true, null, namespace, false, true, false, RetryProperties.DEFAULT,
-				false);
+				NAMESPACED_BATCHED);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -182,7 +184,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, labels, List.of(),
 				List.of(secretSource), true, null, namespace, false, true, false, RetryProperties.DEFAULT,
-				false);
+				NAMESPACED_BATCHED);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -228,7 +230,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true,
 				Map.of("one", "1", "two", "2"), List.of(), List.of(sourceOne, sourceTwo), true, null, namespace, false,
-				true, false, RetryProperties.DEFAULT, false);
+				true, false, RetryProperties.DEFAULT, NAMESPACED_BATCHED);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -268,7 +270,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true,
 				Map.of("one", "1", "two", "2"), List.of(), List.of(sourceOne, sourceTwo), true, null, namespace, false,
-				true, false, RetryProperties.DEFAULT, false);
+				true, false, RetryProperties.DEFAULT, NAMESPACED_BATCHED);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
