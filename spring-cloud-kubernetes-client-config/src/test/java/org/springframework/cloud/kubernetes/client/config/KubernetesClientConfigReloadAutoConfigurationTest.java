@@ -174,7 +174,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadEventEnabledMonitoringConfigMapsEnabledByDefault() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.main.cloud-platform=KUBERNETES");
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.main.cloud-platform=KUBERNETES");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
 		Assertions.assertEquals(map.size(), 1);
 		Assertions.assertTrue(map.values()
@@ -197,8 +198,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadEventEnabledMonitoringConfigMapsEnabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.cloud.kubernetes.reload.mode=event",
-				"spring.main.cloud-platform=KUBERNETES");
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.cloud.kubernetes.reload.mode=event", "spring.main.cloud-platform=KUBERNETES");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
 		Assertions.assertEquals(map.size(), 1);
 		Assertions.assertTrue(map.values()
@@ -259,8 +260,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadPollingEnabledMonitoringConfigMapsEnabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.cloud.kubernetes.reload.mode=polling",
-				"spring.main.cloud-platform=KUBERNETES");
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.cloud.kubernetes.reload.mode=polling", "spring.main.cloud-platform=KUBERNETES");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
 		Assertions.assertEquals(map.size(), 1);
 		Assertions.assertTrue(
@@ -281,8 +282,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadEventEnabledMonitoringConfigMapsDisabledMonitoringSecretsEnabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.reload.monitoring-secrets=true",
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.reload.monitoring-secrets=true",
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false",
 				"spring.cloud.kubernetes.reload.mode=event");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
@@ -308,8 +309,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadPollingEnabledMonitoringConfigMapsDisabledMonitoringSecretsEnabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.reload.monitoring-secrets=true",
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.reload.monitoring-secrets=true",
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false",
 				"spring.cloud.kubernetes.reload.mode=polling");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
@@ -332,8 +333,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadEventEnabledMonitoringConfigMapsEnabledMonitoringSecretsEnabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.reload.monitoring-secrets=true",
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.reload.monitoring-secrets=true",
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.mode=event");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
@@ -360,8 +361,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadPollingEnabledMonitoringConfigMapsEnabledMonitoringSecretsEnabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.reload.monitoring-secrets=true",
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.reload.monitoring-secrets=true",
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.mode=polling");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
@@ -430,8 +431,9 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadEventEnabledMonitoringConfigMapsEnabledMonitoringSecretsDisabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.cloud.kubernetes.reload.mode=event",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.reload.monitoring-configMaps=true",
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.cloud.kubernetes.reload.mode=event", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=false");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
 		Assertions.assertEquals(map.size(), 1);
@@ -456,8 +458,9 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 	 */
 	@Test
 	void reloadPollingEnabledMonitoringConfigMapsEnabledMonitoringSecretsDisabled() {
-		setup("spring.cloud.kubernetes.reload.enabled=true", "spring.cloud.kubernetes.reload.mode=polling",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.reload.monitoring-configMaps=true",
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.reload.enabled=true",
+				"spring.cloud.kubernetes.reload.mode=polling", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=false");
 		Map<String, ConfigurationChangeDetector> map = context.getBeansOfType(ConfigurationChangeDetector.class);
 		Assertions.assertEquals(map.size(), 1);
@@ -472,21 +475,23 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 
 	@Test
 	void kubernetesConfigAndSecretEnabledByDefault() {
-		setup("spring.main.cloud-platform=KUBERNETES");
+		setup("spring.cloud.bootstrap.enabled=true", "spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isTrue();
 	}
 
 	@Test
 	void kubernetesConfigEnabledButSecretDisabled() {
-		setup("spring.cloud.kubernetes.secrets.enabled=false", "spring.main.cloud-platform=KUBERNETES");
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.secrets.enabled=false",
+				"spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isTrue();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isFalse();
 	}
 
 	@Test
 	void kubernetesSecretsEnabledButConfigDisabled() {
-		setup("spring.cloud.kubernetes.config.enabled=false", "spring.main.cloud-platform=KUBERNETES");
+		setup("spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.config.enabled=false",
+				"spring.main.cloud-platform=KUBERNETES");
 		assertThat(context.containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(context.containsBean("secretsPropertySourceLocator")).isTrue();
 	}
