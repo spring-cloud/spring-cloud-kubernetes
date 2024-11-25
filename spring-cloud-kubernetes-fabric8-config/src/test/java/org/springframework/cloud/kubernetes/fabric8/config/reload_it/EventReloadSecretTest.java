@@ -169,7 +169,7 @@ class EventReloadSecretTest {
 			// Fabric8SecretsPropertySourceLocator,
 			// otherwise we can't properly test reload functionality
 			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-					List.of(), true, SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT);
+					List.of(), true, SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, false);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient,
@@ -192,7 +192,7 @@ class EventReloadSecretTest {
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
 			return new SecretsConfigProperties(true, Map.of(), List.of(), List.of(), true, SECRET_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT);
+					false, true, FAIL_FAST, RetryProperties.DEFAULT, false);
 		}
 
 		@Bean
