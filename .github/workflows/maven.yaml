@@ -41,7 +41,7 @@ jobs:
         uses: ./.github/workflows/composites/cache
 
       - name: Show caches
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const caches = await github.rest.actions.getActionsCacheList({
@@ -63,7 +63,7 @@ jobs:
 
       - name: check test times cache exists
         id: check_files
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: /tmp/sorted.txt
 
