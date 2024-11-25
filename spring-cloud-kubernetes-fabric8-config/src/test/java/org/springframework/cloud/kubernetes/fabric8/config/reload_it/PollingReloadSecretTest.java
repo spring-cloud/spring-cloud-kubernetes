@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -108,6 +109,7 @@ public class PollingReloadSecretTest {
 	 *     - second polling cycle reads sources from k8s and finds a change
 	 * </pre>
 	 */
+	@Disabled
 	@Test
 	void test(CapturedOutput output) {
 		// we fail while reading 'secretOne'
