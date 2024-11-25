@@ -52,12 +52,14 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
 
 /**
  * @author Ryan Baxter
@@ -86,21 +88,15 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 	@Mock
 	private KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	private HttpBasedSecretsWatchChangeDetector changeDetector;
+	private MockEnvironment mockEnvironment;
 
-	private ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties;
+	private WebClient webClient;
 
 	@BeforeEach
 	void setup() {
-		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
-		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
-		WebClient webClient = WebClient.builder().build();
-		changeDetector = new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment,
-				ConfigReloadProperties.DEFAULT, updateStrategy, secretsPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
-						configurationWatcherConfigurationProperties, webClient));
+		webClient = WebClient.builder().build();
 	}
 
 	@BeforeAll
@@ -120,36 +116,83 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 	}
 
 	@Test
-	void triggerSecretRefresh() {
+	void triggerSecretRefreshUsingRefresh() {
+		triggerSecretRefresh("/refresh", RefreshStrategy.REFRESH);
+	}
+
+	@Test
+	void triggerSecretRefreshUsingShutdown() {
+		triggerSecretRefresh("/shutdown", RefreshStrategy.SHUTDOWN);
+	}
+
+	void triggerSecretRefresh(String endpoint, RefreshStrategy refreshStrategy) {
 		stubReactiveCall();
 		V1Secret secret = new V1Secret();
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
+		HttpBasedSecretsWatchChangeDetector changeDetector = getHttpBasedSecretsWatchChangeDetector(refreshStrategy);
 		StepVerifier.create(changeDetector.triggerRefresh(secret, secret.getMetadata().getName())).verifyComplete();
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator" + endpoint)));
+	}
+
+	private HttpBasedSecretsWatchChangeDetector getHttpBasedSecretsWatchChangeDetector(
+			RefreshStrategy refreshStrategy) {
+		return getHttpBasedSecretsWatchChangeDetector(null, refreshStrategy);
+	}
+
+	private HttpBasedSecretsWatchChangeDetector getHttpBasedSecretsWatchChangeDetector(String actuatorPath,
+			RefreshStrategy refreshStrategy) {
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		if (StringUtils.hasText(actuatorPath)) {
+			configurationWatcherConfigurationProperties.setActuatorPath(actuatorPath);
+		}
+		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
+		return new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT,
+				updateStrategy, secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new HttpRefreshTrigger(
+						reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@Test
-	void triggerSecretRefreshWithPropertiesBasedActuatorPath() {
+	void triggerSecretRefreshWithPropertiesBasedActuatorPathUsingRefresh() {
+		triggerSecretRefreshWithPropertiesBasedActuatorPath("/refresh", RefreshStrategy.REFRESH);
+	}
+
+	@Test
+	void triggerSecretRefreshWithPropertiesBasedActuatorPathUsingShutdown() {
+		triggerSecretRefreshWithPropertiesBasedActuatorPath("/shutdown", RefreshStrategy.SHUTDOWN);
+	}
+
+	void triggerSecretRefreshWithPropertiesBasedActuatorPath(String endpoint, RefreshStrategy refreshStrategy) {
 		stubReactiveCall();
-		configurationWatcherConfigurationProperties.setActuatorPath("/my/custom/actuator");
 		V1Secret secret = new V1Secret();
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
+		HttpBasedSecretsWatchChangeDetector changeDetector = getHttpBasedSecretsWatchChangeDetector(
+				"/my/custom/actuator", refreshStrategy);
 		StepVerifier.create(changeDetector.triggerRefresh(secret, secret.getMetadata().getName())).verifyComplete();
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
 
 	@Test
-	void triggerSecretRefreshWithAnnotationActuatorPath() {
+	void triggerSecretRefreshWithAnnotationActuatorPathUsingRefresh() {
+		triggerSecretRefreshWithAnnotationActuatorPath("/refresh", RefreshStrategy.REFRESH);
+	}
+
+	@Test
+	void triggerSecretRefreshWithAnnotationActuatorPathUsingShutdown() {
+		triggerSecretRefreshWithAnnotationActuatorPath("/shutdown", RefreshStrategy.SHUTDOWN);
+	}
+
+	void triggerSecretRefreshWithAnnotationActuatorPath(String endpoint, RefreshStrategy refreshStrategy) {
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
@@ -168,10 +211,12 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		secret.setMetadata(objectMeta);
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
+		HttpBasedSecretsWatchChangeDetector changeDetector = getHttpBasedSecretsWatchChangeDetector(
+				"/my/custom/actuator", refreshStrategy);
 		StepVerifier.create(changeDetector.triggerRefresh(secret, secret.getMetadata().getName())).verifyComplete();
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
 
 	private void stubReactiveCall() {
