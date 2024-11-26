@@ -213,6 +213,7 @@ class KubernetesClientConfigMapPropertySourceLocatorTests {
 		assertThat(composite.getPropertySources()).hasSize(0);
 		assertThat(output.getOut()).contains("Failed to load source:");
 
+
 	}
 
 }
