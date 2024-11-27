@@ -36,7 +36,6 @@ import io.kubernetes.client.util.ClientBuilder;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -134,7 +133,6 @@ class PollingReloadSecretTest {
 	 *     - second polling cycle reads sources from k8s and finds a change
 	 * </pre>
 	 */
-	@Disabled
 	@Test
 	void test(CapturedOutput output) {
 		// we fail while reading 'secretOne'
