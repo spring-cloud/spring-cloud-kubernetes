@@ -69,7 +69,7 @@ class ActuatorEnabledFailFastExceptionTest {
 	void test() throws ApiException {
 		Health health = healthIndicator.getHealth(true);
 		Assertions.assertEquals(health.getStatus(), Status.DOWN);
-		Mockito.verify(coreV1Api).readNamespacedPod("host", "my-namespace", null);
+		Mockito.verify(coreV1Api).readNamespacedPod("host", "my-namespace");
 	}
 
 	private static void mocks() {
@@ -103,7 +103,7 @@ class ActuatorEnabledFailFastExceptionTest {
 
 			mocks();
 
-			Mockito.when(coreV1Api.readNamespacedPod("host", "my-namespace", null))
+			Mockito.when(coreV1Api.readNamespacedPod("host", "my-namespace"))
 				.thenThrow(new RuntimeException("just because"));
 
 			return new KubernetesClientPodUtils(coreV1Api, "my-namespace", FAIL_FAST);
