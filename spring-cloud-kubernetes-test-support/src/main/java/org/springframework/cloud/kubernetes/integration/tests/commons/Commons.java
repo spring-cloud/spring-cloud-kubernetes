@@ -276,6 +276,11 @@ public final class Commons {
 	}
 
 	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
+
+		if (tarName == null) {
+			return false;
+		}
+
 		try {
 			boolean present = container.execInContainer("sh", "-c", "ctr images list | grep " + tarName)
 				.getStdout()

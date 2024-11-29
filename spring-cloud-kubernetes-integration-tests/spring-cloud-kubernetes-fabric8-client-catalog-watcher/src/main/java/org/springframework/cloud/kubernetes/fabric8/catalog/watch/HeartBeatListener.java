@@ -31,11 +31,11 @@ import org.springframework.stereotype.Component;
  * @author wind57
  */
 @Component
-public class HeartBeatListener implements ApplicationListener<ApplicationEvent> {
+class HeartBeatListener implements ApplicationListener<ApplicationEvent> {
 
 	private final EndpointNameAndNamespaceService service;
 
-	public HeartBeatListener(EndpointNameAndNamespaceService service) {
+	HeartBeatListener(EndpointNameAndNamespaceService service) {
 		this.service = service;
 	}
 

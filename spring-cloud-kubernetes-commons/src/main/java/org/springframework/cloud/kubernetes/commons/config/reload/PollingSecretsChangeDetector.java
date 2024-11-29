@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.time.Duration;
-import java.util.List;
 
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
@@ -28,10 +27,6 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
-
-import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.changed;
-import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.findPropertySources;
-import static org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil.locateMapPropertySources;
 
 /**
  * A change detector that periodically retrieves secrets and fires a reload when something
@@ -75,22 +70,12 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 	}
 
 	private void executeCycle() {
-
-		boolean changedSecrets = false;
 		if (monitorSecrets) {
-			log.debug("Polling for changes in secrets");
-			List<MapPropertySource> currentSecretSources = locateMapPropertySources(this.propertySourceLocator,
-					this.environment);
-			if (!currentSecretSources.isEmpty()) {
-				List<? extends MapPropertySource> propertySources = findPropertySources(propertySourceClass,
-						environment);
-				changedSecrets = changed(currentSecretSources, propertySources);
+			boolean changedSecrets = ConfigReloadUtil.reload(propertySourceLocator, environment, propertySourceClass);
+			if (changedSecrets) {
+				log.info("Detected change in secrets");
+				reloadProperties();
 			}
-		}
-
-		if (changedSecrets) {
-			log.info("Detected change in secrets");
-			reloadProperties();
 		}
 	}
 
