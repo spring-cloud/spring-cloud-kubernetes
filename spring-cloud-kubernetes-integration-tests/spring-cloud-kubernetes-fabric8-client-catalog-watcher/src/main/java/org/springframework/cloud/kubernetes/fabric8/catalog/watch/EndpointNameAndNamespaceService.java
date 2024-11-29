@@ -28,15 +28,15 @@ import org.springframework.stereotype.Service;
  * @author wind57
  */
 @Service
-public class EndpointNameAndNamespaceService {
+class EndpointNameAndNamespaceService {
 
 	private List<EndpointNameAndNamespace> result;
 
-	public List<EndpointNameAndNamespace> result() {
+	List<EndpointNameAndNamespace> result() {
 		return result;
 	}
 
-	public void setResult(List<EndpointNameAndNamespace> result) {
+	void setResult(List<EndpointNameAndNamespace> result) {
 		this.result = result;
 	}
 
