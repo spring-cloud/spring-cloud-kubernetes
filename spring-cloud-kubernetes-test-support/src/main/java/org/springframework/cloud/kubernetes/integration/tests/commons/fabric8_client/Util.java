@@ -65,9 +65,6 @@ public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
 
-	/** Image we get {@code istioctl} from in order to install Istio. */
-	public static final String ISTIO_ISTIOCTL = "istio/istioctl";
-
 	private final K3sContainer container;
 
 	private final KubernetesClient client;
@@ -106,7 +103,7 @@ public final class Util {
 				}
 				else {
 					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], container);
+					pullImage(image[0], image[1], name, container);
 					loadImage(image[0], image[1], name, container);
 				}
 
@@ -406,10 +403,12 @@ public final class Util {
 
 		Map<String, String> matchLabels = deployment.getSpec().getSelector().getMatchLabels();
 
+		long start = System.currentTimeMillis();
 		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
 			Deployment inner = client.apps().deployments().inNamespace(namespace).withName(deploymentName).get();
 			return inner == null;
 		});
+		System.out.println("Ended in " + (System.currentTimeMillis() - start) + "ms");
 
 		await().pollInterval(Duration.ofSeconds(1)).atMost(60, TimeUnit.SECONDS).until(() -> {
 			List<Pod> podList = client.pods().inNamespace(namespace).withLabels(matchLabels).list().getItems();

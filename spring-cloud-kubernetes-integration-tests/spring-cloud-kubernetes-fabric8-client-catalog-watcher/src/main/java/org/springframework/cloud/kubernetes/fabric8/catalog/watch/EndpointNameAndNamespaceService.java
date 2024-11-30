@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
  * @author wind57
  */
 @Service
-public class EndpointNameAndNamespaceService {
+class EndpointNameAndNamespaceService {
 
 	private List<EndpointNameAndNamespace> result;
 

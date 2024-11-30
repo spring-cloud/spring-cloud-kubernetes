@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -41,6 +42,7 @@ import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
 /**
@@ -86,8 +88,17 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			putPathConfig(composite);
 
 			if (this.properties.enableApi()) {
-				uniqueSources
-					.forEach(s -> composite.addPropertySource(getSecretsPropertySourceForSingleSecret(env, s)));
+				uniqueSources.forEach(s -> {
+					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(env, s);
+
+					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
+						LOG.warn("Failed to load source: " + s);
+					}
+					else {
+						LOG.debug("Adding secret property source " + propertySource.getName());
+						composite.addFirstPropertySource(propertySource);
+					}
+				});
 			}
 
 			cache.discardAll();
@@ -177,7 +188,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			try {
 				String content = new String(Files.readAllBytes(filePath)).trim();
-				String sourceName = fileName.toLowerCase();
+				String sourceName = fileName.toLowerCase(Locale.ROOT);
 				SourceData sourceData = new SourceData(sourceName, Collections.singletonMap(fileName, content));
 				return new SecretsPropertySource(sourceData);
 			}
