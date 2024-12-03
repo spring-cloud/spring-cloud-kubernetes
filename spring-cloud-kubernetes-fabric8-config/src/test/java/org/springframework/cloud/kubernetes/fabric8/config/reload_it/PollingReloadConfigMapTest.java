@@ -106,7 +106,8 @@ class PollingReloadConfigMapTest {
 	 *     - second polling cycle reads sources from k8s and finds a change
 	 * </pre>
 	 */
-	@DisabledIfEnvironmentVariable(named = "JENKINS_HOME", matches = "^(?=\\s*\\S).*$", disabledReason = "failing on jenkins")
+	@DisabledIfEnvironmentVariable(named = "JENKINS_HOME", matches = "^(?=\\s*\\S).*$",
+			disabledReason = "failing on jenkins")
 	@Test
 	void test(CapturedOutput output) {
 		// we fail while reading 'configMapOne'
