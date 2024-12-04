@@ -21,6 +21,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -83,7 +84,7 @@ class EventReloadSecretTest {
 
 	private static final String NAMESPACE = "spring-k8s";
 
-	private static final boolean[] strategyCalled = new boolean[] { false };
+	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
 	private static CoreV1Api coreV1Api;
 
@@ -160,7 +161,7 @@ class EventReloadSecretTest {
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
 				.contains("Reloadable condition was not satisfied, reload will not be triggered");
-			boolean updateStrategyNotCalled = !strategyCalled[0];
+			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
 			return one && two && three && updateStrategyNotCalled;
 		});
 
@@ -170,7 +171,7 @@ class EventReloadSecretTest {
 		Awaitility.await()
 			.atMost(Duration.ofSeconds(10))
 			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> strategyCalled[0]);
+			.until(STRATEGY_CALLED::get);
 	}
 
 	private static V1Secret secret(String name, Map<String, String> data) {
@@ -242,7 +243,7 @@ class EventReloadSecretTest {
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
 			return new ConfigurationUpdateStrategy("to-console", () -> {
-				strategyCalled[0] = true;
+				STRATEGY_CALLED.set(true);
 			});
 		}
 

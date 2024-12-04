@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -73,7 +74,7 @@ class PollingReloadConfigMapTest {
 
 	private static KubernetesClient kubernetesClient;
 
-	private static final boolean[] strategyCalled = new boolean[] { false };
+	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
 	@BeforeAll
 	static void beforeAll() {
@@ -113,7 +114,7 @@ class PollingReloadConfigMapTest {
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
 				.contains("Reloadable condition was not satisfied, reload will not be triggered");
-			boolean updateStrategyNotCalled = !strategyCalled[0];
+			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
 			return one && two && three && updateStrategyNotCalled;
 		});
 
@@ -121,7 +122,7 @@ class PollingReloadConfigMapTest {
 		Awaitility.await()
 			.atMost(Duration.ofSeconds(20))
 			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> strategyCalled[0]);
+			.until(STRATEGY_CALLED::get);
 	}
 
 	private static ConfigMap configMap(String name, Map<String, String> data) {
@@ -187,7 +188,7 @@ class PollingReloadConfigMapTest {
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
 			return new ConfigurationUpdateStrategy("to-console", () -> {
-				strategyCalled[0] = true;
+				STRATEGY_CALLED.set(true);
 			});
 		}
 
