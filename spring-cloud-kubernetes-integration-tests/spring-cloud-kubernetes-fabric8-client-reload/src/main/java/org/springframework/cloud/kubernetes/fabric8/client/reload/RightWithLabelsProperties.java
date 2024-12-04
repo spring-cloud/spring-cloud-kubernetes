@@ -22,15 +22,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author wind57
  */
 @ConfigurationProperties("right.with.label")
-public class RightWithLabelsProperties {
+class RightWithLabelsProperties {
 
 	private String value;
 
-	public String getValue() {
+	String getValue() {
 		return value;
 	}
 
-	public void setValue(String value) {
+	void setValue(String value) {
 		this.value = value;
 	}
 

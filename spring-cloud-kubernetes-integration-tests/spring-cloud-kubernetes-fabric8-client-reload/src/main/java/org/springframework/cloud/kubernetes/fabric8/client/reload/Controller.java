@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wind57
  */
 @RestController
-public class Controller {
+class Controller {
 
 	private final LeftProperties leftProperties;
 
@@ -35,7 +35,7 @@ public class Controller {
 
 	private final SecretProperties secretProperties;
 
-	public Controller(LeftProperties leftProperties, RightProperties rightProperties,
+	Controller(LeftProperties leftProperties, RightProperties rightProperties,
 			RightWithLabelsProperties rightWithLabelsProperties, ConfigMapProperties configMapProperties,
 			SecretProperties secretProperties) {
 		this.leftProperties = leftProperties;
@@ -46,27 +46,27 @@ public class Controller {
 	}
 
 	@GetMapping("/left")
-	public String left() {
+	String left() {
 		return leftProperties.getValue();
 	}
 
 	@GetMapping("/right")
-	public String right() {
+	String right() {
 		return rightProperties.getValue();
 	}
 
 	@GetMapping("/with-label")
-	public String witLabel() {
+	String witLabel() {
 		return rightWithLabelsProperties.getValue();
 	}
 
 	@GetMapping("/key")
-	public String key() {
+	String key() {
 		return configMapProperties.getKey();
 	}
 
 	@GetMapping("/key-from-secret")
-	public String keyFromSecret() {
+	String keyFromSecret() {
 		return secretProperties.getKey();
 	}
 

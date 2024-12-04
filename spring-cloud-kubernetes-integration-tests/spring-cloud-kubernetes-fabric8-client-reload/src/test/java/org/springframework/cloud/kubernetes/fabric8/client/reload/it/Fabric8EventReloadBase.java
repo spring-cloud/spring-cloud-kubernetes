@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
 
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.k3s.K3sContainer;
@@ -38,6 +41,12 @@ abstract class Fabric8EventReloadBase {
 	protected static void beforeAll() {
 		K3S.start();
 		util = new Util(K3S);
+	}
+
+	protected static KubernetesClient kubernetesClient() {
+		String kubeConfigYaml = K3S.getKubeConfigYaml();
+		Config config = Config.fromKubeconfig(kubeConfigYaml);
+		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
 }

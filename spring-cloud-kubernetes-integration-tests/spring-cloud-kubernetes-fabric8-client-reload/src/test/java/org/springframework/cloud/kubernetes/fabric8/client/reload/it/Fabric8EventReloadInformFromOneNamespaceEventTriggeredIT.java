@@ -23,9 +23,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -147,14 +145,12 @@ class Fabric8EventReloadInformFromOneNamespaceEventTriggeredIT extends Fabric8Ev
 	}
 
 	@TestConfiguration
-	public static class TestConfig {
+	static class TestConfig {
 
 		@Bean
 		@Primary
 		KubernetesClient kubernetesClient() {
-			String kubeConfigYaml = K3S.getKubeConfigYaml();
-			Config config = Config.fromKubeconfig(kubeConfigYaml);
-			return new KubernetesClientBuilder().withConfig(config).build();
+			return kubernetesClient();
 		}
 
 	}
