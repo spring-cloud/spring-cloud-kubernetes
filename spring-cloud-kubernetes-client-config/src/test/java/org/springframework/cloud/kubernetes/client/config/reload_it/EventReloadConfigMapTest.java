@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
@@ -82,6 +83,10 @@ class EventReloadConfigMapTest {
 
 	private static final String NAMESPACE = "spring-k8s";
 
+	private static final String SCENARIO_NAME = "reload-test";
+
+	private static final String PATH = "/api/v1/namespaces/spring-k8s/configmaps";
+
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
 	private static CoreV1Api coreV1Api;
@@ -109,29 +114,15 @@ class EventReloadConfigMapTest {
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
 
-		String path = "/api/v1/namespaces/spring-k8s/configmaps";
-		V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
-		V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
+		V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of());
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
 
 		// needed so that our environment is populated with 'something'
 		// this call is done in the method that returns the AbstractEnvironment
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
-			.inScenario("mine-test")
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs(Scenario.STARTED)
 			.willSetStateTo("go-to-fail"));
-
-		// first call will fail
-		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
-			.inScenario("mine-test")
-			.whenScenarioStateIs("go-to-fail")
-			.willSetStateTo("go-to-ok"));
-
-		// second call passes (change data so that reload is triggered)
-		configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
-		listOne = new V1ConfigMapList().addItemsItem(configMapOne);
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
-			.inScenario("mine-test")
-			.whenScenarioStateIs("go-to-ok")
-			.willSetStateTo("done"));
 	}
 
 	@AfterAll
@@ -153,6 +144,12 @@ class EventReloadConfigMapTest {
 		V1ConfigMap configMapNotMine = configMap("not" + CONFIG_MAP_NAME, Map.of());
 		kubernetesClientEventBasedConfigMapChangeDetector.onEvent(configMapNotMine);
 
+		// first call will fail
+		stubFor(get(PATH).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs("go-to-fail")
+			.willSetStateTo("go-to-ok"));
+
 		// we fail while reading 'configMapOne'
 		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
@@ -162,6 +159,14 @@ class EventReloadConfigMapTest {
 			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
 			return one && two && three && updateStrategyNotCalled;
 		});
+
+		// second call passes (change data so that reload is triggered)
+		V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs("go-to-ok")
+			.willSetStateTo("done"));
 
 		// trigger the call again
 		V1ConfigMap configMapMine = configMap(CONFIG_MAP_NAME, Map.of());

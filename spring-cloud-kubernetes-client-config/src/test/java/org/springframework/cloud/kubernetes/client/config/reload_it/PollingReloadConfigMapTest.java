@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
@@ -72,17 +73,21 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 @ExtendWith(OutputCaptureExtension.class)
 class PollingReloadConfigMapTest {
 
-	private static WireMockServer wireMockServer;
-
 	private static final boolean FAIL_FAST = false;
 
 	private static final String CONFIG_MAP_NAME = "mine";
 
+	private static final String PATH = "/api/v1/namespaces/spring-k8s/configmaps";
+
 	private static final String NAMESPACE = "spring-k8s";
+
+	private static final String SCENARIO_NAME = "reload-test";
 
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
 	private static CoreV1Api coreV1Api;
+
+	private static WireMockServer wireMockServer;
 
 	@BeforeAll
 	static void setup() {
@@ -96,29 +101,15 @@ class PollingReloadConfigMapTest {
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
 
-		String path = "/api/v1/namespaces/spring-k8s/configmaps";
 		V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
 		V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
 
 		// needed so that our environment is populated with 'something'
 		// this call is done in the method that returns the AbstractEnvironment
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
-			.inScenario("my-test")
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs(Scenario.STARTED)
 			.willSetStateTo("go-to-fail"));
-
-		// first reload call fails
-		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
-			.inScenario("my-test")
-			.whenScenarioStateIs("go-to-fail")
-			.willSetStateTo("go-to-ok"));
-
-		// second reload call passes
-		V1ConfigMap configMapTwo = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
-		V1ConfigMapList listTwo = new V1ConfigMapList().addItemsItem(configMapTwo);
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listTwo)))
-			.inScenario("my-test")
-			.whenScenarioStateIs("go-to-ok"));
-
 	}
 
 	@AfterAll
@@ -135,16 +126,32 @@ class PollingReloadConfigMapTest {
 	 */
 	@Test
 	void test(CapturedOutput output) {
+
+		// first reload call fails
+		stubFor(get(PATH).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs("go-to-fail")
+			.willSetStateTo("go-to-ok"));
+
 		// we fail while reading 'configMapOne'
-		Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
 				.contains("Reloadable condition was not satisfied, reload will not be triggered");
 			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
-			System.out.println("one: " + one + " two: " + two + " three: " + three + " updateStrategyNotCalled: " + updateStrategyNotCalled);
+			System.out.println("one: " + one + " two: " + two + " three: " + three + " updateStrategyNotCalled: "
+				+ updateStrategyNotCalled);
 			return one && two && three && updateStrategyNotCalled;
 		});
+
+		// second reload call passes
+		V1ConfigMap configMapTwo = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
+		V1ConfigMapList listTwo = new V1ConfigMapList().addItemsItem(configMapTwo);
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listTwo)))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs("go-to-ok")
+			.willSetStateTo("done"));
 
 		System.out.println("first assertion passed");
 
