@@ -111,13 +111,12 @@ public final class Util {
 	 * service. It creates the given resources as-well as waits for them to be created.
 	 * The delay check is intentionally not taken as an argument, so that it stays as
 	 * tight as possible, providing reasonable defaults.
-	 *
 	 */
 	public void createAndWait(String namespace, String name, V1Deployment deployment, V1Service service,
 			@Nullable V1Ingress ingress, boolean changeVersion) {
 		try {
 
-			coreV1Api.createNamespacedService(namespace, service, null, null, null, null);
+			coreV1Api.createNamespacedService(namespace, service).execute();
 
 			if (deployment != null) {
 				String imageFromDeployment = deployment.getSpec()
@@ -140,12 +139,12 @@ public final class Util {
 					loadImage(image[0], image[1], name, container);
 				}
 
-				appsV1Api.createNamespacedDeployment(namespace, deployment, null, null, null, null);
+				appsV1Api.createNamespacedDeployment(namespace, deployment).execute();
 				waitForDeployment(namespace, deployment);
 			}
 
 			if (ingress != null) {
-				networkingV1Api.createNamespacedIngress(namespace, ingress, null, null, null, null);
+				networkingV1Api.createNamespacedIngress(namespace, ingress).execute();
 				waitForIngress(namespace, ingress);
 			}
 		}
@@ -160,12 +159,12 @@ public final class Util {
 	public void createAndWait(String namespace, @Nullable V1ConfigMap configMap, @Nullable V1Secret secret) {
 		try {
 			if (configMap != null) {
-				coreV1Api.createNamespacedConfigMap(namespace, configMap, null, null, null, null);
+				coreV1Api.createNamespacedConfigMap(namespace, configMap).execute();
 				waitForConfigMap(namespace, configMap, Phase.CREATE);
 			}
 
 			if (secret != null) {
-				coreV1Api.createNamespacedSecret(namespace, secret, null, null, null, null);
+				coreV1Api.createNamespacedSecret(namespace, secret).execute();
 				waitForSecret(namespace, secret, Phase.CREATE);
 			}
 
@@ -179,13 +178,13 @@ public final class Util {
 		try {
 			if (configMap != null) {
 				String configMapName = configMapName(configMap);
-				coreV1Api.deleteNamespacedConfigMap(configMapName, namespace, null, null, null, null, null, null);
+				coreV1Api.deleteNamespacedConfigMap(configMapName, namespace).execute();
 				waitForConfigMap(namespace, configMap, Phase.DELETE);
 			}
 
 			if (secret != null) {
 				String secretName = secretName(secret);
-				coreV1Api.deleteNamespacedSecret(secretName, namespace, null, null, null, null, null, null);
+				coreV1Api.deleteNamespacedSecret(secretName, namespace).execute();
 				waitForSecret(namespace, secret, Phase.DELETE);
 			}
 
@@ -197,8 +196,8 @@ public final class Util {
 
 	public void createNamespace(String name) {
 		try {
-			coreV1Api.createNamespace(new V1NamespaceBuilder().withNewMetadata().withName(name).and().build(), null,
-					null, null, null);
+			coreV1Api.createNamespace(new V1NamespaceBuilder().withNewMetadata().withName(name).and().build())
+				.execute();
 		}
 		catch (ApiException e) {
 			throw new RuntimeException(e);
@@ -211,14 +210,14 @@ public final class Util {
 		if (deployment != null) {
 			try {
 				String deploymentName = deploymentName(deployment);
-				Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace, null)
+				Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace)
+					.execute()
 					.getSpec()
 					.getTemplate()
 					.getMetadata()
 					.getLabels();
-				appsV1Api.deleteNamespacedDeployment(deploymentName, namespace, null, null, null, null, null, null);
-				coreV1Api.deleteCollectionNamespacedPod(namespace, null, null, null, null, null,
-						labelSelector(podLabels), null, null, null, null, null, null, null, null);
+				appsV1Api.deleteNamespacedDeployment(deploymentName, namespace).execute();
+				coreV1Api.deleteCollectionNamespacedPod(namespace).execute();
 				waitForDeploymentToBeDeleted(deploymentName, namespace);
 				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
 			}
@@ -230,10 +229,10 @@ public final class Util {
 
 		String serviceName = serviceName(service);
 		try {
-			coreV1Api.deleteNamespacedService(serviceName, namespace, null, null, null, null, null, null);
+			coreV1Api.deleteNamespacedService(serviceName, namespace).execute();
 			if (ingress != null) {
 				String ingressName = ingressName(ingress);
-				networkingV1Api.deleteNamespacedIngress(ingressName, namespace, null, null, null, null, null, null);
+				networkingV1Api.deleteNamespacedIngress(ingressName, namespace).execute();
 				waitForIngressToBeDeleted(ingressName, namespace);
 			}
 
@@ -316,19 +315,21 @@ public final class Util {
 		try {
 			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("setup/service-account.yaml");
 			CheckedSupplier<V1ServiceAccount> accountSupplier = () -> coreV1Api
-				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace, null);
+				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace)
+				.execute();
 			CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> coreV1Api
-				.createNamespacedServiceAccount(namespace, serviceAccount, null, null, null, null);
+				.createNamespacedServiceAccount(namespace, serviceAccount)
+				.execute();
 			notExistsHandler(accountSupplier, accountDefaulter);
 
 			V1RoleBinding roleBinding = (V1RoleBinding) yaml("setup/role-binding.yaml");
 			notExistsHandler(
-					() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace, null),
-					() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding, null, null, null, null));
+					() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace).execute(),
+					() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding).execute());
 
 			V1Role role = (V1Role) yaml("setup/role.yaml");
-			notExistsHandler(() -> rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace, null),
-					() -> rbacApi.createNamespacedRole(namespace, role, null, null, null, null));
+			notExistsHandler(() -> rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace).execute(),
+					() -> rbacApi.createNamespacedRole(namespace, role).execute());
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -341,18 +342,20 @@ public final class Util {
 		try {
 			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
 			CheckedSupplier<V1ServiceAccount> accountSupplier = () -> coreV1Api
-				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace, null);
+				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
+				.execute();
 			CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> coreV1Api
-				.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount, null, null, null, null);
+				.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount)
+				.execute();
 			notExistsHandler(accountSupplier, accountDefaulter);
 
 			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
-			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName(), null),
-					() -> rbacApi.createClusterRole(clusterRole, null, null, null, null));
+			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName()).execute(),
+					() -> rbacApi.createClusterRole(clusterRole).execute());
 
 			V1ClusterRoleBinding clusterRoleBinding = (V1ClusterRoleBinding) yaml("cluster/cluster-role-binding.yaml");
-			notExistsHandler(() -> rbacApi.readClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null),
-					() -> rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null));
+			notExistsHandler(() -> rbacApi.readClusterRoleBinding(clusterRoleBinding.getMetadata().getName()).execute(),
+					() -> rbacApi.createClusterRoleBinding(clusterRoleBinding).execute());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -367,11 +370,10 @@ public final class Util {
 			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
 			V1ClusterRoleBinding clusterRoleBinding = (V1ClusterRoleBinding) yaml("cluster/cluster-role-binding.yaml");
 
-			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace,
-					null, null, null, null, null, null);
-			rbacApi.deleteClusterRole(clusterRole.getMetadata().getName(), null, null, null, null, null, null);
-			rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null, null,
-					null);
+			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
+				.execute();
+			rbacApi.deleteClusterRole(clusterRole.getMetadata().getName()).execute();
+			rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName()).execute();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -384,23 +386,25 @@ public final class Util {
 		try {
 			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
 			CheckedSupplier<V1ServiceAccount> accountSupplier = () -> coreV1Api
-				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace, null);
+				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
+				.execute();
 			CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> coreV1Api
-				.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount, null, null, null, null);
+				.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount)
+				.execute();
 			notExistsHandler(accountSupplier, accountDefaulter);
 
 			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
-			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName(), null),
-					() -> rbacApi.createClusterRole(clusterRole, null, null, null, null));
+			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName()).execute(),
+					() -> rbacApi.createClusterRole(clusterRole).execute());
 
 			V1RoleBinding roleBinding = (V1RoleBinding) yaml("cluster/role-binding.yaml");
 			namespaces.forEach(namespace -> {
 				roleBinding.getMetadata().setNamespace(namespace);
 				try {
 					notExistsHandler(
-							() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace,
-									null),
-							() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding, null, null, null, null));
+							() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace)
+								.execute(),
+							() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding).execute());
 				}
 				catch (Exception e) {
 					throw new RuntimeException(e);
@@ -419,14 +423,13 @@ public final class Util {
 			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
 			V1RoleBinding roleBinding = (V1RoleBinding) yaml("cluster/role-binding.yaml");
 
-			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace,
-					null, null, null, null, null, null);
-			rbacApi.deleteClusterRole(clusterRole.getMetadata().getName(), null, null, null, null, null, null);
+			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
+				.execute();
+			rbacApi.deleteClusterRole(clusterRole.getMetadata().getName()).execute();
 			namespaces.forEach(namespace -> {
 				roleBinding.getMetadata().setNamespace(namespace);
 				try {
-					rbacApi.deleteNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace, null, null,
-							null, null, null, null);
+					rbacApi.deleteNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace).execute();
 				}
 				catch (Exception e) {
 					throw new RuntimeException(e);
@@ -440,7 +443,7 @@ public final class Util {
 
 	public void deleteNamespace(String name) {
 		try {
-			coreV1Api.deleteNamespace(name, null, null, null, null, null, null);
+			coreV1Api.deleteNamespace(name).execute();
 		}
 		catch (ApiException e) {
 			throw new RuntimeException(e);
@@ -448,7 +451,8 @@ public final class Util {
 
 		await().pollInterval(Duration.ofSeconds(1))
 			.atMost(30, TimeUnit.SECONDS)
-			.until(() -> coreV1Api.listNamespace(null, null, null, null, null, null, null, null, null, null, null)
+			.until(() -> coreV1Api.listNamespace()
+				.execute()
 				.getItems()
 				.stream()
 				.noneMatch(x -> x.getMetadata().getName().equals(name)));
@@ -494,8 +498,8 @@ public final class Util {
 			Map<String, String> podLabels) {
 		try {
 			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(patchBody), null, null, null, null, null, null),
+					() -> new AppsV1Api().patchNamespacedDeployment(deploymentName, namespace, new V1Patch(patchBody))
+						.buildCall(null),
 					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
@@ -512,8 +516,8 @@ public final class Util {
 
 		try {
 			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
-							null, null, null, null, null, null),
+					() -> new AppsV1Api().patchNamespacedDeployment(deploymentName, namespace, new V1Patch(body))
+						.buildCall(null),
 					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
 		}
 		catch (ApiException e) {
@@ -557,7 +561,7 @@ public final class Util {
 		String configMapName = configMapName(configMap);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
 			try {
-				coreV1Api.readNamespacedConfigMap(configMapName, namespace, null);
+				coreV1Api.readNamespacedConfigMap(configMapName, namespace).execute();
 				return phase.equals(Phase.CREATE);
 			}
 			catch (ApiException e) {
@@ -574,7 +578,7 @@ public final class Util {
 		String secretName = secretName(secret);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
 			try {
-				coreV1Api.readNamespacedSecret(secretName, namespace, null);
+				coreV1Api.readNamespacedSecret(secretName, namespace).execute();
 				return phase.equals(Phase.CREATE);
 			}
 			catch (ApiException e) {
@@ -590,7 +594,8 @@ public final class Util {
 		String ingressName = ingressName(ingress);
 		await().timeout(Duration.ofSeconds(90)).pollInterval(Duration.ofSeconds(3)).until(() -> {
 			try {
-				V1IngressLoadBalancerStatus status = networkingV1Api.readNamespacedIngress(ingressName, namespace, null)
+				V1IngressLoadBalancerStatus status = networkingV1Api.readNamespacedIngress(ingressName, namespace)
+					.execute()
 					.getStatus()
 					.getLoadBalancer();
 
@@ -626,7 +631,7 @@ public final class Util {
 	private void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
 		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
-				appsV1Api.readNamespacedDeployment(deploymentName, namespace, null);
+				appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
 				return false;
 			}
 			catch (ApiException e) {
@@ -641,9 +646,9 @@ public final class Util {
 	private void waitForDeploymentPodsToBeDeleted(Map<String, String> labels, String namespace) {
 		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
-				int currentNumberOfPods = coreV1Api
-					.listNamespacedPod(namespace, null, null, null, null, labelSelector(labels), null, null, null, null,
-							null, null)
+				int currentNumberOfPods = coreV1Api.listNamespacedPod(namespace)
+					.labelSelector(labelSelector(labels))
+					.execute()
 					.getItems()
 					.size();
 				return currentNumberOfPods == 0;
@@ -660,7 +665,7 @@ public final class Util {
 	private void waitForIngressToBeDeleted(String ingressName, String namespace) {
 		await().timeout(Duration.ofSeconds(90)).until(() -> {
 			try {
-				networkingV1Api.readNamespacedIngress(ingressName, namespace, null);
+				networkingV1Api.readNamespacedIngress(ingressName, namespace).execute();
 				return false;
 			}
 			catch (ApiException e) {
@@ -673,8 +678,9 @@ public final class Util {
 	}
 
 	private boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
-		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
-				"metadata.name=" + deploymentName, null, null, null, null, null, null, null);
+		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace)
+			.fieldSelector("metadata.name=" + deploymentName)
+			.execute();
 		if (deployments.getItems().isEmpty()) {
 			fail("No deployments with the name " + deploymentName);
 		}
@@ -723,8 +729,9 @@ public final class Util {
 	private static boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace,
 			Map<String, String> podLabels) throws ApiException {
 
-		V1DeploymentList deployments = new AppsV1Api().listNamespacedDeployment(namespace, null, null, null,
-				"metadata.name=" + deploymentName, null, null, null, null, null, null, null);
+		V1DeploymentList deployments = new AppsV1Api().listNamespacedDeployment(namespace)
+			.fieldSelector("metadata.name=" + deploymentName)
+			.execute();
 		if (deployments.getItems().isEmpty()) {
 			fail("No deployment with name " + deploymentName);
 		}
@@ -739,9 +746,9 @@ public final class Util {
 			return false;
 		}
 
-		int pods = new CoreV1Api()
-			.listNamespacedPod(namespace, null, null, null, null, labelSelector(podLabels), null, null, null, null,
-					null, null)
+		int pods = new CoreV1Api().listNamespacedPod(namespace)
+			.labelSelector(labelSelector(podLabels))
+			.execute()
 			.getItems()
 			.size();
 
@@ -772,6 +779,7 @@ public final class Util {
 		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
 	}
 
+	@FunctionalInterface
 	private interface CheckedSupplier<T> {
 
 		T get() throws Exception;

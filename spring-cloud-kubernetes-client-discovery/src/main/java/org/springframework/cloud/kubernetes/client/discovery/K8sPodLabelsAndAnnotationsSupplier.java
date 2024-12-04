@@ -65,7 +65,7 @@ final class K8sPodLabelsAndAnnotationsSupplier implements Function<String, PodLa
 		V1ObjectMeta objectMeta;
 
 		try {
-			objectMeta = Optional.ofNullable(coreV1Api.readNamespacedPod(podName, namespace, null).getMetadata())
+			objectMeta = Optional.ofNullable(coreV1Api.readNamespacedPod(podName, namespace).execute().getMetadata())
 				.orElse(new V1ObjectMetaBuilder().withLabels(Map.of()).withAnnotations(Map.of()).build());
 		}
 		catch (ApiException e) {

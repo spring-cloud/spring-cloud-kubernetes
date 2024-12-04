@@ -104,7 +104,7 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
 				LOG.debug("reading pod in namespace : " + namespace);
 				// The hostname of your pod is typically also its name.
-				return client.readNamespacedPod(hostName, namespace, null);
+				return client.readNamespacedPod(hostName, namespace).execute();
 			}
 		}
 		catch (Throwable t) {
