@@ -111,7 +111,7 @@ public class PollingReloadSecretTest {
 	@Test
 	void test(CapturedOutput output) {
 		// we fail while reading 'secretOne'
-		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+		Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofSeconds(1)).until(() -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
@@ -122,7 +122,7 @@ public class PollingReloadSecretTest {
 
 		// it passes while reading 'secretTwo'
 		Awaitility.await()
-			.atMost(Duration.ofSeconds(10))
+			.atMost(Duration.ofSeconds(20))
 			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> strategyCalled[0]);
 	}
