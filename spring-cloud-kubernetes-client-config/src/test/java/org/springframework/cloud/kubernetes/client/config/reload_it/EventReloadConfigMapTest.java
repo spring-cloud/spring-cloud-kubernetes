@@ -61,8 +61,10 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
@@ -104,6 +106,12 @@ class EventReloadConfigMapTest {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
 
+		// something that the informer can work with. Since we do not care about this one
+		// in the test, we mock it to return a 500 as it does not matter anyway.
+		stubFor(get(urlPathMatching(PATH)).withQueryParam("resourceVersion", equalTo("0"))
+			.withQueryParam("watch", equalTo("false"))
+			.willReturn(aResponse().withStatus(500).withBody("Error From Informer")));
+
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		client.setDebugging(true);
 		MOCK_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient).thenReturn(client);
@@ -113,16 +121,6 @@ class EventReloadConfigMapTest {
 			.thenReturn(NAMESPACE);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
-
-		V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of());
-		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
-
-		// needed so that our environment is populated with 'something'
-		// this call is done in the method that returns the AbstractEnvironment
-		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
-			.inScenario(SCENARIO_NAME)
-			.whenScenarioStateIs(Scenario.STARTED)
-			.willSetStateTo("go-to-fail"));
 	}
 
 	@AfterAll
@@ -141,14 +139,15 @@ class EventReloadConfigMapTest {
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		V1ConfigMap configMapNotMine = configMap("not" + CONFIG_MAP_NAME, Map.of());
-		kubernetesClientEventBasedConfigMapChangeDetector.onEvent(configMapNotMine);
 
 		// first call will fail
 		stubFor(get(PATH).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
 			.inScenario(SCENARIO_NAME)
 			.whenScenarioStateIs("go-to-fail")
 			.willSetStateTo("go-to-ok"));
+
+		V1ConfigMap configMapNotMine = configMap("not" + CONFIG_MAP_NAME, Map.of());
+		kubernetesClientEventBasedConfigMapChangeDetector.onEvent(configMapNotMine);
 
 		// we fail while reading 'configMapOne'
 		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
@@ -199,6 +198,17 @@ class EventReloadConfigMapTest {
 		@Bean
 		@Primary
 		AbstractEnvironment environment() {
+
+			V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of());
+			V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
+				.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(Scenario.STARTED)
+				.willSetStateTo("go-to-fail"));
+
 			MockEnvironment mockEnvironment = new MockEnvironment();
 			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
 
@@ -222,7 +232,7 @@ class EventReloadConfigMapTest {
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
-					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(2000), Set.of("non-default"),
+					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(2000), Set.of("spring-k8s"),
 					false, Duration.ofSeconds(2));
 		}
 

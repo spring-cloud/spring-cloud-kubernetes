@@ -100,16 +100,6 @@ class PollingReloadConfigMapTest {
 		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
-
-		V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
-		V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
-
-		// needed so that our environment is populated with 'something'
-		// this call is done in the method that returns the AbstractEnvironment
-		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
-			.inScenario(SCENARIO_NAME)
-			.whenScenarioStateIs(Scenario.STARTED)
-			.willSetStateTo("go-to-fail"));
 	}
 
 	@AfterAll
@@ -141,7 +131,7 @@ class PollingReloadConfigMapTest {
 				.contains("Reloadable condition was not satisfied, reload will not be triggered");
 			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
 			System.out.println("one: " + one + " two: " + two + " three: " + three + " updateStrategyNotCalled: "
-				+ updateStrategyNotCalled);
+					+ updateStrategyNotCalled);
 			return one && two && three && updateStrategyNotCalled;
 		});
 
@@ -184,6 +174,17 @@ class PollingReloadConfigMapTest {
 		@Bean
 		@Primary
 		AbstractEnvironment environment() {
+
+			V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
+			V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
+				.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(Scenario.STARTED)
+				.willSetStateTo("go-to-fail"));
+
 			MockEnvironment mockEnvironment = new MockEnvironment();
 			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
 

@@ -73,6 +73,8 @@ public class PollingReloadSecretTest {
 
 	private static final String NAMESPACE = "spring-k8s";
 
+	private static final String PATH = "/api/v1/namespaces/spring-k8s/secrets";
+
 	private static KubernetesMockServer kubernetesMockServer;
 
 	private static KubernetesClient kubernetesClient;
@@ -81,25 +83,7 @@ public class PollingReloadSecretTest {
 
 	@BeforeAll
 	static void beforeAll() {
-
 		kubernetesClient.getConfiguration().setRequestRetryBackoffLimit(0);
-
-		// needed so that our environment is populated with 'something'
-		// this call is done in the method that returns the AbstractEnvironment
-		Secret secretOne = secret(SECRET_NAME, Map.of());
-		Secret secretTwo = secret(SECRET_NAME, Map.of("a", "b"));
-		String path = "/api/v1/namespaces/spring-k8s/secrets";
-		kubernetesMockServer.expect()
-			.withPath(path)
-			.andReturn(200, new SecretListBuilder().withItems(secretOne).build())
-			.once();
-
-		kubernetesMockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
-
-		kubernetesMockServer.expect()
-			.withPath(path)
-			.andReturn(200, new SecretListBuilder().withItems(secretTwo).build())
-			.once();
 	}
 
 	/**
@@ -112,6 +96,7 @@ public class PollingReloadSecretTest {
 	@Test
 	void test(CapturedOutput output) {
 		// we fail while reading 'secretOne'
+		kubernetesMockServer.expect().withPath(PATH).andReturn(500, "Internal Server Error").once();
 		Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofSeconds(1)).until(() -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
 			boolean two = output.getOut().contains("Failed to load source");
@@ -120,6 +105,12 @@ public class PollingReloadSecretTest {
 			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
 			return one && two && three && updateStrategyNotCalled;
 		});
+
+		Secret secretTwo = secret(SECRET_NAME, Map.of("a", "b"));
+		kubernetesMockServer.expect()
+			.withPath(PATH)
+			.andReturn(200, new SecretListBuilder().withItems(secretTwo).build())
+			.once();
 
 		// it passes while reading 'secretTwo'
 		Awaitility.await()
@@ -153,6 +144,15 @@ public class PollingReloadSecretTest {
 		@Bean
 		@Primary
 		AbstractEnvironment environment() {
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			Secret secretOne = secret(SECRET_NAME, Map.of());
+			kubernetesMockServer.expect()
+				.withPath(PATH)
+				.andReturn(200, new SecretListBuilder().withItems(secretOne).build())
+				.once();
+
 			MockEnvironment mockEnvironment = new MockEnvironment();
 			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
 

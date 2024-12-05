@@ -102,17 +102,6 @@ class PollingReloadSecretTest {
 		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
-
-		V1Secret secretOne = secret(SECRET_NAME, Map.of());
-		V1SecretList listOne = new V1SecretList().addItemsItem(secretOne);
-
-		// needed so that our environment is populated with 'something'
-		// this call is done in the method that returns the AbstractEnvironment
-		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
-			.inScenario(SCENARIO_NAME)
-			.whenScenarioStateIs(Scenario.STARTED)
-			.willSetStateTo("go-to-fail"));
-
 	}
 
 	@AfterAll
@@ -187,6 +176,17 @@ class PollingReloadSecretTest {
 		@Bean
 		@Primary
 		AbstractEnvironment environment() {
+
+			V1Secret secretOne = secret(SECRET_NAME, Map.of());
+			V1SecretList listOne = new V1SecretList().addItemsItem(secretOne);
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
+				.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(Scenario.STARTED)
+				.willSetStateTo("go-to-fail"));
+
 			MockEnvironment mockEnvironment = new MockEnvironment();
 			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
 

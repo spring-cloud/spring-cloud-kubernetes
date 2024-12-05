@@ -66,7 +66,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
@@ -81,6 +81,8 @@ class EventReloadSecretTest {
 
 	private static final boolean FAIL_FAST = false;
 
+	private static WireMockServer wireMockServer;
+
 	private static final String SECRET_NAME = "mine";
 
 	private static final String NAMESPACE = "spring-k8s";
@@ -92,8 +94,6 @@ class EventReloadSecretTest {
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
 	private static CoreV1Api coreV1Api;
-
-	private static WireMockServer wireMockServer;
 
 	private static final MockedStatic<KubernetesClientUtils> MOCK_STATIC = Mockito
 		.mockStatic(KubernetesClientUtils.class);
@@ -108,6 +108,12 @@ class EventReloadSecretTest {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
 
+		// something that the informer can work with. Since we do not care about this one
+		// in the test, we mock it to return a 500 as it does not matter anyway.
+		stubFor(get(urlPathMatching(PATH)).withQueryParam("resourceVersion", equalTo("0"))
+			.withQueryParam("watch", equalTo("false"))
+			.willReturn(aResponse().withStatus(500).withBody("Error From Informer")));
+
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		client.setDebugging(true);
 		MOCK_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient).thenReturn(client);
@@ -117,22 +123,6 @@ class EventReloadSecretTest {
 			.thenReturn(NAMESPACE);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
-
-		V1Secret secret = secret(SECRET_NAME, Map.of());
-		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
-
-		// needed so that our environment is populated with 'something'
-		// this call is done in the method that returns the AbstractEnvironment
-		stubFor(get(PATH)
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList)))
-			.inScenario(SCENARIO_NAME)
-			.whenScenarioStateIs(Scenario.STARTED)
-			.willSetStateTo("go-to-fail"));
-
-		stubFor(get(urlPathEqualTo(PATH)).withQueryParam("resourceVersion", equalTo("0"))
-			.withQueryParam("watch", equalTo("false"))
-			.willReturn(aResponse().withStatus(500).withBody(" he he he")));
-
 	}
 
 	@AfterAll
@@ -151,14 +141,14 @@ class EventReloadSecretTest {
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		V1Secret secretNotMine = secret("not" + SECRET_NAME, Map.of());
-		kubernetesClientEventBasedSecretsChangeDetector.onEvent(secretNotMine);
-
 		// first call will fail
 		stubFor(get(PATH).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
 			.inScenario(SCENARIO_NAME)
 			.whenScenarioStateIs("go-to-fail")
 			.willSetStateTo("go-to-ok"));
+
+		V1Secret secretNotMine = secret("not" + SECRET_NAME, Map.of());
+		kubernetesClientEventBasedSecretsChangeDetector.onEvent(secretNotMine);
 
 		// we fail while reading 'configMapOne'
 		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
@@ -179,7 +169,7 @@ class EventReloadSecretTest {
 			.willSetStateTo("done"));
 
 		// trigger the call again
-		V1Secret secretMine = secret(SECRET_NAME, Map.of("a", "b"));
+		V1Secret secretMine = secret(SECRET_NAME, Map.of());
 		kubernetesClientEventBasedSecretsChangeDetector.onEvent(secretMine);
 		Awaitility.await()
 			.atMost(Duration.ofSeconds(10))
@@ -213,6 +203,17 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		AbstractEnvironment environment() {
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			V1Secret secret = secret(SECRET_NAME, Map.of());
+			V1SecretList secretList = new V1SecretList().addItemsItem(secret);
+
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList)))
+				.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(Scenario.STARTED)
+				.willSetStateTo("go-to-fail"));
+
 			MockEnvironment mockEnvironment = new MockEnvironment();
 			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
 
