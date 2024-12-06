@@ -33,8 +33,6 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
-
 /**
  * @author wind57
  */
@@ -77,7 +75,7 @@ public final class ConfigReloadUtil {
 			return true;
 		}
 		else {
-			LOG.debug("reloadable condition was not satisfied, reload will not be triggered");
+			LOG.debug("Reloadable condition was not satisfied, reload will not be triggered");
 		}
 
 		return false;
@@ -164,11 +162,6 @@ public final class ConfigReloadUtil {
 	}
 
 	static boolean changed(List<? extends MapPropertySource> k8sSources, List<? extends MapPropertySource> appSources) {
-
-		if (k8sSources.stream().anyMatch(source -> "true".equals(source.getProperty(ERROR_PROPERTY)))) {
-			LOG.info(() -> "there was an error while reading config maps/secrets, no reload will happen");
-			return false;
-		}
 
 		if (k8sSources.size() != appSources.size()) {
 			if (LOG.isDebugEnabled()) {
