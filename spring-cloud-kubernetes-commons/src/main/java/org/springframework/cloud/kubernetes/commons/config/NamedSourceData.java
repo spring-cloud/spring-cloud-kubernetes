@@ -71,7 +71,7 @@ public abstract class NamedSourceData {
 
 		}
 		catch (Exception e) {
-			LOG.warn("failure in reading named sources");
+			LOG.warn("Failure in reading named sources");
 			onException(failFast, e);
 			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
 		}
