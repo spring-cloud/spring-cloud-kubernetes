@@ -114,11 +114,10 @@ public class EventReloadConfigMapTest {
 
 		// we fail while reading 'configMapTwo'
 		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
-			boolean one = output.getOut().contains("failure in reading named sources");
-			boolean two = output.getOut()
-				.contains("there was an error while reading config maps/secrets, no reload will happen");
+			boolean one = output.getOut().contains("Failure in reading named sources");
+			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
-				.contains("reloadable condition was not satisfied, reload will not be triggered");
+				.contains("Reloadable condition was not satisfied, reload will not be triggered");
 			boolean updateStrategyNotCalled = !strategyCalled[0];
 			return one && two && three && updateStrategyNotCalled;
 		});
