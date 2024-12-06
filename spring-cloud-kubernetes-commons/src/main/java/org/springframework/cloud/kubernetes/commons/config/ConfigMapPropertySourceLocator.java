@@ -74,8 +74,13 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 				LOG.debug("Config Map normalized sources : " + sources);
 				sources.forEach(s -> {
 					MapPropertySource propertySource = getMapPropertySource(s, env);
-					LOG.debug("Adding config map property source " + propertySource.getName());
-					composite.addFirstPropertySource(propertySource);
+					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
+						LOG.warn("Failed to load source: " + s);
+					}
+					else {
+						LOG.debug("Adding config map property source " + propertySource.getName());
+						composite.addFirstPropertySource(propertySource);
+					}
 				});
 			}
 
