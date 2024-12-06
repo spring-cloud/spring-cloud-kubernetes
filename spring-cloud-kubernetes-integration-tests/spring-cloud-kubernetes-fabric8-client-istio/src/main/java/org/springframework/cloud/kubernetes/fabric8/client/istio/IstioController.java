@@ -29,20 +29,20 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wind57
  */
 @RestController
-public class IstioController {
+class IstioController {
 
 	private final Environment environment;
 
 	// not used, but just to prove that it is injected
 	private final IstioClient istioClient;
 
-	public IstioController(Environment environment, IstioClient istioClient) {
+	IstioController(Environment environment, IstioClient istioClient) {
 		this.environment = environment;
 		this.istioClient = istioClient;
 	}
 
 	@GetMapping("/profiles")
-	public List<String> profiles() {
+	List<String> profiles() {
 		return Arrays.asList(environment.getActiveProfiles());
 	}
 
