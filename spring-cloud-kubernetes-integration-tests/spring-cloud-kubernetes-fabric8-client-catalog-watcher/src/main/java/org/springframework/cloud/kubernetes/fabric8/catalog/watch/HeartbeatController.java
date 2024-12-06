@@ -23,16 +23,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class HeartbeatController {
+class HeartbeatController {
 
 	private final EndpointNameAndNamespaceService service;
 
-	public HeartbeatController(EndpointNameAndNamespaceService service) {
+	HeartbeatController(EndpointNameAndNamespaceService service) {
 		this.service = service;
 	}
 
 	@GetMapping("/result")
-	public List<EndpointNameAndNamespace> result() {
+	List<EndpointNameAndNamespace> result() {
 		return service.result();
 	}
 
