@@ -43,19 +43,19 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.BootstrapEnabledPollingReloadConfigMapMountDelegate.testBootstrapEnabledPollingReloadConfigMapMount;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.DataChangesInConfigMapReloadDelegate.testSimple;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.builder;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.patchOne;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.patchThree;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.patchTwo;
 import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.K8sClientConfigMapReloadITUtil.retrySpec;
-import static org.springframework.cloud.kubernetes.k8s.client.reload.configmap.PollingReloadConfigMapMountDelegate.testPollingReloadConfigMapMount;
 
 /**
  * @author wind57
  */
 class K8sClientConfigMapReloadIT {
+
+	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-reload";
 
@@ -74,13 +74,19 @@ class K8sClientConfigMapReloadIT {
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
+
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+
 		util = new Util(K3S);
 		util.createNamespace("left");
 		util.createNamespace("right");
 		util.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
 		util.setUp(NAMESPACE);
+		util.configWatcher(Phase.CREATE);
 		api = new CoreV1Api();
 	}
 
@@ -90,6 +96,7 @@ class K8sClientConfigMapReloadIT {
 		manifests(Phase.DELETE);
 		util.deleteNamespace("left");
 		util.deleteNamespace("right");
+		util.configWatcher(Phase.DELETE);
 	}
 
 	/**
@@ -148,8 +155,7 @@ class K8sClientConfigMapReloadIT {
 		testInform();
 		testInformFromOneNamespaceEventTriggeredSecretsDisabled();
 		testSimple(DOCKER_IMAGE, DEPLOYMENT_NAME, K3S);
-		testPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
-		testBootstrapEnabledPollingReloadConfigMapMount(DEPLOYMENT_NAME, K3S, util, DOCKER_IMAGE);
+		ReloadConfigMapMountDelegate.testReloadConfigMapMount(DEPLOYMENT_NAME, util, DOCKER_IMAGE);
 
 	}
 

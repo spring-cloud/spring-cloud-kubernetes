@@ -7,6 +7,16 @@ spring:
         enabled: true
         monitoring-config-maps: true
         strategy: shutdown
-        mode: polling
-        period: 5000
+
+management:
+  endpoint:
+    refresh:
+      enabled: true
+    restart:
+      enabled: true
+
+  endpoints:
+    web:
+      exposure:
+        include: '*'
 

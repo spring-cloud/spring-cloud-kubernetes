@@ -1,8 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: spring-cloud-kubernetes-fabric8-client-reload-ingress
-  namespace: default
+  name: spring-k8s-client-ingress-reload
 spec:
   rules:
     - http:
