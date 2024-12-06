@@ -32,11 +32,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.core.env.CompositePropertySource;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -63,8 +61,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 
 	/**
 	 * <pre>
-	 *     we try to read all secrets in a namespace and fail,
-	 *     thus generate a well defined name for the source.
+	 *     we try to read all secrets in a namespace and fail.
 	 * </pre>
 	 */
 	@Test
@@ -82,14 +79,9 @@ class Fabric8SecretErrorOnReadingSourceTests {
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		MapPropertySource mapPropertySource = (MapPropertySource) propertySource.getPropertySources()
-			.stream()
-			.findAny()
-			.orElseThrow();
-
-		assertThat(mapPropertySource.getName()).isEqualTo("secret..spring-k8s");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-		assertThat(output).contains("failure in reading named sources");
+		assertThat(propertySource.getPropertySources()).isEmpty();
+		assertThat(output.getOut()).contains("Failure in reading named sources");
+		assertThat(output.getOut()).contains("Failed to load source: { secret name : 'Optional[my-secret]'");
 
 	}
 
@@ -100,7 +92,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 	 * </pre>
 	 */
 	@Test
-	void namedTwoSecretsOneFails() {
+	void namedTwoSecretsOneFails(CapturedOutput output) {
 		String secretNameOne = "one";
 		String secretNameTwo = "two";
 		String namespace = "default";
@@ -124,9 +116,10 @@ class Fabric8SecretErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		// two sources are present, one being empty
-		assertThat(names).containsExactly("secret.two.default", "secret..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
+		// one property source is present
+		assertThat(names).containsExactly("secret.two.default");
+		assertThat(output.getOut()).contains("Failure in reading named sources");
+		assertThat(output.getOut()).contains("Failed to load source: { secret name : 'Optional[one]'");
 
 	}
 
@@ -137,7 +130,7 @@ class Fabric8SecretErrorOnReadingSourceTests {
 	 * </pre>
 	 */
 	@Test
-	void namedTwoSecretsBothFail() {
+	void namedTwoSecretsBothFail(CapturedOutput output) {
 		String secretNameOne = "one";
 		String secretNameTwo = "two";
 		String namespace = "default";
@@ -157,10 +150,9 @@ class Fabric8SecretErrorOnReadingSourceTests {
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(names).containsExactly("secret..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
+		assertThat(propertySource.getPropertySources()).isEmpty();
+		assertThat(output.getOut()).contains("Failed to load source: { secret name : 'Optional[two]'");
 
 	}
 
@@ -190,12 +182,11 @@ class Fabric8SecretErrorOnReadingSourceTests {
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		List<String> sourceNames = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(sourceNames).containsExactly("secret..spring-k8s");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-		assertThat(output).contains("failure in reading labeled sources");
-		assertThat(output).contains("failure in reading named sources");
+		assertThat(propertySource.getPropertySources()).isEmpty();
+		assertThat(output.getOut()).contains("Failure in reading labeled sources");
+		assertThat(output.getOut()).contains("Failure in reading named sources");
+		assertThat(output.getOut()).contains("Failed to load source: { secret labels : '{a=b}'");
 	}
 
 	/**
@@ -238,12 +229,12 @@ class Fabric8SecretErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		// two sources are present, one being empty
-		assertThat(names).containsExactly("secret.two.default", "secret..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
+		// one property source is present
+		assertThat(names).containsExactly("secret.two.default");
 
-		assertThat(output).contains("failure in reading labeled sources");
-		assertThat(output).contains("failure in reading named sources");
+		assertThat(output.getOut()).contains("Failure in reading labeled sources");
+		assertThat(output.getOut()).contains("Failure in reading named sources");
+		assertThat(output.getOut()).contains("Failed to load source: { secret labels : '{one=1}'");
 
 	}
 
@@ -276,13 +267,13 @@ class Fabric8SecretErrorOnReadingSourceTests {
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(names).containsExactly("secret..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
+		assertThat(propertySource.getPropertySources()).isEmpty();
 
-		assertThat(output).contains("failure in reading labeled sources");
-		assertThat(output).contains("failure in reading named sources");
+		assertThat(output).contains("Failure in reading labeled sources");
+		assertThat(output).contains("Failure in reading named sources");
+		assertThat(output.getOut()).contains("Failed to load source: { secret labels : '{one=1}'");
+		assertThat(output.getOut()).contains("Failed to load source: { secret labels : '{two=2}'");
 
 	}
 

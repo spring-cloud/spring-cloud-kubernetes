@@ -33,10 +33,8 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
-import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.core.env.CompositePropertySource;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -64,11 +62,11 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 	/**
 	 * <pre>
 	 *     we try to read all config maps in a namespace and fail,
-	 *     thus generate a well defined name for the source.
+	 *     thus the composite property source is empty.
 	 * </pre>
 	 */
 	@Test
-	void namedSingleConfigMapFails() {
+	void namedSingleConfigMapFails(CapturedOutput output) {
 		String name = "my-config";
 		String namespace = "spring-k8s";
 		String path = "/api/v1/namespaces/" + namespace + "/configmaps";
@@ -82,13 +80,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		MapPropertySource mapPropertySource = (MapPropertySource) propertySource.getPropertySources()
-			.stream()
-			.findAny()
-			.orElseThrow();
-
-		assertThat(mapPropertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-
+		assertThat(propertySource.getPropertySources()).isEmpty();
+		assertThat(output.getOut()).contains("Failed to load source: { config-map name : 'Optional[my-config]'");
 	}
 
 	/**
@@ -98,7 +91,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 	 * </pre>
 	 */
 	@Test
-	void namedTwoConfigMapsOneFails() {
+	void namedTwoConfigMapsOneFails(CapturedOutput output) {
 		String configMapNameOne = "one";
 		String configMapNameTwo = "two";
 		String namespace = "default";
@@ -125,10 +118,9 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		// two sources are present
-		assertThat(names).containsExactly("configmap.two.default", "configmap..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-
+		// one source is present
+		assertThat(names).containsExactly("configmap.two.default");
+		assertThat(output.getOut()).contains("Failed to load source: { config-map name : 'Optional[one]'");
 	}
 
 	/**
@@ -138,7 +130,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 	 * </pre>
 	 */
 	@Test
-	void namedTwoConfigMapsBothFail() {
+	void namedTwoConfigMapsBothFail(CapturedOutput output) {
 		String configMapNameOne = "one";
 		String configMapNameTwo = "two";
 		String namespace = "default";
@@ -160,15 +152,14 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(names).containsExactly("configmap..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-
+		assertThat(propertySource.getPropertySources()).isEmpty();
+		assertThat(output.getOut()).contains("Failed to load source: { config-map name : 'Optional[one]'");
+		assertThat(output.getOut()).contains("Failed to load source: { config-map name : 'Optional[two]'");
 	}
 
 	/**
 	 * <pre>
-	 *     we try to read all config maps in a namespace and fail,
-	 *     thus generate a well defined name for the source.
+	 *     we try to read all config maps in a namespace and fail.
 	 * </pre>
 	 */
 	@Test
@@ -193,10 +184,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> sourceNames = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(sourceNames).containsExactly("configmap..spring-k8s");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-		assertThat(output).contains("failure in reading labeled sources");
-		assertThat(output).contains("failure in reading named sources");
+		assertThat(propertySource.getPropertySources()).isEmpty();
+		assertThat(output.getOut()).contains("Failed to load source: { config map labels : '{a=b}'");
 	}
 
 	/**
@@ -239,12 +228,11 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
 		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		// two sources are present, one being empty
-		assertThat(names).containsExactly("configmap.two.default", "configmap..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-
-		assertThat(output).contains("failure in reading labeled sources");
-		assertThat(output).contains("failure in reading named sources");
+		// one property source is present
+		assertThat(names).containsExactly("configmap.two.default");
+		assertThat(output.getOut()).contains("Failure in reading labeled sources");
+		assertThat(output.getOut()).contains("Failure in reading named sources");
+		assertThat(output.getOut()).contains("Failed to load source: { config map labels : '{one=1}'");
 
 	}
 
@@ -277,14 +265,12 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
-		assertThat(names).containsExactly("configmap..default");
-		assertThat(propertySource.getProperty(Constants.ERROR_PROPERTY)).isEqualTo("true");
-
-		assertThat(output).contains("failure in reading labeled sources");
-		assertThat(output).contains("failure in reading named sources");
-
+		assertThat(propertySource.getPropertySources()).isEmpty();
+		assertThat(output.getOut()).contains("Failure in reading labeled sources");
+		assertThat(output.getOut()).contains("Failure in reading named sources");
+		assertThat(output.getOut()).contains("Failed to load source: { config map labels : '{two=2}'");
+		assertThat(output.getOut()).contains("Failed to load source: { config map labels : '{one=1}'");
 	}
 
 	private ConfigMap configMap(String name, Map<String, String> labels) {

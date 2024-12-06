@@ -73,7 +73,7 @@ public abstract class LabeledSourceData {
 			}
 		}
 		catch (Exception e) {
-			LOG.warn("failure in reading labeled sources");
+			LOG.warn("Failure in reading labeled sources");
 			onException(failFast, e);
 			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
 		}
