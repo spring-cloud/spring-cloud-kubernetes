@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * @author Oleg Vyukov
  * @author Tim Ysewyn
  */
-class KubernetesCatalogServicesWatchConfigurationTest {
+class Fabric8KubernetesCatalogServicesWatchConfigurationTest {
 
 	private ConfigurableApplicationContext context;
 
@@ -81,8 +81,10 @@ class KubernetesCatalogServicesWatchConfigurationTest {
 		List<String> envList = new ArrayList<>(Arrays.asList(env));
 		envList.add("spring.cloud.config.enabled=false");
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class, KubernetesCatalogWatchAutoConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class)
+				KubernetesClientTestConfiguration.class, Fabric8KubernetesCatalogWatchAutoConfiguration.class,
+				Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+				KubernetesDiscoveryPropertiesAutoConfiguration.class,
+				Fabric8DiscoveryClientPredicateAutoConfiguration.class)
 			.web(WebApplicationType.NONE)
 			.properties(envList.toArray(new String[0]))
 			.run();
