@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author wind57
  */
 @SpringBootApplication
-public class Fabric8DiscoveryApp {
+class Fabric8DiscoveryApp {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Fabric8DiscoveryApp.class, args);
