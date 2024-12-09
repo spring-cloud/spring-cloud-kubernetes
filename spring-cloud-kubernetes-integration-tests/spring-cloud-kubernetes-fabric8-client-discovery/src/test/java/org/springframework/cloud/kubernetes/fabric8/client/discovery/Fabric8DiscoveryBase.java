@@ -57,19 +57,15 @@ abstract class Fabric8DiscoveryBase {
 		util = new Util(K3S);
 	}
 
-	protected static KubernetesClient client() {
-		String kubeConfigYaml = K3S.getKubeConfigYaml();
-		Config config = Config.fromKubeconfig(kubeConfigYaml);
-		return new KubernetesClientBuilder().withConfig(config).build();
-	}
-
 	@TestConfiguration
 	static class TestConfig {
 
 		@Bean
 		@Primary
 		KubernetesClient kubernetesClient() {
-			return client();
+			String kubeConfigYaml = K3S.getKubeConfigYaml();
+			Config config = Config.fromKubeconfig(kubeConfigYaml);
+			return new KubernetesClientBuilder().withConfig(config).build();
 		}
 
 	}
