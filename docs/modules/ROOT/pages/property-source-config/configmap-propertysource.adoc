@@ -57,7 +57,7 @@ An example should make a lot more sense. Let's suppose that `spring.application.
 we have a single active profile called `k8s`. For a configuration as below:
 
 
-[source]
+[source,yaml]
 ----
 kind: ConfigMap
 apiVersion: v1
@@ -92,7 +92,7 @@ The order of loading properties is a as follows:
 This means that profile based sources take precedence over non-profile based sources (just like in a vanilla Spring app); and plain properties take precedence over both profile and non-profile based sources. Here is an example:
 
 ====
-[source]
+[source,yaml]
 ----
 kind: ConfigMap
 apiVersion: v1
@@ -101,7 +101,7 @@ metadata:
 data:
   my-app-k8s.yaml: |-
     key1=valueA
-	key2=valueB
+    key2=valueB
   my-app.yaml: |-
     key1=valueC
     key2=valueA
@@ -318,13 +318,13 @@ spec:
     metadata:
       labels:
         app: deployment-name
-	spec:
-		containers:
-		- name: container-name
-		  image: your-image
-		  env:
-		  - name: SPRING_PROFILES_ACTIVE
-			value: "development"
+    spec:
+      containers:
+        - name: container-name
+          image: your-image
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "development"
 ----
 
 You could run into a situation where there are multiple configs maps that have the same property names. For example:
@@ -556,7 +556,8 @@ This behavior is controlled by the `spring.cloud.kubernetes.config.paths` proper
 addition to or instead of the mechanism described earlier.
 `spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
 
-```
+[source,yaml]
+----
 spring:
   cloud:
     kubernetes:
@@ -564,7 +565,7 @@ spring:
         paths:
           - /tmp/application.properties
           - /var/application.yaml
-```
+----
 
 NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
 functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
@@ -602,4 +603,3 @@ by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 | `spring.cloud.kubernetes.config.retry.max-interval`     | `Long`    | `2000`                       | Maximum interval for backoff.
 | `spring.cloud.kubernetes.config.retry.multiplier`       | `Double`  | `1.1`                        | Multiplier for next interval.
 |===
-
