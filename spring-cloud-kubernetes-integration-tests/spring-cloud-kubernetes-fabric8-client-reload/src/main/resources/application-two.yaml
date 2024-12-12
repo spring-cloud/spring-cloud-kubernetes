@@ -8,5 +8,8 @@ spring:
         strategy: refresh
         mode: event
         namespaces:
-          - left
+          - right
         monitoring-config-maps: true
+
+  main:
+    cloud-platform: kubernetes

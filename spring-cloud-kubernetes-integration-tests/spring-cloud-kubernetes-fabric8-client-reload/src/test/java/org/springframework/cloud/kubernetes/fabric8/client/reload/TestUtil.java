@@ -42,96 +42,8 @@ final class TestUtil {
 	private static final Map<String, String> POD_LABELS = Map.of("app",
 			"spring-cloud-kubernetes-fabric8-client-reload");
 
-	private static final String BODY_ONE = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
-									"value": "DEBUG"
-								},
-								{
-									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "two"
-								},
-								{
-									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
-									"value": "TRUE"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
 
-	private static final String BODY_TWO = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
-									"value": "DEBUG"
-								},
-								{
-									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "three"
-								},
-								{
-									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
-									"value": "TRUE"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
 
-	private static final String BODY_THREE = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-fabric8-client-configmap-event-reload",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_DISCOVERY",
-									"value": "DEBUG"
-								},
-								{
-									"name": "SPRING_PROFILES_ACTIVE",
-									"value": "two"
-								},
-								{
-									"name": "SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED",
-									"value": "FALSE"
-								},
-								{
-									"name": "SPRING_CLOUD_BOOTSTRAP_ENABLED",
-									"value": "TRUE"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
 
 	private static final String BODY_FOUR = """
 			{
@@ -315,18 +227,6 @@ final class TestUtil {
 
 	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {
 		client.configMaps().inNamespace(namespace).resource(configMap).serverSideApply();
-	}
-
-	static void patchOne(Util util, String dockerImage, String deploymentName, String namespace) {
-		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_ONE, POD_LABELS);
-	}
-
-	static void patchTwo(Util util, String dockerImage, String deploymentName, String namespace) {
-		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_TWO, POD_LABELS);
-	}
-
-	static void patchThree(Util util, String dockerImage, String deploymentName, String namespace) {
-		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_THREE, POD_LABELS);
 	}
 
 	static void patchFour(Util util, String dockerImage, String deploymentName, String namespace) {

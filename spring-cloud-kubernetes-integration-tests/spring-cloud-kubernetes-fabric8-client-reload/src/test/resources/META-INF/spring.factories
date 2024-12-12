@@ -1,2 +1,2 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.fabric8.client.reload.it.Fabric8EventReloadInformFromOneNamespaceEventNotTriggeredIT.TestConfig
+org.springframework.cloud.kubernetes.fabric8.client.reload.it.Fabric8EventReloadBase.TestConfig

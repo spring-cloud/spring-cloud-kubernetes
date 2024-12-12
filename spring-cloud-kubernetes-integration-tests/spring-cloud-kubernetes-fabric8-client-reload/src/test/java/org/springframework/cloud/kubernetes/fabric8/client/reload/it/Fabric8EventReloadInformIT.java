@@ -30,14 +30,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.cloud.kubernetes.fabric8.client.reload.LeftProperties;
 import org.springframework.cloud.kubernetes.fabric8.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -52,56 +48,47 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.Test
  */
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
 	"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
-	"spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.client.namespace=default" })
+	"spring.cloud.bootstrap.enabled=true" })
 @ActiveProfiles("two")
-class Fabric8EventReloadInformFromOneNamespaceEventTriggeredIT extends Fabric8EventReloadBase {
+class Fabric8EventReloadInformIT extends Fabric8EventReloadBase {
 
 	private static final String LEFT_NAMESPACE = "left";
 	private static final String RIGHT_NAMESPACE = "right";
-	private static final String DEFAULT_NAMESPACE = "default";
 
 	private static ConfigMap leftConfigMap;
 	private static ConfigMap rightConfigMap;
-	private static ConfigMap configMap;
 
 	@Autowired
-	private Environment environment;
-
-	@Autowired
-	private KubernetesClient kubernetesClient;
+	private LeftProperties leftProperties;
 
 	@Autowired
 	private RightProperties rightProperties;
 
 	@Autowired
-	private ApplicationContext applicationContext;
+	private KubernetesClient kubernetesClient;
 
 	@BeforeAll
 	static void beforeAllLocal() {
 		InputStream leftConfigMapStream = util.inputStream("manifests/left-configmap.yaml");
 		InputStream rightConfigMapStream = util.inputStream("manifests/right-configmap.yaml");
-		InputStream configMapStream = util.inputStream("manifests/configmap.yaml");
 
 		leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
 		rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
-		configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 
 		util.createNamespace(LEFT_NAMESPACE);
 		util.createNamespace(RIGHT_NAMESPACE);
 
 		configMap(Phase.CREATE, util, leftConfigMap, LEFT_NAMESPACE);
 		configMap(Phase.CREATE, util, rightConfigMap, RIGHT_NAMESPACE);
-		configMap(Phase.CREATE, util, configMap, DEFAULT_NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAllLocal() {
 		configMap(Phase.DELETE, util, leftConfigMap, LEFT_NAMESPACE);
 		configMap(Phase.DELETE, util, rightConfigMap, RIGHT_NAMESPACE);
-		configMap(Phase.DELETE, util, configMap, DEFAULT_NAMESPACE);
 
-		util.deleteNamespace("left");
-		util.deleteNamespace("right");
+		util.deleteNamespace(LEFT_NAMESPACE);
+		util.deleteNamespace(RIGHT_NAMESPACE);
 	}
 
 	/**
@@ -110,7 +97,7 @@ class Fabric8EventReloadInformFromOneNamespaceEventTriggeredIT extends Fabric8Ev
 	 * - each of the namespaces has one configmap
 	 * - we watch the "right" namespace and make a change in the configmap in the same
 	 * namespace
-	 * - as such, event is triggered and we see the updated value
+	 * - as such, event is triggered (refresh happens) and we see the updated value
 	 * </pre>
 	 */
 	@Test
@@ -118,11 +105,9 @@ class Fabric8EventReloadInformFromOneNamespaceEventTriggeredIT extends Fabric8Ev
 		assertReloadLogStatements("added configmap informer for namespace", "added secret informer for namespace",
 			output);
 
-		String currentLeftValue = environment.getProperty("left.value");
-		assertThat(currentLeftValue).isEqualTo("left-initial");
-
-		String currentRightValue = environment.getProperty("right.value");
-		assertThat(currentRightValue).isEqualTo("right-initial");
+		// first we read these with default values
+		assertThat(leftProperties.getValue()).isEqualTo("left-initial");
+		assertThat(rightProperties.getValue()).isEqualTo("right-initial");
 
 		// then deploy a new version of right-configmap
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
@@ -132,28 +117,15 @@ class Fabric8EventReloadInformFromOneNamespaceEventTriggeredIT extends Fabric8Ev
 
 		replaceConfigMap(kubernetesClient, rightConfigMapAfterChange, RIGHT_NAMESPACE);
 
-		String afterUpdateLeftValue = environment.getProperty("left.value");
-		assertThat(afterUpdateLeftValue).isEqualTo("left-initial");
-
-		await().atMost(Duration.ofSeconds(15000))
+		await().atMost(Duration.ofSeconds(60))
 			.pollDelay(Duration.ofSeconds(1))
 			.until(() -> {
 				String afterUpdateRightValue = rightProperties.getValue();
 				return afterUpdateRightValue.equals("right-after-change");
 			});
 
+		// left does not change
+		assertThat(leftProperties.getValue()).isEqualTo("left-initial");
 	}
-
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		KubernetesClient kubernetesClient() {
-			return kubernetesClient();
-		}
-
-	}
-
 
 }

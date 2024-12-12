@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
 import java.time.Duration;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.test.system.CapturedOutput;
@@ -58,12 +59,25 @@ final class TestAssertions {
 		client.configMaps().inNamespace(namespace).resource(configMap).update();
 	}
 
+	static void replaceSecret(KubernetesClient client, Secret secret, String namespace) {
+		client.secrets().inNamespace(namespace).resource(secret).update();
+	}
+
 	static void configMap(Phase phase, Util util, ConfigMap configMap, String namespace) {
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(namespace, configMap, null);
 		}
 		else {
 			util.deleteAndWait(namespace, configMap, null);
+		}
+	}
+
+	static void secret(Phase phase, Util util, Secret secret, String namespace) {
+		if (phase.equals(Phase.CREATE)) {
+			util.createAndWait(namespace, null, secret);
+		}
+		else {
+			util.deleteAndWait(namespace, null, secret);
 		}
 	}
 

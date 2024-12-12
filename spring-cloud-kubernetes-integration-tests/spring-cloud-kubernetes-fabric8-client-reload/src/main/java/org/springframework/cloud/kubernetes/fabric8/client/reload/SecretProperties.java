@@ -22,15 +22,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author wind57
  */
 @ConfigurationProperties("from.secret.properties")
-class SecretProperties {
+public class SecretProperties {
 
 	private String key;
 
-	String getKey() {
+	public String getKey() {
 		return key;
 	}
 
-	void setKey(String key) {
+	public void setKey(String key) {
 		this.key = key;
 	}
 

@@ -22,15 +22,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author wind57
  */
 @ConfigurationProperties("left")
-class LeftProperties {
+public class LeftProperties {
 
 	private String value;
 
-	String getValue() {
+	public String getValue() {
 		return value;
 	}
 
-	void setValue(String value) {
+	public void setValue(String value) {
 		this.value = value;
 	}
 
