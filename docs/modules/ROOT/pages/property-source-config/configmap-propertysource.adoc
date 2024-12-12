@@ -447,7 +447,7 @@ will result in three properties being generated:
 The same way you configure a prefix for configmaps, you can do it for secrets also; both for secrets that are based on name
 and the ones based on labels. For example:
 
-[source.yaml]
+[source,yaml]
 ----
 spring:
   application:
@@ -479,7 +479,7 @@ will be the names of all secrets found for those particular labels.
 
 One more thing to bear in mind is that we support `prefix` per _source_, not per secret. The easiest way to explain this is via an example:
 
-[source.yaml]
+[source,yaml]
 ----
 spring:
   application:
