@@ -74,29 +74,6 @@ public record KubernetesDiscoveryProperties(
 
 	}
 
-	public KubernetesDiscoveryProperties(@DefaultValue("true") boolean enabled, boolean allNamespaces,
-			@DefaultValue Set<String> namespaces, @DefaultValue("true") boolean waitCacheReady,
-			@DefaultValue("60") long cacheLoadingTimeoutSeconds, boolean includeNotReadyAddresses, String filter,
-			@DefaultValue({ "443", "8443" }) Set<Integer> knownSecurePorts,
-			@DefaultValue Map<String, String> serviceLabels, String primaryPortName, @DefaultValue Metadata metadata,
-			@DefaultValue("" + DEFAULT_ORDER) int order, boolean useEndpointSlices) {
-		this(enabled, allNamespaces, namespaces, waitCacheReady, cacheLoadingTimeoutSeconds, includeNotReadyAddresses,
-				filter, knownSecurePorts, serviceLabels, primaryPortName, metadata, order, useEndpointSlices, false,
-				null);
-	}
-
-	public KubernetesDiscoveryProperties(@DefaultValue("true") boolean enabled, boolean allNamespaces,
-			@DefaultValue Set<String> namespaces, @DefaultValue("true") boolean waitCacheReady,
-			@DefaultValue("60") long cacheLoadingTimeoutSeconds, boolean includeNotReadyAddresses, String filter,
-			@DefaultValue({ "443", "8443" }) Set<Integer> knownSecurePorts,
-			@DefaultValue Map<String, String> serviceLabels, String primaryPortName, @DefaultValue Metadata metadata,
-			@DefaultValue("" + DEFAULT_ORDER) int order, boolean useEndpointSlices,
-			boolean includeExternalNameServices) {
-		this(enabled, allNamespaces, namespaces, waitCacheReady, cacheLoadingTimeoutSeconds, includeNotReadyAddresses,
-				filter, knownSecurePorts, serviceLabels, primaryPortName, metadata, order, useEndpointSlices,
-				includeExternalNameServices, null);
-	}
-
 	/**
 	 * Default instance.
 	 */
