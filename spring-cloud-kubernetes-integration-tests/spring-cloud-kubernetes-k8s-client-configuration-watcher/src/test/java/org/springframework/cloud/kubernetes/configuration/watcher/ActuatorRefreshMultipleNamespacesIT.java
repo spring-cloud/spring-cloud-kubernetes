@@ -49,8 +49,6 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 	private static final String WIREMOCK_HOST = "localhost";
 
-	private static final String WIREMOCK_PATH = "/";
-
 	private static final int WIREMOCK_PORT = 80;
 
 	private static final String DEFAULT_NAMESPACE = "default";
