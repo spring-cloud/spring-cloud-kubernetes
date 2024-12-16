@@ -23,20 +23,19 @@ import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
-import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLocationResolver;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.configdata.ConfigDataProperties;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLocationResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
 
@@ -45,17 +44,12 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
  */
 public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
-	public Fabric8ConfigDataLocationResolver(DeferredLogFactory factory) {
-		super(factory);
-	}
-
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-			Profiles profiles, KubernetesConfigDataLocationResolver.PropertyHolder propertyHolder,
-			KubernetesNamespaceProvider namespaceProvider) {
-		KubernetesClientProperties kubernetesClientProperties = propertyHolder.kubernetesClientProperties();
-		ConfigMapConfigProperties configMapProperties = propertyHolder.configMapConfigProperties();
-		SecretsConfigProperties secretsProperties = propertyHolder.secretsProperties();
+			Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
+		KubernetesClientProperties kubernetesClientProperties = properties.clientProperties();
+		ConfigMapConfigProperties configMapProperties = properties.configMapProperties();
+		SecretsConfigProperties secretsProperties = properties.secretsProperties();
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
 		KubernetesClient kubernetesClient = registerConfigAndClient(bootstrapContext, kubernetesClientProperties);
@@ -95,11 +89,6 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 		registerSingle(bootstrapContext, KubernetesClient.class, kubernetesClient, "configKubernetesClient",
 				(ApplicationListener<ContextClosedEvent>) event -> kubernetesClient.close());
 		return kubernetesClient;
-	}
-
-	@Override
-	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
-		return new KubernetesNamespaceProvider(environment);
 	}
 
 }
