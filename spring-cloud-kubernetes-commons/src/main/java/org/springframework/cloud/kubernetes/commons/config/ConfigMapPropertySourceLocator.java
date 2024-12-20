@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -81,7 +82,16 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
-				sources.forEach(s -> composite.addFirstPropertySource(getMapPropertySource(s, env)));
+				sources.forEach(s -> {
+					MapPropertySource propertySource = getMapPropertySource(s, env);
+					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
+						LOG.warn("Failed to load source: " + s);
+					}
+					else {
+						LOG.debug("Adding config map property source " + propertySource.getName());
+						composite.addFirstPropertySource(propertySource);
+					}
+				});
 			}
 
 			addPropertySourcesFromPaths(environment, composite);
@@ -120,7 +130,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		}).toList().forEach(p -> {
 			try {
 				String content = new String(Files.readAllBytes(p)).trim();
-				String filename = p.toAbsolutePath().toString().toLowerCase();
+				String filename = p.toAbsolutePath().toString().toLowerCase(Locale.ROOT);
 				if (filename.endsWith(".properties")) {
 					addPropertySourceIfNeeded(c -> PROPERTIES_TO_MAP.apply(KEY_VALUE_TO_PROPERTIES.apply(c)), content,
 							filename, composite);

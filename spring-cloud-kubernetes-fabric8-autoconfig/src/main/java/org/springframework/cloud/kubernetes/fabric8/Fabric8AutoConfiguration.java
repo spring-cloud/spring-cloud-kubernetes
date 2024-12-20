@@ -18,11 +18,13 @@ package org.springframework.cloud.kubernetes.fabric8;
 
 import java.time.Duration;
 
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,6 +33,8 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 
 /**
  * Auto configuration for Kubernetes.
@@ -115,6 +119,15 @@ public class Fabric8AutoConfiguration {
 	@ConditionalOnMissingBean
 	public Fabric8PodUtils kubernetesPodUtils(KubernetesClient client) {
 		return new Fabric8PodUtils(client);
+	}
+
+	@EventListener
+	void onContextClosed(ContextClosedEvent event) {
+		// Clean up any open connections from the KubernetesClient when the context is
+		// closed
+		BeanFactoryUtils.beansOfTypeIncludingAncestors(event.getApplicationContext(), KubernetesClient.class)
+			.values()
+			.forEach(Client::close);
 	}
 
 }

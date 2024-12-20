@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author wind57
  */
 @SpringBootApplication
-public class IstioApp {
+class IstioApp {
 
 	public static void main(String[] args) {
 		SpringApplication.run(IstioApp.class, args);

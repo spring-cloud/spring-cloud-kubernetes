@@ -65,9 +65,6 @@ public final class Util {
 
 	private static final Log LOG = LogFactory.getLog(Util.class);
 
-	/** Image we get {@code istioctl} from in order to install Istio. */
-	public static final String ISTIO_ISTIOCTL = "istio/istioctl";
-
 	private final K3sContainer container;
 
 	private final KubernetesClient client;
@@ -106,7 +103,7 @@ public final class Util {
 				}
 				else {
 					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], container);
+					pullImage(image[0], image[1], name, container);
 					loadImage(image[0], image[1], name, container);
 				}
 
