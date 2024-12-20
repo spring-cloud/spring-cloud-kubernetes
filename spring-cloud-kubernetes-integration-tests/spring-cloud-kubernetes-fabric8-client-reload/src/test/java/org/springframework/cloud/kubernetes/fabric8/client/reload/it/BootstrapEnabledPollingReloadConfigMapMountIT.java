@@ -51,8 +51,6 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
-	private static final String DOCKER_IMAGE = "docker.io/springcloud/" + IMAGE_NAME + ":" + pomVersion();
-
 	private static final String NAMESPACE = "default";
 
 	private static final K3sContainer K3S = Commons.container();
@@ -69,22 +67,13 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 
 		util = new Util(K3S);
 		client = util.client();
-
-		util.createNamespace("left");
-		util.createNamespace("right");
-		util.setUpClusterWide(NAMESPACE, Set.of("left", "right"));
 		util.setUp(NAMESPACE);
-
 		manifests(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() throws Exception {
-		util.deleteNamespace("left");
-		util.deleteNamespace("right");
 		Commons.cleanUp(IMAGE_NAME, K3S);
-		Commons.systemPrune();
-
 		manifests(Phase.DELETE);
 	}
 
@@ -112,34 +101,20 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		InputStream deploymentStream = util.inputStream("deployment.yaml");
 		InputStream serviceStream = util.inputStream("service.yaml");
 		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream leftConfigMapStream = util.inputStream("left-configmap.yaml");
-		InputStream rightConfigMapStream = util.inputStream("right-configmap.yaml");
-		InputStream rightWithLabelConfigMapStream = util.inputStream("right-configmap-with-label.yaml");
 		InputStream configMapAsStream = util.inputStream("configmap.yaml");
-		InputStream secretAsStream = util.inputStream("secret.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
 		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
-		ConfigMap leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
-		ConfigMap rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
-		ConfigMap rightWithLabelConfigMap = Serialization.unmarshal(rightWithLabelConfigMapStream, ConfigMap.class);
 		ConfigMap configMap = Serialization.unmarshal(configMapAsStream, ConfigMap.class);
-		Secret secret = Serialization.unmarshal(secretAsStream, Secret.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait("left", leftConfigMap, null);
-			util.createAndWait("right", rightConfigMap, null);
-			util.createAndWait("right", rightWithLabelConfigMap, null);
-			util.createAndWait(NAMESPACE, configMap, secret);
+			util.createAndWait(NAMESPACE, configMap, null);
 			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else {
-			util.deleteAndWait("left", leftConfigMap, null);
-			util.deleteAndWait("right", rightConfigMap, null);
-			util.deleteAndWait("right", rightWithLabelConfigMap, null);
-			util.deleteAndWait(NAMESPACE, configMap, secret);
+			util.deleteAndWait(NAMESPACE, configMap, null);
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 
