@@ -46,8 +46,8 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.Test
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
-	"spring.cloud.bootstrap.enabled=true" })
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
+		"spring.cloud.bootstrap.enabled=true" })
 @ActiveProfiles("one")
 class Fabric8EventReloadDataChangesInConfigMapIT extends Fabric8EventReloadBase {
 
@@ -76,7 +76,6 @@ class Fabric8EventReloadDataChangesInConfigMapIT extends Fabric8EventReloadBase 
 		util.deleteNamespace(NAMESPACE);
 	}
 
-
 	/**
 	 * <pre>
 	 *     - configMap with no labels and data: right.value = right-initial exists in namespace right
@@ -90,8 +89,8 @@ class Fabric8EventReloadDataChangesInConfigMapIT extends Fabric8EventReloadBase 
 	@Test
 	void test(CapturedOutput output) {
 
-		assertReloadLogStatements("added configmap informer for namespace",
-			"added secret informer for namespace", output);
+		assertReloadLogStatements("added configmap informer for namespace", "added secret informer for namespace",
+				output);
 
 		// we first read the initial value from configmap
 		assertThat(properties.getValue()).isEqualTo("right-initial");
@@ -129,12 +128,10 @@ class Fabric8EventReloadDataChangesInConfigMapIT extends Fabric8EventReloadBase 
 
 		replaceConfigMap(kubernetesClient, configMap, NAMESPACE);
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> {
-				String afterUpdateRightValue = properties.getValue();
-				return afterUpdateRightValue.equals("right-after-change");
-			});
+		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
+			String afterUpdateRightValue = properties.getValue();
+			return afterUpdateRightValue.equals("right-after-change");
+		});
 	}
 
 }

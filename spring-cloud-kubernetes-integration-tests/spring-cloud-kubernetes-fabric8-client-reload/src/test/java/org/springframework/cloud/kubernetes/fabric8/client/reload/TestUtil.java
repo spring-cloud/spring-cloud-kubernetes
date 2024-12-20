@@ -17,22 +17,15 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author wind57
@@ -41,9 +34,6 @@ final class TestUtil {
 
 	private static final Map<String, String> POD_LABELS = Map.of("app",
 			"spring-cloud-kubernetes-fabric8-client-reload");
-
-
-
 
 	private static final String BODY_FOUR = """
 			{
@@ -243,14 +233,6 @@ final class TestUtil {
 
 	static void patchSeven(Util util, String dockerImage, String deploymentName, String namespace) {
 		util.patchWithReplace(dockerImage, deploymentName, namespace, BODY_SEVEN, POD_LABELS);
-	}
-
-	static WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	static RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 	static String logs(K3sContainer container, String appLabelValue) {

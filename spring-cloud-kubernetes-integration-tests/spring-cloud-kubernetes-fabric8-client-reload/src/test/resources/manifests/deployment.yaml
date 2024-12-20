@@ -30,9 +30,11 @@ spec:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_CONFIG_RELOAD
               value: "DEBUG"
             - name: SPRING_PROFILES_ACTIVE
-              value: "one"
+              value: "mount"
             - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
               value: "TRUE"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG
+              value: "DEBUG"
 
           volumeMounts:
             - mountPath: /tmp

@@ -43,15 +43,15 @@ import org.springframework.test.context.TestPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.assertReloadLogStatements;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.secret;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.replaceSecret;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.secret;
 
 /**
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
-	"spring.cloud.kubernetes.client.namespace=default" })
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
+		"spring.cloud.kubernetes.client.namespace=default" })
 @ActiveProfiles("with-secret")
 class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 
@@ -68,7 +68,8 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 	@BeforeAll
 	static void beforeAllLocal() {
 
-		// set system properties very early, so that when 'Fabric8ConfigDataLocationResolver'
+		// set system properties very early, so that when
+		// 'Fabric8ConfigDataLocationResolver'
 		// loads KubernetesClient from Config, these would be already present
 		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
 		String caCertData = config.getCaCertData();
@@ -76,8 +77,7 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 		String clientKeyData = config.getClientKeyData();
 		String clientKeyAlgo = config.getClientKeyAlgo();
 		String clientKeyPass = config.getClientKeyPassphrase();
-		String masterUrl = new KubernetesClientBuilder().withConfig(config)
-			.build().getConfiguration().getMasterUrl();
+		String masterUrl = new KubernetesClientBuilder().withConfig(config).build().getConfiguration().getMasterUrl();
 
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, masterUrl);
 		System.setProperty(Config.KUBERNETES_CA_CERTIFICATE_DATA_SYSTEM_PROPERTY, caCertData);
@@ -109,7 +109,7 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 	@Test
 	void test(CapturedOutput output) {
 		assertReloadLogStatements("added secret informer for namespace", "added configmap informer for namespace",
-			output);
+				output);
 		assertThat(secretProperties.getKey()).isEqualTo("secret-initial");
 
 		Secret secret = new SecretBuilder()
@@ -118,7 +118,7 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 				.withName("event-reload")
 				.build())
 			.withData(Map.of(Constants.APPLICATION_PROPERTIES,
-				Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial".getBytes())))
+					Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial".getBytes())))
 			.build();
 		replaceSecret(kubernetesClient, secret, NAMESPACE);
 
@@ -131,12 +131,11 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 			.until(() -> output.getOut().contains("data in secret has not changed, will not reload"));
 		assertThat(secretProperties.getKey()).isEqualTo("secret-initial");
 
-
 		// change data
 		secret = new SecretBuilder()
 			.withMetadata(new ObjectMetaBuilder().withNamespace("default").withName("event-reload").build())
 			.withData(Map.of(Constants.APPLICATION_PROPERTIES,
-				Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
+					Base64.getEncoder().encodeToString("from.secret.properties.key=secret-initial-changed".getBytes())))
 			.build();
 		replaceSecret(kubernetesClient, secret, NAMESPACE);
 

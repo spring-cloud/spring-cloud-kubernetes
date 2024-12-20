@@ -19,10 +19,8 @@ package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -32,17 +30,18 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.builder;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.retrySpec;
 
 /**
  * @author wind57
@@ -93,15 +92,44 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 	 */
 	@Test
 	void test() {
+		// (1)
+		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", K3S, IMAGE_NAME);
+		// (2)
+		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", K3S,
+				IMAGE_NAME);
+		// (3)
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		String result = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
+		// we first read the initial value from the configmap
+		Assertions.assertEquals("as-mount-initial", result);
+
+		// replace data in configmap and wait for k8s to pick it up
+		// our polling will detect that and restart the app
+		InputStream configMapStream = util.inputStream("configmap.yaml");
+		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
+		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
+		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
+
+		await().timeout(Duration.ofSeconds(360))
+			.until(() -> webClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block()
+				.equals("as-mount-changed"));
 	}
 
 	private static void manifests(Phase phase) {
 
-		InputStream deploymentStream = util.inputStream("deployment.yaml");
-		InputStream serviceStream = util.inputStream("service.yaml");
-		InputStream ingressStream = util.inputStream("ingress.yaml");
-		InputStream configMapAsStream = util.inputStream("configmap.yaml");
+		InputStream deploymentStream = util.inputStream("manifests/deployment.yaml");
+		InputStream serviceStream = util.inputStream("manifests/service.yaml");
+		InputStream ingressStream = util.inputStream("manifests/ingress.yaml");
+		InputStream configMapAsStream = util.inputStream("manifests/configmap.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 

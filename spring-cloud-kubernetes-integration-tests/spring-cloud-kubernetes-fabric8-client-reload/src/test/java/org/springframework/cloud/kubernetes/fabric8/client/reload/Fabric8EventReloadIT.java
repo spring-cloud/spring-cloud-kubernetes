@@ -17,13 +17,9 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
-import java.time.Duration;
-import java.util.Map;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -31,7 +27,6 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
@@ -39,10 +34,7 @@ import org.testcontainers.k3s.K3sContainer;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 
 /**
@@ -94,7 +86,6 @@ class Fabric8EventReloadIT {
 		testConfigMapMountPollingReload();
 		testPollingReloadConfigMapWithBootstrap();
 	}
-
 
 	void testConfigMapMountPollingReload() {
 		TestUtil.reCreateSources(util, client);

@@ -47,8 +47,8 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.Test
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
-	"spring.cloud.bootstrap.enabled=true" })
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
+		"spring.cloud.bootstrap.enabled=true" })
 @ActiveProfiles("three")
 class Fabric8EventReloadInformWithLabelIT extends Fabric8EventReloadBase {
 
@@ -99,7 +99,7 @@ class Fabric8EventReloadInformWithLabelIT extends Fabric8EventReloadBase {
 	@Test
 	void test(CapturedOutput output) {
 		assertReloadLogStatements("added configmap informer for namespace", "added secret informer for namespace",
-			output);
+				output);
 
 		// read the initial value from the right-configmap
 		assertThat(rightProperties.getValue()).isEqualTo("right-initial");
@@ -127,22 +127,19 @@ class Fabric8EventReloadInformWithLabelIT extends Fabric8EventReloadBase {
 
 		replaceConfigMap(kubernetesClient, rightWithLabelConfigMapAfterChange, RIGHT_NAMESPACE);
 
-		// since we have changed a labeled configmap, app will restart and pick up the new value
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> {
-				String afterUpdateRightValue = rightWithLabelsProperties.getValue();
-				return afterUpdateRightValue.equals("right-with-label-after-change");
-			});
+		// since we have changed a labeled configmap, app will restart and pick up the new
+		// value
+		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
+			String afterUpdateRightValue = rightWithLabelsProperties.getValue();
+			return afterUpdateRightValue.equals("right-with-label-after-change");
+		});
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> {
-				String afterUpdateRightValue = rightProperties.getValue();
-				return afterUpdateRightValue.equals("right-after-change");
-			});
+		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
+			String afterUpdateRightValue = rightProperties.getValue();
+			return afterUpdateRightValue.equals("right-after-change");
+		});
 	}
 
 }
