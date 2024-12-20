@@ -22,15 +22,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author wind57
  */
 @ConfigurationProperties("from.properties")
-public class ConfigMapProperties {
+class ConfigMapProperties {
 
 	private String key;
 
-	public String getKey() {
+	String getKey() {
 		return key;
 	}
 
-	public void setKey(String key1) {
+	void setKey(String key1) {
 		this.key = key1;
 	}
 
