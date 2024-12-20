@@ -69,8 +69,7 @@ class ConfigMapMountPollingReloadDelegateIT {
 	}
 
 	@AfterAll
-	static void afterAll() throws Exception {
-		Commons.cleanUp(IMAGE_NAME, K3S);
+	static void afterAll(){
 		manifests(Phase.DELETE, util, NAMESPACE);
 	}
 
