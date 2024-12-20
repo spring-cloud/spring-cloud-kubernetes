@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
+package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -31,16 +31,15 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.cloud.kubernetes.fabric8.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.assertReloadLogStatements;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.configMap;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.replaceConfigMap;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.assertReloadLogStatements;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.configMap;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.replaceConfigMap;
 
 /**
  * @author wind57

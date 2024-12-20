@@ -12,4 +12,5 @@ spring:
       config:
         paths:
           - /tmp/application.properties
-
+  config:
+    import: "kubernetes:"

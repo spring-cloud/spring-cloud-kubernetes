@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.client.reload.it;
+package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
@@ -31,17 +31,15 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.cloud.kubernetes.fabric8.client.reload.LeftProperties;
-import org.springframework.cloud.kubernetes.fabric8.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.assertReloadLogStatements;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.configMap;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.TestAssertions.replaceConfigMap;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.assertReloadLogStatements;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.configMap;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.replaceConfigMap;
 
 /**
  * @author wind57
@@ -49,57 +47,51 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.Test
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
 		"spring.cloud.bootstrap.enabled=true" })
-@ActiveProfiles("two")
-class Fabric8EventReloadInformIT extends Fabric8EventReloadBase {
-
-	private static final String LEFT_NAMESPACE = "left";
+@ActiveProfiles("three")
+class Fabric8EventReloadInformWithLabelIT extends Fabric8EventReloadBase {
 
 	private static final String RIGHT_NAMESPACE = "right";
 
-	private static ConfigMap leftConfigMap;
-
 	private static ConfigMap rightConfigMap;
 
+	private static ConfigMap rightConfigMapWithLabel;
+
 	@Autowired
-	private LeftProperties leftProperties;
+	private KubernetesClient kubernetesClient;
 
 	@Autowired
 	private RightProperties rightProperties;
 
 	@Autowired
-	private KubernetesClient kubernetesClient;
+	private RightWithLabelsProperties rightWithLabelsProperties;
 
 	@BeforeAll
 	static void beforeAllLocal() {
-		InputStream leftConfigMapStream = util.inputStream("manifests/left-configmap.yaml");
 		InputStream rightConfigMapStream = util.inputStream("manifests/right-configmap.yaml");
+		InputStream rightConfigMapWithLabelStream = util.inputStream("manifests/right-configmap-with-label.yaml");
 
-		leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
 		rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
+		rightConfigMapWithLabel = Serialization.unmarshal(rightConfigMapWithLabelStream, ConfigMap.class);
 
-		util.createNamespace(LEFT_NAMESPACE);
 		util.createNamespace(RIGHT_NAMESPACE);
 
-		configMap(Phase.CREATE, util, leftConfigMap, LEFT_NAMESPACE);
 		configMap(Phase.CREATE, util, rightConfigMap, RIGHT_NAMESPACE);
+		configMap(Phase.CREATE, util, rightConfigMapWithLabel, RIGHT_NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAllLocal() {
-		configMap(Phase.DELETE, util, leftConfigMap, LEFT_NAMESPACE);
 		configMap(Phase.DELETE, util, rightConfigMap, RIGHT_NAMESPACE);
-
-		util.deleteNamespace(LEFT_NAMESPACE);
+		configMap(Phase.DELETE, util, rightConfigMapWithLabel, RIGHT_NAMESPACE);
 		util.deleteNamespace(RIGHT_NAMESPACE);
 	}
 
 	/**
 	 * <pre>
-	 * - there are two namespaces : left and right
-	 * - each of the namespaces has one configmap
-	 * - we watch the "right" namespace and make a change in the configmap in the same
-	 * namespace
-	 * - as such, event is triggered (refresh happens) and we see the updated value
+	 * - there is one namespace : right
+	 * - right has two configmaps: right-configmap, right-configmap-with-label
+	 * - we watch the "right" namespace, but enable tagging; which means that only
+	 * right-configmap-with-label triggers changes.
 	 * </pre>
 	 */
 	@Test
@@ -107,25 +99,45 @@ class Fabric8EventReloadInformIT extends Fabric8EventReloadBase {
 		assertReloadLogStatements("added configmap informer for namespace", "added secret informer for namespace",
 				output);
 
-		// first we read these with default values
-		assertThat(leftProperties.getValue()).isEqualTo("left-initial");
+		// read the initial value from the right-configmap
 		assertThat(rightProperties.getValue()).isEqualTo("right-initial");
+
+		// then read the initial value from the right-with-label-configmap
+		assertThat(rightWithLabelsProperties.getValue()).isEqualTo("right-with-label-initial");
 
 		// then deploy a new version of right-configmap
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
-			.withMetadata(new ObjectMetaBuilder().withNamespace(RIGHT_NAMESPACE).withName("right-configmap").build())
+			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap").build())
 			.withData(Map.of("right.value", "right-after-change"))
 			.build();
 
 		replaceConfigMap(kubernetesClient, rightConfigMapAfterChange, RIGHT_NAMESPACE);
 
+		// nothing changes in our app, because we are watching only labeled configmaps
+		assertThat(rightProperties.getValue()).isEqualTo("right-initial");
+		assertThat(rightWithLabelsProperties.getValue()).isEqualTo("right-with-label-initial");
+
+		// then deploy a new version of right-with-label-configmap
+		ConfigMap rightWithLabelConfigMapAfterChange = new ConfigMapBuilder()
+			.withMetadata(new ObjectMetaBuilder().withNamespace("right").withName("right-configmap-with-label").build())
+			.withData(Map.of("right.with.label.value", "right-with-label-after-change"))
+			.build();
+
+		replaceConfigMap(kubernetesClient, rightWithLabelConfigMapAfterChange, RIGHT_NAMESPACE);
+
+		// since we have changed a labeled configmap, app will restart and pick up the new
+		// value
+		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
+			String afterUpdateRightValue = rightWithLabelsProperties.getValue();
+			return afterUpdateRightValue.equals("right-with-label-after-change");
+		});
+
+		// right-configmap now will see the new value also, but only because the other
+		// configmap has triggered the restart
 		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
 			String afterUpdateRightValue = rightProperties.getValue();
 			return afterUpdateRightValue.equals("right-after-change");
 		});
-
-		// left does not change
-		assertThat(leftProperties.getValue()).isEqualTo("left-initial");
 	}
 
 }
