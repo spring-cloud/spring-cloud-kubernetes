@@ -69,7 +69,7 @@ class ConfigMapMountPollingReloadDelegateIT {
 	}
 
 	@AfterAll
-	static void afterAll(){
+	static void afterAll() {
 		manifests(Phase.DELETE, util, NAMESPACE);
 	}
 
