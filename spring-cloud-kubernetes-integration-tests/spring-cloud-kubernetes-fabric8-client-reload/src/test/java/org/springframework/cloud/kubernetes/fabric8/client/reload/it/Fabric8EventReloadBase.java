@@ -32,7 +32,10 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 
-@SpringBootTest(classes = { App.class, Fabric8EventReloadBase.TestConfig.class })
+/**
+ * @author wind57
+ */
+@SpringBootTest(classes = { App.class })
 @ExtendWith(OutputCaptureExtension.class)
 abstract class Fabric8EventReloadBase {
 

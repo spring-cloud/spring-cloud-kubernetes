@@ -24,7 +24,9 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,7 +50,8 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.it.Test
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug" })
+	"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
+	"spring.cloud.kubernetes.client.namespace=default" })
 @ActiveProfiles("with-secret")
 class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 
@@ -64,6 +67,25 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 
 	@BeforeAll
 	static void beforeAllLocal() {
+
+		// set system properties very early, so that when 'Fabric8ConfigDataLocationResolver'
+		// loads KubernetesClient from Config, these would be already present
+		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
+		String caCertData = config.getCaCertData();
+		String clientCertData = config.getClientCertData();
+		String clientKeyData = config.getClientKeyData();
+		String clientKeyAlgo = config.getClientKeyAlgo();
+		String clientKeyPass = config.getClientKeyPassphrase();
+		String masterUrl = new KubernetesClientBuilder().withConfig(config)
+			.build().getConfiguration().getMasterUrl();
+
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, masterUrl);
+		System.setProperty(Config.KUBERNETES_CA_CERTIFICATE_DATA_SYSTEM_PROPERTY, caCertData);
+		System.setProperty(Config.KUBERNETES_CLIENT_CERTIFICATE_DATA_SYSTEM_PROPERTY, clientCertData);
+		System.setProperty(Config.KUBERNETES_CLIENT_KEY_DATA_SYSTEM_PROPERTY, clientKeyData);
+		System.setProperty(Config.KUBERNETES_CLIENT_KEY_ALGO_SYSTEM_PROPERTY, clientKeyAlgo);
+		System.setProperty(Config.KUBERNETES_CLIENT_KEY_PASSPHRASE_SYSTEM_PROPERTY, clientKeyPass);
+
 		InputStream secretStream = util.inputStream("manifests/secret.yaml");
 		secret = Serialization.unmarshal(secretStream, Secret.class);
 		secret(Phase.CREATE, util, secret, NAMESPACE);
@@ -86,7 +108,7 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		assertReloadLogStatements("added configmap informer for namespace", "added secret informer for namespace",
+		assertReloadLogStatements("added secret informer for namespace", "added configmap informer for namespace",
 			output);
 		assertThat(secretProperties.getKey()).isEqualTo("secret-initial");
 
@@ -100,8 +122,13 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 			.build();
 		replaceSecret(kubernetesClient, secret, NAMESPACE);
 
-		assertThat(output.getOut()).contains("Secret event-reload was updated in namespace default");
-		assertThat(output.getOut()).contains("data in secret has not changed, will not reload");
+		await().atMost(Duration.ofSeconds(60))
+			.pollDelay(Duration.ofSeconds(1))
+			.until(() -> output.getOut().contains("Secret event-reload was updated in namespace default"));
+
+		await().atMost(Duration.ofSeconds(60))
+			.pollDelay(Duration.ofSeconds(1))
+			.until(() -> output.getOut().contains("data in secret has not changed, will not reload"));
 		assertThat(secretProperties.getKey()).isEqualTo("secret-initial");
 
 
@@ -115,7 +142,7 @@ class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
 
 		await().atMost(Duration.ofSeconds(60))
 			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> secretProperties.getKey().equals("right-after-change"));
+			.until(() -> secretProperties.getKey().equals("secret-initial-changed"));
 	}
 
 }
