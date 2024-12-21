@@ -22,10 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
-
 import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
@@ -33,12 +29,13 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static java.util.AbstractMap.SimpleEntry;
 import static java.util.Map.Entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
@@ -319,14 +316,6 @@ final class TestAssertions {
 		await().pollInterval(Duration.ofSeconds(1))
 			.atMost(Duration.ofSeconds(30))
 			.until(() -> output.getOut().contains(message));
-	}
-
-	private static WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private static RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
