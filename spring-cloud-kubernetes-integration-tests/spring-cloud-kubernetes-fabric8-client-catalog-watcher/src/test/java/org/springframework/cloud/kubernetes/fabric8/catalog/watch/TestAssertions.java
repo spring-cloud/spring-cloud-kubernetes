@@ -23,9 +23,6 @@ import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.awaitility.Awaitility;
-import reactor.netty.http.client.HttpClient;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
@@ -34,11 +31,12 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_cl
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
 /**
  * @author wind57
@@ -114,14 +112,6 @@ final class TestAssertions {
 			return Objects.requireNonNull(result).isEmpty();
 		});
 
-	}
-
-	private static WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private static RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }
