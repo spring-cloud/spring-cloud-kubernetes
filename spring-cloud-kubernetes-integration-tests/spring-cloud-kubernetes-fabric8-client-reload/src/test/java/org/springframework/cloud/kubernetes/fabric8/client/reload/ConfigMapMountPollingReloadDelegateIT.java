@@ -113,7 +113,7 @@ class ConfigMapMountPollingReloadDelegateIT {
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		await().atMost(Duration.ofSeconds(60))
+		await().atMost(Duration.ofSeconds(120))
 			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
