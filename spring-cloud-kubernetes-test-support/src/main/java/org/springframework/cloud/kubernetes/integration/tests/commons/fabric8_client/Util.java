@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import io.fabric8.kubernetes.api.model.APIService;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -210,6 +211,21 @@ public final class Util {
 
 	public void deleteNamespace(String name) {
 		try {
+
+			// sometimes we get errors like :
+
+			// "message": "Discovery failed for some groups,
+			// 1 failing: unable to retrieve the complete list of server APIs:
+			// metrics.k8s.io/v1beta1: stale GroupVersion discovery: metrics.k8s.io/v1beta1"
+
+			// but even when it works OK, the finalizers are slowing down the deletion
+			List<APIService> apiServices = client.apiServices().list().getItems();
+			apiServices.stream()
+				.map(apiService -> apiService.getMetadata().getName())
+				.filter(apiServiceName -> apiServiceName.contains("metrics.k8s.io"))
+				.findFirst()
+				.ifPresent(apiServiceName -> client.apiServices().withName(apiServiceName).delete());
+
 			client.namespaces()
 				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.delete();

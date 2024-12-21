@@ -48,7 +48,7 @@ final class FixedPortsK3sContainer extends K3sContainer {
 	 * Command to use when starting rancher. Without "server" option, traefik is not
 	 * installed
 	 */
-	private static final String RANCHER_COMMAND = "server";
+	private static final String RANCHER_COMMAND = "server --disable=metric-server";
 
 	static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(RANCHER_VERSION))
 		.configureFixedPorts()

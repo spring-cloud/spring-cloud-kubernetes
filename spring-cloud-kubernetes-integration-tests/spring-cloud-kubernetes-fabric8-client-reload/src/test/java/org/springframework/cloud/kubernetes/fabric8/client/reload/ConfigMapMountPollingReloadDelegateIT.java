@@ -23,21 +23,55 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.builder;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.manifests;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.retrySpec;
 
 /**
  * @author wind57
  */
-final class ConfigMapMountPollingReloadDelegate {
+class ConfigMapMountPollingReloadDelegateIT {
+
+	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
+
+	private static final String NAMESPACE = "default";
+
+	private static final K3sContainer K3S = Commons.container();
+
+	private static Util util;
+
+	private static KubernetesClient client;
+
+	@BeforeAll
+	static void beforeAll() throws Exception {
+		K3S.start();
+		Commons.validateImage(IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
+
+		util = new Util(K3S);
+		client = util.client();
+		util.setUp(NAMESPACE);
+		manifests(Phase.CREATE, util, NAMESPACE);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		manifests(Phase.DELETE, util, NAMESPACE);
+	}
 
 	/**
 	 * <pre>
@@ -54,27 +88,27 @@ final class ConfigMapMountPollingReloadDelegate {
 	 *     - our polling will then detect that change, and trigger a reload.
 	 * </pre>
 	 */
-	static void testConfigMapMountPollingReload(KubernetesClient client, Util util, K3sContainer container,
-			String appLabelValue) {
+	@Test
+	void test() {
 		// (1)
-		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", container, appLabelValue);
+		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", K3S, IMAGE_NAME);
 		// (2)
-		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", container,
-				appLabelValue);
+		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", K3S,
+				IMAGE_NAME);
 		// (3)
-		WebClient webClient = TestUtil.builder().baseUrl("http://localhost/key").build();
+		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
 			.bodyToMono(String.class)
-			.retryWhen(TestUtil.retrySpec())
+			.retryWhen(retrySpec())
 			.block();
 
 		// we first read the initial value from the configmap
-		Assertions.assertEquals("as-mount-initial", result);
+		assertThat(result).isEqualTo("as-mount-initial");
 
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		InputStream configMapStream = util.inputStream("configmap.yaml");
+		InputStream configMapStream = util.inputStream("manifests/configmap.yaml");
 		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
@@ -83,10 +117,9 @@ final class ConfigMapMountPollingReloadDelegate {
 			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(String.class)
-				.retryWhen(TestUtil.retrySpec())
+				.retryWhen(retrySpec())
 				.block()
 				.equals("as-mount-changed"));
-
 	}
 
 }
