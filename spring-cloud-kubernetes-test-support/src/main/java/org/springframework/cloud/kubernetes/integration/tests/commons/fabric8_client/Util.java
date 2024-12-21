@@ -20,9 +20,9 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import io.fabric8.kubernetes.api.model.APIService;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -31,7 +31,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.Config;
@@ -47,7 +46,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
@@ -67,6 +65,10 @@ public final class Util {
 		this.container = container;
 		this.client = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(container.getKubeConfigYaml()))
 			.build();
+	}
+
+	public KubernetesClient client() {
+		return client;
 	}
 
 	/**
@@ -193,6 +195,21 @@ public final class Util {
 
 	public void deleteNamespace(String name) {
 		try {
+
+			// sometimes we get errors like :
+
+			// "message": "Discovery failed for some groups,
+			// 1 failing: unable to retrieve the complete list of server APIs:
+			// metrics.k8s.io/v1beta1: stale GroupVersion discovery: metrics.k8s.io/v1beta1"
+
+			// but even when it works OK, the finalizers are slowing down the deletion
+			List<APIService> apiServices = client.apiServices().list().getItems();
+			apiServices.stream()
+				.map(apiService -> apiService.getMetadata().getName())
+				.filter(apiServiceName -> apiServiceName.contains("metrics.k8s.io"))
+				.findFirst()
+				.ifPresent(apiServiceName -> client.apiServices().withName(apiServiceName).delete());
+
 			client.namespaces()
 				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.delete();
@@ -354,46 +371,6 @@ public final class Util {
 		return availableReplicas != null && availableReplicas >= 1;
 	}
 
-	private void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
-		try {
-			await().pollDelay(Duration.ofSeconds(4))
-				.pollInterval(Duration.ofSeconds(3))
-				.atMost(60, TimeUnit.SECONDS)
-				.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
-
-		DeploymentList deployments = client.apps().deployments().inNamespace(namespace).list();
-
-		if (deployments.getItems().isEmpty()) {
-			fail("No deployment with name " + deploymentName);
-		}
-
-		Deployment deployment = deployments.getItems()
-			.stream()
-			.filter(x -> x.getMetadata().getName().equals(deploymentName))
-			.findFirst()
-			.orElseThrow();
-		// if no replicas are defined, it means only 1 is needed
-		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
-
-		int numberOfPods = client.pods().inNamespace(namespace).withLabels(labels).list().getItems().size();
-
-		if (numberOfPods != replicas) {
-			LOG.info("number of pods not yet stabilized");
-			return false;
-		}
-
-		return replicas == Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
-
-	}
-
 	private void innerSetup(String namespace, InputStream serviceAccountAsStream, InputStream roleBindingAsStream,
 			InputStream roleAsStream) {
 		ServiceAccount serviceAccountFromStream = client.serviceAccounts()
@@ -440,10 +417,6 @@ public final class Util {
 
 	private String secretName(Secret secret) {
 		return secret.getMetadata().getName();
-	}
-
-	public KubernetesClient client() {
-		return client;
 	}
 
 }
