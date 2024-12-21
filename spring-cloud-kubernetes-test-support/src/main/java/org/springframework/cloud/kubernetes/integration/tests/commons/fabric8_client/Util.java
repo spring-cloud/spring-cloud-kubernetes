@@ -68,6 +68,10 @@ public final class Util {
 			.build();
 	}
 
+	public KubernetesClient client() {
+		return client;
+	}
+
 	/**
 	 * This is the preferred method to use when creating a deployment alongside with a
 	 * service. It creates the given resources as-well as waits for them to be created.
