@@ -112,7 +112,8 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(360))
+		await().atMost(Duration.ofSeconds(60))
+			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(String.class)

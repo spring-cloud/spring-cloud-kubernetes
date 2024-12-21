@@ -92,7 +92,6 @@ final class TestAssertions {
 		InputStream configMapAsStream = util.inputStream("manifests/configmap.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
-
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
 		ConfigMap configMap = Serialization.unmarshal(configMapAsStream, ConfigMap.class);
 
