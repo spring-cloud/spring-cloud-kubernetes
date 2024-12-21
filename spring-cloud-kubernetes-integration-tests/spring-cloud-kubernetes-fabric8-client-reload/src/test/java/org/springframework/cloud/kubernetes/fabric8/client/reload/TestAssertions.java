@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 
@@ -90,22 +89,20 @@ final class TestAssertions {
 
 		InputStream deploymentStream = util.inputStream("manifests/deployment.yaml");
 		InputStream serviceStream = util.inputStream("manifests/service.yaml");
-		InputStream ingressStream = util.inputStream("manifests/ingress.yaml");
 		InputStream configMapAsStream = util.inputStream("manifests/configmap.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
-		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 		ConfigMap configMap = Serialization.unmarshal(configMapAsStream, ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(namespace, configMap, null);
-			util.createAndWait(namespace, null, deployment, service, ingress, true);
+			util.createAndWait(namespace, null, deployment, service, true);
 		}
 		else {
 			util.deleteAndWait(namespace, configMap, null);
-			util.deleteAndWait(namespace, deployment, service, ingress);
+			util.deleteAndWait(namespace, deployment, service);
 		}
 
 	}

@@ -95,7 +95,7 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", K3S,
 				IMAGE_NAME);
 		// (3)
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		WebClient webClient = builder().baseUrl("http://localhost:32321/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
 			.bodyToMono(String.class)
