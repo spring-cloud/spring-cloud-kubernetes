@@ -39,7 +39,6 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
  */
 class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
-
 	private static Service externalServiceName;
 
 	@BeforeAll
