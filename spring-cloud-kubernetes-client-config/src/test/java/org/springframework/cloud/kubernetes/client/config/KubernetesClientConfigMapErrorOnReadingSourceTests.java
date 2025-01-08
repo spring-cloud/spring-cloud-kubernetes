@@ -109,8 +109,8 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
+				true, name, namespace, false, true, false, RetryProperties.DEFAULT);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,

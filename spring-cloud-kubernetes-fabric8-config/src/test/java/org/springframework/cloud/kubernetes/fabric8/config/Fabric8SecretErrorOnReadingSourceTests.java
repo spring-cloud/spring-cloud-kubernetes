@@ -70,8 +70,8 @@ class Fabric8SecretErrorOnReadingSourceTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
-		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(),
-				List.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(), true,
+				name, namespace, false, true, false, RetryProperties.DEFAULT);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -215,8 +215,8 @@ class Fabric8SecretErrorOnReadingSourceTests {
 		Source sourceTwo = new Source(null, namespace, secretTwoLabels, null, null, null);
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true,
-				Map.of("one", "1", "two", "2"), List.of(sourceOne, sourceTwo), true, null, namespace, false,
-				true, false, RetryProperties.DEFAULT);
+				Map.of("one", "1", "two", "2"), List.of(sourceOne, sourceTwo), true, null, namespace, false, true,
+				false, RetryProperties.DEFAULT);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -255,8 +255,8 @@ class Fabric8SecretErrorOnReadingSourceTests {
 		Source sourceTwo = new Source(null, namespace, secretTwoLabels, null, null, null);
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true,
-				Map.of("one", "1", "two", "2"), List.of(sourceOne, sourceTwo), true, null, namespace, false,
-				true, false, RetryProperties.DEFAULT);
+				Map.of("one", "1", "two", "2"), List.of(sourceOne, sourceTwo), true, null, namespace, false, true,
+				false, RetryProperties.DEFAULT);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				secretsConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));

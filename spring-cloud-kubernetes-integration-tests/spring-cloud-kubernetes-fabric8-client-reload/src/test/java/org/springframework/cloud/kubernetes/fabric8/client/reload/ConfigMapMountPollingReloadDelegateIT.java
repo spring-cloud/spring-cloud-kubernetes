@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,8 +54,6 @@ class ConfigMapMountPollingReloadDelegateIT {
 
 	private static Util util;
 
-	private static KubernetesClient client;
-
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
@@ -64,7 +61,6 @@ class ConfigMapMountPollingReloadDelegateIT {
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
 		util = new Util(K3S);
-		client = util.client();
 		util.setUp(NAMESPACE);
 		manifests(Phase.CREATE, util, NAMESPACE);
 	}
@@ -115,7 +111,6 @@ class ConfigMapMountPollingReloadDelegateIT {
 				Optional.ofNullable(configMapMount.getMetadata().getLabels()).orElse(Map.of()));
 		existingLabels.put("spring.cloud.kubernetes.config", "true");
 		configMapMount.getMetadata().setLabels(existingLabels);
-
 
 		await().timeout(Duration.ofSeconds(180))
 			.until(() -> webClient.method(HttpMethod.GET)

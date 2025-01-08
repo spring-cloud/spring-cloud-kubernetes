@@ -217,8 +217,8 @@ class PollingReloadConfigMapTest {
 		@Bean
 		@Primary
 		ConfigMapConfigProperties configMapConfigProperties() {
-			return new ConfigMapConfigProperties(true, List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT);
+			return new ConfigMapConfigProperties(true, List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false,
+					true, FAIL_FAST, RetryProperties.DEFAULT);
 		}
 
 		@Bean

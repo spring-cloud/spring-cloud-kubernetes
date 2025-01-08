@@ -184,8 +184,8 @@ public class PollingReloadSecretTest {
 		@Bean
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
-			return new SecretsConfigProperties(true, Map.of(), List.of(), true, SECRET_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT);
+			return new SecretsConfigProperties(true, Map.of(), List.of(), true, SECRET_NAME, NAMESPACE, false, true,
+					FAIL_FAST, RetryProperties.DEFAULT);
 		}
 
 		@Bean
