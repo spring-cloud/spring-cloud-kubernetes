@@ -14,4 +14,3 @@ spring:
           - /tmp/application.properties
   config:
     import: "kubernetes:"
-

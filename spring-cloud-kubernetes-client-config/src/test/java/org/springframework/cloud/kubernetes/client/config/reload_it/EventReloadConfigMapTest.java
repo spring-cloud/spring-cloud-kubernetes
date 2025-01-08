@@ -20,9 +20,11 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
@@ -59,8 +61,10 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
@@ -81,7 +85,11 @@ class EventReloadConfigMapTest {
 
 	private static final String NAMESPACE = "spring-k8s";
 
-	private static final boolean[] strategyCalled = new boolean[] { false };
+	private static final String SCENARIO_NAME = "reload-test";
+
+	private static final String PATH = "/api/v1/namespaces/spring-k8s/configmaps";
+
+	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
 	private static CoreV1Api coreV1Api;
 
@@ -98,6 +106,12 @@ class EventReloadConfigMapTest {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
 
+		// something that the informer can work with. Since we do not care about this one
+		// in the test, we mock it to return a 500 as it does not matter anyway.
+		stubFor(get(urlPathMatching(PATH)).withQueryParam("resourceVersion", equalTo("0"))
+			.withQueryParam("watch", equalTo("false"))
+			.willReturn(aResponse().withStatus(500).withBody("Error From Informer")));
+
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		client.setDebugging(true);
 		MOCK_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient).thenReturn(client);
@@ -107,30 +121,6 @@ class EventReloadConfigMapTest {
 			.thenReturn(NAMESPACE);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
-
-		String path = "/api/v1/namespaces/spring-k8s/configmaps";
-		V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
-		V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
-
-		// needed so that our environment is populated with 'something'
-		// this call is done in the method that returns the AbstractEnvironment
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
-			.inScenario("mine-test")
-			.willSetStateTo("go-to-fail"));
-
-		// first call will fail
-		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
-			.inScenario("mine-test")
-			.whenScenarioStateIs("go-to-fail")
-			.willSetStateTo("go-to-ok"));
-
-		// second call passes (change data so that reload is triggered)
-		configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
-		listOne = new V1ConfigMapList().addItemsItem(configMapOne);
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
-			.inScenario("mine-test")
-			.whenScenarioStateIs("go-to-ok")
-			.willSetStateTo("done"));
 	}
 
 	@AfterAll
@@ -149,6 +139,13 @@ class EventReloadConfigMapTest {
 	 */
 	@Test
 	void test(CapturedOutput output) {
+
+		// first call will fail
+		stubFor(get(PATH).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs("go-to-fail")
+			.willSetStateTo("go-to-ok"));
+
 		V1ConfigMap configMapNotMine = configMap("not" + CONFIG_MAP_NAME, Map.of());
 		kubernetesClientEventBasedConfigMapChangeDetector.onEvent(configMapNotMine);
 
@@ -158,9 +155,17 @@ class EventReloadConfigMapTest {
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
 				.contains("Reloadable condition was not satisfied, reload will not be triggered");
-			boolean updateStrategyNotCalled = !strategyCalled[0];
+			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
 			return one && two && three && updateStrategyNotCalled;
 		});
+
+		// second call passes (change data so that reload is triggered)
+		V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
+			.inScenario(SCENARIO_NAME)
+			.whenScenarioStateIs("go-to-ok")
+			.willSetStateTo("done"));
 
 		// trigger the call again
 		V1ConfigMap configMapMine = configMap(CONFIG_MAP_NAME, Map.of());
@@ -168,7 +173,7 @@ class EventReloadConfigMapTest {
 		Awaitility.await()
 			.atMost(Duration.ofSeconds(10))
 			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> strategyCalled[0]);
+			.until(STRATEGY_CALLED::get);
 	}
 
 	private static V1ConfigMap configMap(String name, Map<String, String> data) {
@@ -193,6 +198,17 @@ class EventReloadConfigMapTest {
 		@Bean
 		@Primary
 		AbstractEnvironment environment() {
+
+			V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of());
+			V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
+				.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(Scenario.STARTED)
+				.willSetStateTo("go-to-fail"));
+
 			MockEnvironment mockEnvironment = new MockEnvironment();
 			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
 
@@ -216,7 +232,7 @@ class EventReloadConfigMapTest {
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
-					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(2000), Set.of("non-default"),
+					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(2000), Set.of("spring-k8s"),
 					false, Duration.ofSeconds(2));
 		}
 
@@ -237,7 +253,7 @@ class EventReloadConfigMapTest {
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
 			return new ConfigurationUpdateStrategy("to-console", () -> {
-				strategyCalled[0] = true;
+				STRATEGY_CALLED.set(true);
 			});
 		}
 
