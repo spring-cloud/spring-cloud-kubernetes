@@ -37,9 +37,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.builder;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.manifests;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
+import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.retrySpec;
 
 /**
  * @author wind57

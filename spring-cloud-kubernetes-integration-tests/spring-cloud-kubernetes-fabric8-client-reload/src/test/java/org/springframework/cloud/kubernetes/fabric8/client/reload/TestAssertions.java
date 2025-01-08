@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
 import java.time.Duration;
+import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -26,10 +27,15 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import reactor.netty.http.client.HttpClient;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
@@ -108,6 +114,14 @@ final class TestAssertions {
 			util.deleteAndWait(namespace, deployment, service, ingress);
 		}
 
+	}
+
+	static WebClient.Builder builder() {
+		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
+	}
+
+	static RetryBackoffSpec retrySpec() {
+		return Retry.fixedDelay(120, Duration.ofSeconds(2)).filter(Objects::nonNull);
 	}
 
 }

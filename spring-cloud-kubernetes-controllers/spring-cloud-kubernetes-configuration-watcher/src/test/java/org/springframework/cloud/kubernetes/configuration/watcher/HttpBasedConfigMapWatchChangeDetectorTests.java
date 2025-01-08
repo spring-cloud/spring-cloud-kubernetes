@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.ClientBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
 
 /**
  * @author Ryan Baxter
@@ -83,9 +85,11 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 	@Mock
 	private KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	private HttpBasedConfigMapWatchChangeDetector changeDetector;
+	private MockEnvironment mockEnvironment;
 
-	private ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties;
+	private WebClient webClient;
+
+	private ConfigurationUpdateStrategy strategy;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -105,58 +109,112 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 	@BeforeEach
 	void setup() {
-
-		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
-		configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
-		WebClient webClient = WebClient.builder().build();
-
-		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("refresh", () -> {
+		webClient = WebClient.builder().build();
+		strategy = new ConfigurationUpdateStrategy("refresh", () -> {
 
 		});
-
-		changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api, mockEnvironment,
-				ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
-						configurationWatcherConfigurationProperties, webClient));
 	}
 
 	@Test
-	void triggerConfigMapRefresh() {
+	void triggerConfigMapRefreshUsingRefresh() {
+		triggerConfigMapRefresh("/actuator/refresh", RefreshStrategy.REFRESH);
+	}
+
+	@Test
+	void triggerConfigMapRefreshUsingShutdown() {
+		triggerConfigMapRefresh("/actuator/shutdown", RefreshStrategy.SHUTDOWN);
+	}
+
+	void triggerConfigMapRefresh(String actuatorPath, RefreshStrategy refreshStrategy) {
 		stubReactiveCall();
 		V1ConfigMap configMap = new V1ConfigMap();
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-			.willReturn(WireMock.aResponse().withStatus(200)));
+		WireMock
+			.stubFor(WireMock.post(WireMock.urlEqualTo(actuatorPath)).willReturn(WireMock.aResponse().withStatus(200)));
+
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
+		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api,
+				mockEnvironment, ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
+						configurationWatcherConfigurationProperties, webClient));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName()))
 			.verifyComplete();
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo(actuatorPath)));
 	}
 
 	@Test
-	void triggerConfigMapRefreshWithPropertiesBasedActuatorPath() {
+	void triggerConfigMapRefreshWithPropertiesBasedActuatorPathUsingRefresh() {
+		triggerConfigMapRefreshWithPropertiesBasedActuatorPath("/refresh", RefreshStrategy.REFRESH);
+	}
+
+	@Test
+	void triggerConfigMapRefreshWithPropertiesBasedActuatorPathUsingShutdown() {
+		triggerConfigMapRefreshWithPropertiesBasedActuatorPath("/shutdown", RefreshStrategy.SHUTDOWN);
+	}
+
+	void triggerConfigMapRefreshWithPropertiesBasedActuatorPath(String endpoint, RefreshStrategy refreshStrategy) {
 		stubReactiveCall();
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		configurationWatcherConfigurationProperties.setActuatorPath("/my/custom/actuator");
 		V1ConfigMap configMap = new V1ConfigMap();
 		V1ObjectMeta objectMeta = new V1ObjectMeta();
 		objectMeta.setName("foo");
 		configMap.setMetadata(objectMeta);
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
+		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api,
+				mockEnvironment, ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
+						configurationWatcherConfigurationProperties, webClient));
 		StepVerifier.create(changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName()))
 			.verifyComplete();
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
 
 	@Test
-	void triggerConfigMapRefreshWithAnnotationActuatorPath() {
+	void triggerConfigMapRefreshWithAnnotationActuatorPathUsingRefresh() {
+		triggerConfigMapRefreshWithAnnotationActuatorPath("/refresh", RefreshStrategy.REFRESH);
+	}
+
+	@Test
+	void triggerConfigMapRefreshWithAnnotationActuatorPathUsingShutdown() {
+		triggerConfigMapRefreshWithAnnotationActuatorPath("/shutdown", RefreshStrategy.SHUTDOWN);
+	}
+
+	void triggerConfigMapRefreshWithAnnotationActuatorPath(String endpoint, RefreshStrategy refreshStrategy) {
 		int port = WIRE_MOCK_SERVER.port();
 		WireMock.configureFor("localhost", port);
+		List<ServiceInstance> instances = getServiceInstances(port);
+		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
+		V1ConfigMap configMap = new V1ConfigMap();
+		V1ObjectMeta objectMeta = new V1ObjectMeta();
+		objectMeta.setName("foo");
+		configMap.setMetadata(objectMeta);
+		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator" + endpoint))
+			.willReturn(WireMock.aResponse().withStatus(200)));
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
+		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api,
+				mockEnvironment, ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
+				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
+						configurationWatcherConfigurationProperties, webClient));
+		StepVerifier.create(changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName()))
+			.verifyComplete();
+		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
+	}
+
+	private static @NotNull List<ServiceInstance> getServiceInstances(int port) {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
 				"http://:" + port + "/my/custom/actuator");
@@ -169,20 +227,10 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		DefaultKubernetesServiceInstance fooServiceInstance = new DefaultKubernetesServiceInstance("foo", "foo",
 				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
 		instances.add(fooServiceInstance);
-		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
-		V1ConfigMap configMap = new V1ConfigMap();
-		V1ObjectMeta objectMeta = new V1ObjectMeta();
-		objectMeta.setName("foo");
-		configMap.setMetadata(objectMeta);
-		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator/refresh"))
-			.willReturn(WireMock.aResponse().withStatus(200)));
-		StepVerifier.create(changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName()))
-			.verifyComplete();
-		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator/refresh")));
+		return instances;
 	}
 
 	private void stubReactiveCall() {
-
 		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");

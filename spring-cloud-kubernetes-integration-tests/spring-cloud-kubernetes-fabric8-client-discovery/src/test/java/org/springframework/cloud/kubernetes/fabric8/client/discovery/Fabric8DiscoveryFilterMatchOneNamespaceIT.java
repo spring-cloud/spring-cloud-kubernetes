@@ -34,7 +34,8 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=a-uat",
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat",
 		"spring.cloud.kubernetes.discovery.filter=#root.metadata.namespace matches 'a-uat$'",
-		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG" })
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG"
+})
 class Fabric8DiscoveryFilterMatchOneNamespaceIT extends Fabric8DiscoveryBase {
 
 	private static final String NAMESPACE_A_UAT = "a-uat";
