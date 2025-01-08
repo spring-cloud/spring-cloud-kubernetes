@@ -28,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
+import org.springframework.cloud.bus.event.RemoteApplicationEvent;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -39,6 +40,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
 
 /**
  * @author Ryan Baxter
@@ -64,35 +66,55 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private BusEventBasedSecretsWatcherChangeDetector changeDetector;
-
 	private BusProperties busProperties;
+
+	private MockEnvironment mockEnvironment;
 
 	@BeforeEach
 	void setup() {
-		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
-		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		busProperties = new BusProperties();
-		changeDetector = new BusEventBasedSecretsWatcherChangeDetector(coreV1Api, mockEnvironment,
-				ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY, secretsPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor, new BusRefreshTrigger(applicationEventPublisher, busProperties.getId()));
 	}
 
 	@Test
 	void triggerRefreshWithSecret() {
-		V1ObjectMeta objectMeta = new V1ObjectMeta();
-		objectMeta.setName("foo");
-		V1Secret secret = new V1Secret();
-		secret.setMetadata(objectMeta);
-		changeDetector.triggerRefresh(secret, secret.getMetadata().getName());
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 			.forClass(RefreshRemoteApplicationEvent.class);
+		triggerRefreshWithSecret(ConfigurationWatcherConfigurationProperties.RefreshStrategy.REFRESH, argumentCaptor);
+	}
+
+	@Test
+	void triggerRefreshWithSecretWithShutdown() {
+		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
+			.forClass(RefreshRemoteApplicationEvent.class);
+		triggerRefreshWithSecret(ConfigurationWatcherConfigurationProperties.RefreshStrategy.REFRESH, argumentCaptor);
+	}
+
+	void triggerRefreshWithSecret(RefreshStrategy strategy,
+			ArgumentCaptor<? extends RemoteApplicationEvent> argumentCaptor) {
+		V1ObjectMeta objectMeta = new V1ObjectMeta();
+		objectMeta.setName("foo");
+		V1Secret secret = getV1Secret(objectMeta, strategy);
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
 		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(secret);
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
 		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
+	}
+
+	private V1Secret getV1Secret(V1ObjectMeta objectMeta,
+			ConfigurationWatcherConfigurationProperties.RefreshStrategy refreshStrategy) {
+		V1Secret secret = new V1Secret();
+		secret.setMetadata(objectMeta);
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
+		BusEventBasedSecretsWatcherChangeDetector changeDetector = new BusEventBasedSecretsWatcherChangeDetector(
+				coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY,
+				secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new BusRefreshTrigger(
+						applicationEventPublisher, busProperties.getId(), configurationWatcherConfigurationProperties));
+		changeDetector.triggerRefresh(secret, secret.getMetadata().getName());
+		return secret;
 	}
 
 }
