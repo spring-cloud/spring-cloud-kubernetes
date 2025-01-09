@@ -216,7 +216,8 @@ public final class Util {
 
 			// "message": "Discovery failed for some groups,
 			// 1 failing: unable to retrieve the complete list of server APIs:
-			// metrics.k8s.io/v1beta1: stale GroupVersion discovery: metrics.k8s.io/v1beta1"
+			// metrics.k8s.io/v1beta1: stale GroupVersion discovery:
+			// metrics.k8s.io/v1beta1"
 
 			// but even when it works OK, the finalizers are slowing down the deletion
 			List<APIService> apiServices = client.apiServices().list().getItems();
