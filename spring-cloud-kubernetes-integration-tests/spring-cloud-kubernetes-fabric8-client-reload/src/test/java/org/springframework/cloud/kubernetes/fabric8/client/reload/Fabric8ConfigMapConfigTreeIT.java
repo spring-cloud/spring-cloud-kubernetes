@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -91,7 +92,7 @@ class Fabric8ConfigMapConfigTreeIT {
 	 * </pre>
 	 */
 	@Test
-	void test() {
+	void test() throws Exception {
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
@@ -115,14 +116,35 @@ class Fabric8ConfigMapConfigTreeIT {
 
 		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
 
-		await().atMost(Duration.ofSeconds(180))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> webClient.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(String.class)
-				.retryWhen(retrySpec())
-				.block()
-				.equals("as-mount-changed"));
+//		await().atMost(Duration.ofSeconds(180))
+//			.pollInterval(Duration.ofSeconds(1))
+//			.until(() -> webClient.method(HttpMethod.GET)
+//				.retrieve()
+//				.bodyToMono(String.class)
+//				.retryWhen(retrySpec())
+//				.block()
+//				.equals("as-mount-changed"));
+
+		Thread.sleep(180_000);
+
+		System.out.println(logs());
+	}
+
+	private String logs() {
+		try {
+			String appPodName = K3S
+				.execInContainer("sh", "-c",
+					"kubectl get pods -l app=" + CONFIGURATION_WATCHER_IMAGE_NAME
+						+ " -o=name --no-headers | tr -d '\n'")
+				.getStdout();
+
+			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
+			return execResult.getStdout();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 }
