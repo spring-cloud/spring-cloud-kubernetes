@@ -4,4 +4,4 @@ metadata:
   name: poll-reload-configtree
   namespace: default
 data:
-  from.properties: "as-mount-initial"
+  from.properties.key: "as-mount-initial"

@@ -44,9 +44,11 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAss
 /**
  * @author wind57
  */
-class ConfigMapMountPollingReloadDelegateIT {
+class Fabric8ConfigMapConfigTreeIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
+
+	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
 	private static final String NAMESPACE = "default";
 
@@ -60,14 +62,19 @@ class ConfigMapMountPollingReloadDelegateIT {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
+		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+
 		util = new Util(K3S);
 		util.setUp(NAMESPACE);
 		manifests(Phase.CREATE, util, NAMESPACE);
+		util.configWatcher(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
 		manifests(Phase.DELETE, util, NAMESPACE);
+		util.configWatcher(Phase.DELETE);
 	}
 
 	/**
@@ -85,12 +92,6 @@ class ConfigMapMountPollingReloadDelegateIT {
 	 */
 	@Test
 	void test() {
-		// (1)
-		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", K3S, IMAGE_NAME);
-		// (2)
-		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", K3S,
-				IMAGE_NAME);
-		// (3)
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
@@ -103,14 +104,16 @@ class ConfigMapMountPollingReloadDelegateIT {
 
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		InputStream configMapMountStream = util.inputStream("configmap-configtree.yaml");
-		ConfigMap configMapMount = Serialization.unmarshal(configMapMountStream, ConfigMap.class);
-		configMapMount.setData(Map.of("from.properties", "as-mount-changed"));
+		InputStream configMapConfigTreeStream = util.inputStream("manifests/configmap-configtree.yaml");
+		ConfigMap configMapConfigTree = Serialization.unmarshal(configMapConfigTreeStream, ConfigMap.class);
+		configMapConfigTree.setData(Map.of("from.properties.key", "as-mount-changed"));
 		// add label so that configuration-watcher picks this up
 		Map<String, String> existingLabels = new HashMap<>(
-				Optional.ofNullable(configMapMount.getMetadata().getLabels()).orElse(Map.of()));
+				Optional.ofNullable(configMapConfigTree.getMetadata().getLabels()).orElse(Map.of()));
 		existingLabels.put("spring.cloud.kubernetes.config", "true");
-		configMapMount.getMetadata().setLabels(existingLabels);
+		configMapConfigTree.getMetadata().setLabels(existingLabels);
+
+		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
 
 		await().timeout(Duration.ofSeconds(180))
 			.until(() -> webClient.method(HttpMethod.GET)
