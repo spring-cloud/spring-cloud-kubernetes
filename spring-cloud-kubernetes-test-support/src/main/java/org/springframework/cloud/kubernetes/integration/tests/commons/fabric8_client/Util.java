@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +32,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentList;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressLoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
@@ -42,8 +40,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import io.fabric8.kubernetes.client.dsl.base.PatchContext;
-import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
@@ -54,7 +50,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
@@ -242,40 +237,6 @@ public final class Util {
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-
-	}
-
-	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) {
-		InputStream clusterRoleBindingAsStream = inputStream("cluster/cluster-role.yaml");
-		InputStream serviceAccountAsStream = inputStream("cluster/service-account.yaml");
-		InputStream roleBindingAsStream = inputStream("cluster/role-binding.yaml");
-
-		ClusterRole clusterRole = client.rbac().clusterRoles().load(clusterRoleBindingAsStream).item();
-		if (client.rbac().clusterRoles().withName(clusterRole.getMetadata().getName()).get() == null) {
-			client.rbac().clusterRoles().resource(clusterRole).create();
-		}
-
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts().load(serviceAccountAsStream).item();
-		serviceAccountFromStream.getMetadata().setNamespace(serviceAccountNamespace);
-		if (client.serviceAccounts()
-			.inNamespace(serviceAccountNamespace)
-			.withName(serviceAccountFromStream.getMetadata().getName())
-			.get() == null) {
-			client.serviceAccounts().inNamespace(serviceAccountNamespace).resource(serviceAccountFromStream).create();
-		}
-
-		RoleBinding roleBindingFromStream = client.rbac().roleBindings().load(roleBindingAsStream).item();
-		namespaces.forEach(namespace -> {
-			roleBindingFromStream.getMetadata().setNamespace(namespace);
-
-			if (client.rbac()
-				.roleBindings()
-				.inNamespace(namespace)
-				.withName(roleBindingFromStream.getMetadata().getName())
-				.get() == null) {
-				client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
-			}
-		});
 
 	}
 
@@ -483,59 +444,6 @@ public final class Util {
 			LOG.error("Error waiting for ingress");
 			e.printStackTrace();
 		}
-
-	}
-
-	public void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody,
-			Map<String, String> labels) {
-		String body = patchBody.replace("image_name_here", imageName);
-
-		client.apps()
-			.deployments()
-			.inNamespace(namespace)
-			.withName(deploymentName)
-			.patch(PatchContext.of(PatchType.JSON_MERGE), body);
-
-		waitForDeploymentAfterPatch(deploymentName, namespace, labels);
-	}
-
-	private void waitForDeploymentAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
-		try {
-			await().pollDelay(Duration.ofSeconds(4))
-				.pollInterval(Duration.ofSeconds(3))
-				.atMost(60, TimeUnit.SECONDS)
-				.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, labels));
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	private boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace, Map<String, String> labels) {
-
-		DeploymentList deployments = client.apps().deployments().inNamespace(namespace).list();
-
-		if (deployments.getItems().isEmpty()) {
-			fail("No deployment with name " + deploymentName);
-		}
-
-		Deployment deployment = deployments.getItems()
-			.stream()
-			.filter(x -> x.getMetadata().getName().equals(deploymentName))
-			.findFirst()
-			.orElseThrow();
-		// if no replicas are defined, it means only 1 is needed
-		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
-
-		int numberOfPods = client.pods().inNamespace(namespace).withLabels(labels).list().getItems().size();
-
-		if (numberOfPods != replicas) {
-			LOG.info("number of pods not yet stabilized");
-			return false;
-		}
-
-		return replicas == Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
 
 	}
 
