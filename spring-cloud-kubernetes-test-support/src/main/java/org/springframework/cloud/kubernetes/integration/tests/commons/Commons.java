@@ -37,17 +37,17 @@ import com.github.dockerjava.api.model.Image;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
-
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.StreamUtils;
-import org.springframework.util.StringUtils;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.KUBERNETES_VERSION_FILE;
