@@ -115,7 +115,8 @@ class Fabric8ConfigMapConfigTreeIT {
 
 		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(180))
+		await().atMost(Duration.ofSeconds(180))
+			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(String.class)
