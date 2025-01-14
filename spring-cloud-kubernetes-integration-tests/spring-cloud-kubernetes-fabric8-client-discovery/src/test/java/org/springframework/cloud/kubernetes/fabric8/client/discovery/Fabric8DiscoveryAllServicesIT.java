@@ -49,10 +49,10 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
 	private void externalNameServices(Phase phase) {
 		if (phase == Phase.CREATE) {
-			util.createAndWait(NAMESPACE, null, null, externalServiceName, null, true);
+			util.createAndWait(NAMESPACE, null, null, externalServiceName, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, null, externalServiceName, null);
+			util.deleteAndWait(NAMESPACE, null, externalServiceName);
 		}
 	}
 
