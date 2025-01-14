@@ -37,9 +37,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.builder;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.manifests;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.retrySpec;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
 /**
  * @author wind57
@@ -95,7 +95,7 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", K3S,
 				IMAGE_NAME);
 		// (3)
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		WebClient webClient = builder().baseUrl("http://localhost:32321/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
 			.bodyToMono(String.class)
@@ -112,7 +112,8 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		await().timeout(Duration.ofSeconds(360))
+		await().atMost(Duration.ofSeconds(120))
+			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(String.class)
