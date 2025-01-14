@@ -9,6 +9,7 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
+      nodePort: 32321
   selector:
     app: spring-cloud-kubernetes-fabric8-client-reload
-  type: ClusterIP
+  type: NodePort
