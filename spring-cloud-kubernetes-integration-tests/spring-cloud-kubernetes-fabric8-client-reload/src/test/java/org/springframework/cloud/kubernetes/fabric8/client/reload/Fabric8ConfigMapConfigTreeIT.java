@@ -37,9 +37,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.builder;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.manifests;
-import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.retrySpec;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
 /**
  * @author wind57
@@ -92,7 +92,7 @@ class Fabric8ConfigMapConfigTreeIT {
 	 */
 	@Test
 	void test() {
-		WebClient webClient = builder().baseUrl("http://localhost/key").build();
+		WebClient webClient = builder().baseUrl("http://localhost:32321/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
 			.bodyToMono(String.class)
