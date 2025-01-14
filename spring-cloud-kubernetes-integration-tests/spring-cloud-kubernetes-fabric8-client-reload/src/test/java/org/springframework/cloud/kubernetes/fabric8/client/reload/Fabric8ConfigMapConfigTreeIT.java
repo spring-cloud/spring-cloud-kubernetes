@@ -113,6 +113,12 @@ class Fabric8ConfigMapConfigTreeIT {
 		existingLabels.put("spring.cloud.kubernetes.config", "true");
 		configMapConfigTree.getMetadata().setLabels(existingLabels);
 
+		// add app annotation
+		Map<String, String> existingAnnotations = new HashMap<>(
+			Optional.ofNullable(configMapConfigTree.getMetadata().getAnnotations()).orElse(new HashMap<>()));
+		existingAnnotations.put("spring.cloud.kubernetes.configmap.apps", "spring-cloud-kubernetes-fabric8-client-reload");
+		configMapConfigTree.getMetadata().setAnnotations(existingAnnotations);
+
 		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
 
 		await().atMost(Duration.ofSeconds(180))
@@ -123,6 +129,15 @@ class Fabric8ConfigMapConfigTreeIT {
 				.retryWhen(retrySpec())
 				.block()
 				.equals("as-mount-changed"));
+
+		WebClient webClientConfigTree = WebClient.builder().baseUrl("http://localhost/config-tree-value").build();
+		String fromConfigTree = webClientConfigTree.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
+
+		System.out.println(fromConfigTree);
 	}
 
 }
