@@ -51,16 +51,16 @@ class Fabric8DiscoveryFilterMatchOneNamespaceIT extends Fabric8DiscoveryBase {
 		util.createNamespace(NAMESPACE_A_UAT);
 		util.createNamespace(NAMESPACE_B_UAT);
 
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_A_UAT, Phase.CREATE);
+		util.wiremock(NAMESPACE_B_UAT, Phase.CREATE);
 
 	}
 
 	@AfterEach
 	void afterEach() {
 
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_A_UAT, Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, Phase.DELETE);
 
 		util.deleteNamespace(NAMESPACE_A_UAT);
 		util.deleteNamespace(NAMESPACE_B_UAT);
