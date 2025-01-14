@@ -21,7 +21,6 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
@@ -114,12 +113,9 @@ class Fabric8IstioIT {
 
 		InputStream deploymentStream = util.inputStream("istio-deployment.yaml");
 		InputStream serviceStream = util.inputStream("istio-service.yaml");
-		InputStream ingressStream = util.inputStream("istio-ingress.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
-
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
-		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, true);
