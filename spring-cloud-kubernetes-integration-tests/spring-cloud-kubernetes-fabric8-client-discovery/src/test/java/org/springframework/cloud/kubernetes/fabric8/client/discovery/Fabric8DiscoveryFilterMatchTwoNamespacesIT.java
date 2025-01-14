@@ -34,8 +34,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=a-uat",
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat",
 		"spring.cloud.kubernetes.discovery.filter=#root.metadata.namespace matches '^.*uat$'",
-		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG"
-})
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG" })
 class Fabric8DiscoveryFilterMatchTwoNamespacesIT extends Fabric8DiscoveryBase {
 
 	private static final String NAMESPACE_A_UAT = "a-uat";
@@ -52,16 +51,16 @@ class Fabric8DiscoveryFilterMatchTwoNamespacesIT extends Fabric8DiscoveryBase {
 		util.createNamespace(NAMESPACE_A_UAT);
 		util.createNamespace(NAMESPACE_B_UAT);
 
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.CREATE, false);
+		util.wiremock(NAMESPACE_A_UAT, Phase.CREATE);
+		util.wiremock(NAMESPACE_B_UAT, Phase.CREATE);
 
 	}
 
 	@AfterEach
 	void afterEach() {
 
-		util.wiremock(NAMESPACE_A_UAT, "/wiremock", Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B_UAT, "/wiremock", Phase.DELETE, false);
+		util.wiremock(NAMESPACE_A_UAT, Phase.DELETE);
+		util.wiremock(NAMESPACE_B_UAT, Phase.DELETE);
 
 		util.deleteNamespace(NAMESPACE_A_UAT);
 		util.deleteNamespace(NAMESPACE_B_UAT);
