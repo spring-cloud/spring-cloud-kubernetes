@@ -326,10 +326,10 @@ public final class Util {
 		Service service = client.services().load(serviceStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait("default", deployment.getMetadata().getName(), deployment, service, null, true);
+			createAndWait("default", deployment.getMetadata().getName(), deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait("default", deployment, service, null);
+			deleteAndWait("default", deployment, service);
 		}
 	}
 
