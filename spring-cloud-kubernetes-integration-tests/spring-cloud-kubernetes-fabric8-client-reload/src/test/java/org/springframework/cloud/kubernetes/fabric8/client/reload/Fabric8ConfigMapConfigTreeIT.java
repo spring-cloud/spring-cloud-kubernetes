@@ -129,15 +129,6 @@ class Fabric8ConfigMapConfigTreeIT {
 				.retryWhen(retrySpec())
 				.block()
 				.equals("as-mount-changed"));
-
-		WebClient webClientConfigTree = WebClient.builder().baseUrl("http://localhost/config-tree-value").build();
-		String fromConfigTree = webClientConfigTree.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(String.class)
-			.retryWhen(retrySpec())
-			.block();
-
-		System.out.println(fromConfigTree);
 	}
 
 }
