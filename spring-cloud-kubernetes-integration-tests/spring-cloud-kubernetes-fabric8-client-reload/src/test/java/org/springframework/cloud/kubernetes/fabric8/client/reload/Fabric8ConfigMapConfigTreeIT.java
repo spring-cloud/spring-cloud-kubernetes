@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +27,6 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -36,6 +36,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.builder;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.manifests;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.retrySpec;
@@ -90,7 +91,7 @@ class Fabric8ConfigMapConfigTreeIT {
 	 * </pre>
 	 */
 	@Test
-	void test() throws Exception {
+	void test() {
 		WebClient webClient = builder().baseUrl("http://localhost/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
@@ -108,41 +109,20 @@ class Fabric8ConfigMapConfigTreeIT {
 		configMapConfigTree.setData(Map.of("from.properties.key", "as-mount-changed"));
 		// add label so that configuration-watcher picks this up
 		Map<String, String> existingLabels = new HashMap<>(
-				Optional.ofNullable(configMapConfigTree.getMetadata().getLabels()).orElse(Map.of()));
+				Optional.ofNullable(configMapConfigTree.getMetadata().getLabels()).orElse(new HashMap<>()));
 		existingLabels.put("spring.cloud.kubernetes.config", "true");
 		configMapConfigTree.getMetadata().setLabels(existingLabels);
 
 		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
 
-//		await().atMost(Duration.ofSeconds(180))
-//			.pollInterval(Duration.ofSeconds(1))
-//			.until(() -> webClient.method(HttpMethod.GET)
-//				.retrieve()
-//				.bodyToMono(String.class)
-//				.retryWhen(retrySpec())
-//				.block()
-//				.equals("as-mount-changed"));
-
-		Thread.sleep(180_000);
-
-		System.out.println(logs());
-	}
-
-	private String logs() {
-		try {
-			String appPodName = K3S
-				.execInContainer("sh", "-c",
-					"kubectl get pods -l app=" + CONFIGURATION_WATCHER_IMAGE_NAME
-						+ " -o=name --no-headers | tr -d '\n'")
-				.getStdout();
-
-			Container.ExecResult execResult = K3S.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim());
-			return execResult.getStdout();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+		await().atMost(Duration.ofSeconds(180))
+			.pollInterval(Duration.ofSeconds(1))
+			.until(() -> webClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block()
+				.equals("as-mount-changed"));
 	}
 
 }
