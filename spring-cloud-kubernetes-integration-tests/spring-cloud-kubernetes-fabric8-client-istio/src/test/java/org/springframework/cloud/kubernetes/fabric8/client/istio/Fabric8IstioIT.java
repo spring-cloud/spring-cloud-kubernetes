@@ -97,7 +97,7 @@ class Fabric8IstioIT {
 
 	@Test
 	void test() {
-		WebClient client = builder().baseUrl("http://localhost/profiles").build();
+		WebClient client = builder().baseUrl("http://localhost:32321/profiles").build();
 
 		@SuppressWarnings("unchecked")
 		List<String> result = client.method(HttpMethod.GET)
@@ -122,10 +122,10 @@ class Fabric8IstioIT {
 		Ingress ingress = Serialization.unmarshal(ingressStream, Ingress.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, service);
 		}
 
 	}
