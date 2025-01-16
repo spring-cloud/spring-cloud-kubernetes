@@ -432,10 +432,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.shape-secret.one"), "1");
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.shape-secret.two"), "2");
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret.shape-secret.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret.shape-secret.two"), "2");
 
 		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.shape-secret.default");
 
