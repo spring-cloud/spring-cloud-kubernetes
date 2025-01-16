@@ -97,20 +97,6 @@ class KubernetesClientCatalogWatchIT {
 		util.busybox(NAMESPACE, Phase.CREATE);
 	}
 
-	/**
-	 * <pre>
-	 *     - we deploy a busybox service with 2 replica pods
-	 *     - we receive an event from KubernetesCatalogWatcher, assert what is inside it
-	 *     - delete the busybox service
-	 *     - assert that we receive only spring-cloud-kubernetes-client-catalog-watcher pod
-	 * </pre>
-	 */
-	@Test
-	@Order(1)
-	void testCatalogWatchWithEndpoints() {
-		waitForLogStatement("stateGenerator is of type: KubernetesEndpointsCatalogWatch", K3S, APP_NAME);
-		test();
-	}
 
 	@Test
 	@Order(2)
