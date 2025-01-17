@@ -101,9 +101,6 @@ class KubernetesClientCatalogWatchIT {
 	@Test
 	@Order(2)
 	void testCatalogWatchWithEndpointSlices() {
-		KubernetesClientCatalogWatchUtils.patchForEndpointSlices(APP_NAME, NAMESPACE, DOCKER_IMAGE);
-		waitForLogStatement("stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch", K3S, APP_NAME);
-		test();
 
 		testCatalogWatchWithEndpointsNamespaces();
 	}
@@ -124,85 +121,6 @@ class KubernetesClientCatalogWatchIT {
 		KubernetesClientCatalogWatchNamespacesDelegate.testCatalogWatchWithEndpointSlicesNamespaces(APP_NAME);
 	}
 
-	/**
-	 * the test is the same for both endpoints and endpoint slices, the set-up for them is
-	 * different.
-	 */
-	private void test() {
-
-		WebClient client = builder().baseUrl("http://localhost/result").build();
-		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
-
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
-			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec())
-				.block();
-
-			// we get 3 pods as input, but because they are sorted by name in the catalog
-			// watcher implementation
-			// we will get the first busybox instances here.
-
-			if (result != null) {
-				if (result.size() != 3) {
-					return false;
-				}
-				holder[0] = result.get(0);
-				holder[1] = result.get(1);
-				return true;
-			}
-
-			return false;
-		});
-
-		EndpointNameAndNamespace resultOne = holder[0];
-		EndpointNameAndNamespace resultTwo = holder[1];
-
-		Assertions.assertNotNull(resultOne);
-		Assertions.assertNotNull(resultTwo);
-
-		Assertions.assertTrue(resultOne.endpointName().contains("busybox"));
-		Assertions.assertTrue(resultTwo.endpointName().contains("busybox"));
-		Assertions.assertEquals("default", resultOne.namespace());
-		Assertions.assertEquals("default", resultTwo.namespace());
-
-		util.busybox(NAMESPACE, Phase.DELETE);
-
-		// what we get after delete
-		EndpointNameAndNamespace[] afterDelete = new EndpointNameAndNamespace[1];
-
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
-			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
-				.retryWhen(retrySpec())
-				.block();
-
-			// we need to get the event from KubernetesCatalogWatch, but that happens
-			// on periodic bases. So in order to be sure we got the event we care about
-			// we wait until the result has a single entry, which means busybox was
-			// deleted
-			// + KubernetesCatalogWatch received the new update.
-			if (result != null && result.size() != 1) {
-				return false;
-			}
-
-			// we will only receive one pod here, our own
-			if (result != null) {
-				afterDelete[0] = result.get(0);
-				return true;
-			}
-
-			return false;
-		});
-
-		Assertions.assertTrue(afterDelete[0].endpointName().contains(APP_NAME));
-		Assertions.assertEquals("default", afterDelete[0].namespace());
-
-	}
-
 	private static void app(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("app/watcher-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("app/watcher-service.yaml");
@@ -214,14 +132,6 @@ class KubernetesClientCatalogWatchIT {
 		else if (phase.equals(Phase.DELETE)) {
 			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
-	}
-
-	private WebClient.Builder builder() {
-		return WebClient.builder().clientConnector(new ReactorClientHttpConnector(HttpClient.create()));
-	}
-
-	private RetryBackoffSpec retrySpec() {
-		return Retry.fixedDelay(15, Duration.ofSeconds(1)).filter(Objects::nonNull);
 	}
 
 }

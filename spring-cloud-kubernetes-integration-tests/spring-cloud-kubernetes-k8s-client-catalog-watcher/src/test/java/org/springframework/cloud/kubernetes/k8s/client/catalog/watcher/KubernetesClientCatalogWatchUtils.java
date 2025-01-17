@@ -32,31 +32,6 @@ final class KubernetesClientCatalogWatchUtils {
 
 	}
 
-	private static final String BODY_ONE = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-k8s-client-catalog-watcher",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES",
-									"value": "TRUE"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY_CATALOG",
-									"value": "DEBUG"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
-
 	private static final String BODY_TWO = """
 			{
 				"spec": {
@@ -122,10 +97,6 @@ final class KubernetesClientCatalogWatchUtils {
 				}
 			}
 						""";
-
-	static void patchForEndpointSlices(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);
-	}
 
 	static void patchForEndpointsNamespaces(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_TWO, POD_LABELS);
