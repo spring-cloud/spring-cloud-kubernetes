@@ -112,6 +112,11 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
+		System.out.println("Waiting for reload change to be observed");
+		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
+				IMAGE_NAME);
+		System.out.println("reload change observed");
+
 		await().atMost(Duration.ofSeconds(120))
 			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> webClient.method(HttpMethod.GET)
