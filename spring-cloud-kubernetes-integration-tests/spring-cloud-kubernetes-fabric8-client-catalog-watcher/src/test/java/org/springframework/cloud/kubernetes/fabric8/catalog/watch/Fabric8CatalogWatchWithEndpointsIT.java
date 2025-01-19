@@ -87,7 +87,7 @@ class Fabric8CatalogWatchWithEndpointsIT extends Fabric8CatalogWatchBase {
 		@Bean
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false);
+			return discoveryProperties(false, Set.of(NAMESPACE));
 		}
 
 	}

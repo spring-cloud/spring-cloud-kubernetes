@@ -60,8 +60,9 @@ abstract class Fabric8CatalogWatchBase {
 		util = new Util(K3S);
 	}
 
-	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices) {
-		return new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE, NAMESPACE_A), true, 60, false, null,
+	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices,
+			Set<String> discoveryNamespaces) {
+		return new KubernetesDiscoveryProperties(true, false, discoveryNamespaces, true, 60, false, null,
 				Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices,
 				false, null);
 	}

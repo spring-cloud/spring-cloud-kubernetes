@@ -96,7 +96,7 @@ class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8C
 		@Bean
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(true);
+			return discoveryProperties(true, Set.of(NAMESPACE, NAMESPACE_A));
 		}
 
 	}
