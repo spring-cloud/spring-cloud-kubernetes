@@ -121,6 +121,9 @@ class Fabric8ConfigMapConfigTreeIT {
 
 		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
 
+		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
+			IMAGE_NAME);
+
 		await().atMost(Duration.ofSeconds(180))
 			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> webClient.method(HttpMethod.GET)

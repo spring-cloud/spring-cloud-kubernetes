@@ -37,7 +37,6 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -115,8 +114,6 @@ class PollingReloadConfigMapTest {
 	 *     - second polling cycle reads sources from k8s and finds a change
 	 * </pre>
 	 */
-	@DisabledIfEnvironmentVariable(named = "JENKINS_HOME", matches = "^(?=\\s*\\S).*$",
-			disabledReason = "failing on jenkins")
 	@Test
 	void test(CapturedOutput output) {
 
