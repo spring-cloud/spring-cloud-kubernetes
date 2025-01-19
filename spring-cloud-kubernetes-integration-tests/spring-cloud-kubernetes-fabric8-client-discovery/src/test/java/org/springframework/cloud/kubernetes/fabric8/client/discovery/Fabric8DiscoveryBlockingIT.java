@@ -20,13 +20,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertBlockingConfiguration;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertPodMetadata;
 
 /**
  * @author wind57
@@ -38,6 +41,9 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort
 	private int port;
+
+	@Autowired
+	private DiscoveryClient discoveryClient;
 
 	@BeforeEach
 	void beforeEach() {
@@ -51,8 +57,20 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 	}
 
 	@Test
-	void test(CapturedOutput output) {
+	void test(CapturedOutput output) throws Exception {
+
+		String[] busyboxPods = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+			.getStdout()
+			.split("\n");
+
+		String podOne = busyboxPods[0].split("/")[1];
+		String podTwo = busyboxPods[1].split("/")[1];
+
+		K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
+		K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
+
 		assertBlockingConfiguration(output, port);
+		assertPodMetadata(discoveryClient);
 	}
 
 }
