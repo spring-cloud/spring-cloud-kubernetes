@@ -10,4 +10,4 @@ spring:
         monitoring-config-maps: true
         strategy: refresh
         mode: polling
-r
+        period: 5s
