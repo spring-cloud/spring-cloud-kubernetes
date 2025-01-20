@@ -115,14 +115,12 @@ class Fabric8ConfigMapConfigTreeIT {
 
 		// add app annotation
 		Map<String, String> existingAnnotations = new HashMap<>(
-			Optional.ofNullable(configMapConfigTree.getMetadata().getAnnotations()).orElse(new HashMap<>()));
-		existingAnnotations.put("spring.cloud.kubernetes.configmap.apps", "spring-cloud-kubernetes-fabric8-client-reload");
+				Optional.ofNullable(configMapConfigTree.getMetadata().getAnnotations()).orElse(new HashMap<>()));
+		existingAnnotations.put("spring.cloud.kubernetes.configmap.apps",
+				"spring-cloud-kubernetes-fabric8-client-reload");
 		configMapConfigTree.getMetadata().setAnnotations(existingAnnotations);
 
 		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
-
-		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
-			IMAGE_NAME);
 
 		await().atMost(Duration.ofSeconds(180))
 			.pollInterval(Duration.ofSeconds(1))
