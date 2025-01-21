@@ -11,4 +11,3 @@ spring:
         strategy: refresh
         mode: polling
         period: 5s
-
