@@ -279,39 +279,6 @@ final class TestAssertions {
 
 	}
 
-	/**
-	 * <pre>
-	 *     - service "wiremock" is present in namespace "a-uat"
-	 *     - service "wiremock" is present in namespace "b-uat"
-	 *
-	 *     - we search with a predicate : "#root.metadata.namespace matches 'a-uat$'"
-	 *
-	 *     As such, only service from 'a-uat' namespace matches.
-	 * </pre>
-	 */
-	static void filterMatchesOneNamespaceViaThePredicate(DiscoveryClient discoveryClient) {
-
-		List<String> services = discoveryClient.getServices();
-		assertThat(services.size()).isEqualTo(1);
-		assertThat(services).contains("service-wiremock");
-
-		List<DefaultKubernetesServiceInstance> serviceInstances = discoveryClient.getInstances("service-wiremock")
-			.stream()
-			.map(x -> (DefaultKubernetesServiceInstance) x)
-			.toList();
-
-		assertThat(serviceInstances.size()).isEqualTo(1);
-
-		DefaultKubernetesServiceInstance first = serviceInstances.get(0);
-		assertThat(first.getServiceId()).isEqualTo("service-wiremock");
-		assertThat(first.getInstanceId()).isNotNull();
-		assertThat(first.getPort()).isEqualTo(8080);
-		assertThat(first.getNamespace()).isEqualTo("a-uat");
-		assertThat(first.getMetadata()).isEqualTo(
-				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
-
-	}
-
 	private static void waitForLogStatement(CapturedOutput output, String message) {
 		await().pollInterval(Duration.ofSeconds(1))
 			.atMost(Duration.ofSeconds(30))
