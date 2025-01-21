@@ -47,64 +47,79 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAss
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
 		"spring.cloud.bootstrap.enabled=true" })
-@ActiveProfiles("one")
-class Fabric8EventReloadDataChangesInConfigMapIT extends Fabric8EventReloadBase {
+@ActiveProfiles("two")
+class Fabric8EventReloadConfigMapBootstrapIT extends Fabric8EventReloadBase {
 
-	private static final String NAMESPACE = "right";
+	private static final String LEFT_NAMESPACE = "left";
 
-	private static ConfigMap configMap;
+	private static final String RIGHT_NAMESPACE = "right";
+
+	private static ConfigMap leftConfigMap;
+
+	private static ConfigMap rightConfigMap;
 
 	@Autowired
-	private RightProperties properties;
+	private LeftProperties leftProperties;
+
+	@Autowired
+	private RightProperties rightProperties;
 
 	@Autowired
 	private KubernetesClient kubernetesClient;
 
 	@BeforeAll
 	static void beforeAllLocal() {
+		InputStream leftConfigMapStream = util.inputStream("manifests/left-configmap.yaml");
 		InputStream rightConfigMapStream = util.inputStream("manifests/right-configmap.yaml");
-		configMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
 
-		util.createNamespace(NAMESPACE);
-		configMap(Phase.CREATE, util, configMap, NAMESPACE);
+		leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
+		rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
+
+		util.createNamespace(LEFT_NAMESPACE);
+		util.createNamespace(RIGHT_NAMESPACE);
+
+		configMap(Phase.CREATE, util, leftConfigMap, LEFT_NAMESPACE);
+		configMap(Phase.CREATE, util, rightConfigMap, RIGHT_NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAllLocal() {
-		configMap(Phase.DELETE, util, configMap, NAMESPACE);
-		util.deleteNamespace(NAMESPACE);
+		configMap(Phase.DELETE, util, leftConfigMap, LEFT_NAMESPACE);
+		configMap(Phase.DELETE, util, rightConfigMap, RIGHT_NAMESPACE);
+
+		util.deleteNamespace(LEFT_NAMESPACE);
+		util.deleteNamespace(RIGHT_NAMESPACE);
 	}
 
 	/**
 	 * <pre>
-	 *     - configMap with no labels and data: right.value = right-initial exists in namespace right
-	 *
-	 *     - then we change the configmap by adding a label, this in turn does not
-	 *       change the result, because the data has not changed.
-	 *
-	 *     - then we change data inside the config map, and we must see the updated value
+	 * - there are two namespaces : left and right
+	 * - each of the namespaces has one configmap
+	 * - we watch the "right" namespace and make a change in the configmap in the same
+	 * namespace
+	 * - as such, event is triggered (refresh happens) and we see the updated value
 	 * </pre>
 	 */
 	@Test
 	void test(CapturedOutput output) {
-
 		assertReloadLogStatements("added configmap informer for namespace", "added secret informer for namespace",
 				output);
 
-		// we first read the initial value from configmap
-		assertThat(properties.getValue()).isEqualTo("right-initial");
+		// first we read these with default values
+		assertThat(leftProperties.getValue()).isEqualTo("left-initial");
+		assertThat(rightProperties.getValue()).isEqualTo("right-initial");
 
 		// then deploy a new version of right-configmap, but without changing its data,
-		// only add a label
+		// only add a label, thus no refresh happens
 		ConfigMap configMap = new ConfigMapBuilder()
 			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("new-label", "abc"))
-				.withNamespace(NAMESPACE)
+				.withNamespace(RIGHT_NAMESPACE)
 				.withName("right-configmap")
 				.build())
 			.withData(Map.of("right.value", "right-initial"))
 			.build();
 
-		replaceConfigMap(kubernetesClient, configMap, NAMESPACE);
+		replaceConfigMap(kubernetesClient, configMap, RIGHT_NAMESPACE);
 
 		await().atMost(Duration.ofSeconds(60))
 			.pollDelay(Duration.ofSeconds(1))
@@ -114,23 +129,21 @@ class Fabric8EventReloadDataChangesInConfigMapIT extends Fabric8EventReloadBase 
 			.pollDelay(Duration.ofSeconds(1))
 			.until(() -> output.getOut().contains("data in configmap has not changed, will not reload"));
 
-		assertThat(properties.getValue()).isEqualTo("right-initial");
-
-		// change data
-		configMap = new ConfigMapBuilder()
-			.withMetadata(new ObjectMetaBuilder().withLabels(Map.of("new-label", "abc"))
-				.withNamespace(NAMESPACE)
-				.withName("right-configmap")
-				.build())
+		// then deploy a new version of right-configmap, that actually changes some data
+		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
+			.withMetadata(new ObjectMetaBuilder().withNamespace(RIGHT_NAMESPACE).withName("right-configmap").build())
 			.withData(Map.of("right.value", "right-after-change"))
 			.build();
 
-		replaceConfigMap(kubernetesClient, configMap, NAMESPACE);
+		replaceConfigMap(kubernetesClient, rightConfigMapAfterChange, RIGHT_NAMESPACE);
 
 		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
-			String afterUpdateRightValue = properties.getValue();
+			String afterUpdateRightValue = rightProperties.getValue();
 			return afterUpdateRightValue.equals("right-after-change");
 		});
+
+		// left does not change
+		assertThat(leftProperties.getValue()).isEqualTo("left-initial");
 	}
 
 }
