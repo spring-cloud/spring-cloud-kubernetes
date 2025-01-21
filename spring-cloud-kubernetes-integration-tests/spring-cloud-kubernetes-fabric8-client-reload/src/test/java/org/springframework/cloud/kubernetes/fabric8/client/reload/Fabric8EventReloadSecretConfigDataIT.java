@@ -52,7 +52,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAss
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
 		"spring.cloud.kubernetes.client.namespace=default" })
 @ActiveProfiles("with-secret")
-class Fabric8EventReloadSecretIT extends Fabric8EventReloadBase {
+class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 
 	private static final String NAMESPACE = "default";
 

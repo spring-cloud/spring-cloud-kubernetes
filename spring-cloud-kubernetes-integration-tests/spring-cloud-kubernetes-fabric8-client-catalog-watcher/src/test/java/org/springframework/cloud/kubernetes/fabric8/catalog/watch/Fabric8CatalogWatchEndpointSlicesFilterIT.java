@@ -34,7 +34,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT.TestConfig;
+import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchEndpointSlicesFilterIT.TestConfig;
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.assertLogStatement;
 import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.invokeAndAssert;
 
@@ -43,7 +43,7 @@ import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAss
  */
 @SpringBootTest(classes = { KubernetesCatalogWatchAutoConfiguration.class, TestConfig.class, Application.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8CatalogWatchBase {
+class Fabric8CatalogWatchEndpointSlicesFilterIT extends Fabric8CatalogWatchBase {
 
 	@LocalServerPort
 	private int port;
@@ -96,7 +96,7 @@ class Fabric8CatalogWatchWithEndpointSlicesAndNamespaceFilterIT extends Fabric8C
 		@Bean
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(true);
+			return discoveryProperties(true, Set.of(NAMESPACE, NAMESPACE_A));
 		}
 
 	}

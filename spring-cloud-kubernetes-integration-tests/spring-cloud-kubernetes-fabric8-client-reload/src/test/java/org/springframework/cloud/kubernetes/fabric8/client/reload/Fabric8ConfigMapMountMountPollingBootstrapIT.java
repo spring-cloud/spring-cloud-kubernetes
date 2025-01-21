@@ -44,7 +44,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-class BootstrapEnabledPollingReloadConfigMapMountIT {
+class Fabric8ConfigMapMountMountPollingBootstrapIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
@@ -111,6 +111,11 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
+
+		System.out.println("Waiting for reload change to be observed");
+		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
+				IMAGE_NAME);
+		System.out.println("reload change observed");
 
 		await().atMost(Duration.ofSeconds(120))
 			.pollInterval(Duration.ofSeconds(1))
