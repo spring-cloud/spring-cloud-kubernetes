@@ -44,7 +44,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-class BootstrapEnabledPollingReloadConfigMapMountIT {
+class Fabric8ConfigMapMountPollingReloadIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
 
@@ -75,10 +75,11 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 
 	/**
 	 * <pre>
-	 *     - we have bootstrap enabled, which means we will 'locate' property sources
+	 *     - we have "spring.config.import: kubernetes", which means we will 'locate' property sources
 	 *       from config maps.
-	 *     - there are no explicit config maps to search for, but what we will also read,
-	 *     	 is 'spring.cloud.kubernetes.config.paths', which we have set to
+	 *     - the property above means that at the moment we will be searching for config maps that only
+	 *       match the application name, in this specific test there is no such config map.
+	 *     - what we will also read, is 'spring.cloud.kubernetes.config.paths', which we have set to
 	 *     	 '/tmp/application.properties'
 	 *       in this test. That is populated by the volumeMounts (see deployment-mount.yaml)
 	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
@@ -112,10 +113,8 @@ class BootstrapEnabledPollingReloadConfigMapMountIT {
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
 		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
 
-		System.out.println("Waiting for reload change to be observed");
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
 				IMAGE_NAME);
-		System.out.println("reload change observed");
 
 		await().atMost(Duration.ofSeconds(120))
 			.pollInterval(Duration.ofSeconds(1))
