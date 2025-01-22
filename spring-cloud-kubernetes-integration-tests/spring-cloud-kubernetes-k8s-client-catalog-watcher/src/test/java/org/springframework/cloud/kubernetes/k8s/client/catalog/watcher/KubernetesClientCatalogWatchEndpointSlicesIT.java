@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.it;
+package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher;
 
 import java.util.Set;
 
@@ -30,16 +30,15 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.Application;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.it.TestAssertions.assertLogStatement;
-import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.it.TestAssertions.invokeAndAssert;
+import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.assertLogStatement;
+import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.invokeAndAssert;
 
-@SpringBootTest(classes = { KubernetesClientCatalogWatchEndpointsIT.TestConfig.class, Application.class },
-	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWatchBase {
+@SpringBootTest(classes = { KubernetesClientCatalogWatchEndpointSlicesIT.TestConfig.class, Application.class },
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class KubernetesClientCatalogWatchEndpointSlicesIT extends KubernetesClientCatalogWatchBase {
 
 	@LocalServerPort
 	private int port;
@@ -76,7 +75,7 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 	 */
 	@Test
 	void testCatalogWatchWithEndpoints(CapturedOutput output) {
-		assertLogStatement(output, "stateGenerator is of type: KubernetesEndpointsCatalogWatch");
+		assertLogStatement(output, "stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch");
 		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
@@ -92,7 +91,7 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 		@Bean
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false);
+			return discoveryProperties(true, Set.of(NAMESPACE, NAMESPACE_A));
 		}
 
 	}

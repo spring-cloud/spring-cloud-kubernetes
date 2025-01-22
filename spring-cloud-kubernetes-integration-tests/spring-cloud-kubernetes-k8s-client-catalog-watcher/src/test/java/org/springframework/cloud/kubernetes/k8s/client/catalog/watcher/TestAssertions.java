@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.it;
+package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.awaitility.Awaitility;
+
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
@@ -26,11 +32,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;

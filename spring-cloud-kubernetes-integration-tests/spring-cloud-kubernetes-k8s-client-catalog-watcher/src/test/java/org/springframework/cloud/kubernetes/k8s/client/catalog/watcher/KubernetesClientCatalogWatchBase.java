@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.it;
+package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -26,13 +26,13 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.k3s.K3sContainer;
 
 /**
  * @author wind57
@@ -62,10 +62,10 @@ abstract class KubernetesClientCatalogWatchBase {
 		util = new Util(K3S);
 	}
 
-	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices) {
-		return new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE, NAMESPACE_A), true, 60, false, null,
-				Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices,
-				false, null);
+	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices,
+			Set<String> namespaces) {
+		return new KubernetesDiscoveryProperties(true, false, namespaces, true, 60, false, null, Set.of(443, 8443),
+				Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices, false, null);
 	}
 
 	protected static ApiClient apiClient() {
