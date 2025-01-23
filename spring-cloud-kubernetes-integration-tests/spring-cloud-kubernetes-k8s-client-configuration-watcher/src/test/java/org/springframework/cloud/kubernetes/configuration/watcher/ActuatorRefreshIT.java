@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.SocketTimeoutException;
 import java.time.Duration;
+import java.util.List;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
@@ -31,6 +32,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -40,6 +43,8 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 
 import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
 /**
  * @author Ryan Baxter
@@ -93,29 +98,33 @@ class ActuatorRefreshIT {
 	}
 
 	/*
-	 * this test loads uses two services: wiremock on port 8080 and configuration-watcher
+	 * this test loads two services: wiremock on port 8080 and configuration-watcher
 	 * on port 8888. we deploy configuration-watcher first and configure it via a
 	 * configmap with the same name. then, we mock the call to actuator/refresh endpoint
-	 * and deploy a new configmap: "service-wiremock", this in turn will trigger that
+	 * and deploy a new configmap: "service-wiremock". This in turn will trigger a
 	 * refresh that we capture and assert for.
 	 */
-	// curl <WIREMOCK_POD_IP>:8080/__admin/mappings
 	@Test
 	void testActuatorRefresh() {
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
+		// the above statement configures the client, but we need to make sure the cluster
+		// is ready to take a request via 'Wiremock::stubFor' (because sometimes it fails)
+		// As such, get the existing mappings and retrySpec() makes sure we retry until
+		// we get a response back.
+		WebClient client = builder().baseUrl("http://localhost:80/__admin/mappings").build();
+		client.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.retryWhen(retrySpec())
+			.block();
+
 		StubMapping stubMapping = WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
 				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
 
 		await().atMost(Duration.ofSeconds(60))
 			.pollInterval(Duration.ofSeconds(1))
 			.ignoreException(SocketTimeoutException.class)
-			.until(() -> {
-				boolean configured = stubMapping.getResponse().wasConfigured();
-				if (!configured) {
-					System.out.println("Not yet configured");
-				}
-				return configured;
-			});
+			.until(() -> stubMapping.getResponse().wasConfigured());
 
 		createConfigMap();
 
