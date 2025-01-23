@@ -20,6 +20,7 @@ import java.net.SocketTimeoutException;
 import java.time.Duration;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
@@ -101,15 +102,20 @@ class ActuatorRefreshIT {
 	// curl <WIREMOCK_POD_IP>:8080/__admin/mappings
 	@Test
 	void testActuatorRefresh() {
-
 		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
-		await().timeout(Duration.ofSeconds(60))
+		StubMapping stubMapping = WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+				.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
+
+		await().atMost(Duration.ofSeconds(60))
+			.pollInterval(Duration.ofSeconds(1))
 			.ignoreException(SocketTimeoutException.class)
-			.until(() -> WireMock
-				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-				.getResponse()
-				.wasConfigured());
+			.until(() -> {
+				boolean configured = stubMapping.getResponse().wasConfigured();
+				if (!configured) {
+					System.out.println("Not yet configured");
+				}
+				return configured;
+			});
 
 		createConfigMap();
 
