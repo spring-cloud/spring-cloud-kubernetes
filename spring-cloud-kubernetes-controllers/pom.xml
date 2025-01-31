@@ -33,9 +33,6 @@
 				<executions>
 					<execution>
 						<id>build-image</id>
-						<configuration>
-							<skip>${skip.build.image}</skip>
-						</configuration>
 						<phase>package</phase>
 						<goals>
 							<goal>build-image-no-fork</goal>
