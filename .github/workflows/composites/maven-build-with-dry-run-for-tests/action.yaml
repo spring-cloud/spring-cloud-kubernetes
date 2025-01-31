@@ -8,7 +8,7 @@ runs:
       shell: bash
       run: |
         ./mvnw install -B  \
-              -Dskip.build.image=true \
+              -Dspring-boot.build-image.skip=true \
               -DskipTests -DskipITs \
               -T 1C -U -q
 
