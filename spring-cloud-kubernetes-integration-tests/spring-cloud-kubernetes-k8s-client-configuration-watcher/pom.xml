@@ -10,7 +10,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-kubernetes-k8s-client-configuration-watcher</artifactId>
-	<packaging>jar</packaging>
+
+	<properties>
+		<spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+		<spring-boot.build-image.skip>true</spring-boot.build-image.skip>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -62,21 +66,5 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>build-image</id>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 	</build>
-
 </project>
