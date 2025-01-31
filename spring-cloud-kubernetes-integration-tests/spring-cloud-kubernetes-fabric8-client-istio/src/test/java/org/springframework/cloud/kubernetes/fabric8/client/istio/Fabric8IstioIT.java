@@ -22,8 +22,8 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Container;
@@ -106,7 +106,7 @@ class Fabric8IstioIT {
 			.block();
 
 		// istio profile is present
-		Assertions.assertTrue(result.contains("istio"));
+		Assertions.assertThat(result).contains("istio");
 	}
 
 	private static void appManifests(Phase phase) {
