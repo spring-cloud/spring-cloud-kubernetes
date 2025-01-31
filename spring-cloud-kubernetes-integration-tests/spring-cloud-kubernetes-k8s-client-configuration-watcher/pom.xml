@@ -12,10 +12,6 @@
 	<artifactId>spring-cloud-kubernetes-k8s-client-configuration-watcher</artifactId>
 	<packaging>jar</packaging>
 
-	<properties>
-		<wiremock.version>3.4.2</wiremock.version>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -40,7 +36,6 @@
 		<dependency>
 			<groupId>org.wiremock</groupId>
 			<artifactId>wiremock-standalone</artifactId>
-			<version>${wiremock.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -67,22 +62,14 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
 				<executions>
 					<execution>
 						<id>build-image</id>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
-					</execution>
-					<execution>
-						<id>repackage</id>
 						<configuration>
 							<skip>true</skip>
 						</configuration>
