@@ -174,11 +174,12 @@ public abstract class KubernetesConfigDataLocationResolver
 		private static KubernetesClientProperties clientProperties(ConfigDataLocationResolverContext context,
 				String namespace) {
 			KubernetesClientProperties kubernetesClientProperties;
+			ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
 
-			if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
-				kubernetesClientProperties = context.getBootstrapContext()
-					.get(KubernetesClientProperties.class)
-					.withNamespace(namespace);
+			KubernetesClientProperties clientProperties;
+			if (bootstrapContext.isRegistered(KubernetesClientProperties.class) &&
+				(clientProperties = bootstrapContext.get(KubernetesClientProperties.class)) != null) {
+				kubernetesClientProperties = clientProperties.withNamespace(namespace);
 			}
 			else {
 				kubernetesClientProperties = context.getBinder()
