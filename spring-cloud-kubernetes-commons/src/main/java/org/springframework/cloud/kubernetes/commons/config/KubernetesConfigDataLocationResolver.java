@@ -52,6 +52,8 @@ import static org.springframework.util.ClassUtils.isPresent;
 public abstract class KubernetesConfigDataLocationResolver
 		implements ConfigDataLocationResolver<KubernetesConfigDataResource>, Ordered {
 
+	private static final Class<KubernetesClientProperties> PROPERTIES_CLASS = KubernetesClientProperties.class;
+
 	private static final boolean RETRY_IS_PRESENT = isPresent("org.springframework.retry.annotation.Retryable", null);
 
 	private final Log log;
@@ -139,8 +141,7 @@ public abstract class KubernetesConfigDataLocationResolver
 			SecretsConfigProperties secretsProperties) {
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
-		registerSingle(bootstrapContext, KubernetesClientProperties.class, clientProperties,
-				"configDataKubernetesClientProperties");
+		registerSingle(bootstrapContext, PROPERTIES_CLASS, clientProperties, "configDataKubernetesClientProperties");
 
 		if (configMapProperties != null) {
 			registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
@@ -176,14 +177,12 @@ public abstract class KubernetesConfigDataLocationResolver
 			KubernetesClientProperties kubernetesClientProperties;
 			ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
 
-			KubernetesClientProperties clientProperties;
-			if (bootstrapContext.isRegistered(KubernetesClientProperties.class) &&
-				(clientProperties = bootstrapContext.get(KubernetesClientProperties.class)) != null) {
-				kubernetesClientProperties = clientProperties.withNamespace(namespace);
+			if (bootstrapContext.isRegistered(PROPERTIES_CLASS) && bootstrapContext.get(PROPERTIES_CLASS) != null) {
+				kubernetesClientProperties = bootstrapContext.get(PROPERTIES_CLASS).withNamespace(namespace);
 			}
 			else {
 				kubernetesClientProperties = context.getBinder()
-					.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
+					.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(PROPERTIES_CLASS))
 					.withNamespace(namespace);
 			}
 
