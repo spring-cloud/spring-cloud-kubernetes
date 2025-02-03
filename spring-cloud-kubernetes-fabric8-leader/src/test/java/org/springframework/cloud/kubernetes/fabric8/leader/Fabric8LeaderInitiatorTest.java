@@ -60,6 +60,7 @@ class Fabric8LeaderInitiatorTest {
 	@AfterEach
 	void afterEach() {
 		leaderInitiator.stop();
+		Mockito.reset(mockFabric8LeadershipController, mockFabric8LeaderRecordWatcher, mockFabric8PodReadinessWatcher);
 	}
 
 	@Test
