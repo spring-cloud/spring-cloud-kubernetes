@@ -41,8 +41,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  *
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-		"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:, optional:configserver:" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		properties = { "spring.main.cloud-platform=KUBERNETES",
+				"spring.config.import=kubernetes:, optional:configserver:", "dummy.config.loader.enabled=true" })
 class Fabric8ConfigServerTest {
 
 	private static WireMockServer wireMockServer;
