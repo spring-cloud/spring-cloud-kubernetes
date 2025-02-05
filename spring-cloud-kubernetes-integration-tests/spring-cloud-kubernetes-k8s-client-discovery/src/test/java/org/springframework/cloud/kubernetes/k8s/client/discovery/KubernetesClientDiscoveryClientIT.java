@@ -100,22 +100,7 @@ class KubernetesClientDiscoveryClientIT {
 	 */
 	@Test
 	@Order(1)
-	void testSimple() throws Exception {
-
-		util.busybox(NAMESPACE, Phase.CREATE);
-
-		// find both pods
-		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-			.getStdout()
-			.split("\n");
-		// add a label to first pod
-		K3S.execInContainer("sh", "-c",
-				"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
-		// add annotation to the second pod
-		K3S.execInContainer("sh", "-c",
-				"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
-
-		Commons.waitForLogStatement("serviceSharedInformer will use namespace : default", K3S, IMAGE_NAME);
+	void testSimple() {
 
 		WebClient servicesClient = builder().baseUrl("http://localhost/services").build();
 

@@ -29,7 +29,8 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 /**
  * @author wind57
  */
-@Component
+//@Component
+	//TODO remove this?
 public class DiscoveryApplicationListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(DiscoveryApplicationListener.class));
