@@ -35,11 +35,10 @@ import org.springframework.test.context.TestPropertySource;
 /**
  * @author wind57
  */
-@TestPropertySource(properties = {
-		"spring.main.cloud-platform=kubernetes",
-		"spring.cloud.kubernetes.client.namespace=default",
-		"spring.cloud.kubernetes.discovery.metadata.add-pod-labels=true",
-		"spring.cloud.kubernetes.discovery.metadata.add-pod-annotations=true" })
+@TestPropertySource(
+		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.kubernetes.client.namespace=default",
+				"spring.cloud.kubernetes.discovery.metadata.add-pod-labels=true",
+				"spring.cloud.kubernetes.discovery.metadata.add-pod-annotations=true" })
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(classes = { Fabric8DiscoveryApp.class, Fabric8DiscoveryBase.TestConfig.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

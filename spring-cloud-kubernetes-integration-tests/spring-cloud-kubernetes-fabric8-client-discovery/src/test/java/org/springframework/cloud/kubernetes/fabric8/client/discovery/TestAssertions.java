@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.testcontainers.k3s.K3sContainer;
+
 import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
@@ -30,7 +32,6 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.testcontainers.k3s.K3sContainer;
 
 import static java.util.AbstractMap.SimpleEntry;
 import static java.util.Map.Entry;
@@ -66,7 +67,8 @@ final class TestAssertions {
 
 	static void alterPods(K3sContainer container) {
 		try {
-			String[] busyboxPods = container.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+			String[] busyboxPods = container
+				.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
 				.getStdout()
 				.split("\n");
 
@@ -87,8 +89,7 @@ final class TestAssertions {
 	}
 
 	static void assertPodMetadata(ReactiveDiscoveryClient discoveryClient) {
-		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("busybox-service")
-				.collectList().block();
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("busybox-service").collectList().block();
 		assertPodMetadata(serviceInstances);
 	}
 
@@ -132,14 +133,12 @@ final class TestAssertions {
 			.retryWhen(retrySpec())
 			.block();
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue(DISCOVERY_COMPOSITE_STATUS)
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(DISCOVERY_COMPOSITE_STATUS)
 			.isEqualTo("UP");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS).isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue(BLOCKING_SERVICES)
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(BLOCKING_SERVICES)
 			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
@@ -170,8 +169,7 @@ final class TestAssertions {
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS).isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue(REACTIVE_SERVICES)
+		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(REACTIVE_SERVICES)
 			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
