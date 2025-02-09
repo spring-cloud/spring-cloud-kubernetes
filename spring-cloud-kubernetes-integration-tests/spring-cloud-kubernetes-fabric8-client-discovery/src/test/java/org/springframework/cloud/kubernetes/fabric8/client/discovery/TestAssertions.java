@@ -30,6 +30,7 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.testcontainers.k3s.K3sContainer;
 
 import static java.util.AbstractMap.SimpleEntry;
 import static java.util.Map.Entry;
@@ -43,9 +44,19 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
  */
 final class TestAssertions {
 
-	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status";
+	private static final String REACTIVE = "$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client']";
 
-	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
+	private static final String REACTIVE_STATUS = REACTIVE + ".status";
+
+	private static final String REACTIVE_SERVICES = REACTIVE + ".details.services";
+
+	private static final String BLOCKING = "$.components.discoveryComposite.components.discoveryClient";
+
+	private static final String BLOCKING_STATUS = BLOCKING + ".status";
+
+	private static final String BLOCKING_SERVICES = BLOCKING + ".details.services";
+
+	private static final String DISCOVERY_COMPOSITE_STATUS = "$.components.discoveryComposite.status";
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(TestAssertions.class);
 
@@ -53,47 +64,32 @@ final class TestAssertions {
 
 	}
 
+	static void alterPods(K3sContainer container) {
+		try {
+			String[] busyboxPods = container.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+				.getStdout()
+				.split("\n");
+
+			String podOne = busyboxPods[0].split("/")[1];
+			String podTwo = busyboxPods[1].split("/")[1];
+
+			container.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
+			container.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	static void assertPodMetadata(DiscoveryClient discoveryClient) {
-
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("busybox-service");
+		assertPodMetadata(serviceInstances);
+	}
 
-		// if annotations are empty, we got the other pod, with labels here
-		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
-			.map(instance -> (DefaultKubernetesServiceInstance) instance)
-			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
-			.toList()
-			.get(0);
-		List<Entry<String, String>> podMetadataLabels = withCustomLabel.podMetadata()
-			.get("labels")
-			.entrySet()
-			.stream()
-			.toList();
-
-		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
-		assertThat(withCustomLabel.getInstanceId()).isNotNull();
-		assertThat(withCustomLabel.getHost()).isNotNull();
-		assertThat(withCustomLabel.getMetadata())
-			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		assertThat(podMetadataLabels).contains(new SimpleEntry<>("my-label", "my-value"));
-
-		// if annotation are present, we got the one with annotations here
-		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
-			.map(instance -> (DefaultKubernetesServiceInstance) instance)
-			.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
-			.toList()
-			.get(0);
-		List<Entry<String, String>> podMetadataAnnotations = withCustomAnnotation.podMetadata()
-			.get("annotations")
-			.entrySet()
-			.stream()
-			.toList();
-
-		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
-		assertThat(withCustomLabel.getInstanceId()).isNotNull();
-		assertThat(withCustomLabel.getHost()).isNotNull();
-		assertThat(withCustomLabel.getMetadata())
-			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
-		assertThat(podMetadataAnnotations).contains(new SimpleEntry<>("my-annotation", "my-value"));
+	static void assertPodMetadata(ReactiveDiscoveryClient discoveryClient) {
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("busybox-service")
+				.collectList().block();
+		assertPodMetadata(serviceInstances);
 	}
 
 	static void assertAllServices(DiscoveryClient discoveryClient) {
@@ -115,12 +111,12 @@ final class TestAssertions {
 	}
 
 	/**
-	 * Reactive is disabled, only blocking is active. As such,
-	 * KubernetesInformerDiscoveryClientAutoConfiguration::indicatorInitializer will post
-	 * an InstanceRegisteredEvent.
 	 *
-	 * We assert for logs and call '/health' endpoint to see that blocking discovery
-	 * client was initialized.
+	 * <pre>
+	 *     	Reactive is disabled, only blocking is active. As such,
+	 * 	 	We assert for logs and call '/health' endpoint to see that blocking discovery
+	 * 	 	client was initialized.
+	 * </pre>
 	 */
 	static void assertBlockingConfiguration(CapturedOutput output, int port) {
 
@@ -137,13 +133,13 @@ final class TestAssertions {
 			.block();
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
+			.extractingJsonPathStringValue(DISCOVERY_COMPOSITE_STATUS)
 			.isEqualTo("UP");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS).isEqualTo("UP");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
+			.extractingJsonPathArrayValue(BLOCKING_SERVICES)
 			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
@@ -151,57 +147,14 @@ final class TestAssertions {
 	}
 
 	/**
-	 * Both blocking and reactive are enabled.
-	 */
-	static void testDefaultConfiguration(CapturedOutput output, int port) {
-
-		waitForLogStatement(output, "Will publish InstanceRegisteredEvent from blocking implementation");
-		waitForLogStatement(output, "Will publish InstanceRegisteredEvent from reactive implementation");
-		waitForLogStatement(output, "publishing InstanceRegisteredEvent");
-		waitForLogStatement(output, "Discovery Client has been initialized");
-
-		WebClient healthClient = builder().baseUrl("http://localhost:" + port + "/actuator/health").build();
-
-		String healthResult = healthClient.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(String.class)
-			.retryWhen(retrySpec())
-			.block();
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
-			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
-			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
-	}
-
-	/**
-	 * Reactive is enabled, blocking is disabled. As such,
-	 * KubernetesInformerDiscoveryClientAutoConfiguration::indicatorInitializer will post
-	 * an InstanceRegisteredEvent.
 	 *
-	 * We assert for logs and call '/health' endpoint to see that reactive discovery
-	 * client was initialized.
+	 * <pre>
+	 *     	Reactive is enabled, only blocking is disabled. As such,
+	 * 	 	We assert for logs and call '/health' endpoint to see that blocking discovery
+	 * 	 	client was initialized.
+	 * </pre>
 	 */
-	static void testReactiveConfiguration(ReactiveDiscoveryClient discoveryClient, CapturedOutput output, int port) {
+	static void assertReactiveConfiguration(CapturedOutput output, int port) {
 
 		waitForLogStatement(output, "Will publish InstanceRegisteredEvent from reactive implementation");
 		waitForLogStatement(output, "publishing InstanceRegisteredEvent");
@@ -214,23 +167,14 @@ final class TestAssertions {
 			.bodyToMono(String.class)
 			.retryWhen(retrySpec())
 			.block();
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
-			.isEqualTo("UP");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS).isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
+		assertThat(BASIC_JSON_TESTER.from(healthResult))
+			.extractingJsonPathArrayValue(REACTIVE_SERVICES)
 			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);
-
-		List<String> services = discoveryClient.getServices().toStream().toList();
-
-		assertThat(services).contains("busybox-service");
-		assertThat(services).contains("kubernetes");
 
 	}
 
@@ -277,6 +221,47 @@ final class TestAssertions {
 		assertThat(second.getMetadata()).isEqualTo(
 				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 
+	}
+
+	private static void assertPodMetadata(List<ServiceInstance> serviceInstances) {
+
+		// if annotations are empty, we got the other pod, with labels here
+		DefaultKubernetesServiceInstance withCustomLabel = serviceInstances.stream()
+			.map(instance -> (DefaultKubernetesServiceInstance) instance)
+			.filter(x -> x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
+		List<Entry<String, String>> podMetadataLabels = withCustomLabel.podMetadata()
+			.get("labels")
+			.entrySet()
+			.stream()
+			.toList();
+
+		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
+		assertThat(withCustomLabel.getInstanceId()).isNotNull();
+		assertThat(withCustomLabel.getHost()).isNotNull();
+		assertThat(withCustomLabel.getMetadata())
+			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		assertThat(podMetadataLabels).contains(new SimpleEntry<>("my-label", "my-value"));
+
+		// if annotation are present, we got the one with annotations here
+		DefaultKubernetesServiceInstance withCustomAnnotation = serviceInstances.stream()
+			.map(instance -> (DefaultKubernetesServiceInstance) instance)
+			.filter(x -> !x.podMetadata().getOrDefault("annotations", Map.of()).isEmpty())
+			.toList()
+			.get(0);
+		List<Entry<String, String>> podMetadataAnnotations = withCustomAnnotation.podMetadata()
+			.get("annotations")
+			.entrySet()
+			.stream()
+			.toList();
+
+		assertThat(withCustomLabel.getServiceId()).isEqualTo("busybox-service");
+		assertThat(withCustomLabel.getInstanceId()).isNotNull();
+		assertThat(withCustomLabel.getHost()).isNotNull();
+		assertThat(withCustomLabel.getMetadata())
+			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+		assertThat(podMetadataAnnotations).contains(new SimpleEntry<>("my-annotation", "my-value"));
 	}
 
 	private static void waitForLogStatement(CapturedOutput output, String message) {

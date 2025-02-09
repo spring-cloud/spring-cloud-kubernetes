@@ -21,23 +21,29 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.testReactiveConfiguration;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.alterPods;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertPodMetadata;
+import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertReactiveConfiguration;
 
 /**
  * @author wind57
  */
-@TestPropertySource(properties = { "logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG",
-		"logging.level.org.springframework.cloud.client.discovery.health.reactive=DEBUG",
-		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
-		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
-		"spring.cloud.discovery.blocking.enabled=false" })
+@TestPropertySource(properties = {
+		"spring.cloud.discovery.reactive.enabled=true",
+		"spring.cloud.discovery.blocking.enabled=false",
+		"logging.level.org.springframework.cloud.kubernetes.commons.discovery=debug",
+		"logging.level.org.springframework.cloud.client.discovery.health.reactive=debug",
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=debug",
+		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=debug" })
 class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort
@@ -59,7 +65,9 @@ class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
 	@Test
 	void test(CapturedOutput output) {
-		testReactiveConfiguration(discoveryClient, output, port);
+		alterPods(K3S);
+		assertReactiveConfiguration(output, port);
+		assertPodMetadata(discoveryClient);
 	}
 
 }
