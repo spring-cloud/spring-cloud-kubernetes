@@ -151,49 +151,6 @@ final class TestAssertions {
 	}
 
 	/**
-	 * Both blocking and reactive are enabled.
-	 */
-	static void testDefaultConfiguration(CapturedOutput output, int port) {
-
-		waitForLogStatement(output, "Will publish InstanceRegisteredEvent from blocking implementation");
-		waitForLogStatement(output, "Will publish InstanceRegisteredEvent from reactive implementation");
-		waitForLogStatement(output, "publishing InstanceRegisteredEvent");
-		waitForLogStatement(output, "Discovery Client has been initialized");
-
-		WebClient healthClient = builder().baseUrl("http://localhost:" + port + "/actuator/health").build();
-
-		String healthResult = healthClient.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(String.class)
-			.retryWhen(retrySpec())
-			.block();
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.discoveryComposite.status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.discoveryComposite.components.discoveryClient.status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
-			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult))
-			.extractingJsonPathStringValue("$.components.reactiveDiscoveryClients.status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status")
-			.isEqualTo("UP");
-
-		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
-			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
-	}
-
-	/**
 	 * Reactive is enabled, blocking is disabled. As such,
 	 * KubernetesInformerDiscoveryClientAutoConfiguration::indicatorInitializer will post
 	 * an InstanceRegisteredEvent.
