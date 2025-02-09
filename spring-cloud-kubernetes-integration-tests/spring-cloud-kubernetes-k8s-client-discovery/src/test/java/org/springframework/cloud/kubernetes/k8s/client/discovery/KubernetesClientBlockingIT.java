@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.k8s.client.discovery.it;
+package org.springframework.cloud.kubernetes.k8s.client.discovery;
 
-import java.util.List;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -28,55 +27,60 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.k8s.client.discovery.DiscoveryApp;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.k8s.client.discovery.it.TestAssertions.assertLogStatement;
+import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAssertions.assertBlockingConfiguration;
+import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAssertions.assertPodMetadata;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { DiscoveryApp.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
+@SpringBootTest(classes = { DiscoveryApp.class, KubernetesClientBlockingIT.TestConfig.class },
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(
+		properties = { "spring.cloud.discovery.reactive.enabled=false", "spring.cloud.discovery.blocking.enabled=true",
+				"logging.level.org.springframework.cloud.kubernetes.commons.discovery=debug",
+				"logging.level.org.springframework.cloud.client.discovery.health=debug",
+				"logging.level.org.springframework.cloud.kubernetes.client.discovery=debug" })
+class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
+
+	@LocalManagementPort
+	private int port;
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
 
 	@BeforeEach
 	void beforeEach() {
-		Images.loadBusybox(K3S);
-		util.busybox(NAMESPACE, Phase.CREATE);
+		Images.loadWiremock(K3S);
+		util.wiremock(NAMESPACE, "/", Phase.CREATE);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.busybox(NAMESPACE, Phase.DELETE);
+		util.wiremock(NAMESPACE, "/", Phase.DELETE);
 	}
 
+	/**
+	 * <pre>
+	 *
+	 *     	Reactive is disabled, only blocking is active. As such,
+	 * 	 	We assert for logs and call '/health' endpoint to see that blocking discovery
+	 * 	 	client was initialized.
+	 *
+	 * </pre>
+	 */
 	@Test
-	void test(CapturedOutput output) throws Exception {
-
-		// find both pods
-		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-			.getStdout()
-			.split("\n");
-		// add a label to first pod
-		K3S.execInContainer("sh", "-c",
-			"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
-		// add annotation to the second pod
-		K3S.execInContainer("sh", "-c",
-			"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
-
-		assertLogStatement(output, "serviceSharedInformer will use namespace : default");
-
-		List<String> services = discoveryClient.getServices();
-		System.out.println("111111 : " + services);
-
+	void test(CapturedOutput output) {
+		assertBlockingConfiguration(output, port);
+		assertPodMetadata(discoveryClient);
 	}
 
 	@TestConfiguration
@@ -91,7 +95,7 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 		@Bean
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false, Set.of(NAMESPACE));
+			return discoveryProperties(false, Set.of(NAMESPACE), null);
 		}
 
 	}
