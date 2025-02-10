@@ -11,6 +11,11 @@
 
 	<artifactId>spring-cloud-kubernetes-k8s-client-discovery</artifactId>
 
+	<properties>
+		<spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+		<spring-boot.build-image.skip>true</spring-boot.build-image.skip>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -41,17 +46,5 @@
 		</dependency>
 
 	</dependencies>
-	<build>
-		<resources>
-			<resource>
-				<directory>../src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-	</build>
 
 </project>
