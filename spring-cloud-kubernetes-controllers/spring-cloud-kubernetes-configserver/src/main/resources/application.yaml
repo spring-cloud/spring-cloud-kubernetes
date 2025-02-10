@@ -1,11 +1,4 @@
 spring:
-  cloud:
-    config:
-      server:
-        composite:
-          - type: kubernetes
-  profiles:
-    active: composite
   application:
     name: kubernetesconfigserver
 
