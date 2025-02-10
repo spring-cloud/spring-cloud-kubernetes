@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,86 +16,110 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
-import static org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util.patchWithReplace;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretBuilder;
+
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
 /**
  * @author wind57
  */
 final class TestUtil {
 
+	private static final String WIREMOCK_HOST = "localhost";
+
+	private static final int WIREMOCK_PORT = 80;
+
+	static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
+
 	private TestUtil() {
 
 	}
 
-	private static final Map<String, String> POD_LABELS = Map.of("app",
-			"spring-cloud-kubernetes-configuration-watcher");
+	static void configureWireMock() {
+		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
+		// the above statement configures the client, but we need to make sure the cluster
+		// is ready to take a request via 'Wiremock::stubFor' (because sometimes it fails)
+		// As such, get the existing mappings and retrySpec() makes sure we retry until
+		// we get a response back.
+		WebClient client = builder().baseUrl("http://localhost:80/__admin/mappings").build();
+		client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
 
-	private static final String BODY_ONE = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-configuration-watcher",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
-									"value": "DEBUG"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CONFIGURATION_WATCHER",
-									"value": "DEBUG"
-								},
-								{
-									"name": "SPRING_CLOUD_KUBERNETES_RELOAD_ENABLED",
-									"value": "FALSE"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
+		StubMapping stubMapping = WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
+			.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
 
-	private static final String USE_SHUTDOWN = """
-			{
-				"spec": {
-					"template": {
-						"spec": {
-							"containers": [{
-								"name": "spring-cloud-kubernetes-configuration-watcher",
-								"image": "image_name_here",
-								"env": [
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG_RELOAD",
-									"value": "DEBUG"
-								},
-								{
-									"name": "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CONFIGURATION_WATCHER",
-									"value": "DEBUG"
-								},
-								{
-									"name": "SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESH_STRATEGY",
-									"value": "shutdown"
-								}
-								]
-							}]
-						}
-					}
-				}
-			}
-						""";
-
-	static void patchForDisabledReload(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);
+		await().atMost(Duration.ofSeconds(60))
+			.pollInterval(Duration.ofSeconds(1))
+			.ignoreException(SocketTimeoutException.class)
+			.until(() -> stubMapping.getResponse().wasConfigured());
 	}
 
-	static void patchForShutdownRefresh(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, USE_SHUTDOWN, POD_LABELS);
+	static void verifyActuatorCalled(int timesCalled) {
+		await().atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+			List<LoggedRequest> requests = WireMock
+				.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+			return !requests.isEmpty();
+		});
+		WireMock.verify(WireMock.exactly(timesCalled),
+				WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+	}
+
+	static void createConfigMap(Util util, String namespace) {
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata()
+			.withName("service-wiremock")
+			.withNamespace(namespace)
+			.addToLabels("spring.cloud.kubernetes.config", "true")
+			.endMetadata()
+			.addToData("foo", "bar")
+			.build();
+		util.createAndWait(namespace, configMap, null);
+	}
+
+	static void deleteConfigMap(Util util, String namespace) {
+		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata()
+			.withName("service-wiremock")
+			.withNamespace(namespace)
+			.endMetadata()
+			.build();
+		util.deleteAndWait(namespace, configMap, null);
+	}
+
+	static void createSecret(Util util, String namespace) {
+		V1Secret secret = new V1SecretBuilder().editOrNewMetadata()
+			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
+			.withName("service-wiremock")
+			.withNamespace(namespace)
+			.endMetadata()
+			.addToData("color", Base64.getEncoder().encode("purple".getBytes(StandardCharsets.UTF_8)))
+			.build();
+		util.createAndWait(namespace, null, secret);
+	}
+
+	static void deleteSecret(Util util, String namespace) {
+		V1Secret secret = new V1SecretBuilder().editOrNewMetadata()
+			.withName("service-wiremock")
+			.withNamespace(namespace)
+			.endMetadata()
+			.build();
+		util.deleteAndWait(namespace, null, secret);
 	}
 
 }

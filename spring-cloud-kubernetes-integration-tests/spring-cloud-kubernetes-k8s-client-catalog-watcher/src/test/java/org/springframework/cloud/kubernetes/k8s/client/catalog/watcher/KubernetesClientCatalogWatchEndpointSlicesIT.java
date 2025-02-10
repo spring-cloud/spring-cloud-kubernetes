@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.catalog.watch;
+package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher;
 
 import java.util.Set;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.ApiClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,22 +28,17 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8KubernetesCatalogWatchAutoConfiguration;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
-import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.Fabric8CatalogWatchEndpointSlicesFilterIT.TestConfig;
-import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.assertLogStatement;
-import static org.springframework.cloud.kubernetes.fabric8.catalog.watch.TestAssertions.invokeAndAssert;
+import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.assertLogStatement;
+import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.invokeAndAssert;
 
-/**
- * @author wind57
- */
-@SpringBootTest(classes = { Fabric8KubernetesCatalogWatchAutoConfiguration.class, TestConfig.class, Application.class },
+@SpringBootTest(classes = { KubernetesClientCatalogWatchEndpointSlicesIT.TestConfig.class, Application.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class Fabric8CatalogWatchEndpointSlicesFilterIT extends Fabric8CatalogWatchBase {
+class KubernetesClientCatalogWatchEndpointSlicesIT extends KubernetesClientCatalogWatchBase {
 
 	@LocalServerPort
 	private int port;
@@ -63,7 +58,7 @@ class Fabric8CatalogWatchEndpointSlicesFilterIT extends Fabric8CatalogWatchBase 
 
 	@AfterEach
 	void afterEach() {
-		// busybox is deleted as part of the test itself, thus not seen here
+		// busybox is deleted as part of the assertions, thus not seen here
 		util.deleteNamespace(NAMESPACE_A);
 		util.deleteNamespace(NAMESPACE_B);
 	}
@@ -71,7 +66,7 @@ class Fabric8CatalogWatchEndpointSlicesFilterIT extends Fabric8CatalogWatchBase 
 	/**
 	 * <pre>
 	 *     - we deploy a busybox service with 2 replica pods in two namespaces : a, b
-	 *     - we use endpoint slices
+	 *     - we use endpoints
 	 *     - we enable namespace filtering for 'default' and 'a'
 	 *     - we receive an event from KubernetesCatalogWatcher, assert what is inside it
 	 *     - delete the busybox service in 'a' and 'b'
@@ -79,8 +74,8 @@ class Fabric8CatalogWatchEndpointSlicesFilterIT extends Fabric8CatalogWatchBase 
 	 * </pre>
 	 */
 	@Test
-	void test(CapturedOutput output) {
-		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
+	void testCatalogWatchWithEndpoints(CapturedOutput output) {
+		assertLogStatement(output, "stateGenerator is of type: KubernetesEndpointSlicesCatalogWatch");
 		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
@@ -89,8 +84,8 @@ class Fabric8CatalogWatchEndpointSlicesFilterIT extends Fabric8CatalogWatchBase 
 
 		@Bean
 		@Primary
-		KubernetesClient kubernetesClient() {
-			return client();
+		ApiClient client() {
+			return apiClient();
 		}
 
 		@Bean

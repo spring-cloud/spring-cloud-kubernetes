@@ -24,7 +24,7 @@ runs:
     - name: build project
       shell: bash
       run: |
-        ./mvnw clean install -Dskip.build.image=true -DskipITs -DskipTests -T1C -U -B -q  
+        ./mvnw clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q  
 
     - name: build controllers project
       uses: ./.github/workflows/composites/build-controllers-project
