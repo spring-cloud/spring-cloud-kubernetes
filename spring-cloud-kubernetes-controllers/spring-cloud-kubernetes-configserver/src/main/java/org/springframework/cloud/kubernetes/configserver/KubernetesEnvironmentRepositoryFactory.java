@@ -2,29 +2,25 @@ package org.springframework.cloud.kubernetes.configserver;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.cloud.config.server.environment.EnvironmentRepositoryFactory;
-import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Factory for creating {@link KubernetesEnvironmentRepository} instances.
- */
+@Component
 public class KubernetesEnvironmentRepositoryFactory
 	implements EnvironmentRepositoryFactory<KubernetesEnvironmentRepository, KubernetesConfigServerProperties> {
 
-	private final List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSupplierList;
+	private final CoreV1Api coreV1Api;
+	private final List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers;
 
-	public KubernetesEnvironmentRepositoryFactory(
-		List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSupplierList
-	) {
-		this.kubernetesPropertySourceSupplierList = kubernetesPropertySourceSupplierList;
+	public KubernetesEnvironmentRepositoryFactory(CoreV1Api coreV1Api,
+												  List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers) {
+		this.coreV1Api = coreV1Api;
+		this.kubernetesPropertySourceSuppliers = kubernetesPropertySourceSuppliers;
 	}
 
 	@Override
 	public KubernetesEnvironmentRepository build(KubernetesConfigServerProperties environmentProperties) {
-		CoreV1Api coreApi = new CoreV1Api();
-		String namespace = environmentProperties.getSecretsNamespaces() != null ? environmentProperties.getSecretsNamespaces() : "default";
-		return new KubernetesEnvironmentRepository(coreApi, this.kubernetesPropertySourceSupplierList, namespace);
+		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers, "default");
 	}
-
 }
