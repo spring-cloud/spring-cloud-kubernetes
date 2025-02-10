@@ -23,7 +23,9 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
@@ -51,7 +53,7 @@ import static org.springframework.cloud.kubernetes.configserver.KubernetesProper
 @Configuration
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @AutoConfigureBefore({ ConfigServerAutoConfiguration.class })
-//@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties(KubernetesConfigServerProperties.class)
 public class KubernetesConfigServerAutoConfiguration {
 
