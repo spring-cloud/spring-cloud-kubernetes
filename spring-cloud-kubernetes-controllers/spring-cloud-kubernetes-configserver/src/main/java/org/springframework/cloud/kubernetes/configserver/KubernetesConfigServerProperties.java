@@ -17,13 +17,15 @@
 package org.springframework.cloud.kubernetes.configserver;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.config.server.support.EnvironmentRepositoryProperties;
 
 /**
  * @author Ryan Baxter
  */
 
 @ConfigurationProperties("spring.cloud.kubernetes.configserver")
-public class KubernetesConfigServerProperties {
+public class KubernetesConfigServerProperties implements EnvironmentRepositoryProperties {
+	private int order = Integer.MAX_VALUE;
 
 	private String configMapNamespaces = "";
 
@@ -45,4 +47,11 @@ public class KubernetesConfigServerProperties {
 		this.secretsNamespaces = secretsNamespaces;
 	}
 
+	public int getOrder() {
+		return this.order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
 }
