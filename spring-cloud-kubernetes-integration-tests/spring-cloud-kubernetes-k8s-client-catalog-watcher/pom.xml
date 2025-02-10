@@ -11,6 +11,11 @@
 
 	<artifactId>spring-cloud-kubernetes-k8s-client-catalog-watcher</artifactId>
 
+	<properties>
+		<spring-boot.repackage.skip>true</spring-boot.repackage.skip>
+		<spring-boot.build-image.skip>true</spring-boot.build-image.skip>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -43,6 +48,4 @@
 			</resource>
 		</resources>
 	</build>
-
-
 </project>

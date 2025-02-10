@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import java.time.Duration;
 
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,6 +59,7 @@ class Fabric8LeaderInitiatorTest {
 	@AfterEach
 	void afterEach() {
 		leaderInitiator.stop();
+		Mockito.reset(mockFabric8LeadershipController, mockFabric8LeaderRecordWatcher, mockFabric8PodReadinessWatcher);
 	}
 
 	@Test
@@ -76,14 +76,6 @@ class Fabric8LeaderInitiatorTest {
 		assertThat(leaderInitiator.isRunning()).isTrue();
 		verify(mockFabric8LeaderRecordWatcher).start();
 		verify(mockFabric8PodReadinessWatcher).start();
-		boolean[] updateCalled = new boolean[1];
-		Mockito.doAnswer(x -> {
-			updateCalled[0] = true;
-			return null;
-		}).when(mockFabric8LeadershipController).update();
-
-		Awaitility.await().atMost(Duration.ofSeconds(3)).until(() -> updateCalled[0]);
-
 		verify(mockFabric8LeadershipController, atLeastOnce()).update();
 	}
 
