@@ -61,11 +61,10 @@ public class KubernetesConfigServerAutoConfiguration {
 	static class KubernetesFactoryConfig {
 
 		@Bean
-		public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(CoreV1Api coreV1Api,
-																							 List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSupplierList) {
-			return new KubernetesEnvironmentRepositoryFactory(coreV1Api, kubernetesPropertySourceSupplierList);
+		public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
+			KubernetesEnvironmentRepository kubernetesEnvironmentRepository) {
+			return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepository);
 		}
-
 	}
 
 	@Bean
@@ -73,6 +72,7 @@ public class KubernetesConfigServerAutoConfiguration {
 	public EnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
 																 List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
 																 KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		System.out.println("Creating KubernetesEnvironmentRepository bean...");
 		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers,
 			kubernetesNamespaceProvider.getNamespace());
 	}
