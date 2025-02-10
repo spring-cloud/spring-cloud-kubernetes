@@ -13,9 +13,6 @@ you must name the image with the same name as the module. For example:
 	<executions>
 		<execution>
            <id>build-image</id>
-           <configuration>
-              <skip>${skip.build.image}</skip>
-           </configuration>
            <phase>package</phase>
            <goals>
               <goal>build-image-no-fork</goal>
@@ -36,7 +33,3 @@ Notice this line:
     <imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
 
 You must follow the same convention.
-
-One more important part in this configuration is : "<skip>${skip.build.image}</skip>".
-We use this setting in the build pipeline where in some stages we skip the image build,
-only to have it build in some latter ones.
