@@ -1,0 +1,2 @@
+org.springframework.boot.context.config.ConfigDataLocationResolver=\
+org.springframework.cloud.kubernetes.DummyConfigDataLocationResolver
