@@ -29,13 +29,13 @@ list of namespace values.
 NOTE: If you set `spring.cloud.kubernetes.configserver.config-map-namespaces` and/or `spring.cloud.kubernetes.configserver.secrets-namespaces`
 you will need to include the namespace in which the Config Server is deployed in order to continue to fetch Config Map and Secret data from that namespace.
 
-### Vault Integration
-To enable Vault integration, you can activate the vault Maven profile by setting the `useVault` property to true. This profile adds the `spring-vault-core` dependency.
+### Using Advanced Features Of Spring Vault
+In order to use some of the [more advanced Spring Vault features](https://docs.spring.io/spring-cloud-config/reference/server/environment-repository/vault-backend.html) of the **Spring Cloud Config Server**, [`spring-vault-core`](https://mvnrepository.com/artifact/org.springframework.vault/spring-vault-core) must be on the classpath. By default, Spring Cloud Kubernetes can generate a Docker image for deploying Config Server to Kubernetes, but it does not include `spring-vault-core` in the classpath. If you need `spring-core-vault` to enable certain functionality in the Config Server you can build your own version of Docker image by enabling the `vault` Maven profile when running Maven build.
 
 Example:
 ```bash
-mvn clean install -DuseVault=true
-``` 
+$ ../../mvnw clean install -Pvault
+```
 
 ### Kubernetes Access Controls
 The Kubernetes Config Server uses the Kubernetes API server to fetch Config Map and Secret data.  In order for it to do that
