@@ -324,10 +324,11 @@ public final class ConfigUtils {
 			String name, ApplicationListener<?> listener) {
 		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
 		bootstrapContext.addCloseListener(event -> {
-			if (event.getApplicationContext().getBeanFactory().getSingleton(name) == null) {
-				event.getApplicationContext()
-					.getBeanFactory()
-					.registerSingleton(name, event.getBootstrapContext().get(cls));
+
+			T singleton = event.getBootstrapContext().get(cls);
+
+			if (event.getApplicationContext().getBeanFactory().getSingleton(name) == null && singleton != null) {
+				event.getApplicationContext().getBeanFactory().registerSingleton(name, singleton);
 				event.getApplicationContext().addApplicationListener(listener);
 			}
 		});
