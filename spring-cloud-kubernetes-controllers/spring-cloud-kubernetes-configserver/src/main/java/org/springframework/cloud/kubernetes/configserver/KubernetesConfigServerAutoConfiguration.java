@@ -21,6 +21,8 @@ import java.util.List;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
+import io.micrometer.observation.ObservationRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
@@ -28,7 +30,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
+import org.springframework.cloud.config.server.config.ConfigServerProperties;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
+import org.springframework.cloud.config.server.environment.NativeEnvironmentProperties;
+import org.springframework.cloud.config.server.environment.NativeEnvironmentRepositoryFactory;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
@@ -43,6 +48,7 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
 import static org.springframework.cloud.kubernetes.configserver.KubernetesPropertySourceSupplier.namespaceSplitter;
@@ -53,17 +59,26 @@ import static org.springframework.cloud.kubernetes.configserver.KubernetesProper
 @Configuration
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
 @AutoConfigureBefore({ ConfigServerAutoConfiguration.class })
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+//@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @EnableConfigurationProperties(KubernetesConfigServerProperties.class)
 public class KubernetesConfigServerAutoConfiguration {
 
+	@Configuration(proxyBeanMethods = false)
+	static class KubernetesFactoryConfig {
+
+		@Bean
+		public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
+			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSupplierList) {
+			return new KubernetesEnvironmentRepositoryFactory(kubernetesPropertySourceSupplierList);
+		}
+
+	}
+
 	@Bean
 	@Profile("kubernetes")
-	public EnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
-			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers,
-				kubernetesNamespaceProvider.getNamespace());
+	public EnvironmentRepository kubernetesEnvironmentRepository(KubernetesEnvironmentRepositoryFactory factory,
+																 KubernetesConfigServerProperties environmentProperties) {
+		return factory.build(environmentProperties);
 	}
 
 	@Bean
