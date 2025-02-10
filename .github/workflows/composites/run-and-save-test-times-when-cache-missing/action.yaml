@@ -47,7 +47,7 @@ runs:
             -Dmaven.wagon.http.pool=false \
             -Dmaven.wagon.http.retryHandler.class=standard \
             -Dmaven.wagon.http.retryHandler.count=3 \
-            -Dskip.build.image=true          
+            -Dspring-boot.build-image.skip=true          
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         
