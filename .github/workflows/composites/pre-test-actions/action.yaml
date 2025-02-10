@@ -24,7 +24,11 @@ runs:
     - name: build project
       shell: bash
       run: |
+<<<<<<< HEAD
         ./mvnw clean install -P 'run-on-github-actions' -Dskip.build.image=true -DskipITs -DskipTests -T1C -U -B -q  
+=======
+        ./mvnw clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q  
+>>>>>>> main
 
     - name: build controllers project
       uses: ./.github/workflows/composites/build-controllers-project

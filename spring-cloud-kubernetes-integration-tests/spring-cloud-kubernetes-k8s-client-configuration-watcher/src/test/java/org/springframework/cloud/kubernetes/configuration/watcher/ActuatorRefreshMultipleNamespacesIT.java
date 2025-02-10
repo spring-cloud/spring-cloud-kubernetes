@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,11 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.net.SocketTimeoutException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1EnvVar;
-import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,15 +31,16 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 
-import static org.awaitility.Awaitility.await;
+import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.configureWireMock;
+import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.createConfigMap;
+import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.createSecret;
+import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.deleteConfigMap;
+import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.deleteSecret;
+import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.verifyActuatorCalled;
 
 class ActuatorRefreshMultipleNamespacesIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
-
-	private static final String WIREMOCK_HOST = "localhost";
-
-	private static final int WIREMOCK_PORT = 80;
 
 	private static final String DEFAULT_NAMESPACE = "default";
 
@@ -86,124 +77,50 @@ class ActuatorRefreshMultipleNamespacesIT {
 	/**
 	 * <pre>
 	 *     - deploy config-watcher in default namespace
-	 *     - deploy wiremock in default namespace (so that we could assert calls to the actuator path)
-	 *     - deploy configmap-left in left namespaces with proper label and "service-wiremock" name. Because of the
-	 *       label, this will trigger a reload; because of the name this will trigger a reload against that name.
-	 *       This is a http refresh against the actuator.
-	 *     - same as above for the configmap-right.
+	 *     - deploy wiremock in default namespace
+	 *     - deploy 'service-wiremock' configmap/secret in 'left' namespace.
+	 *     - deploy 'service-wiremock' configmap/secret in 'right' namespace.
+	 *     - each of the above triggers configuration watcher to issue
+	 *       calls to /actuator/refresh
 	 * </pre>
 	 */
 	@Test
 	void testConfigMapActuatorRefreshMultipleNamespaces() {
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
-		await().timeout(Duration.ofSeconds(60))
-			.until(() -> WireMock
-				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-				.getResponse()
-				.wasConfigured());
+		configureWireMock();
 
-		// left-config-map
-		V1ConfigMap leftConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
-			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
-			.withName("service-wiremock")
-			.withNamespace(LEFT_NAMESPACE)
-			.endMetadata()
-			.addToData("color", "purple")
-			.build();
-		util.createAndWait(LEFT_NAMESPACE, leftConfigMap, null);
+		createConfigMap(util, LEFT_NAMESPACE);
+		createConfigMap(util, RIGHT_NAMESPACE);
 
-		// right-config-map
-		V1ConfigMap rightConfigMap = new V1ConfigMapBuilder().editOrNewMetadata()
-			.withLabels(Map.of("spring.cloud.kubernetes.config", "true"))
-			.withName("service-wiremock")
-			.withNamespace(RIGHT_NAMESPACE)
-			.endMetadata()
-			.addToData("color", "green")
-			.build();
-		util.createAndWait(RIGHT_NAMESPACE, rightConfigMap, null);
+		createSecret(util, LEFT_NAMESPACE);
+		createSecret(util, RIGHT_NAMESPACE);
 
-		// comes from handler::onAdd (and as such from "onEvent")
-		Commons.assertReloadLogStatements("ConfigMap service-wiremock was added in namespace left", "",
-				"spring-cloud-kubernetes-configuration-watcher");
+		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace left", K3S,
+				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
+		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace right", K3S,
+				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 
-		// comes from handler::onAdd (and as such from "onEvent")
-		Commons.assertReloadLogStatements("ConfigMap service-wiremock was added in namespace right", "",
-				"spring-cloud-kubernetes-configuration-watcher");
+		Commons.waitForLogStatement("Secret service-wiremock was added in namespace left", K3S,
+				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
+		Commons.waitForLogStatement("Secret service-wiremock was added in namespace right", K3S,
+				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 
-		await().atMost(Duration.ofSeconds(30))
-			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")))
-				.isEmpty());
-		WireMock.verify(WireMock.exactly(2), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
-
-		testSecretActuatorRefreshMultipleNamespaces();
-
-	}
-
-	/**
-	 * <pre>
-	 *     - deploy config-watcher in default namespace
-	 *     - deploy wiremock in default namespace (so that we could assert calls to the actuator path)
-	 *     - deploy secret-left in left namespaces with proper label and "service-wiremock". Because of the
-	 *       label, this will trigger a reload; because of the name this will trigger a reload against that name.
-	 *       This is a http refresh against the actuator.
-	 *     - same as above for the secret-right.
-	 * </pre>
-	 */
-	void testSecretActuatorRefreshMultipleNamespaces() {
-		await().timeout(Duration.ofSeconds(60))
-			.ignoreException(SocketTimeoutException.class)
-			.until(() -> WireMock
-				.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
-					.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)))
-				.getResponse()
-				.wasConfigured());
-
-		// left-secret
-		V1Secret leftSecret = new V1SecretBuilder().editOrNewMetadata()
-			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
-			.withName("service-wiremock")
-			.withNamespace(LEFT_NAMESPACE)
-			.endMetadata()
-			.addToData("color", Base64.getEncoder().encode("purple".getBytes(StandardCharsets.UTF_8)))
-			.build();
-		util.createAndWait(LEFT_NAMESPACE, null, leftSecret);
-
-		// right-secret
-		V1Secret rightSecret = new V1SecretBuilder().editOrNewMetadata()
-			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
-			.withName("service-wiremock")
-			.withNamespace(RIGHT_NAMESPACE)
-			.endMetadata()
-			.addToData("color", Base64.getEncoder().encode("green".getBytes(StandardCharsets.UTF_8)))
-			.build();
-		util.createAndWait(RIGHT_NAMESPACE, null, rightSecret);
-
-		// comes from handler::onAdd (and as such from "onEvent")
-		Commons.assertReloadLogStatements("Secret service-wiremock was added in namespace left", "",
-				"spring-cloud-kubernetes-configuration-watcher");
-
-		// comes from handler::onAdd (and as such from "onEvent")
-		Commons.assertReloadLogStatements("Secret service-wiremock was added in namespace right", "",
-				"spring-cloud-kubernetes-configuration-watcher");
-
-		await().atMost(Duration.ofSeconds(30))
-			.until(() -> !WireMock.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")))
-				.isEmpty());
-		WireMock.verify(WireMock.exactly(4), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
-
+		verifyActuatorCalled(4);
+		deleteConfigMap(util, LEFT_NAMESPACE);
+		deleteConfigMap(util, RIGHT_NAMESPACE);
+		deleteSecret(util, LEFT_NAMESPACE);
+		deleteSecret(util, RIGHT_NAMESPACE);
 	}
 
 	private static void configWatcher(Phase phase) {
-		V1ConfigMap configMap = (V1ConfigMap) util
-			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-configmap.yaml");
 		V1Deployment deployment = (V1Deployment) util
 			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
 
 		List<V1EnvVar> envVars = List.of(
 				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0").value(LEFT_NAMESPACE),
+				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY").value("0"),
 				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_1").value(RIGHT_NAMESPACE),
-				new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK").value("TRACE"));
+				new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD")
+					.value("DEBUG"));
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
@@ -211,11 +128,9 @@ class ActuatorRefreshMultipleNamespacesIT {
 			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(DEFAULT_NAMESPACE, configMap, null);
 			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, null, true);
 		}
 		else {
-			util.deleteAndWait(DEFAULT_NAMESPACE, configMap, null);
 			util.deleteAndWait(DEFAULT_NAMESPACE, deployment, service, null);
 		}
 
