@@ -5,6 +5,8 @@ import org.springframework.cloud.config.server.environment.EnvironmentRepository
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 public class KubernetesEnvironmentRepositoryFactory
@@ -21,6 +23,9 @@ public class KubernetesEnvironmentRepositoryFactory
 
 	@Override
 	public KubernetesEnvironmentRepository build(KubernetesConfigServerProperties environmentProperties) {
-		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers, "default");
+		String combinedNamespaces = Stream.of(environmentProperties.getSecretsNamespaces(), environmentProperties.getConfigMapNamespaces())
+			.filter(ns -> ns != null && !ns.isEmpty())
+			.collect(Collectors.joining(","));
+		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers, combinedNamespaces);
 	}
 }
