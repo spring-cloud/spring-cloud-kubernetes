@@ -6,4 +6,5 @@
 	<logger name="okhttp3.mockwebserver" level="debug"/>
 	<!-- needed for CapturedOutput -->
 	<logger name="org.springframework.cloud.kubernetes.fabric8.config" level="DEBUG"/>
+	<logger name="io.fabric8.kubernetes.client" level="DEBUG"/>
 </configuration>
