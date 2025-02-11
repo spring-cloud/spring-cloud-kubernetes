@@ -1,20 +1,24 @@
 package org.springframework.cloud.kubernetes.configserver;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.config.server.environment.EnvironmentRepositoryFactory;
 import org.springframework.stereotype.Component;
 
+/**
+ * Factory class for creating instances of {@link KubernetesEnvironmentRepository}.
+ */
 @Component
 public class KubernetesEnvironmentRepositoryFactory
 	implements EnvironmentRepositoryFactory<KubernetesEnvironmentRepository, KubernetesConfigServerProperties> {
 
-	private final KubernetesEnvironmentRepository kubernetesEnvironmentRepository;
+	private final ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider;
 
-	public KubernetesEnvironmentRepositoryFactory(KubernetesEnvironmentRepository kubernetesEnvironmentRepository) {
-		this.kubernetesEnvironmentRepository = kubernetesEnvironmentRepository;
+	public KubernetesEnvironmentRepositoryFactory(ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
+		this.kubernetesEnvironmentRepositoryProvider = kubernetesEnvironmentRepositoryProvider;
 	}
 
 	@Override
 	public KubernetesEnvironmentRepository build(KubernetesConfigServerProperties environmentProperties) {
-		return kubernetesEnvironmentRepository;
+		return kubernetesEnvironmentRepositoryProvider.getIfAvailable();
 	}
 }
