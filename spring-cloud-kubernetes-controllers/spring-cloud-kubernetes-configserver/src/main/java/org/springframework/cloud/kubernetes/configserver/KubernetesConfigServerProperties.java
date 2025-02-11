@@ -25,7 +25,7 @@ import org.springframework.cloud.config.server.support.EnvironmentRepositoryProp
 
 @ConfigurationProperties("spring.cloud.kubernetes.configserver")
 public class KubernetesConfigServerProperties implements EnvironmentRepositoryProperties {
-	private int order = Integer.MAX_VALUE;
+	private int order = DEFAULT_ORDER;
 
 	private String configMapNamespaces = "";
 
