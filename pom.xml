@@ -19,7 +19,7 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-		 
+
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -73,6 +73,12 @@
 		<spring-cloud-config.version>4.1.6-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>4.1.4-SNAPSHOT</spring-cloud-bus.version>
 		<spring-cloud-contract.version>4.1.6-SNAPSHOT</spring-cloud-contract.version>
+
+		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
+		<maven-checkstyle-plugin.failsOnViolation>true
+		</maven-checkstyle-plugin.failsOnViolation>
+		<maven-checkstyle-plugin.includeTestSourceDirectory>true
+		</maven-checkstyle-plugin.includeTestSourceDirectory>
 	</properties>
 
 	<modules>
@@ -201,7 +207,10 @@
 				</configuration>
 			</plugin>
 
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>io.spring.javaformat</groupId>
 				<artifactId>spring-javaformat-maven-plugin</artifactId>
