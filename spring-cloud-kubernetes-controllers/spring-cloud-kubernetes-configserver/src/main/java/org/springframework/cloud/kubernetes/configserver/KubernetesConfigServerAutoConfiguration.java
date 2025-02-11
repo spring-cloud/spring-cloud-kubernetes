@@ -62,7 +62,7 @@ public class KubernetesConfigServerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
-		ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
+			ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
 		return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepositoryProvider);
 	}
 
@@ -70,10 +70,10 @@ public class KubernetesConfigServerAutoConfiguration {
 	@Profile("kubernetes")
 	@ConditionalOnMissingBean
 	public EnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
-																 List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
-																 KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers,
-			kubernetesNamespaceProvider.getNamespace());
+				kubernetesNamespaceProvider.getNamespace());
 	}
 
 	@Bean
