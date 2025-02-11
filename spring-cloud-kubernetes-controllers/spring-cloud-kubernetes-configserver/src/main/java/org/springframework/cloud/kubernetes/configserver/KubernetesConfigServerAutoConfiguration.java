@@ -21,9 +21,11 @@ import java.util.List;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -57,22 +59,19 @@ import static org.springframework.cloud.kubernetes.configserver.KubernetesProper
 @EnableConfigurationProperties(KubernetesConfigServerProperties.class)
 public class KubernetesConfigServerAutoConfiguration {
 
-	@Configuration(proxyBeanMethods = false)
-	static class KubernetesFactoryConfig {
-
-		@Bean
-		public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
-			KubernetesEnvironmentRepository kubernetesEnvironmentRepository) {
-			return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepository);
-		}
+	@Bean
+	@ConditionalOnMissingBean
+	public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
+		ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
+		return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepositoryProvider);
 	}
 
 	@Bean
 	@Profile("kubernetes")
+	@ConditionalOnMissingBean
 	public EnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
 																 List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
 																 KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		System.out.println("Creating KubernetesEnvironmentRepository bean...");
 		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers,
 			kubernetesNamespaceProvider.getNamespace());
 	}
