@@ -31,6 +31,8 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
+import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSliceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
@@ -60,6 +62,34 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 
 	private Fabric8KubernetesDiscoveryClientUtils() {
 
+	}
+
+	static List<EndpointSlice> endpointSlices(KubernetesDiscoveryProperties properties, KubernetesClient client,
+			KubernetesNamespaceProvider namespaceProvider, String target) {
+
+		List<EndpointSlice> endpointSlices;
+
+		if (properties.allNamespaces()) {
+			LOG.debug(() -> "discovering endpoint slices in all namespaces");
+			endpointSlices = filteredEndpointSlices(
+					client.discovery().v1().endpointSlices().inAnyNamespace().withNewFilter(), properties);
+		}
+		else if (!properties.namespaces().isEmpty()) {
+			LOG.debug(() -> "discovering endpoint slices in namespaces : " + properties.namespaces());
+			List<EndpointSlice> inner = new ArrayList<>(properties.namespaces().size());
+			properties.namespaces()
+				.forEach(namespace -> inner.addAll(filteredEndpointSlices(
+						client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties)));
+			endpointSlices = inner;
+		}
+		else {
+			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
+			LOG.debug(() -> "discovering endpoint slices in namespace : " + namespace);
+			endpointSlices = filteredEndpointSlices(
+					client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties);
+		}
+
+		return endpointSlices;
 	}
 
 	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
@@ -223,6 +253,17 @@ final class Fabric8KubernetesDiscoveryClientUtils {
 		}
 
 		return partial.endFilter().list().getItems().stream().filter(predicate).toList();
+
+	}
+
+	private static List<EndpointSlice> filteredEndpointSlices(
+			FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> filterNested,
+			KubernetesDiscoveryProperties properties) {
+
+		FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> partial = filterNested
+			.withLabels(properties.serviceLabels());
+
+		return partial.endFilter().list().getItems();
 
 	}
 

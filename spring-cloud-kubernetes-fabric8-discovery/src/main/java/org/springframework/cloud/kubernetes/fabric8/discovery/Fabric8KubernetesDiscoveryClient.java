@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortNameAndNumber;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
@@ -60,48 +58,30 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodL
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAware {
+public final class Fabric8KubernetesDiscoveryClient implements DiscoveryClient {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesDiscoveryClient.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesDiscoveryClient.class));
 
 	private final KubernetesDiscoveryProperties properties;
 
-	private final KubernetesClientServicesFunction kubernetesClientServicesFunction;
-
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	private final Fabric8DiscoveryServicesAdapter adapter;
+	private final KubernetesClient client;
 
-	private KubernetesClient client;
+	private final KubernetesNamespaceProvider namespaceProvider;
 
-	private KubernetesNamespaceProvider namespaceProvider;
+	private final Predicate<Service> predicate;
 
-	public KubernetesDiscoveryClient(KubernetesClient client,
+	Fabric8KubernetesDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-
-		this(client, kubernetesDiscoveryProperties, kubernetesClientServicesFunction, null,
-				new ServicePortSecureResolver(kubernetesDiscoveryProperties));
-	}
-
-	KubernetesDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction, Predicate<Service> filter,
-			ServicePortSecureResolver servicePortSecureResolver) {
+			ServicePortSecureResolver servicePortSecureResolver, KubernetesNamespaceProvider namespaceProvider,
+			Predicate<Service> predicate) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
 		this.servicePortSecureResolver = servicePortSecureResolver;
-		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
-		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
-				kubernetesDiscoveryProperties, filter);
-	}
-
-	public KubernetesClient getClient() {
-		return this.client;
-	}
-
-	public void setClient(KubernetesClient client) {
-		this.client = client;
+		this.namespaceProvider = namespaceProvider;
+		this.predicate = predicate;
 	}
 
 	@Override
@@ -144,7 +124,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 	}
 
 	public List<Endpoints> getEndPointsList(String serviceId) {
-		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId, adapter.filter());
+		return endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId, predicate);
 	}
 
 	private List<ServiceInstance> serviceInstances(Endpoints endpoints, String serviceId) {
@@ -186,29 +166,18 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	@Override
 	public List<String> getServices() {
-		List<String> services = adapter.apply(client).stream().map(s -> s.getMetadata().getName()).distinct().toList();
-		LOG.debug(() -> "will return services : " + services);
-		return services;
-	}
-
-	@Deprecated(forRemoval = true)
-	public List<String> getServices(Predicate<Service> filter) {
-		return new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction, properties, filter).apply(client)
+		List<String> services = services(properties, client, namespaceProvider, predicate, null, "fabric8 discovery")
 			.stream()
-			.map(s -> s.getMetadata().getName())
+			.map(service -> service.getMetadata().getName())
 			.distinct()
 			.toList();
+		LOG.debug(() -> "will return services : " + services);
+		return services;
 	}
 
 	@Override
 	public int getOrder() {
 		return properties.order();
-	}
-
-	@Deprecated(forRemoval = true)
-	@Override
-	public final void setEnvironment(Environment environment) {
-		namespaceProvider = new KubernetesNamespaceProvider(environment);
 	}
 
 }
