@@ -92,6 +92,15 @@
 				<env.IMAGE>springcloud/${project.artifactId}:${project.version}</env.IMAGE>
 			</properties>
 		</profile>
+		<profile>
+			<id>vault</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework.vault</groupId>
+					<artifactId>spring-vault-core</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
 	</profiles>
 
 </project>
