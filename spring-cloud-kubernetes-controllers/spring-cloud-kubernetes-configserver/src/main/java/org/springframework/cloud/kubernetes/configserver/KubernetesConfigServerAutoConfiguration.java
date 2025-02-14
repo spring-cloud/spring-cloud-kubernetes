@@ -73,7 +73,7 @@ public class KubernetesConfigServerAutoConfiguration {
 	@ConditionalOnBean(KubernetesEnvironmentRepository.class)
 	@ConditionalOnMissingBean
 	public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
-		ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
+			ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
 		return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepositoryProvider);
 	}
 
