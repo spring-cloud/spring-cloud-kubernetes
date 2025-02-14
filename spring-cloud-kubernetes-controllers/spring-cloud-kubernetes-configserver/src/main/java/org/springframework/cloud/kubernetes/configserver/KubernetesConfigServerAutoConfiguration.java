@@ -24,13 +24,13 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
-import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
@@ -60,20 +60,21 @@ import static org.springframework.cloud.kubernetes.configserver.KubernetesProper
 public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
-	@ConditionalOnMissingBean
-	public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
-			ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
-		return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepositoryProvider);
-	}
-
-	@Bean
 	@Profile("kubernetes")
 	@ConditionalOnMissingBean
-	public EnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
+	public KubernetesEnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
 			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesEnvironmentRepository(coreV1Api, kubernetesPropertySourceSuppliers,
 				kubernetesNamespaceProvider.getNamespace());
+	}
+
+	@Bean
+	@ConditionalOnBean(KubernetesEnvironmentRepository.class)
+	@ConditionalOnMissingBean
+	public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
+		ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
+		return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepositoryProvider);
 	}
 
 	@Bean
