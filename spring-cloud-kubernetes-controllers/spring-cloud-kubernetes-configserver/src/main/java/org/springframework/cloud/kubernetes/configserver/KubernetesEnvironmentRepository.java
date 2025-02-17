@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
@@ -36,7 +37,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesEnvironmentRepository implements EnvironmentRepository {
+public class KubernetesEnvironmentRepository implements EnvironmentRepository, Ordered {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesEnvironmentRepository.class);
 
@@ -46,11 +47,15 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 
 	private final String namespace;
 
+	private int order;
+
 	public KubernetesEnvironmentRepository(CoreV1Api coreApi,
-			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers, String namespace) {
+			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers, String namespace,
+			KubernetesConfigServerProperties properties) {
 		this.coreApi = coreApi;
 		this.kubernetesPropertySourceSuppliers = kubernetesPropertySourceSuppliers;
 		this.namespace = namespace;
+		this.order = properties.getOrder();
 	}
 
 	@Override
@@ -116,6 +121,15 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository {
 				}
 			});
 		});
+	}
+
+	@Override
+	public int getOrder() {
+		return this.order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
 	}
 
 }
