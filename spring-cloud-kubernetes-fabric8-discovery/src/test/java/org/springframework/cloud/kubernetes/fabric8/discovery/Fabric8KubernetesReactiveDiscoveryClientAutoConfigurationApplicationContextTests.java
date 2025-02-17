@@ -44,7 +44,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
 		applicationContextRunner
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).hasSingleBean(Fabric8KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -56,7 +56,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=true");
 		applicationContextRunner
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).hasSingleBean(Fabric8KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -78,7 +78,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=true");
 		applicationContextRunner
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).hasSingleBean(Fabric8KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -100,7 +100,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.reactive.enabled=true");
 		applicationContextRunner
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).hasSingleBean(Fabric8KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -125,7 +125,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false");
 		applicationContextRunner
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).hasSingleBean(Fabric8KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -137,7 +137,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).hasSingleBean(Fabric8KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -150,7 +150,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner
-			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).hasSingleBean(Fabric8KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);

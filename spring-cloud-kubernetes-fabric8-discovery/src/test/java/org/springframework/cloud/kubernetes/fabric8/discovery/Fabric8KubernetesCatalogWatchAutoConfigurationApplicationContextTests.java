@@ -132,7 +132,7 @@ class Fabric8KubernetesCatalogWatchAutoConfigurationApplicationContextTests {
 			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesCatalogWatchAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 					KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+					Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.withPropertyValues(properties);
 	}
 

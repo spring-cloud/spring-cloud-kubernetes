@@ -88,7 +88,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
@@ -120,7 +120,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -154,7 +154,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -190,7 +190,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceC", "serviceC", Map.of("color", "purple"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 2);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -225,7 +225,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceB", "serviceB", Map.of("color", "blue"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -262,7 +262,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceC", "serviceC", Map.of("color", "purple"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceB");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -304,7 +304,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceC", "serviceC", Map.of("color", "purple", "number", "1"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -339,7 +339,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceC", "serviceC", Map.of());
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
@@ -377,7 +377,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceC", "serviceC", Map.of("color", "purple"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
@@ -414,7 +414,7 @@ class Fabric8DiscoveryFilterTests {
 		service("namespaceC", "serviceC", Map.of("color", "purple", "number", "1"));
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties), null, "dummy-target");
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 		Assertions.assertEquals(result.size(), 1);
 		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
 		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");

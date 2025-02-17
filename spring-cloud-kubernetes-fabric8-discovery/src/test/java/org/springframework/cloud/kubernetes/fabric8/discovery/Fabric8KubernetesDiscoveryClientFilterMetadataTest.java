@@ -95,7 +95,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"),
 				Map.of(80, "http", 5555, ""));
@@ -115,7 +115,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -136,7 +136,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"),
 				Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
@@ -157,7 +157,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -178,7 +178,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -199,7 +199,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "test", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -220,7 +220,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "v1"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
@@ -241,7 +241,7 @@ class Fabric8KubernetesDiscoveryClientFilterMetadataTest {
 
 		Fabric8KubernetesDiscoveryClient client = new Fabric8KubernetesDiscoveryClient(CLIENT, properties,
 				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER,
-				new Fabric8DiscoveryClientPredicateAutoConfiguration().predicate(properties));
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(serviceId, "ns", Map.of("l1", "la1"),
 				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));

@@ -84,7 +84,7 @@ class Fabric8KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
 				KubernetesClientTestConfiguration.class, Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
 				KubernetesDiscoveryPropertiesAutoConfiguration.class,
-				Fabric8DiscoveryClientPredicateAutoConfiguration.class)
+				Fabric8DiscoveryClientSpelAutoConfiguration.class)
 			.web(WebApplicationType.NONE)
 			.properties(envList.toArray(new String[0]))
 			.run();

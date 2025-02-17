@@ -52,7 +52,7 @@ import org.springframework.core.log.LogAccessor;
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-		Fabric8DiscoveryClientPredicateAutoConfiguration.class })
+		Fabric8DiscoveryClientSpelAutoConfiguration.class })
 class Fabric8KubernetesDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(

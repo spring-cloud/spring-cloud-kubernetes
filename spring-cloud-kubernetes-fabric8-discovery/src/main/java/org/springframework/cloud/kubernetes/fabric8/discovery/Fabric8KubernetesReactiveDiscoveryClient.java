@@ -16,12 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.Objects;
+
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
-import org.springframework.util.Assert;
 
 /**
  * Kubernetes implementation of {@link ReactiveDiscoveryClient}. Currently relies on the
@@ -44,7 +45,7 @@ final class Fabric8KubernetesReactiveDiscoveryClient implements ReactiveDiscover
 
 	@Override
 	public Flux<ServiceInstance> getInstances(String serviceId) {
-		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
+		Objects.requireNonNull(serviceId, "serviceId must not be null");
 		return Flux.defer(() -> Flux.fromIterable(fabric8KubernetesDiscoveryClient.getInstances(serviceId)))
 			.subscribeOn(Schedulers.boundedElastic());
 	}

@@ -155,7 +155,7 @@ class Fabric8KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 					KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+					Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.withPropertyValues(properties);
 	}
 
@@ -164,7 +164,7 @@ class Fabric8KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 					KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					Fabric8DiscoveryClientPredicateAutoConfiguration.class))
+					Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.withClassLoader(new FilteredClassLoader(cls))
 			.withPropertyValues(properties);
 	}
