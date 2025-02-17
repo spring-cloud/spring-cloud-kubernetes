@@ -1,15 +1,15 @@
 spring:
   application:
-    name: poll-reload-mount
+    name: poll-reload
   config:
     import: "kubernetes:,configtree:/tmp/"
 
 management:
   endpoint:
     refresh:
-      enabled: true
+      access: unrestricted
     restart:
-      enabled: true
+      access: unrestricted
   endpoints:
     web:
       exposure:

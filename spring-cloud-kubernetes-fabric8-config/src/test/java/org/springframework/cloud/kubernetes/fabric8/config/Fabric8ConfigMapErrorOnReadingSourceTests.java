@@ -71,8 +71,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
+				true, name, namespace, false, true, false, RetryProperties.DEFAULT);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -106,7 +106,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		Source sourceOne = new Source(configMapNameOne, namespace, Map.of(), null, null, null);
 		Source sourceTwo = new Source(configMapNameTwo, namespace, Map.of(), null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
 				RetryProperties.DEFAULT);
 
@@ -140,7 +140,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		Source sourceOne = new Source(configMapNameOne, namespace, Map.of(), null, null, null);
 		Source sourceTwo = new Source(configMapNameTwo, namespace, Map.of(), null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
 				RetryProperties.DEFAULT);
 
@@ -172,7 +172,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 
 		Source configMapSource = new Source(null, namespace, labels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(configMapSource), labels, true, null, namespace, false, true, false, RetryProperties.DEFAULT);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
@@ -215,7 +215,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		Source sourceOne = new Source(null, namespace, configMapOneLabels, null, null, null);
 		Source sourceTwo = new Source(null, namespace, configMapTwoLabels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
 				false, RetryProperties.DEFAULT);
 
@@ -254,7 +254,7 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 		Source sourceOne = new Source(null, namespace, configMapOneLabels, null, null, null);
 		Source sourceTwo = new Source(null, namespace, configMapTwoLabels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
 				false, RetryProperties.DEFAULT);
 
