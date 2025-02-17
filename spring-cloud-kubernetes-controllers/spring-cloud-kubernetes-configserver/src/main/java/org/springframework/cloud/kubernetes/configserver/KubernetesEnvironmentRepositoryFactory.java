@@ -21,6 +21,8 @@ import org.springframework.cloud.config.server.environment.EnvironmentRepository
 
 /**
  * Factory class for creating instances of {@link KubernetesEnvironmentRepository}.
+ *
+ * @author Arjav Dongaonkar
  */
 public class KubernetesEnvironmentRepositoryFactory
 		implements EnvironmentRepositoryFactory<KubernetesEnvironmentRepository, KubernetesConfigServerProperties> {

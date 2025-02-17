@@ -25,6 +25,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author Arjav Dongaonkar
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = { KubernetesConfigServerApplication.class },
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.profiles.include=kubernetes",

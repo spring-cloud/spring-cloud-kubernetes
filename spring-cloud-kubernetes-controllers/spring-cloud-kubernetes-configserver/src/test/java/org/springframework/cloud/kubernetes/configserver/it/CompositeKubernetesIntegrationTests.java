@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.config.server.environment.NativeEnvironmentRepository;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -60,6 +62,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+/**
+ * @author Arjav Dongaonkar
+ */
 public class CompositeKubernetesIntegrationTests {
 
 	private static final List<KubernetesPropertySourceSupplier> KUBERNETES_PROPERTY_SOURCE_SUPPLIER = new ArrayList<>();
@@ -102,6 +107,11 @@ public class CompositeKubernetesIntegrationTests {
 		});
 	}
 
+	@AfterEach
+	public void after() {
+		new KubernetesClientConfigMapsCache().discardAll();
+	}
+
 	@Nested
 	@SpringBootTest(classes = { KubernetesConfigServerApplication.class },
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
@@ -110,7 +120,7 @@ public class CompositeKubernetesIntegrationTests {
 					"spring.cloud.kubernetes.secrets.enableApi=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	@ActiveProfiles({ "test", "composite", "kubernetes" })
-	class KubernetesConfigServerTest {
+	class KubernetesCompositeConfigServerTest {
 
 		@LocalServerPort
 		private int port;
@@ -149,7 +159,7 @@ public class CompositeKubernetesIntegrationTests {
 					"spring.cloud.kubernetes.secrets.enableApi=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	@ActiveProfiles({ "test", "composite", "kubernetes", "native" })
-	class KubernetesNativeConfigServerTest {
+	class KubernetesSecretsEnabledCompositeConfigServerTest {
 
 		@LocalServerPort
 		private int port;
@@ -161,7 +171,7 @@ public class CompositeKubernetesIntegrationTests {
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
-		public void testKubernetesAndNativeConfig() throws Exception {
+		public void contextLoads() throws Exception {
 			when(coreV1Api.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null),
 					eq(null), eq(null), eq(null), eq(null), eq(null), eq(null)))
 				.thenReturn(CONFIGMAP_DEFAULT_LIST);
@@ -201,7 +211,7 @@ public class CompositeKubernetesIntegrationTests {
 					"spring.cloud.kubernetes.secrets.enableApi=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	@ActiveProfiles({ "test", "composite", "kubernetes", "native" })
-	class KubernetesConfigMapDisabledNativeConfigServerTest {
+	class KubernetesConfigMapDisabledCompositeConfigServerTest {
 
 		@LocalServerPort
 		private int port;
@@ -213,7 +223,7 @@ public class CompositeKubernetesIntegrationTests {
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
-		public void testKubernetesAndNativeConfig() throws Exception {
+		public void contextLoads() throws Exception {
 			when(coreV1Api.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null),
 					eq(null), eq(null), eq(null), eq(null), eq(null), eq(null)))
 				.thenReturn(CONFIGMAP_DEFAULT_LIST);
@@ -250,7 +260,7 @@ public class CompositeKubernetesIntegrationTests {
 					"spring.cloud.config.server.composite[1].location=file:./native-config" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	@ActiveProfiles({ "test", "composite", "kubernetes", "native" })
-	class KubernetesSecretsDisabledNativeConfigServerTest {
+	class KubernetesSecretsDisabledCompositeConfigServerTest {
 
 		@LocalServerPort
 		private int port;
@@ -262,7 +272,7 @@ public class CompositeKubernetesIntegrationTests {
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
-		public void testKubernetesAndNativeConfig() throws Exception {
+		public void contextLoads() throws Exception {
 			when(coreV1Api.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null),
 					eq(null), eq(null), eq(null), eq(null), eq(null), eq(null)))
 				.thenReturn(CONFIGMAP_DEFAULT_LIST);
@@ -288,6 +298,57 @@ public class CompositeKubernetesIntegrationTests {
 			assertThat(environment.getPropertySources().get(1).getName()).contains("nativeProperties");
 
 			assertThat(environment.getPropertySources()).anyMatch(ps -> ps.getName().contains("native"));
+		}
+
+	}
+
+	@Nested
+	@SpringBootTest(classes = { KubernetesConfigServerApplication.class },
+			properties = { "spring.config.name:compositeconfigserver", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.client.namespace=default",
+					"spring.cloud.config.server.native.search-locations=file:./native-config",
+					"spring.cloud.config.server.native.order=1", "spring.cloud.kubernetes.configserver.order=2",
+					"spring.cloud.kubernetes.secrets.enableApi=true" },
+			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+	@ActiveProfiles({ "test", "native", "kubernetes" })
+	class NativeAndKubernetesConfigServerTest {
+
+		@LocalServerPort
+		private int port;
+
+		@MockBean
+		private CoreV1Api coreV1Api;
+
+		@SpyBean
+		private NativeEnvironmentRepository nativeEnvironmentRepository;
+
+		@Test
+		public void contextLoads() throws Exception {
+			when(coreV1Api.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null),
+					eq(null), eq(null), eq(null), eq(null), eq(null), eq(null)))
+				.thenReturn(CONFIGMAP_DEFAULT_LIST);
+			when(coreV1Api.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null),
+					eq(null), eq(null), eq(null), eq(null), eq(null), eq(null)))
+				.thenReturn(SECRET_DEFAULT_LIST);
+
+			Environment mockNativeEnvironment = new Environment("gateway", "default");
+			mockNativeEnvironment.add(new PropertySource("nativeProperties", Map.of("key1", "value1")));
+
+			when(nativeEnvironmentRepository.findOne(anyString(), anyString(), eq(null), anyBoolean()))
+				.thenReturn(mockNativeEnvironment);
+
+			ResponseEntity<Environment> response = new RestTemplate().exchange(
+					"http://localhost:" + this.port + "/gateway/default", HttpMethod.GET, null, Environment.class);
+
+			Environment environment = response.getBody();
+
+			assert environment != null;
+			assertThat(3).isEqualTo(environment.getPropertySources().size());
+			assertThat("nativeProperties").isEqualTo(environment.getPropertySources().get(0).getName());
+			assertThat(environment.getPropertySources().get(1).getName().contains("configmap.gateway.default.default")
+					&& !environment.getPropertySources().get(1).getName().contains("nativeProperties"))
+				.isTrue();
+			assertThat(environment.getPropertySources().get(2).getName()).contains("secret.gateway.default.default");
 		}
 
 	}
