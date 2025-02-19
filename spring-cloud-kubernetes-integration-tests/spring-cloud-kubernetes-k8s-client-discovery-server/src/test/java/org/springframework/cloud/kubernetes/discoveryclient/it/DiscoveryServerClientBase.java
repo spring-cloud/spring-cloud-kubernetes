@@ -18,10 +18,10 @@ package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.LinkedHashMap;
+import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -30,16 +30,14 @@ import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.Config;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
@@ -112,52 +110,41 @@ abstract class DiscoveryServerClientBase {
 				rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
 			}
 			else {
-				rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(),
-					null, null, null, null, null, null);
+				rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null,
+						null, null);
 			}
 		}
-		catch(Exception e) {
+		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 
 	}
 
-	protected static void testHeartBeat(K3sContainer container,
-										HeartbeatListener heartbeatListener, CapturedOutput output) {
+	protected static void testHeartBeat(HeartbeatListener heartbeatListener, CapturedOutput output) {
 
 		// 1. logs from discovery server
-		Commons.waitForLogStatement("using delay : 3000", container, DISCOVERY_SERVER_LABEL);
-		Commons.waitForLogStatement("received heartbeat event", container, DISCOVERY_SERVER_LABEL);
-		Commons.waitForLogStatement("state received :", container, DISCOVERY_SERVER_LABEL);
+		Commons.waitForLogStatement("using delay : 3000", K3S, DISCOVERY_SERVER_LABEL);
+		Commons.waitForLogStatement("received heartbeat event", K3S, DISCOVERY_SERVER_LABEL);
+		Commons.waitForLogStatement("state received :", K3S, DISCOVERY_SERVER_LABEL);
 
 		// 2. logs from discovery client
 		assertThat(output.getOut()).contains("using delay : 3000");
 		assertThat(output.getOut()).contains("state received : ");
+		assertThat(output.getOut()).contains("received heartbeat event in listener");
 
-//		// 3. heartbeat listener message
-//		WebClient.Builder builder = builder();
-//		WebClient client = builder.baseUrl("http://localhost:80/discoveryclient-it/state").build();
-//		String result = client.method(HttpMethod.GET)
-//			.retrieve()
-//			.bodyToMono(String.class)
-//			.retryWhen(retrySpec())
-//			.block();
-//
-//		Condition<LinkedHashMap<String, String>> wireMockService = new Condition<>(
-//			map -> map.entrySet().stream().anyMatch(en -> en.getValue().contains("service-wiremock-deployment")),
-//			"");
-//
-//		Condition<LinkedHashMap<String, String>> discoveryServerService = new Condition<>(map -> map.entrySet()
-//			.stream()
-//			.anyMatch(en -> en.getValue().contains("spring-cloud-kubernetes-k8s-client-discovery-server")), "");
-//
-//		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
-//			.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]")
-//			.areAtLeastOne(wireMockService);
-//
-//		Assertions.assertThat(BASIC_JSON_TESTER.from(result))
-//			.<LinkedHashMap<String, String>>extractingJsonPathArrayValue("$.[*]")
-//			.areAtLeastOne(discoveryServerService);
+		// 3. heartbeat listener message
+		List<EndpointNameAndNamespace> result = heartbeatListener.state.get();
+		Awaitility.await()
+			.atMost(Duration.ofSeconds(60))
+			.pollInterval(Duration.ofSeconds(1))
+			.until(() -> result.size() == 2);
+
+		List<String> namespaces = result.stream().map(EndpointNameAndNamespace::namespace).toList();
+		assertThat(namespaces).containsExactlyInAnyOrder(NAMESPACE_LEFT, NAMESPACE_RIGHT);
+
+		List<String> endpointNames = result.stream().map(EndpointNameAndNamespace::endpointName).toList();
+		assertThat(endpointNames.get(0)).contains("service-wiremock-deployment");
+		assertThat(endpointNames.get(1)).contains("service-wiremock-deployment");
 	}
 
 }

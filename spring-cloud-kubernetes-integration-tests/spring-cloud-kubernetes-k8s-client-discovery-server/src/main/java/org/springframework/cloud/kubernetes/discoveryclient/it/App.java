@@ -18,11 +18,13 @@ package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * @author wind57
  */
 @SpringBootApplication
+@EnableScheduling
 public class App {
 
 	public static void main(String[] args) {

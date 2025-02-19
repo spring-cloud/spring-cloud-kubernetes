@@ -40,7 +40,7 @@ class HeartbeatListener implements ApplicationListener<HeartbeatEvent> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void onApplicationEvent(HeartbeatEvent event) {
-		LOG.info("received heartbeat event");
+		LOG.info("received heartbeat event in listener");
 		List<EndpointNameAndNamespace> state = (List<EndpointNameAndNamespace>) event.getValue();
 		this.state.set(state);
 		LOG.info("state received : " + state);

@@ -23,21 +23,22 @@ import io.kubernetes.client.openapi.ApiClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.test.context.TestPropertySource;
-
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,9 +46,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @SpringBootTest(classes = { App.class, DiscoveryServerClientIT.TestConfig.class },
-	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(
-	properties = { "spring.main.cloud-platform=kubernetes",
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
 		"logging.level.org.springframework.cloud.kubernetes.discovery=debug",
 		"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=3000",
 		"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true" })
@@ -55,6 +55,9 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
+
+	@Autowired
+	private ReactiveDiscoveryClient reactiveDiscoveryClient;
 
 	@Autowired
 	private HeartbeatListener heartbeatListener;
@@ -93,21 +96,48 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 	 * </pre>
 	 */
 	@Test
-	void test(CapturedOutput output) {
+	void testBlocking(CapturedOutput output) {
+		List<String> services = reactiveDiscoveryClient.getServices().collectList().block();
+		assertThat(services).hasSize(1);
+		assertThat(services).contains("service-wiremock");
+
+		List<ServiceInstance> serviceInstances = reactiveDiscoveryClient.getInstances("service-wiremock")
+			.collectList()
+			.block();
+		List<DefaultKubernetesServiceInstance> defaultKubernetesServiceInstances = serviceInstances.stream()
+			.map(x -> (DefaultKubernetesServiceInstance) x)
+			.toList();
+		assertThat(defaultKubernetesServiceInstances).hasSize(2);
+
+		List<String> namespaces = defaultKubernetesServiceInstances.stream()
+			.map(DefaultKubernetesServiceInstance::getNamespace)
+			.toList();
+		assertThat(namespaces).containsExactlyInAnyOrder(NAMESPACE_LEFT, NAMESPACE_RIGHT);
+
+		testHeartBeat(heartbeatListener, output);
+	}
+
+	/**
+	 * <pre>
+	 *     - searching is enabled in two namespaces : left and right
+	 * </pre>
+	 */
+	@Test
+	void testReactive() {
 		List<String> services = discoveryClient.getServices();
 		assertThat(services).hasSize(1);
 		assertThat(services).contains("service-wiremock");
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("service-wiremock");
 		List<DefaultKubernetesServiceInstance> defaultKubernetesServiceInstances = serviceInstances.stream()
-				.map(x -> (DefaultKubernetesServiceInstance) x).toList();
+			.map(x -> (DefaultKubernetesServiceInstance) x)
+			.toList();
 		assertThat(defaultKubernetesServiceInstances).hasSize(2);
 
 		List<String> namespaces = defaultKubernetesServiceInstances.stream()
-			.map(DefaultKubernetesServiceInstance::getNamespace).toList();
+			.map(DefaultKubernetesServiceInstance::getNamespace)
+			.toList();
 		assertThat(namespaces).containsExactlyInAnyOrder(NAMESPACE_LEFT, NAMESPACE_RIGHT);
-
-		testHeartBeat(K3S, heartbeatListener, output);
 	}
 
 	@TestConfiguration
@@ -126,6 +156,5 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 		}
 
 	}
-
 
 }
