@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.discoveryclient.it;
+package org.springframework.cloud.kubernetes.discoveryclient;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
