@@ -148,7 +148,7 @@ final class TestAssertions {
 		assertThat(wiremockInstance.getInstanceId()).isNotNull();
 		assertThat(wiremockInstance.getHost()).isNotNull();
 		assertThat(wiremockInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP",
-			"port.http", "8080", "app", "service-wiremock"));
+				"port.http", "8080", "app", "service-wiremock"));
 
 	}
 

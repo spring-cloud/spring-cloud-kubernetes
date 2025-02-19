@@ -22,8 +22,11 @@ import java.util.Set;
 import io.kubernetes.client.openapi.ApiClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -51,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 		"logging.level.org.springframework.cloud.kubernetes.discovery=debug",
 		"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=3000",
 		"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true" })
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 
 	@Autowired
@@ -96,6 +100,7 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 	 * </pre>
 	 */
 	@Test
+	@Order(1)
 	void testBlocking(CapturedOutput output) {
 		List<String> services = reactiveDiscoveryClient.getServices().collectList().block();
 		assertThat(services).hasSize(1);
@@ -123,6 +128,7 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 	 * </pre>
 	 */
 	@Test
+	@Order(2)
 	void testReactive() {
 		List<String> services = discoveryClient.getServices();
 		assertThat(services).hasSize(1);
