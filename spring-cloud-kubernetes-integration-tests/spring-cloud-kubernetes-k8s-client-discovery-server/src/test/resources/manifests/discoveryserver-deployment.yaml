@@ -18,20 +18,28 @@ spec:
           imagePullPolicy: IfNotPresent
           readinessProbe:
             httpGet:
-              port: 8761
+              port: 32321
               path: /actuator/health/readiness
           livenessProbe:
             httpGet:
-              port: 8761
+              port: 32321
               path: /actuator/health/liveness
           env:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_DISCOVERYSERVER
               value: "DEBUG"
             - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_CATALOGSERVICESWATCHDELAY
               value: "3000"
+            - name: SPRING_CLOUD_KUBERNETES_HTTP_DISCOVERY_CATALOG_WATCHER_ENABLED
+              value: "TRUE"
             - name: MANAGEMENT_ENDPOINT_HEALTH_SHOWCOMPONENTS
               value: "ALWAYS"
             - name: MANAGEMENT_ENDPOINT_HEALTH_SHOWDETAILS
               value: "ALWAYS"
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_0
+              value: left
+            - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_NAMESPACES_1
+              value: right
+            - name: SERVER_PORT
+              value: "32321"
           ports:
-            - containerPort: 8761
+            - containerPort: 32321

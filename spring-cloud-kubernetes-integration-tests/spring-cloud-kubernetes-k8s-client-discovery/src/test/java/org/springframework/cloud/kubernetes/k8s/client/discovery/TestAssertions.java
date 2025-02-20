@@ -24,6 +24,7 @@ import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -126,6 +127,20 @@ final class TestAssertions {
 	static void assertPodMetadata(DiscoveryClient discoveryClient) {
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("service-wiremock");
+		assertThat(serviceInstances).hasSize(1);
+		DefaultKubernetesServiceInstance wiremockInstance = (DefaultKubernetesServiceInstance) serviceInstances.get(0);
+
+		assertThat(wiremockInstance.getServiceId()).isEqualTo("service-wiremock");
+		assertThat(wiremockInstance.getInstanceId()).isNotNull();
+		assertThat(wiremockInstance.getHost()).isNotNull();
+		assertThat(wiremockInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP",
+				"port.http", "8080", "app", "service-wiremock"));
+
+	}
+
+	static void assertPodMetadata(ReactiveDiscoveryClient discoveryClient) {
+
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("service-wiremock").collectList().block();
 		assertThat(serviceInstances).hasSize(1);
 		DefaultKubernetesServiceInstance wiremockInstance = (DefaultKubernetesServiceInstance) serviceInstances.get(0);
 
