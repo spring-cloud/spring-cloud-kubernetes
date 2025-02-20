@@ -169,7 +169,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", new KubernetesConfigServerProperties());
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("application", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(2);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -203,7 +203,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(SECRET_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", new KubernetesConfigServerProperties());
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(4);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -250,7 +250,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", new KubernetesConfigServerProperties());
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "dev", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(6);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -314,7 +314,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", new KubernetesConfigServerProperties());
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores-dev", "", "");
 		environment.getPropertySources()
 			.stream()
@@ -362,7 +362,7 @@ class KubernetesEnvironmentRepositoryTests {
 			return propertySources;
 		});
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi, suppliers,
-				"default", new KubernetesConfigServerProperties());
+				"default");
 		Environment environment = environmentRepository.findOne("storessingle", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(1);
 		assertThat(environment.getPropertySources().get(0).getName())
