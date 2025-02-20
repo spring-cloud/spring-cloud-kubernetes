@@ -47,7 +47,15 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 
 	private final String namespace;
 
-	private int order;
+	private int order = KubernetesConfigServerProperties.DEFAULT_ORDER;
+
+	@Deprecated
+	public KubernetesEnvironmentRepository(CoreV1Api coreApi,
+			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers, String namespace) {
+		this.coreApi = coreApi;
+		this.kubernetesPropertySourceSuppliers = kubernetesPropertySourceSuppliers;
+		this.namespace = namespace;
+	}
 
 	public KubernetesEnvironmentRepository(CoreV1Api coreApi,
 			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers, String namespace,

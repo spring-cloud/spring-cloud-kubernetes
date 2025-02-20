@@ -102,8 +102,7 @@ class KubernetesPropertySourceSupplierTests {
 			.configMapPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				Collections.singletonList(kubernetesPropertySourceSupplier), "default",
-				new KubernetesConfigServerProperties());
+				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
 
 		Environment environmentGateway = environmentRepository.findOne("gateway", "", "");
 		assertThat(environmentGateway.getPropertySources().size()).isEqualTo(1);
@@ -124,8 +123,7 @@ class KubernetesPropertySourceSupplierTests {
 			.configMapPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				Collections.singletonList(kubernetesPropertySourceSupplier), "default",
-				new KubernetesConfigServerProperties());
+				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
 
 		Environment environmentGateway = environmentRepository.findOne("gateway", "", "");
 		assertThat(environmentGateway.getPropertySources().size()).isEqualTo(0);
@@ -146,8 +144,7 @@ class KubernetesPropertySourceSupplierTests {
 			.secretsPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				Collections.singletonList(kubernetesPropertySourceSupplier), "default",
-				new KubernetesConfigServerProperties());
+				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
 
 		Environment environmentGateway = environmentRepository.findOne("gateway", "", "");
 		assertThat(environmentGateway.getPropertySources().size()).isEqualTo(1);
@@ -168,8 +165,7 @@ class KubernetesPropertySourceSupplierTests {
 			.secretsPropertySourceSupplier(kubernetesConfigServerProperties);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				Collections.singletonList(kubernetesPropertySourceSupplier), "default",
-				new KubernetesConfigServerProperties());
+				Collections.singletonList(kubernetesPropertySourceSupplier), "default");
 
 		Environment environmentGateway = environmentRepository.findOne("gateway", "", "");
 		assertThat(environmentGateway.getPropertySources().size()).isEqualTo(0);
