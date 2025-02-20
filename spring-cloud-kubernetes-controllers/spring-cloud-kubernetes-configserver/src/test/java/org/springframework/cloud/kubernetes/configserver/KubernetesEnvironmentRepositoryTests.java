@@ -197,24 +197,24 @@ class KubernetesEnvironmentRepositoryTests {
 		when(properties.getOrder()).thenReturn(0);
 
 		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-			eq(null), eq(null), eq(null), eq(null), eq(null)))
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEFAULT_LIST);
 		when(coreApi.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-			eq(null), eq(null), eq(null), eq(null), eq(null)))
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(SECRET_LIST);
 		when(coreApi.listNamespacedConfigMap(eq("dev"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
-			eq(null), eq(null), eq(null), eq(null), eq(null)))
+				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEV_LIST);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-			KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", properties);
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", properties);
 
 		Environment environment = environmentRepository.findOne("application", "", "");
 
 		assertThat(environment.getPropertySources().size()).isEqualTo(2);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
-				|| propertySource.getName().equals("secret.application.default"))
+					|| propertySource.getName().equals("secret.application.default"))
 				.isTrue();
 			if (propertySource.getName().equals("configmap.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(3);
