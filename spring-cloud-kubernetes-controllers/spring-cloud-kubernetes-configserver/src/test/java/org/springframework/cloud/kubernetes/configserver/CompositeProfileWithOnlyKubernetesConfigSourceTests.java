@@ -25,20 +25,25 @@ import org.springframework.context.ConfigurableApplicationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Ryan Baxter
+ * @author Arjav Dongaonkar
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = { "spring.profiles.include=kubernetes,kubernetesdisabled" },
-		classes = { KubernetesConfigServerApplication.class, MockConfig.class })
-class ConfigServerAutoConfigurationKubernetesDisabledTests {
+		classes = { KubernetesConfigServerApplication.class },
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.profiles.include=kubernetes",
+				"spring.cloud.kubernetes.client.namespace=default", "spring.profiles.active=composite",
+				"spring.cloud.config.server.composite[0].type=kubernetes",
+				"spring.cloud.config.server.composite[0].config-map-namespace=default",
+				"spring.cloud.config.server.composite[0].secrets-namespace=default" })
+class CompositeProfileWithOnlyKubernetesConfigSourceTests {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
 	void runTest() {
-		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(0);
-		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepositoryFactory.class)).hasSize(0);
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(2);
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepositoryFactory.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).isNotEmpty();
 	}
 
 }
