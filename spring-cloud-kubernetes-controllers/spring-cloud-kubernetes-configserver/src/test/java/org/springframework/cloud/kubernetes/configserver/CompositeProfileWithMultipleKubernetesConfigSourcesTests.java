@@ -43,12 +43,9 @@ class CompositeProfileWithMultipleKubernetesConfigSourcesTests {
 	private ConfigurableApplicationContext context;
 
 	@Test
-	void kubernetesEnvironmentRepositoriesAreLoaded() {
+	void runTest() {
 		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(3);
-	}
-
-	@Test
-	void kubernetesPropertySourceSuppliersAreLoaded() {
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepositoryFactory.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).isNotEmpty();
 	}
 

@@ -21,7 +21,6 @@ import java.util.List;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -74,8 +73,8 @@ public class KubernetesConfigServerAutoConfiguration {
 	@ConditionalOnBean(KubernetesEnvironmentRepository.class)
 	@ConditionalOnMissingBean
 	public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
-			ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
-		return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepositoryProvider);
+			KubernetesEnvironmentRepository kubernetesEnvironmentRepository) {
+		return new KubernetesEnvironmentRepositoryFactory(kubernetesEnvironmentRepository);
 	}
 
 	@Bean

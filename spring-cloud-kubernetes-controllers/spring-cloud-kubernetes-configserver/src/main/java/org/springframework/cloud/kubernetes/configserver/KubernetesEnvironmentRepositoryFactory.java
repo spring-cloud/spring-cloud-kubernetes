@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.config.server.environment.EnvironmentRepositoryFactory;
 
 /**
@@ -27,16 +26,15 @@ import org.springframework.cloud.config.server.environment.EnvironmentRepository
 public class KubernetesEnvironmentRepositoryFactory
 		implements EnvironmentRepositoryFactory<KubernetesEnvironmentRepository, KubernetesConfigServerProperties> {
 
-	private final ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider;
+	private final KubernetesEnvironmentRepository kubernetesEnvironmentRepository;
 
-	public KubernetesEnvironmentRepositoryFactory(
-			ObjectProvider<KubernetesEnvironmentRepository> kubernetesEnvironmentRepositoryProvider) {
-		this.kubernetesEnvironmentRepositoryProvider = kubernetesEnvironmentRepositoryProvider;
+	public KubernetesEnvironmentRepositoryFactory(KubernetesEnvironmentRepository kubernetesEnvironmentRepository) {
+		this.kubernetesEnvironmentRepository = kubernetesEnvironmentRepository;
 	}
 
 	@Override
 	public KubernetesEnvironmentRepository build(KubernetesConfigServerProperties environmentProperties) {
-		return kubernetesEnvironmentRepositoryProvider.getIfAvailable();
+		return kubernetesEnvironmentRepository;
 	}
 
 }

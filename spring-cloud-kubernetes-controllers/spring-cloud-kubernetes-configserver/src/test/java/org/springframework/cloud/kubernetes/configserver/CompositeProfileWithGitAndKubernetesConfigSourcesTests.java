@@ -43,17 +43,10 @@ class CompositeProfileWithGitAndKubernetesConfigSourcesTests {
 	private ConfigurableApplicationContext context;
 
 	@Test
-	void kubernetesEnvironmentRepositoryIsLoaded() {
+	void runTest() {
 		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(2);
-	}
-
-	@Test
-	void kubernetesPropertySourceSuppliersAreLoaded() {
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepositoryFactory.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).isNotEmpty();
-	}
-
-	@Test
-	void gitEnvironmentRepositoryIsLoaded() {
 		assertThat(context.getBeanNamesForType(JGitEnvironmentRepository.class)).hasSize(1);
 	}
 
