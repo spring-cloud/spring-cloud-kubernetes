@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: spring-cloud-kubernetes-client-configuration-watcher-configmap-app-b
+  cloud:
+    bus:
+      refresh:
+        enabled: false
+      enabled: true
+      destination: app
+    stream:
+      default-binder: kafka
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+server:
+  port: 8081
