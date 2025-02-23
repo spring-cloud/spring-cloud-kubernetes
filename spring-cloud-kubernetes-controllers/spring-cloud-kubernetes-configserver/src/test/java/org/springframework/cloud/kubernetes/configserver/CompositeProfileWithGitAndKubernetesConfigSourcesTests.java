@@ -20,27 +20,34 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.config.server.environment.JGitEnvironmentRepository;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Ryan Baxter
+ * @author Arjav Dongaonkar
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = { KubernetesConfigServerApplication.class },
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.profiles.include=kubernetes",
-				"spring.cloud.kubernetes.client.namespace=default", "spring.cloud.kubernetes.config.enableApi=false" })
-class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedConfigApiDisabledTests {
+				"spring.cloud.kubernetes.client.namespace=default", "spring.profiles.active=composite",
+				"spring.cloud.config.server.composite[0].type=git",
+				"spring.cloud.config.server.composite[0].uri=https://github.com/spring-cloud-samples/config-repo",
+				"spring.cloud.config.server.composite[1].type=kubernetes",
+				"spring.cloud.config.server.composite[1].config-map-namespace=default",
+				"spring.cloud.config.server.composite[1].secrets-namespace=default" })
+class CompositeProfileWithGitAndKubernetesConfigSourcesTests {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
 	@Test
 	void runTest() {
-		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(0);
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(2);
 		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepositoryFactory.class)).hasSize(1);
+		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).isNotEmpty();
+		assertThat(context.getBeanNamesForType(JGitEnvironmentRepository.class)).hasSize(1);
 	}
 
 }
