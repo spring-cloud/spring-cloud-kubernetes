@@ -267,14 +267,11 @@ public final class Util {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		V1Service service = (V1Service) yaml("kafka/kafka-service.yaml");
-		V1ConfigMap configMap = (V1ConfigMap) yaml("kafka/kafka-configmap-startup-script.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, configMap, null);
 			createAndWait(namespace, "kafka", deployment, service, null, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait(namespace, configMap, null);
 			deleteAndWait(namespace, deployment, service, null);
 		}
 	}
