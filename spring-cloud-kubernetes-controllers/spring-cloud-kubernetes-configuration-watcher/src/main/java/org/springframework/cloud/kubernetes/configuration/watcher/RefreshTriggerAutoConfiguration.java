@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.AMQP;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
+import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.NOT_AMQP_NOT_KAFKA;
 
 /**
  * @author wind57
@@ -47,6 +48,7 @@ class RefreshTriggerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@Profile({ NOT_AMQP_NOT_KAFKA })
 	HttpRefreshTrigger httpRefreshTrigger(KubernetesInformerReactiveDiscoveryClient client,
 			ConfigurationWatcherConfigurationProperties properties, WebClient webClient) {
 		return new HttpRefreshTrigger(client, properties, webClient);
