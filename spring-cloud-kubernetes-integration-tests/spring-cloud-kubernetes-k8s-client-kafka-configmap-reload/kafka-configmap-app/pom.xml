@@ -9,7 +9,7 @@
 		<relativePath>../../spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 
 	<artifactId>kafka-configmap-app</artifactId>
 

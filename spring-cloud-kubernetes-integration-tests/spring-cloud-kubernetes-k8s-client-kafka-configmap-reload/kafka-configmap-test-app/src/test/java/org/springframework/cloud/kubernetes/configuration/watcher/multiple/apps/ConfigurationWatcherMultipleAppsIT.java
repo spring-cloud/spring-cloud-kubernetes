@@ -52,7 +52,7 @@ class ConfigurationWatcherMultipleAppsIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
-	private static final String CONFIG_MAP_NAME = "multiple-apps";
+	private static final String CONFIG_MAP_NAME = "apps";
 
 	private static final String NAMESPACE = "default";
 
