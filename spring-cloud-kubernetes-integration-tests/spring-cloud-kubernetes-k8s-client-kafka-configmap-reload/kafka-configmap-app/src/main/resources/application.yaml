@@ -1,6 +1,6 @@
 spring:
   application:
-    name: spring-cloud-kubernetes-client-configuration-watcher-configmap-app-b
+    name: app
   cloud:
     bus:
       refresh:

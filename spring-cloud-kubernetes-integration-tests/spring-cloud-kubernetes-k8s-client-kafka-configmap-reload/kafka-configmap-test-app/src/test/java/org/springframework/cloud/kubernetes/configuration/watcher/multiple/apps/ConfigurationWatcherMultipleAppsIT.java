@@ -91,6 +91,18 @@ class ConfigurationWatcherMultipleAppsIT {
 		configWatcher(Phase.DELETE);
 	}
 
+	/**
+	 * <pre>
+	 *     - I've enabled "Enable host networking" on docker for mac settings
+	 *     - docker run -p 9092:9092 confluentinc/confluent-local:7.9.0
+	 *     - docker run --network=host -e 'KAFKA_BROKERS=localhost:9092' redpandadata/console:v2.8.2
+	 *     - run 'ConfigurationWatcherApplication' with :
+	 *     		SPRING_CLOUD_KUBERNETES_CLIENT_NAMESPACE=default
+	 *     		SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY=1
+	 *     		SPRING_MAIN_CLOUDPLATFORM=kubernetes
+	 *     		SPRING_PROFILES_ACTIVE=bus-kafka
+	 * </pre>
+	 */
 	@Test
 	void testRefresh() {
 
