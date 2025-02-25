@@ -22,6 +22,7 @@ import java.util.Objects;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -101,6 +102,7 @@ class ConfigurationWatcherMultipleAppsIT {
 	 *     		SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY=1
 	 *     		SPRING_MAIN_CLOUDPLATFORM=kubernetes
 	 *     		SPRING_PROFILES_ACTIVE=bus-kafka
+	 *     		SPRING_CLOUD_BUS_DESTINATION=app-bus-destination
 	 * </pre>
 	 */
 	@Test
@@ -137,12 +139,13 @@ class ConfigurationWatcherMultipleAppsIT {
 	private void app(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("app/app-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("app/app-service.yaml");
+		V1Ingress ingress = (V1Ingress) util.yaml("ingress/ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
+			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
 		}
 	}
 
