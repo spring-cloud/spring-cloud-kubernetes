@@ -445,7 +445,7 @@ class KubernetesInformerDiscoveryClientAutoConfigurationApplicationContextTests 
 			.withPropertyValues(properties);
 	}
 
-	@Configuration( proxyBeanMethods = false )
+	@Configuration(proxyBeanMethods = false)
 	static class ApiClientConfig {
 
 		@Bean
