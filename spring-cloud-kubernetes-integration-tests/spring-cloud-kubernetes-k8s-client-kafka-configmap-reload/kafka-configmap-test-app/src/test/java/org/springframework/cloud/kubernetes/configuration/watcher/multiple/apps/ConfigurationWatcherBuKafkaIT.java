@@ -47,7 +47,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author wind57
  */
-class ConfigurationWatcherMultipleAppsIT {
+class ConfigurationWatcherBuKafkaIT {
 
 	private static final String CONFIG_WATCHER_APP_IMAGE = "kafka-configmap-app";
 
@@ -94,6 +94,9 @@ class ConfigurationWatcherMultipleAppsIT {
 
 	/**
 	 * <pre>
+	 *
+	 *     To run locally and debug.
+	 *
 	 *     - I've enabled "Enable host networking" on docker for mac settings
 	 *     - docker run -p 9092:9092 confluentinc/confluent-local:7.9.0
 	 *     - docker run --network=host -e 'KAFKA_BROKERS=localhost:9092' redpandadata/console:v2.8.2
@@ -103,6 +106,37 @@ class ConfigurationWatcherMultipleAppsIT {
 	 *     		SPRING_MAIN_CLOUDPLATFORM=kubernetes
 	 *     		SPRING_PROFILES_ACTIVE=bus-kafka
 	 *     		SPRING_CLOUD_BUS_DESTINATION=app-bus-destination
+	 *
+	 *
+	 *     How does this test work:
+	 *
+	 *     - 'spring.cloud.kubernetes.configmap.apps = app' will tell configuration watcher
+	 *       to find a service called 'app'.
+	 *       If such a service is found, we will call : BusRefreshTrigger::triggerRefresh
+	 *
+	 *     - This, in turn, will publish a RefreshRemoteApplicationEvent to a randomly named topic.
+	 *       In this test case in kafka such a message will be present
+	 *
+	 *       {
+	 *     		"type": "RefreshRemoteApplicationEvent",
+	 *     		"timestamp": 1741365164981,
+	 *     		"originService": "spring-cloud-kubernetes-configuration-watcher:bus-kafka:8888:24d2ff91d0af65bb17b551465573db4c",
+	 *     		"destinationService": "app:**",
+	 *     		"id": "309dcdc5-d876-4213-bc84-198d47d2988a"
+	 * 		}
+	 *
+	 * 	   - our app under test has such a configuration:
+	 *
+	 *		spring:
+	 *   	  application:
+	 *     		name: non-app
+	 *   	  cloud:
+	 *   	    bus:
+	 *      	 id: app
+	 *
+	 *       which means we "listen" on the same topic, and we are the 'destinationService'.
+	 *
+	 *
 	 * </pre>
 	 */
 	@Test
