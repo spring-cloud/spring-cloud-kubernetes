@@ -43,13 +43,6 @@
 							<goal>build-image-no-fork</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>repackage</id>
-						<phase>package</phase>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
 				</executions>
 			</plugin>
 
