@@ -113,7 +113,7 @@
         <module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</module>
 
 		<!-- config watcher reload, using rabbitmq and secret -->
-        <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload-multiple-apps</module>
+        <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload</module>
 
 	</modules>
 </project>
