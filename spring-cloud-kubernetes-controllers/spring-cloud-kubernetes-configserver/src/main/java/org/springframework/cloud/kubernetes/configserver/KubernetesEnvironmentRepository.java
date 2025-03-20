@@ -95,9 +95,10 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 				StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(
 						createPropertySources(application));
 				springEnv.setActiveProfiles(activeProfile);
-				if (!"application".equalsIgnoreCase(application)) {
-					addApplicationConfiguration(environment, springEnv, application);
-				}
+				addApplicationConfiguration(environment, springEnv, application);
+				StandardEnvironment applicationProfile = new KubernetesConfigServerEnvironment(
+						createPropertySources("application-" + activeProfile));
+				addApplicationConfiguration(environment, applicationProfile, "application-" + activeProfile);
 			}
 			catch (Exception e) {
 				LOG.warn(e);

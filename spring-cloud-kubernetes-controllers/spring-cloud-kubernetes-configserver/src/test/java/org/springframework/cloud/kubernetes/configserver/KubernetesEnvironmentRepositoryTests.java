@@ -16,22 +16,18 @@
 
 package org.springframework.cloud.kubernetes.configserver;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
-import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
-import io.kubernetes.client.openapi.models.V1SecretBuilder;
-import io.kubernetes.client.openapi.models.V1SecretList;
-import io.kubernetes.client.openapi.models.V1SecretListBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
@@ -44,10 +40,14 @@ import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalized
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.core.env.MapPropertySource;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
+import io.kubernetes.client.openapi.models.V1SecretBuilder;
+import io.kubernetes.client.openapi.models.V1SecretList;
+import io.kubernetes.client.openapi.models.V1SecretListBuilder;
 
 /**
  * @author Ryan Baxter
@@ -57,6 +57,8 @@ class KubernetesEnvironmentRepositoryTests {
 	private static final List<KubernetesPropertySourceSupplier> KUBERNETES_PROPERTY_SOURCE_SUPPLIER = new ArrayList<>();
 
 	private static final String VALUE = "dummy:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n";
+
+	private static final String VALUE2 = "dummy2:\n  property:\n    string2: \"a\"\n    int2: 1\n    bool2: true\n";
 
 	private static final String DEFAULT_NAMESPACE = "default";
 
@@ -76,6 +78,14 @@ class KubernetesEnvironmentRepositoryTests {
 		.addItemsItem(new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("application").withNamespace(DEFAULT_NAMESPACE).build())
 			.addToData(Constants.APPLICATION_YAML, VALUE)
+			.build())
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("application-dev").withNamespace(DEFAULT_NAMESPACE).build())
+			.addToData(Constants.APPLICATION_YAML, VALUE2)
+			.build())
+		.addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("application-prod").withNamespace(DEFAULT_NAMESPACE).build())
+			.addToData(Constants.APPLICATION_YAML, VALUE2)
 			.build())
 		.addItemsItem(new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace(DEFAULT_NAMESPACE).build())
@@ -294,9 +304,10 @@ class KubernetesEnvironmentRepositoryTests {
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
 				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
 		Environment environment = environmentRepository.findOne("stores", "dev", "");
-		assertThat(environment.getPropertySources().size()).isEqualTo(6);
+		assertThat(environment.getPropertySources().size()).isEqualTo(7);
 		environment.getPropertySources().forEach(propertySource -> {
 			assertThat(propertySource.getName().equals("configmap.application.default")
+					|| propertySource.getName().equals("configmap.application-dev.default")
 					|| propertySource.getName().equals("secret.application.default")
 					|| propertySource.getName().equals("configmap.stores.stores-dev.default")
 					|| propertySource.getName().equals("secret.stores.default")
@@ -308,6 +319,12 @@ class KubernetesEnvironmentRepositoryTests {
 				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
 				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
 				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("a");
+			}
+			else if (propertySource.getName().equals("configmap.application-dev.default")) {
+				assertThat(propertySource.getSource().size()).isEqualTo(3);
+				assertThat(propertySource.getSource().get("dummy2.property.int2")).isEqualTo(1);
+				assertThat(propertySource.getSource().get("dummy2.property.bool2")).isEqualTo(true);
+				assertThat(propertySource.getSource().get("dummy2.property.string2")).isEqualTo("a");
 			}
 			else if (propertySource.getName().equals("secret.application.default")) {
 				assertThat(propertySource.getSource().size()).isEqualTo(2);
