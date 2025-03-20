@@ -401,14 +401,6 @@ final class K8sClientConfigMapReloadITUtil {
 			}
 						""";
 
-	static void patchOne(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, BODY_ONE, POD_LABELS);
-	}
-
-	static void patchTwo(String deploymentName, String namespace, String imageName) {
-		patchWithReplace(imageName, deploymentName, namespace, BODY_TWO, POD_LABELS);
-	}
-
 	static void patchThree(String deploymentName, String namespace, String imageName) {
 		patchWithReplace(imageName, deploymentName, namespace, BODY_THREE, POD_LABELS);
 	}
