@@ -5,8 +5,8 @@ spring:
     kubernetes:
       reload:
         enabled: true
-        monitoring-config-maps: true
         strategy: shutdown
         mode: polling
         period: 5000
+        monitoring-secrets: true
 

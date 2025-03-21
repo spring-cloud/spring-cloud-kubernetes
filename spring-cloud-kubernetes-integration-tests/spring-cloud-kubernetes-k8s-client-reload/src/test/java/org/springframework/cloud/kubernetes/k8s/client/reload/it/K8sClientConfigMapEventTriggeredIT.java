@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.k8s.client.reload.it.configmap;
+package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.time.Duration;
 import java.util.Map;

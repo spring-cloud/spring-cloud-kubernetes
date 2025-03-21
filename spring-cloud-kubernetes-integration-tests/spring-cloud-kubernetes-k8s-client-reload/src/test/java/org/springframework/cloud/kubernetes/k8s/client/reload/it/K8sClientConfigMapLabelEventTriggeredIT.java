@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.k8s.client.reload.it.configmap;
+package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.time.Duration;
 import java.util.Map;
@@ -139,10 +139,14 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 		// then deploy a new version of right-configmap-with-label
 		// but only add a label, this does not trigger a refresh
 		V1ConfigMap rightWithLabelConfigMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT).name("right-configmap-with-label")
-				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true",
-					"custom.label", "spring-k8s")))
+			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT)
+				.name("right-configmap-with-label")
+				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true", "custom.label",
+						"spring-k8s")))
+			.withData(Map.of("right.with.label.value", "right-with-label-initial"))
 			.build();
+
+		replaceConfigMap(coreV1Api, rightWithLabelConfigMap);
 
 		await().atMost(Duration.ofSeconds(60))
 			.pollDelay(Duration.ofSeconds(1))
@@ -150,12 +154,13 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		await().atMost(Duration.ofSeconds(60))
 			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> rightWithLabelsProperties.getValue().equals("right-with-label-after-change"));
+			.until(() -> rightWithLabelsProperties.getValue().equals("right-with-label-initial"));
 
 		// then deploy a new version of right-configmap-with-label
 		// that changes data also
 		V1ConfigMap rightWithLabelConfigMapAfterChange = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT).name("right-configmap-with-label")
+			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT)
+				.name("right-configmap-with-label")
 				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true")))
 			.withData(Map.of("right.with.label.value", "right-with-label-after-change"))
 			.build();
@@ -164,7 +169,8 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		await().atMost(Duration.ofSeconds(60))
 			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("ConfigMap right-configmap-with-label was updated in namespace right"));
+			.until(() -> output.getOut()
+				.contains("ConfigMap right-configmap-with-label was updated in namespace right"));
 
 		await().atMost(Duration.ofSeconds(60))
 			.pollInterval(Duration.ofSeconds(1))

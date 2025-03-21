@@ -1,6 +1,6 @@
 spring:
   application:
-    name: poll-reload-mount
+    name: poll-reload
   cloud:
     kubernetes:
       reload:
