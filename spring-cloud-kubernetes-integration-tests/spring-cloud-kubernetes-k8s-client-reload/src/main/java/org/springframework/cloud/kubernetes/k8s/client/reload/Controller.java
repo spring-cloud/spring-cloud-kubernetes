@@ -41,7 +41,7 @@ public class Controller {
 
 	@GetMapping("/secret")
 	public String secret() {
-		return configMapProperties.getKey();
+		return secretsProperties.getKey();
 	}
 
 }

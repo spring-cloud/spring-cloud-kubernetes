@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author wind57
  */
-@ConfigurationProperties("from.properties")
+@ConfigurationProperties("from.properties.secret")
 public class SecretsProperties {
 
 	private String key;

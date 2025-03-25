@@ -44,4 +44,4 @@ spec:
         - name: "config-map-volume"
           configMap:
             defaultMode: 420
-            name: "poll-reload"
+            name: "configmap-reload"

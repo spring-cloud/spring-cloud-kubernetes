@@ -1,6 +1,6 @@
 spring:
   cloud:
     kubernetes:
-      config:
+      secrets:
         paths:
           - /tmp/application.properties

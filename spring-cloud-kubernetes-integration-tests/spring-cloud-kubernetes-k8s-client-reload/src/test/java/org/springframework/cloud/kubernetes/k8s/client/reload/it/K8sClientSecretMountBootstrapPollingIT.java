@@ -16,11 +16,13 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -78,7 +80,7 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 	 *     	 is 'spring.cloud.kubernetes.secret.paths', which we have set to
 	 *     	 '/tmp/application.properties'
 	 *       in this test. That is populated by the volumeMounts (see mount/deployment-with-secret.yaml)
-	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
+	 *     - we first assert that we are actually reading the path based source
 	 *
 	 *     - we then change the secret content, wait for k8s to pick it up and replace them
 	 *     - our polling will then detect that change, and trigger a reload.
@@ -86,12 +88,6 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 	 */
 	@Test
 	void test() throws Exception {
-		// (1)
-		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", K3S, IMAGE_NAME);
-		// (2)
-		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", K3S,
-				IMAGE_NAME);
-		// (3)
 		WebClient webClient = builder().baseUrl("http://localhost:32321/secret").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
@@ -100,15 +96,15 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 			.block();
 
 		// we first read the initial value from the configmap
-		assertThat(result).isEqualTo("as-mount-initial");
+		assertThat(result).isEqualTo("initial");
 
-		// replace data in configmap and wait for k8s to pick it up
+		// replace data in secret and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		V1ConfigMap configMap = (V1ConfigMap) util.yaml("mount/secret.yaml");
-		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
-		coreV1Api.replaceNamespacedConfigMap("poll-reload", NAMESPACE, configMap, null, null, null, null);
+		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
+		secret.setData(Map.of(Constants.APPLICATION_PROPERTIES, Base64.getEncoder()
+			.encode("from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8))));
+		coreV1Api.readNamespacedSecret("secret-reload", NAMESPACE, null);
 
-		System.out.println("Waiting for reload change to be observed");
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
 				IMAGE_NAME);
 

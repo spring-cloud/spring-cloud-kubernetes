@@ -105,20 +105,20 @@ class K8sClientConfigMapMountPollingIT extends K8sClientReloadBase {
 		// replace data in configmap and wait for k8s to pick it up
 		// our polling will detect that and restart the app
 		V1ConfigMap configMap = (V1ConfigMap) util.yaml("mount/configmap.yaml");
-		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
-		coreV1Api.replaceNamespacedConfigMap("poll-reload", NAMESPACE, configMap, null, null, null, null);
+		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.configmap.key=as-mount-changed"));
+		coreV1Api.replaceNamespacedConfigMap("configmap-reload", NAMESPACE, configMap, null, null, null, null);
 
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
 				IMAGE_NAME);
 
-		await().atMost(Duration.ofSeconds(120))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> webClient.method(HttpMethod.GET)
+		await().atMost(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+			String local = webClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(String.class)
 				.retryWhen(retrySpec())
-				.block()
-				.equals("as-mount-changed"));
+				.block();
+			return "as-mount-changed".equals(local);
+		});
 	}
 
 }
