@@ -116,9 +116,9 @@ abstract class K8sClientReloadBase {
 
 	protected static void manifestsSecret(Phase phase, Util util, String namespace, String imageName) {
 
+		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
 		V1Deployment deployment = (V1Deployment) util.yaml("mount/deployment-with-secret.yaml");
 		V1Service service = (V1Service) util.yaml("mount/service-with-secret.yaml");
-		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(namespace, null, secret);

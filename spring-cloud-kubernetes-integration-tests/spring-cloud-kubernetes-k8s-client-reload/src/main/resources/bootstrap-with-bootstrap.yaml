@@ -4,3 +4,7 @@ spring:
       secrets:
         paths:
           - /tmp/application.properties
+        enabled: true
+
+      config:
+        enabled: false

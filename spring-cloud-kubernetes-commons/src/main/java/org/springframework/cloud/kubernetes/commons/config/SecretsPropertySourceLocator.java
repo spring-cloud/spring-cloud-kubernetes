@@ -21,13 +21,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -103,6 +104,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			}
 
 			cache.discardAll();
+			System.out.println("composite : " + Arrays.toString(composite.getPropertyNames()));
 			return composite;
 		}
 		return null;
@@ -141,7 +143,8 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				LOG.warn("Error walking properties files", e);
 				return null;
 			}
-		}).filter(Objects::nonNull)
+		})
+			.filter(Objects::nonNull)
 			.filter(Files::isRegularFile)
 			.collect(new SecretsPropertySourceCollector())
 			.forEach(composite::addPropertySource);
@@ -192,8 +195,9 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			try {
 				String content = new String(Files.readAllBytes(filePath)).trim();
+				System.out.println("content is : " + content);
 				String sourceName = fileName.toLowerCase(Locale.ROOT);
-				SourceData sourceData = new SourceData(sourceName, Collections.singletonMap(fileName, content));
+				SourceData sourceData = new SourceData(sourceName, Map.of(fileName, content));
 				return new SecretsPropertySource(sourceData);
 			}
 			catch (IOException e) {

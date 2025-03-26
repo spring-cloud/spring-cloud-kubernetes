@@ -27,9 +27,9 @@ public class Controller {
 
 	private final ConfigMapProperties configMapProperties;
 
-	private final SecretsProperties secretsProperties;
+	private final SecretProperties secretsProperties;
 
-	public Controller(ConfigMapProperties configMapProperties, SecretsProperties secretsProperties) {
+	public Controller(ConfigMapProperties configMapProperties, SecretProperties secretsProperties) {
 		this.configMapProperties = configMapProperties;
 		this.secretsProperties = secretsProperties;
 	}

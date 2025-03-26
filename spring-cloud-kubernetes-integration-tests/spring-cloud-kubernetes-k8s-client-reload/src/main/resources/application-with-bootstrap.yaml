@@ -9,4 +9,3 @@ spring:
         mode: polling
         period: 5000
         monitoring-secrets: true
-
