@@ -21,9 +21,9 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -91,7 +91,8 @@ abstract class ConfigFailFastDisabled {
 		propertySourceLocator = spy(propertySourceLocator);
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		Assertions.assertThatCode(() -> propertySourceLocator.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

@@ -26,8 +26,9 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Assumptions;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,7 @@ import static org.mockito.Mockito.spy;
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
 				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
 		classes = SecretsRetryApplication.class)
-class SecretsRetryEnabled {
+class SecretsRetryEnabledTests {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
 
@@ -117,15 +118,16 @@ class SecretsRetryEnabled {
 
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
-		PropertySource<?> propertySource = Assertions
-			.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		final PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatCode(() -> propertySource[0] = propertySourceLocator.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify locate is called only once
 		WireMock.verify(1, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource[0].getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
+		assertThat(propertySource[0].getProperty("some.sensitive.number")).isEqualTo("1");
 	}
 
 	@Test
@@ -159,15 +161,16 @@ class SecretsRetryEnabled {
 			.whenScenarioStateIs("Failed thrice")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
 
-		PropertySource<?> propertySource = Assertions
-			.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		final PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatNoException()
+			.isThrownBy(() -> propertySource[0] = propertySourceLocator.locate(new MockEnvironment()));
 
 		// verify retried 4 times
 		WireMock.verify(4, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource[0].getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
+		assertThat(propertySource[0].getProperty("some.sensitive.number")).isEqualTo("1");
 	}
 
 	@Test
