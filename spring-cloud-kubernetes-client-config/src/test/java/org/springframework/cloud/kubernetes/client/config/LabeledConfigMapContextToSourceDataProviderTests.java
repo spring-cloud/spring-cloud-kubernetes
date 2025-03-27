@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
