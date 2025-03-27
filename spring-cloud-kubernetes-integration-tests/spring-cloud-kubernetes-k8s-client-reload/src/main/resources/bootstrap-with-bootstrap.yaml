@@ -3,7 +3,9 @@ spring:
     kubernetes:
       secrets:
         paths:
-          - /tmp/application.properties
+          # at the moment, we do not support reading properties/yaml/yml
+          # files when mounting via 'paths'
+          - /tmp/from.properties.secret.key
         enabled: true
 
       config:
