@@ -195,7 +195,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			try {
 				String content = new String(Files.readAllBytes(filePath)).trim();
-				System.out.println("content is : " + content);
 				String sourceName = fileName.toLowerCase(Locale.ROOT);
 				SourceData sourceData = new SourceData(sourceName, Map.of(fileName, content));
 				return new SecretsPropertySource(sourceData);
