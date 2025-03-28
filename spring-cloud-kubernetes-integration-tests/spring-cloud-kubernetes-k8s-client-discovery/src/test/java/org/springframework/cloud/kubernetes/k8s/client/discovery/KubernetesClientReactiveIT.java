@@ -60,12 +60,12 @@ class KubernetesClientReactiveIT extends KubernetesClientDiscoveryBase {
 	@BeforeEach
 	void beforeEach() {
 		Images.loadWiremock(K3S);
-		util.wiremock(NAMESPACE, "/", Phase.CREATE);
+		util.wiremock(NAMESPACE, Phase.CREATE);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.wiremock(NAMESPACE, "/", Phase.DELETE);
+		util.wiremock(NAMESPACE, Phase.DELETE);
 	}
 
 	/**
