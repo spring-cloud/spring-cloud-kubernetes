@@ -9,6 +9,7 @@ spec:
     - name: http
       port: 8888
       targetPort: 8888
+      nodePort: 32321
   selector:
     app: configuration-watcher
-  type: ClusterIP
+  type: NodePort

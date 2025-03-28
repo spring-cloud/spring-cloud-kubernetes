@@ -128,10 +128,10 @@ class ActuatorRefreshMultipleNamespacesIT {
 			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(DEFAULT_NAMESPACE, deployment, service, null);
+			util.deleteAndWait(DEFAULT_NAMESPACE, deployment, service);
 		}
 
 	}

@@ -114,10 +114,10 @@ class ActuatorRefreshIT {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
+			util.deleteAndWait(NAMESPACE, deployment, service);
 		}
 
 	}
