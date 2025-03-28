@@ -1,2 +1,2 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.k8s.client.reload.it.configmap.K8sClientConfigMapEventTriggeredIT.TestConfig
+org.springframework.cloud.kubernetes.k8s.client.reload.it.K8sClientConfigMapEventTriggeredIT.TestConfig
