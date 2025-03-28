@@ -32,7 +32,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -94,8 +94,8 @@ class KubernetesDiscoveryClientServiceWithoutPortNameTests {
 				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
-		Assertions.assertEquals(serviceInstances.size(), 1);
-		Assertions.assertEquals(serviceInstances.get(0).getMetadata(),
+		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
+		Assertions.assertThat(serviceInstances.get(0).getMetadata()).isEqualTo(
 				Map.of("port.<unset>", "8080", "k8s_namespace", "spring-k8s", "type", "ClusterIP"));
 	}
 

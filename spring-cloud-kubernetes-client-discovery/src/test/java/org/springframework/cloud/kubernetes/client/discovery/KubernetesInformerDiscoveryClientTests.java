@@ -47,7 +47,6 @@ import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import io.kubernetes.client.util.ClientBuilder;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -545,14 +544,14 @@ class KubernetesInformerDiscoveryClientTests {
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
 
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
-		Assertions.assertEquals(result.size(), 1);
+		assertThat(result.size()).isEqualTo(1);
 		DefaultKubernetesServiceInstance externalNameServiceInstance = (DefaultKubernetesServiceInstance) result.get(0);
-		Assertions.assertEquals(externalNameServiceInstance.getServiceId(), "blue-service");
-		Assertions.assertEquals(externalNameServiceInstance.getHost(), "k8s-spring-b");
-		Assertions.assertEquals(externalNameServiceInstance.getPort(), -1);
-		Assertions.assertFalse(externalNameServiceInstance.isSecure());
-		Assertions.assertEquals(externalNameServiceInstance.getUri().toASCIIString(), "k8s-spring-b");
-		Assertions.assertEquals(externalNameServiceInstance.getMetadata(), Map.of("k8s_namespace", "b",
+		assertThat(externalNameServiceInstance.getServiceId()).isEqualTo("blue-service");
+		assertThat(externalNameServiceInstance.getHost()).isEqualTo("k8s-spring-b");
+		assertThat(externalNameServiceInstance.getPort()).isEqualTo(-1);
+		assertThat(externalNameServiceInstance.isSecure()).isTrue();
+		assertThat(externalNameServiceInstance.getUri().toASCIIString()).isEqualTo("k8s-spring-b");
+		assertThat(externalNameServiceInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "b",
 				"labels-prefix-label-key", "label-value", "annotations-prefix-abc", "def", "type", "ExternalName"));
 	}
 
@@ -603,17 +602,17 @@ class KubernetesInformerDiscoveryClientTests {
 		discoveryClient.coreV1Api = new CoreV1Api(apiClient);
 
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
-		Assertions.assertEquals(result.size(), 1);
+		assertThat(result.size()).isEqualTo(1);
 		DefaultKubernetesServiceInstance serviceInstance = (DefaultKubernetesServiceInstance) result.get(0);
-		Assertions.assertEquals(serviceInstance.getServiceId(), "blue-service");
-		Assertions.assertEquals(serviceInstance.getHost(), "127.0.0.1");
-		Assertions.assertEquals(serviceInstance.getPort(), 8080);
-		Assertions.assertFalse(serviceInstance.isSecure());
-		Assertions.assertEquals(serviceInstance.getUri().toASCIIString(), "http://127.0.0.1:8080");
-		Assertions.assertEquals(serviceInstance.getMetadata(),
+		assertThat(serviceInstance.getServiceId()).isEqualTo("blue-service");
+		assertThat(serviceInstance.getHost()).isEqualTo("127.0.0.1");
+		assertThat(serviceInstance.getPort()).isEqualTo(8080);
+		assertThat(serviceInstance.isSecure()).isTrue();
+		assertThat(serviceInstance.getUri().toASCIIString()).isEqualTo("http://127.0.0.1:8080");
+		assertThat(serviceInstance.getMetadata()).isEqualTo(
 				Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
-		Assertions.assertEquals(serviceInstance.podMetadata().get("labels"), Map.of("a", "b"));
-		Assertions.assertEquals(serviceInstance.podMetadata().get("annotations"), Map.of("c", "d"));
+		assertThat(serviceInstance.podMetadata().get("labels")).isEqualTo(Map.of("a", "b"));
+		assertThat(serviceInstance.podMetadata().get("annotations")).isEqualTo(Map.of("c", "d"));
 
 		server.shutdown();
 	}
