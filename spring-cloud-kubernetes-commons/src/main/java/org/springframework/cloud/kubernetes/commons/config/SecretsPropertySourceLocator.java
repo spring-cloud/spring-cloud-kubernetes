@@ -104,7 +104,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			}
 
 			cache.discardAll();
-			return composite;g
+			return composite;
 		}
 		return null;
 	}
