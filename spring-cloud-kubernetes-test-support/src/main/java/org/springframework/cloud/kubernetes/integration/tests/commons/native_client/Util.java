@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
@@ -40,7 +39,6 @@ import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1APIService;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
-import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentCondition;
@@ -55,7 +53,6 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceAccount;
 import io.kubernetes.client.util.Config;
-import io.kubernetes.client.util.PatchUtils;
 import io.kubernetes.client.util.Yaml;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
@@ -335,49 +332,6 @@ public final class Util {
 
 	}
 
-	public void setUpClusterWideClusterRoleBinding(String serviceAccountNamespace) {
-
-		try {
-			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
-			CheckedSupplier<V1ServiceAccount> accountSupplier = () -> coreV1Api
-				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace, null);
-			CheckedSupplier<V1ServiceAccount> accountDefaulter = () -> coreV1Api
-				.createNamespacedServiceAccount(serviceAccountNamespace, serviceAccount, null, null, null, null);
-			notExistsHandler(accountSupplier, accountDefaulter);
-
-			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
-			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName(), null),
-					() -> rbacApi.createClusterRole(clusterRole, null, null, null, null));
-
-			V1ClusterRoleBinding clusterRoleBinding = (V1ClusterRoleBinding) yaml("cluster/cluster-role-binding.yaml");
-			notExistsHandler(() -> rbacApi.readClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null),
-					() -> rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null));
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-
-	}
-
-	public void deleteClusterWideClusterRoleBinding(String serviceAccountNamespace) {
-		try {
-			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
-			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
-			V1ClusterRoleBinding clusterRoleBinding = (V1ClusterRoleBinding) yaml("cluster/cluster-role-binding.yaml");
-
-			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace,
-					null, null, null, null, null, null);
-			rbacApi.deleteClusterRole(clusterRole.getMetadata().getName(), null, null, null, null, null, null);
-			rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null, null,
-					null);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-	}
-
 	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) {
 
 		try {
@@ -514,41 +468,6 @@ public final class Util {
 			}
 			deleteAndWait(namespace, deployment, service, ingress);
 		}
-
-	}
-
-	public static void patchWithMerge(String deploymentName, String namespace, String patchBody,
-			Map<String, String> podLabels) {
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace,
-							new V1Patch(patchBody), null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_STRATEGIC_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error("error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
-
-		waitForDeploymentAfterPatch(deploymentName, namespace, podLabels);
-	}
-
-	public static void patchWithReplace(String imageName, String deploymentName, String namespace, String patchBody,
-			Map<String, String> podLabels) {
-		String body = patchBody.replace("image_name_here", imageName);
-
-		try {
-			PatchUtils.patch(V1Deployment.class,
-					() -> new AppsV1Api().patchNamespacedDeploymentCall(deploymentName, namespace, new V1Patch(body),
-							null, null, null, null, null, null),
-					V1Patch.PATCH_FORMAT_JSON_MERGE_PATCH, new CoreV1Api().getApiClient());
-		}
-		catch (ApiException e) {
-			LOG.error("error : " + e.getResponseBody());
-			throw new RuntimeException(e);
-		}
-
-		waitForDeploymentAfterPatch(deploymentName, namespace, podLabels);
 
 	}
 
