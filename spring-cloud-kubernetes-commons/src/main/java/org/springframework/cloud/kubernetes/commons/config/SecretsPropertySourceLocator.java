@@ -104,8 +104,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			}
 
 			cache.discardAll();
-			System.out.println("composite : " + Arrays.toString(composite.getPropertyNames()));
-			return composite;
+			return composite;g
 		}
 		return null;
 	}
