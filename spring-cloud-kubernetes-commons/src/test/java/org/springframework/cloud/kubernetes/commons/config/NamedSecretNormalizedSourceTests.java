@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,40 +31,40 @@ class NamedSecretNormalizedSourceTests {
 		NamedSecretNormalizedSource left = new NamedSecretNormalizedSource("name", "namespace", false, false);
 		NamedSecretNormalizedSource right = new NamedSecretNormalizedSource("name", "namespace", true, false);
 
-		Assertions.assertEquals(left.hashCode(), right.hashCode());
-		Assertions.assertEquals(left, right);
+		Assertions.assertThat(left.hashCode()).isEqualTo(right.hashCode());
+		Assertions.assertThat(left).isEqualTo(right);
 	}
 
 	@Test
 	void testType() {
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, false);
-		Assertions.assertSame(source.type(), NormalizedSourceType.NAMED_SECRET);
+		Assertions.assertThat(source.type()).isEqualTo(NormalizedSourceType.NAMED_SECRET);
 	}
 
 	@Test
 	void testTarget() {
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, false);
-		Assertions.assertEquals(source.target(), "secret");
+		Assertions.assertThat(source.target()).isEqualTo("secret");
 	}
 
 	@Test
 	void testConstructorFields() {
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", false, PREFIX, true);
-		Assertions.assertEquals(source.name().get(), "name");
-		Assertions.assertEquals(source.namespace().get(), "namespace");
-		Assertions.assertFalse(source.failFast());
-		Assertions.assertSame(PREFIX, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertThat(source.name().get()).isEqualTo("name");
+		Assertions.assertThat(source.namespace().get()).isEqualTo("namespace");
+		Assertions.assertThat(source.failFast()).isFalse();
+		Assertions.assertThat(source.prefix()).isEqualTo(PREFIX);
+		Assertions.assertThat(source.profileSpecificSources()).isTrue();
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", true, true);
-		Assertions.assertEquals(source.name().get(), "name");
-		Assertions.assertEquals(source.namespace().get(), "namespace");
-		Assertions.assertTrue(source.failFast());
-		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertThat(source.name().get()).isEqualTo("name");
+		Assertions.assertThat(source.namespace().get()).isEqualTo("namespace");
+		Assertions.assertThat(source.failFast()).isFalse();
+		Assertions.assertThat(ConfigUtils.Prefix.DEFAULT).isSameAs(source.prefix());
+		Assertions.assertThat(source.profileSpecificSources()).isTrue();
 	}
 
 }
