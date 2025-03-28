@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -120,6 +121,10 @@ public final class ConfigReloadUtil {
 					// we know that the type is correct here
 					managedSources.add((S) mountConfigMapPropertySource);
 				}
+				else if (propertySource instanceof SecretsPropertySource secretsPropertySource) {
+					// we know that the type is correct here
+					managedSources.add((S) secretsPropertySource);
+				}
 			}
 		}
 
@@ -179,6 +184,8 @@ public final class ConfigReloadUtil {
 		for (int i = 0; i < k8sSources.size(); i++) {
 			MapPropertySource k8sSource = k8sSources.get(i);
 			MapPropertySource appSource = appSources.get(i);
+			System.out.println("k8sSource (abc): " + k8sSource.getSource());
+			System.out.println("appSource (abc): " + appSource.getSource());
 			if (changed(k8sSource, appSource)) {
 				LOG.debug(() -> "found change in : " + k8sSource);
 				return true;

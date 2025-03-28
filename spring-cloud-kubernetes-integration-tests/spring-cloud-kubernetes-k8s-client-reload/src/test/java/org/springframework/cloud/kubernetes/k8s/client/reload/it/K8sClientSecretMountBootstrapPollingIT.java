@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Base64;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
@@ -101,8 +99,7 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 		// replace data in secret and wait for k8s to pick it up
 		// our polling will detect that and restart the app
 		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
-		secret.setData(Map.of(Constants.APPLICATION_PROPERTIES, Base64.getEncoder()
-			.encode("from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8))));
+		secret.setData(Map.of("from.properties.secret.key", "as-mount-changed".getBytes(StandardCharsets.UTF_8)));
 		coreV1Api.replaceNamespacedSecret("secret-reload", NAMESPACE, secret, null, null, null, null);
 
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
