@@ -549,7 +549,7 @@ class KubernetesInformerDiscoveryClientTests {
 		assertThat(externalNameServiceInstance.getServiceId()).isEqualTo("blue-service");
 		assertThat(externalNameServiceInstance.getHost()).isEqualTo("k8s-spring-b");
 		assertThat(externalNameServiceInstance.getPort()).isEqualTo(-1);
-		assertThat(externalNameServiceInstance.isSecure()).isTrue();
+		assertThat(externalNameServiceInstance.isSecure()).isFalse();
 		assertThat(externalNameServiceInstance.getUri().toASCIIString()).isEqualTo("k8s-spring-b");
 		assertThat(externalNameServiceInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "b",
 				"labels-prefix-label-key", "label-value", "annotations-prefix-abc", "def", "type", "ExternalName"));
@@ -607,7 +607,7 @@ class KubernetesInformerDiscoveryClientTests {
 		assertThat(serviceInstance.getServiceId()).isEqualTo("blue-service");
 		assertThat(serviceInstance.getHost()).isEqualTo("127.0.0.1");
 		assertThat(serviceInstance.getPort()).isEqualTo(8080);
-		assertThat(serviceInstance.isSecure()).isTrue();
+		assertThat(serviceInstance.isSecure()).isFalse();
 		assertThat(serviceInstance.getUri().toASCIIString()).isEqualTo("http://127.0.0.1:8080");
 		assertThat(serviceInstance.getMetadata()).isEqualTo(
 				Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
