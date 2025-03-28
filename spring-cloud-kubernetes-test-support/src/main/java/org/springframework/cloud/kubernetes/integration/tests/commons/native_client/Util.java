@@ -409,10 +409,6 @@ public final class Util {
 				.noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
-	public void wiremock(String namespace, String path, Phase phase) {
-		wiremock(namespace, phase);
-	}
-
 	public void wiremock(String namespace, Phase phase) {
 		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
 
