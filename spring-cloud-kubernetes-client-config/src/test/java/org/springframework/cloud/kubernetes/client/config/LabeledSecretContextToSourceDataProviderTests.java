@@ -242,9 +242,6 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 * "color=blue" (on both). we search with the same labels, find them, and assert that
 	 * name of the SourceData (it must use its name, not its labels) and values in the
 	 * SourceData must be prefixed (since we have provided a delayed prefix).
-	 *
-	 * Also notice that the prefix is made up from both secret names.
-	 *
 	 */
 	@Test
 	void testTwoSecretsWithPrefix() {
@@ -292,10 +289,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-secret.blue-secret.first");
+			Assertions.assertEquals(firstKey, "blue-secret.first");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-secret.blue-secret.second");
+		Assertions.assertEquals(secondKey, "another-blue-secret.second");
 		Assertions.assertEquals(properties.get(firstKey), "blue");
 		Assertions.assertEquals(properties.get(secondKey), "blue");
 	}
@@ -383,8 +380,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.two"), "2");
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret-k8s.two"), "2");
 		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.color-secret-k8s.default");
 
 	}
@@ -460,14 +457,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 4);
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"), "1");
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"), "2");
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"), "4");
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"), "5");
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("shape-secret.two"), "2");
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret-k8s.four"), "4");
+		Assertions.assertEquals(sourceData.sourceData().get("shape-secret-k8s.five"), "5");
 
 		Assertions.assertEquals(sourceData.sourceName(),
 				"secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");

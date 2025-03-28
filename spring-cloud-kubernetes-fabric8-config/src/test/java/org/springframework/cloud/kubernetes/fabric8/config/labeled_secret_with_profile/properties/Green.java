@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("green-purple-secret.green-purple-secret-k8s.green-secret.green-secret-k8s.green-secret-prod")
+@ConfigurationProperties("green")
 public class Green {
 
 	private String two;

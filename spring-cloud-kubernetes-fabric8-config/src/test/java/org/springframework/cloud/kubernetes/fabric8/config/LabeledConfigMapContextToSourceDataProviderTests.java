@@ -250,9 +250,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 * assert that name of the SourceData (it must use its name, not its labels) and
 	 * values in the SourceData must be prefixed (since we have provided a delayed
 	 * prefix).
-	 *
-	 * Also notice that the prefix is made up from both configmap names.
-	 *
 	 */
 	@Test
 	void testTwoConfigmapsWithPrefix() {
@@ -290,10 +287,10 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-configmap.blue-configmap.first");
+			Assertions.assertEquals(firstKey, "blue-configmap.first");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-configmap.blue-configmap.second");
+		Assertions.assertEquals(secondKey, "another-blue-configmap.second");
 		Assertions.assertEquals(properties.get(firstKey), "blue");
 		Assertions.assertEquals(properties.get(secondKey), "blue");
 	}
@@ -409,8 +406,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.two"), "2");
+		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color-configmap-k8s.two"), "2");
 		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.color-configmap-k8s.default");
 
 	}
@@ -478,14 +475,10 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertEquals(sourceData.sourceData().size(), 4);
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
+		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("shape-configmap.two"), "2");
+		Assertions.assertEquals(sourceData.sourceData().get("color-configmap-k8s.four"), "4");
+		Assertions.assertEquals(sourceData.sourceData().get("shape-configmap-k8s.five"), "5");
 
 		Assertions.assertEquals(sourceData.sourceName(),
 				"configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
