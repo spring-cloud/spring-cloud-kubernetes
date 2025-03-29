@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -88,7 +88,7 @@ class Fabric8PodUtilsTest {
 	void constructorThrowsIllegalArgumentExceptionWhenKubeClientNull() {
 		// expect an IllegalArgumentException if KubernetesClient argument is
 		// null
-		Assertions.assertThrows(IllegalArgumentException.class, () -> new Fabric8PodUtils(null));
+		Assertions.assertThatThrownBy(() -> new Fabric8PodUtils(null)).isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
@@ -96,8 +96,8 @@ class Fabric8PodUtilsTest {
 		mockHost(null);
 		Fabric8PodUtils util = new Fabric8PodUtils(client);
 		Supplier<Pod> sup = util.currentPod();
-		Assertions.assertNull(sup.get());
-		Assertions.assertFalse(util.isInsideKubernetes());
+		Assertions.assertThat(sup.get()).isNull();
+		Assertions.assertThat(util.isInsideKubernetes()).isFalse();
 	}
 
 	@Test
@@ -106,8 +106,8 @@ class Fabric8PodUtilsTest {
 		mockHostname(null);
 		Fabric8PodUtils util = new Fabric8PodUtils(client);
 		Supplier<Pod> sup = util.currentPod();
-		Assertions.assertNull(sup.get());
-		Assertions.assertFalse(util.isInsideKubernetes());
+		Assertions.assertThat(sup.get()).isNull();
+		Assertions.assertThat(util.isInsideKubernetes()).isFalse();
 	}
 
 	@Test
@@ -117,8 +117,8 @@ class Fabric8PodUtilsTest {
 		mockHostname(POD_HOSTNAME);
 		Fabric8PodUtils util = new Fabric8PodUtils(client);
 		Supplier<Pod> sup = util.currentPod();
-		Assertions.assertNull(sup.get());
-		Assertions.assertFalse(util.isInsideKubernetes());
+		Assertions.assertThat(sup.get()).isNull();
+		Assertions.assertThat(util.isInsideKubernetes()).isFalse();
 	}
 
 	@Test
@@ -129,8 +129,8 @@ class Fabric8PodUtilsTest {
 		mockHostname(POD_HOSTNAME);
 		Fabric8PodUtils util = new Fabric8PodUtils(client);
 		Supplier<Pod> sup = util.currentPod();
-		Assertions.assertNull(sup.get());
-		Assertions.assertFalse(util.isInsideKubernetes());
+		Assertions.assertThat(sup.get()).isNull();
+		Assertions.assertThat(util.isInsideKubernetes()).isFalse();
 	}
 
 	@Test
@@ -142,8 +142,8 @@ class Fabric8PodUtilsTest {
 		mockPodResult();
 		Fabric8PodUtils util = new Fabric8PodUtils(client);
 		Supplier<Pod> sup = util.currentPod();
-		Assertions.assertNotNull(sup.get());
-		Assertions.assertTrue(util.isInsideKubernetes());
+		Assertions.assertThat(sup.get()).isNotNull();
+		Assertions.assertThat(util.isInsideKubernetes()).isTrue();
 	}
 
 	private void mockHost(String host) {

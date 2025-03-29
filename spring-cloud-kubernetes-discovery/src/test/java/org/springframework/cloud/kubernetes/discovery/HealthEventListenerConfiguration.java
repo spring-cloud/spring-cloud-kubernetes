@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import org.junit.jupiter.api.Assertions;
-
+import org.assertj.core.api.Assertions;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.context.ApplicationListener;
@@ -43,11 +42,11 @@ class HealthEventListenerConfiguration {
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
 			caught = true;
-			Assertions.assertInstanceOf(RegisteredEventSource.class, event.getSource());
+			Assertions.assertThat(event.getSource()).isInstanceOf(RegisteredEventSource.class);
 			RegisteredEventSource registeredEventSource = (RegisteredEventSource) event.getSource();
-			Assertions.assertTrue(registeredEventSource.inside());
-			Assertions.assertNull(registeredEventSource.pod());
-			Assertions.assertEquals(registeredEventSource.cloudPlatform(), "kubernetes");
+			Assertions.assertThat(registeredEventSource.inside()).isTrue();
+			Assertions.assertThat(registeredEventSource.pod()).isNull();
+			Assertions.assertThat(registeredEventSource.cloudPlatform()).isEqualTo("kubernetes");
 		}
 
 	}

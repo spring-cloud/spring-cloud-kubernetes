@@ -24,8 +24,8 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,8 +98,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.blue.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.blue.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
 
 	}
 
@@ -127,8 +127,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), COLOR_REALLY_RED);
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(COLOR_REALLY_RED);
 
 	}
 
@@ -168,10 +168,10 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default.with-profile");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("taste"), "mango");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default.with-profile");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(
+			Map.of("color", "really-red", "taste", "mango")
+		);
 
 	}
 
@@ -213,11 +213,10 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
-
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(
+			Map.of("some.color", "really-red", "some.taste", "mango")
+		);
 	}
 
 	/**
@@ -264,11 +263,10 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-shape.red-with-taste.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 3);
-		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
-		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-shape.red-with-taste.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(
+			Map.of("some.color", "really-red", "some.taste", "mango", "some.shape", "round")
+		);
 
 	}
 
@@ -295,8 +293,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("color", "red"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.application.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("color", "red"));
 	}
 
 	/**
@@ -325,8 +323,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red"));
 	}
 
 	/**
@@ -351,8 +349,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("key", "value"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	/**
@@ -381,8 +379,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.one.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.singletonMap("key", "value"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.one.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	/**
@@ -417,10 +415,10 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData redData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertEquals(redSourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(redSourceData.sourceData().get("some.color"), "really-red");
-		Assertions.assertTrue(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
+		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(redSourceData.sourceData().get("some.color")).isEqualTo("really-red");
+		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
 
 		NormalizedSource greenNormalizedSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, PREFIX,
 				false);
@@ -428,17 +426,17 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData greenData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertEquals(greenSourceData.sourceName(), "configmap.green.default");
-		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(greenSourceData.sourceData().get("some.taste"), "mango");
+		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("configmap.green.default");
+		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(greenSourceData.sourceData().get("some.taste")).isEqualTo("mango");
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertEquals(out.length, 2);
+		Assertions.assertThat(out.length).isEqualTo(2);
 
 		// meaning that the second read was done from the cache
 		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
-		Assertions.assertEquals(out.length, 2);
+		Assertions.assertThat(out.length).isEqualTo(2);
 
 	}
 
