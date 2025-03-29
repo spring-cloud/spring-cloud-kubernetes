@@ -33,10 +33,12 @@ import io.kubernetes.client.custom.V1Patch;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.apis.ApiregistrationV1Api;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
+import io.kubernetes.client.openapi.models.V1APIService;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
 import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -436,10 +438,38 @@ public final class Util {
 	}
 
 	public void deleteNamespace(String name) {
+
+		// sometimes we get errors like :
+
+		// "message": "Discovery failed for some groups,
+		// 1 failing: unable to retrieve the complete list of server APIs:
+		// metrics.k8s.io/v1beta1: stale GroupVersion discovery: metrics.k8s.io/v1beta1"
+
+		// but even when it works OK, the finalizers are slowing down the deletion
+		ApiregistrationV1Api apiInstance = new ApiregistrationV1Api(coreV1Api.getApiClient());
+		List<V1APIService> apiServices;
 		try {
+			apiServices = apiInstance.listAPIService(null, null, null, null, null, null, null, null, null, null, null)
+				.getItems();
+
+			apiServices.stream()
+				.map(apiService -> apiService.getMetadata().getName())
+				.filter(apiServiceName -> apiServiceName.contains("metrics.k8s.io"))
+				.findFirst()
+				.ifPresent(apiServiceName -> {
+					try {
+						apiInstance.deleteAPIService(apiServiceName, null, null, null, null, null, null);
+					}
+					catch (ApiException e) {
+						System.out.println(e.getResponseBody());
+						throw new RuntimeException(e);
+					}
+				});
+
 			coreV1Api.deleteNamespace(name, null, null, null, null, null, null);
 		}
 		catch (ApiException e) {
+			System.out.println(e.getResponseBody());
 			throw new RuntimeException(e);
 		}
 
