@@ -103,11 +103,11 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 		coreV1Api.replaceNamespacedSecret("secret-reload", NAMESPACE, secret, null, null, null, null);
 
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
-			IMAGE_NAME);
+				IMAGE_NAME);
 
 		await().atMost(Duration.ofSeconds(120))
 			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> (Boolean) webClient.method(HttpMethod.GET)
+			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(String.class)
 				.retryWhen(retrySpec())
