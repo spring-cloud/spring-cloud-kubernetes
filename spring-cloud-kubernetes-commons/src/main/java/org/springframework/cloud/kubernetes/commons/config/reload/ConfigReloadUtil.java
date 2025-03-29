@@ -121,10 +121,6 @@ public final class ConfigReloadUtil {
 					// we know that the type is correct here
 					managedSources.add((S) mountConfigMapPropertySource);
 				}
-				else if (propertySource instanceof SecretsPropertySource secretsPropertySource) {
-					// we know that the type is correct here
-					managedSources.add((S) secretsPropertySource);
-				}
 			}
 		}
 
