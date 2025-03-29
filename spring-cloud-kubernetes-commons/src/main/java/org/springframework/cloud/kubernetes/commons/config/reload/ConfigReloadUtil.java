@@ -111,6 +111,10 @@ public final class ConfigReloadUtil {
 				// we know that the type is correct here
 				managedSources.add((S) mountConfigMapPropertySource);
 			}
+			else if (source instanceof SecretsPropertySource secretsPropertySource) {
+				// we know that the type is correct here
+				managedSources.add((S) secretsPropertySource);
+			}
 			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
 				LOG.debug(() -> "bootstrap delegate class : " + propertySource.getClass());
@@ -184,8 +188,6 @@ public final class ConfigReloadUtil {
 		for (int i = 0; i < k8sSources.size(); i++) {
 			MapPropertySource k8sSource = k8sSources.get(i);
 			MapPropertySource appSource = appSources.get(i);
-			System.out.println("k8sSource (abc): " + k8sSource.getSource());
-			System.out.println("appSource (abc): " + appSource.getSource());
 			if (changed(k8sSource, appSource)) {
 				LOG.debug(() -> "found change in : " + k8sSource);
 				return true;
