@@ -78,8 +78,8 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 		discoveryServer(Phase.CREATE);
 
 		Images.loadWiremock(K3S);
-		util.wiremock(NAMESPACE_LEFT, Phase.CREATE);
-		util.wiremock(NAMESPACE_RIGHT, Phase.CREATE);
+		util.wiremock(NAMESPACE_LEFT, Phase.CREATE, false);
+		util.wiremock(NAMESPACE_RIGHT, Phase.CREATE, false);
 	}
 
 	@AfterAll
@@ -87,8 +87,8 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 		serviceAccount(Phase.DELETE);
 		discoveryServer(Phase.DELETE);
 
-		util.wiremock(NAMESPACE_LEFT, Phase.DELETE);
-		util.wiremock(NAMESPACE_RIGHT, Phase.DELETE);
+		util.wiremock(NAMESPACE_LEFT, Phase.DELETE, false);
+		util.wiremock(NAMESPACE_RIGHT, Phase.DELETE, false);
 
 		util.deleteNamespace(NAMESPACE_LEFT);
 		util.deleteNamespace(NAMESPACE_RIGHT);

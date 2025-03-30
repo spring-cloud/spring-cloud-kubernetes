@@ -208,6 +208,10 @@ public final class Util {
 						labelSelector(podLabels), null, null, null, null, null, null, null, null);
 				waitForDeploymentToBeDeleted(deploymentName, namespace);
 				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
+
+				service.getMetadata().setNamespace(namespace);
+				coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace(),
+						null, null, null, null, null, null);
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -409,7 +413,7 @@ public final class Util {
 				.noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
-	public void wiremock(String namespace, Phase phase) {
+	public void wiremock(String namespace, Phase phase, boolean withNodePort) {
 		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
@@ -417,6 +421,12 @@ public final class Util {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		V1Service service = (V1Service) yaml("wiremock/wiremock-service.yaml");
+		service.getMetadata().setNamespace(namespace);
+		if (!withNodePort) {
+			// we assume we only have one 'http' port
+			service.getSpec().getPorts().get(0).setNodePort(null);
+			service.getSpec().setType("ClusterIP");
+		}
 
 		if (phase.equals(Phase.CREATE)) {
 			deployment.getMetadata().setNamespace(namespace);
