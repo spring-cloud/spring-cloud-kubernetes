@@ -126,10 +126,12 @@ class KubernetesConfigDataLocationResolverTests {
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.application.name"))
 			.isEqualTo("k8s-app-name");
-		Assertions.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
+		Assertions
+			.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
 			.isEqualTo("non-default-namespace");
 		// ensures that we called 'bindOrCreate' and as such @Default is picked-up
-		Assertions.assertThat(result.get(0).getProperties().userAgent()).isEqualTo("Spring-Cloud-Kubernetes-Application");
+		Assertions.assertThat(result.get(0).getProperties().userAgent())
+			.isEqualTo("Spring-Cloud-Kubernetes-Application");
 		Assertions.assertThat(result.get(0).getProperties().namespace()).isEqualTo("non-default-namespace");
 
 	}
@@ -168,7 +170,8 @@ class KubernetesConfigDataLocationResolverTests {
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.application.name"))
 			.isEqualTo("k8s-app-name");
-		Assertions.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
+		Assertions
+			.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
 			.isEqualTo("non-default-namespace");
 		// ensures we bind existing from bootstrap context, and not call 'bindOrCreate'
 		Assertions.assertThat(result.get(0).getProperties().userAgent()).isEqualTo("user-agent");

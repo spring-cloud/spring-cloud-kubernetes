@@ -335,8 +335,10 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 			.stream()
 			.sorted(Comparator.comparing(x -> x.getClass().getName()))
 			.toList();
-		Assertions.assertThat(result.get(0).getClass()).isEqualTo(KubernetesClientEventBasedConfigMapChangeDetector.class);
-		Assertions.assertThat(result.get(1).getClass()).isEqualTo(KubernetesClientEventBasedSecretsChangeDetector.class);
+		Assertions.assertThat(result.get(0).getClass())
+			.isEqualTo(KubernetesClientEventBasedConfigMapChangeDetector.class);
+		Assertions.assertThat(result.get(1).getClass())
+			.isEqualTo(KubernetesClientEventBasedSecretsChangeDetector.class);
 	}
 
 	/**
@@ -433,7 +435,8 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 			.stream()
 			.sorted(Comparator.comparing(x -> x.getClass().getName()))
 			.toList();
-		Assertions.assertThat(result.get(0).getClass()).isEqualTo(KubernetesClientEventBasedConfigMapChangeDetector.class);
+		Assertions.assertThat(result.get(0).getClass())
+			.isEqualTo(KubernetesClientEventBasedConfigMapChangeDetector.class);
 	}
 
 	/**

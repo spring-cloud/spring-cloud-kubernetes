@@ -121,10 +121,12 @@ class Fabric8ConfigDataLocationResolverTests {
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertThat(configMapPropertySourceLocator.getClass()).isSameAs(Fabric8ConfigMapPropertySourceLocator.class);
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isSameAs(Fabric8ConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertThat(secretsPropertySourceLocator.getClass()).isSameAs(Fabric8SecretsPropertySourceLocator.class);
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isSameAs(Fabric8SecretsPropertySourceLocator.class);
 
 	}
 
@@ -163,10 +165,12 @@ class Fabric8ConfigDataLocationResolverTests {
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertThat(configMapPropertySourceLocator.getClass()).isEqualTo(Fabric8ConfigMapPropertySourceLocator.class);
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isEqualTo(Fabric8ConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertThat(secretsPropertySourceLocator.getClass()).isEqualTo(Fabric8SecretsPropertySourceLocator.class);
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isEqualTo(Fabric8SecretsPropertySourceLocator.class);
 	}
 
 	/*

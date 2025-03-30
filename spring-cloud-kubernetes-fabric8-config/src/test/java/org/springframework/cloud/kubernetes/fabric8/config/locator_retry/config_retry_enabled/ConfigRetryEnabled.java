@@ -92,9 +92,9 @@ abstract class ConfigRetryEnabled {
 						.build())
 			.once();
 
-
 		PropertySource<?>[] propertySource = new PropertySource<?>[1];
-		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment())).doesNotThrowAnyException();
+		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify locate is called only once
 		verify(verifiablePsl, times(1)).locate(any());
@@ -125,7 +125,8 @@ abstract class ConfigRetryEnabled {
 			.once();
 
 		PropertySource<?>[] propertySource = new PropertySource<?>[1];
-		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment())).doesNotThrowAnyException();
+		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify retried 4 times
 		verify(verifiablePsl, times(4)).locate(any());

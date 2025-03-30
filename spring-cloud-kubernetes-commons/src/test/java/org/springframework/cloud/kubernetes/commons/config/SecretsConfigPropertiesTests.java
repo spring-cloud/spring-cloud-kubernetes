@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -128,7 +127,8 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
-		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**
@@ -154,7 +154,8 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
-		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**
@@ -184,8 +185,8 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
-		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix().prefixProvider().get()).
-			isEqualTo("secret-one");
+		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix().prefixProvider().get())
+			.isEqualTo("secret-one");
 	}
 
 	/**
@@ -227,7 +228,8 @@ class SecretsConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(3);
 
-		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(0)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(1)).prefix().prefixProvider().get())
 			.isEqualTo("secret-two");
 		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(2)).prefix().prefixProvider().get())
@@ -283,7 +285,8 @@ class SecretsConfigPropertiesTests {
 			.isEqualTo("two");
 		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(2)).prefix().prefixProvider().get())
 			.isEqualTo("three");
-		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(3)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedSecretNormalizedSource) sources.get(3)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**

@@ -73,8 +73,9 @@ class Fabric8KubernetesDiscoveryClientServiceWithoutPortNameTests {
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
-		Assertions.assertThat(serviceInstances.get(0).getMetadata()).containsExactlyInAnyOrderEntriesOf(
-				Map.of("port.<unset>", "8080", "k8s_namespace", "spring-k8s", "type", "ClusterIP"));
+		Assertions.assertThat(serviceInstances.get(0).getMetadata())
+			.containsExactlyInAnyOrderEntriesOf(
+					Map.of("port.<unset>", "8080", "k8s_namespace", "spring-k8s", "type", "ClusterIP"));
 	}
 
 }

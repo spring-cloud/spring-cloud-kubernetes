@@ -52,7 +52,8 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
-		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**
@@ -77,7 +78,8 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
-		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**
@@ -150,7 +152,8 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(3);
 
-		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(1)).prefix().prefixProvider().get())
 			.isEqualTo("config-map-two");
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(2)).prefix().prefixProvider().get())
@@ -206,7 +209,8 @@ class ConfigMapConfigPropertiesTests {
 			.isEqualTo("two");
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(2)).prefix().prefixProvider().get())
 			.isEqualTo("three");
-		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(3)).prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(3)).prefix())
+			.isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	/**
@@ -261,7 +265,7 @@ class ConfigMapConfigPropertiesTests {
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
-		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources()).isTrue();
+		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources()).isFalse();
 	}
 
 	/**
@@ -369,7 +373,7 @@ class ConfigMapConfigPropertiesTests {
 
 		LabeledConfigMapNormalizedSource labeled1 = (LabeledConfigMapNormalizedSource) sources.get(1);
 		Assertions.assertThat(labeled1.prefix().prefixProvider().get()).isEqualTo("one");
-		Assertions.assertThat(labeled1.profileSpecificSources()).isTrue();
+		Assertions.assertThat(labeled1.profileSpecificSources()).isFalse();
 
 		LabeledConfigMapNormalizedSource labeled3 = (LabeledConfigMapNormalizedSource) sources.get(3);
 		Assertions.assertThat(labeled3.prefix().prefixProvider().get()).isEqualTo("two");

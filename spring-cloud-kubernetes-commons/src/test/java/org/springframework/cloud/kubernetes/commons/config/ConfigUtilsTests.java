@@ -81,8 +81,9 @@ class ConfigUtilsTests {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix(null, true, false, null);
 		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.DELAYED);
 
-		Assertions.assertThatThrownBy(() -> result.prefixProvider().get()).isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("prefix is delayed, needs to be taken elsewhere");
+		Assertions.assertThatThrownBy(() -> result.prefixProvider().get())
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("prefix is delayed, needs to be taken elsewhere");
 
 	}
 

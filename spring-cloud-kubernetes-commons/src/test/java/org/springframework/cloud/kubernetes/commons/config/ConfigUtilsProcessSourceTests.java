@@ -173,7 +173,8 @@ class ConfigUtilsProcessSourceTests {
 		 *			since 'k8s' is not an active profile.
 		 * </pre>
 		 */
-		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
+		Assertions.assertThat(result.data())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
 		Assertions.assertThat(output.getOut()).contains("entry : account-k8s.properties will be skipped");
 	}
 
@@ -268,7 +269,8 @@ class ConfigUtilsProcessSourceTests {
 		 *		6. we do not have 'four=4' since we do not read 'account-k8s.properties'
 		 * </pre>
 		 */
-		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
+		Assertions.assertThat(result.data())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
 		Assertions.assertThat(output.getOut()).contains("entry : account-k8s.properties will be skipped");
 
 	}

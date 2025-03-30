@@ -91,8 +91,7 @@ abstract class ConfigFailFastDisabled {
 		propertySourceLocator = spy(propertySourceLocator);
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		Assertions.assertThatCode(() -> propertySourceLocator.locate(new MockEnvironment()))
-			.doesNotThrowAnyException();
+		Assertions.assertThatCode(() -> propertySourceLocator.locate(new MockEnvironment())).doesNotThrowAnyException();
 
 		// verify locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

@@ -52,7 +52,7 @@ class SourceDataEntriesProcessorTests {
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(Map.of("one.properties", "key=value"),
 				new MockEnvironment());
 
-		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));;
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	/**
@@ -127,7 +127,8 @@ class SourceDataEntriesProcessorTests {
 		env.setActiveProfiles("dev");
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, env);
 
-		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "color", "blue", "fit", "sport"));
+		Assertions.assertThat(result)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "color", "blue", "fit", "sport"));
 	}
 
 	/**
@@ -153,7 +154,8 @@ class SourceDataEntriesProcessorTests {
 		env.setActiveProfiles("fit", "color");
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, env);
 
-		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "name", "jacket", "color", "black", "fit", "sport"));
+		Assertions.assertThat(result)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "name", "jacket", "color", "black", "fit", "sport"));
 	}
 
 }

@@ -62,7 +62,7 @@ class NamedSecretNormalizedSourceTests {
 		NamedSecretNormalizedSource source = new NamedSecretNormalizedSource("name", "namespace", true, true);
 		Assertions.assertThat(source.name().get()).isEqualTo("name");
 		Assertions.assertThat(source.namespace().get()).isEqualTo("namespace");
-		Assertions.assertThat(source.failFast()).isFalse();
+		Assertions.assertThat(source.failFast()).isTrue();
 		Assertions.assertThat(ConfigUtils.Prefix.DEFAULT).isSameAs(source.prefix());
 		Assertions.assertThat(source.profileSpecificSources()).isTrue();
 	}

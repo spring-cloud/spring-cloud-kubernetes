@@ -139,8 +139,8 @@ class DiscoveryClientUtilsTests {
 		Assertions.assertThat(result.size()).isEqualTo(3);
 		Assertions.assertThat(result).isEqualTo(Map.of("a", "b", "k8s_namespace", "default", "type", "ClusterIP"));
 		String labelsMetadata = filterOnK8sNamespaceAndType(result);
-		Assertions.assertThat(
-				output.getOut()).contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service");
+		Assertions.assertThat(output.getOut())
+			.contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service");
 	}
 
 	/**
@@ -173,12 +173,12 @@ class DiscoveryClientUtilsTests {
 		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertThat(result.size()).isEqualTo(4);
-		Assertions.assertThat(result).isEqualTo(
-				Map.of("prefix-a", "b", "prefix-c", "d", "k8s_namespace", "default", "type", "ClusterIP"));
+		Assertions.assertThat(result)
+			.isEqualTo(Map.of("prefix-a", "b", "prefix-c", "d", "k8s_namespace", "default", "type", "ClusterIP"));
 		// so that result is deterministic in assertion
 		String labelsMetadata = filterOnK8sNamespaceAndType(result);
-		Assertions.assertThat(
-				output.getOut()).contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service");
+		Assertions.assertThat(output.getOut())
+			.contains("Adding labels metadata: " + labelsMetadata + " for serviceId: my-service");
 	}
 
 	/**
@@ -212,8 +212,8 @@ class DiscoveryClientUtilsTests {
 
 		Assertions.assertThat(result.size()).isEqualTo(3);
 		Assertions.assertThat(result).isEqualTo(Map.of("aa", "bb", "k8s_namespace", "default", "type", "ClusterIP"));
-		Assertions
-			.assertThat(output.getOut()).contains("Adding annotations metadata: {aa=bb} for serviceId: my-service");
+		Assertions.assertThat(output.getOut())
+			.contains("Adding annotations metadata: {aa=bb} for serviceId: my-service");
 	}
 
 	/**
@@ -246,12 +246,12 @@ class DiscoveryClientUtilsTests {
 		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
 		Assertions.assertThat(result.size()).isEqualTo(4);
-		Assertions.assertThat(result).isEqualTo(
-				Map.of("prefix-aa", "bb", "prefix-cc", "dd", "k8s_namespace", "default", "type", "ClusterIP"));
+		Assertions.assertThat(result)
+			.isEqualTo(Map.of("prefix-aa", "bb", "prefix-cc", "dd", "k8s_namespace", "default", "type", "ClusterIP"));
 		// so that result is deterministic in assertion
 		String annotations = filterOnK8sNamespaceAndType(result);
-		Assertions.assertThat(
-				output.getOut()).contains("Adding annotations metadata: " + annotations + " for serviceId: my-service");
+		Assertions.assertThat(output.getOut())
+			.contains("Adding annotations metadata: " + annotations + " for serviceId: my-service");
 	}
 
 	/**
@@ -283,8 +283,9 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
-		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b", "label-c",
-				"d", "k8s_namespace", "default", "type", "ClusterIP"));
+		Assertions.assertThat(result)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("annotation-aa", "bb", "annotation-cc", "dd", "label-a", "b",
+					"label-c", "d", "k8s_namespace", "default", "type", "ClusterIP"));
 		// so that result is deterministic in assertion
 		String labels = result.entrySet()
 			.stream()
@@ -296,10 +297,10 @@ class DiscoveryClientUtilsTests {
 			.filter(en -> en.getKey().contains("annotation"))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
 			.toString();
-		Assertions
-			.assertThat(output.getOut()).contains("Adding labels metadata: " + labels + " for serviceId: my-service");
-		Assertions.assertThat(
-				output.getOut()).contains("Adding annotations metadata: " + annotations + " for serviceId: my-service");
+		Assertions.assertThat(output.getOut())
+			.contains("Adding labels metadata: " + labels + " for serviceId: my-service");
+		Assertions.assertThat(output.getOut())
+			.contains("Adding annotations metadata: " + annotations + " for serviceId: my-service");
 	}
 
 	/**
@@ -330,9 +331,11 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
-		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("https", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
-		Assertions
-			.assertThat(output.getOut()).contains("Adding port metadata: {https=8080} for serviceId : my-service");
+		Assertions.assertThat(result)
+			.containsExactlyInAnyOrderEntriesOf(
+					Map.of("https", "8080", "k8s_namespace", "default", "type", "ClusterIP"));
+		Assertions.assertThat(output.getOut())
+			.contains("Adding port metadata: {https=8080} for serviceId : my-service");
 	}
 
 	/**
@@ -363,8 +366,9 @@ class DiscoveryClientUtilsTests {
 
 		Map<String, String> result = serviceInstanceMetadata(portsData, serviceMetadata, properties);
 
-		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(
-				Map.of("prefix-https", "8080", "prefix-http", "8081", "k8s_namespace", "default", "type", "ClusterIP"));
+		Assertions.assertThat(result)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("prefix-https", "8080", "prefix-http", "8081", "k8s_namespace",
+					"default", "type", "ClusterIP"));
 		Assertions.assertThat(output.getOut())
 			.contains("Adding port metadata: {prefix-http=8081, prefix-https=8080} for serviceId : my-service");
 	}
@@ -523,8 +527,8 @@ class DiscoveryClientUtilsTests {
 			.contains("not found primary-port-name (with value: 'null') via properties or service labels");
 		Assertions.assertThat(output.getOut()).contains("not found primary-port-name via 'https' to match port");
 		Assertions.assertThat(output.getOut()).contains("not found primary-port-name via 'http' to match port");
-		Assertions.assertThat(
-				output.getOut()).contains("Could not find a port named 'https' or 'http' for service 'spring-k8s'.");
+		Assertions.assertThat(output.getOut())
+			.contains("Could not find a port named 'https' or 'http' for service 'spring-k8s'.");
 		Assertions.assertThat(output.getOut()).contains("""
 				Make sure that either the primary-port-name label has been added to the service,
 				or spring.cloud.kubernetes.discovery.primary-port-name has been configured.
@@ -555,8 +559,8 @@ class DiscoveryClientUtilsTests {
 		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertThat(portData.portNumber()).isEqualTo(8080);
 		Assertions.assertThat(portData.portName()).isEqualTo("one");
-		Assertions
-			.assertThat(output.getOut()).contains("will use primaryPortName : three for service with ID = spring-k8s");
+		Assertions.assertThat(output.getOut())
+			.contains("will use primaryPortName : three for service with ID = spring-k8s");
 		Assertions.assertThat(output.getOut())
 			.contains("not found primary-port-name (with value: 'three') via properties or service labels");
 		Assertions.assertThat(output.getOut()).contains("not found primary-port-name via 'https' to match port");
@@ -593,8 +597,8 @@ class DiscoveryClientUtilsTests {
 		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertThat(portData.portNumber()).isEqualTo(8081);
 		Assertions.assertThat(portData.portName()).isEqualTo("two");
-		Assertions
-			.assertThat(output.getOut()).contains("will use primaryPortName : two for service with ID = spring-k8s");
+		Assertions.assertThat(output.getOut())
+			.contains("will use primaryPortName : two for service with ID = spring-k8s");
 		Assertions.assertThat(output.getOut())
 			.contains(
 					"found primary-port-name (with value: 'two') via properties or service labels to match port : 8081");
@@ -625,8 +629,8 @@ class DiscoveryClientUtilsTests {
 		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertThat(portData.portNumber()).isEqualTo(8082);
 		Assertions.assertThat(portData.portName()).isEqualTo("https");
-		Assertions
-			.assertThat(output.getOut()).contains("will use primaryPortName : three for service with ID = spring-k8s");
+		Assertions.assertThat(output.getOut())
+			.contains("will use primaryPortName : three for service with ID = spring-k8s");
 		Assertions.assertThat(output.getOut())
 			.contains(
 					"not found primary-port-name (with value: 'three') via properties or service labels to match port");
@@ -658,8 +662,8 @@ class DiscoveryClientUtilsTests {
 		ServicePortNameAndNumber portData = endpointsPort(endpointsPorts, serviceMetadata, properties);
 		Assertions.assertThat(portData.portNumber()).isEqualTo(8082);
 		Assertions.assertThat(portData.portName()).isEqualTo("http");
-		Assertions
-			.assertThat(output.getOut()).contains("will use primaryPortName : three for service with ID = spring-k8s");
+		Assertions.assertThat(output.getOut())
+			.contains("will use primaryPortName : three for service with ID = spring-k8s");
 		Assertions.assertThat(output.getOut())
 			.contains(
 					"not found primary-port-name (with value: 'three') via properties or service labels to match port");
@@ -944,8 +948,8 @@ class DiscoveryClientUtilsTests {
 		Assertions.assertThat(result.get("annotations")).isEqualTo(Map.of("c", "d"));
 		Assertions.assertThat(result.get("labels")).isEqualTo(Map.of("a", "b"));
 
-		Assertions.assertThat(
-				output.getOut()).contains("adding podMetadata : {annotations={c=d}, labels={a=b}} from pod : my-pod");
+		Assertions.assertThat(output.getOut())
+			.contains("adding podMetadata : {annotations={c=d}, labels={a=b}} from pod : my-pod");
 	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {

@@ -95,7 +95,8 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
-		Assertions.assertThatThrownBy(watch::postConstruct).isInstanceOf(IllegalArgumentException.class)
+		Assertions.assertThatThrownBy(watch::postConstruct)
+			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessage("EndpointSlices are not supported on the cluster");
 	}
 
@@ -119,8 +120,9 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
-		Assertions.assertThatThrownBy(watch::postConstruct).isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("EndpointSlices are not supported on the cluster");
+		Assertions.assertThatThrownBy(watch::postConstruct)
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("EndpointSlices are not supported on the cluster");
 	}
 
 	/**

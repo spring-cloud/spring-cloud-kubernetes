@@ -126,12 +126,12 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertThat(configMapPropertySourceLocator.getClass()).isEqualTo(
-			KubernetesClientConfigMapPropertySourceLocator.class);
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertThat(secretsPropertySourceLocator.getClass()).isEqualTo(
-			KubernetesClientSecretsPropertySourceLocator.class);
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientSecretsPropertySourceLocator.class);
 
 	}
 
@@ -170,12 +170,12 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertThat(configMapPropertySourceLocator.getClass()).isEqualTo(
-			KubernetesClientConfigMapPropertySourceLocator.class);
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertThat(secretsPropertySourceLocator.getClass()).isEqualTo(
-			KubernetesClientSecretsPropertySourceLocator.class);
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientSecretsPropertySourceLocator.class);
 
 		Assertions.assertThat(capturedOutput.getOut())
 			.contains("Could not create the Kubernetes ApiClient in a cluster environment, because connection port "
@@ -223,12 +223,12 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertThat(configMapPropertySourceLocator.getClass()).isEqualTo(
-			ConfigDataRetryableConfigMapPropertySourceLocator.class);
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isEqualTo(ConfigDataRetryableConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertThat(secretsPropertySourceLocator.getClass()).isEqualTo(
-			ConfigDataRetryableSecretsPropertySourceLocator.class);
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isEqualTo(ConfigDataRetryableSecretsPropertySourceLocator.class);
 
 	}
 

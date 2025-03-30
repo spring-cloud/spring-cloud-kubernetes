@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.discovery;
 
 import org.assertj.core.api.Assertions;
+
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.context.ApplicationListener;

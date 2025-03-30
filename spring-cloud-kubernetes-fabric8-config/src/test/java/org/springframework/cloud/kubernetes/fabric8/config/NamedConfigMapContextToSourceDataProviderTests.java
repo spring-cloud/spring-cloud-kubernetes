@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config;
 
-import java.util.Collections;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -169,9 +168,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default.with-profile");
-		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(
-			Map.of("color", "really-red", "taste", "mango")
-		);
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red", "taste", "mango"));
 
 	}
 
@@ -214,9 +212,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default");
-		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(
-			Map.of("some.color", "really-red", "some.taste", "mango")
-		);
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("some.color", "really-red", "some.taste", "mango"));
 	}
 
 	/**
@@ -264,9 +261,9 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-shape.red-with-taste.default");
-		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(
-			Map.of("some.color", "really-red", "some.taste", "mango", "some.shape", "round")
-		);
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(
+					Map.of("some.color", "really-red", "some.taste", "mango", "some.shape", "round"));
 
 	}
 
@@ -324,7 +321,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.default");
-		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red"));
 	}
 
 	/**

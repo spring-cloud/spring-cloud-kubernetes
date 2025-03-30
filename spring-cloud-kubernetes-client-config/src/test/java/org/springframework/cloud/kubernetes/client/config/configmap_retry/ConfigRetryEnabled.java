@@ -162,8 +162,7 @@ abstract class ConfigRetryEnabled {
 
 		// validate the contents of the property source
 		assertThat(propertySource[0].getProperty("some.prop")).isEqualTo("theValue");
-		assertThat(propertySource[0
-			].getProperty("some.number")).isEqualTo("0");
+		assertThat(propertySource[0].getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test

@@ -213,9 +213,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("service-one");
 		Assertions.assertThat(result.size()).isEqualTo(2);
-		Assertions.assertThat(
-				result.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).sorted().toList()).isEqualTo(
-				List.of("a", "b"));
+		Assertions
+			.assertThat(result.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).sorted().toList())
+			.isEqualTo(List.of("a", "b"));
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in all namespaces");
 	}
 
@@ -372,8 +372,8 @@ class Fabric8KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("service-one");
 		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(
-				result.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).sorted().toList())
+		Assertions
+			.assertThat(result.stream().map(Endpoints::getMetadata).map(ObjectMeta::getNamespace).sorted().toList())
 			.isEqualTo(List.of("test"));
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
 	}
@@ -553,9 +553,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Assertions.assertThat(externalNameServiceInstance.getPort()).isEqualTo(-1);
 		Assertions.assertThat(externalNameServiceInstance.isSecure()).isFalse();
 		Assertions.assertThat(externalNameServiceInstance.getUri().toASCIIString()).isEqualTo("k8s-spring-b");
-		Assertions.assertThat(externalNameServiceInstance.getMetadata()).containsExactlyInAnyOrderEntriesOf(
-			Map.of("k8s_namespace", "b", "labels-prefix-label-key", "label-value",
-				"annotations-prefix-abc", "def", "type", "ExternalName"));
+		Assertions.assertThat(externalNameServiceInstance.getMetadata())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("k8s_namespace", "b", "labels-prefix-label-key", "label-value",
+					"annotations-prefix-abc", "def", "type", "ExternalName"));
 	}
 
 	@Test
@@ -604,8 +604,9 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Assertions.assertThat(serviceInstance.getPort()).isEqualTo(8080);
 		Assertions.assertThat(serviceInstance.isSecure()).isFalse();
 		Assertions.assertThat(serviceInstance.getUri().toASCIIString()).isEqualTo("http://127.0.0.1:8080");
-		Assertions.assertThat(serviceInstance.getMetadata()).containsExactlyInAnyOrderEntriesOf(
-				Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
+		Assertions.assertThat(serviceInstance.getMetadata())
+			.containsExactlyInAnyOrderEntriesOf(
+					Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
 		Assertions.assertThat(serviceInstance.podMetadata().get("labels"))
 			.containsExactlyInAnyOrderEntriesOf(Map.of("a", "b"));
 		Assertions.assertThat(serviceInstance.podMetadata().get("annotations"))

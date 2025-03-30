@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.time.Duration;
-import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

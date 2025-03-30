@@ -45,7 +45,8 @@ class LeaderInfoContributorTests {
 		Info.Builder builder = new Info.Builder();
 		leaderInfoContributor.contribute(builder);
 
-		Assertions.assertThat(builder.build().getDetails().get("leaderElection")).isEqualTo(Map.of("leaderId", "Unknown"));
+		Assertions.assertThat(builder.build().getDetails().get("leaderElection"))
+			.isEqualTo(Map.of("leaderId", "Unknown"));
 	}
 
 	@Test
@@ -65,8 +66,8 @@ class LeaderInfoContributorTests {
 		Info.Builder builder = new Info.Builder();
 		leaderInfoContributor.contribute(builder);
 
-		Assertions.assertThat(builder.build().getDetails().get("leaderElection")).isEqualTo(
-				Map.of("role", "leaderRole", "isLeader", true, "leaderId", "leaderId"));
+		Assertions.assertThat(builder.build().getDetails().get("leaderElection"))
+			.isEqualTo(Map.of("role", "leaderRole", "isLeader", true, "leaderId", "leaderId"));
 	}
 
 	@Test
@@ -86,8 +87,8 @@ class LeaderInfoContributorTests {
 		Info.Builder builder = new Info.Builder();
 		leaderInfoContributor.contribute(builder);
 
-		Assertions.assertThat(builder.build().getDetails().get("leaderElection")).isEqualTo(
-				Map.of("role", "leaderRole", "isLeader", false, "leaderId", "leaderId"));
+		Assertions.assertThat(builder.build().getDetails().get("leaderElection"))
+			.isEqualTo(Map.of("role", "leaderRole", "isLeader", false, "leaderId", "leaderId"));
 	}
 
 }

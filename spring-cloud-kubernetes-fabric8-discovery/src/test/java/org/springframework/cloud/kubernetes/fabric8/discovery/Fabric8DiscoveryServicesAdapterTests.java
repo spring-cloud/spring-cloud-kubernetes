@@ -342,8 +342,8 @@ class Fabric8DiscoveryServicesAdapterTests {
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
 		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
-		Assertions.assertThat(result.get(0).getMetadata().getLabels()).containsExactlyInAnyOrderEntriesOf(
-			Map.of("color", "red", "number", "1"));
+		Assertions.assertThat(result.get(0).getMetadata().getLabels())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "red", "number", "1"));
 	}
 
 	/**

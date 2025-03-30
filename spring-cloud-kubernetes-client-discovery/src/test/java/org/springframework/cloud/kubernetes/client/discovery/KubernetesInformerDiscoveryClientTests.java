@@ -609,8 +609,8 @@ class KubernetesInformerDiscoveryClientTests {
 		assertThat(serviceInstance.getPort()).isEqualTo(8080);
 		assertThat(serviceInstance.isSecure()).isFalse();
 		assertThat(serviceInstance.getUri().toASCIIString()).isEqualTo("http://127.0.0.1:8080");
-		assertThat(serviceInstance.getMetadata()).isEqualTo(
-				Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
+		assertThat(serviceInstance.getMetadata())
+			.isEqualTo(Map.of("k8s_namespace", "a", "type", "ClusterIP", "ports-prefix<unset>", "8080"));
 		assertThat(serviceInstance.podMetadata().get("labels")).isEqualTo(Map.of("a", "b"));
 		assertThat(serviceInstance.podMetadata().get("annotations")).isEqualTo(Map.of("c", "d"));
 
