@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
@@ -143,11 +143,11 @@ class ConfigReloadUtilTests {
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
-		Assertions.assertEquals(4, result.size());
-		Assertions.assertEquals("b", result.get(0).getProperty("a"));
-		Assertions.assertEquals("plain", result.get(1).getProperty(""));
-		Assertions.assertEquals("from-bootstrap", result.get(2).getProperty(""));
-		Assertions.assertEquals("from-inner-two-composite", result.get(3).getProperty(""));
+		Assertions.assertThat(result.size()).isEqualTo(4);
+		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("b");
+		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("plain");
+		Assertions.assertThat(result.get(2).getProperty("")).isEqualTo("from-bootstrap");
+		Assertions.assertThat(result.get(3).getProperty("")).isEqualTo("from-inner-two-composite");
 	}
 
 	private static final class OneComposite extends CompositePropertySource {

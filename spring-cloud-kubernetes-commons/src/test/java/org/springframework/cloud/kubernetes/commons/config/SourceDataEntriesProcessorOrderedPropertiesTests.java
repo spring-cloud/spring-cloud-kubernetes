@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockEnvironment;
@@ -42,7 +42,7 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, mockEnvironment);
 
-		Assertions.assertEquals(Map.of("my-key", "my-value"), result);
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("my-key", "my-value"));
 	}
 
 	/**
@@ -58,7 +58,7 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, mockEnvironment);
 
-		Assertions.assertEquals(Map.of("my-key", "from-app"), result);
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("my-key", "from-app"));
 	}
 
 	/**
@@ -86,7 +86,8 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, mockEnvironment);
 
-		Assertions.assertEquals(Map.of("firstKey", "abc", "secondKey", "secondFromProperties"), result);
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(
+			Map.of("firstKey", "abc", "secondKey", "secondFromProperties"));
 	}
 
 	/**
@@ -127,9 +128,8 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 		mockEnvironment.setActiveProfiles("dev");
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, mockEnvironment);
 
-		Assertions.assertEquals(
-				Map.of("firstKey", "abc", "secondKey", "secondFromDevProperties", "thirdKey", "thirdFromProperties"),
-				result);
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(
+				Map.of("firstKey", "abc", "secondKey", "secondFromDevProperties", "thirdKey", "thirdFromProperties"));
 	}
 
 	/**
@@ -175,8 +175,9 @@ class SourceDataEntriesProcessorOrderedPropertiesTests {
 		mockEnvironment.setActiveProfiles("dev");
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, mockEnvironment);
 
-		Assertions.assertEquals(Map.of("firstKey", "abc", "secondKey", "secondFromDevProperties", "thirdKey",
-				"thirdFromProperties", "fourthKey", "def"), result);
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(
+			Map.of("firstKey", "abc", "secondKey", "secondFromDevProperties", "thirdKey",
+				"thirdFromProperties", "fourthKey", "def"));
 	}
 
 }

@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockEnvironment;
@@ -34,8 +34,7 @@ class SourceDataEntriesProcessorTests {
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(Map.of("one.yml", "key: \n value"),
 				new MockEnvironment());
 
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("value", result.get("key"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	@Test
@@ -44,8 +43,7 @@ class SourceDataEntriesProcessorTests {
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(Map.of("one.yaml", "key: \n value"),
 				new MockEnvironment());
 
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("value", result.get("key"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	@Test
@@ -54,8 +52,7 @@ class SourceDataEntriesProcessorTests {
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(Map.of("one.properties", "key=value"),
 				new MockEnvironment());
 
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("value", result.get("key"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));;
 	}
 
 	/**
@@ -72,9 +69,7 @@ class SourceDataEntriesProcessorTests {
 
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, new MockEnvironment());
 
-		Assertions.assertEquals(2, result.size());
-		Assertions.assertEquals("1", result.get("one"));
-		Assertions.assertEquals("2", result.get("two"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2"));
 	}
 
 	/**
@@ -92,8 +87,7 @@ class SourceDataEntriesProcessorTests {
 
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, new MockEnvironment());
 
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("1", result.get("one"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1"));
 	}
 
 	/**
@@ -111,9 +105,7 @@ class SourceDataEntriesProcessorTests {
 
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, new MockEnvironment());
 
-		Assertions.assertEquals(2, result.size());
-		Assertions.assertEquals("1", result.get("one"));
-		Assertions.assertEquals("blue", result.get("color"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "color", "blue"));
 	}
 
 	/**
@@ -135,10 +127,7 @@ class SourceDataEntriesProcessorTests {
 		env.setActiveProfiles("dev");
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, env);
 
-		Assertions.assertEquals(3, result.size());
-		Assertions.assertEquals("1", result.get("one"));
-		Assertions.assertEquals("blue", result.get("color"));
-		Assertions.assertEquals("sport", result.get("fit"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "color", "blue", "fit", "sport"));
 	}
 
 	/**
@@ -164,11 +153,7 @@ class SourceDataEntriesProcessorTests {
 		env.setActiveProfiles("fit", "color");
 		Map<String, Object> result = SourceDataEntriesProcessor.processAllEntries(map, env);
 
-		Assertions.assertEquals(4, result.size());
-		Assertions.assertEquals("1", result.get("one"));
-		Assertions.assertEquals("jacket", result.get("name"));
-		Assertions.assertEquals("sport", result.get("fit"));
-		Assertions.assertEquals("black", result.get("color"));
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "name", "jacket", "color", "black", "fit", "sport"));
 	}
 
 }
