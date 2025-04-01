@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
@@ -127,8 +129,8 @@ class ConfigReloadUtilTests {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new OneComposite());
-		propertySources.addFirst(new PlainPropertySource("plain"));
-		propertySources.addFirst(new OneBootstrap(new EnumerablePropertySource<>("enumerable") {
+		propertySources.addFirst(new PlainPropertySource<>("plain"));
+		propertySources.addFirst(new OneBootstrap<>(new EnumerablePropertySource<>("enumerable") {
 			@Override
 			public String[] getPropertyNames() {
 				return new String[0];
@@ -143,11 +145,38 @@ class ConfigReloadUtilTests {
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
+
 		Assertions.assertThat(result.size()).isEqualTo(4);
 		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("b");
 		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("plain");
 		Assertions.assertThat(result.get(2).getProperty("")).isEqualTo("from-bootstrap");
 		Assertions.assertThat(result.get(3).getProperty("")).isEqualTo("from-inner-two-composite");
+
+	}
+
+	@Test
+	void testSecretsPropertySource() {
+		MockEnvironment environment = new MockEnvironment();
+		MutablePropertySources propertySources = environment.getPropertySources();
+		propertySources.addFirst(new SecretsPropertySource(new SourceData("secret", Map.of("a", "b"))));
+
+		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+				environment);
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
+	}
+
+	@Test
+	void testBootstrapSecretsPropertySource() {
+		MockEnvironment environment = new MockEnvironment();
+		MutablePropertySources propertySources = environment.getPropertySources();
+		propertySources
+			.addFirst(new OneBootstrap<>(new SecretsPropertySource(new SourceData("secret", Map.of("a", "b")))));
+
+		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+				environment);
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
 	}
 
 	private static final class OneComposite extends CompositePropertySource {
@@ -171,12 +200,12 @@ class ConfigReloadUtilTests {
 
 		@Override
 		public Collection<PropertySource<?>> getPropertySources() {
-			return List.of(new PlainPropertySource("from-inner-two-composite"));
+			return List.of(new PlainPropertySource<>("from-inner-two-composite"));
 		}
 
 	}
 
-	private static final class PlainPropertySource extends PropertySource<String> {
+	private static final class PlainPropertySource<T> extends PropertySource<T> {
 
 		private PlainPropertySource(String name) {
 			super(name);
@@ -189,15 +218,18 @@ class ConfigReloadUtilTests {
 
 	}
 
-	private static final class OneBootstrap extends BootstrapPropertySource<String> {
+	private static final class OneBootstrap<T> extends BootstrapPropertySource<T> {
 
-		private OneBootstrap(EnumerablePropertySource<String> delegate) {
+		private final EnumerablePropertySource<T> delegate;
+
+		private OneBootstrap(EnumerablePropertySource<T> delegate) {
 			super(delegate);
+			this.delegate = delegate;
 		}
 
 		@Override
-		public PropertySource<String> getDelegate() {
-			return new PlainPropertySource("from-bootstrap");
+		public PropertySource<T> getDelegate() {
+			return delegate;
 		}
 
 	}
