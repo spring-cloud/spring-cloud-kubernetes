@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author wind57
  */
@@ -220,6 +222,31 @@ class ConfigUtilsTests {
 		Map<String, String> result = ConfigUtils.keysWithPrefix(Map.of("a", "b", "c", "d"), "prefix-");
 		Assertions.assertFalse(result.isEmpty());
 		Assertions.assertEquals(Map.of("prefix-a", "b", "prefix-c", "d"), result);
+	}
+
+	@Test
+	void testIssue1757() {
+
+		StrippedSourceContainer containerA = new StrippedSourceContainer(Map.of("load", "true"), "client-1",
+				Map.of("client-id", "clientA", "client-secret", "a"));
+
+		StrippedSourceContainer containerB = new StrippedSourceContainer(Map.of("load", "true"), "client-2",
+				Map.of("client-id", "clientB", "client-secret", "b"));
+
+		MultipleSourcesContainer container = ConfigUtils.processLabeledData(List.of(containerA, containerB),
+				new MockEnvironment(), Map.of("load", "true"), "default", Set.of(), false);
+
+		System.out.println(container);
+		assertThat(container.names()).containsExactly("client-1", "client-2");
+
+		Map<String, Object> client1Data = (Map<String, Object>) container.data().get("client-1");
+		assertThat(client1Data)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("client-id", "clientA", "client-secret", "a"));
+
+		Map<String, Object> client2Data = (Map<String, Object>) container.data().get("client-2");
+		assertThat(client2Data)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("client-id", "clientB", "client-secret", "b"));
+
 	}
 
 }

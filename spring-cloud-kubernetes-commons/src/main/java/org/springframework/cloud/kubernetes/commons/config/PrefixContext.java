@@ -25,6 +25,6 @@ import java.util.Set;
  *
  * @author wind57
  */
-public final record PrefixContext(Map<String, Object> data, String prefix, String namespace,
+public record PrefixContext(Map<String, Object> data, String prefix, String namespace,
 		Set<String> propertySourceNames) {
 }
