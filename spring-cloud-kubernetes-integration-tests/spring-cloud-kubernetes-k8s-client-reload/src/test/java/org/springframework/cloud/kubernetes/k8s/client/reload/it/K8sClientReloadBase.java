@@ -105,11 +105,11 @@ abstract class K8sClientReloadBase {
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(namespace, configMap, null);
-			util.createAndWait(namespace, imageName, deployment, service, null, true);
+			util.createAndWait(namespace, imageName, deployment, service, true);
 		}
 		else {
 			util.deleteAndWait(namespace, configMap, null);
-			util.deleteAndWait(namespace, deployment, service, null);
+			util.deleteAndWait(namespace, deployment, service);
 		}
 
 	}
@@ -122,11 +122,11 @@ abstract class K8sClientReloadBase {
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(namespace, null, secret);
-			util.createAndWait(namespace, imageName, deployment, service, null, true);
+			util.createAndWait(namespace, imageName, deployment, service, true);
 		}
 		else {
 			util.deleteAndWait(namespace, null, secret);
-			util.deleteAndWait(namespace, deployment, service, null);
+			util.deleteAndWait(namespace, deployment, service);
 		}
 
 	}

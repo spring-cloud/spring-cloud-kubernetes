@@ -295,7 +295,12 @@ public final class Util {
 		});
 	}
 
-	public void wiremock(String namespace, Phase phase) {
+	/**
+	 * 'withNodePort' specifies if we add the NodePort or not. It is needed because we
+	 * sometimes deploy two instances of wiremock, and they can't have the same NodePort
+	 * exposed
+	 */
+	public void wiremock(String namespace, Phase phase, boolean withNodePort) {
 		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 
@@ -305,6 +310,11 @@ public final class Util {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		Service service = client.services().load(serviceStream).item();
+		if (!withNodePort) {
+			// we assume we only have one 'http' port
+			service.getSpec().getPorts().get(0).setNodePort(null);
+			service.getSpec().setType("ClusterIP");
+		}
 
 		if (phase.equals(Phase.CREATE)) {
 			deployment.getMetadata().setNamespace(namespace);

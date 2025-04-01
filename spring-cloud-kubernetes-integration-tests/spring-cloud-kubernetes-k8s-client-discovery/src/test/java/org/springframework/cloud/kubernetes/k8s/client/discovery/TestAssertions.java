@@ -133,8 +133,8 @@ final class TestAssertions {
 		assertThat(wiremockInstance.getServiceId()).isEqualTo("service-wiremock");
 		assertThat(wiremockInstance.getInstanceId()).isNotNull();
 		assertThat(wiremockInstance.getHost()).isNotNull();
-		assertThat(wiremockInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP",
-				"port.http", "8080", "app", "service-wiremock"));
+		assertThat(wiremockInstance.getMetadata()).isEqualTo(
+				Map.of("k8s_namespace", "default", "type", "NodePort", "port.http", "8080", "app", "service-wiremock"));
 
 	}
 
@@ -147,8 +147,8 @@ final class TestAssertions {
 		assertThat(wiremockInstance.getServiceId()).isEqualTo("service-wiremock");
 		assertThat(wiremockInstance.getInstanceId()).isNotNull();
 		assertThat(wiremockInstance.getHost()).isNotNull();
-		assertThat(wiremockInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP",
-				"port.http", "8080", "app", "service-wiremock"));
+		assertThat(wiremockInstance.getMetadata()).isEqualTo(
+				Map.of("k8s_namespace", "default", "type", "NodePort", "port.http", "8080", "app", "service-wiremock"));
 
 	}
 
