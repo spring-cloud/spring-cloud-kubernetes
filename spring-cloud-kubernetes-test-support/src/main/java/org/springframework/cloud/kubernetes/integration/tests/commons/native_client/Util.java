@@ -35,7 +35,6 @@ import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.ApiregistrationV1Api;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.apis.RbacAuthorizationV1Api;
 import io.kubernetes.client.openapi.models.V1APIService;
 import io.kubernetes.client.openapi.models.V1ClusterRole;
@@ -43,9 +42,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentCondition;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressLoadBalancerIngress;
-import io.kubernetes.client.openapi.models.V1IngressLoadBalancerStatus;
 import io.kubernetes.client.openapi.models.V1NamespaceBuilder;
 import io.kubernetes.client.openapi.models.V1Role;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
@@ -79,8 +75,6 @@ public final class Util {
 
 	private final AppsV1Api appsV1Api;
 
-	private final NetworkingV1Api networkingV1Api;
-
 	private final RbacAuthorizationV1Api rbacApi;
 
 	private final K3sContainer container;
@@ -101,7 +95,6 @@ public final class Util {
 		this.container = container;
 		this.coreV1Api = new CoreV1Api();
 		this.appsV1Api = new AppsV1Api();
-		this.networkingV1Api = new NetworkingV1Api();
 		rbacApi = new RbacAuthorizationV1Api();
 	}
 
@@ -113,7 +106,7 @@ public final class Util {
 	 *
 	 */
 	public void createAndWait(String namespace, String name, V1Deployment deployment, V1Service service,
-			@Nullable V1Ingress ingress, boolean changeVersion) {
+			boolean changeVersion) {
 		try {
 
 			coreV1Api.createNamespacedService(namespace, service, null, null, null, null);
@@ -143,10 +136,6 @@ public final class Util {
 				waitForDeployment(namespace, deployment);
 			}
 
-			if (ingress != null) {
-				networkingV1Api.createNamespacedIngress(namespace, ingress, null, null, null, null);
-				waitForIngress(namespace, ingress);
-			}
 		}
 		catch (Exception e) {
 			if (e instanceof ApiException apiException) {
@@ -204,8 +193,7 @@ public final class Util {
 		}
 	}
 
-	public void deleteAndWait(String namespace, V1Deployment deployment, V1Service service,
-			@Nullable V1Ingress ingress) {
+	public void deleteAndWait(String namespace, V1Deployment deployment, V1Service service) {
 
 		if (deployment != null) {
 			try {
@@ -220,25 +208,15 @@ public final class Util {
 						labelSelector(podLabels), null, null, null, null, null, null, null, null);
 				waitForDeploymentToBeDeleted(deploymentName, namespace);
 				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
+
+				service.getMetadata().setNamespace(namespace);
+				coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace(),
+						null, null, null, null, null, null);
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 
-		}
-
-		String serviceName = serviceName(service);
-		try {
-			coreV1Api.deleteNamespacedService(serviceName, namespace, null, null, null, null, null, null);
-			if (ingress != null) {
-				String ingressName = ingressName(ingress);
-				networkingV1Api.deleteNamespacedIngress(ingressName, namespace, null, null, null, null, null, null);
-				waitForIngressToBeDeleted(ingressName, namespace);
-			}
-
-		}
-		catch (ApiException e) {
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -251,10 +229,10 @@ public final class Util {
 
 		V1Service service = (V1Service) yaml("busybox/service.yaml");
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "busybox", deployment, service, null, false);
+			createAndWait(namespace, "busybox", deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait(namespace, deployment, service, null);
+			deleteAndWait(namespace, deployment, service);
 		}
 	}
 
@@ -268,10 +246,10 @@ public final class Util {
 		V1Service service = (V1Service) yaml("kafka/kafka-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "kafka", deployment, service, null, false);
+			createAndWait(namespace, "kafka", deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait(namespace, deployment, service, null);
+			deleteAndWait(namespace, deployment, service);
 		}
 	}
 
@@ -285,10 +263,10 @@ public final class Util {
 		V1Service service = (V1Service) yaml("rabbitmq/rabbitmq-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "rabbitmq", deployment, service, null, false);
+			createAndWait(namespace, "rabbitmq", deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait(namespace, deployment, service, null);
+			deleteAndWait(namespace, deployment, service);
 		}
 	}
 
@@ -435,11 +413,7 @@ public final class Util {
 				.noneMatch(x -> x.getMetadata().getName().equals(name)));
 	}
 
-	public void wiremock(String namespace, String path, Phase phase) {
-		wiremock(namespace, path, phase, true);
-	}
-
-	public void wiremock(String namespace, String path, Phase phase, boolean withIngress) {
+	public void wiremock(String namespace, Phase phase, boolean withNodePort) {
 		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
@@ -447,40 +421,26 @@ public final class Util {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		V1Service service = (V1Service) yaml("wiremock/wiremock-service.yaml");
-
-		V1Ingress ingress = null;
+		service.getMetadata().setNamespace(namespace);
+		if (!withNodePort) {
+			// we assume we only have one 'http' port
+			service.getSpec().getPorts().get(0).setNodePort(null);
+			service.getSpec().setType("ClusterIP");
+		}
 
 		if (phase.equals(Phase.CREATE)) {
-
-			if (withIngress) {
-				ingress = (V1Ingress) yaml("wiremock/wiremock-ingress.yaml");
-				ingress.getMetadata().setNamespace(namespace);
-				ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).setPath(path);
-			}
-
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			createAndWait(namespace, "wiremock", deployment, service, ingress, false);
+			createAndWait(namespace, "wiremock", deployment, service, false);
 		}
 		else {
-			if (withIngress) {
-				ingress = (V1Ingress) yaml("wiremock/wiremock-ingress.yaml");
-			}
-			deleteAndWait(namespace, deployment, service, ingress);
+			deleteAndWait(namespace, deployment, service);
 		}
 
 	}
 
 	private String deploymentName(V1Deployment deployment) {
 		return deployment.getMetadata().getName();
-	}
-
-	private String serviceName(V1Service service) {
-		return service.getMetadata().getName();
-	}
-
-	private String ingressName(V1Ingress ingress) {
-		return ingress.getMetadata().getName();
 	}
 
 	private String configMapName(V1ConfigMap configMap) {
@@ -532,43 +492,6 @@ public final class Util {
 		});
 	}
 
-	private void waitForIngress(String namespace, V1Ingress ingress) {
-		String ingressName = ingressName(ingress);
-		await().timeout(Duration.ofSeconds(90)).pollInterval(Duration.ofSeconds(3)).until(() -> {
-			try {
-				V1IngressLoadBalancerStatus status = networkingV1Api.readNamespacedIngress(ingressName, namespace, null)
-					.getStatus()
-					.getLoadBalancer();
-
-				if (status == null) {
-					LOG.info("ingress : " + ingressName + " not ready yet (loadbalancer not yet present)");
-					return false;
-				}
-
-				List<V1IngressLoadBalancerIngress> loadBalancerIngress = status.getIngress();
-				if (loadBalancerIngress == null) {
-					LOG.info("ingress : " + ingressName + " not ready yet (loadbalancer ingress not yet present)");
-					return false;
-				}
-
-				String ip = loadBalancerIngress.get(0).getIp();
-				if (ip == null) {
-					LOG.info("ingress : " + ingressName + " not ready yet");
-					return false;
-				}
-
-				LOG.info("ingress : " + ingressName + " ready with ip : " + ip);
-				return true;
-			}
-			catch (ApiException e) {
-				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-					return false;
-				}
-				throw new RuntimeException(e);
-			}
-		});
-	}
-
 	private void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
 		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
@@ -593,21 +516,6 @@ public final class Util {
 					.getItems()
 					.size();
 				return currentNumberOfPods == 0;
-			}
-			catch (ApiException e) {
-				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-					return true;
-				}
-				throw new RuntimeException(e);
-			}
-		});
-	}
-
-	private void waitForIngressToBeDeleted(String ingressName, String namespace) {
-		await().timeout(Duration.ofSeconds(90)).until(() -> {
-			try {
-				networkingV1Api.readNamespacedIngress(ingressName, namespace, null);
-				return false;
 			}
 			catch (ApiException e) {
 				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
@@ -646,24 +554,6 @@ public final class Util {
 				LOG.info("Deployment Condition Reason: " + condition.getReason());
 			}
 		}
-	}
-
-	private static void waitForDeploymentAfterPatch(String deploymentName, String namespace,
-			Map<String, String> podLabels) {
-		try {
-			await().pollDelay(Duration.ofSeconds(4))
-				.pollInterval(Duration.ofSeconds(3))
-				.atMost(60, TimeUnit.SECONDS)
-				.until(() -> isDeploymentReadyAfterPatch(deploymentName, namespace, podLabels));
-		}
-		catch (Exception e) {
-			if (e instanceof ApiException apiException) {
-				LOG.error("Error: ");
-				LOG.error(apiException.getResponseBody());
-			}
-			throw new RuntimeException(e);
-		}
-
 	}
 
 	private static boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace,
