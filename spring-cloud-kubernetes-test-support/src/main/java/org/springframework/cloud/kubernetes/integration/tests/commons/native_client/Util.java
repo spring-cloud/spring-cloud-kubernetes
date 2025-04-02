@@ -212,6 +212,7 @@ public final class Util {
 				service.getMetadata().setNamespace(namespace);
 				coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace(),
 						null, null, null, null, null, null);
+				waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -496,6 +497,21 @@ public final class Util {
 		await().timeout(Duration.ofSeconds(180)).until(() -> {
 			try {
 				appsV1Api.readNamespacedDeployment(deploymentName, namespace, null);
+				return false;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return true;
+				}
+				throw new RuntimeException(e);
+			}
+		});
+	}
+
+	private void waitForServiceToBeDeleted(String serviceName, String namespace) {
+		await().timeout(Duration.ofSeconds(180)).until(() -> {
+			try {
+				coreV1Api.readNamespacedService(serviceName, namespace, null);
 				return false;
 			}
 			catch (ApiException e) {
