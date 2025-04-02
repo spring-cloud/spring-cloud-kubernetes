@@ -132,7 +132,7 @@ public final class Util {
 		}
 	}
 
-	public void deleteAndWait(String namespace, @Nullable Deployment deployment, Service service) {
+	public void deleteAndWait(String namespace, @Nullable Deployment deployment, @Nullable Service service) {
 		try {
 
 			long startTime = System.currentTimeMillis();
@@ -150,7 +150,10 @@ public final class Util {
 			}
 			System.out.println("Ended deployment delete in " + (System.currentTimeMillis() - startTime) + "ms");
 
-			client.services().inNamespace(namespace).resource(service).delete();
+			if (service != null) {
+				client.services().inNamespace(namespace).resource(service).delete();
+				waitForServiceToBeDeleted(namespace, service);
+			}
 
 		}
 		catch (Exception e) {
@@ -360,6 +363,16 @@ public final class Util {
 		await().pollInterval(Duration.ofSeconds(1)).atMost(60, TimeUnit.SECONDS).until(() -> {
 			List<Pod> podList = client.pods().inNamespace(namespace).withLabels(matchLabels).list().getItems();
 			return podList == null || podList.isEmpty();
+		});
+	}
+
+	private void waitForServiceToBeDeleted(String namespace, Service service) {
+
+		String serviceName = service.getMetadata().getName();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			Service inner = client.services().inNamespace(namespace).withName(serviceName).get();
+			return inner == null;
 		});
 	}
 
