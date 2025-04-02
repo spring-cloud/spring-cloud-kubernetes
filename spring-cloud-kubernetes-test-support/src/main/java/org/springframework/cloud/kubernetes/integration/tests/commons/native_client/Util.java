@@ -195,8 +195,8 @@ public final class Util {
 
 	public void deleteAndWait(String namespace, V1Deployment deployment, V1Service service) {
 
-		if (deployment != null) {
-			try {
+		try {
+			if (deployment != null) {
 				String deploymentName = deploymentName(deployment);
 				Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace, null)
 					.getSpec()
@@ -208,19 +208,18 @@ public final class Util {
 						labelSelector(podLabels), null, null, null, null, null, null, null, null);
 				waitForDeploymentToBeDeleted(deploymentName, namespace);
 				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
-
-				if (service != null) {
-					service.getMetadata().setNamespace(namespace);
-					coreV1Api.deleteNamespacedService(service.getMetadata().getName(),
-							service.getMetadata().getNamespace(), null, null, null, null, null, null);
-					waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
-				}
-
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
 			}
 
+			if (service != null) {
+				service.getMetadata().setNamespace(namespace);
+				coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace(),
+						null, null, null, null, null, null);
+				waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
+			}
+
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 
