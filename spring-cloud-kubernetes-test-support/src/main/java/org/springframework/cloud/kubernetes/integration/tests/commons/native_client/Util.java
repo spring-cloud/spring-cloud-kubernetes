@@ -211,8 +211,8 @@ public final class Util {
 
 				if (service != null) {
 					service.getMetadata().setNamespace(namespace);
-					coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace(),
-						null, null, null, null, null, null);
+					coreV1Api.deleteNamespacedService(service.getMetadata().getName(),
+							service.getMetadata().getNamespace(), null, null, null, null, null, null);
 					waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
 				}
 
