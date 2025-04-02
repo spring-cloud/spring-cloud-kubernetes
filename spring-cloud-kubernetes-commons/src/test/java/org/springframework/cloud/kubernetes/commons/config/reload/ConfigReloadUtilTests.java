@@ -146,11 +146,10 @@ class ConfigReloadUtilTests {
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
 
-		Assertions.assertThat(result.size()).isEqualTo(4);
+		Assertions.assertThat(result.size()).isEqualTo(3);
 		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("b");
 		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("plain");
-		Assertions.assertThat(result.get(2).getProperty("")).isEqualTo("from-bootstrap");
-		Assertions.assertThat(result.get(3).getProperty("")).isEqualTo("from-inner-two-composite");
+		Assertions.assertThat(result.get(2).getProperty("")).isEqualTo("from-inner-two-composite");
 
 	}
 
