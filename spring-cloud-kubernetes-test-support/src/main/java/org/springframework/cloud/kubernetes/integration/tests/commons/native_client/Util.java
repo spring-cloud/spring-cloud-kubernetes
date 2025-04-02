@@ -209,10 +209,13 @@ public final class Util {
 				waitForDeploymentToBeDeleted(deploymentName, namespace);
 				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
 
-				service.getMetadata().setNamespace(namespace);
-				coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace(),
+				if (service != null) {
+					service.getMetadata().setNamespace(namespace);
+					coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace(),
 						null, null, null, null, null, null);
-				waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
+					waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
+				}
+
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);

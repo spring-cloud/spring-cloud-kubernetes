@@ -132,7 +132,7 @@ public final class Util {
 		}
 	}
 
-	public void deleteAndWait(String namespace, @Nullable Deployment deployment, Service service) {
+	public void deleteAndWait(String namespace, @Nullable Deployment deployment, @Nullable Service service) {
 		try {
 
 			long startTime = System.currentTimeMillis();
@@ -150,8 +150,10 @@ public final class Util {
 			}
 			System.out.println("Ended deployment delete in " + (System.currentTimeMillis() - startTime) + "ms");
 
-			client.services().inNamespace(namespace).resource(service).delete();
-			waitForServiceToBeDeleted(namespace, service);
+			if (service != null) {
+				client.services().inNamespace(namespace).resource(service).delete();
+				waitForServiceToBeDeleted(namespace, service);
+			}
 
 		}
 		catch (Exception e) {
