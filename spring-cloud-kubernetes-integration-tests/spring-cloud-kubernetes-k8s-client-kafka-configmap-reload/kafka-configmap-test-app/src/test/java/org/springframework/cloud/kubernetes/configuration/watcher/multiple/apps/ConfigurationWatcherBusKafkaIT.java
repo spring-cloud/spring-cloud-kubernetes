@@ -23,8 +23,8 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -164,7 +164,7 @@ class ConfigurationWatcherBusKafkaIT {
 			return value[0];
 		});
 
-		Assertions.assertTrue(value[0]);
+		Assertions.assertThat(value[0]).isTrue();
 
 		util.deleteAndWait(NAMESPACE, configMap, null);
 	}

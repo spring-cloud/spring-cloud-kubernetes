@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodName;
@@ -43,8 +43,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
 
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.instanceId(), "123");
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.instanceId()).isEqualTo("123");
 	}
 
 	@Test
@@ -60,8 +60,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.nonExternalName(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.instanceId(), "456");
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.instanceId()).isEqualTo("456");
 	}
 
 	@Test
@@ -74,8 +74,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
 
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.host(), "external-name");
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.host()).isEqualTo("external-name");
 	}
 
 	@Test
@@ -90,8 +90,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.nonExternalName(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.host(), "127.0.0.1");
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.host()).isEqualTo("127.0.0.1");
 	}
 
 	@Test
@@ -102,8 +102,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier.externalName(service);
 		InstanceIdHostPodName result = supplier.get();
 
-		Assertions.assertNotNull(result);
-		Assertions.assertNull(result.podName());
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.podName()).isNull();
 	}
 
 	@Test
@@ -120,8 +120,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.nonExternalName(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
-		Assertions.assertNotNull(result);
-		Assertions.assertNull(result.podName());
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.podName()).isNull();
 	}
 
 	@Test
@@ -138,8 +138,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.nonExternalName(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.podName(), "my-pod");
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.podName()).isEqualTo("my-pod");
 	}
 
 }
