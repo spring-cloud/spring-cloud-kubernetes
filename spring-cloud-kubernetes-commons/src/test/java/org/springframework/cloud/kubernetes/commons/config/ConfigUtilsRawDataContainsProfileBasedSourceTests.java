@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,7 +35,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 		Map<String, String> rawData = null;
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	@Test
@@ -44,7 +44,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 		Map<String, String> rawData = Map.of("account-k8s.yaml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	@Test
@@ -53,7 +53,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 		Map<String, String> rawData = Map.of("account", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	@Test
@@ -62,7 +62,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 		Map<String, String> rawData = Map.of("account-dev.yml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	@Test
@@ -71,7 +71,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 		Map<String, String> rawData = Map.of("account-dev.yml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	@Test
@@ -80,7 +80,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 		Map<String, String> rawData = Map.of("account-dev.yaml", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	@Test
@@ -89,7 +89,7 @@ class ConfigUtilsRawDataContainsProfileBasedSourceTests {
 		Map<String, String> rawData = Map.of("account-dev.properties", "value");
 
 		boolean result = ConfigUtils.rawDataContainsProfileBasedSource(activeProfiles, rawData).getAsBoolean();
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 }
