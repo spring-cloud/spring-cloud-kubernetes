@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,12 +129,9 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.reload.enabled=true",
 				"spring.main.cloud-platform=KUBERNETES");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 1);
-		Assertions.assertTrue(map.values()
-			.iterator()
-			.next()
-			.getClass()
-			.isAssignableFrom(Fabric8EventBasedConfigMapChangeDetector.class));
+		Assertions.assertThat(map.size()).isEqualTo(1);
+		Assertions.assertThat(map.values().iterator().next().getClass())
+			.isAssignableFrom(Fabric8EventBasedConfigMapChangeDetector.class);
 	}
 
 	/**
@@ -153,12 +150,9 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.reload.enabled=true",
 				"spring.cloud.kubernetes.reload.mode=event", "spring.main.cloud-platform=KUBERNETES");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 1);
-		Assertions.assertTrue(map.values()
-			.iterator()
-			.next()
-			.getClass()
-			.isAssignableFrom(Fabric8EventBasedConfigMapChangeDetector.class));
+		Assertions.assertThat(map.size()).isEqualTo(1);
+		Assertions.assertThat(map.values().iterator().next().getClass())
+			.isAssignableFrom(Fabric8EventBasedConfigMapChangeDetector.class);
 	}
 
 	/**
@@ -178,7 +172,7 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.mode=event", "spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 0);
+		Assertions.assertThat(map).isEmpty();
 	}
 
 	/**
@@ -198,7 +192,7 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.mode=polling", "spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 0);
+		Assertions.assertThat(map).isEmpty();
 	}
 
 	/**
@@ -217,9 +211,9 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.reload.enabled=true",
 				"spring.cloud.kubernetes.reload.mode=polling", "spring.main.cloud-platform=KUBERNETES");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 1);
-		Assertions.assertTrue(
-				map.values().iterator().next().getClass().isAssignableFrom(PollingConfigMapChangeDetector.class));
+		Assertions.assertThat(map.size()).isEqualTo(1);
+		Assertions.assertThat(map.values().iterator().next().getClass())
+			.isAssignableFrom(PollingConfigMapChangeDetector.class);
 	}
 
 	/**
@@ -241,12 +235,9 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false",
 				"spring.cloud.kubernetes.reload.mode=event");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 1);
-		Assertions.assertTrue(map.values()
-			.iterator()
-			.next()
-			.getClass()
-			.isAssignableFrom(Fabric8EventBasedSecretsChangeDetector.class));
+		Assertions.assertThat(map.size()).isEqualTo(1);
+		Assertions.assertThat(map.values().iterator().next().getClass())
+			.isAssignableFrom(Fabric8EventBasedSecretsChangeDetector.class);
 	}
 
 	/**
@@ -268,9 +259,9 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false",
 				"spring.cloud.kubernetes.reload.mode=polling");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 1);
-		Assertions
-			.assertTrue(map.values().iterator().next().getClass().isAssignableFrom(PollingSecretsChangeDetector.class));
+		Assertions.assertThat(map.size()).isEqualTo(1);
+		Assertions.assertThat(map.values().iterator().next().getClass())
+			.isAssignableFrom(PollingSecretsChangeDetector.class);
 	}
 
 	/**
@@ -292,13 +283,13 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.mode=event");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 2);
+		Assertions.assertThat(map.size()).isEqualTo(2);
 		List<ConfigurationChangeDetector> result = map.values()
 			.stream()
 			.sorted(Comparator.comparing(x -> x.getClass().getName()))
 			.toList();
-		Assertions.assertEquals(result.get(0).getClass(), Fabric8EventBasedConfigMapChangeDetector.class);
-		Assertions.assertEquals(result.get(1).getClass(), Fabric8EventBasedSecretsChangeDetector.class);
+		Assertions.assertThat(result.get(0).getClass()).isEqualTo(Fabric8EventBasedConfigMapChangeDetector.class);
+		Assertions.assertThat(result.get(1).getClass()).isEqualTo(Fabric8EventBasedSecretsChangeDetector.class);
 	}
 
 	/**
@@ -320,13 +311,13 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.mode=polling");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 2);
+		Assertions.assertThat(map.size()).isEqualTo(2);
 		List<ConfigurationChangeDetector> result = map.values()
 			.stream()
 			.sorted(Comparator.comparing(x -> x.getClass().getName()))
 			.toList();
-		Assertions.assertEquals(result.get(0).getClass(), PollingConfigMapChangeDetector.class);
-		Assertions.assertEquals(result.get(1).getClass(), PollingSecretsChangeDetector.class);
+		Assertions.assertThat(result.get(0).getClass()).isEqualTo(PollingConfigMapChangeDetector.class);
+		Assertions.assertThat(result.get(1).getClass()).isEqualTo(PollingSecretsChangeDetector.class);
 	}
 
 	/**
@@ -348,7 +339,7 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=false");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 0);
+		Assertions.assertThat(map).isEmpty();
 	}
 
 	/**
@@ -370,7 +361,7 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=false",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=false");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 0);
+		Assertions.assertThat(map).isEmpty();
 	}
 
 	/**
@@ -392,12 +383,12 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=false");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 1);
+		Assertions.assertThat(map.size()).isEqualTo(1);
 		List<ConfigurationChangeDetector> result = map.values()
 			.stream()
 			.sorted(Comparator.comparing(x -> x.getClass().getName()))
 			.toList();
-		Assertions.assertEquals(result.get(0).getClass(), Fabric8EventBasedConfigMapChangeDetector.class);
+		Assertions.assertThat(result.get(0).getClass()).isEqualTo(Fabric8EventBasedConfigMapChangeDetector.class);
 	}
 
 	/**
@@ -419,12 +410,12 @@ class ConfigReloadAutoConfigurationTest extends KubernetesConfigTestBase {
 				"spring.cloud.kubernetes.reload.monitoring-configMaps=true",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=false");
 		Map<String, ConfigurationChangeDetector> map = getContext().getBeansOfType(ConfigurationChangeDetector.class);
-		Assertions.assertEquals(map.size(), 1);
+		Assertions.assertThat(map.size()).isEqualTo(1);
 		List<ConfigurationChangeDetector> result = map.values()
 			.stream()
 			.sorted(Comparator.comparing(x -> x.getClass().getName()))
 			.toList();
-		Assertions.assertEquals(result.get(0).getClass(), PollingConfigMapChangeDetector.class);
+		Assertions.assertThat(result.get(0).getClass()).isEqualTo(PollingConfigMapChangeDetector.class);
 	}
 
 	@Test

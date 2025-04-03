@@ -34,9 +34,9 @@ import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -155,8 +155,8 @@ class KubernetesClientServicesListSupplierTests {
 		services.add(serviceA);
 
 		StepVerifier.create(instances).expectNext(services).verifyComplete();
-		Assertions.assertTrue(output.getOut().contains("serviceID : service-a"));
-		Assertions.assertTrue(output.getOut().contains("discovering services in namespace : default"));
+		Assertions.assertThat(output.getOut()).contains("serviceID : service-a");
+		Assertions.assertThat(output.getOut()).contains("discovering services in namespace : default");
 	}
 
 	@Test
@@ -186,9 +186,9 @@ class KubernetesClientServicesListSupplierTests {
 		List<ServiceInstance> services = List.of();
 
 		StepVerifier.create(instances).expectNext(services).verifyComplete();
-		Assertions.assertTrue(output.getOut().contains("serviceID : service-a"));
-		Assertions.assertTrue(output.getOut().contains("discovering services in namespace : default"));
-		Assertions.assertTrue(output.getOut().contains("Error retrieving service with name service-a"));
+		Assertions.assertThat(output.getOut()).contains("serviceID : service-a");
+		Assertions.assertThat(output.getOut()).contains("discovering services in namespace : default");
+		Assertions.assertThat(output.getOut()).contains("Error retrieving service with name service-a");
 	}
 
 	@Test
@@ -226,7 +226,7 @@ class KubernetesClientServicesListSupplierTests {
 		services.add(serviceATestNamespace);
 
 		StepVerifier.create(instances).expectNext(services).verifyComplete();
-		Assertions.assertTrue(output.getOut().contains("discovering services in all namespaces"));
+		Assertions.assertThat(output.getOut()).contains("discovering services in all namespaces");
 	}
 
 	@Test
@@ -271,10 +271,10 @@ class KubernetesClientServicesListSupplierTests {
 		services.add(serviceATestNamespace);
 
 		StepVerifier.create(instances).expectNext(services).verifyComplete();
-		Assertions.assertTrue(
-				output.getOut().contains("Error retrieving service with name service-a in namespace : no-service"));
-		Assertions.assertTrue(
-				output.getOut().contains("discovering services in selective namespaces : [default, no-service, test]"));
+		Assertions.assertThat(
+				output.getOut()).contains("Error retrieving service with name service-a in namespace : no-service");
+		Assertions.assertThat(
+				output.getOut()).contains("discovering services in selective namespaces : [default, no-service, test]");
 	}
 
 }

@@ -25,8 +25,8 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -90,11 +90,11 @@ class Fabric8DiscoveryFilterTests {
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
 
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
-		Assertions.assertEquals(result.get(1).getMetadata().getName(), "serviceB");
-		Assertions.assertEquals(result.get(1).getMetadata().getNamespace(), "namespaceB");
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
+		Assertions.assertThat(result.get(1).getMetadata().getName()).isEqualTo("serviceB");
+		Assertions.assertThat(result.get(1).getMetadata().getNamespace()).isEqualTo("namespaceB");
 	}
 
 	/**
@@ -121,9 +121,9 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
 	}
 
 	/**
@@ -155,9 +155,10 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
 	}
 
 	/**
@@ -191,11 +192,11 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
-		Assertions.assertEquals(result.get(1).getMetadata().getName(), "serviceB");
-		Assertions.assertEquals(result.get(1).getMetadata().getNamespace(), "namespaceB");
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
+		Assertions.assertThat(result.get(1).getMetadata().getName()).isEqualTo("serviceB");
+		Assertions.assertThat(result.get(1).getMetadata().getNamespace()).isEqualTo("namespaceB");
 	}
 
 	/**
@@ -226,9 +227,9 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
 	}
 
 	/**
@@ -263,9 +264,9 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceB");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceB");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
 	}
 
 	/**
@@ -305,10 +306,11 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getLabels(), Map.of("color", "red", "number", "1"));
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
+		Assertions.assertThat(result.get(0).getMetadata().getLabels())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "red", "number", "1"));
 	}
 
 	/**
@@ -340,12 +342,11 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
-		Assertions.assertEquals(result.get(1).getMetadata().getName(), "serviceB");
-		Assertions.assertEquals(result.get(1).getMetadata().getNamespace(), "namespaceB");
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
+		Assertions.assertThat(result.get(1).getMetadata().getName()).isEqualTo("serviceB");
+		Assertions.assertThat(result.get(1).getMetadata().getNamespace()).isEqualTo("namespaceB");
 	}
 
 	/**
@@ -378,9 +379,9 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
 	}
 
 	/**
@@ -415,9 +416,9 @@ class Fabric8DiscoveryFilterTests {
 
 		List<Service> result = services(properties, client, NAMESPACE_PROVIDER,
 				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties), null, "dummy-target");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespaceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespaceA");
 	}
 
 	private void service(String namespace, String name, Map<String, String> labels) {

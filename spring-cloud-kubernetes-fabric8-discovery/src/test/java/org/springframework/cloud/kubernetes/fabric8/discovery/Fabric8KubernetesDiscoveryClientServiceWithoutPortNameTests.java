@@ -32,7 +32,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -75,9 +75,10 @@ class Fabric8KubernetesDiscoveryClientServiceWithoutPortNameTests {
 				new ServicePortSecureResolver(properties), new KubernetesNamespaceProvider((String) null), a -> true);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
-		Assertions.assertEquals(serviceInstances.size(), 1);
-		Assertions.assertEquals(serviceInstances.get(0).getMetadata(),
-				Map.of("port.<unset>", "8080", "k8s_namespace", "spring-k8s", "type", "ClusterIP"));
+		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
+		Assertions.assertThat(serviceInstances.get(0).getMetadata())
+			.containsExactlyInAnyOrderEntriesOf(
+					Map.of("port.<unset>", "8080", "k8s_namespace", "spring-k8s", "type", "ClusterIP"));
 	}
 
 }

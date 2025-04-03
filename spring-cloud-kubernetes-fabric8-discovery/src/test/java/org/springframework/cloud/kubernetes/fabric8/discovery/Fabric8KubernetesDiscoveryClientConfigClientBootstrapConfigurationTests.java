@@ -18,8 +18,8 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -62,11 +62,11 @@ class Fabric8KubernetesDiscoveryClientConfigClientBootstrapConfigurationTests {
 		setup("server.port=7000", "spring.cloud.config.discovery.enabled=true",
 				"spring.cloud.kubernetes.discovery.enabled:true", "spring.application.name:test",
 				"spring.cloud.config.discovery.service-id:configserver");
-		Assertions.assertEquals(1, context.getParent().getBeanNamesForType(DiscoveryClient.class).length);
+		Assertions.assertThat(context.getParent().getBeanNamesForType(DiscoveryClient.class).length).isEqualTo(1);
 		DiscoveryClient client = context.getParent().getBean(DiscoveryClient.class);
 		verify(client, atLeast(2)).getInstances("configserver");
 		ConfigClientProperties locator = context.getBean(ConfigClientProperties.class);
-		Assertions.assertEquals("http://fake:8888/", locator.getUri()[0]);
+		Assertions.assertThat(locator.getUri()[0]).isEqualTo("http://fake:8888/");
 	}
 
 	private void setup(String... env) {

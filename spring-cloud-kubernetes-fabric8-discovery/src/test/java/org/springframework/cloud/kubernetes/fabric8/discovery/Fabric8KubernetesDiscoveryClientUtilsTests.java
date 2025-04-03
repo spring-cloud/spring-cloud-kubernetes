@@ -30,8 +30,8 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -70,9 +70,9 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		service("serviceB", "B", Map.of());
 
 		List<Service> result = services(properties, client, null, x -> true, null, "fabric8-discovery");
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.stream().map(s -> s.getMetadata().getName()).sorted().toList(),
-				List.of("serviceA", "serviceB"));
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.stream().map(s -> s.getMetadata().getName()).sorted().toList())
+			.containsExactlyInAnyOrder("serviceA", "serviceB");
 	}
 
 	/*
@@ -90,8 +90,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, null, x -> true, Map.of("metadata.name", "serviceA"),
 				"fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
 	}
 
 	/**
@@ -188,8 +188,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, null,
 				x -> x.getMetadata().getLabels().equals(Map.of("letter", "b")), null, "fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceB");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceB");
 	}
 
 	/**
@@ -212,9 +212,9 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		service("serviceC", "C", Map.of());
 
 		List<Service> result = services(properties, client, null, x -> true, null, "fabric8-discovery");
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.stream().map(x -> x.getMetadata().getName()).sorted().toList(),
-				List.of("serviceA", "serviceB"));
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.stream().map(x -> x.getMetadata().getName()).sorted().toList())
+			.containsExactlyInAnyOrder("serviceA", "serviceB");
 	}
 
 	/**
@@ -238,8 +238,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, null, x -> true, Map.of("metadata.name", "serviceA"),
 				"fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
 	}
 
 	/**
@@ -263,8 +263,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, null,
 				x -> x.getMetadata().getLabels().equals(Map.of("letter", "b")), null, "fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceB");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceB");
 	}
 
 	/**
@@ -289,8 +289,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, namespaceProvider("A"), x -> true, null,
 				"fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
 	}
 
 	/**
@@ -313,8 +313,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, namespaceProvider("A"), x -> true,
 				Map.of("metadata.name", "serviceA"), "fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceA");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
 	}
 
 	/**
@@ -337,8 +337,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, namespaceProvider("A"),
 				x -> x.getMetadata().getLabels().equals(Map.of("letter", "b")), null, "fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "serviceB");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceB");
 	}
 
 	@Test
@@ -357,8 +357,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 		List<Service> result = services(properties, client, namespaceProvider("test"),
 				x -> x.getSpec().getType().equals("ExternalName"), Map.of(), "fabric8-discovery");
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "external-name-service");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("external-name-service");
 	}
 
 	@Test
@@ -371,9 +371,9 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
-		Assertions.assertEquals(portsData.size(), 2);
-		Assertions.assertEquals(portsData.get("https"), 8080);
-		Assertions.assertEquals(portsData.get("<unset>"), 8081);
+		Assertions.assertThat(portsData.size()).isEqualTo(2);
+		Assertions.assertThat(portsData.get("https")).isEqualTo(8080);
+		Assertions.assertThat(portsData.get("<unset>")).isEqualTo(8081);
 	}
 
 	@Test
@@ -386,9 +386,9 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
-		Assertions.assertEquals(portsData.size(), 2);
-		Assertions.assertEquals(portsData.get("https"), 8080);
-		Assertions.assertEquals(portsData.get("http"), 8081);
+		Assertions.assertThat(portsData.size()).isEqualTo(2);
+		Assertions.assertThat(portsData.get("https")).isEqualTo(8080);
+		Assertions.assertThat(portsData.get("http")).isEqualTo(8081);
 	}
 
 	@Test
@@ -396,7 +396,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
-		Assertions.assertEquals(result.size(), 0);
+		Assertions.assertThat(result).isEmpty();
 	}
 
 	@Test
@@ -406,8 +406,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get("name"), 80);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get("name")).isEqualTo(80);
 	}
 
 	@Test
@@ -417,8 +417,8 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get("<unset>"), 80);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get("<unset>")).isEqualTo(80);
 	}
 
 	private void service(String name, String namespace, Map<String, String> labels) {

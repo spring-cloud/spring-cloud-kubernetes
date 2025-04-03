@@ -21,23 +21,15 @@ spec:
       # and this will cause this problem: https://github.com/confluentinc/cp-docker-images/blob/master/debian/kafka/include/etc/confluent/docker/configure#L58-L62
       # Another solution is to rename the service.
       enableServiceLinks: false
-      volumes:
-        - name: kafka-start-config-script
-          configMap:
-              name: kafka-start-config-script
-              defaultMode: 0755
       containers:
-        - name: kafka-start-config-script
-          volumeMounts:
-            - name: kafka-start-config-script
-              mountPath: /tmp
-          command:
-            - /tmp/kafka_start.sh
-          image: confluentinc/cp-kafka
+        - name: kafka-broker
+          image: confluentinc/confluent-local
           ports:
             - containerPort: 9092
           env:
             - name: KAFKA_BROKER_ID
+              value: "1"
+            - name: KAFKA_NODE_ID
               value: "1"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
@@ -47,8 +39,6 @@ spec:
               value: "1"
             - name: KAFKA_PROCESS_ROLES
               value: "broker,controller"
-            - name: KAFKA_NODE_ID
-              value: "1"
             - name: KAFKA_LISTENERS
               value: "PLAINTEXT://:9092,CONTROLLER://:9093"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME

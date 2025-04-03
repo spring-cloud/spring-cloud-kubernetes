@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -47,7 +47,7 @@ class Fabric8KubernetesDiscoveryClientAddressesUtilsTests {
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 0);
+		Assertions.assertThat(addresses).isEmpty();
 	}
 
 	/**
@@ -66,7 +66,7 @@ class Fabric8KubernetesDiscoveryClientAddressesUtilsTests {
 					new EndpointAddressBuilder().withHostname("two").build())
 			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 2);
+		Assertions.assertThat(addresses.size()).isEqualTo(2);
 	}
 
 	/**
@@ -86,9 +86,9 @@ class Fabric8KubernetesDiscoveryClientAddressesUtilsTests {
 			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
 			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 2);
+		Assertions.assertThat(addresses.size()).isEqualTo(2);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
-		Assertions.assertEquals(hostNames, List.of("one", "two"));
+		Assertions.assertThat(hostNames).containsExactlyInAnyOrder("one", "two");
 	}
 
 	/**
@@ -108,9 +108,9 @@ class Fabric8KubernetesDiscoveryClientAddressesUtilsTests {
 			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
 			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 3);
+		Assertions.assertThat(addresses.size()).isEqualTo(3);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
-		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
+		Assertions.assertThat(hostNames).containsExactlyInAnyOrder("one", "three", "two");
 	}
 
 }
