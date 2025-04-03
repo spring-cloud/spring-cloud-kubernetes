@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.discoveryserver;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -54,9 +54,9 @@ class DiscoveryServerApplicationContextTests {
 
 		@Test
 		void test() {
-			Assertions.assertNotNull(discoveryServerController.getIfAvailable());
-			Assertions.assertNotNull(discoveryCatalogWatcherController.getIfAvailable());
-			Assertions.assertNotNull(heartBeatListener.getIfAvailable());
+			Assertions.assertThat(discoveryServerController.getIfAvailable()).isNotNull();
+			Assertions.assertThat(discoveryCatalogWatcherController.getIfAvailable()).isNotNull();
+			Assertions.assertThat(heartBeatListener.getIfAvailable()).isNotNull();
 		}
 
 	}
@@ -83,9 +83,9 @@ class DiscoveryServerApplicationContextTests {
 
 		@Test
 		void test() {
-			Assertions.assertNotNull(discoveryServerController.getIfAvailable());
-			Assertions.assertNull(discoveryCatalogWatcherController.getIfAvailable());
-			Assertions.assertNull(heartBeatListener.getIfAvailable());
+			Assertions.assertThat(discoveryServerController.getIfAvailable()).isNotNull();
+			Assertions.assertThat(discoveryCatalogWatcherController.getIfAvailable()).isNull();
+			Assertions.assertThat(heartBeatListener.getIfAvailable()).isNull();
 		}
 
 	}
@@ -112,9 +112,9 @@ class DiscoveryServerApplicationContextTests {
 
 		@Test
 		void test() {
-			Assertions.assertNotNull(discoveryServerController.getIfAvailable());
-			Assertions.assertNull(discoveryCatalogWatcherController.getIfAvailable());
-			Assertions.assertNull(heartBeatListener.getIfAvailable());
+			Assertions.assertThat(discoveryServerController.getIfAvailable()).isNotNull();
+			Assertions.assertThat(discoveryCatalogWatcherController.getIfAvailable()).isNull();
+			Assertions.assertThat(heartBeatListener.getIfAvailable()).isNull();
 		}
 
 	}
@@ -141,9 +141,9 @@ class DiscoveryServerApplicationContextTests {
 
 		@Test
 		void test() {
-			Assertions.assertNotNull(discoveryServerController.getIfAvailable());
-			Assertions.assertNull(discoveryCatalogWatcherController.getIfAvailable());
-			Assertions.assertNull(heartBeatListener.getIfAvailable());
+			Assertions.assertThat(discoveryServerController.getIfAvailable()).isNotNull();
+			Assertions.assertThat(discoveryCatalogWatcherController.getIfAvailable()).isNull();
+			Assertions.assertThat(heartBeatListener.getIfAvailable()).isNull();
 		}
 
 	}

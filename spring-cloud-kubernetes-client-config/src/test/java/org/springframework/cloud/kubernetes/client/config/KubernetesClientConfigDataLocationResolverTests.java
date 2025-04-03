@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -78,15 +78,15 @@ class KubernetesClientConfigDataLocationResolverTests {
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
 		RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 
-		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
-		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertThat(context.isRegistered(KubernetesClientProperties.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(CoreV1Api.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(ApiClient.class)).isTrue();
 
-		Assertions.assertFalse(context.isRegistered(ConfigMapConfigProperties.class));
-		Assertions.assertFalse(context.isRegistered(SecretsConfigProperties.class));
+		Assertions.assertThat(context.isRegistered(ConfigMapConfigProperties.class)).isFalse();
+		Assertions.assertThat(context.isRegistered(SecretsConfigProperties.class)).isFalse();
 
-		Assertions.assertFalse(context.isRegistered(ConfigMapPropertySourceLocator.class));
-		Assertions.assertFalse(context.isRegistered(SecretsPropertySourceLocator.class));
+		Assertions.assertThat(context.isRegistered(ConfigMapPropertySourceLocator.class)).isFalse();
+		Assertions.assertThat(context.isRegistered(SecretsPropertySourceLocator.class)).isFalse();
 	}
 
 	/*
@@ -114,24 +114,24 @@ class KubernetesClientConfigDataLocationResolverTests {
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
 		RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 
-		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
-		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertThat(context.isRegistered(KubernetesClientProperties.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(CoreV1Api.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(ApiClient.class)).isTrue();
 
-		Assertions.assertTrue(context.isRegistered(ConfigMapConfigProperties.class));
-		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
+		Assertions.assertThat(context.isRegistered(ConfigMapConfigProperties.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(SecretsConfigProperties.class)).isTrue();
 
-		Assertions.assertTrue(context.isRegistered(ConfigMapPropertySourceLocator.class));
-		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
+		Assertions.assertThat(context.isRegistered(ConfigMapPropertySourceLocator.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(SecretsPropertySourceLocator.class)).isTrue();
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertSame(KubernetesClientConfigMapPropertySourceLocator.class,
-				configMapPropertySourceLocator.getClass());
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertSame(KubernetesClientSecretsPropertySourceLocator.class,
-				secretsPropertySourceLocator.getClass());
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientSecretsPropertySourceLocator.class);
 
 	}
 
@@ -161,25 +161,25 @@ class KubernetesClientConfigDataLocationResolverTests {
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
 		RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 
-		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
-		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertThat(context.isRegistered(KubernetesClientProperties.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(CoreV1Api.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(ApiClient.class)).isTrue();
 
-		Assertions.assertTrue(context.isRegistered(ConfigMapConfigProperties.class));
-		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
+		Assertions.assertThat(context.isRegistered(ConfigMapConfigProperties.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(SecretsConfigProperties.class)).isTrue();
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertSame(KubernetesClientConfigMapPropertySourceLocator.class,
-				configMapPropertySourceLocator.getClass());
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertSame(KubernetesClientSecretsPropertySourceLocator.class,
-				secretsPropertySourceLocator.getClass());
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isEqualTo(KubernetesClientSecretsPropertySourceLocator.class);
 
-		Assertions.assertTrue(capturedOutput.getOut()
+		Assertions.assertThat(capturedOutput.getOut())
 			.contains("Could not create the Kubernetes ApiClient in a cluster environment, because connection port "
-					+ "was not provided."));
+					+ "was not provided.");
 	}
 
 	/*
@@ -211,24 +211,24 @@ class KubernetesClientConfigDataLocationResolverTests {
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
 		RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 
-		Assertions.assertTrue(context.isRegistered(KubernetesClientProperties.class));
-		Assertions.assertTrue(context.isRegistered(CoreV1Api.class));
-		Assertions.assertTrue(context.isRegistered(ApiClient.class));
+		Assertions.assertThat(context.isRegistered(KubernetesClientProperties.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(CoreV1Api.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(ApiClient.class)).isTrue();
 
-		Assertions.assertTrue(context.isRegistered(ConfigMapConfigProperties.class));
-		Assertions.assertTrue(context.isRegistered(SecretsConfigProperties.class));
+		Assertions.assertThat(context.isRegistered(ConfigMapConfigProperties.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(SecretsConfigProperties.class)).isTrue();
 
-		Assertions.assertTrue(context.isRegistered(ConfigMapPropertySourceLocator.class));
-		Assertions.assertTrue(context.isRegistered(SecretsPropertySourceLocator.class));
+		Assertions.assertThat(context.isRegistered(ConfigMapPropertySourceLocator.class)).isTrue();
+		Assertions.assertThat(context.isRegistered(SecretsPropertySourceLocator.class)).isTrue();
 
 		ConfigMapPropertySourceLocator configMapPropertySourceLocator = context
 			.get(ConfigMapPropertySourceLocator.class);
-		Assertions.assertSame(ConfigDataRetryableConfigMapPropertySourceLocator.class,
-				configMapPropertySourceLocator.getClass());
+		Assertions.assertThat(configMapPropertySourceLocator.getClass())
+			.isEqualTo(ConfigDataRetryableConfigMapPropertySourceLocator.class);
 
 		SecretsPropertySourceLocator secretsPropertySourceLocator = context.get(SecretsPropertySourceLocator.class);
-		Assertions.assertSame(ConfigDataRetryableSecretsPropertySourceLocator.class,
-				secretsPropertySourceLocator.getClass());
+		Assertions.assertThat(secretsPropertySourceLocator.getClass())
+			.isEqualTo(ConfigDataRetryableSecretsPropertySourceLocator.class);
 
 	}
 

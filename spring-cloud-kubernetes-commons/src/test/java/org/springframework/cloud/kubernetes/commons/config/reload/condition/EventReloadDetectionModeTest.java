@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config.reload.condition;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -55,7 +55,7 @@ class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn(null);
 		boolean matches = underTest.matches(context, metadata);
-		Assertions.assertFalse(matches);
+		Assertions.assertThat(matches).isFalse();
 	}
 
 	// lack of this property being set, means a match.
@@ -64,7 +64,7 @@ class EventReloadDetectionModeTest {
 		Mockito.when(context.getEnvironment()).thenReturn(environment);
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(false);
 		boolean matches = underTest.matches(context, metadata);
-		Assertions.assertTrue(matches);
+		Assertions.assertThat(matches).isTrue();
 	}
 
 	@Test
@@ -73,7 +73,7 @@ class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("EVENT");
 		boolean matches = underTest.matches(context, metadata);
-		Assertions.assertTrue(matches);
+		Assertions.assertThat(matches).isTrue();
 	}
 
 	@Test
@@ -82,7 +82,7 @@ class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("eVeNt");
 		boolean matches = underTest.matches(context, metadata);
-		Assertions.assertTrue(matches);
+		Assertions.assertThat(matches).isTrue();
 	}
 
 	@Test
@@ -91,7 +91,7 @@ class EventReloadDetectionModeTest {
 		Mockito.when(environment.containsProperty(RELOAD_PROPERTY)).thenReturn(true);
 		Mockito.when(environment.getProperty(RELOAD_PROPERTY)).thenReturn("not-eVeNt");
 		boolean matches = underTest.matches(context, metadata);
-		Assertions.assertFalse(matches);
+		Assertions.assertThat(matches).isFalse();
 	}
 
 }
