@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config.configdata;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.BootstrapRegistry;
@@ -62,7 +62,7 @@ class KubernetesConfigDataLoaderTests {
 	@Test
 	void testIsLoadable() {
 		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader();
-		Assertions.assertTrue(loader.isLoadable(null, null));
+		Assertions.assertThat(loader.isLoadable(null, null)).isTrue();
 	}
 
 	/**
@@ -78,14 +78,14 @@ class KubernetesConfigDataLoaderTests {
 
 		MockPropertySource propertySource = new MockPropertySource("k8s");
 
-		Assertions.assertNotNull(configData);
-		Assertions.assertEquals(0, configData.getPropertySources().size());
+		Assertions.assertThat(configData).isNotNull();
+		Assertions.assertThat(configData.getPropertySources()).isEmpty();
 		ConfigData.Options options = configData.getOptions(propertySource);
-		Assertions.assertNotNull(options);
-		Assertions.assertTrue(options.contains(ConfigData.Option.IGNORE_IMPORTS));
-		Assertions.assertTrue(options.contains(ConfigData.Option.IGNORE_PROFILES));
+		Assertions.assertThat(options).isNotNull();
+		Assertions.assertThat(options.contains(ConfigData.Option.IGNORE_IMPORTS)).isTrue();
+		Assertions.assertThat(options.contains(ConfigData.Option.IGNORE_PROFILES)).isTrue();
 
-		Assertions.assertFalse(options.contains(ConfigData.Option.PROFILE_SPECIFIC));
+		Assertions.assertThat(options.contains(ConfigData.Option.PROFILE_SPECIFIC)).isFalse();
 	}
 
 	/**
@@ -103,14 +103,14 @@ class KubernetesConfigDataLoaderTests {
 
 		MockPropertySource propertySource = new MockPropertySource("k8s-dev");
 
-		Assertions.assertNotNull(configData);
-		Assertions.assertEquals(0, configData.getPropertySources().size());
+		Assertions.assertThat(configData).isNotNull();
+		Assertions.assertThat(configData.getPropertySources()).isEmpty();
 		ConfigData.Options options = configData.getOptions(propertySource);
-		Assertions.assertNotNull(options);
-		Assertions.assertTrue(options.contains(ConfigData.Option.IGNORE_IMPORTS));
-		Assertions.assertTrue(options.contains(ConfigData.Option.IGNORE_PROFILES));
+		Assertions.assertThat(options).isNotNull();
+		Assertions.assertThat(options.contains(ConfigData.Option.IGNORE_IMPORTS)).isTrue();
+		Assertions.assertThat(options.contains(ConfigData.Option.IGNORE_PROFILES)).isTrue();
 
-		Assertions.assertTrue(options.contains(ConfigData.Option.PROFILE_SPECIFIC));
+		Assertions.assertThat(options.contains(ConfigData.Option.PROFILE_SPECIFIC)).isTrue();
 	}
 
 	/**
@@ -137,10 +137,10 @@ class KubernetesConfigDataLoaderTests {
 
 		KubernetesConfigDataLoader loader = new KubernetesConfigDataLoader();
 		ConfigData configData = loader.load(CONTEXT, EMPTY_RESOURCE);
-		Assertions.assertNotNull(configData);
-		Assertions.assertEquals(2, configData.getPropertySources().size());
-		Assertions.assertEquals("k8s-secrets", configData.getPropertySources().get(0).getName());
-		Assertions.assertEquals("k8s-config-map", configData.getPropertySources().get(1).getName());
+		Assertions.assertThat(configData).isNotNull();
+		Assertions.assertThat(configData.getPropertySources().size()).isEqualTo(2);
+		Assertions.assertThat(configData.getPropertySources().get(0).getName()).isEqualTo("k8s-secrets");
+		Assertions.assertThat(configData.getPropertySources().get(1).getName()).isEqualTo("k8s-config-map");
 	}
 
 }

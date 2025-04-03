@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -37,7 +37,7 @@ class ConditionalOnSelectiveNamespacesEnabledTests {
 		MockEnvironment environment = new MockEnvironment();
 		Mockito.when(CONDITION_CONTEXT.getEnvironment()).thenReturn(environment);
 		boolean result = TO_TEST.matches(CONDITION_CONTEXT, null);
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	@Test
@@ -46,7 +46,7 @@ class ConditionalOnSelectiveNamespacesEnabledTests {
 		environment.setProperty("spring.cloud.kubernetes.discovery.namespaces", "");
 		Mockito.when(CONDITION_CONTEXT.getEnvironment()).thenReturn(environment);
 		boolean result = TO_TEST.matches(CONDITION_CONTEXT, null);
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	@Test
@@ -55,7 +55,7 @@ class ConditionalOnSelectiveNamespacesEnabledTests {
 		environment.setProperty("spring.cloud.kubernetes.discovery.namespaces", "default");
 		Mockito.when(CONDITION_CONTEXT.getEnvironment()).thenReturn(environment);
 		boolean result = TO_TEST.matches(CONDITION_CONTEXT, null);
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 }

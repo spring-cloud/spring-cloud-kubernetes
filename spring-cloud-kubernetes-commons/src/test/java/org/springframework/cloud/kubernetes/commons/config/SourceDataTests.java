@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,7 +26,7 @@ class SourceDataTests {
 
 	@Test
 	void testEmpty() {
-		Assertions.assertEquals(SourceData.emptyRecord("name").sourceData().size(), 0);
+		Assertions.assertThat(SourceData.emptyRecord("name").sourceData()).isEmpty();
 	}
 
 }

@@ -46,7 +46,7 @@ final class TestUtil {
 
 	private static final String WIREMOCK_HOST = "localhost";
 
-	private static final int WIREMOCK_PORT = 80;
+	private static final int WIREMOCK_PORT = 32321;
 
 	static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
@@ -60,7 +60,7 @@ final class TestUtil {
 		// is ready to take a request via 'Wiremock::stubFor' (because sometimes it fails)
 		// As such, get the existing mappings and retrySpec() makes sure we retry until
 		// we get a response back.
-		WebClient client = builder().baseUrl("http://localhost:80/__admin/mappings").build();
+		WebClient client = builder().baseUrl("http://localhost:32321/__admin/mappings").build();
 		client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
 
 		StubMapping stubMapping = WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))

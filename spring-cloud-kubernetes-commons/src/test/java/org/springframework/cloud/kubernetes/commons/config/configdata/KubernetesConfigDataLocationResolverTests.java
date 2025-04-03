@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -55,7 +55,7 @@ class KubernetesConfigDataLocationResolverTests {
 
 	@Test
 	void testGetPrefix() {
-		Assertions.assertEquals("kubernetes:", NOOP_RESOLVER.getPrefix());
+		Assertions.assertThat(NOOP_RESOLVER.getPrefix()).isEqualTo("kubernetes:");
 	}
 
 	/**
@@ -72,7 +72,7 @@ class KubernetesConfigDataLocationResolverTests {
 
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
 		boolean result = NOOP_RESOLVER.isResolvable(RESOLVER_CONTEXT, configDataLocation);
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	@Test
@@ -85,14 +85,14 @@ class KubernetesConfigDataLocationResolverTests {
 
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
 		boolean result = NOOP_RESOLVER.isResolvable(RESOLVER_CONTEXT, configDataLocation);
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	@Test
 	void testResolve() {
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
 		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolve(RESOLVER_CONTEXT, configDataLocation);
-		Assertions.assertEquals(0, result.size());
+		Assertions.assertThat(result).isEmpty();
 	}
 
 	/**
@@ -120,14 +120,16 @@ class KubernetesConfigDataLocationResolverTests {
 		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("k8s-app-name",
-				result.get(0).getEnvironment().getRequiredProperty("spring.application.name"));
-		Assertions.assertEquals("non-default-namespace",
-				result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"));
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.application.name"))
+			.isEqualTo("k8s-app-name");
+		Assertions
+			.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
+			.isEqualTo("non-default-namespace");
 		// ensures that we called 'bindOrCreate' and as such @Default is picked-up
-		Assertions.assertEquals("Spring-Cloud-Kubernetes-Application", result.get(0).getProperties().userAgent());
-		Assertions.assertEquals("non-default-namespace", result.get(0).getProperties().namespace());
+		Assertions.assertThat(result.get(0).getProperties().userAgent())
+			.isEqualTo("Spring-Cloud-Kubernetes-Application");
+		Assertions.assertThat(result.get(0).getProperties().namespace()).isEqualTo("non-default-namespace");
 
 	}
 
@@ -162,14 +164,15 @@ class KubernetesConfigDataLocationResolverTests {
 		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
-		Assertions.assertEquals(1, result.size());
-		Assertions.assertEquals("k8s-app-name",
-				result.get(0).getEnvironment().getRequiredProperty("spring.application.name"));
-		Assertions.assertEquals("non-default-namespace",
-				result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"));
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.application.name"))
+			.isEqualTo("k8s-app-name");
+		Assertions
+			.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
+			.isEqualTo("non-default-namespace");
 		// ensures we bind existing from bootstrap context, and not call 'bindOrCreate'
-		Assertions.assertEquals("user-agent", result.get(0).getProperties().userAgent());
-		Assertions.assertEquals("non-default-namespace", result.get(0).getProperties().namespace());
+		Assertions.assertThat(result.get(0).getProperties().userAgent()).isEqualTo("user-agent");
+		Assertions.assertThat(result.get(0).getProperties().namespace()).isEqualTo("non-default-namespace");
 	}
 
 	/**
@@ -195,9 +198,9 @@ class KubernetesConfigDataLocationResolverTests {
 		SecretsConfigProperties secretsConfigProperties = RESOLVER_CONTEXT.getBootstrapContext()
 			.get(SecretsConfigProperties.class);
 
-		Assertions.assertNotNull(kubernetesClientProperties);
-		Assertions.assertNotNull(configMapConfigProperties);
-		Assertions.assertNotNull(secretsConfigProperties);
+		Assertions.assertThat(kubernetesClientProperties).isNotNull();
+		Assertions.assertThat(configMapConfigProperties).isNotNull();
+		Assertions.assertThat(secretsConfigProperties).isNotNull();
 	}
 
 	/**
@@ -234,9 +237,9 @@ class KubernetesConfigDataLocationResolverTests {
 		SecretsConfigProperties secretsConfigProperties = RESOLVER_CONTEXT.getBootstrapContext()
 			.getOrElse(SecretsConfigProperties.class, two);
 
-		Assertions.assertNotNull(kubernetesClientProperties);
-		Assertions.assertSame(one, configMapConfigProperties);
-		Assertions.assertSame(two, secretsConfigProperties);
+		Assertions.assertThat(kubernetesClientProperties).isNotNull();
+		Assertions.assertThat(one).isSameAs(configMapConfigProperties);
+		Assertions.assertThat(two).isSameAs(secretsConfigProperties);
 	}
 
 	/**
@@ -258,10 +261,10 @@ class KubernetesConfigDataLocationResolverTests {
 				configDataLocation, profiles);
 
 		// we have @DefaultValue("true") boolean enableApi
-		Assertions.assertTrue(result.get(0).getConfigMapProperties().enableApi());
+		Assertions.assertThat(result.get(0).getConfigMapProperties().enableApi()).isTrue();
 
 		// we have @DefaultValue("true") boolean enabled
-		Assertions.assertTrue(result.get(0).getSecretsConfigProperties().enabled());
+		Assertions.assertThat(result.get(0).getSecretsConfigProperties().enabled()).isTrue();
 	}
 
 	/**
@@ -287,15 +290,15 @@ class KubernetesConfigDataLocationResolverTests {
 		// we have @DefaultValue("true") boolean enableApi, but it is not going to be
 		// picked up
 		// because of the explicit property we set in environment
-		Assertions.assertFalse(result.get(0).getConfigMapProperties().enableApi());
+		Assertions.assertThat(result.get(0).getConfigMapProperties().enableApi()).isFalse();
 		// on the other hand, @Default will be picked here
-		Assertions.assertTrue(result.get(0).getConfigMapProperties().enabled());
+		Assertions.assertThat(result.get(0).getConfigMapProperties().enabled()).isTrue();
 
 		// we have @DefaultValue enabled on paths, but it is not going to be picked up
 		// because of the explicit property we set in environment
-		Assertions.assertEquals("a", result.get(0).getSecretsConfigProperties().paths().get(0));
+		Assertions.assertThat(result.get(0).getSecretsConfigProperties().paths().get(0)).isEqualTo("a");
 		// on the other hand, @Default will be picked here
-		Assertions.assertTrue(result.get(0).getSecretsConfigProperties().includeProfileSpecificSources());
+		Assertions.assertThat(result.get(0).getSecretsConfigProperties().includeProfileSpecificSources()).isTrue();
 	}
 
 	@Test
@@ -312,7 +315,7 @@ class KubernetesConfigDataLocationResolverTests {
 		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
-		Assertions.assertFalse(result.get(0).isOptional());
+		Assertions.assertThat(result.get(0).isOptional()).isFalse();
 	}
 
 	@Test
@@ -331,9 +334,9 @@ class KubernetesConfigDataLocationResolverTests {
 		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
-		Assertions.assertEquals(List.of("a", "b"),
-				Arrays.stream(result.get(0).getEnvironment().getActiveProfiles()).toList());
-		Assertions.assertEquals("a,b", result.get(0).getProfiles());
+		Assertions.assertThat(Arrays.stream(result.get(0).getEnvironment().getActiveProfiles()).toList())
+			.containsExactly("a", "b");
+		Assertions.assertThat(result.get(0).getProfiles()).isEqualTo("a,b");
 	}
 
 }

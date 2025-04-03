@@ -60,7 +60,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 		util = new Util(K3S);
 		util.createNamespace(LEFT_NAMESPACE);
 		util.createNamespace(RIGHT_NAMESPACE);
-		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.CREATE);
+		util.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, true);
 		util.setUpClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
 		configWatcher(Phase.CREATE);
 	}
@@ -68,7 +68,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	@AfterAll
 	static void afterAll() {
 		configWatcher(Phase.DELETE);
-		util.wiremock(DEFAULT_NAMESPACE, "/", Phase.DELETE);
+		util.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, true);
 		util.deleteClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
 		util.deleteNamespace(LEFT_NAMESPACE);
 		util.deleteNamespace(RIGHT_NAMESPACE);
@@ -128,10 +128,10 @@ class ActuatorRefreshMultipleNamespacesIT {
 			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(DEFAULT_NAMESPACE, deployment, service, null);
+			util.deleteAndWait(DEFAULT_NAMESPACE, deployment, service);
 		}
 
 	}
