@@ -50,7 +50,7 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 class BusRabbitAutoConfiguration {
 
 	@Bean
-	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 	ConfigMapWatcherChangeDetector busConfigMapChangeWatcher(AbstractEnvironment environment, CoreV1Api coreV1Api,
 			KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
@@ -64,7 +64,7 @@ class BusRabbitAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(SecretsWatcherChangeDetector.class)
+	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
 	SecretsWatcherChangeDetector busSecretsChangeWatcher(AbstractEnvironment environment, CoreV1Api coreV1Api,
 			KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,

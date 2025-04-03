@@ -4,18 +4,17 @@ logging:
 
 spring:
   application:
-    name: poll-reload
+    name: poll-reload-mount-boostrap
   config:
     import: "kubernetes:,configtree:/tmp/"
 
 management:
   endpoint:
     refresh:
-      enabled: true
+      access: unrestricted
     restart:
-      enabled: true
+      access: unrestricted
   endpoints:
     web:
       exposure:
         include: '*'
-

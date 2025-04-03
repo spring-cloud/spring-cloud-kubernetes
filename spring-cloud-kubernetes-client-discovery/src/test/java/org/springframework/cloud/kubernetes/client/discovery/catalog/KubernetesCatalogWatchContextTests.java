@@ -16,9 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.discovery.catalog;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -29,21 +30,22 @@ class KubernetesCatalogWatchContextTests {
 	@Test
 	void emptyLabels() {
 		String result = KubernetesCatalogWatchContext.labelSelector(Map.of());
-		Assertions.assertEquals("", result);
+		Assertions.assertThat(result).isEmpty();
 	}
 
 	@Test
 	void singleLabel() {
 		String result = KubernetesCatalogWatchContext.labelSelector(Map.of("a", "b"));
-		Assertions.assertEquals("a=b", result);
+		Assertions.assertThat(result).isEqualTo("a=b");
 	}
 
 	@Test
 	void multipleLabelsLabel() {
-		String result = KubernetesCatalogWatchContext.labelSelector(Map.of("a", "b", "c", "d"));
-		Assertions.assertTrue(result.contains("c=d"));
-		Assertions.assertTrue(result.contains("&"));
-		Assertions.assertTrue(result.contains("a=b"));
+		Map<String, String> labels = new LinkedHashMap<>();
+		labels.put("a", "b");
+		labels.put("c", "d");
+		String result = KubernetesCatalogWatchContext.labelSelector(labels);
+		Assertions.assertThat(result).isEqualTo("a=b,c=d");
 	}
 
 }

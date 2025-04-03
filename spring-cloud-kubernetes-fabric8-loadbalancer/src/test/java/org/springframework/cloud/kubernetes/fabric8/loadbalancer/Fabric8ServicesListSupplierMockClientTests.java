@@ -28,8 +28,8 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,23 +87,23 @@ class Fabric8ServicesListSupplierMockClientTests {
 				new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
-		Assertions.assertEquals(serviceInstances.size(), 1);
+		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
 
 		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0)
 			.stream()
 			.sorted(Comparator.comparing(ServiceInstance::getServiceId))
 			.toList();
-		Assertions.assertEquals(serviceInstancesSorted.size(), 2);
+		Assertions.assertThat(serviceInstancesSorted.size()).isEqualTo(2);
 
-		Assertions.assertEquals(serviceInstancesSorted.get(0).getServiceId(), "service-a");
-		Assertions.assertEquals(serviceInstancesSorted.get(0).getHost(), "service-a.a.svc.cluster.local");
-		Assertions.assertEquals(serviceInstancesSorted.get(0).getPort(), 8887);
+		Assertions.assertThat(serviceInstancesSorted.get(0).getServiceId()).isEqualTo("service-a");
+		Assertions.assertThat(serviceInstancesSorted.get(0).getHost()).isEqualTo("service-a.a.svc.cluster.local");
+		Assertions.assertThat(serviceInstancesSorted.get(0).getPort()).isEqualTo(8887);
 
-		Assertions.assertEquals(serviceInstancesSorted.get(1).getServiceId(), "service-a");
-		Assertions.assertEquals(serviceInstancesSorted.get(1).getHost(), "service-a.c.svc.cluster.local");
-		Assertions.assertEquals(serviceInstancesSorted.get(1).getPort(), 8889);
+		Assertions.assertThat(serviceInstancesSorted.get(1).getServiceId()).isEqualTo("service-a");
+		Assertions.assertThat(serviceInstancesSorted.get(1).getHost()).isEqualTo("service-a.c.svc.cluster.local");
+		Assertions.assertThat(serviceInstancesSorted.get(1).getPort()).isEqualTo(8889);
 
-		Assertions.assertTrue(output.getOut().contains("discovering services in all namespaces"));
+		Assertions.assertThat(output.getOut()).contains("discovering services in all namespaces");
 	}
 
 	@Test
@@ -127,19 +127,19 @@ class Fabric8ServicesListSupplierMockClientTests {
 				new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
-		Assertions.assertEquals(serviceInstances.size(), 1);
+		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
 		List<ServiceInstance> inner = serviceInstances.get(0);
 
 		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0)
 			.stream()
 			.sorted(Comparator.comparing(ServiceInstance::getServiceId))
 			.toList();
-		Assertions.assertEquals(serviceInstancesSorted.size(), 1);
-		Assertions.assertEquals(inner.get(0).getServiceId(), "service-c");
-		Assertions.assertEquals(inner.get(0).getHost(), "service-c.c.svc.cluster.local");
-		Assertions.assertEquals(inner.get(0).getPort(), 8889);
+		Assertions.assertThat(serviceInstancesSorted.size()).isEqualTo(1);
+		Assertions.assertThat(inner.get(0).getServiceId()).isEqualTo("service-c");
+		Assertions.assertThat(inner.get(0).getHost()).isEqualTo("service-c.c.svc.cluster.local");
+		Assertions.assertThat(inner.get(0).getPort()).isEqualTo(8889);
 
-		Assertions.assertTrue(output.getOut().contains("discovering services in namespace : c"));
+		Assertions.assertThat(output.getOut()).contains("discovering services in namespace : c");
 	}
 
 	@Test
@@ -162,22 +162,22 @@ class Fabric8ServicesListSupplierMockClientTests {
 				new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
-		Assertions.assertEquals(serviceInstances.size(), 1);
+		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
 
 		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0)
 			.stream()
 			.sorted(Comparator.comparing(ServiceInstance::getPort))
 			.toList();
-		Assertions.assertEquals(serviceInstancesSorted.size(), 2);
-		Assertions.assertEquals(serviceInstancesSorted.get(0).getServiceId(), "my-service");
-		Assertions.assertEquals(serviceInstancesSorted.get(0).getHost(), "my-service.a.svc.cluster.local");
-		Assertions.assertEquals(serviceInstancesSorted.get(0).getPort(), 8887);
+		Assertions.assertThat(serviceInstancesSorted.size()).isEqualTo(2);
+		Assertions.assertThat(serviceInstancesSorted.get(0).getServiceId()).isEqualTo("my-service");
+		Assertions.assertThat(serviceInstancesSorted.get(0).getHost()).isEqualTo("my-service.a.svc.cluster.local");
+		Assertions.assertThat(serviceInstancesSorted.get(0).getPort()).isEqualTo(8887);
 
-		Assertions.assertEquals(serviceInstancesSorted.get(1).getServiceId(), "my-service");
-		Assertions.assertEquals(serviceInstancesSorted.get(1).getHost(), "my-service.b.svc.cluster.local");
-		Assertions.assertEquals(serviceInstancesSorted.get(1).getPort(), 8888);
+		Assertions.assertThat(serviceInstancesSorted.get(1).getServiceId()).isEqualTo("my-service");
+		Assertions.assertThat(serviceInstancesSorted.get(1).getHost()).isEqualTo("my-service.b.svc.cluster.local");
+		Assertions.assertThat(serviceInstancesSorted.get(1).getPort()).isEqualTo(8888);
 
-		Assertions.assertTrue(output.getOut().contains("discovering services in selective namespaces : [a, b]"));
+		Assertions.assertThat(output.getOut()).contains("discovering services in selective namespaces : [a, b]");
 	}
 
 	private void createService(String namespace, String name, int port) {

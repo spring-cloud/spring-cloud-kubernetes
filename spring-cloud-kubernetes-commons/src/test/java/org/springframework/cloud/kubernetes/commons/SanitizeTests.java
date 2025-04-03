@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.commons;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.actuate.endpoint.SanitizableData;
@@ -63,7 +63,7 @@ class SanitizeTests {
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableData = new SanitizableData(bootstrapPropertySource, "secret", "xyz");
 
-		Assertions.assertEquals(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED), "xyz");
+		Assertions.assertThat(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED)).isEqualTo("xyz");
 	}
 
 	@Test
@@ -75,7 +75,7 @@ class SanitizeTests {
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableData = new SanitizableData(bootstrapPropertySource, "secret", "xyz");
 
-		Assertions.assertEquals(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED), SANITIZED_VALUE);
+		Assertions.assertThat(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED)).isEqualTo(SANITIZED_VALUE);
 	}
 
 	@Test
@@ -87,7 +87,7 @@ class SanitizeTests {
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableData = new SanitizableData(bootstrapPropertySource, "secret", "xyz");
 
-		Assertions.assertEquals(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED), "xyz");
+		Assertions.assertThat(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED)).isEqualTo("xyz");
 	}
 
 	@Test
@@ -99,7 +99,7 @@ class SanitizeTests {
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableData = new SanitizableData(bootstrapPropertySource, "secret", "xyz");
 
-		Assertions.assertEquals(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED), SANITIZED_VALUE);
+		Assertions.assertThat(sanitizer.sanitize(sanitizableData, SHOW_UNSANITIZED)).isEqualTo(SANITIZED_VALUE);
 	}
 
 	@Test
@@ -113,8 +113,8 @@ class SanitizeTests {
 		SanitizableData sanitizableDataSecret = new SanitizableData(compositePropertySource, "secret", "xyz");
 		SanitizableData sanitizableDataMount = new SanitizableData(compositePropertySource, "mount", "abc");
 
-		Assertions.assertEquals(sanitizer.sanitize(sanitizableDataSecret, SHOW_UNSANITIZED), SANITIZED_VALUE);
-		Assertions.assertEquals(sanitizer.sanitize(sanitizableDataMount, SHOW_UNSANITIZED), "abc");
+		Assertions.assertThat(sanitizer.sanitize(sanitizableDataSecret, SHOW_UNSANITIZED)).isEqualTo(SANITIZED_VALUE);
+		Assertions.assertThat(sanitizer.sanitize(sanitizableDataMount, SHOW_UNSANITIZED)).isEqualTo("abc");
 	}
 
 	static class DummyPropertySource extends MapPropertySource {

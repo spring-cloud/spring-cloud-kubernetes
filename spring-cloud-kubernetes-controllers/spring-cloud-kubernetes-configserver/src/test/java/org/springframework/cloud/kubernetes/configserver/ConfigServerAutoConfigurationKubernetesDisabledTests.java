@@ -38,6 +38,7 @@ class ConfigServerAutoConfigurationKubernetesDisabledTests {
 	@Test
 	void runTest() {
 		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(0);
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepositoryFactory.class)).hasSize(0);
 	}
 
 }

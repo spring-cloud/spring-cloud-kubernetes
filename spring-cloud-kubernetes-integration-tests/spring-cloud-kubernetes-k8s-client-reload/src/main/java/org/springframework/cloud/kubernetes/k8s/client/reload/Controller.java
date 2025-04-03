@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.reload;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,50 +25,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class Controller {
 
-	private final LeftProperties leftProperties;
-
-	private final RightProperties rightProperties;
-
-	private final RightWithLabelsProperties rightWithLabelsProperties;
-
 	private final ConfigMapProperties configMapProperties;
 
-	public Controller(LeftProperties leftProperties, RightProperties rightProperties,
-			RightWithLabelsProperties rightWithLabelsProperties, ConfigMapProperties configMapProperties) {
-		this.leftProperties = leftProperties;
-		this.rightProperties = rightProperties;
-		this.rightWithLabelsProperties = rightWithLabelsProperties;
+	private final SecretProperties secretsProperties;
+
+	public Controller(ConfigMapProperties configMapProperties, SecretProperties secretsProperties) {
 		this.configMapProperties = configMapProperties;
+		this.secretsProperties = secretsProperties;
 	}
 
-	@GetMapping("/left")
-	public String left() {
-		return leftProperties.getValue();
-	}
-
-	@GetMapping("/right")
-	public String right() {
-		return rightProperties.getValue();
-	}
-
-	@GetMapping("/with-label")
-	public String witLabel() {
-		return rightWithLabelsProperties.getValue();
-	}
-
-	@GetMapping("/key-no-mount")
-	public String keyNoMount() {
+	@GetMapping("/configmap")
+	public String key() {
 		return configMapProperties.getKey();
 	}
 
-	@GetMapping("/debug")
-	public String debug() {
-		try {
-			return Files.readAllLines(Paths.get("/tmp/props/key")).get(0);
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	@GetMapping("/secret")
+	public String secret() {
+		return secretsProperties.getKey();
 	}
 
 }
