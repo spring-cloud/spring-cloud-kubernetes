@@ -30,7 +30,7 @@ NOTE: If you set `spring.cloud.kubernetes.configserver.config-map-namespaces` an
 you will need to include the namespace in which the Config Server is deployed in order to continue to fetch Config Map and Secret data from that namespace.
 
 ### Using Advanced Features Of Spring Vault
-In order to use some of the [more advanced Spring Vault features](https://docs.spring.io/spring-cloud-config/reference/server/environment-repository/vault-backend.html) of the **Spring Cloud Config Server**, [`spring-vault-core`](https://mvnrepository.com/artifact/org.springframework.vault/spring-vault-core) must be on the classpath. By default, Spring Cloud Kubernetes can generate a Docker image for deploying Config Server to Kubernetes, but it does not include `spring-vault-core` in the classpath. If you need `spring-core-vault` to enable certain functionality in the Config Server you can build your own version of Docker image by enabling the `vault` Maven profile when running Maven build.
+In order to use some of the https://docs.spring.io/spring-cloud-config/reference/server/environment-repository/vault-backend.html[more advanced Spring Vault features] of the **Spring Cloud Config Server**, https://mvnrepository.com/artifact/org.springframework.vault/spring-vault-core[`spring-vault-core`] must be on the classpath. By default, Spring Cloud Kubernetes can generate a Docker image for deploying Config Server to Kubernetes, but it does not include `spring-vault-core` in the classpath. If you need `spring-vault-core` to enable certain functionality in the Config Server you can build your own version of Docker image by enabling the `vault` Maven profile when running Maven build.
 
 Example:
 ```bash
