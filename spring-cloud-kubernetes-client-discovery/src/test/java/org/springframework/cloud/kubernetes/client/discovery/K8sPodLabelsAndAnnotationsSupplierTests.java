@@ -21,8 +21,8 @@ import java.util.Map;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1PodBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -52,9 +52,9 @@ class K8sPodLabelsAndAnnotationsSupplierTests {
 
 		PodLabelsAndAnnotations result = K8sPodLabelsAndAnnotationsSupplier.nonExternalName(coreV1Api, NAMESPACE)
 			.apply(POD_NAME);
-		Assertions.assertNotNull(result);
-		Assertions.assertTrue(result.labels().isEmpty());
-		Assertions.assertTrue(result.annotations().isEmpty());
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.labels()).isEmpty();
+		Assertions.assertThat(result.annotations()).isEmpty();
 	}
 
 	@Test
@@ -70,9 +70,9 @@ class K8sPodLabelsAndAnnotationsSupplierTests {
 
 		PodLabelsAndAnnotations result = K8sPodLabelsAndAnnotationsSupplier.nonExternalName(coreV1Api, NAMESPACE)
 			.apply(POD_NAME);
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.labels(), Map.of("a", "b"));
-		Assertions.assertEquals(result.annotations(), Map.of("c", "d"));
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.labels()).isEqualTo(Map.of("a", "b"));
+		Assertions.assertThat(result.annotations()).isEqualTo(Map.of("c", "d"));
 	}
 
 }

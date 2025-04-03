@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.discoveryserver;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -56,7 +55,6 @@ class HeartbeatTests {
 
 	@Test
 	void testHeartbeat() {
-		Assertions.assertTrue(true);
 		client.get().uri("/state").exchange().expectStatus().is2xxSuccessful().expectBody().json("[]");
 
 		context.getBean(HeartbeatPublisher.class).publishEvent();

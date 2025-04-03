@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.commons.leader;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -45,7 +45,8 @@ class LeaderInfoContributorTests {
 		Info.Builder builder = new Info.Builder();
 		leaderInfoContributor.contribute(builder);
 
-		Assertions.assertEquals(builder.build().getDetails().get("leaderElection"), Map.of("leaderId", "Unknown"));
+		Assertions.assertThat(builder.build().getDetails().get("leaderElection"))
+			.isEqualTo(Map.of("leaderId", "Unknown"));
 	}
 
 	@Test
@@ -65,8 +66,8 @@ class LeaderInfoContributorTests {
 		Info.Builder builder = new Info.Builder();
 		leaderInfoContributor.contribute(builder);
 
-		Assertions.assertEquals(builder.build().getDetails().get("leaderElection"),
-				Map.of("role", "leaderRole", "isLeader", true, "leaderId", "leaderId"));
+		Assertions.assertThat(builder.build().getDetails().get("leaderElection"))
+			.isEqualTo(Map.of("role", "leaderRole", "isLeader", true, "leaderId", "leaderId"));
 	}
 
 	@Test
@@ -86,8 +87,8 @@ class LeaderInfoContributorTests {
 		Info.Builder builder = new Info.Builder();
 		leaderInfoContributor.contribute(builder);
 
-		Assertions.assertEquals(builder.build().getDetails().get("leaderElection"),
-				Map.of("role", "leaderRole", "isLeader", false, "leaderId", "leaderId"));
+		Assertions.assertThat(builder.build().getDetails().get("leaderElection"))
+			.isEqualTo(Map.of("role", "leaderRole", "isLeader", false, "leaderId", "leaderId"));
 	}
 
 }

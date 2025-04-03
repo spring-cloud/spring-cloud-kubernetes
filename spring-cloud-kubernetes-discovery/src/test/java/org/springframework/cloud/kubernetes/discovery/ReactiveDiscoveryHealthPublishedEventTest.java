@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -49,8 +49,8 @@ class ReactiveDiscoveryHealthPublishedEventTest {
 
 	@Test
 	void test() {
-		Assertions.assertTrue(HealthEventListenerConfiguration.caught);
-		Assertions.assertNull(discoveryClients.getIfAvailable());
+		Assertions.assertThat(HealthEventListenerConfiguration.caught).isTrue();
+		Assertions.assertThat(discoveryClients.getIfAvailable()).isNull();
 	}
 
 }

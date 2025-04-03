@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -89,14 +89,16 @@ abstract class SecretsRetryEnabled {
 				.build())
 			.once();
 
-		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
+		PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify locate is called only once
 		verify(verifiablePsl, times(1)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource[0].getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
+		assertThat(propertySource[0].getProperty("some.sensitive.number")).isEqualTo("1");
 	}
 
 	@Test
@@ -115,14 +117,16 @@ abstract class SecretsRetryEnabled {
 				.build())
 			.once();
 
-		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
+		PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify retried 4 times
 		verify(verifiablePsl, times(4)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
-		assertThat(propertySource.getProperty("some.sensitive.number")).isEqualTo("1");
+		assertThat(propertySource[0].getProperty("some.sensitive.prop")).isEqualTo("theSensitiveValue");
+		assertThat(propertySource[0].getProperty("some.sensitive.number")).isEqualTo("1");
 	}
 
 	@Test

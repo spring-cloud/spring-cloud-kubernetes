@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +54,8 @@ class ActuatorEnabledHealthTest {
 			.jsonPath("components.kubernetes")
 			.exists();
 
-		Assertions.assertNotNull(registry.getContributor("kubernetes"),
-				"reactive kubernetes contributor must be present when 'management.health.kubernetes.enabled=true'");
+		Assertions.assertThat(registry.getContributor("kubernetes")).isNotNull();
+
 	}
 
 }
