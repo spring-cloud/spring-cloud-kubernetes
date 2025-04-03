@@ -22,11 +22,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -113,12 +114,16 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	protected void putPathConfig(CompositePropertySource composite) {
 
-		if (!properties.paths().isEmpty()) {
+		Set<String> uniquePaths = new LinkedHashSet<>(properties.paths());
+
+		if (!uniquePaths.isEmpty()) {
 			LOG.warn(
 					"path support is deprecated and will be removed in a future release. Please use spring.config.import");
 		}
 
-		this.properties.paths().stream().map(Paths::get).filter(Files::exists).flatMap(x -> {
+		LOG.debug("paths property sources : " + uniquePaths);
+
+		uniquePaths.stream().map(Paths::get).filter(Files::exists).flatMap(x -> {
 			try {
 				return Files.walk(x);
 			}
@@ -179,7 +184,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			try {
 				String content = new String(Files.readAllBytes(filePath)).trim();
 				String sourceName = fileName.toLowerCase(Locale.ROOT);
-				SourceData sourceData = new SourceData(sourceName, Collections.singletonMap(fileName, content));
+				SourceData sourceData = new SourceData(sourceName, Map.of(fileName, content));
 				return new SecretsPropertySource(sourceData);
 			}
 			catch (IOException e) {

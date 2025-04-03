@@ -22,8 +22,8 @@ import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -112,12 +112,12 @@ class KubernetesCatalogWatchTests {
 
 		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
 		HeartbeatEvent event = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
-		Assertions.assertEquals(event.getSource().getClass(), KubernetesCatalogWatch.class);
+		Assertions.assertThat(event.getSource().getClass()).isEqualTo(KubernetesCatalogWatch.class);
 
 		List<EndpointNameAndNamespace> state = (List<EndpointNameAndNamespace>) event.getValue();
 
-		Assertions.assertEquals(state.size(), 1);
-		Assertions.assertEquals(state.get(0).namespace(), "namespaceA");
+		Assertions.assertThat(state.size()).isEqualTo(1);
+		Assertions.assertThat(state.get(0).namespace()).isEqualTo("namespaceA");
 
 	}
 
@@ -161,12 +161,12 @@ class KubernetesCatalogWatchTests {
 
 		verify(APPLICATION_EVENT_PUBLISHER).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
 		HeartbeatEvent eventOne = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
-		Assertions.assertEquals(eventOne.getSource().getClass(), KubernetesCatalogWatch.class);
+		Assertions.assertThat(eventOne.getSource().getClass()).isEqualTo(KubernetesCatalogWatch.class);
 
 		List<EndpointNameAndNamespace> stateOne = (List<EndpointNameAndNamespace>) eventOne.getValue();
 
-		Assertions.assertEquals(stateOne.size(), 1);
-		Assertions.assertEquals(stateOne.get(0).namespace(), "namespaceA");
+		Assertions.assertThat(stateOne.size()).isEqualTo(1);
+		Assertions.assertThat(stateOne.get(0).namespace()).isEqualTo("namespaceA");
 
 		// second call
 		stubFor(get("/state")
@@ -176,12 +176,12 @@ class KubernetesCatalogWatchTests {
 
 		verify(APPLICATION_EVENT_PUBLISHER, Mockito.times(2)).publishEvent(HEARTBEAT_EVENT_ARGUMENT_CAPTOR.capture());
 		HeartbeatEvent eventTwo = HEARTBEAT_EVENT_ARGUMENT_CAPTOR.getValue();
-		Assertions.assertEquals(eventTwo.getSource().getClass(), KubernetesCatalogWatch.class);
+		Assertions.assertThat(eventTwo.getSource().getClass()).isEqualTo(KubernetesCatalogWatch.class);
 
 		List<EndpointNameAndNamespace> stateTwo = (List<EndpointNameAndNamespace>) eventTwo.getValue();
 
-		Assertions.assertEquals(stateTwo.size(), 1);
-		Assertions.assertEquals(stateTwo.get(0).namespace(), "namespaceB");
+		Assertions.assertThat(stateTwo.size()).isEqualTo(1);
+		Assertions.assertThat(stateTwo.get(0).namespace()).isEqualTo("namespaceB");
 
 	}
 

@@ -22,8 +22,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -178,16 +178,14 @@ public class KubernetesProfileEnvironmentPostProcessorTest {
 	 * 'kubernetes' profile is not present
 	 */
 	private void assertKubernetesProfileNotPresent() {
-		Assertions.assertFalse(kubernetesProfile().isPresent(),
-				"'kubernetes' profile must not be present when not running in kubernetes");
+		Assertions.assertThat(kubernetesProfile().isPresent()).isFalse();
 	}
 
 	/*
 	 * 'kubernetes' profile is present
 	 */
 	private void assertKubernetesProfilePresent() {
-		Assertions.assertTrue(kubernetesProfile().isPresent(),
-				"'kubernetes' profile must be present when running in kubernetes");
+		Assertions.assertThat(kubernetesProfile().isPresent()).isTrue();
 	}
 
 	/*
@@ -196,8 +194,7 @@ public class KubernetesProfileEnvironmentPostProcessorTest {
 	private void assertKubernetesPropertySourceNotPresent() {
 		Optional<PropertySource<?>> kubernetesPropertySource = kubernetesPropertySource();
 
-		Assertions.assertFalse(kubernetesPropertySource.isPresent(),
-				"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must not be present when not running on kubernetes");
+		Assertions.assertThat(kubernetesPropertySource.isPresent()).isFalse();
 	}
 
 	/*
@@ -206,13 +203,11 @@ public class KubernetesProfileEnvironmentPostProcessorTest {
 	private void assertKubernetesPropertySourcePresent() {
 
 		Optional<PropertySource<?>> kubernetesPropertySource = kubernetesPropertySource();
-		Assertions.assertTrue(kubernetesPropertySource.isPresent(),
-				"'KUBERNETES_NAMESPACE_PROPERTY_SOURCE' source must be present when running on kubernetes");
+		Assertions.assertThat(kubernetesPropertySource.isPresent()).isTrue();
 
 		String property = (String) kubernetesPropertySource.get()
 			.getProperty("spring.cloud.kubernetes.client.namespace");
-		Assertions.assertEquals(property, FOUNT_IT,
-				"'spring.cloud.kubernetes.client.namespace' must be set to 'foundIt'");
+		Assertions.assertThat(property).isEqualTo(FOUNT_IT);
 	}
 
 	/**

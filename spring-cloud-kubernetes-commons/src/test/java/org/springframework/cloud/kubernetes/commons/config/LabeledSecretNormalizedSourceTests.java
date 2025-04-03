@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.Collections;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -34,8 +34,8 @@ class LabeledSecretNormalizedSourceTests {
 		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, false);
 		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, false);
 
-		Assertions.assertEquals(left.hashCode(), right.hashCode());
-		Assertions.assertEquals(left, right);
+		Assertions.assertThat(left.hashCode()).isEqualTo(right.hashCode());
+		Assertions.assertThat(left).isEqualTo(right);
 	}
 
 	/*
@@ -53,26 +53,26 @@ class LabeledSecretNormalizedSourceTests {
 		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, knownRight,
 				false);
 
-		Assertions.assertEquals(left.hashCode(), right.hashCode());
-		Assertions.assertEquals(left, right);
+		Assertions.assertThat(left.hashCode()).isEqualTo(right.hashCode());
+		Assertions.assertThat(left).isEqualTo(right);
 	}
 
 	@Test
 	void testType() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
-		Assertions.assertSame(source.type(), NormalizedSourceType.LABELED_SECRET);
+		Assertions.assertThat(source.type()).isSameAs(NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
-		Assertions.assertThrows(RuntimeException.class, () -> source.labels().put("c", "d"));
+		Assertions.assertThatThrownBy(() -> source.labels().put("c", "d")).isInstanceOf(RuntimeException.class);
 	}
 
 	@Test
 	void testTarget() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
-		Assertions.assertEquals(source.target(), "secret");
+		Assertions.assertThat(source.target()).isEqualTo("secret");
 	}
 
 	@Test
@@ -80,19 +80,19 @@ class LabeledSecretNormalizedSourceTests {
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, "some");
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix,
 				true);
-		Assertions.assertTrue(source.name().isEmpty());
-		Assertions.assertEquals(source.namespace().get(), "namespace");
-		Assertions.assertFalse(source.failFast());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertThat(source.name().isEmpty()).isTrue();
+		Assertions.assertThat(source.namespace().get()).isEqualTo("namespace");
+		Assertions.assertThat(source.failFast()).isFalse();
+		Assertions.assertThat(source.profileSpecificSources()).isTrue();
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
 		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true, true);
-		Assertions.assertEquals(source.namespace().get(), "namespace");
-		Assertions.assertTrue(source.failFast());
-		Assertions.assertSame(ConfigUtils.Prefix.DEFAULT, source.prefix());
-		Assertions.assertTrue(source.profileSpecificSources());
+		Assertions.assertThat(source.namespace().get()).isEqualTo("namespace");
+		Assertions.assertThat(source.failFast()).isTrue();
+		Assertions.assertThat(ConfigUtils.Prefix.DEFAULT).isSameAs(source.prefix());
+		Assertions.assertThat(source.profileSpecificSources()).isTrue();
 	}
 
 }

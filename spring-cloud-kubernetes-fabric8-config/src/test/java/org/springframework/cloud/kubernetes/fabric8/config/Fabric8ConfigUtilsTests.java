@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -62,8 +62,8 @@ class Fabric8ConfigUtilsTests {
 			.create();
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "red"), new MockEnvironment(), Set.of());
-		Assertions.assertEquals(Map.of(), result.data());
-		Assertions.assertTrue(result.names().isEmpty());
+		Assertions.assertThat(result.data()).isEmpty();
+		Assertions.assertThat(result.names()).isEmpty();
 	}
 
 	// secret "my-secret" is deployed with label {color:pink}; we search for it by same
@@ -80,8 +80,8 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
-		Assertions.assertEquals(Map.of("property", "value"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
+		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("property", "value"));
 	}
 
 	// secret "my-secret" is deployed with label {color:pink}; we search for it by same
@@ -99,8 +99,8 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
-		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
+		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("key1", "value1"));
 	}
 
 	// secrets "my-secret" and "my-secret-2" are deployed with label {color:pink};
@@ -126,12 +126,11 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertTrue(result.names().contains("my-secret"));
-		Assertions.assertTrue(result.names().contains("my-secret-2"));
+		Assertions.assertThat(result.names()).contains("my-secret");
+		Assertions.assertThat(result.names()).contains("my-secret-2");
 
-		Assertions.assertEquals(2, result.data().size());
-		Assertions.assertEquals("value", result.data().get("property"));
-		Assertions.assertEquals("value-2", result.data().get("property-2"));
+		Assertions.assertThat(result.data())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("property-2", "value-2", "property", "value"));
 	}
 
 	/**
@@ -192,14 +191,12 @@ class Fabric8ConfigUtilsTests {
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
 
-		Assertions.assertTrue(result.names().contains("blue-circle-secret"));
-		Assertions.assertTrue(result.names().contains("blue-square-secret"));
-		Assertions.assertTrue(result.names().contains("blue-square-secret-k8s"));
+		Assertions.assertThat(result.names()).contains("blue-circle-secret");
+		Assertions.assertThat(result.names()).contains("blue-square-secret");
+		Assertions.assertThat(result.names()).contains("blue-square-secret-k8s");
 
-		Assertions.assertEquals(3, result.data().size());
-		Assertions.assertEquals("1", result.data().get("one"));
-		Assertions.assertEquals("2", result.data().get("two"));
-		Assertions.assertEquals("4", result.data().get("four"));
+		Assertions.assertThat(result.data())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "four", "4"));
 	}
 
 	// secret "my-secret" is deployed; we search for it by name and do not find it.
@@ -213,8 +210,8 @@ class Fabric8ConfigUtilsTests {
 		names.add("nope");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(0, result.names().size());
-		Assertions.assertEquals(0, result.data().size());
+		Assertions.assertThat(result.names()).isEmpty();
+		Assertions.assertThat(result.data()).isEmpty();
 	}
 
 	// secret "my-secret" is deployed; we search for it by name and find it.
@@ -231,8 +228,8 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(1, result.names().size());
-		Assertions.assertEquals("value", result.data().get("property"));
+		Assertions.assertThat(result.names().size()).isEqualTo(1);
+		Assertions.assertThat(result.data().get("property")).isEqualTo("value");
 	}
 
 	// secrets "my-secret" and "my-secret-2" are deployed;
@@ -258,12 +255,12 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertTrue(result.names().contains("my-secret"));
-		Assertions.assertTrue(result.names().contains("my-secret-2"));
+		Assertions.assertThat(result.names()).contains("my-secret");
+		Assertions.assertThat(result.names()).contains("my-secret-2");
 
-		Assertions.assertEquals(2, result.data().size());
-		Assertions.assertEquals("value", result.data().get("property"));
-		Assertions.assertEquals("value-2", result.data().get("property-2"));
+		Assertions.assertThat(result.data().size()).isEqualTo(2);
+		Assertions.assertThat(result.data().get("property")).isEqualTo("value");
+		Assertions.assertThat(result.data().get("property-2")).isEqualTo("value-2");
 	}
 
 	// config-map "my-config-map" is deployed without any data; we search for it by name
@@ -280,8 +277,8 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
-		Assertions.assertTrue(result.data().isEmpty());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+		Assertions.assertThat(result.data()).isEmpty();
 	}
 
 	// config-map "my-config-map" is deployed; we search for it and do not find it.
@@ -296,8 +293,8 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-config-map-not-found");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of(), result.names());
-		Assertions.assertTrue(result.data().isEmpty());
+		Assertions.assertThat(result.names()).isEmpty();
+		Assertions.assertThat(result.data()).isEmpty();
 	}
 
 	// config-map "my-config-map" is deployed; we search for it and find it
@@ -315,8 +312,8 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
-		Assertions.assertEquals(Map.of("property", "value"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("property", "value"));
 	}
 
 	// config-map "my-config-map" is deployed; we search for it and find it.
@@ -335,8 +332,8 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
-		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("key1", "value1"));
 	}
 
 	// config-map "my-config-map" and "my-config-map-2" are deployed;
@@ -363,12 +360,12 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertTrue(result.names().contains("my-config-map"));
-		Assertions.assertTrue(result.names().contains("my-config-map-2"));
+		Assertions.assertThat(result.names()).contains("my-config-map");
+		Assertions.assertThat(result.names()).contains("my-config-map-2");
 
-		Assertions.assertEquals(2, result.data().size());
-		Assertions.assertEquals("value", result.data().get("property"));
-		Assertions.assertEquals("value-2", result.data().get("property-2"));
+		Assertions.assertThat(result.data().size()).isEqualTo(2);
+		Assertions.assertThat(result.data().get("property")).isEqualTo("value");
+		Assertions.assertThat(result.data().get("property-2")).isEqualTo("value-2");
 	}
 
 	@Test
@@ -378,8 +375,8 @@ class Fabric8ConfigUtilsTests {
 				Duration.ofMillis(15000), Set.of("non-default"), false, Duration.ofSeconds(2));
 		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null,
 				new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
-		Assertions.assertEquals(1, namespaces.size());
-		Assertions.assertEquals(namespaces.iterator().next(), "non-default");
+		Assertions.assertThat(namespaces.size()).isEqualTo(1);
+		Assertions.assertThat(namespaces.iterator().next()).isEqualTo("non-default");
 	}
 
 	@Test
@@ -389,8 +386,8 @@ class Fabric8ConfigUtilsTests {
 		KubernetesNamespaceProvider provider = new KubernetesNamespaceProvider(environment);
 		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null, provider, ConfigReloadProperties.DEFAULT,
 				"configmap");
-		Assertions.assertEquals(1, namespaces.size());
-		Assertions.assertEquals(namespaces.iterator().next(), "some");
+		Assertions.assertThat(namespaces.size()).isEqualTo(1);
+		Assertions.assertThat(namespaces.iterator().next()).isEqualTo("some");
 	}
 
 }
