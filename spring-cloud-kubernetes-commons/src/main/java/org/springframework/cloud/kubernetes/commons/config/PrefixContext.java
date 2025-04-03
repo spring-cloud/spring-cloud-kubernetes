@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
 
 /**
  * A holder for data needed to compute prefix based properties, in case of a secret or
@@ -25,6 +24,8 @@ import java.util.Set;
  *
  * @author wind57
  */
-public final record PrefixContext(Map<String, Object> data, String prefix, String namespace,
-		Set<String> propertySourceNames) {
+public final record PrefixContext(MultipleSourcesContainer data, Function<String, String> prefix, String namespace) {
+	public PrefixContext(MultipleSourcesContainer data, String prefix, String namespace) {
+		this(data, ignored -> prefix, namespace);
+	}
 }

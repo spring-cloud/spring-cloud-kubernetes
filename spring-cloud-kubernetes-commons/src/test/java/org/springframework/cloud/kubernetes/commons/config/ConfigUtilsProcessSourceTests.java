@@ -80,8 +80,8 @@ class ConfigUtilsProcessSourceTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
 				namespace, decode, includeDefaultProfileData);
 		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.names().toString(), "[configmap-a]");
-		Assertions.assertEquals(result.data(), Map.of("one", "1"));
+		Assertions.assertEquals(result.data().keySet().toString(), "[configmap-a]");
+		Assertions.assertEquals(result.data(), Map.of("configmap-a", Map.of("one", "1")));
 	}
 
 	/**
@@ -159,7 +159,7 @@ class ConfigUtilsProcessSourceTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
 				namespace, decode, includeDefaultProfileData);
 		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.names().toString(), "[account]");
+		Assertions.assertEquals(result.data().keySet().toString(), "[account]");
 
 		/**
 		 * <pre>
@@ -173,7 +173,8 @@ class ConfigUtilsProcessSourceTests {
 		 *			since 'k8s' is not an active profile.
 		 * </pre>
 		 */
-		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
+		Assertions.assertEquals(result.data(),
+				Map.of("account", Map.of("one", "1", "two", "2", "three", "3", "five", "5")));
 		Assertions.assertTrue(output.getOut().contains("entry : account-k8s.properties will be skipped"));
 	}
 
@@ -252,7 +253,7 @@ class ConfigUtilsProcessSourceTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
 				namespace, decode, includeDefaultProfileData);
 		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.names().toString(), "[account-default]");
+		Assertions.assertEquals(result.data().keySet().toString(), "[account-default]");
 
 		/**
 		 * <pre>
@@ -268,7 +269,8 @@ class ConfigUtilsProcessSourceTests {
 		 *		6. we do not have 'four=4' since we do not read 'account-k8s.properties'
 		 * </pre>
 		 */
-		Assertions.assertEquals(result.data(), Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
+		Assertions.assertEquals(result.data(),
+				Map.of("account-default", Map.of("one", "1", "two", "2", "three", "3", "five", "5")));
 		Assertions.assertTrue(output.getOut().contains("entry : account-k8s.properties will be skipped"));
 
 	}
@@ -364,14 +366,14 @@ class ConfigUtilsProcessSourceTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
 				namespace, decode, includeDefaultProfileData);
 		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.names().toString(), "[account]");
+		Assertions.assertEquals(result.data().keySet().toString(), "[account]");
 
 		/**
 		 * <pre>
 		 * 		- we only read from 'account-k8s.properties'
 		 * </pre>
 		 */
-		Assertions.assertEquals(result.data(), Map.of("one", "1111", "four", "4"));
+		Assertions.assertEquals(result.data(), Map.of("account", Map.of("one", "1111", "four", "4")));
 		Assertions.assertTrue(output.getOut().contains("entry : account.properties will be skipped"));
 		Assertions.assertTrue(output.getOut().contains("entry : account-default.properties will be skipped"));
 
@@ -452,7 +454,7 @@ class ConfigUtilsProcessSourceTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
 				namespace, decode, includeDefaultProfileData);
 		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.names().toString(), "[account-k8s]");
+		Assertions.assertEquals(result.data().keySet().toString(), "[account-k8s]");
 
 		/**
 		 * <pre>
@@ -471,7 +473,7 @@ class ConfigUtilsProcessSourceTests {
 		 *			(because 'prod' is not an active profile)
 		 * </pre>
 		 */
-		Assertions.assertEquals(result.data(), Map.of("one", "1111", "five", "5"));
+		Assertions.assertEquals(result.data(), Map.of("account-k8s", Map.of("one", "1111", "five", "5")));
 		Assertions.assertTrue(output.getOut().contains("entry : account-prod.properties will be skipped"));
 		Assertions.assertTrue(output.getOut().contains("entry : account.properties will be skipped"));
 		Assertions.assertTrue(output.getOut().contains("entry : account-default.properties will be skipped"));

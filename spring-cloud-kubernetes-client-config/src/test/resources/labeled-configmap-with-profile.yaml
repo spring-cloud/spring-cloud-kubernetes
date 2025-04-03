@@ -15,6 +15,7 @@ spring:
             includeProfileSpecificSources: false
           - labels:
               color: green
+            explicitPrefix: green
           - labels:
               color: red
           - labels:

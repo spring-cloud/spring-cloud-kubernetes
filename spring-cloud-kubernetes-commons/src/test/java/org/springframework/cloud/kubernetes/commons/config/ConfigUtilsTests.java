@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -139,8 +139,10 @@ class ConfigUtilsTests {
 
 	@Test
 	void testWithPrefix() {
-		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
-				Set.of("name1", "name2"));
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("name1", Map.of("a", "b", "c", "d"));
+		data.put("name2", Map.of("a", "b", "d", "d"));
+		PrefixContext context = new PrefixContext(new MultipleSourcesContainer(data, false), "prefix", "namespace");
 
 		SourceData result = ConfigUtils.withPrefix("configmap", context);
 
@@ -155,14 +157,36 @@ class ConfigUtilsTests {
 	 */
 	@Test
 	void testWithPrefixSortedName() {
-		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
-				Set.of("namec", "namea", "nameb"));
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("namec", Map.of("a", "b", "c", "d"));
+		data.put("namea", Map.of("a", "b", "c", "d"));
+		data.put("nameb", Map.of("a", "b", "c", "d"));
+		PrefixContext context = new PrefixContext(new MultipleSourcesContainer(data, false), "prefix", "namespace");
 
 		SourceData result = ConfigUtils.withPrefix("configmap", context);
 		Assertions.assertEquals(result.sourceName(), "configmap.namea.nameb.namec.namespace");
 
 		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
 		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
+	}
+
+	/*
+	 * For duplicate keys the value from the last source should be preserved.
+	 */
+	@Test
+	void testWithPrefixPreserveLast() {
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("source-b", Map.of("a", "1", "b", "2", "c", "4"));
+		data.put("source-a", Map.of("b", "2", "c", "3", "d", "4"));
+		PrefixContext context = new PrefixContext(new MultipleSourcesContainer(data, false), "prefix", "namespace");
+
+		SourceData result = ConfigUtils.withPrefix("configmap", context);
+		Assertions.assertEquals("configmap.source-a.source-b.namespace", result.sourceName());
+
+		Assertions.assertEquals("1", result.sourceData().get("prefix.a"));
+		Assertions.assertEquals("2", result.sourceData().get("prefix.b"));
+		Assertions.assertEquals("3", result.sourceData().get("prefix.c"));
+		Assertions.assertEquals("4", result.sourceData().get("prefix.d"));
 	}
 
 	/**
@@ -176,7 +200,7 @@ class ConfigUtilsTests {
 	 * </pre>
 	 */
 	@Test
-	void testMerge() {
+	void testFlatten() {
 
 		StrippedSourceContainer configMapOne = new StrippedSourceContainer(Map.of(), "configmap-one",
 				Map.of(Constants.APPLICATION_YAML, "propA: A\npropB: B"));
@@ -190,10 +214,10 @@ class ConfigUtilsTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(List.of(configMapOne, configMapOneK8s),
 				new MockEnvironment(), sourceNames, "default", false);
 
-		Assertions.assertEquals(result.data().size(), 3);
-		Assertions.assertEquals(result.data().get("propA"), "AA");
-		Assertions.assertEquals(result.data().get("propB"), "B");
-		Assertions.assertEquals(result.data().get("propC"), "C");
+		Assertions.assertEquals(3, result.flatten().size());
+		Assertions.assertEquals("AA", result.flatten().get("propA"));
+		Assertions.assertEquals("B", result.flatten().get("propB"));
+		Assertions.assertEquals("C", result.flatten().get("propC"));
 	}
 
 	@Test

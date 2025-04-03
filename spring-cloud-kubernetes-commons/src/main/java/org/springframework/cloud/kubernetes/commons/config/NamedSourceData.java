@@ -17,14 +17,12 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
@@ -56,7 +54,7 @@ public abstract class NamedSourceData {
 
 			data = dataSupplier(sourceNames);
 
-			if (data.names().isEmpty()) {
+			if (data.data().isEmpty()) {
 				String emptySourceName = ConfigUtils.sourceName(target, sourceName, namespace);
 				LOG.debug("Will return empty source with name : " + emptySourceName);
 				return SourceData.emptyRecord(emptySourceName);
@@ -65,7 +63,7 @@ public abstract class NamedSourceData {
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
 				// since we are in a named source, calling get on the supplier is safe
 				String prefixToUse = prefix.prefixProvider().get();
-				PrefixContext prefixContext = new PrefixContext(data.data(), prefixToUse, namespace, data.names());
+				PrefixContext prefixContext = new PrefixContext(data, prefixToUse, namespace);
 				return ConfigUtils.withPrefix(target, prefixContext);
 			}
 
@@ -73,11 +71,15 @@ public abstract class NamedSourceData {
 		catch (Exception e) {
 			LOG.warn("Failure in reading named sources");
 			onException(failFast, e);
-			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
+			data = new MultipleSourcesContainer(data.data(), true);
 		}
 
-		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(generateSourceName(target, names, namespace, activeProfiles), data.data());
+		String names = data.data()
+			.keySet()
+			.stream()
+			.sorted()
+			.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		return new SourceData(generateSourceName(target, names, namespace, activeProfiles), data.flatten());
 	}
 
 	protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles) {

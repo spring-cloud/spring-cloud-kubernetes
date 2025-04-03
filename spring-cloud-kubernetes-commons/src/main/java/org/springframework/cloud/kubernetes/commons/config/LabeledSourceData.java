@@ -19,13 +19,13 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
 
 /**
@@ -53,7 +53,7 @@ public abstract class LabeledSourceData {
 			// need this check because when there is no data, the name of the property
 			// source is using provided labels,
 			// unlike when the data is present: when we use secret names
-			if (data.names().isEmpty()) {
+			if (data.data().isEmpty()) {
 				String names = labels.keySet()
 					.stream()
 					.sorted()
@@ -63,29 +63,31 @@ public abstract class LabeledSourceData {
 
 			if (prefix != ConfigUtils.Prefix.DEFAULT) {
 
-				String prefixToUse;
-				if (prefix == ConfigUtils.Prefix.KNOWN) {
-					prefixToUse = prefix.prefixProvider().get();
+				Function<String, String> prefixToUse;
+				if (prefix == ConfigUtils.Prefix.DELAYED) {
+					prefixToUse = Function.identity();
 				}
 				else {
-					prefixToUse = data.names()
-						.stream()
-						.sorted()
-						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+					String knownPrefix = prefix.prefixProvider().get();
+					prefixToUse = ignored -> knownPrefix;
 				}
 
-				PrefixContext prefixContext = new PrefixContext(data.data(), prefixToUse, namespace, data.names());
+				PrefixContext prefixContext = new PrefixContext(data, prefixToUse, namespace);
 				return ConfigUtils.withPrefix(target, prefixContext);
 			}
 		}
 		catch (Exception e) {
 			LOG.warn("Failure in reading labeled sources");
 			onException(failFast, e);
-			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
+			data = new MultipleSourcesContainer(data.data(), true);
 		}
 
-		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.data());
+		String names = data.data()
+			.keySet()
+			.stream()
+			.sorted()
+			.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.flatten());
 
 	}
 

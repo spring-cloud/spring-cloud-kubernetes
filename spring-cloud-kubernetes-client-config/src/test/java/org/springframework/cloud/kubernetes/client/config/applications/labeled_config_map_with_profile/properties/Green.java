@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.applications.labeled_
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s")
+@ConfigurationProperties("green")
 public class Green {
 
 	private String two;
