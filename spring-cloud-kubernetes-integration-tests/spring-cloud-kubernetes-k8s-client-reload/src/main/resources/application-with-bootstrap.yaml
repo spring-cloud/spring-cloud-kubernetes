@@ -1,12 +1,6 @@
-logging:
-  level:
-    root: DEBUG
-
 spring:
   application:
     name: poll-reload-mount-boostrap
-  config:
-    import: "kubernetes:,configtree:/tmp/"
 
 management:
   endpoint:

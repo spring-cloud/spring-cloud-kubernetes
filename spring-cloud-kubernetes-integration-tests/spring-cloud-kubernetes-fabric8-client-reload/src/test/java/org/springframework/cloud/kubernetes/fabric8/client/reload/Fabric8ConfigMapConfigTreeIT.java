@@ -102,8 +102,7 @@ class Fabric8ConfigMapConfigTreeIT {
 		// we first read the initial value from the configmap
 		assertThat(result).isEqualTo("as-mount-initial");
 
-		// replace data in configmap and wait for k8s to pick it up
-		// our polling will detect that and restart the app
+		// replace data in configmap and wait for configuration watcher to pick it up.
 		InputStream configMapConfigTreeStream = util.inputStream("manifests/configmap-configtree.yaml");
 		ConfigMap configMapConfigTree = Serialization.unmarshal(configMapConfigTreeStream, ConfigMap.class);
 		configMapConfigTree.setData(Map.of("from.properties.key", "as-mount-changed"));

@@ -18,18 +18,18 @@ package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -41,17 +41,13 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
+class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-reload";
 
+	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
+
 	private static final String NAMESPACE = "default";
-
-	private static final K3sContainer K3S = Commons.container();
-
-	private static Util util;
-
-	private static CoreV1Api coreV1Api;
 
 	@BeforeAll
 	static void beforeAllLocal() throws Exception {
@@ -59,29 +55,31 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		util = new Util(K3S);
-		coreV1Api = new CoreV1Api();
+		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+
 		util.setUp(NAMESPACE);
 		manifestsSecret(Phase.CREATE, util, NAMESPACE, IMAGE_NAME);
+		util.configWatcher(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
 		manifestsSecret(Phase.DELETE, util, NAMESPACE, IMAGE_NAME);
+		util.configWatcher(Phase.DELETE);
 	}
 
 	/**
 	 * <pre>
-	 *     - we have bootstrap enabled
-	 *     - we will 'locate' property sources from secrets.
-	 *     - there are no explicit secrets to search for, but what we will also read,
-	 *     	 is 'spring.cloud.kubernetes.secret.paths', which we have set to
-	 *     	 '/tmp/application.properties'
-	 *       in this test. That is populated by the volumeMounts (see mount/deployment-with-secret.yaml)
-	 *     - we first assert that we are actually reading the path based source
+	 *     - we have "spring.config.import: kubernetes:,configtree:/tmp/", which means we will 'locate' property sources
+	 *       from secrets.
+	 *     - the property above means that at the moment we will be searching for secrets that only
+	 *       match the application name, in this specific test there is no such secrets.
+	 *     - what we will also read, is /tmp directory according to configtree rules.
+	 *       As such, a property "props.key" will be in environment.
 	 *
-	 *     - we then change the secret content, wait for k8s to pick it up and replace them
-	 *     - our polling will then detect that change, and trigger a reload.
+	 *     - we then change the config map content, wait for configuration watcher to pick up the change
+	 *       and schedule a refresh event, based on http.
 	 * </pre>
 	 */
 	@Test
@@ -100,12 +98,22 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 		// our polling will detect that and restart the app
 		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
 		secret.setData(Map.of("from.properties.secret.key", "as-mount-changed".getBytes(StandardCharsets.UTF_8)));
-		coreV1Api.replaceNamespacedSecret("secret-reload", NAMESPACE, secret, null, null, null, null);
 
-		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
-				IMAGE_NAME);
+		// add label so that configuration-watcher picks this up
+		Map<String, String> existingLabels = new HashMap<>(
+				Optional.ofNullable(secret.getMetadata().getLabels()).orElse(new HashMap<>()));
+		existingLabels.put("spring.cloud.kubernetes.secret", "true");
+		secret.getMetadata().setLabels(existingLabels);
 
-		await().atMost(Duration.ofSeconds(120))
+		// add app annotation
+		Map<String, String> existingAnnotations = new HashMap<>(
+				Optional.ofNullable(secret.getMetadata().getAnnotations()).orElse(new HashMap<>()));
+		existingAnnotations.put("spring.cloud.kubernetes.secret.apps", IMAGE_NAME);
+		secret.getMetadata().setAnnotations(existingAnnotations);
+
+		new CoreV1Api().replaceNamespacedSecret("secret-reload", NAMESPACE, secret, null, null, null, null);
+
+		await().atMost(Duration.ofSeconds(180))
 			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
