@@ -9,6 +9,7 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
+      nodePort: 32321
   selector:
     app: service-wiremock
-  type: ClusterIP
+  type: NodePort
