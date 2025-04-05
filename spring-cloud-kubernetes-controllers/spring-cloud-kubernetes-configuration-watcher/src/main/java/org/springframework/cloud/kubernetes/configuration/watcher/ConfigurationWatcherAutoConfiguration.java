@@ -56,7 +56,7 @@ class ConfigurationWatcherAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(ConfigMapWatcherChangeDetector.class)
+	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
 	ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
 			CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,

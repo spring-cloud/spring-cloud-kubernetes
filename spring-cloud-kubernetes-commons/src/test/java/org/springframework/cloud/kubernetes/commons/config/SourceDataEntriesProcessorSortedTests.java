@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockEnvironment;
@@ -39,9 +39,9 @@ class SourceDataEntriesProcessorSortedTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getKey(), "simple-property");
-		Assertions.assertEquals(result.get(0).getValue(), "value");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo("simple-property");
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("value");
 	}
 
 	@Test
@@ -54,12 +54,12 @@ class SourceDataEntriesProcessorSortedTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).getKey(), "one");
-		Assertions.assertEquals(result.get(0).getValue(), "1");
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo("one");
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("1");
 
-		Assertions.assertEquals(result.get(1).getKey(), "two");
-		Assertions.assertEquals(result.get(1).getValue(), "2");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("two");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("2");
 	}
 
 	@Test
@@ -71,9 +71,9 @@ class SourceDataEntriesProcessorSortedTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
-		Assertions.assertEquals(result.get(0).getValue(), "key=value");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo(Constants.APPLICATION_PROPERTIES);
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key=value");
 	}
 
 	@Test
@@ -86,12 +86,12 @@ class SourceDataEntriesProcessorSortedTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
-		Assertions.assertEquals(result.get(0).getValue(), "key=value");
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo(Constants.APPLICATION_PROPERTIES);
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key=value");
 
-		Assertions.assertEquals(result.get(1).getKey(), "simple");
-		Assertions.assertEquals(result.get(1).getValue(), "other_value");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("simple");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("other_value");
 	}
 
 	@Test
@@ -104,12 +104,12 @@ class SourceDataEntriesProcessorSortedTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
-		Assertions.assertEquals(result.get(0).getValue(), "key=value");
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo(Constants.APPLICATION_PROPERTIES);
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key=value");
 
-		Assertions.assertEquals(result.get(1).getKey(), "simple");
-		Assertions.assertEquals(result.get(1).getValue(), "other_value");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("simple");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("other_value");
 	}
 
 	@Test
@@ -124,15 +124,15 @@ class SourceDataEntriesProcessorSortedTests {
 		mockEnvironment.setActiveProfiles("dev");
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 3);
-		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
-		Assertions.assertEquals(result.get(0).getValue(), "key=value");
+		Assertions.assertThat(result.size()).isEqualTo(3);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo(Constants.APPLICATION_PROPERTIES);
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key=value");
 
-		Assertions.assertEquals(result.get(1).getKey(), "application-dev.properties");
-		Assertions.assertEquals(result.get(1).getValue(), "key-dev=value-dev");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("application-dev.properties");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("key-dev=value-dev");
 
-		Assertions.assertEquals(result.get(2).getKey(), "simple");
-		Assertions.assertEquals(result.get(2).getValue(), "other_value");
+		Assertions.assertThat(result.get(2).getKey()).isEqualTo("simple");
+		Assertions.assertThat(result.get(2).getValue()).isEqualTo("other_value");
 	}
 
 	@Test
@@ -147,10 +147,10 @@ class SourceDataEntriesProcessorSortedTests {
 		mockEnvironment.setActiveProfiles("dev");
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment, false);
-		Assertions.assertEquals(1, result.size());
+		Assertions.assertThat(result.size()).isEqualTo(1);
 
-		Assertions.assertEquals(result.get(0).getKey(), "application-dev.properties");
-		Assertions.assertEquals(result.get(0).getValue(), "key-dev=value-dev");
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo("application-dev.properties");
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key-dev=value-dev");
 	}
 
 	@Test
@@ -168,18 +168,18 @@ class SourceDataEntriesProcessorSortedTests {
 		mockEnvironment.setActiveProfiles("k8s");
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result.get(0).getKey(), Constants.APPLICATION_PROPERTIES);
-		Assertions.assertEquals(result.get(0).getValue(), "key=value");
+		Assertions.assertThat(result.size()).isEqualTo(4);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo(Constants.APPLICATION_PROPERTIES);
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key=value");
 
-		Assertions.assertEquals(result.get(1).getKey(), "application-k8s.properties");
-		Assertions.assertEquals(result.get(1).getValue(), "key-k8s=value-k8s");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("application-k8s.properties");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("key-k8s=value-k8s");
 
-		Assertions.assertEquals(result.get(2).getKey(), "simple");
-		Assertions.assertEquals(result.get(2).getValue(), "other_value");
+		Assertions.assertThat(result.get(2).getKey()).isEqualTo("simple");
+		Assertions.assertThat(result.get(2).getValue()).isEqualTo("other_value");
 
-		Assertions.assertEquals(result.get(3).getKey(), "second-simple");
-		Assertions.assertEquals(result.get(3).getValue(), "second_other_value");
+		Assertions.assertThat(result.get(3).getKey()).isEqualTo("second-simple");
+		Assertions.assertThat(result.get(3).getValue()).isEqualTo("second_other_value");
 	}
 
 	@Test
@@ -198,13 +198,13 @@ class SourceDataEntriesProcessorSortedTests {
 		mockEnvironment.setActiveProfiles("k8s");
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertThat(result.size()).isEqualTo(2);
 
-		Assertions.assertEquals(result.get(0).getKey(), "simple");
-		Assertions.assertEquals(result.get(0).getValue(), "other_value");
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo("simple");
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("other_value");
 
-		Assertions.assertEquals(result.get(1).getKey(), "second-simple");
-		Assertions.assertEquals(result.get(1).getValue(), "second_other_value");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("second-simple");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("second_other_value");
 	}
 
 	@Test
@@ -223,18 +223,18 @@ class SourceDataEntriesProcessorSortedTests {
 		mockEnvironment.setActiveProfiles("k8s");
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result.get(0).getKey(), "sorted.properties");
-		Assertions.assertEquals(result.get(0).getValue(), "key=value");
+		Assertions.assertThat(result.size()).isEqualTo(4);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo("sorted.properties");
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key=value");
 
-		Assertions.assertEquals(result.get(1).getKey(), "sorted-k8s.properties");
-		Assertions.assertEquals(result.get(1).getValue(), "key-k8s=value-k8s");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("sorted-k8s.properties");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("key-k8s=value-k8s");
 
-		Assertions.assertEquals(result.get(2).getKey(), "simple");
-		Assertions.assertEquals(result.get(2).getValue(), "other_value");
+		Assertions.assertThat(result.get(2).getKey()).isEqualTo("simple");
+		Assertions.assertThat(result.get(2).getValue()).isEqualTo("other_value");
 
-		Assertions.assertEquals(result.get(3).getKey(), "second-simple");
-		Assertions.assertEquals(result.get(3).getValue(), "second_other_value");
+		Assertions.assertThat(result.get(3).getKey()).isEqualTo("second-simple");
+		Assertions.assertThat(result.get(3).getValue()).isEqualTo("second_other_value");
 	}
 
 	@Test
@@ -250,15 +250,15 @@ class SourceDataEntriesProcessorSortedTests {
 		mockEnvironment.setActiveProfiles("k8s");
 
 		List<Map.Entry<String, String>> result = SourceDataEntriesProcessor.sorted(k8sSource, mockEnvironment);
-		Assertions.assertEquals(result.size(), 3);
-		Assertions.assertEquals(result.get(0).getKey(), "sorted-k8s.properties");
-		Assertions.assertEquals(result.get(0).getValue(), "key-k8s=value-k8s");
+		Assertions.assertThat(result.size()).isEqualTo(3);
+		Assertions.assertThat(result.get(0).getKey()).isEqualTo("sorted-k8s.properties");
+		Assertions.assertThat(result.get(0).getValue()).isEqualTo("key-k8s=value-k8s");
 
-		Assertions.assertEquals(result.get(1).getKey(), "simple");
-		Assertions.assertEquals(result.get(1).getValue(), "other_value");
+		Assertions.assertThat(result.get(1).getKey()).isEqualTo("simple");
+		Assertions.assertThat(result.get(1).getValue()).isEqualTo("other_value");
 
-		Assertions.assertEquals(result.get(2).getKey(), "second-simple");
-		Assertions.assertEquals(result.get(2).getValue(), "second_other_value");
+		Assertions.assertThat(result.get(2).getKey()).isEqualTo("second-simple");
+		Assertions.assertThat(result.get(2).getValue()).isEqualTo("second_other_value");
 	}
 
 }

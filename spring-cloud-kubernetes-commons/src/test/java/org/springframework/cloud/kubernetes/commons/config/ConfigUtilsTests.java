@@ -23,7 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockEnvironment;
@@ -36,54 +36,55 @@ class ConfigUtilsTests {
 	@Test
 	void testExplicitPrefixSet() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("explicitPrefix", null, false, "irrelevant");
-		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
-		Assertions.assertEquals(result.prefixProvider().get(), "explicitPrefix");
+		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.KNOWN);
+		Assertions.assertThat(result.prefixProvider().get()).isEqualTo("explicitPrefix");
 	}
 
 	@Test
 	void testUseNameAsPrefixTrue() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", Boolean.TRUE, false, "name-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
-		Assertions.assertEquals(result.prefixProvider().get(), "name-to-use");
+		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.KNOWN);
+		Assertions.assertThat(result.prefixProvider().get()).isEqualTo("name-to-use");
 	}
 
 	@Test
 	void testUseNameAsPrefixFalse() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", Boolean.FALSE, false, "name-not-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	@Test
 	void testDefaultUseNameAsPrefixTrue() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, true, "name-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.KNOWN);
-		Assertions.assertEquals(result.prefixProvider().get(), "name-to-use");
+		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.KNOWN);
+		Assertions.assertThat(result.prefixProvider().get()).isEqualTo("name-to-use");
 	}
 
 	@Test
 	void testNoMatch() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.DEFAULT);
 	}
 
 	@Test
 	void testUnsetEmpty() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix("", null, false, "name-not-to-use");
-		Assertions.assertSame(result, ConfigUtils.Prefix.DEFAULT);
+		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.DEFAULT);
 
-		String expected = Assertions.assertDoesNotThrow(() -> result.prefixProvider().get());
-		Assertions.assertEquals("", expected);
+		String[] expected = new String[1];
+		Assertions.assertThatCode(() -> expected[0] = result.prefixProvider().get()).doesNotThrowAnyException();
+		Assertions.assertThat(expected[0]).isEmpty();
 	}
 
 	@Test
 	void testDelayed() {
 		ConfigUtils.Prefix result = ConfigUtils.findPrefix(null, true, false, null);
-		Assertions.assertSame(result, ConfigUtils.Prefix.DELAYED);
+		Assertions.assertThat(result).isSameAs(ConfigUtils.Prefix.DELAYED);
 
-		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
-				() -> result.prefixProvider().get());
+		Assertions.assertThatThrownBy(() -> result.prefixProvider().get())
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("prefix is delayed, needs to be taken elsewhere");
 
-		Assertions.assertEquals("prefix is delayed, needs to be taken elsewhere", ex.getMessage());
 	}
 
 	/**
@@ -99,7 +100,7 @@ class ConfigUtilsTests {
 	 */
 	@Test
 	void testUseIncludeProfileSpecificSourcesOnlyDefaultSet() {
-		Assertions.assertTrue(ConfigUtils.includeProfileSpecificSources(true, null));
+		Assertions.assertThat(ConfigUtils.includeProfileSpecificSources(true, null)).isTrue();
 	}
 
 	/**
@@ -115,7 +116,7 @@ class ConfigUtilsTests {
 	 */
 	@Test
 	void testUseIncludeProfileSpecificSourcesOnlyDefaultNotSet() {
-		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(false, null));
+		Assertions.assertThat(ConfigUtils.includeProfileSpecificSources(false, null)).isFalse();
 	}
 
 	/**
@@ -134,7 +135,7 @@ class ConfigUtilsTests {
 	 */
 	@Test
 	void testUseIncludeProfileSpecificSourcesSourcesOverridesDefault() {
-		Assertions.assertFalse(ConfigUtils.includeProfileSpecificSources(true, false));
+		Assertions.assertThat(ConfigUtils.includeProfileSpecificSources(true, false)).isFalse();
 	}
 
 	@Test
@@ -144,10 +145,10 @@ class ConfigUtilsTests {
 
 		SourceData result = ConfigUtils.withPrefix("configmap", context);
 
-		Assertions.assertEquals(result.sourceName(), "configmap.name1.name2.namespace");
+		Assertions.assertThat(result.sourceName()).isEqualTo("configmap.name1.name2.namespace");
 
-		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
-		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
+		Assertions.assertThat(result.sourceData().get("prefix.a")).isEqualTo("b");
+		Assertions.assertThat(result.sourceData().get("prefix.c")).isEqualTo("d");
 	}
 
 	/*
@@ -159,10 +160,10 @@ class ConfigUtilsTests {
 				Set.of("namec", "namea", "nameb"));
 
 		SourceData result = ConfigUtils.withPrefix("configmap", context);
-		Assertions.assertEquals(result.sourceName(), "configmap.namea.nameb.namec.namespace");
+		Assertions.assertThat(result.sourceName()).isEqualTo("configmap.namea.nameb.namec.namespace");
 
-		Assertions.assertEquals(result.sourceData().get("prefix.a"), "b");
-		Assertions.assertEquals(result.sourceData().get("prefix.c"), "d");
+		Assertions.assertThat(result.sourceData().get("prefix.a")).isEqualTo("b");
+		Assertions.assertThat(result.sourceData().get("prefix.c")).isEqualTo("d");
 	}
 
 	/**
@@ -190,36 +191,36 @@ class ConfigUtilsTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(List.of(configMapOne, configMapOneK8s),
 				new MockEnvironment(), sourceNames, "default", false);
 
-		Assertions.assertEquals(result.data().size(), 3);
-		Assertions.assertEquals(result.data().get("propA"), "AA");
-		Assertions.assertEquals(result.data().get("propB"), "B");
-		Assertions.assertEquals(result.data().get("propC"), "C");
+		Assertions.assertThat(result.data().size()).isEqualTo(3);
+		Assertions.assertThat(result.data().get("propA")).isEqualTo("AA");
+		Assertions.assertThat(result.data().get("propB")).isEqualTo("B");
+		Assertions.assertThat(result.data().get("propC")).isEqualTo("C");
 	}
 
 	@Test
 	void testKeysWithPrefixNullMap() {
 		Map<String, String> result = ConfigUtils.keysWithPrefix(null, "");
-		Assertions.assertTrue(result.isEmpty());
+		Assertions.assertThat(result.isEmpty()).isTrue();
 	}
 
 	@Test
 	void testKeysWithPrefixEmptyMap() {
 		Map<String, String> result = ConfigUtils.keysWithPrefix(Map.of(), "");
-		Assertions.assertTrue(result.isEmpty());
+		Assertions.assertThat(result.isEmpty()).isTrue();
 	}
 
 	@Test
 	void testKeysWithPrefixEmptyPrefix() {
 		Map<String, String> result = ConfigUtils.keysWithPrefix(Map.of("a", "b"), "");
-		Assertions.assertFalse(result.isEmpty());
-		Assertions.assertEquals(Map.of("a", "b"), result);
+		Assertions.assertThat(result.isEmpty()).isFalse();
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("a", "b"));
 	}
 
 	@Test
 	void testKeysWithPrefixNonEmptyPrefix() {
 		Map<String, String> result = ConfigUtils.keysWithPrefix(Map.of("a", "b", "c", "d"), "prefix-");
-		Assertions.assertFalse(result.isEmpty());
-		Assertions.assertEquals(Map.of("prefix-a", "b", "prefix-c", "d"), result);
+		Assertions.assertThat(result.isEmpty()).isFalse();
+		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("prefix-a", "b", "prefix-c", "d"));
 	}
 
 }

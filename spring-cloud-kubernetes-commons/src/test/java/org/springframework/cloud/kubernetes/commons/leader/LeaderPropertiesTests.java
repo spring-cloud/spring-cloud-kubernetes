@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.leader;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -28,7 +28,7 @@ class LeaderPropertiesTests {
 	void getNamespaceNull() {
 		LeaderProperties leaderProperties = new LeaderProperties();
 		String namespace = leaderProperties.getNamespace("a");
-		Assertions.assertEquals("a", namespace);
+		Assertions.assertThat(namespace).isEqualTo("a");
 	}
 
 	@Test
@@ -36,7 +36,7 @@ class LeaderPropertiesTests {
 		LeaderProperties leaderProperties = new LeaderProperties();
 		leaderProperties.setNamespace("");
 		String namespace = leaderProperties.getNamespace("a");
-		Assertions.assertEquals("a", namespace);
+		Assertions.assertThat(namespace).isEqualTo("a");
 	}
 
 	@Test
@@ -44,7 +44,7 @@ class LeaderPropertiesTests {
 		LeaderProperties leaderProperties = new LeaderProperties();
 		leaderProperties.setNamespace("c");
 		String namespace = leaderProperties.getNamespace("a");
-		Assertions.assertEquals("c", namespace);
+		Assertions.assertThat(namespace).isEqualTo("c");
 	}
 
 }

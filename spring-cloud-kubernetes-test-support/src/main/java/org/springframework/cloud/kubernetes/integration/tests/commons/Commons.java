@@ -36,7 +36,7 @@ import com.github.dockerjava.api.command.SaveImageCmd;
 import com.github.dockerjava.api.model.Image;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -111,7 +111,8 @@ public final class Commons {
 								.execInContainer("sh", "-c",
 										"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
 								.getStdout();
-							Assertions.assertTrue(notPresent == null || notPresent.isBlank());
+
+							Assertions.assertThat(notPresent).isNullOrEmpty();
 						}
 
 						return true;

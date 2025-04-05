@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -46,9 +46,9 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT)
 			.map(service);
-		Assertions.assertNotNull(instance);
-		Assertions.assertEquals("test", instance.getServiceId());
-		Assertions.assertEquals("abc", instance.getInstanceId());
+		Assertions.assertThat(instance).isNotNull();
+		Assertions.assertThat(instance.getServiceId()).isEqualTo("test");
+		Assertions.assertThat(instance.getInstanceId()).isEqualTo("abc");
 	}
 
 	@Test
@@ -62,10 +62,10 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT)
 			.map(service);
-		Assertions.assertNotNull(instance);
-		Assertions.assertEquals("test", instance.getServiceId());
-		Assertions.assertEquals("abc", instance.getInstanceId());
-		Assertions.assertEquals(9000, instance.getPort());
+		Assertions.assertThat(instance).isNotNull();
+		Assertions.assertThat(instance.getServiceId()).isEqualTo("test");
+		Assertions.assertThat(instance.getInstanceId()).isEqualTo("abc");
+		Assertions.assertThat(instance.getPort()).isEqualTo(9000);
 	}
 
 	@Test
@@ -79,10 +79,10 @@ class Fabric8ServiceInstanceMapperTests {
 
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 			.map(service);
-		Assertions.assertNotNull(instance);
-		Assertions.assertEquals("test", instance.getServiceId());
-		Assertions.assertEquals("abc", instance.getInstanceId());
-		Assertions.assertTrue(instance.isSecure());
+		Assertions.assertThat(instance).isNotNull();
+		Assertions.assertThat(instance.getServiceId()).isEqualTo("test");
+		Assertions.assertThat(instance.getInstanceId()).isEqualTo("abc");
+		Assertions.assertThat(instance.isSecure()).isTrue();
 	}
 
 	@Test
@@ -96,10 +96,10 @@ class Fabric8ServiceInstanceMapperTests {
 		Service service = buildService("test", "test-namespace", "abc", ports, null, null);
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties, discoveryProperties)
 			.map(service);
-		Assertions.assertNotNull(instance);
-		Assertions.assertEquals("test", instance.getServiceId());
-		Assertions.assertEquals("abc", instance.getInstanceId());
-		Assertions.assertTrue(instance.isSecure());
+		Assertions.assertThat(instance).isNotNull();
+		Assertions.assertThat(instance.getServiceId()).isEqualTo("test");
+		Assertions.assertThat(instance.getInstanceId()).isEqualTo("abc");
+		Assertions.assertThat(instance.isSecure()).isTrue();
 	}
 
 	@Test
@@ -110,11 +110,11 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance instance = new Fabric8ServiceInstanceMapper(properties,
 				KubernetesDiscoveryProperties.DEFAULT)
 			.map(service);
-		Assertions.assertNotNull(instance);
-		Assertions.assertEquals("test", instance.getServiceId());
-		Assertions.assertEquals("abc", instance.getInstanceId());
-		Assertions.assertTrue(instance.isSecure());
-		Assertions.assertEquals(4, instance.getMetadata().keySet().size());
+		Assertions.assertThat(instance).isNotNull();
+		Assertions.assertThat(instance.getServiceId()).isEqualTo("test");
+		Assertions.assertThat(instance.getInstanceId()).isEqualTo("abc");
+		Assertions.assertThat(instance.isSecure()).isTrue();
+		Assertions.assertThat(instance.getMetadata().keySet().size()).isEqualTo(4);
 	}
 
 	@Test
@@ -134,11 +134,11 @@ class Fabric8ServiceInstanceMapperTests {
 		Service service = buildService("test", "test-namespace", "abc", ports, labels, annotations);
 		Map<String, String> result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 			.serviceMetadata(service);
-		Assertions.assertEquals(result.size(), 4);
-		Assertions.assertEquals(result.get("k8s_namespace"), "test-namespace");
-		Assertions.assertEquals(result.get("type"), "ClusterIP");
-		Assertions.assertEquals(result.get("one"), "1");
-		Assertions.assertEquals(result.get("two"), "2");
+		Assertions.assertThat(result.size()).isEqualTo(4);
+		Assertions.assertThat(result.get("k8s_namespace")).isEqualTo("test-namespace");
+		Assertions.assertThat(result.get("type")).isEqualTo("ClusterIP");
+		Assertions.assertThat(result.get("one")).isEqualTo("1");
+		Assertions.assertThat(result.get("two")).isEqualTo("2");
 	}
 
 	/**
@@ -158,9 +158,9 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 			.map(service);
 
-		Assertions.assertNull(result);
-		Assertions.assertTrue(output.getOut()
-			.contains("service : test does not have any ServicePort(s), will not consider it for load balancing"));
+		Assertions.assertThat(result).isNull();
+		Assertions.assertThat(output.getOut())
+			.contains("service : test does not have any ServicePort(s), will not consider it for load balancing");
 
 	}
 
@@ -183,10 +183,10 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 			.map(service);
 
-		Assertions.assertNotNull(result);
-		Assertions.assertTrue(output.getOut()
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(output.getOut())
 			.contains(
-					"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+					"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')");
 
 	}
 
@@ -212,10 +212,10 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 			.map(service);
 
-		Assertions.assertNotNull(result);
-		Assertions.assertTrue(output.getOut()
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(output.getOut())
 			.contains(
-					"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+					"single ServicePort found, will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')");
 
 	}
 
@@ -239,9 +239,9 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 			.map(service);
 
-		Assertions.assertNotNull(result);
-		Assertions.assertTrue(output.getOut().contains("'spring.cloud.kubernetes.loadbalancer.portName' is not set"));
-		Assertions.assertTrue(output.getOut().contains("Will return 'first' port found, which is non-deterministic"));
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("'spring.cloud.kubernetes.loadbalancer.portName' is not set");
+		Assertions.assertThat(output.getOut()).contains("Will return 'first' port found, which is non-deterministic");
 
 	}
 
@@ -264,8 +264,8 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 			.map(service);
 
-		Assertions.assertNotNull(result);
-		Assertions.assertTrue(output.getOut().contains("found port name that matches : one"));
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("found port name that matches : one");
 
 	}
 
@@ -289,10 +289,10 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesServiceInstance result = new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties)
 			.map(service);
 
-		Assertions.assertNotNull(result);
-		Assertions.assertTrue(output.getOut().contains("Did not find a port name that is equal to the value three"));
-		Assertions.assertTrue(output.getOut().contains("Will return 'first' port found, which is non-deterministic"));
-		Assertions.assertTrue(result.getPort() == 8081 || result.getPort() == 8080);
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("Did not find a port name that is equal to the value three");
+		Assertions.assertThat(output.getOut()).contains("Will return 'first' port found, which is non-deterministic");
+		Assertions.assertThat(result.getPort()).isIn(8081, 8080);
 	}
 
 	private Service buildService(String name, String namespace, String uid, int port, String portName,
