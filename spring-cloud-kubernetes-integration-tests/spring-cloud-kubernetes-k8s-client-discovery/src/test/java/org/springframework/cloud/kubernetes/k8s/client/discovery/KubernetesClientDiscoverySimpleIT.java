@@ -64,13 +64,13 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 		util.busybox(NAMESPACE, Phase.CREATE);
 
 		externalNameService = (V1Service) util.yaml("external-name-service.yaml");
-		util.createAndWait(NAMESPACE, null, null, externalNameService, null, true);
+		util.createAndWait(NAMESPACE, null, null, externalNameService, true);
 	}
 
 	@AfterEach
 	void afterEach() {
 		util.busybox(NAMESPACE, Phase.DELETE);
-		util.deleteAndWait(NAMESPACE, null, externalNameService, null);
+		util.deleteAndWait(NAMESPACE, null, externalNameService);
 	}
 
 	@Test

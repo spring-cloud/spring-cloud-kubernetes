@@ -1,13 +1,12 @@
-logging:
-  level:
-    root: DEBUG
-
 spring:
   cloud:
     kubernetes:
       config:
         sources:
-          - namespace: left
-            name: left-configmap
           - namespace: right
             name: right-configmap
+
+  # otherwise on context refresh we lose this property
+  # and test fails, since beans are not wired.
+  main:
+    cloud-platform: kubernetes
