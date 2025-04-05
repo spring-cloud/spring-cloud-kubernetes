@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -37,8 +37,8 @@ class NamedConfigMapNormalizedSourceTests {
 		NamedConfigMapNormalizedSource right = new NamedConfigMapNormalizedSource("name", "namespace", true, knownRight,
 				false);
 
-		Assertions.assertEquals(left.hashCode(), right.hashCode());
-		Assertions.assertEquals(left, right);
+		Assertions.assertThat(left.hashCode()).isEqualTo(right.hashCode());
+		Assertions.assertThat(left).isEqualTo(right);
 	}
 
 	@Test
@@ -46,23 +46,23 @@ class NamedConfigMapNormalizedSourceTests {
 
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				true);
-		Assertions.assertSame(one.type(), NormalizedSourceType.NAMED_CONFIG_MAP);
+		Assertions.assertThat(one.type()).isSameAs(NormalizedSourceType.NAMED_CONFIG_MAP);
 	}
 
 	@Test
 	void testTarget() {
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				true);
-		Assertions.assertEquals(one.target(), "configmap");
+		Assertions.assertThat(one.target()).isEqualTo("configmap");
 	}
 
 	@Test
 	void testConstructorFields() {
 		NamedConfigMapNormalizedSource one = new NamedConfigMapNormalizedSource("name", "namespace", false, PREFIX,
 				true);
-		Assertions.assertEquals(one.name().get(), "name");
-		Assertions.assertEquals(one.namespace().get(), "namespace");
-		Assertions.assertFalse(one.failFast());
+		Assertions.assertThat(one.name().get()).isEqualTo("name");
+		Assertions.assertThat(one.namespace().get()).isEqualTo("namespace");
+		Assertions.assertThat(one.failFast()).isFalse();
 	}
 
 }

@@ -30,7 +30,7 @@ import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -56,9 +56,9 @@ class KubernetesDiscoveryClientUtilsTests {
 		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertTrue(result);
-		Assertions.assertTrue(output.getOut()
-			.contains("service labels from properties are empty, service with name : 'my-service' will match"));
+		Assertions.assertThat(result).isTrue();
+		Assertions.assertThat(output.getOut())
+			.contains("service labels from properties are empty, service with name : 'my-service' will match");
 	}
 
 	/**
@@ -72,8 +72,8 @@ class KubernetesDiscoveryClientUtilsTests {
 		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertFalse(result);
-		Assertions.assertTrue(output.getOut().contains("service with name : 'my-service' does not have labels"));
+		Assertions.assertThat(result).isFalse();
+		Assertions.assertThat(output.getOut()).contains("service with name : 'my-service' does not have labels");
 	}
 
 	/**
@@ -95,9 +95,9 @@ class KubernetesDiscoveryClientUtilsTests {
 			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertTrue(result);
-		Assertions.assertTrue(output.getOut().contains("Service labels from properties : {a=b}"));
-		Assertions.assertTrue(output.getOut().contains("Service labels from service : {a=b}"));
+		Assertions.assertThat(result).isTrue();
+		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b}");
+		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b}");
 	}
 
 	/**
@@ -119,9 +119,9 @@ class KubernetesDiscoveryClientUtilsTests {
 			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertFalse(result);
-		Assertions.assertTrue(output.getOut().contains("Service labels from properties : {a=b, c=d}"));
-		Assertions.assertTrue(output.getOut().contains("Service labels from service : {a=b}"));
+		Assertions.assertThat(result).isFalse();
+		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b, c=d}");
+		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b}");
 	}
 
 	/**
@@ -143,9 +143,9 @@ class KubernetesDiscoveryClientUtilsTests {
 			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertTrue(result);
-		Assertions.assertTrue(output.getOut().contains("Service labels from properties : {a=b, c=d}"));
-		Assertions.assertTrue(output.getOut().contains("Service labels from service : {a=b, c=d}"));
+		Assertions.assertThat(result).isTrue();
+		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b, c=d}");
+		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b, c=d}");
 	}
 
 	/**
@@ -167,9 +167,9 @@ class KubernetesDiscoveryClientUtilsTests {
 			.build();
 
 		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertTrue(result);
-		Assertions.assertTrue(output.getOut().contains("Service labels from properties : {a=b}"));
-		Assertions.assertTrue(output.getOut().contains("Service labels from service : {a=b, c=d}"));
+		Assertions.assertThat(result).isTrue();
+		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b}");
+		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b, c=d}");
 	}
 
 	@Test
@@ -183,9 +183,9 @@ class KubernetesDiscoveryClientUtilsTests {
 					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
-		Assertions.assertEquals(portsData.size(), 2);
-		Assertions.assertEquals(portsData.get("https"), 8080);
-		Assertions.assertEquals(portsData.get("<unset>"), 8081);
+		Assertions.assertThat(portsData.size()).isEqualTo(2);
+		Assertions.assertThat(portsData.get("https")).isEqualTo(8080);
+		Assertions.assertThat(portsData.get("<unset>")).isEqualTo(8081);
 	}
 
 	@Test
@@ -199,9 +199,9 @@ class KubernetesDiscoveryClientUtilsTests {
 					.build());
 
 		Map<String, Integer> portsData = endpointSubsetsPortData(endpointSubsets);
-		Assertions.assertEquals(portsData.size(), 2);
-		Assertions.assertEquals(portsData.get("https"), 8080);
-		Assertions.assertEquals(portsData.get("http"), 8081);
+		Assertions.assertThat(portsData.size()).isEqualTo(2);
+		Assertions.assertThat(portsData.get("https")).isEqualTo(8080);
+		Assertions.assertThat(portsData.get("http")).isEqualTo(8081);
 	}
 
 	@Test
@@ -209,7 +209,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder().build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
-		Assertions.assertEquals(result.size(), 0);
+		Assertions.assertThat(result).isEmpty();
 	}
 
 	@Test
@@ -219,8 +219,8 @@ class KubernetesDiscoveryClientUtilsTests {
 			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get("name"), 80);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get("name")).isEqualTo(80);
 	}
 
 	@Test
@@ -230,8 +230,8 @@ class KubernetesDiscoveryClientUtilsTests {
 			.build();
 		Map<String, Integer> result = endpointSubsetsPortData(List.of(endpointSubset));
 
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get("<unset>"), 80);
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get("<unset>")).isEqualTo(80);
 	}
 
 	/**
@@ -247,7 +247,7 @@ class KubernetesDiscoveryClientUtilsTests {
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder().build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 0);
+		Assertions.assertThat(addresses).isEmpty();
 	}
 
 	/**
@@ -266,7 +266,7 @@ class KubernetesDiscoveryClientUtilsTests {
 					new V1EndpointAddressBuilder().withHostname("two").build())
 			.build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 2);
+		Assertions.assertThat(addresses.size()).isEqualTo(2);
 	}
 
 	/**
@@ -286,9 +286,8 @@ class KubernetesDiscoveryClientUtilsTests {
 			.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build())
 			.build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 2);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
-		Assertions.assertEquals(hostNames, List.of("one", "two"));
+		Assertions.assertThat(hostNames).containsExactly("one", "two");
 	}
 
 	/**
@@ -308,9 +307,8 @@ class KubernetesDiscoveryClientUtilsTests {
 			.withNotReadyAddresses(new V1EndpointAddressBuilder().withHostname("three").build())
 			.build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 3);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
-		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
+		Assertions.assertThat(hostNames).containsExactly("one", "three", "two");
 	}
 
 	// preserve order for testing reasons

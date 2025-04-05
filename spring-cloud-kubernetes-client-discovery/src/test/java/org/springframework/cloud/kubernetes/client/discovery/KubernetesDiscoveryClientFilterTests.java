@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -46,8 +46,8 @@ class KubernetesDiscoveryClientFilterTests {
 				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		Predicate<V1Service> predicate = KubernetesDiscoveryClientUtils.filter(properties);
-		Assertions.assertNotNull(predicate);
-		Assertions.assertTrue(output.getOut().contains("filter not defined, returning always true predicate"));
+		Assertions.assertThat(predicate).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("filter not defined, returning always true predicate");
 	}
 
 	@Test
@@ -58,8 +58,8 @@ class KubernetesDiscoveryClientFilterTests {
 				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		Predicate<V1Service> predicate = KubernetesDiscoveryClientUtils.filter(properties);
-		Assertions.assertNotNull(predicate);
-		Assertions.assertTrue(output.getOut().contains("returning predicate based on filter expression: some"));
+		Assertions.assertThat(predicate).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("returning predicate based on filter expression: some");
 	}
 
 	@Test
@@ -80,8 +80,8 @@ class KubernetesDiscoveryClientFilterTests {
 			.filter(predicate)
 			.sorted(Comparator.comparing(service -> service.getMetadata().getName()))
 			.toList();
-		Assertions.assertEquals(filtered.get(0).getMetadata().getName(), "a");
-		Assertions.assertEquals(filtered.get(1).getMetadata().getName(), "a");
+		Assertions.assertThat(filtered.get(0).getMetadata().getName()).isEqualTo("a");
+		Assertions.assertThat(filtered.get(1).getMetadata().getName()).isEqualTo("a");
 	}
 
 	@Test
@@ -102,7 +102,7 @@ class KubernetesDiscoveryClientFilterTests {
 			.filter(predicate)
 			.sorted(Comparator.comparing(service -> service.getMetadata().getName()))
 			.toList();
-		Assertions.assertEquals(filtered.size(), 0);
+		Assertions.assertThat(filtered).isEmpty();
 	}
 
 	@Test
@@ -123,7 +123,7 @@ class KubernetesDiscoveryClientFilterTests {
 			.filter(predicate)
 			.sorted(Comparator.comparing(service -> service.getMetadata().getName()))
 			.toList();
-		Assertions.assertEquals(filtered.size(), 0);
+		Assertions.assertThat(filtered).isEmpty();
 	}
 
 }

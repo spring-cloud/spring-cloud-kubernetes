@@ -32,7 +32,7 @@ import io.fabric8.kubernetes.api.model.GroupVersionForDiscoveryBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -69,8 +69,9 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
-		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
-		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
+		Assertions.assertThatThrownBy(watch::postConstruct)
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("EndpointSlices are not supported on the cluster");
 	}
 
 	/**
@@ -96,8 +97,9 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
-		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
-		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
+		Assertions.assertThatThrownBy(watch::postConstruct)
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessageContaining("EndpointSlices are not supported on the cluster");
 	}
 
 	/**
@@ -110,7 +112,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 				false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
-		Assertions.assertEquals(Fabric8EndpointsCatalogWatch.class, watch.stateGenerator().getClass());
+		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(Fabric8EndpointsCatalogWatch.class);
 	}
 
 	/**
@@ -136,7 +138,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 		APIResourceList apiResourceList = new APIResourceListBuilder().withResources(apiResource).build();
 		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
 
-		Assertions.assertEquals(Fabric8EndpointSliceV1CatalogWatch.class, watch.stateGenerator().getClass());
+		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(Fabric8EndpointSliceV1CatalogWatch.class);
 	}
 
 }

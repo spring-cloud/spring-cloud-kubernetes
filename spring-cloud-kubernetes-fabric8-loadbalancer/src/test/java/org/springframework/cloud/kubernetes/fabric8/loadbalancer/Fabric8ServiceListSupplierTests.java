@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -78,7 +78,7 @@ class Fabric8ServiceListSupplierTests {
 		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				KubernetesDiscoveryProperties.DEFAULT);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
-		Assertions.assertEquals(1, instances.size());
+		Assertions.assertThat(instances.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -97,7 +97,7 @@ class Fabric8ServiceListSupplierTests {
 		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				discoveryProperties);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
-		Assertions.assertEquals(1, instances.size());
+		Assertions.assertThat(instances.size()).isEqualTo(1);
 	}
 
 	private Service buildService(String name, int port) {

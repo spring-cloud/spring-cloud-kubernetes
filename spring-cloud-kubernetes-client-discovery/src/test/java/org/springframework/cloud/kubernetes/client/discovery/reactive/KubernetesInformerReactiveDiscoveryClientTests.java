@@ -31,8 +31,8 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.test.StepVerifier;
@@ -190,9 +190,9 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		List<String> result = discoveryClient.getServices().collectList().block();
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertTrue(result.contains("service-a"));
-		Assertions.assertTrue(result.contains("service-b"));
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result).contains("service-a");
+		Assertions.assertThat(result).contains("service-b");
 	}
 
 	/**
@@ -224,9 +224,9 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		List<String> result = discoveryClient.getServices().collectList().block();
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertTrue(result.contains("service-a"));
-		Assertions.assertFalse(result.contains("service-b"));
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result).contains("service-a");
+		Assertions.assertThat(result).doesNotContain("service-b");
 	}
 
 	/**
@@ -274,10 +274,10 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
-		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertThat(result.size()).isEqualTo(2);
 		List<String> byIp = result.stream().map(ServiceInstance::getHost).sorted().toList();
-		Assertions.assertTrue(byIp.contains("1.1.1.1"));
-		Assertions.assertTrue(byIp.contains("2.2.2.2"));
+		Assertions.assertThat(byIp).contains("1.1.1.1");
+		Assertions.assertThat(byIp).contains("2.2.2.2");
 	}
 
 	/**
@@ -325,9 +325,9 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 						kubernetesDiscoveryProperties));
 
 		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
-		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertThat(result.size()).isEqualTo(1);
 		List<String> byIp = result.stream().map(ServiceInstance::getHost).sorted().toList();
-		Assertions.assertTrue(byIp.contains("1.1.1.1"));
+		Assertions.assertThat(byIp).contains("1.1.1.1");
 	}
 
 	private Lister<V1Service> setupServiceLister(String namespace, V1Service... services) {

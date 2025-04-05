@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -56,7 +56,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 	void withFilterEmptyInput() {
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(), PROPERTIES, client,
 				ALWAYS_TRUE);
-		Assertions.assertEquals(result.size(), 0);
+		Assertions.assertThat(result).isEmpty();
 	}
 
 	/**
@@ -73,7 +73,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("a", "namespace-not-a");
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), PROPERTIES,
 				client, x -> true);
-		Assertions.assertEquals(result.size(), 0);
+		Assertions.assertThat(result).isEmpty();
 	}
 
 	/**
@@ -90,7 +90,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("a", "namespace-a");
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpoints), PROPERTIES,
 				client, ALWAYS_TRUE);
-		Assertions.assertEquals(result.size(), 1);
+		Assertions.assertThat(result.size()).isEqualTo(1);
 	}
 
 	/**
@@ -109,9 +109,9 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("a", "namespace-a");
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
 				PROPERTIES, client, x -> true);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespace-a");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespace-a");
 	}
 
 	/**
@@ -133,7 +133,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		createService("a", "namespace-a");
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
 				PROPERTIES, client, ALWAYS_TRUE);
-		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertThat(result.size()).isEqualTo(2);
 	}
 
 	/**
@@ -157,12 +157,12 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB),
 				PROPERTIES, client, ALWAYS_TRUE);
-		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertThat(result.size()).isEqualTo(2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespace-a");
-		Assertions.assertEquals(result.get(1).getMetadata().getName(), "b");
-		Assertions.assertEquals(result.get(1).getMetadata().getNamespace(), "namespace-b");
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespace-a");
+		Assertions.assertThat(result.get(1).getMetadata().getName()).isEqualTo("b");
+		Assertions.assertThat(result.get(1).getMetadata().getNamespace()).isEqualTo("namespace-b");
 	}
 
 	/**
@@ -183,9 +183,9 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), PROPERTIES,
 				client, x -> x.getMetadata().getNamespace().equals("namespace-a"));
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "namespace-a");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespace-a");
 	}
 
 	/**
@@ -210,12 +210,12 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(
 				List.of(endpointsA, endpointsB, endpointsC), PROPERTIES, client,
 				x -> x.getMetadata().getName().contains("1"));
-		Assertions.assertEquals(result.size(), 2);
+		Assertions.assertThat(result.size()).isEqualTo(2);
 		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
-		Assertions.assertEquals(result.get(0).getMetadata().getName(), "a-1");
-		Assertions.assertEquals(result.get(0).getMetadata().getNamespace(), "default");
-		Assertions.assertEquals(result.get(1).getMetadata().getName(), "b-1");
-		Assertions.assertEquals(result.get(1).getMetadata().getNamespace(), "default");
+		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a-1");
+		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("default");
+		Assertions.assertThat(result.get(1).getMetadata().getName()).isEqualTo("b-1");
+		Assertions.assertThat(result.get(1).getMetadata().getNamespace()).isEqualTo("default");
 	}
 
 	/**
@@ -235,7 +235,7 @@ class Fabric8KubernetesDiscoveryClientUtilsFilterTests {
 
 		List<Endpoints> result = Fabric8KubernetesDiscoveryClientUtils.withFilter(List.of(endpointsA), PROPERTIES,
 				client, x -> !x.getMetadata().getName().contains("1"));
-		Assertions.assertEquals(result.size(), 0);
+		Assertions.assertThat(result).isEmpty();
 	}
 
 	private Endpoints createEndpoints(String name, String namespace) {

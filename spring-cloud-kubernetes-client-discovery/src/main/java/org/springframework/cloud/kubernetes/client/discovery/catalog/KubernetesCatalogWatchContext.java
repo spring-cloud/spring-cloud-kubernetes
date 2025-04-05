@@ -48,7 +48,7 @@ record KubernetesCatalogWatchContext(CoreV1Api coreV1Api, ApiClient apiClient, K
 	}
 
 	static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
+		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
 	}
 
 }

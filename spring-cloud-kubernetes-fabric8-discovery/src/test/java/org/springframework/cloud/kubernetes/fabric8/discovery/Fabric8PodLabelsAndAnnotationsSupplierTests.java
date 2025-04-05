@@ -22,8 +22,8 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.PodLabelsAndAnnotations;
@@ -54,9 +54,9 @@ class Fabric8PodLabelsAndAnnotationsSupplierTests {
 
 		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName(client, NAMESPACE)
 			.apply(POD_NAME);
-		Assertions.assertNotNull(result);
-		Assertions.assertTrue(result.labels().isEmpty());
-		Assertions.assertTrue(result.annotations().isEmpty());
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.labels()).isEmpty();
+		Assertions.assertThat(result.annotations()).isEmpty();
 	}
 
 	@Test
@@ -73,9 +73,9 @@ class Fabric8PodLabelsAndAnnotationsSupplierTests {
 
 		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName(client, NAMESPACE)
 			.apply(POD_NAME);
-		Assertions.assertNotNull(result);
-		Assertions.assertEquals(result.labels(), Map.of("a", "b"));
-		Assertions.assertEquals(result.annotations(), Map.of("c", "d"));
+		Assertions.assertThat(result).isNotNull();
+		Assertions.assertThat(result.labels()).containsExactlyInAnyOrderEntriesOf(Map.of("a", "b"));
+		Assertions.assertThat(result.annotations()).containsExactlyInAnyOrderEntriesOf(Map.of("c", "d"));
 	}
 
 }
