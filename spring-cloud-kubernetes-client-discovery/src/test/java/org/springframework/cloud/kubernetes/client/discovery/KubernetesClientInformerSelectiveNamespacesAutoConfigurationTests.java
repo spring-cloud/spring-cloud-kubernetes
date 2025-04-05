@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -66,11 +66,11 @@ class KubernetesClientInformerSelectiveNamespacesAutoConfigurationTests {
 
 				@SuppressWarnings("unchecked")
 				Set<String> selectiveNamespaces = context.getBean("selectiveNamespaces", Set.class);
-				Assertions.assertEquals(selectiveNamespaces, Set.of("a", "b"));
+				Assertions.assertThat(selectiveNamespaces).isEqualTo(Set.of("a", "b"));
 
 				@SuppressWarnings("unchecked")
 				Set<String> namespaces = context.getBean("namespaces", Set.class);
-				Assertions.assertEquals(namespaces, Set.of("c", "d"));
+				Assertions.assertThat(namespaces).isEqualTo(Set.of("c", "d"));
 			});
 
 		assertThat(output.getOut().contains("registering lister (for services) in namespace : " + NAMESPACE_A))

@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.actuator;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +57,7 @@ class DisabledHealthTests {
 			.jsonPath("components.kubernetes")
 			.doesNotExist();
 
-		Assertions.assertNull(registry.getContributor("kubernetes"),
-				"reactive kubernetes contributor must NOT be present when 'management.health.kubernetes.enabled=false'");
+		Assertions.assertThat(registry.getContributor("kubernetes")).isNull();
 	}
 
 }

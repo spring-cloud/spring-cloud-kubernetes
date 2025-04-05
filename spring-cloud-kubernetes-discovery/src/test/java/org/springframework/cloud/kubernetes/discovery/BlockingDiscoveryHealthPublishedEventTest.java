@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +41,7 @@ class BlockingDiscoveryHealthPublishedEventTest {
 
 	@Test
 	void test() {
-		Assertions.assertTrue(HealthEventListenerConfiguration.caught);
+		Assertions.assertThat(HealthEventListenerConfiguration.caught).isTrue();
 	}
 
 }

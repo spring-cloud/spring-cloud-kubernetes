@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: non-app
+  cloud:
+    bus:
+      refresh:
+        enabled: false
+      enabled: true
+      destination: app
+      id: app
+    stream:
+      default-binder: kafka
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+server:
+  port: 8081
