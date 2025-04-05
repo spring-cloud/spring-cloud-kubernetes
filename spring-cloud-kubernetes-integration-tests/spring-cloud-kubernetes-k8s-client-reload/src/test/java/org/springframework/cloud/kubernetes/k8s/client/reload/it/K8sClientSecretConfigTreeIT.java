@@ -97,7 +97,8 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 		// replace data in secret and wait for k8s to pick it up
 		// our polling will detect that and restart the app
 		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
-		secret.setData(Map.of("from.properties.secret.key", "as-mount-changed".getBytes(StandardCharsets.UTF_8)));
+		secret.setData(Map.of("application.properties",
+			"from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8)));
 
 		// add label so that configuration-watcher picks this up
 		Map<String, String> existingLabels = new HashMap<>(

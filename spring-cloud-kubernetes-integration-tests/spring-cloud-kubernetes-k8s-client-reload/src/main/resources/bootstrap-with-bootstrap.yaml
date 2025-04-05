@@ -7,4 +7,4 @@ spring:
         enabled: false
 
   config:
-    import: "configtree:/tmp/"
+    import: "file:/tmp/application.properties"
