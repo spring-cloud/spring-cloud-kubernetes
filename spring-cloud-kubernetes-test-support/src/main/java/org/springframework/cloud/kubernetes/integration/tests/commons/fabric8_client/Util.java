@@ -132,7 +132,7 @@ public final class Util {
 		}
 	}
 
-	public void deleteAndWait(String namespace, @Nullable Deployment deployment, Service service) {
+	public void deleteAndWait(String namespace, @Nullable Deployment deployment, @Nullable Service service) {
 		try {
 
 			long startTime = System.currentTimeMillis();
@@ -150,7 +150,10 @@ public final class Util {
 			}
 			System.out.println("Ended deployment delete in " + (System.currentTimeMillis() - startTime) + "ms");
 
-			client.services().inNamespace(namespace).resource(service).delete();
+			if (service != null) {
+				client.services().inNamespace(namespace).resource(service).delete();
+				waitForServiceToBeDeleted(namespace, service);
+			}
 
 		}
 		catch (Exception e) {
@@ -295,7 +298,12 @@ public final class Util {
 		});
 	}
 
-	public void wiremock(String namespace, Phase phase) {
+	/**
+	 * 'withNodePort' specifies if we add the NodePort or not. It is needed because we
+	 * sometimes deploy two instances of wiremock, and they can't have the same NodePort
+	 * exposed
+	 */
+	public void wiremock(String namespace, Phase phase, boolean withNodePort) {
 		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 
@@ -305,6 +313,11 @@ public final class Util {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		Service service = client.services().load(serviceStream).item();
+		if (!withNodePort) {
+			// we assume we only have one 'http' port
+			service.getSpec().getPorts().get(0).setNodePort(null);
+			service.getSpec().setType("ClusterIP");
+		}
 
 		if (phase.equals(Phase.CREATE)) {
 
@@ -351,6 +364,16 @@ public final class Util {
 		await().pollInterval(Duration.ofSeconds(1)).atMost(60, TimeUnit.SECONDS).until(() -> {
 			List<Pod> podList = client.pods().inNamespace(namespace).withLabels(matchLabels).list().getItems();
 			return podList == null || podList.isEmpty();
+		});
+	}
+
+	private void waitForServiceToBeDeleted(String namespace, Service service) {
+
+		String serviceName = service.getMetadata().getName();
+
+		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+			Service inner = client.services().inNamespace(namespace).withName(serviceName).get();
+			return inner == null;
 		});
 	}
 

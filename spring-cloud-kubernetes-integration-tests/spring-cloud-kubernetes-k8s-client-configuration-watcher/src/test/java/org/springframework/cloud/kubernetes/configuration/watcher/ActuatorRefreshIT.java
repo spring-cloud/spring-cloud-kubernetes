@@ -44,8 +44,6 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.TestUti
  */
 class ActuatorRefreshIT {
 
-	private static final String WIREMOCK_PATH = "/";
-
 	private static final String NAMESPACE = "default";
 
 	private static final K3sContainer K3S = Commons.container();
@@ -72,12 +70,12 @@ class ActuatorRefreshIT {
 
 	@BeforeEach
 	void setup() {
-		util.wiremock(NAMESPACE, WIREMOCK_PATH, Phase.CREATE);
+		util.wiremock(NAMESPACE, Phase.CREATE, true);
 	}
 
 	@AfterEach
 	void after() {
-		util.wiremock(NAMESPACE, WIREMOCK_PATH, Phase.DELETE);
+		util.wiremock(NAMESPACE, Phase.DELETE, true);
 	}
 
 	/*
@@ -114,10 +112,10 @@ class ActuatorRefreshIT {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
+			util.deleteAndWait(NAMESPACE, deployment, service);
 		}
 
 	}

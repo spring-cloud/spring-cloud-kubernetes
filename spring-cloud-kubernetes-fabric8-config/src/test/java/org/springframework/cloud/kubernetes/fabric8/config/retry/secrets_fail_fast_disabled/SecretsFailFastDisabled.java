@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.SecretListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -76,7 +76,7 @@ abstract class SecretsFailFastDisabled {
 	void locateShouldNotRetry() {
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-		Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
+		Assertions.assertThatCode(() -> psl.locate(new MockEnvironment())).doesNotThrowAnyException();
 
 		// verify locate is called only once
 		verify(verifiablePsl, times(1)).locate(any());
