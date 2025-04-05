@@ -2,6 +2,6 @@ busybox:1.36.1
 istio/istioctl:1.21.6
 istio/proxyv2:1.21.6
 istio/pilot:1.21.6
-confluentinc/cp-kafka:7.2.1
+confluentinc/confluent-local:7.9.0
 rabbitmq:3-management
 wiremock/wiremock:3.4.2

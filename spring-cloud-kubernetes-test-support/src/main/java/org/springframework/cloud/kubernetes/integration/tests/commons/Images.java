@@ -46,7 +46,7 @@ public final class Images {
 
 	private static final String ISTIO_PILOT_TAR = ISTIO_PILOT.replace('/', '-') + ":" + istioVersion();
 
-	private static final String KAFKA = "confluentinc/cp-kafka";
+	private static final String KAFKA = "confluentinc/confluent-local";
 
 	private static final String KAFKA_TAR = KAFKA.replace('/', '-') + kafkaVersion();
 

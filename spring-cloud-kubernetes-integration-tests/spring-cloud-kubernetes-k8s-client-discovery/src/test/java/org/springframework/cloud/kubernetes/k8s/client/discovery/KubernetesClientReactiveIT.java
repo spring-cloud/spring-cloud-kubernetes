@@ -28,7 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
@@ -55,17 +55,17 @@ class KubernetesClientReactiveIT extends KubernetesClientDiscoveryBase {
 	private int port;
 
 	@Autowired
-	private DiscoveryClient discoveryClient;
+	private ReactiveDiscoveryClient discoveryClient;
 
 	@BeforeEach
 	void beforeEach() {
 		Images.loadWiremock(K3S);
-		util.wiremock(NAMESPACE, "/", Phase.CREATE);
+		util.wiremock(NAMESPACE, Phase.CREATE, true);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.wiremock(NAMESPACE, "/", Phase.DELETE);
+		util.wiremock(NAMESPACE, Phase.DELETE, true);
 	}
 
 	/**

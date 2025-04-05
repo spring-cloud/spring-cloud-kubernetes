@@ -35,7 +35,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 /**
  * @author Ryan Baxter
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
 public class KubernetesClientAutoConfiguration {

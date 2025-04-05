@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -92,14 +92,16 @@ abstract class ConfigRetryEnabled {
 						.build())
 			.once();
 
-		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
+		PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify locate is called only once
 		verify(verifiablePsl, times(1)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
-		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
+		assertThat(propertySource[0].getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource[0].getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
@@ -122,14 +124,16 @@ abstract class ConfigRetryEnabled {
 						.build())
 			.once();
 
-		PropertySource<?> propertySource = Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
+		PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatCode(() -> propertySource[0] = psl.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify retried 4 times
 		verify(verifiablePsl, times(4)).locate(any());
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
-		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
+		assertThat(propertySource[0].getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource[0].getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
