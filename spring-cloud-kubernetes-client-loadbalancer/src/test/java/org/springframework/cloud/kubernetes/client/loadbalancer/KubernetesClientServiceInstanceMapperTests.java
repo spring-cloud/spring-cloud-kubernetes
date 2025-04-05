@@ -25,7 +25,7 @@ import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -116,9 +116,9 @@ class KubernetesClientServiceInstanceMapperTests {
 		List<V1ServicePort> servicePorts = List.of();
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Assertions.assertNull(serviceInstance);
-		Assertions.assertTrue(output.getOut()
-			.contains("service : database does not have any ServicePort(s), will not consider it for load balancing"));
+		Assertions.assertThat(serviceInstance).isNull();
+		Assertions.assertThat(output.getOut()).contains(
+			"service : database does not have any ServicePort(s), will not consider it for load balancing");
 	}
 
 	@Test
@@ -133,10 +133,10 @@ class KubernetesClientServiceInstanceMapperTests {
 		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http").withPort(80).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut()
+		Assertions.assertThat(serviceInstance).isNotNull();
+		Assertions.assertThat(output.getOut())
 			.contains("single ServicePort found, "
-					+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+					+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')");
 	}
 
 	@Test
@@ -151,10 +151,10 @@ class KubernetesClientServiceInstanceMapperTests {
 		List<V1ServicePort> servicePorts = List.of(new V1ServicePortBuilder().withName("http").withPort(80).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut()
+		Assertions.assertThat(serviceInstance).isNotNull();
+		Assertions.assertThat(output.getOut())
 			.contains("single ServicePort found, "
-					+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')"));
+					+ "will use it as-is (without checking 'spring.cloud.kubernetes.loadbalancer.portName')");
 	}
 
 	@Test
@@ -170,9 +170,9 @@ class KubernetesClientServiceInstanceMapperTests {
 				new V1ServicePortBuilder().withName("https").withPort(443).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut().contains("found port name that matches : http"));
-		Assertions.assertEquals(serviceInstance.getPort(), 80);
+		Assertions.assertThat(serviceInstance).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("found port name that matches : http");
+		Assertions.assertThat(serviceInstance.getPort()).isEqualTo(80);
 	}
 
 	@Test
@@ -188,10 +188,10 @@ class KubernetesClientServiceInstanceMapperTests {
 				new V1ServicePortBuilder().withName("https").withPort(443).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut().contains("Did not find a port name that is equal to the value http"));
-		Assertions.assertTrue(output.getOut().contains("Will return 'first' port found, which is non-deterministic"));
-		Assertions.assertTrue(serviceInstance.getPort() == 80 || serviceInstance.getPort() == 443);
+		Assertions.assertThat(serviceInstance).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("Did not find a port name that is equal to the value http");
+		Assertions.assertThat(output.getOut()).contains("Will return 'first' port found, which is non-deterministic");
+		Assertions.assertThat(serviceInstance.getPort()).isIn(80, 443);
 	}
 
 	@Test
@@ -207,10 +207,10 @@ class KubernetesClientServiceInstanceMapperTests {
 				new V1ServicePortBuilder().withName("https").withPort(443).build());
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
-		Assertions.assertNotNull(serviceInstance);
-		Assertions.assertTrue(output.getOut().contains("'spring.cloud.kubernetes.loadbalancer.portName' is not set"));
-		Assertions.assertTrue(output.getOut().contains("Will return 'first' port found, which is non-deterministic"));
-		Assertions.assertTrue(serviceInstance.getPort() == 80 || serviceInstance.getPort() == 443);
+		Assertions.assertThat(serviceInstance).isNotNull();
+		Assertions.assertThat(output.getOut()).contains("'spring.cloud.kubernetes.loadbalancer.portName' is not set");
+		Assertions.assertThat(output.getOut()).contains("Will return 'first' port found, which is non-deterministic");
+		Assertions.assertThat(serviceInstance.getPort()).isIn(80, 443);
 	}
 
 	private V1Service createService(String name, String namespace, Map<String, String> annotations,

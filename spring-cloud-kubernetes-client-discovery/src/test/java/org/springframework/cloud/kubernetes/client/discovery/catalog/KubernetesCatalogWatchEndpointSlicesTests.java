@@ -96,7 +96,7 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Test
 	@Override
 	void testInAllNamespacesWithDoubleLabel() {
-		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=a%3Db%26c%3Dd")
+		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=a%3Db%2Cc%3Dd")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "default")))));
 		// otherwise the stub might fail
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
@@ -137,9 +137,9 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Test
 	@Override
 	void testInSpecificNamespacesWithDoubleLabel() {
-		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/one/endpointslices?labelSelector=a%3Db%26c%3Dd")
+		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/one/endpointslices?labelSelector=a%3Db%2Cc%3Dd")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("aa", "a")))));
-		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/two/endpointslices?labelSelector=a%3Db%26c%3Dd")
+		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/two/endpointslices?labelSelector=a%3Db%2Cc%3Dd")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("bb", "b")))));
 
 		// otherwise the stub might fail
@@ -179,7 +179,7 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 	@Test
 	@Override
 	void testInOneNamespaceWithDoubleLabel() {
-		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=key%3Dvalue%26key1%3Dvalue1")
+		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=key%3Dvalue%2Ckey1%3Dvalue1")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices("a", "b")))));
 		// otherwise the stub might fail
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();

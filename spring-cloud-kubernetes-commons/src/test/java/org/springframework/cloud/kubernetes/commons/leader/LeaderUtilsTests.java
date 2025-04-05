@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.commons.leader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -38,7 +38,7 @@ class LeaderUtilsTests {
 		envReaderMockedStatic.when(() -> EnvReader.getEnv("HOSTNAME")).thenReturn("from-env");
 
 		String hostname = LeaderUtils.hostName();
-		Assertions.assertEquals("from-env", hostname);
+		Assertions.assertThat(hostname).isEqualTo("from-env");
 
 		envReaderMockedStatic.close();
 
@@ -56,7 +56,7 @@ class LeaderUtilsTests {
 		inet4AddressMockedStatic.when(InetAddress::getLocalHost).thenReturn(inetAddress);
 
 		String hostname = LeaderUtils.hostName();
-		Assertions.assertEquals("from-api-call", hostname);
+		Assertions.assertThat(hostname).isEqualTo("from-api-call");
 
 		envReaderMockedStatic.close();
 		inet4AddressMockedStatic.close();

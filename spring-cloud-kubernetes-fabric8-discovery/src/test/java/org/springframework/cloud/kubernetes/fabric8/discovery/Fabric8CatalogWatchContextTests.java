@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
@@ -38,9 +38,9 @@ class Fabric8CatalogWatchContextTests {
 			.of(new ObjectReferenceBuilder().withName("a").withNamespace("default").build());
 
 		List<EndpointNameAndNamespace> result = Fabric8CatalogWatchContext.state(referenceStream);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertEquals(result.get(0).endpointName(), "a");
-		Assertions.assertEquals(result.get(0).namespace(), "default");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).endpointName()).isEqualTo("a");
+		Assertions.assertThat(result.get(0).namespace()).isEqualTo("default");
 
 	}
 
@@ -51,9 +51,9 @@ class Fabric8CatalogWatchContextTests {
 			.of(new ObjectReferenceBuilder().withName(null).withNamespace("default").build());
 
 		List<EndpointNameAndNamespace> result = Fabric8CatalogWatchContext.state(referenceStream);
-		Assertions.assertEquals(result.size(), 1);
-		Assertions.assertNull(result.get(0).endpointName());
-		Assertions.assertEquals(result.get(0).namespace(), "default");
+		Assertions.assertThat(result.size()).isEqualTo(1);
+		Assertions.assertThat(result.get(0).endpointName()).isNull();
+		Assertions.assertThat(result.get(0).namespace()).isEqualTo("default");
 
 	}
 
@@ -65,11 +65,11 @@ class Fabric8CatalogWatchContextTests {
 				new ObjectReferenceBuilder().withName("a").withNamespace("defaultA").build());
 
 		List<EndpointNameAndNamespace> result = Fabric8CatalogWatchContext.state(referenceStream);
-		Assertions.assertEquals(result.size(), 2);
-		Assertions.assertEquals(result.get(0).endpointName(), "a");
-		Assertions.assertEquals(result.get(0).namespace(), "defaultA");
-		Assertions.assertNull(result.get(1).endpointName());
-		Assertions.assertEquals(result.get(1).namespace(), "defaultNull");
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).endpointName()).isEqualTo("a");
+		Assertions.assertThat(result.get(0).namespace()).isEqualTo("defaultA");
+		Assertions.assertThat(result.get(1).endpointName()).isNull();
+		Assertions.assertThat(result.get(1).namespace()).isEqualTo("defaultNull");
 
 	}
 

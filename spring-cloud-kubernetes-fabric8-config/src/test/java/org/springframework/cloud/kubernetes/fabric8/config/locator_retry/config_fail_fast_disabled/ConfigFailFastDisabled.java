@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +66,7 @@ abstract class ConfigFailFastDisabled {
 		Fabric8ConfigMapPropertySourceLocator psl = spy(propertySourceLocator);
 		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
 
-		Assertions.assertDoesNotThrow(() -> psl.locate(new MockEnvironment()));
+		Assertions.assertThatCode(() -> psl.locate(new MockEnvironment())).doesNotThrowAnyException();
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(psl, times(1)).locate(any());

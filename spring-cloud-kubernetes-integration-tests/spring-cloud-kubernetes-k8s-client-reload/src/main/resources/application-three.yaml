@@ -1,7 +1,3 @@
-logging:
-  level:
-    root: DEBUG
-
 spring:
   application:
     name: event-reload
@@ -9,7 +5,7 @@ spring:
     kubernetes:
       reload:
         enabled: true
-        strategy: shutdown
+        strategy: refresh
         mode: event
         namespaces:
           - right
