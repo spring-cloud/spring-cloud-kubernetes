@@ -23,9 +23,9 @@ import io.fabric8.kubernetes.api.model.coordination.v1.Lease;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,22 +75,22 @@ class Fabric8LeaderElectionSimpleITTest {
 			.until(() -> output.getOut().contains("Attempting to renew leader lease"));
 
 		// all these logs happen before a renewal
-		Assertions.assertTrue(output.getOut().contains("will use lease as the lock for leader election"));
-		Assertions.assertTrue(output.getOut().contains("starting leader initiator"));
-		Assertions.assertTrue(output.getOut().contains("Leader election started"));
-		Assertions.assertTrue(output.getOut().contains("Successfully Acquired leader lease"));
+		Assertions.assertThat(output.getOut()).contains("will use lease as the lock for leader election");
+		Assertions.assertThat(output.getOut()).contains("starting leader initiator");
+		Assertions.assertThat(output.getOut()).contains("Leader election started");
+		Assertions.assertThat(output.getOut()).contains("Successfully Acquired leader lease");
 
 		Lease lockLease = kubernetesClient.leases()
 			.inNamespace("default")
 			.withName("spring-k8s-leader-election-lock")
 			.get();
 		ZonedDateTime currentAcquiredTime = lockLease.getSpec().getAcquireTime();
-		Assertions.assertNotNull(currentAcquiredTime);
-		Assertions.assertEquals(15, lockLease.getSpec().getLeaseDurationSeconds());
-		Assertions.assertEquals(0, lockLease.getSpec().getLeaseTransitions());
+		Assertions.assertThat(currentAcquiredTime).isNotNull();
+		Assertions.assertThat(lockLease.getSpec().getLeaseDurationSeconds()).isEqualTo(15);
+		Assertions.assertThat(lockLease.getSpec().getLeaseTransitions()).isEqualTo(0);
 
 		ZonedDateTime currentRenewalTime = lockLease.getSpec().getRenewTime();
-		Assertions.assertNotNull(currentRenewalTime);
+		Assertions.assertThat(currentRenewalTime).isNotNull();
 
 		// renew happened, we renew by default on every two seconds
 		Awaitility.await()

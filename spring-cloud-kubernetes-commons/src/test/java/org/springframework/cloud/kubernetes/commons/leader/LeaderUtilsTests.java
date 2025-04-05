@@ -68,7 +68,7 @@ class LeaderUtilsTests {
 		MockedStatic<EnvReader> envReaderMockedStatic = Mockito.mockStatic(EnvReader.class);
 		// envReaderMockedStatic.when(() -> EnvReader.getEnv("")).thenReturn("");
 		Optional<String> podNamespace = LeaderUtils.podNamespace();
-		Assertions.assertTrue(podNamespace.isEmpty());
+		Assertions.assertThat(podNamespace.isEmpty()).isTrue();
 		envReaderMockedStatic.close();
 	}
 
@@ -77,8 +77,8 @@ class LeaderUtilsTests {
 		MockedStatic<EnvReader> envReaderMockedStatic = Mockito.mockStatic(EnvReader.class);
 		envReaderMockedStatic.when(() -> EnvReader.getEnv("POD_NAMESPACE")).thenReturn("podNamespace");
 		Optional<String> podNamespace = LeaderUtils.podNamespace();
-		Assertions.assertTrue(podNamespace.isPresent());
-		Assertions.assertEquals(podNamespace.get(), "podNamespace");
+		Assertions.assertThat(podNamespace.isPresent()).isTrue();
+		Assertions.assertThat(podNamespace.get()).isEqualTo("podNamespace");
 		envReaderMockedStatic.close();
 	}
 

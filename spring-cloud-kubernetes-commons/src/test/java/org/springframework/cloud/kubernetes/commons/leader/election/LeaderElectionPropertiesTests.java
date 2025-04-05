@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.commons.leader.election;
 
 import java.time.Duration;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,16 +34,16 @@ class LeaderElectionPropertiesTests {
 	void testDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class).run(context -> {
 			LeaderElectionProperties properties = context.getBean(LeaderElectionProperties.class);
-			Assertions.assertNotNull(properties);
-			Assertions.assertTrue(properties.publishEvents());
-			Assertions.assertTrue(properties.waitForPodReady());
-			Assertions.assertEquals(Duration.ofSeconds(15), properties.leaseDuration());
-			Assertions.assertEquals("default", properties.lockNamespace());
-			Assertions.assertEquals("spring-k8s-leader-election-lock", properties.lockName());
-			Assertions.assertEquals(Duration.ofSeconds(10), properties.renewDeadline());
-			Assertions.assertEquals(Duration.ofSeconds(2), properties.retryPeriod());
-			Assertions.assertEquals(Duration.ofSeconds(0), properties.waitAfterRenewalFailure());
-			Assertions.assertFalse(properties.useConfigMapAsLock());
+			Assertions.assertThat(properties).isNotNull();
+			Assertions.assertThat(properties.publishEvents()).isTrue();
+			Assertions.assertThat(properties.waitForPodReady()).isTrue();
+			Assertions.assertThat(properties.leaseDuration()).isEqualTo(Duration.ofSeconds(15));
+			Assertions.assertThat(properties.lockNamespace()).isEqualTo("default");
+			Assertions.assertThat(properties.lockName()).isEqualTo("spring-k8s-leader-election-lock");
+			Assertions.assertThat(properties.renewDeadline()).isEqualTo(Duration.ofSeconds(10));
+			Assertions.assertThat(properties.retryPeriod()).isEqualTo(Duration.ofSeconds(2));
+			Assertions.assertThat(properties.waitAfterRenewalFailure()).isEqualTo(Duration.ofSeconds(0));
+			Assertions.assertThat(properties.useConfigMapAsLock()).isFalse();
 		});
 	}
 
@@ -61,16 +61,16 @@ class LeaderElectionPropertiesTests {
 					"spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true")
 			.run(context -> {
 				LeaderElectionProperties properties = context.getBean(LeaderElectionProperties.class);
-				Assertions.assertNotNull(properties);
-				Assertions.assertFalse(properties.waitForPodReady());
-				Assertions.assertFalse(properties.publishEvents());
-				Assertions.assertEquals(Duration.ofSeconds(10), properties.leaseDuration());
-				Assertions.assertEquals("lock-namespace", properties.lockNamespace());
-				Assertions.assertEquals("lock-name", properties.lockName());
-				Assertions.assertEquals(Duration.ofDays(2), properties.renewDeadline());
-				Assertions.assertEquals(Duration.ofMinutes(3), properties.retryPeriod());
-				Assertions.assertEquals(Duration.ofMinutes(13), properties.waitAfterRenewalFailure());
-				Assertions.assertTrue(properties.useConfigMapAsLock());
+				Assertions.assertThat(properties).isNotNull();
+				Assertions.assertThat(properties.waitForPodReady()).isFalse();
+				Assertions.assertThat(properties.publishEvents()).isFalse();
+				Assertions.assertThat(properties.leaseDuration()).isEqualTo(Duration.ofSeconds(10));
+				Assertions.assertThat(properties.lockNamespace()).isEqualTo("lock-namespace");
+				Assertions.assertThat(properties.lockName()).isEqualTo("lock-name");
+				Assertions.assertThat(properties.renewDeadline()).isEqualTo(Duration.ofDays(2));
+				Assertions.assertThat(properties.retryPeriod()).isEqualTo(Duration.ofMinutes(3));
+				Assertions.assertThat(properties.waitAfterRenewalFailure()).isEqualTo(Duration.ofMinutes(13));
+				Assertions.assertThat(properties.useConfigMapAsLock()).isTrue();
 			});
 	}
 
