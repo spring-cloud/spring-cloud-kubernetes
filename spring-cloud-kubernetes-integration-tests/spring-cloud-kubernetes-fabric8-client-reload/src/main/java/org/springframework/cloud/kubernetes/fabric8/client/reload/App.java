@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  */
 @SpringBootApplication
 @EnableConfigurationProperties({ LeftProperties.class, RightProperties.class, RightWithLabelsProperties.class,
-		ConfigMapProperties.class, SecretProperties.class })
+		ConfigMapProperties.class, SecretProperties.class, ConfigMapNoMountProperties.class })
 public class App {
 
 	public static void main(String[] args) {
