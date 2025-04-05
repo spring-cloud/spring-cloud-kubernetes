@@ -30,7 +30,6 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,6 @@ import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.config.server.environment.NativeEnvironmentRepository;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -101,15 +99,10 @@ public class CompositeKubernetesIntegrationTests {
 			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false,
 					true);
 			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource,
-					"default", springEnv);
+					"default", springEnv, false, true);
 			propertySources.add(new KubernetesClientConfigMapPropertySource(defaultContext));
 			return propertySources;
 		});
-	}
-
-	@AfterEach
-	public void after() {
-		new KubernetesClientConfigMapsCache().discardAll();
 	}
 
 	@Nested

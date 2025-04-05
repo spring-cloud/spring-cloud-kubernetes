@@ -90,8 +90,8 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			if (this.properties.enableApi()) {
 				uniqueSources.forEach(s -> {
-					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(
-						env, s, properties.namespacedBatchRead());
+					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(env, s,
+							properties.namespacedBatchRead());
 
 					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
 						LOG.warn("Failed to load source: " + s);
