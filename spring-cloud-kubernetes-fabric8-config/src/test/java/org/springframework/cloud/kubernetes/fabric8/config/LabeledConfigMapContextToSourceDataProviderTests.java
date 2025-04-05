@@ -303,8 +303,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "color-configmap-k8s" with no labels. We search by "{color:red}", do not find
-	 * anything and thus have an empty SourceData. profile based sources are enabled, but
-	 * it has no effect.
+	 * anything and thus have an empty SourceData.
 	 */
 	@Test
 	void searchWithLabelsNoConfigmapsFound() {
@@ -324,7 +323,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DEFAULT, true);
@@ -341,7 +339,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "shape-configmap" with label: "{shape:round}". We search by "{color:blue}" and find
-	 * one configmap. profile based sources are enabled, but it has no effect.
+	 * one configmap.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFound() {
@@ -361,7 +359,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmap).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT, true);
@@ -377,6 +374,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
+<<<<<<< HEAD
+=======
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
 	 * find one configmap. Since profiles are enabled, we will also be reading
@@ -419,6 +418,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
+>>>>>>> main
 	 * <pre>
 	 *     - configmap "color-configmap" with label "{color:blue}"
 	 *     - configmap "shape-configmap" with labels "{color:blue, shape:round}"
@@ -428,7 +428,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 * </pre>
 	 */
 	@Test
-	void searchWithLabelsTwoConfigMapsFoundAndOneFromProfileFound() {
+	void searchWithLabelsTwoConfigMapsFound() {
 		ConfigMap colorConfigMap = new ConfigMapBuilder().withNewMetadata()
 			.withName("color-configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
@@ -471,7 +471,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmapK8s).create();
 
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, true);
