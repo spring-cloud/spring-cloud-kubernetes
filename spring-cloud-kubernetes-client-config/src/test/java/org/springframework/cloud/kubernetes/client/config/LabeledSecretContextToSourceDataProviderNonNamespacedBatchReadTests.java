@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,9 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +57,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
-class LabeledSecretContextToSourceDataProviderTests {
+public class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
+
+	private static final boolean NAMESPACED_BATCH_READ = false;
 
 	private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
@@ -84,7 +87,12 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
-		new KubernetesClientSecretsCache().discardAll();
+		new KubernetesClientSourcesNamespaceBatched().discardSecrets();
+	}
+
+	@AfterAll
+	static void afterAll() {
+		WireMock.shutdownServer();
 	}
 
 	/**
@@ -102,20 +110,21 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dred");
+		stubCall(new V1SecretList(), "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		// blue does not match red
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), false, false);
+				Collections.singletonMap("color", "blue"), false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color.default");
-		Assertions.assertThat(sourceData.sourceData()).isEmpty();
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color.default");
+		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
 
 	}
 
@@ -132,18 +141,18 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false, false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.test-secret.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("color", "really-red"));
+		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
+		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
 
 	}
 
@@ -164,20 +173,20 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(one).addItemsItem(two);
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dred");
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false, false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-one.color-two.default");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		Assertions.assertThat(sourceData.sourceData().get("colorOne")).isEqualTo("really-red-one");
-		Assertions.assertThat(sourceData.sourceData().get("colorTwo")).isEqualTo("really-red-two");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color-one.color-two.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red-one");
+		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-two");
 
 	}
 
@@ -189,18 +198,18 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(one);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false, false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.test-secret.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("color", "really-red"));
+		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
+		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
 	}
 
 	/**
@@ -221,20 +230,19 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(one);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("me", false, false, null);
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false, prefix,
-				false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false, prefix);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.blue-secret.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("me.what-color", "blue-color"));
+		Assertions.assertEquals("secret.blue-secret.default", sourceData.sourceName());
+		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
 	}
 
 	/**
@@ -267,43 +275,43 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(one).addItemsItem(two);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DELAYED, false);
+				ConfigUtils.Prefix.DELAYED);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		// maps don't have a defined order, so assert components separately
-		Assertions.assertThat(sourceData.sourceName().length()).isEqualTo(46);
-		Assertions.assertThat(sourceData.sourceName()).contains("secret");
-		Assertions.assertThat(sourceData.sourceName()).contains("blue-secret");
-		Assertions.assertThat(sourceData.sourceName()).contains("another-blue-secret");
-		Assertions.assertThat(sourceData.sourceName()).contains("default");
+		Assertions.assertEquals(46, sourceData.sourceName().length());
+		Assertions.assertTrue(sourceData.sourceName().contains("secret"));
+		Assertions.assertTrue(sourceData.sourceName().contains("blue-secret"));
+		Assertions.assertTrue(sourceData.sourceName().contains("another-blue-secret"));
+		Assertions.assertTrue(sourceData.sourceName().contains("default"));
 
 		Map<String, Object> properties = sourceData.sourceData();
-		Assertions.assertThat(properties.size()).isEqualTo(2);
+		Assertions.assertEquals(2, properties.size());
 		Iterator<String> keys = properties.keySet().iterator();
 		String firstKey = keys.next();
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertThat(firstKey).isEqualTo("another-blue-secret.blue-secret.first");
+			Assertions.assertEquals(firstKey, "another-blue-secret.blue-secret.first");
 		}
 
-		Assertions.assertThat(secondKey).isEqualTo("another-blue-secret.blue-secret.second");
-		Assertions.assertThat(properties.get(firstKey)).isEqualTo("blue");
-		Assertions.assertThat(properties.get(secondKey)).isEqualTo("blue");
+		Assertions.assertEquals(secondKey, "another-blue-secret.blue-secret.second");
+		Assertions.assertEquals(properties.get(firstKey), "blue");
+		Assertions.assertEquals(properties.get(secondKey), "blue");
 	}
 
 	/**
 	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
 	 * "shape-secret" with label: "{shape:round}". We search by "{color:blue}" and find
-	 * one secret. profile based sources are enabled, but it has no effect.
+	 * one secret.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFound() {
@@ -326,28 +334,27 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(colorSecret).addItemsItem(shapeSecret);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DEFAULT, true);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
-		Assertions.assertThat(sourceData.sourceData().get("one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 1);
+		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
 
 	}
 
 	/**
 	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
-	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
-	 * even if its labels do not match provided ones.
+	 * "color-secret-k8s" with label: "{color:blue}". We search by "{color:blue}" and find
+	 * both.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFoundAndOneFromProfileFound() {
@@ -361,7 +368,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1Secret shapeSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
 				.withName("color-secret-k8s")
 				.build())
@@ -370,22 +377,22 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(colorSecret).addItemsItem(shapeSecret);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DELAYED, true);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+				ConfigUtils.Prefix.DELAYED);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		Assertions.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.two")).isEqualTo("2");
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.color-secret-k8s.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 2);
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.one"), "1");
+		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.two"), "2");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.color-secret-k8s.default");
 
 	}
 
@@ -426,7 +433,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1Secret colorSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
 				.withName("color-secret-k8s")
 				.build())
@@ -434,7 +441,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1Secret shapeSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("shape", "triangle"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
 				.withName("shape-secret-k8s")
 				.build())
@@ -447,34 +454,30 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.addItemsItem(colorSecretK8s)
 			.addItemsItem(shapeSecretK8s);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DELAYED, true);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+				ConfigUtils.Prefix.DELAYED);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"))
-			.isEqualTo("1");
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"))
-			.isEqualTo("2");
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"))
-			.isEqualTo("4");
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"))
-			.isEqualTo("5");
+		Assertions.assertEquals(sourceData.sourceData().size(), 4);
+		Assertions.assertEquals(
+				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"), "1");
+		Assertions.assertEquals(
+				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"), "2");
+		Assertions.assertEquals(
+				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"), "4");
+		Assertions.assertEquals(
+				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"), "5");
 
-		Assertions.assertThat(sourceData.sourceName())
-			.isEqualTo("secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
+		Assertions.assertEquals(sourceData.sourceName(),
+				"secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
 
 	}
 
@@ -493,20 +496,20 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		V1SecretList secretList = new V1SecretList().addItemsItem(colorSecret);
 
-		stubCall(secretList);
+		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DEFAULT, true);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
-		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("blue");
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
+		Assertions.assertEquals(sourceData.sourceData().size(), 1);
+		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
+		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
 	}
 
 	/**
@@ -515,11 +518,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 *     - one secret is deployed with label {"color", "green"}
 	 *
 	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
-	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * 	   - we then search for the "green" one, and it is not retrieved from the cache.
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void nonCache(CapturedOutput output) {
 		V1Secret red = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
 				.withNamespace(NAMESPACE)
@@ -536,46 +539,50 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.addToData("color", "green".getBytes())
 			.build();
 
-		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(green);
+		V1SecretList secretListRed = new V1SecretList().addItemsItem(red);
+		stubCall(secretListRed, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dred");
 
-		stubCall(secretList);
+		V1SecretList secretListGreen = new V1SecretList().addItemsItem(green);
+		stubCall(secretListGreen, "/api/v1/namespaces/default/secrets?labelSelector=color%3Dgreen");
+
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource redSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), false,
-				ConfigUtils.Prefix.DEFAULT, false);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
-		Assertions.assertThat(redSourceData.sourceData().get("color")).isEqualTo("red");
-		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("secret.red.default");
-		Assertions.assertThat(output.getOut()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
+		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(redSourceData.sourceData().get("color"), "red");
+		Assertions.assertEquals(redSourceData.sourceName(), "secret.red.default");
+
+		Assertions.assertFalse(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+		Assertions.assertTrue(output.getAll().contains("Will read individual secrets in namespace"));
 
 		NormalizedSource greenSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
-				ConfigUtils.Prefix.DEFAULT, false);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
-		Assertions.assertThat(greenSourceData.sourceData().get("color")).isEqualTo("green");
-		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("secret.green.default");
+		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
+		Assertions.assertEquals(greenSourceData.sourceData().get("color"), "green");
+		Assertions.assertEquals(greenSourceData.sourceName(), "secret.green.default");
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
+		Assertions.assertEquals(out.length, 1);
 
 		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
+		out = output.getAll().split("Will read individual secrets in namespace");
+		Assertions.assertEquals(out.length, 3);
 	}
 
-	private void stubCall(V1SecretList list) {
-		stubFor(get("/api/v1/namespaces/default/secrets")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+	private void stubCall(V1SecretList configMapList, String path) {
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 	}
 
 }
