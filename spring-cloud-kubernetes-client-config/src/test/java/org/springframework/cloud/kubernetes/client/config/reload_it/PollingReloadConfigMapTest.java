@@ -192,8 +192,8 @@ class PollingReloadConfigMapTest {
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-					List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true, true,
-					RetryProperties.DEFAULT, true);
+					List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT,
+					true);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,
