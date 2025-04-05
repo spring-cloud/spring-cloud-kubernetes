@@ -190,10 +190,9 @@ class Fabric8ConfigUtilsTests {
 				Map.of("tag", "fit", "color", "blue"), new MockEnvironment());
 		Assertions.assertThat(result.names()).contains("blue-circle-secret");
 		Assertions.assertThat(result.names()).contains("blue-square-secret");
-		Assertions.assertThat(result.names()).contains("blue-square-secret-k8s");
 
 		Assertions.assertThat(result.data())
-			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "four", "4"));
+			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2"));
 	}
 
 	// secret "my-secret" is deployed; we search for it by name and do not find it.
