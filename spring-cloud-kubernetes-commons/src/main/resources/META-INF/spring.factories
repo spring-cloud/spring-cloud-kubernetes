@@ -3,4 +3,4 @@ org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfigura
 
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
-org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLoader
+org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLoader

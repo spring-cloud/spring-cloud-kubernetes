@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.commons.config.configdata;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,9 +31,10 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
-import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -42,14 +42,11 @@ import org.springframework.mock.env.MockEnvironment;
  */
 class KubernetesConfigDataLocationResolverTests {
 
-	private static final DeferredLogFactory FACTORY = Supplier::get;
-
 	// implementation that does nothing when registerBeans is called
-	private static final KubernetesConfigDataLocationResolver NOOP_RESOLVER = new KubernetesConfigDataLocationResolver(
-			FACTORY) {
+	private static final KubernetesConfigDataLocationResolver NOOP_RESOLVER = new KubernetesConfigDataLocationResolver() {
 		@Override
 		protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-				Profiles profiles, PropertyHolder propertyHolder, KubernetesNamespaceProvider namespaceProvider) {
+				Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
 		}
 	};
 
