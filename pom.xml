@@ -71,7 +71,7 @@
 		<!-- Dependency Versions -->
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>4.2.2-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-config.version>4.2.2-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-config.version>4.2.3-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>4.2.2-SNAPSHOT</spring-cloud-bus.version>
 		<spring-cloud-contract.version>4.2.2-SNAPSHOT</spring-cloud-contract.version>
 
