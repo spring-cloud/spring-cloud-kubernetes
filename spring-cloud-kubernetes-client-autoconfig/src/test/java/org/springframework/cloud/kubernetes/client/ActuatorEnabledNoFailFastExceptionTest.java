@@ -23,8 +23,8 @@ import java.nio.file.Paths;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.Config;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -71,7 +71,7 @@ class ActuatorEnabledNoFailFastExceptionTest {
 	@Test
 	void test() throws ApiException {
 		Health health = healthIndicator.getHealth(true);
-		Assertions.assertEquals(health.getStatus(), Status.UP);
+		Assertions.assertThat(Status.UP).isSameAs(health.getStatus());
 		Mockito.verify(coreV1Api).readNamespacedPod("host", "my-namespace", null);
 	}
 

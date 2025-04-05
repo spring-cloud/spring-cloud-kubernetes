@@ -33,8 +33,8 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,8 +114,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
 
 	}
 
@@ -142,8 +142,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.test-secret.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("color", "really-red"));
 
 	}
 
@@ -174,10 +174,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-one.color-two.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red-one");
-		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-two");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-one.color-two.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().get("colorOne")).isEqualTo("really-red-one");
+		Assertions.assertThat(sourceData.sourceData().get("colorTwo")).isEqualTo("really-red-two");
 
 	}
 
@@ -199,8 +199,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.test-secret.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.test-secret.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("color", "really-red"));
 	}
 
 	/**
@@ -232,8 +232,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.blue-secret.default", sourceData.sourceName());
-		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.blue-secret.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("me.what-color", "blue-color"));
 	}
 
 	/**
@@ -278,25 +278,25 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		// maps don't have a defined order, so assert components separately
-		Assertions.assertEquals(46, sourceData.sourceName().length());
-		Assertions.assertTrue(sourceData.sourceName().contains("secret"));
-		Assertions.assertTrue(sourceData.sourceName().contains("blue-secret"));
-		Assertions.assertTrue(sourceData.sourceName().contains("another-blue-secret"));
-		Assertions.assertTrue(sourceData.sourceName().contains("default"));
+		Assertions.assertThat(sourceData.sourceName().length()).isEqualTo(46);
+		Assertions.assertThat(sourceData.sourceName()).contains("secret");
+		Assertions.assertThat(sourceData.sourceName()).contains("blue-secret");
+		Assertions.assertThat(sourceData.sourceName()).contains("another-blue-secret");
+		Assertions.assertThat(sourceData.sourceName()).contains("default");
 
 		Map<String, Object> properties = sourceData.sourceData();
-		Assertions.assertEquals(2, properties.size());
+		Assertions.assertThat(properties.size()).isEqualTo(2);
 		Iterator<String> keys = properties.keySet().iterator();
 		String firstKey = keys.next();
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-secret.blue-secret.first");
+			Assertions.assertThat(firstKey).isEqualTo("another-blue-secret.blue-secret.first");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-secret.blue-secret.second");
-		Assertions.assertEquals(properties.get(firstKey), "blue");
-		Assertions.assertEquals(properties.get(secondKey), "blue");
+		Assertions.assertThat(secondKey).isEqualTo("another-blue-secret.blue-secret.second");
+		Assertions.assertThat(properties.get(firstKey)).isEqualTo("blue");
+		Assertions.assertThat(properties.get(secondKey)).isEqualTo("blue");
 	}
 
 	/**
@@ -336,9 +336,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData().get("one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 
 	}
 
@@ -379,10 +379,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.color-secret-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.color-secret-k8s.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.color-secret-k8s.default");
 
 	}
 
@@ -455,18 +455,22 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 4);
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"), "1");
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"), "2");
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"), "4");
-		Assertions.assertEquals(
-				sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"), "5");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		Assertions
+			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"))
+			.isEqualTo("1");
+		Assertions
+			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"))
+			.isEqualTo("2");
+		Assertions
+			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"))
+			.isEqualTo("4");
+		Assertions
+			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"))
+			.isEqualTo("5");
 
-		Assertions.assertEquals(sourceData.sourceName(),
-				"secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
+		Assertions.assertThat(sourceData.sourceName())
+			.isEqualTo("secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
 
 	}
 
@@ -496,9 +500,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("blue");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 	}
 
 	/**
@@ -540,10 +544,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(redSourceData.sourceData().get("color"), "red");
-		Assertions.assertEquals(redSourceData.sourceName(), "secret.red.default");
-		Assertions.assertTrue(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(redSourceData.sourceData().get("color")).isEqualTo("red");
+		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("secret.red.default");
+		Assertions.assertThat(output.getOut()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
 
 		NormalizedSource greenSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT);
@@ -552,17 +556,17 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(greenSourceData.sourceData().get("color"), "green");
-		Assertions.assertEquals(greenSourceData.sourceName(), "secret.green.default");
+		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(greenSourceData.sourceData().get("color")).isEqualTo("green");
+		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("secret.green.default");
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertEquals(out.length, 2);
+		Assertions.assertThat(out.length).isEqualTo(2);
 
 		// meaning that the second read was done from the cache
 		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
-		Assertions.assertEquals(out.length, 2);
+		Assertions.assertThat(out.length).isEqualTo(2);
 	}
 
 	private void stubCall(V1SecretList list) {

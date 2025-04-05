@@ -43,13 +43,6 @@
 							<goal>build-image-no-fork</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>repackage</id>
-						<phase>package</phase>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
 				</executions>
 			</plugin>
 
@@ -110,10 +103,10 @@
 		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
 
 		<!-- config watcher reload, using kafka and configmap -->
-        <module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload-multiple-apps</module>
+        <module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</module>
 
 		<!-- config watcher reload, using rabbitmq and secret -->
-        <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload-multiple-apps</module>
+        <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload</module>
 
 	</modules>
 </project>

@@ -35,12 +35,12 @@ class HeartbeatListener implements ApplicationListener<HeartbeatEvent> {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(HeartbeatListener.class));
 
-	AtomicReference<List<EndpointNameAndNamespace>> state = new AtomicReference<>(List.of());
+	public final AtomicReference<List<EndpointNameAndNamespace>> state = new AtomicReference<>(List.of());
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public void onApplicationEvent(HeartbeatEvent event) {
-		LOG.info("received heartbeat event");
+		LOG.info("received heartbeat event in listener");
 		List<EndpointNameAndNamespace> state = (List<EndpointNameAndNamespace>) event.getValue();
 		this.state.set(state);
 		LOG.info("state received : " + state);

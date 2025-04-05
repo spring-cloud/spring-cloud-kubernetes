@@ -28,9 +28,9 @@ import io.kubernetes.client.openapi.models.V1APIResourceBuilder;
 import io.kubernetes.client.openapi.models.V1APIResourceList;
 import io.kubernetes.client.openapi.models.V1APIResourceListBuilder;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -95,8 +95,9 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
-		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
-		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
+		Assertions.assertThatThrownBy(watch::postConstruct)
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("EndpointSlices are not supported on the cluster");
 	}
 
 	/**
@@ -119,8 +120,9 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
-		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, watch::postConstruct);
-		Assertions.assertEquals("EndpointSlices are not supported on the cluster", ex.getMessage());
+		Assertions.assertThatThrownBy(watch::postConstruct)
+			.isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("EndpointSlices are not supported on the cluster");
 	}
 
 	/**
@@ -134,7 +136,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
 
-		Assertions.assertEquals(KubernetesEndpointsCatalogWatch.class, watch.stateGenerator().getClass());
+		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(KubernetesEndpointsCatalogWatch.class);
 	}
 
 	/**
@@ -154,7 +156,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
-		Assertions.assertEquals(KubernetesEndpointSlicesCatalogWatch.class, watch.stateGenerator().getClass());
+		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(KubernetesEndpointSlicesCatalogWatch.class);
 	}
 
 }

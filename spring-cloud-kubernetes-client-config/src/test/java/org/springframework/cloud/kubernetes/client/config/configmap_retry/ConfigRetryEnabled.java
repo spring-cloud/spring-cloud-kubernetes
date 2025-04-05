@@ -26,9 +26,9 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -110,15 +110,16 @@ abstract class ConfigRetryEnabled {
 
 		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 
-		PropertySource<?> propertySource = Assertions
-			.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatCode(() -> propertySource[0] = propertySourceLocator.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify locate is called only once
 		WireMock.verify(1, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
-		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
+		assertThat(propertySource[0].getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource[0].getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
@@ -152,15 +153,16 @@ abstract class ConfigRetryEnabled {
 			.whenScenarioStateIs("Failed thrice")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 
-		PropertySource<?> propertySource = Assertions
-			.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		PropertySource<?>[] propertySource = new PropertySource<?>[1];
+		Assertions.assertThatCode(() -> propertySource[0] = propertySourceLocator.locate(new MockEnvironment()))
+			.doesNotThrowAnyException();
 
 		// verify the request was retried 4 times, 5 total request
 		WireMock.verify(5, getRequestedFor(urlEqualTo(API)));
 
 		// validate the contents of the property source
-		assertThat(propertySource.getProperty("some.prop")).isEqualTo("theValue");
-		assertThat(propertySource.getProperty("some.number")).isEqualTo("0");
+		assertThat(propertySource[0].getProperty("some.prop")).isEqualTo("theValue");
+		assertThat(propertySource[0].getProperty("some.number")).isEqualTo("0");
 	}
 
 	@Test
