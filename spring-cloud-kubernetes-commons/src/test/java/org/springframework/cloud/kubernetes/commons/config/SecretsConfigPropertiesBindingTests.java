@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,25 +35,25 @@ class SecretsConfigPropertiesBindingTests {
 	void testWithDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class).run(context -> {
 			SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
-			Assertions.assertNotNull(props);
-			Assertions.assertFalse(props.enableApi());
-			Assertions.assertTrue(props.paths().isEmpty());
-			Assertions.assertTrue(props.sources().isEmpty());
-			Assertions.assertTrue(props.labels().isEmpty());
-			Assertions.assertTrue(props.enabled());
-			Assertions.assertNull(props.name());
-			Assertions.assertNull(props.namespace());
-			Assertions.assertFalse(props.useNameAsPrefix());
-			Assertions.assertTrue(props.includeProfileSpecificSources());
-			Assertions.assertFalse(props.failFast());
+			Assertions.assertThat(props).isNotNull();
+			Assertions.assertThat(props.enableApi()).isFalse();
+			Assertions.assertThat(props.paths()).isEmpty();
+			Assertions.assertThat(props.sources()).isEmpty();
+			Assertions.assertThat(props.labels()).isEmpty();
+			Assertions.assertThat(props.enabled()).isTrue();
+			Assertions.assertThat(props.name()).isNull();
+			Assertions.assertThat(props.namespace()).isNull();
+			Assertions.assertThat(props.useNameAsPrefix()).isFalse();
+			Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
+			Assertions.assertThat(props.failFast()).isFalse();
+			Assertions.assertThat(props.namespacedBatchRead()).isTrue();
 
-			Assertions.assertNotNull(props.retry());
-			Assertions.assertEquals(props.retry().initialInterval(), 1000L);
-			Assertions.assertEquals(props.retry().multiplier(), 1.1D);
-			Assertions.assertEquals(props.retry().maxInterval(), 2000L);
-			Assertions.assertEquals(props.retry().maxAttempts(), 6);
-			Assertions.assertTrue(props.retry().enabled());
-			Assertions.assertTrue(props.namespacedBatchRead());
+			Assertions.assertThat(props.retry()).isNotNull();
+			Assertions.assertThat(props.retry().initialInterval()).isEqualTo(1000L);
+			Assertions.assertThat(props.retry().multiplier()).isEqualTo(1.1D);
+			Assertions.assertThat(props.retry().maxInterval()).isEqualTo(2000L);
+			Assertions.assertThat(props.retry().maxAttempts()).isEqualTo(6);
+			Assertions.assertThat(props.retry().enabled()).isTrue();
 		});
 	}
 
@@ -82,40 +82,41 @@ class SecretsConfigPropertiesBindingTests {
 					"spring.cloud.kubernetes.secrets.namespaced-batch-read=false")
 			.run(context -> {
 				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
-				Assertions.assertNotNull(props);
-				Assertions.assertFalse(props.enableApi());
+				Assertions.assertThat(props).isNotNull();
+				Assertions.assertThat(props.enableApi()).isFalse();
 
-				Assertions.assertEquals(props.paths().size(), 2);
-				Assertions.assertEquals(props.paths().get(0), "a");
-				Assertions.assertEquals(props.paths().get(1), "b");
+				Assertions.assertThat(props.paths().size()).isEqualTo(2);
+				Assertions.assertThat(props.paths().get(0)).isEqualTo("a");
+				Assertions.assertThat(props.paths().get(1)).isEqualTo("b");
 
-				Assertions.assertEquals(props.sources().size(), 1);
+				Assertions.assertThat(props.sources().size()).isEqualTo(1);
 				SecretsConfigProperties.Source source = props.sources().get(0);
-				Assertions.assertEquals(source.name(), "source-a");
-				Assertions.assertEquals(source.namespace(), "source-namespace-a");
-				Assertions.assertEquals(source.labels().size(), 1);
-				Assertions.assertEquals(source.labels().get("key"), "source-value");
-				Assertions.assertEquals(source.explicitPrefix(), "source-prefix");
-				Assertions.assertTrue(source.useNameAsPrefix());
-				Assertions.assertTrue(source.includeProfileSpecificSources());
+				Assertions.assertThat(source.name()).isEqualTo("source-a");
+				Assertions.assertThat(source.namespace()).isEqualTo("source-namespace-a");
+				Assertions.assertThat(source.labels().size()).isEqualTo(1);
+				Assertions.assertThat(source.labels().get("key")).isEqualTo("source-value");
+				Assertions.assertThat(source.explicitPrefix()).isEqualTo("source-prefix");
+				Assertions.assertThat(source.useNameAsPrefix()).isTrue();
+				Assertions.assertThat(source.includeProfileSpecificSources()).isTrue();
+				Assertions.assertThat(props.namespacedBatchRead()).isFalse();
 
-				Assertions.assertEquals(props.labels().size(), 1);
-				Assertions.assertEquals(props.labels().get("label-a"), "label-a");
+				Assertions.assertThat(props.labels().size()).isEqualTo(1);
+				Assertions.assertThat(props.labels().get("label-a")).isEqualTo("label-a");
 
-				Assertions.assertFalse(props.enabled());
-				Assertions.assertEquals(props.name(), "name");
-				Assertions.assertEquals(props.namespace(), "namespace");
-				Assertions.assertTrue(props.useNameAsPrefix());
-				Assertions.assertTrue(props.includeProfileSpecificSources());
-				Assertions.assertTrue(props.failFast());
+				Assertions.assertThat(props.enabled()).isFalse();
+				Assertions.assertThat(props.name()).isEqualTo("name");
+				Assertions.assertThat(props.namespace()).isEqualTo("namespace");
+				Assertions.assertThat(props.useNameAsPrefix()).isTrue();
+				Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
+				Assertions.assertThat(props.failFast()).isTrue();
 
 				RetryProperties retryProperties = props.retry();
-				Assertions.assertNotNull(retryProperties);
-				Assertions.assertEquals(retryProperties.initialInterval(), 1);
-				Assertions.assertEquals(retryProperties.multiplier(), 1.2);
-				Assertions.assertEquals(retryProperties.maxInterval(), 3);
-				Assertions.assertFalse(retryProperties.enabled());
-				Assertions.assertFalse(props.namespacedBatchRead());
+				Assertions.assertThat(retryProperties).isNotNull();
+				Assertions.assertThat(retryProperties.initialInterval()).isEqualTo(1);
+				Assertions.assertThat(retryProperties.multiplier()).isEqualTo(1.2);
+				Assertions.assertThat(retryProperties.maxInterval()).isEqualTo(3);
+				Assertions.assertThat(retryProperties.enabled()).isFalse();
+
 			});
 	}
 

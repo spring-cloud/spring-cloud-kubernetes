@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,8 +32,8 @@ import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -124,8 +123,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("configmap.test-configmap.default", sourceData.sourceName());
-		Assertions.assertEquals(Map.of("name", "value"), sourceData.sourceData());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.test-configmap.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("name", "value"));
 
 	}
 
@@ -174,10 +173,10 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red-configmap.red-configmap-again.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-again");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red-configmap.red-configmap-again.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().get("colorOne")).isEqualTo("really-red");
+		Assertions.assertThat(sourceData.sourceData().get("colorTwo")).isEqualTo("really-red-again");
 
 	}
 
@@ -206,8 +205,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.color.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
 
 	}
 
@@ -239,8 +238,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("configmap.test-configmap.default", sourceData.sourceName());
-		Assertions.assertEquals(Map.of("name", "value"), sourceData.sourceData());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.test-configmap.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("name", "value"));
 	}
 
 	/**
@@ -271,8 +270,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("configmap.blue-configmap.default", sourceData.sourceName());
-		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.blue-configmap.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("me.what-color", "blue-color"));
 	}
 
 	/**
@@ -317,21 +316,22 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.another-blue-configmap.blue-configmap.default");
+		Assertions.assertThat(sourceData.sourceName())
+			.isEqualTo("configmap.another-blue-configmap.blue-configmap.default");
 
 		Map<String, Object> properties = sourceData.sourceData();
-		Assertions.assertEquals(2, properties.size());
+		Assertions.assertThat(properties.size()).isEqualTo(2);
 		Iterator<String> keys = properties.keySet().iterator();
 		String firstKey = keys.next();
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-configmap.blue-configmap.first");
+			Assertions.assertThat(firstKey).isEqualTo("another-blue-configmap.blue-configmap.first");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-configmap.blue-configmap.second");
-		Assertions.assertEquals(properties.get(firstKey), "blue");
-		Assertions.assertEquals(properties.get(secondKey), "blue");
+		Assertions.assertThat(secondKey).isEqualTo("another-blue-configmap.blue-configmap.second");
+		Assertions.assertThat(properties.get(firstKey)).isEqualTo("blue");
+		Assertions.assertThat(properties.get(secondKey)).isEqualTo("blue");
 	}
 
 	/**
@@ -369,8 +369,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertTrue(sourceData.sourceData().isEmpty());
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.color.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color.default");
 
 	}
 
@@ -408,9 +408,9 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData().get("one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.default");
 
 	}
 
@@ -452,10 +452,11 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-configmap.color-configmap-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.color-configmap.color-configmap-k8s.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap.color-configmap-k8s.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap.color-configmap-k8s.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceName())
+			.isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
 
 	}
 
@@ -529,18 +530,26 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 4);
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"), "2");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"), "4");
-		Assertions.assertEquals(sourceData.sourceData()
-			.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"), "5");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		Assertions
+			.assertThat(sourceData.sourceData()
+				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"))
+			.isEqualTo("1");
+		Assertions
+			.assertThat(sourceData.sourceData()
+				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"))
+			.isEqualTo("2");
+		Assertions
+			.assertThat(sourceData.sourceData()
+				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"))
+			.isEqualTo("4");
+		Assertions
+			.assertThat(sourceData.sourceData()
+				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"))
+			.isEqualTo("5");
 
-		Assertions.assertEquals(sourceData.sourceName(),
-				"configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
+		Assertions.assertThat(sourceData.sourceName())
+			.isEqualTo("configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
 
 	}
 
@@ -583,12 +592,11 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData redData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(redSourceData.sourceData().get("color"), "red");
-		Assertions.assertEquals(redSourceData.sourceName(), "configmap.red-configmap.default");
-
-		Assertions.assertTrue(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
-		Assertions.assertFalse(output.getAll().contains("Will read individual configmaps in namespace"));
+		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(redSourceData.sourceData().get("color")).isEqualTo("red");
+		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red-configmap.default");
+		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
+		Assertions.assertThat(output.getAll()).contains("Will read individual configmaps in namespace");
 
 		NormalizedSource greenSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT, false);
@@ -597,17 +605,17 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData greenData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(greenSourceData.sourceData().get("color"), "green");
-		Assertions.assertEquals(greenSourceData.sourceName(), "configmap.green-configmap.default");
+		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(greenSourceData.sourceData().get("color")).isEqualTo("green");
+		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("configmap.green-configmap.default");
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertEquals(out.length, 2);
+		Assertions.assertThat(out.length).isEqualTo(2);
 
 		// meaning that the second read was done from the cache
 		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
-		Assertions.assertEquals(out.length, 2);
+		Assertions.assertThat(out.length).isEqualTo(2);
 	}
 
 	private void stubCall(V1ConfigMapList list) {

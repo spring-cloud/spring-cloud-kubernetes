@@ -96,7 +96,7 @@ class KubernetesCatalogWatchEndpointsTests extends KubernetesEndpointsAndEndpoin
 	@Test
 	@Override
 	void testInAllNamespacesWithDoubleLabel() {
-		stubFor(get("/api/v1/endpoints?labelSelector=a%3Db%26c%3Dd")
+		stubFor(get("/api/v1/endpoints?labelSelector=a%3Db%2Cc%3Dd")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "default")))));
 		// otherwise the stub might fail
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();
@@ -137,9 +137,9 @@ class KubernetesCatalogWatchEndpointsTests extends KubernetesEndpointsAndEndpoin
 	@Test
 	@Override
 	void testInSpecificNamespacesWithDoubleLabel() {
-		stubFor(get("/api/v1/namespaces/one/endpoints?labelSelector=a%3Db%26c%3Dd")
+		stubFor(get("/api/v1/namespaces/one/endpoints?labelSelector=a%3Db%2Cc%3Dd")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("aa", "a")))));
-		stubFor(get("/api/v1/namespaces/two/endpoints?labelSelector=a%3Db%26c%3Dd")
+		stubFor(get("/api/v1/namespaces/two/endpoints?labelSelector=a%3Db%2Cc%3Dd")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("bb", "b")))));
 
 		// otherwise the stub might fail
@@ -179,7 +179,7 @@ class KubernetesCatalogWatchEndpointsTests extends KubernetesEndpointsAndEndpoin
 	@Test
 	@Override
 	void testInOneNamespaceWithDoubleLabel() {
-		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=key%3Dvalue%26key1%3Dvalue1")
+		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=key%3Dvalue%2Ckey1%3Dvalue1")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpoints("a", "b")))));
 		// otherwise the stub might fail
 		LinkedHashMap<String, String> map = new LinkedHashMap<>();

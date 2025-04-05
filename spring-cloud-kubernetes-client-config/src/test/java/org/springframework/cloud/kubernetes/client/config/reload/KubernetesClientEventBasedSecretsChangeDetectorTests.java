@@ -37,9 +37,9 @@ import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.Watch;
 import okhttp3.OkHttpClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -186,7 +186,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = null;
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	/**
@@ -200,7 +200,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = null;
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	/**
@@ -214,7 +214,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = null;
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	/**
@@ -228,7 +228,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = Map.of();
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	/**
@@ -242,7 +242,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = Map.of();
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertTrue(result);
+		Assertions.assertThat(result).isTrue();
 	}
 
 	/**
@@ -256,7 +256,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = Map.of("1", "b".getBytes());
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	/**
@@ -270,7 +270,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = Map.of("1", "b".getBytes());
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 	/**
@@ -284,7 +284,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Map<String, byte[]> right = Map.of("1", "b".getBytes(), "2", "aa".getBytes());
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertFalse(result);
+		Assertions.assertThat(result).isFalse();
 	}
 
 }

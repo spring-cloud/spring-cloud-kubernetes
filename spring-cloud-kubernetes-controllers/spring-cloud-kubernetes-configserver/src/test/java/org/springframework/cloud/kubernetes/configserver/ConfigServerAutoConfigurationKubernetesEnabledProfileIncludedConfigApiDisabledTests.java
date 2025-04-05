@@ -40,6 +40,7 @@ class ConfigServerAutoConfigurationKubernetesEnabledProfileIncludedConfigApiDisa
 	void runTest() {
 		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepository.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesPropertySourceSupplier.class)).hasSize(0);
+		assertThat(context.getBeanNamesForType(KubernetesEnvironmentRepositoryFactory.class)).hasSize(1);
 	}
 
 }

@@ -27,8 +27,8 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -199,7 +199,50 @@ class KubernetesEnvironmentRepositoryTests {
 	}
 
 	@Test
-	void testStoresCase() throws ApiException {
+	public void testApplicationCaseWithNewConstructor() throws ApiException {
+		CoreV1Api coreApi = mock(CoreV1Api.class);
+		KubernetesConfigServerProperties properties = mock(KubernetesConfigServerProperties.class);
+		when(properties.getOrder()).thenReturn(0);
+
+		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+			eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(CONFIGMAP_DEFAULT_LIST);
+		when(coreApi.listNamespacedSecret(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+			eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(SECRET_LIST);
+		when(coreApi.listNamespacedConfigMap(eq("dev"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
+			eq(null), eq(null), eq(null), eq(null), eq(null)))
+			.thenReturn(CONFIGMAP_DEV_LIST);
+
+		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
+			KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", properties);
+
+		Environment environment = environmentRepository.findOne("application", "", "");
+
+		assertThat(environment.getPropertySources().size()).isEqualTo(2);
+		environment.getPropertySources().forEach(propertySource -> {
+			assertThat(propertySource.getName().equals("configmap.application.default")
+				|| propertySource.getName().equals("secret.application.default"))
+				.isTrue();
+			if (propertySource.getName().equals("configmap.application.default")) {
+				assertThat(propertySource.getSource().size()).isEqualTo(3);
+				assertThat(propertySource.getSource().get("dummy.property.int2")).isEqualTo(1);
+				assertThat(propertySource.getSource().get("dummy.property.bool2")).isEqualTo(true);
+				assertThat(propertySource.getSource().get("dummy.property.string2")).isEqualTo("a");
+			}
+			if (propertySource.getName().equals("secrets.application.default")) {
+				assertThat(propertySource.getSource().size()).isEqualTo(2);
+				assertThat(propertySource.getSource().get("username")).isEqualTo("user");
+				assertThat(propertySource.getSource().get("password")).isEqualTo("p455w0rd");
+			}
+		});
+
+		assertThat(environmentRepository.getOrder()).isEqualTo(0);
+	}
+
+
+	@Test
+	public void testStoresCase() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		when(coreApi.listNamespacedConfigMap(eq("default"), eq(null), eq(null), eq(null), eq(null), eq(null), eq(null),
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
