@@ -61,7 +61,7 @@ class Fabric8ConfigUtilsTests {
 			.resource(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build())
 			.create();
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "red"), new MockEnvironment(), Set.of());
+				Map.of("color", "red"), new MockEnvironment());
 		Assertions.assertThat(result.data()).isEmpty();
 		Assertions.assertThat(result.names()).isEmpty();
 	}
@@ -79,7 +79,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment());
 		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
 		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("property", "value"));
 	}
@@ -98,7 +98,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment());
 		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
 		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("key1", "value1"));
 	}
@@ -125,7 +125,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment());
 		Assertions.assertThat(result.names()).contains("my-secret");
 		Assertions.assertThat(result.names()).contains("my-secret-2");
 
@@ -140,10 +140,8 @@ class Fabric8ConfigUtilsTests {
 	 *     - secret deployed with name "blue-triangle-secret" and labels "color=blue, shape=triangle, tag=no-fit"
 	 *     - secret deployed with name "blue-square-secret-k8s" and labels "color=blue, shape=triangle, tag=no-fit"
 	 *
-	 *     - we search by labels "color=blue, tag=fits", as such first find two secrets: "blue-circle-secret"
+	 *     - we search by labels "color=blue, tag=fits", as such find two secrets: "blue-circle-secret"
 	 *       and "blue-square-secret".
-	 *     - since "k8s" profile is enabled, we also take "blue-square-secret-k8s". Notice that this one does not match
-	 *       the initial labels (it has "tag=no-fit"), but it does not matter, we take it anyway.
 	 * </pre>
 	 */
 	@Test
@@ -189,14 +187,12 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
-
+				Map.of("tag", "fit", "color", "blue"), new MockEnvironment());
 		Assertions.assertThat(result.names()).contains("blue-circle-secret");
 		Assertions.assertThat(result.names()).contains("blue-square-secret");
-		Assertions.assertThat(result.names()).contains("blue-square-secret-k8s");
 
 		Assertions.assertThat(result.data())
-			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "four", "4"));
+			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2"));
 	}
 
 	// secret "my-secret" is deployed; we search for it by name and do not find it.
