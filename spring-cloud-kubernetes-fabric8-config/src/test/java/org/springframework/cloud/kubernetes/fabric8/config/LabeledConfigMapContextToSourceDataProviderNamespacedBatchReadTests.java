@@ -378,49 +378,6 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 	}
 
 	/**
-	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
-	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
-	 * find one configmap. Since profiles are enabled, we will also be reading
-	 * "color-configmap-k8s", even if its labels do not match provided ones.
-	 */
-	@Test
-	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
-		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap")
-			.withLabels(Collections.singletonMap("color", "blue"))
-			.endMetadata()
-			.addToData("one", "1")
-			.build();
-
-		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
-			.withName("color-configmap-k8s")
-			.withLabels(Collections.singletonMap("color", "red"))
-			.endMetadata()
-			.addToData("two", "2")
-			.build();
-
-		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
-		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
-
-		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
-				true);
-
-		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
-		SourceData sourceData = data.apply(context);
-
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		Assertions.assertThat(sourceData.sourceData().get("color-configmap.color-configmap-k8s.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("color-configmap.color-configmap-k8s.two")).isEqualTo("2");
-		Assertions.assertThat(sourceData.sourceName())
-			.isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
-
-	}
-
-	/**
 	 * <pre>
 	 *     - configmap "color-configmap" with label "{color:blue}"
 	 *     - configmap "shape-configmap" with labels "{color:blue, shape:round}"
@@ -482,26 +439,10 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"))
-			.isEqualTo("1");
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"))
-			.isEqualTo("2");
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"))
-			.isEqualTo("4");
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"))
-			.isEqualTo("5");
-
-		Assertions.assertThat(sourceData.sourceName())
-			.isEqualTo("configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap.shape-configmap.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap.shape-configmap.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.shape-configmap.default");
 
 	}
 
@@ -544,7 +485,6 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(redSourceData.sourceData().get("red-configmap.one")).isEqualTo("1");
 		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getAll()).contains("Will read individual configmaps in namespace");
 
 		NormalizedSource greenNormalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED, true);
