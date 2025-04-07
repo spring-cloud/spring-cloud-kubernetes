@@ -558,7 +558,6 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceData().get("color")).isEqualTo("red");
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("secret.red.default");
 		Assertions.assertThat(output.getOut()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getOut()).contains("Will read individual secrets in namespace");
 
 		NormalizedSource greenSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT);

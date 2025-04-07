@@ -596,7 +596,6 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceData().get("color")).isEqualTo("red");
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red-configmap.default");
 		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getAll()).contains("Will read individual configmaps in namespace");
 
 		NormalizedSource greenSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT, false);

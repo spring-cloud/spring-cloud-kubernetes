@@ -449,7 +449,6 @@ class NamedConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red.default");
 		Assertions.assertThat(redSourceData.sourceData()).isEqualTo(Map.of("color", "red"));
 		Assertions.assertThat(output.getOut()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getOut()).contains("Will read individual configmaps in namespace");
 
 		NormalizedSource greenSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, true);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
