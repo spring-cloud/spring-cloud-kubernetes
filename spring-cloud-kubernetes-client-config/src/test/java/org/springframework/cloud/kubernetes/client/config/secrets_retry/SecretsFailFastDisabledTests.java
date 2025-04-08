@@ -21,9 +21,9 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.verify;
 				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
 				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
 		classes = SecretsRetryApplication.class)
-class SecretsFailFastDisabled {
+class SecretsFailFastDisabledTests {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
 
@@ -97,7 +97,7 @@ class SecretsFailFastDisabled {
 		KubernetesClientSecretsPropertySourceLocator propertySourceLocator = spy(psl);
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		Assertions.assertDoesNotThrow(() -> propertySourceLocator.locate(new MockEnvironment()));
+		Assertions.assertThatCode(() -> propertySourceLocator.locate(new MockEnvironment())).doesNotThrowAnyException();
 
 		// verify locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());

@@ -93,10 +93,10 @@ abstract class DiscoveryServerClientBase {
 		V1Service service = (V1Service) util.yaml("manifests/discoveryserver-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
+			util.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 

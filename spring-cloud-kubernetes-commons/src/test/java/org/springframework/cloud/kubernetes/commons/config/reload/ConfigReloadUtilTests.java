@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
@@ -145,10 +145,12 @@ class ConfigReloadUtilTests {
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
-		Assertions.assertEquals(3, result.size());
-		Assertions.assertEquals("b", result.get(0).getProperty("a"));
-		Assertions.assertEquals("plain", result.get(1).getProperty(""));
-		Assertions.assertEquals("from-inner-two-composite", result.get(2).getProperty(""));
+
+		Assertions.assertThat(result.size()).isEqualTo(3);
+		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("b");
+		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("plain");
+		Assertions.assertThat(result.get(2).getProperty("")).isEqualTo("from-inner-two-composite");
+
 	}
 
 	@Test

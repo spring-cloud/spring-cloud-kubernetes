@@ -20,12 +20,11 @@ import java.time.Duration;
 import java.util.Objects;
 
 import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1Ingress;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,7 +102,7 @@ class ConfigurationWatcherBusAmqpIT {
 		util.createAndWait(NAMESPACE, null, secret);
 
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl("http://localhost:80/app").build();
+		WebClient serviceClient = builder.baseUrl("http://localhost:32321/app").build();
 
 		Boolean[] value = new Boolean[1];
 		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(240)).until(() -> {
@@ -115,20 +114,19 @@ class ConfigurationWatcherBusAmqpIT {
 			return value[0];
 		});
 
-		Assertions.assertTrue(value[0]);
+		Assertions.assertThat(value[0]).isTrue();
 		util.deleteAndWait(NAMESPACE, null, secret);
 	}
 
 	private void appA(Phase phase) {
 		V1Deployment deployment = (V1Deployment) util.yaml("app/app-deployment.yaml");
 		V1Service service = (V1Service) util.yaml("app/app-service.yaml");
-		V1Ingress ingress = (V1Ingress) util.yaml("ingress/ingress.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, ingress, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, ingress);
+			util.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 
@@ -137,10 +135,10 @@ class ConfigurationWatcherBusAmqpIT {
 		V1Service service = (V1Service) util.yaml("config-watcher/watcher-service.yaml");
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, null, true);
+			util.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service, null);
+			util.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 
