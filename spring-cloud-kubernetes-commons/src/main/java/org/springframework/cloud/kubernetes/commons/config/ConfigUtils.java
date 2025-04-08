@@ -323,7 +323,9 @@ public final class ConfigUtils {
 			if (decode) {
 				rawData = decodeData(rawData);
 			}
-			result.putAll(SourceDataEntriesProcessor.processAllEntries(rawData, environment));
+
+			Map<String, Object> dataFromOneSource = SourceDataEntriesProcessor.processAllEntries(rawData, environment);
+			result.put(foundSourceName, dataFromOneSource);
 		});
 
 		return new MultipleSourcesContainer(sourceNames, result);
