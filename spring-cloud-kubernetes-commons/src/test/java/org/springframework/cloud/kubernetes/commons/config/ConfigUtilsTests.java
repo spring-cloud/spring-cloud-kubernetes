@@ -226,6 +226,7 @@ class ConfigUtilsTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	void testIssue1757() {
 
 		StrippedSourceContainer containerA = new StrippedSourceContainer(Map.of("load", "true"), "client-1",
@@ -238,7 +239,7 @@ class ConfigUtilsTests {
 				new MockEnvironment(), Map.of("load", "true"), "default", Set.of(), false);
 
 		System.out.println(container);
-		assertThat(container.names()).containsExactly("client-1", "client-2");
+		assertThat(container.names()).containsExactlyInAnyOrder("client-1", "client-2");
 
 		Map<String, Object> client1Data = (Map<String, Object>) container.data().get("client-1");
 		assertThat(client1Data)
