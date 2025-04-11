@@ -60,7 +60,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.assertj.core.api.Fail.fail;
 import static org.awaitility.Awaitility.await;
-
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
