@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,10 @@ package org.springframework.cloud.kubernetes.fabric8.config.labeled_secret_with_
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("green-purple-secret.green-purple-secret-k8s.green-secret.green-secret-k8s.green-secret-prod")
+@ConfigurationProperties("green-secret")
 public class Green {
 
 	private String two;
-
-	private String six;
-
-	private String seven;
-
-	private String eight;
 
 	public String getTwo() {
 		return two;
@@ -35,30 +29,6 @@ public class Green {
 
 	public void setTwo(String two) {
 		this.two = two;
-	}
-
-	public String getSix() {
-		return six;
-	}
-
-	public void setSix(String six) {
-		this.six = six;
-	}
-
-	public String getSeven() {
-		return seven;
-	}
-
-	public void setSeven(String seven) {
-		this.seven = seven;
-	}
-
-	public String getEight() {
-		return eight;
-	}
-
-	public void setEight(String eight) {
-		this.eight = eight;
 	}
 
 }

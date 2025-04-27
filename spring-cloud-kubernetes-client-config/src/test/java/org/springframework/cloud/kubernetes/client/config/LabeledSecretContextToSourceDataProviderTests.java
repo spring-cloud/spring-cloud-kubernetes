@@ -52,6 +52,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author wind57
  */
@@ -292,10 +294,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertThat(firstKey).isEqualTo("another-blue-secret.blue-secret.first");
+			Assertions.assertThat(firstKey).isEqualTo("blue-secret.first");
 		}
 
-		Assertions.assertThat(secondKey).isEqualTo("another-blue-secret.blue-secret.second");
+		Assertions.assertThat(secondKey).isEqualTo("another-blue-secret.second");
 		Assertions.assertThat(properties.get(firstKey)).isEqualTo("blue");
 		Assertions.assertThat(properties.get(secondKey)).isEqualTo("blue");
 	}
@@ -383,8 +385,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		Assertions.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("color-secret-k8s.two")).isEqualTo("2");
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.color-secret-k8s.default");
 
 	}
@@ -459,21 +461,13 @@ class LabeledSecretContextToSourceDataProviderTests {
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.one"))
-			.isEqualTo("1");
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.two"))
-			.isEqualTo("2");
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.four"))
-			.isEqualTo("4");
-		Assertions
-			.assertThat(sourceData.sourceData().get("color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.five"))
-			.isEqualTo("5");
+		assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
+		assertThat(sourceData.sourceData().get("shape-secret.two")).isEqualTo("2");
+		assertThat(sourceData.sourceData().get("color-secret-k8s.four")).isEqualTo("4");
+		assertThat(sourceData.sourceData().get("shape-secret-k8s.five")).isEqualTo("5");
 
-		Assertions.assertThat(sourceData.sourceName())
+		assertThat(sourceData.sourceName())
 			.isEqualTo("secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
 
 	}

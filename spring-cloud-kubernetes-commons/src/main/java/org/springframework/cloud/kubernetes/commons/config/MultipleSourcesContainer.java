@@ -24,8 +24,6 @@ import java.util.Map;
  *
  * Container that stores multiple sources, to be exact their names and their flattenned
  * data. We force a LinkedHashSet on purpose, to preserve the order of sources.
- * @apiNote in a future major release, instead of taking two arguments as input, we will
- * take only one: {@code LinkedHashMap<String, Map<String, Object>> }
  */
 public record MultipleSourcesContainer(LinkedHashSet<String> names, Map<String, Object> data) {
 

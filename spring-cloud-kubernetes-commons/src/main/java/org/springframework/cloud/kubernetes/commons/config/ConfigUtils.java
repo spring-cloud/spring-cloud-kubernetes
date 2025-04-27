@@ -158,10 +158,11 @@ public final class ConfigUtils {
 	}
 
 	/*
-	 * this method will return a SourceData that has a name in the form :
+	 * This method will return a SourceData that has a name in the form :
 	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
 	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
 	 */
+	@Deprecated(forRemoval = true)
 	public static SourceData withPrefix(String target, PrefixContext context) {
 		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
 		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
@@ -189,7 +190,7 @@ public final class ConfigUtils {
 	}
 
 	/**
-	 * transforms raw data from one or multiple sources into an entry of source names and
+	 * Transforms raw data from one or multiple sources into an entry of source names and
 	 * flattened data that they all hold (potentially overriding entries without any
 	 * defined order).
 	 */
@@ -203,10 +204,10 @@ public final class ConfigUtils {
 		LinkedHashSet<String> foundSourceNames = new LinkedHashSet<>();
 		Map<String, Object> data = new HashMap<>();
 
-		// this is an ordered stream, and it means that non-profile based sources will be
-		// processed before profile based sources. This way, we replicate that
-		// "application-dev.yaml"
-		// overrides properties from "application.yaml"
+		// This is an ordered stream, and it means that non-profile-based sources will be
+		// processed before profile-based sources.
+		// This way, we replicate that "application-dev.yaml" overrides properties from
+		// "application.yaml"
 		sourceNames.forEach(sourceName -> {
 			StrippedSourceContainer stripped = hashByName.get(sourceName);
 			if (stripped != null) {
@@ -219,14 +220,16 @@ public final class ConfigUtils {
 				}
 
 				/*
-				 * In some cases we want to include properties from the default profile
-				 * along with any active profiles In these cases includeDefaultProfileData
-				 * will be true If includeDefaultProfileData is false then we want to make
-				 * sure that we only return properties from any active profiles
+				 * In some cases, we want to include properties from the default profile
+				 * along with any active profiles. In these cases,
+				 * includeDefaultProfileData will be true If includeDefaultProfileData is
+				 * false then we want to make sure that we only return properties from any
+				 * active profiles
 				 */
 				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
-					data.putAll(SourceDataEntriesProcessor.processAllEntries(rawData == null ? Map.of() : rawData,
-							environment, includeDefaultProfileData));
+					Map<String, Object> processedData = SourceDataEntriesProcessor.processAllEntries(
+							rawData == null ? Map.of() : rawData, environment, includeDefaultProfileData);
+					data.put(sourceName, processedData);
 				}
 			}
 			else {
@@ -270,13 +273,17 @@ public final class ConfigUtils {
 				.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
 	}
 
+	static String sourceDataName(String target, LinkedHashSet<String> sourceNames, String namespace) {
+		String sortedNames = sourceNames.stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+		return sourceName(target, sortedNames, namespace);
+	}
+
 	/**
-	 * transforms raw data from one or multiple sources into an entry of source names and
+	 * Transforms raw data from one or multiple sources into an entry of source names and
 	 * flattened data that they all hold (potentially overriding entries without any
 	 * defined order). This method first searches by labels, find the sources, then uses
-	 * these names to find any profile based sources.
+	 * these names to find any profile-based sources.
 	 */
-
 	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> containers,
 			Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
 			boolean decode) {
@@ -288,7 +295,7 @@ public final class ConfigUtils {
 			return labelsToSearchAgainst.entrySet().containsAll((labels.entrySet()));
 		}).toList();
 
-		// compute profile based source names (based on the ones we found by labels)
+		// Compute profile-based source names (based on the ones we found by labels)
 		List<String> sourceNamesByLabelsWithProfile = new ArrayList<>();
 		if (profiles != null && !profiles.isEmpty()) {
 			for (StrippedSourceContainer one : byLabels) {
@@ -299,7 +306,7 @@ public final class ConfigUtils {
 			}
 		}
 
-		// once we know sources by labels (and thus their names), we can find out
+		// Once we know sources by labels (and thus their names), we can find out
 		// profiles based sources from the above. This would get all sources
 		// we are interested in.
 		List<StrippedSourceContainer> byProfile = containers.stream()
@@ -312,7 +319,7 @@ public final class ConfigUtils {
 		all.addAll(byProfile);
 
 		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
-		Map<String, Object> result = new HashMap<>();
+		Map<String, Object> data = new HashMap<>();
 
 		all.forEach(source -> {
 			String foundSourceName = source.name();
@@ -325,10 +332,10 @@ public final class ConfigUtils {
 			}
 
 			Map<String, Object> dataFromOneSource = SourceDataEntriesProcessor.processAllEntries(rawData, environment);
-			result.put(foundSourceName, dataFromOneSource);
+			data.put(foundSourceName, dataFromOneSource);
 		});
 
-		return new MultipleSourcesContainer(sourceNames, result);
+		return new MultipleSourcesContainer(sourceNames, data);
 	}
 
 	private static Map<String, String> decodeData(Map<String, String> data) {
@@ -392,7 +399,7 @@ public final class ConfigUtils {
 		/**
 		 * prefix is known at the callsite.
 		 */
-		public static Prefix KNOWN;
+		public static Prefix KNOWN = new Prefix(() -> "", "KNOWN");
 
 		public Supplier<String> prefixProvider() {
 			return prefixProvider;
@@ -409,6 +416,10 @@ public final class ConfigUtils {
 
 		private static void computeKnown(Supplier<String> supplier) {
 			KNOWN = new Prefix(supplier, "KNOWN");
+		}
+
+		String getName() {
+			return name;
 		}
 
 		public String toString() {

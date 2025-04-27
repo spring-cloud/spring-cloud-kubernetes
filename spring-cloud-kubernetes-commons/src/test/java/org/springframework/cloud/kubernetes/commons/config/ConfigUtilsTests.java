@@ -140,41 +140,13 @@ class ConfigUtilsTests {
 		Assertions.assertThat(ConfigUtils.includeProfileSpecificSources(true, false)).isFalse();
 	}
 
-	@Test
-	void testWithPrefix() {
-		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
-				Set.of("name1", "name2"));
-
-		SourceData result = ConfigUtils.withPrefix("configmap", context);
-
-		Assertions.assertThat(result.sourceName()).isEqualTo("configmap.name1.name2.namespace");
-
-		Assertions.assertThat(result.sourceData().get("prefix.a")).isEqualTo("b");
-		Assertions.assertThat(result.sourceData().get("prefix.c")).isEqualTo("d");
-	}
-
-	/*
-	 * source names should be reproducible all the time, this test asserts this.
-	 */
-	@Test
-	void testWithPrefixSortedName() {
-		PrefixContext context = new PrefixContext(Map.of("a", "b", "c", "d"), "prefix", "namespace",
-				Set.of("namec", "namea", "nameb"));
-
-		SourceData result = ConfigUtils.withPrefix("configmap", context);
-		Assertions.assertThat(result.sourceName()).isEqualTo("configmap.namea.nameb.namec.namespace");
-
-		Assertions.assertThat(result.sourceData().get("prefix.a")).isEqualTo("b");
-		Assertions.assertThat(result.sourceData().get("prefix.c")).isEqualTo("d");
-	}
-
 	/**
 	 * <pre>
 	 *
 	 *     - we have configmap-one with an application.yaml with two properties propA = A, prop = B
 	 *     - we have configmap-one-kubernetes with an application.yaml with two properties propA = AA, probC = C
 	 *
-	 *     As a result we should get three properties as output.
+	 *     As a result we should get two keys with 2 properties each.
 	 *
 	 * </pre>
 	 */
@@ -193,10 +165,17 @@ class ConfigUtilsTests {
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(List.of(configMapOne, configMapOneK8s),
 				new MockEnvironment(), sourceNames, "default", false);
 
-		Assertions.assertThat(result.data().size()).isEqualTo(3);
-		Assertions.assertThat(result.data().get("propA")).isEqualTo("AA");
-		Assertions.assertThat(result.data().get("propB")).isEqualTo("B");
-		Assertions.assertThat(result.data().get("propC")).isEqualTo("C");
+		Assertions.assertThat(result.data().size()).isEqualTo(2);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> one = (Map<String, Object>) result.data().get("configmap-one");
+		Assertions.assertThat(one.get("propA")).isEqualTo("A");
+		Assertions.assertThat(one.get("propB")).isEqualTo("B");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> oneKubernetes = (Map<String, Object>) result.data().get("configmap-one-kubernetes");
+		Assertions.assertThat(oneKubernetes.get("propA")).isEqualTo("AA");
+		Assertions.assertThat(oneKubernetes.get("propC")).isEqualTo("C");
+
 	}
 
 	@Test
