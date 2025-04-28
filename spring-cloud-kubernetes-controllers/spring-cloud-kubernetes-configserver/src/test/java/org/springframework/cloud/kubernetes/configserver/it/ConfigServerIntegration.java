@@ -34,6 +34,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 
+import java.util.Map;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
@@ -110,12 +112,7 @@ abstract class ConfigServerIntegration {
 		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.bool2")).isEqualTo(true);
 		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.string2")).isEqualTo("prod");
 
-		PropertySource testConfigMapDev = devprod.getPropertySources().get(1);
-		assertThat(testConfigMapDev.getName().equals(TEST_CONFIG_MAP_DEV_NAME)).isTrue();
-		assertThat(testConfigMapDev.getSource().size()).isEqualTo(3);
-		assertThat(testConfigMapDev.getSource().get("dummy.property.value")).isEqualTo(1);
-		assertThat(testConfigMapDev.getSource().get("dummy.property.enabled")).isEqualTo(false);
-		assertThat(testConfigMapDev.getSource().get("dummy.property.profile")).isEqualTo("dev");
+		assertTestConfigMapDev(devprod);
 
 		assertThat(devprod.getPropertySources().get(2).getName().equals("configmap.test-cm.default.default")).isTrue();
 		assertThat(devprod.getPropertySources().get(2).getSource().size()).isEqualTo(4);
@@ -127,6 +124,16 @@ abstract class ConfigServerIntegration {
 		assertThat(devprod.getPropertySources().get(3).getSource().size()).isEqualTo(2);
 		assertThat(devprod.getPropertySources().get(3).getSource().get("password")).isEqualTo("p455w0rd");
 		assertThat(devprod.getPropertySources().get(3).getSource().get("username")).isEqualTo("user");
+	}
+
+	private void assertTestConfigMapDev(Environment devAndProd) {
+		PropertySource testConfigMapDev = devAndProd.getPropertySources().get(1);
+		assertThat(testConfigMapDev.getName()).isEqualTo(TEST_CONFIG_MAP_DEV_NAME);
+
+		@SuppressWarnings("unchecked")
+		Map<String, String> data = (Map<String, String>) testConfigMapDev.getSource();
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(
+			Map.of("dummy.property.value", "1", "dummy.property.enabled", "false", "dummy.property.profile", "dev"));
 	}
 
 }
