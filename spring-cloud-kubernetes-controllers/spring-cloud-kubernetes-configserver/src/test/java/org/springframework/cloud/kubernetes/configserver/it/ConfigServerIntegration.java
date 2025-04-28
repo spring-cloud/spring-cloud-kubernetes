@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.config.environment.PropertySource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -43,6 +44,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 abstract class ConfigServerIntegration {
 
+	private static final String TEST_CONFIG_MAP_DEV_YAML = "test-cm-dev.yaml";
+	private static final String TEST_CONFIG_MAP_DEV_NAME = "configmap.test-cm.default.dev";
+	private static final String TEST_CONFIG_MAP_DEV_DATA = """
+			dummy:
+			  property:
+			    profile: dev
+			    value: 1
+			    enabled: false
+		""";
+
 	@Autowired
 	private TestRestTemplate testRestTemplate;
 
@@ -52,8 +63,8 @@ abstract class ConfigServerIntegration {
 	@BeforeEach
 	void beforeEach() {
 		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").withResourceVersion("1").build())
-			.addToData("test-cm-dev.yaml", "dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: false\n")
+				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").build())
+			.addToData(TEST_CONFIG_MAP_DEV_YAML, TEST_CONFIG_MAP_DEV_DATA)
 			.addToData("test-cm-qa.yaml", "dummy:\n  property:\n    string2: \"qa\"\n    int2: 2\n    bool2: true\n")
 			.addToData("test-cm-prod.yaml",
 					"dummy:\n  property:\n    string2: \"prod\"\n    int2: 3\n    bool2: true\n")
@@ -62,7 +73,7 @@ abstract class ConfigServerIntegration {
 			.build());
 
 		V1SecretList TEST_SECRET = new V1SecretListBuilder()
-			.withMetadata(new V1ListMetaBuilder().withResourceVersion("1").build())
+			.withMetadata(new V1ListMetaBuilder().build())
 			.addToItems(new V1SecretBuilder()
 				.withMetadata(new V1ObjectMetaBuilder().withName("test-cm")
 					.withResourceVersion("0")
@@ -92,16 +103,20 @@ abstract class ConfigServerIntegration {
 
 		Environment devprod = testRestTemplate.getForObject("/test-cm/dev,prod", Environment.class);
 		assertThat(devprod.getPropertySources().size()).isEqualTo(4);
+
 		assertThat(devprod.getPropertySources().get(0).getName().equals("configmap.test-cm.default.prod")).isTrue();
 		assertThat(devprod.getPropertySources().get(0).getSource().size()).isEqualTo(3);
 		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.int2")).isEqualTo(3);
 		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.bool2")).isEqualTo(true);
 		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.string2")).isEqualTo("prod");
-		assertThat(devprod.getPropertySources().get(1).getName().equals("configmap.test-cm.default.dev")).isTrue();
-		assertThat(devprod.getPropertySources().get(1).getSource().size()).isEqualTo(3);
-		assertThat(devprod.getPropertySources().get(1).getSource().get("dummy.property.int2")).isEqualTo(1);
-		assertThat(devprod.getPropertySources().get(1).getSource().get("dummy.property.bool2")).isEqualTo(false);
-		assertThat(devprod.getPropertySources().get(1).getSource().get("dummy.property.string2")).isEqualTo("dev");
+
+		PropertySource testConfigMapDev = devprod.getPropertySources().get(1);
+		assertThat(testConfigMapDev.getName().equals(TEST_CONFIG_MAP_DEV_NAME)).isTrue();
+		assertThat(testConfigMapDev.getSource().size()).isEqualTo(3);
+		assertThat(testConfigMapDev.getSource().get("dummy.property.value")).isEqualTo(1);
+		assertThat(testConfigMapDev.getSource().get("dummy.property.enabled")).isEqualTo(false);
+		assertThat(testConfigMapDev.getSource().get("dummy.property.profile")).isEqualTo("dev");
+
 		assertThat(devprod.getPropertySources().get(2).getName().equals("configmap.test-cm.default.default")).isTrue();
 		assertThat(devprod.getPropertySources().get(2).getSource().size()).isEqualTo(4);
 		assertThat(devprod.getPropertySources().get(2).getSource().get("app.name")).isEqualTo("test");
