@@ -49,12 +49,41 @@ abstract class ConfigServerIntegration {
 	private static final String TEST_CONFIG_MAP_DEV_YAML = "test-cm-dev.yaml";
 	private static final String TEST_CONFIG_MAP_DEV_NAME = "configmap.test-cm.default.dev";
 	private static final String TEST_CONFIG_MAP_DEV_DATA = """
-			dummy:
-			  property:
-			    profile: dev
-			    value: 1
-			    enabled: false
-		""";
+         dummy:
+           property:
+             profile: dev
+             value: 1
+             enabled: false
+    """;
+
+	private static final String TEST_CONFIG_MAP_QA_YAML = "test-cm-qa.yaml";
+	private static final String TEST_CONFIG_MAP_QA_DATA = """
+         dummy:
+           property:
+             profile: qa
+             value: 2
+             enabled: true
+    """;
+
+	private static final String TEST_CONFIG_MAP_PROD_YAML = "test-cm-prod.yaml";
+	private static final String TEST_CONFIG_MAP_PROD_NAME = "configmap.test-cm.default.prod";
+	private static final String TEST_CONFIG_MAP_PROD_DATA = """
+         dummy:
+           property:
+             profile: prod
+             value: 3
+             enabled: true
+    """;
+
+	private static final String TEST_CONFIG_MAP_YAML = "test-cm.yaml";
+	private static final String TEST_CONFIG_MAP_NAME = "configmap.test-cm.default.default";
+	private static final String TEST_CONFIG_MAP_DATA = """
+         dummy:
+           property:
+             profile: default
+             value: 4
+             enabled: true
+    """;
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
@@ -67,10 +96,9 @@ abstract class ConfigServerIntegration {
 		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
 				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").build())
 			.addToData(TEST_CONFIG_MAP_DEV_YAML, TEST_CONFIG_MAP_DEV_DATA)
-			.addToData("test-cm-qa.yaml", "dummy:\n  property:\n    string2: \"qa\"\n    int2: 2\n    bool2: true\n")
-			.addToData("test-cm-prod.yaml",
-					"dummy:\n  property:\n    string2: \"prod\"\n    int2: 3\n    bool2: true\n")
-			.addToData("test-cm.yaml", "dummy:\n  property:\n    string2: \"default\"\n    int2: 4\n    bool2: true\n")
+			.addToData(TEST_CONFIG_MAP_QA_YAML, TEST_CONFIG_MAP_QA_DATA)
+			.addToData(TEST_CONFIG_MAP_PROD_YAML, TEST_CONFIG_MAP_PROD_DATA)
+			.addToData(TEST_CONFIG_MAP_YAML, TEST_CONFIG_MAP_DATA)
 			.addToData("app.name", "test")
 			.build());
 
@@ -106,20 +134,11 @@ abstract class ConfigServerIntegration {
 		Environment devprod = testRestTemplate.getForObject("/test-cm/dev,prod", Environment.class);
 		assertThat(devprod.getPropertySources().size()).isEqualTo(4);
 
-		assertThat(devprod.getPropertySources().get(0).getName().equals("configmap.test-cm.default.prod")).isTrue();
-		assertThat(devprod.getPropertySources().get(0).getSource().size()).isEqualTo(3);
-		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.int2")).isEqualTo(3);
-		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.bool2")).isEqualTo(true);
-		assertThat(devprod.getPropertySources().get(0).getSource().get("dummy.property.string2")).isEqualTo("prod");
-
+		assertTestConfigMapProd(devprod);
 		assertTestConfigMapDev(devprod);
+		assertTestConfigMapDefault(devprod);
 
-		assertThat(devprod.getPropertySources().get(2).getName().equals("configmap.test-cm.default.default")).isTrue();
-		assertThat(devprod.getPropertySources().get(2).getSource().size()).isEqualTo(4);
-		assertThat(devprod.getPropertySources().get(2).getSource().get("app.name")).isEqualTo("test");
-		assertThat(devprod.getPropertySources().get(2).getSource().get("dummy.property.int2")).isEqualTo(4);
-		assertThat(devprod.getPropertySources().get(2).getSource().get("dummy.property.bool2")).isEqualTo(true);
-		assertThat(devprod.getPropertySources().get(2).getSource().get("dummy.property.string2")).isEqualTo("default");
+
 		assertThat(devprod.getPropertySources().get(3).getName().equals("secret.test-cm.default.default")).isTrue();
 		assertThat(devprod.getPropertySources().get(3).getSource().size()).isEqualTo(2);
 		assertThat(devprod.getPropertySources().get(3).getSource().get("password")).isEqualTo("p455w0rd");
@@ -131,9 +150,29 @@ abstract class ConfigServerIntegration {
 		assertThat(testConfigMapDev.getName()).isEqualTo(TEST_CONFIG_MAP_DEV_NAME);
 
 		@SuppressWarnings("unchecked")
-		Map<String, String> data = (Map<String, String>) testConfigMapDev.getSource();
+		Map<String, Object> data = (Map<String, Object>) testConfigMapDev.getSource();
 		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", "1", "dummy.property.enabled", "false", "dummy.property.profile", "dev"));
+			Map.of("dummy.property.value", 1, "dummy.property.enabled", false, "dummy.property.profile", "dev"));
+	}
+
+	private void assertTestConfigMapProd(Environment devAndProd) {
+		PropertySource testConfigMapDev = devAndProd.getPropertySources().get(0);
+		assertThat(testConfigMapDev.getName()).isEqualTo(TEST_CONFIG_MAP_PROD_NAME);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) testConfigMapDev.getSource();
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(
+			Map.of("dummy.property.value", 3, "dummy.property.enabled", true, "dummy.property.profile", "prod"));
+	}
+
+	private void assertTestConfigMapDefault(Environment devAndProd) {
+		PropertySource testConfigMapDev = devAndProd.getPropertySources().get(2);
+		assertThat(testConfigMapDev.getName()).isEqualTo(TEST_CONFIG_MAP_NAME);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) testConfigMapDev.getSource();
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(
+			Map.of("dummy.property.value", 4, "dummy.property.enabled", true, "dummy.property.profile", "default"));
 	}
 
 }
