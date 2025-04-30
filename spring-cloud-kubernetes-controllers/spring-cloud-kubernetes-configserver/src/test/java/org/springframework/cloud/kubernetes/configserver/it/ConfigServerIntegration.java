@@ -51,43 +51,35 @@ abstract class ConfigServerIntegration {
 
 	private static final String NAMESPACE = "default";
 
-	private static final String TEST_CONFIG_MAP_DEV_YAML = "test-cm-dev.yaml";
+	private static final String TEST_CONFIG_MAP_DEV_PROPERTIES = "test-cm-dev.properties";
 	private static final String TEST_CONFIG_MAP_DEV_NAME = "configmap.test-cm.default.dev";
 	private static final String TEST_CONFIG_MAP_DEV_DATA = """
-         dummy:
-           property:
-             profile: dev
-             value: 1
-             enabled: false
+         dummy.property.profile=dev
+         dummy.property.value=1
+         dummy.property.enabled=false
     """;
 
-	private static final String TEST_CONFIG_MAP_QA_YAML = "test-cm-qa.yaml";
+	private static final String TEST_CONFIG_MAP_QA_PROPERTIES = "test-cm-qa.properties";
 	private static final String TEST_CONFIG_MAP_QA_DATA = """
-         dummy:
-           property:
-             profile: qa
-             value: 2
-             enabled: true
+         dummy.property.profile=qa
+         dummy.property.value=2
+         dummy.property.enabled=true
     """;
 
-	private static final String TEST_CONFIG_MAP_PROD_YAML = "test-cm-prod.yaml";
+	private static final String TEST_CONFIG_MAP_PROD_PROPERTIES = "test-cm-prod.properties";
 	private static final String TEST_CONFIG_MAP_PROD_NAME = "configmap.test-cm.default.prod";
 	private static final String TEST_CONFIG_MAP_PROD_DATA = """
-         dummy:
-           property:
-             profile: prod
-             value: 3
-             enabled: true
+         dummy.property.profile=prod
+         dummy.property.value=3
+         dummy.property.enabled=true
     """;
 
-	private static final String TEST_CONFIG_MAP_YAML = "test-cm.yaml";
+	private static final String TEST_CONFIG_MAP_PROPERTIES = "test-cm.properties";
 	private static final String TEST_CONFIG_MAP_NAME = "configmap.test-cm.default.default";
 	private static final String TEST_CONFIG_MAP_DATA = """
-         dummy:
-           property:
-             profile: default
-             value: 4
-             enabled: true
+         dummy.property.profile=default
+         dummy.property.value=4
+         dummy.property.enabled=true
     """;
 
 	private static final String TEST_SECRET_NAME = "secret.test-cm.default.default";
@@ -102,10 +94,10 @@ abstract class ConfigServerIntegration {
 	void beforeEach() {
 		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
 				new V1ObjectMetaBuilder().withName(SOURCE_NAME).withNamespace(NAMESPACE).build())
-			.addToData(TEST_CONFIG_MAP_DEV_YAML, TEST_CONFIG_MAP_DEV_DATA)
-			.addToData(TEST_CONFIG_MAP_QA_YAML, TEST_CONFIG_MAP_QA_DATA)
-			.addToData(TEST_CONFIG_MAP_PROD_YAML, TEST_CONFIG_MAP_PROD_DATA)
-			.addToData(TEST_CONFIG_MAP_YAML, TEST_CONFIG_MAP_DATA)
+			.addToData(TEST_CONFIG_MAP_DEV_PROPERTIES, TEST_CONFIG_MAP_DEV_DATA)
+			.addToData(TEST_CONFIG_MAP_QA_PROPERTIES, TEST_CONFIG_MAP_QA_DATA)
+			.addToData(TEST_CONFIG_MAP_PROD_PROPERTIES, TEST_CONFIG_MAP_PROD_DATA)
+			.addToData(TEST_CONFIG_MAP_PROPERTIES, TEST_CONFIG_MAP_DATA)
 			.addToData("app.name", "test")
 			.build());
 
@@ -155,7 +147,7 @@ abstract class ConfigServerIntegration {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = (Map<String, Object>) testConfigMapDev.getSource();
 		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", 1, "dummy.property.enabled", false, "dummy.property.profile", "dev"));
+			Map.of("dummy.property.value", "1", "dummy.property.enabled", "false", "dummy.property.profile", "dev"));
 	}
 
 	private void assertTestConfigMapProd(Environment devAndProd) {
@@ -165,7 +157,7 @@ abstract class ConfigServerIntegration {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = (Map<String, Object>) testConfigMapProd.getSource();
 		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", 3, "dummy.property.enabled", true, "dummy.property.profile", "prod"));
+			Map.of("dummy.property.value", "3", "dummy.property.enabled", "true", "dummy.property.profile", "prod"));
 	}
 
 	private void assertTestConfigMapDefault(Environment devAndProd) {
@@ -175,7 +167,7 @@ abstract class ConfigServerIntegration {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = (Map<String, Object>) testConfigMap.getSource();
 		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", 4, "dummy.property.enabled", true, "dummy.property.profile", "default",
+			Map.of("dummy.property.value", "4", "dummy.property.enabled", "true", "dummy.property.profile", "default",
 				"app.name", "test"));
 	}
 
@@ -198,7 +190,7 @@ abstract class ConfigServerIntegration {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> configmapData = (Map<String, Object>) configMapSource.getSource();
 		assertThat(configmapData).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", 4, "dummy.property.enabled", true, "dummy.property.profile", "default",
+			Map.of("dummy.property.value", "4", "dummy.property.enabled", "true", "dummy.property.profile", "default",
 				"app.name", "test"));
 
 		PropertySource secretSource = defaultEnv.getPropertySources().get(1);
