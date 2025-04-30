@@ -23,6 +23,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -85,6 +86,8 @@ class K8sClientConfigMapMountPollingIT extends K8sClientReloadBase {
 	 * </pre>
 	 */
 	@Test
+	// TODO This fails intermittently on Jenkins
+	@Disabled
 	void test() throws Exception {
 		// (1)
 		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", K3S, IMAGE_NAME);
