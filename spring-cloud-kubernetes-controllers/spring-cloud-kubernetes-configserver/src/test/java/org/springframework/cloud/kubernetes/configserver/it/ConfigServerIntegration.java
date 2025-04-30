@@ -26,6 +26,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,6 +46,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Ryan Baxter
  */
 abstract class ConfigServerIntegration {
+
+	private static final String SOURCE_NAME = "test-cm";
+
+	private static final String NAMESPACE = "default";
 
 	private static final String TEST_CONFIG_MAP_DEV_YAML = "test-cm-dev.yaml";
 	private static final String TEST_CONFIG_MAP_DEV_NAME = "configmap.test-cm.default.dev";
@@ -85,6 +90,8 @@ abstract class ConfigServerIntegration {
              enabled: true
     """;
 
+	private static final String TEST_SECRET_NAME = "secret.test-cm.default.default";
+
 	@Autowired
 	private TestRestTemplate testRestTemplate;
 
@@ -94,7 +101,7 @@ abstract class ConfigServerIntegration {
 	@BeforeEach
 	void beforeEach() {
 		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withName("test-cm").withNamespace("default").build())
+				new V1ObjectMetaBuilder().withName(SOURCE_NAME).withNamespace(NAMESPACE).build())
 			.addToData(TEST_CONFIG_MAP_DEV_YAML, TEST_CONFIG_MAP_DEV_DATA)
 			.addToData(TEST_CONFIG_MAP_QA_YAML, TEST_CONFIG_MAP_QA_DATA)
 			.addToData(TEST_CONFIG_MAP_PROD_YAML, TEST_CONFIG_MAP_PROD_DATA)
@@ -105,9 +112,8 @@ abstract class ConfigServerIntegration {
 		V1SecretList TEST_SECRET = new V1SecretListBuilder()
 			.withMetadata(new V1ListMetaBuilder().build())
 			.addToItems(new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName("test-cm")
-					.withResourceVersion("0")
-					.withNamespace("default")
+				.withMetadata(new V1ObjectMetaBuilder().withName(SOURCE_NAME)
+					.withNamespace(NAMESPACE)
 					.build())
 				.addToData("password", "p455w0rd".getBytes())
 				.addToData("username", "user".getBytes())
@@ -121,28 +127,25 @@ abstract class ConfigServerIntegration {
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_SECRET))));
 	}
 
+	@AfterEach
+	void afterEach() {
+		WireMock.reset();
+		WireMock.shutdownServer();
+	}
+
 	@Test
 	void enabled() {
-		Environment env = testRestTemplate.getForObject("/test-cm/default", Environment.class);
-		assertThat(env.getPropertySources().size()).isEqualTo(2);
-		assertThat(env.getPropertySources().get(0).getName().equals("configmap.test-cm.default.default")).isTrue();
-		assertThat(env.getPropertySources().get(0).getSource().get("app.name")).isEqualTo("test");
-		assertThat(env.getPropertySources().get(1).getName().equals("secret.test-cm.default.default")).isTrue();
-		assertThat(env.getPropertySources().get(1).getSource().get("password")).isEqualTo("p455w0rd");
-		assertThat(env.getPropertySources().get(1).getSource().get("username")).isEqualTo("user");
+		Environment defaultEnv = testRestTemplate.getForObject("/test-cm/default", Environment.class);
+		assertDefaultProfile(defaultEnv);
 
-		Environment devprod = testRestTemplate.getForObject("/test-cm/dev,prod", Environment.class);
-		assertThat(devprod.getPropertySources().size()).isEqualTo(4);
+		Environment devAndProd = testRestTemplate.getForObject("/test-cm/dev,prod", Environment.class);
+		assertThat(devAndProd.getPropertySources().size()).isEqualTo(4);
 
-		assertTestConfigMapProd(devprod);
-		assertTestConfigMapDev(devprod);
-		assertTestConfigMapDefault(devprod);
+		assertTestConfigMapProd(devAndProd);
+		assertTestConfigMapDev(devAndProd);
+		assertTestConfigMapDefault(devAndProd);
+		assertTestSecretDefault(devAndProd);
 
-
-		assertThat(devprod.getPropertySources().get(3).getName().equals("secret.test-cm.default.default")).isTrue();
-		assertThat(devprod.getPropertySources().get(3).getSource().size()).isEqualTo(2);
-		assertThat(devprod.getPropertySources().get(3).getSource().get("password")).isEqualTo("p455w0rd");
-		assertThat(devprod.getPropertySources().get(3).getSource().get("username")).isEqualTo("user");
 	}
 
 	private void assertTestConfigMapDev(Environment devAndProd) {
@@ -156,23 +159,53 @@ abstract class ConfigServerIntegration {
 	}
 
 	private void assertTestConfigMapProd(Environment devAndProd) {
-		PropertySource testConfigMapDev = devAndProd.getPropertySources().get(0);
-		assertThat(testConfigMapDev.getName()).isEqualTo(TEST_CONFIG_MAP_PROD_NAME);
+		PropertySource testConfigMapProd = devAndProd.getPropertySources().get(0);
+		assertThat(testConfigMapProd.getName()).isEqualTo(TEST_CONFIG_MAP_PROD_NAME);
 
 		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) testConfigMapDev.getSource();
+		Map<String, Object> data = (Map<String, Object>) testConfigMapProd.getSource();
 		assertThat(data).containsExactlyInAnyOrderEntriesOf(
 			Map.of("dummy.property.value", 3, "dummy.property.enabled", true, "dummy.property.profile", "prod"));
 	}
 
 	private void assertTestConfigMapDefault(Environment devAndProd) {
-		PropertySource testConfigMapDev = devAndProd.getPropertySources().get(2);
-		assertThat(testConfigMapDev.getName()).isEqualTo(TEST_CONFIG_MAP_NAME);
+		PropertySource testConfigMap = devAndProd.getPropertySources().get(2);
+		assertThat(testConfigMap.getName()).isEqualTo(TEST_CONFIG_MAP_NAME);
 
 		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) testConfigMapDev.getSource();
+		Map<String, Object> data = (Map<String, Object>) testConfigMap.getSource();
 		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", 4, "dummy.property.enabled", true, "dummy.property.profile", "default"));
+			Map.of("dummy.property.value", 4, "dummy.property.enabled", true, "dummy.property.profile", "default",
+				"app.name", "test"));
+	}
+
+	private void assertTestSecretDefault(Environment devAndProd) {
+
+		PropertySource testSecret = devAndProd.getPropertySources().get(3);
+		assertThat(testSecret.getName()).isEqualTo(TEST_SECRET_NAME);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) testSecret.getSource();
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(
+			Map.of("password", "p455w0rd", "username", "user"));
+	}
+
+	private void assertDefaultProfile(Environment defaultEnv) {
+		assertThat(defaultEnv.getPropertySources().size()).isEqualTo(2);
+
+		PropertySource configMapSource = defaultEnv.getPropertySources().get(0);
+		assertThat(configMapSource.getName()).isEqualTo(TEST_CONFIG_MAP_NAME);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> configmapData = (Map<String, Object>) configMapSource.getSource();
+		assertThat(configmapData).containsExactlyInAnyOrderEntriesOf(
+			Map.of("dummy.property.value", 4, "dummy.property.enabled", true, "dummy.property.profile", "default",
+				"app.name", "test"));
+
+		PropertySource secretSource = defaultEnv.getPropertySources().get(1);
+		assertThat(secretSource.getName()).isEqualTo(TEST_SECRET_NAME);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> secretData = (Map<String, Object>) secretSource.getSource();
+		assertThat(secretData).containsExactlyInAnyOrderEntriesOf(Map.of("password", "p455w0rd", "username", "user"));
 	}
 
 }

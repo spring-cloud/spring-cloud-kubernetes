@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configserver.it;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,17 +44,13 @@ class ConfigDataConfigServerIntegrationTests extends ConfigServerIntegration {
 	@BeforeEach
 	void setup() {
 		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
-		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
+		ApiClient client = new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
+		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient).thenReturn(client);
 	}
 
 	@AfterEach
 	void teardown() {
 		clientUtilsMock.close();
-	}
-
-	@AfterEach
-	void afterEach() {
 		WireMock.reset();
 	}
 
