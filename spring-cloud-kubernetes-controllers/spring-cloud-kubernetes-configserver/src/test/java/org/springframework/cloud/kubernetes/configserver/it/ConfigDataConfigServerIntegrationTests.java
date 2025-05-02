@@ -16,45 +16,18 @@
 
 package org.springframework.cloud.kubernetes.configserver.it;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import io.kubernetes.client.util.ClientBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.MockedStatic;
-
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
-import org.springframework.cloud.kubernetes.configserver.TestBootstrapConfig;
-
-import static org.mockito.Mockito.mockStatic;
+import org.springframework.cloud.kubernetes.configserver.configurations.FirstConfig;
 
 /**
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
-				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true" },
-		classes = { KubernetesConfigServerApplication.class, TestBootstrapConfig.class })
+				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true",
+				"test.first.config.enabled=true" },
+		classes = { KubernetesConfigServerApplication.class, FirstConfig.class })
 class ConfigDataConfigServerIntegrationTests extends ConfigServerIntegration {
-
-	private MockedStatic<KubernetesClientUtils> clientUtilsMock;
-
-	@BeforeEach
-	void setup() {
-		clientUtilsMock = mockStatic(KubernetesClientUtils.class);
-		clientUtilsMock.when(KubernetesClientUtils::kubernetesApiClient)
-			.thenReturn(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
-	}
-
-	@AfterEach
-	void teardown() {
-		clientUtilsMock.close();
-	}
-
-	@AfterEach
-	void afterEach() {
-		WireMock.reset();
-	}
 
 }
