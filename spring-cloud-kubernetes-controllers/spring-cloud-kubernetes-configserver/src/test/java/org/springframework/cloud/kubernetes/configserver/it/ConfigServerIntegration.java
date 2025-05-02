@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.configserver.it;
 
+import java.util.Map;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
@@ -34,8 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
-
-import java.util.Map;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsCache;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -52,35 +54,42 @@ abstract class ConfigServerIntegration {
 	private static final String NAMESPACE = "default";
 
 	private static final String TEST_CONFIG_MAP_DEV_PROPERTIES = "test-cm-dev.properties";
+
 	private static final String TEST_CONFIG_MAP_DEV_NAME = "configmap.test-cm.default.dev";
+
 	private static final String TEST_CONFIG_MAP_DEV_DATA = """
-         dummy.property.profile=dev
-         dummy.property.value=1
-         dummy.property.enabled=false
-    """;
+				dummy.property.profile=dev
+				dummy.property.value=1
+				dummy.property.enabled=false
+			""";
 
 	private static final String TEST_CONFIG_MAP_QA_PROPERTIES = "test-cm-qa.properties";
+
 	private static final String TEST_CONFIG_MAP_QA_DATA = """
-         dummy.property.profile=qa
-         dummy.property.value=2
-         dummy.property.enabled=true
-    """;
+				dummy.property.profile=qa
+				dummy.property.value=2
+				dummy.property.enabled=true
+			""";
 
 	private static final String TEST_CONFIG_MAP_PROD_PROPERTIES = "test-cm-prod.properties";
+
 	private static final String TEST_CONFIG_MAP_PROD_NAME = "configmap.test-cm.default.prod";
+
 	private static final String TEST_CONFIG_MAP_PROD_DATA = """
-         dummy.property.profile=prod
-         dummy.property.value=3
-         dummy.property.enabled=true
-    """;
+				dummy.property.profile=prod
+				dummy.property.value=3
+				dummy.property.enabled=true
+			""";
 
 	private static final String TEST_CONFIG_MAP_PROPERTIES = "test-cm.properties";
+
 	private static final String TEST_CONFIG_MAP_NAME = "configmap.test-cm.default.default";
+
 	private static final String TEST_CONFIG_MAP_DATA = """
-         dummy.property.profile=default
-         dummy.property.value=4
-         dummy.property.enabled=true
-    """;
+				dummy.property.profile=default
+				dummy.property.value=4
+				dummy.property.enabled=true
+			""";
 
 	private static final String TEST_SECRET_NAME = "secret.test-cm.default.default";
 
@@ -92,8 +101,8 @@ abstract class ConfigServerIntegration {
 
 	@BeforeEach
 	void beforeEach() {
-		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withName(SOURCE_NAME).withNamespace(NAMESPACE).build())
+		V1ConfigMapList TEST_CONFIGMAP = new V1ConfigMapList().addItemsItem(new V1ConfigMapBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName(SOURCE_NAME).withNamespace(NAMESPACE).build())
 			.addToData(TEST_CONFIG_MAP_DEV_PROPERTIES, TEST_CONFIG_MAP_DEV_DATA)
 			.addToData(TEST_CONFIG_MAP_QA_PROPERTIES, TEST_CONFIG_MAP_QA_DATA)
 			.addToData(TEST_CONFIG_MAP_PROD_PROPERTIES, TEST_CONFIG_MAP_PROD_DATA)
@@ -101,12 +110,9 @@ abstract class ConfigServerIntegration {
 			.addToData("app.name", "test")
 			.build());
 
-		V1SecretList TEST_SECRET = new V1SecretListBuilder()
-			.withMetadata(new V1ListMetaBuilder().build())
+		V1SecretList TEST_SECRET = new V1SecretListBuilder().withMetadata(new V1ListMetaBuilder().build())
 			.addToItems(new V1SecretBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(SOURCE_NAME)
-					.withNamespace(NAMESPACE)
-					.build())
+				.withMetadata(new V1ObjectMetaBuilder().withName(SOURCE_NAME).withNamespace(NAMESPACE).build())
 				.addToData("password", "p455w0rd".getBytes())
 				.addToData("username", "user".getBytes())
 				.build())
@@ -123,6 +129,11 @@ abstract class ConfigServerIntegration {
 	void afterEach() {
 		WireMock.reset();
 		WireMock.shutdownServer();
+		wireMockServer.stop();
+		wireMockServer.shutdownServer();
+
+		new KubernetesClientConfigMapsCache().discardAll();
+		new KubernetesClientSecretsCache().discardAll();
 	}
 
 	@Test
@@ -146,8 +157,8 @@ abstract class ConfigServerIntegration {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = (Map<String, Object>) testConfigMapDev.getSource();
-		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", "1", "dummy.property.enabled", "false", "dummy.property.profile", "dev"));
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("dummy.property.value", "1",
+				"dummy.property.enabled", "false", "dummy.property.profile", "dev"));
 	}
 
 	private void assertTestConfigMapProd(Environment devAndProd) {
@@ -156,8 +167,8 @@ abstract class ConfigServerIntegration {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = (Map<String, Object>) testConfigMapProd.getSource();
-		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", "3", "dummy.property.enabled", "true", "dummy.property.profile", "prod"));
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("dummy.property.value", "3",
+				"dummy.property.enabled", "true", "dummy.property.profile", "prod"));
 	}
 
 	private void assertTestConfigMapDefault(Environment devAndProd) {
@@ -166,9 +177,8 @@ abstract class ConfigServerIntegration {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = (Map<String, Object>) testConfigMap.getSource();
-		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", "4", "dummy.property.enabled", "true", "dummy.property.profile", "default",
-				"app.name", "test"));
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("dummy.property.value", "4",
+				"dummy.property.enabled", "true", "dummy.property.profile", "default", "app.name", "test"));
 	}
 
 	private void assertTestSecretDefault(Environment devAndProd) {
@@ -178,8 +188,7 @@ abstract class ConfigServerIntegration {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> data = (Map<String, Object>) testSecret.getSource();
-		assertThat(data).containsExactlyInAnyOrderEntriesOf(
-			Map.of("password", "p455w0rd", "username", "user"));
+		assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("password", "p455w0rd", "username", "user"));
 	}
 
 	private void assertDefaultProfile(Environment defaultEnv) {
@@ -189,9 +198,8 @@ abstract class ConfigServerIntegration {
 		assertThat(configMapSource.getName()).isEqualTo(TEST_CONFIG_MAP_NAME);
 		@SuppressWarnings("unchecked")
 		Map<String, Object> configmapData = (Map<String, Object>) configMapSource.getSource();
-		assertThat(configmapData).containsExactlyInAnyOrderEntriesOf(
-			Map.of("dummy.property.value", "4", "dummy.property.enabled", "true", "dummy.property.profile", "default",
-				"app.name", "test"));
+		assertThat(configmapData).containsExactlyInAnyOrderEntriesOf(Map.of("dummy.property.value", "4",
+				"dummy.property.enabled", "true", "dummy.property.profile", "default", "app.name", "test"));
 
 		PropertySource secretSource = defaultEnv.getPropertySources().get(1);
 		assertThat(secretSource.getName()).isEqualTo(TEST_SECRET_NAME);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.configserver.configurations;
 
 import org.springframework.cloud.config.server.environment.EnvironmentRepository;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Profile;
 import static org.mockito.Mockito.mock;
 
 @Configuration
-class MockConfig {
+public class MockConfig {
 
 	@Bean
 	@Profile("kubernetesdisabled")

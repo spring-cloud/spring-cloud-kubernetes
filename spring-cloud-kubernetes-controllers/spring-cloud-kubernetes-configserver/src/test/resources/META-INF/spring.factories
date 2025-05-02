@@ -1,2 +1,3 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.configserver.TestBootstrapConfig
+org.springframework.cloud.kubernetes.configserver.configurations.FirstConfig,\
+org.springframework.cloud.kubernetes.configserver.configurations.SecondConfig
