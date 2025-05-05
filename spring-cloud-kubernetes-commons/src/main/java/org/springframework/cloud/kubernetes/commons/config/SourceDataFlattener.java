@@ -37,7 +37,7 @@ final class SourceDataFlattener {
 
 		names.forEach(name -> {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.get(name);
+			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.getOrDefault(name, Map.of());
 			flattenedData.putAll(singleDataEntry);
 		});
 
@@ -53,7 +53,7 @@ final class SourceDataFlattener {
 
 		names.forEach(name -> {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.get(name);
+			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.getOrDefault(name, Map.of());
 			singleDataEntry.forEach((key, value) -> flattenedData.put(prefix + "." + key, value));
 		});
 
@@ -69,7 +69,7 @@ final class SourceDataFlattener {
 
 		names.forEach(name -> {
 			@SuppressWarnings("unchecked")
-			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.get(name);
+			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.getOrDefault(name, Map.of());
 			singleDataEntry.forEach((key, value) -> flattenedData.put(name + "." + key, value));
 		});
 
