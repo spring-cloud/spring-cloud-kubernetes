@@ -25,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.Prefix;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.sourceDataName;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.sourceName;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
