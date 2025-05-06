@@ -229,14 +229,15 @@ class NamedSecretContextToSourceDataProviderTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.addActiveProfile("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
-				false);
+				true);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-profile.default.with-profile");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
 		Assertions.assertThat(sourceData.sourceData().get("taste")).isEqualTo("mango");
+		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("really-red");
 
 	}
 
