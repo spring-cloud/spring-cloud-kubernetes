@@ -210,17 +210,14 @@ public final class ConfigUtils {
 				}
 
 				/*
-<<<<<<< HEAD
-				 * In some cases we want to include properties from the default profile
-				 * along with any active profiles. In these cases
+				 * <<<<<<< HEAD In some cases we want to include properties from the
+				 * default profile along with any active profiles. In these cases
 				 * includeDefaultProfileData will be true. If includeDefaultProfileData is
-=======
-				 * In some cases, we want to include properties from the default profile
-				 * along with any active profiles. In these cases,
+				 * ======= In some cases, we want to include properties from the default
+				 * profile along with any active profiles. In these cases,
 				 * includeDefaultProfileData will be true If includeDefaultProfileData is
->>>>>>> fix-1715-drop-profiles-support
-				 * false then we want to make sure that we only return properties from any
-				 * active profiles
+				 * >>>>>>> fix-1715-drop-profiles-support false then we want to make sure
+				 * that we only return properties from any active profiles
 				 */
 				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
 					Map<String, Object> processedData = SourceDataEntriesProcessor.processAllEntries(
