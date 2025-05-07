@@ -18,16 +18,10 @@ package org.springframework.cloud.kubernetes.client.config.applications.labeled_
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("green-purple-secret.green-purple-secret-k8s.green-secret.green-secret-k8s.green-secret-prod")
+@ConfigurationProperties("green-secret")
 public class Green {
 
 	private String two;
-
-	private String six;
-
-	private String seven;
-
-	private String eight;
 
 	public String getTwo() {
 		return two;
@@ -35,30 +29,6 @@ public class Green {
 
 	public void setTwo(String two) {
 		this.two = two;
-	}
-
-	public String getSix() {
-		return six;
-	}
-
-	public void setSix(String six) {
-		this.six = six;
-	}
-
-	public String getSeven() {
-		return seven;
-	}
-
-	public void setSeven(String seven) {
-		this.seven = seven;
-	}
-
-	public String getEight() {
-		return eight;
-	}
-
-	public void setEight(String eight) {
-		this.eight = eight;
 	}
 
 }

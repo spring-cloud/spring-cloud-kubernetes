@@ -81,7 +81,10 @@ class ConfigUtilsProcessSourceTests {
 				namespace, decode, includeDefaultProfileData);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("configmap-a");
-		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1"));
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("configmap-a");
+		Assertions.assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1"));
 	}
 
 	/**
@@ -173,7 +176,9 @@ class ConfigUtilsProcessSourceTests {
 		 *			since 'k8s' is not an active profile.
 		 * </pre>
 		 */
-		Assertions.assertThat(result.data())
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("account");
+		Assertions.assertThat(data)
 			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
 		Assertions.assertThat(output.getOut()).contains("entry : account-k8s.properties will be skipped");
 	}
@@ -269,7 +274,9 @@ class ConfigUtilsProcessSourceTests {
 		 *		6. we do not have 'four=4' since we do not read 'account-k8s.properties'
 		 * </pre>
 		 */
-		Assertions.assertThat(result.data())
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("account-default");
+		Assertions.assertThat(data)
 			.containsExactlyInAnyOrderEntriesOf(Map.of("one", "1", "two", "2", "three", "3", "five", "5"));
 		Assertions.assertThat(output.getOut()).contains("entry : account-k8s.properties will be skipped");
 
@@ -368,12 +375,13 @@ class ConfigUtilsProcessSourceTests {
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("account");
 
-		/**
-		 * <pre>
-		 * 		- we only read from 'account-k8s.properties'
-		 * </pre>
+		/*
+		 * <pre> - we only read from 'account-k8s.properties' </pre>
 		 */
-		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1111", "four", "4"));
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> accountData = (Map<String, Object>) result.data().get("account");
+		Assertions.assertThat(accountData).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1111", "four", "4"));
 		Assertions.assertThat(output.getOut()).contains("entry : account.properties will be skipped");
 		Assertions.assertThat(output.getOut()).contains("entry : account-default.properties will be skipped");
 
@@ -473,7 +481,9 @@ class ConfigUtilsProcessSourceTests {
 		 *			(because 'prod' is not an active profile)
 		 * </pre>
 		 */
-		Assertions.assertThat(result.data()).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1111", "five", "5"));
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("account-k8s");
+		Assertions.assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1111", "five", "5"));
 		Assertions.assertThat(output.getOut()).contains("entry : account-prod.properties will be skipped");
 		Assertions.assertThat(output.getOut()).contains("entry : account.properties will be skipped");
 		Assertions.assertThat(output.getOut()).contains("entry : account-default.properties will be skipped");
