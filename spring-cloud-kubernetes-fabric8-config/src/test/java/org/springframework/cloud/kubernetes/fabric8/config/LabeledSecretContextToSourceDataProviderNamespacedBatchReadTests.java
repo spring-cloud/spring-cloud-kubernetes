@@ -380,8 +380,6 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
 	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
 	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
 	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
@@ -415,15 +413,13 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("color-secret-k8s.two")).isEqualTo("2");
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.color-secret-k8s.default");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 
 	}
 
 	/**
->>>>>>> main
 	 * <pre>
 	 *     - secret "color-secret" with label "{color:blue}"
 	 *     - secret "shape-secret" with labels "{color:blue, shape:round}"
@@ -485,14 +481,11 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
 		assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
 		assertThat(sourceData.sourceData().get("shape-secret.two")).isEqualTo("2");
-		assertThat(sourceData.sourceData().get("color-secret-k8s.four")).isEqualTo("4");
-		assertThat(sourceData.sourceData().get("shape-secret-k8s.five")).isEqualTo("5");
 
-		assertThat(sourceData.sourceName())
-			.isEqualTo("secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
+		assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.shape-secret.default");
 
 	}
 
