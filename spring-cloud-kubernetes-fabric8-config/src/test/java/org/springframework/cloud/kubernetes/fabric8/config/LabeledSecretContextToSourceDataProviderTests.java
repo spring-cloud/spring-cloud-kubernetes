@@ -376,12 +376,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
-	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
-	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
-	 * even if its labels do not match provided ones.
+	 * <<<<<<< HEAD ======= two secrets are deployed: secret "color-secret" with label:
+	 * "{color:blue}" and "color-secret-k8s" with label: "{color:red}". We search by
+	 * "{color:blue}" and find one secret. Since profiles are enabled, we will also be
+	 * reading "color-secret-k8s", even if its labels do not match provided ones.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFoundAndOneFromProfileFound() {
@@ -419,8 +417,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	}
 
 	/**
->>>>>>> main
-	 * <pre>
+	 * >>>>>>> main <pre>
 	 *     - secret "color-secret" with label "{color:blue}"
 	 *     - secret "shape-secret" with labels "{color:blue, shape:round}"
 	 *     - secret "no-fit" with labels "{tag:no-fit}"

@@ -376,12 +376,10 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-<<<<<<< HEAD
-=======
-	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
-	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
-	 * find one configmap. Since profiles are enabled, we will also be reading
-	 * "color-configmap-k8s", even if its labels do not match provided ones.
+	 * <<<<<<< HEAD ======= two configmaps are deployed: "color-configmap" with label:
+	 * "{color:blue}" and "color-configmap-k8s" with label: "{color:red}". We search by
+	 * "{color:blue}" and find one configmap. Since profiles are enabled, we will also be
+	 * reading "color-configmap-k8s", even if its labels do not match provided ones.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
@@ -419,8 +417,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
->>>>>>> main
-	 * <pre>
+	 * >>>>>>> main <pre>
 	 *     - configmap "color-configmap" with label "{color:blue}"
 	 *     - configmap "shape-configmap" with labels "{color:blue, shape:round}"
 	 *     - configmap "no-fit" with labels "{tag:no-fit}"

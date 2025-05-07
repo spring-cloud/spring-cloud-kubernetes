@@ -151,15 +151,11 @@ abstract class LabeledConfigMapWithProfile {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * <pre>
+	 * <<<<<<< HEAD <pre>
 	 *   this one is taken from : "green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s".
 	 *   We find "green-configmap", "green-configmap-k8s", "green-configmap-prod"  by labels.
 	 *   Also "green-purple-configmap" and "green-purple-configmap-k8s" are found.
-	 * </pre>
-=======
-	 * found by labels.
->>>>>>> main
+	 * </pre> ======= found by labels. >>>>>>> main
 	 */
 	@Test
 	void testGreen() {

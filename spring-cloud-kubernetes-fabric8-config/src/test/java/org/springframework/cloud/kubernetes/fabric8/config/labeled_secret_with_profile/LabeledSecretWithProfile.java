@@ -75,12 +75,12 @@ abstract class LabeledSecretWithProfile {
 	 *     - secret with name "color-secret-k8s", with labels : "{color: not-blue}"
 	 *     - secret with name "green-secret-k8s", with labels : "{color: green-k8s}"
 	 *     - secret with name "green-secret-prod", with labels : "{color: green-prod}"
-<<<<<<< HEAD
-=======
+	<<<<<<< HEAD
+	=======
 	 *
 	 *     	a test that proves order: first read non-profile based secrets, thus profile based
 	 *     	secrets override non-profile ones.
->>>>>>> main
+	>>>>>>> main
 	 *     - secret with name "green-purple-secret", labels "{color: green, shape: round}", data: "{eight: 8}"
 	 *     - secret with name "green-purple-secret-k8s", labels "{color: black}", data: "{eight: eight-ish}"
 	 * </pre>
@@ -168,13 +168,13 @@ abstract class LabeledSecretWithProfile {
 
 	/**
 	 * <pre>
-<<<<<<< HEAD
+	<<<<<<< HEAD
 	 *   this one is taken from : "green-purple-secret.green-purple-secret-k8s.green-secret.green-secret-k8s.green-secret-prod".
 	 *   We find "green-secret", "green-secrets-k8s" and "green-secrets-prod" by labels.
 	 *   Also "green-purple-secret" and "green-purple-secret-k8s" are found.
-=======
+	=======
 	 *   We find "green-secret" by labels.
->>>>>>> main
+	>>>>>>> main
 	 * </pre>
 	 */
 	@Test
