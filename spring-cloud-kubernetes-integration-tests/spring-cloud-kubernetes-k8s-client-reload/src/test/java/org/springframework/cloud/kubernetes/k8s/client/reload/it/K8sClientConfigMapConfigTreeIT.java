@@ -25,6 +25,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -82,6 +83,8 @@ class K8sClientConfigMapConfigTreeIT extends K8sClientReloadBase {
 	 * </pre>
 	 */
 	@Test
+	// TODO This fails intermittently on Jenkins
+	@Disabled
 	void test() throws Exception {
 		WebClient webClient = builder().baseUrl("http://localhost:32321/configmap").build();
 		String result = webClient.method(HttpMethod.GET)

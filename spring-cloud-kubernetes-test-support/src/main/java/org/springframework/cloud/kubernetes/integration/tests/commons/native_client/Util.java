@@ -53,13 +53,13 @@ import io.kubernetes.client.util.Yaml;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.assertj.core.api.Assertions;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
@@ -561,7 +561,7 @@ public final class Util {
 		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null, null);
 		if (deployments.getItems().isEmpty()) {
-			fail("No deployments with the name " + deploymentName);
+			Assertions.fail("No deployments with the name " + deploymentName);
 		}
 		V1Deployment deployment = deployments.getItems().get(0);
 		if (deployment.getStatus() != null) {
@@ -593,7 +593,7 @@ public final class Util {
 		V1DeploymentList deployments = new AppsV1Api().listNamespacedDeployment(namespace, null, null, null,
 				"metadata.name=" + deploymentName, null, null, null, null, null, null, null);
 		if (deployments.getItems().isEmpty()) {
-			fail("No deployment with name " + deploymentName);
+			Assertions.fail("No deployment with name " + deploymentName);
 		}
 
 		V1Deployment deployment = deployments.getItems().get(0);

@@ -21,9 +21,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties.Blue;
 import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties.Green;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties.GreenK8s;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties.GreenProd;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties.GreenPurple;
+import org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties.GreenPurpleK8s;
 
 @SpringBootApplication
-@EnableConfigurationProperties({ Blue.class, Green.class })
+@EnableConfigurationProperties({ Blue.class, Green.class, GreenK8s.class, GreenProd.class, GreenPurple.class,
+		GreenPurpleK8s.class })
 public class LabeledConfigMapWithProfileApp {
 
 	public static void main(String[] args) {
