@@ -37,7 +37,6 @@ class SecretsConfigPropertiesBindingTests {
 			SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 			Assertions.assertThat(props).isNotNull();
 			Assertions.assertThat(props.enableApi()).isFalse();
-			Assertions.assertThat(props.paths()).isEmpty();
 			Assertions.assertThat(props.sources()).isEmpty();
 			Assertions.assertThat(props.labels()).isEmpty();
 			Assertions.assertThat(props.enabled()).isTrue();
@@ -46,7 +45,6 @@ class SecretsConfigPropertiesBindingTests {
 			Assertions.assertThat(props.useNameAsPrefix()).isFalse();
 			Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
 			Assertions.assertThat(props.failFast()).isFalse();
-
 			Assertions.assertThat(props.retry()).isNotNull();
 			Assertions.assertThat(props.retry().initialInterval()).isEqualTo(1000L);
 			Assertions.assertThat(props.retry().multiplier()).isEqualTo(1.1D);
@@ -60,7 +58,6 @@ class SecretsConfigPropertiesBindingTests {
 	void testWithNonDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
 			.withPropertyValues("spring.cloud.kubernetes.secrets.enableApi=false",
-					"spring.cloud.kubernetes.secrets.paths[0]=a", "spring.cloud.kubernetes.secrets.paths[1]=b",
 					"spring.cloud.kubernetes.secrets.sources[0].name=source-a",
 					"spring.cloud.kubernetes.secrets.sources[0].namespace=source-namespace-a",
 					"spring.cloud.kubernetes.secrets.sources[0].labels.key=source-value",
@@ -82,11 +79,6 @@ class SecretsConfigPropertiesBindingTests {
 				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 				Assertions.assertThat(props).isNotNull();
 				Assertions.assertThat(props.enableApi()).isFalse();
-
-				Assertions.assertThat(props.paths().size()).isEqualTo(2);
-				Assertions.assertThat(props.paths().get(0)).isEqualTo("a");
-				Assertions.assertThat(props.paths().get(1)).isEqualTo("b");
-
 				Assertions.assertThat(props.sources().size()).isEqualTo(1);
 				SecretsConfigProperties.Source source = props.sources().get(0);
 				Assertions.assertThat(source.name()).isEqualTo("source-a");

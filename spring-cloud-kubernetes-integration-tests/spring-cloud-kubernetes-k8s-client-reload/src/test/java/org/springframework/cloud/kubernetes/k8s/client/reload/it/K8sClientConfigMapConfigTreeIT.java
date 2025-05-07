@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -25,12 +27,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -42,17 +41,13 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-class K8sClientConfigMapMountPollingIT extends K8sClientReloadBase {
+class K8sClientConfigMapConfigTreeIT extends K8sClientReloadBase {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-reload";
 
+	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
+
 	private static final String NAMESPACE = "default";
-
-	private static final K3sContainer K3S = Commons.container();
-
-	private static Util util;
-
-	private static CoreV1Api coreV1Api;
 
 	@BeforeAll
 	static void beforeAllLocal() throws Exception {
@@ -60,41 +55,37 @@ class K8sClientConfigMapMountPollingIT extends K8sClientReloadBase {
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
-		util = new Util(K3S);
-		coreV1Api = new CoreV1Api();
+		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
+
 		util.setUp(NAMESPACE);
 		manifests(Phase.CREATE, util, NAMESPACE, IMAGE_NAME);
+		util.configWatcher(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
 		manifests(Phase.DELETE, util, NAMESPACE, IMAGE_NAME);
+		util.configWatcher(Phase.DELETE);
 	}
 
 	/**
 	 * <pre>
-	 *     - we have bootstrap disabled
-	 *     - we will 'locate' property sources from config maps.
-	 *     - there are no explicit config maps to search for, but what we will also read,
-	 *     	 is 'spring.cloud.kubernetes.config.paths', which we have set to
-	 *     	 '/tmp/application.properties'
-	 *       in this test. That is populated by the volumeMounts (see mount/deployment.yaml)
-	 *     - we first assert that we are actually reading the path based source via (1), (2) and (3).
+	 *     - we have "spring.config.import: kubernetes:,configtree:/tmp/", which means we will 'locate' property sources
+	 *       from config maps.
+	 *     - the property above means that at the moment we will be searching for config maps that only
+	 *       match the application name, in this specific test there is no such config map.
+	 *     - what we will also read, is /tmp directory according to configtree rules.
+	 *       As such, a property "props.key" will be in environment.
 	 *
-	 *     - we then change the config map content, wait for k8s to pick it up and replace them
-	 *     - our polling will then detect that change, and trigger a reload.
+	 *     - we then change the config map content, wait for configuration watcher to pick up the change
+	 *       and schedule a refresh event, based on http.
 	 * </pre>
 	 */
 	@Test
 	// TODO This fails intermittently on Jenkins
 	@Disabled
 	void test() throws Exception {
-		// (1)
-		Commons.waitForLogStatement("paths property sources : [/tmp/application.properties]", K3S, IMAGE_NAME);
-		// (2)
-		Commons.waitForLogStatement("will add file-based property source : /tmp/application.properties", K3S,
-				IMAGE_NAME);
-		// (3)
 		WebClient webClient = builder().baseUrl("http://localhost:32321/configmap").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
@@ -105,23 +96,32 @@ class K8sClientConfigMapMountPollingIT extends K8sClientReloadBase {
 		// we first read the initial value from the configmap
 		assertThat(result).isEqualTo("as-mount-initial");
 
-		// replace data in configmap and wait for k8s to pick it up
-		// our polling will detect that and restart the app
-		V1ConfigMap configMap = (V1ConfigMap) util.yaml("mount/configmap.yaml");
-		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.configmap.key=as-mount-changed"));
-		coreV1Api.replaceNamespacedConfigMap("configmap-reload", NAMESPACE, configMap, null, null, null, null);
+		// replace data in configmap and wait for configuration watcher to pick it up.
+		V1ConfigMap configMapConfigTree = (V1ConfigMap) util.yaml("mount/configmap.yaml");
+		configMapConfigTree.setData(Map.of("from.properties.configmap.key", "as-mount-changed"));
+		// add label so that configuration-watcher picks this up
+		Map<String, String> existingLabels = new HashMap<>(
+				Optional.ofNullable(configMapConfigTree.getMetadata().getLabels()).orElse(new HashMap<>()));
+		existingLabels.put("spring.cloud.kubernetes.config", "true");
+		configMapConfigTree.getMetadata().setLabels(existingLabels);
 
-		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
-				IMAGE_NAME);
+		// add app annotation
+		Map<String, String> existingAnnotations = new HashMap<>(
+				Optional.ofNullable(configMapConfigTree.getMetadata().getAnnotations()).orElse(new HashMap<>()));
+		existingAnnotations.put("spring.cloud.kubernetes.configmap.apps", IMAGE_NAME);
+		configMapConfigTree.getMetadata().setAnnotations(existingAnnotations);
 
-		await().atMost(Duration.ofSeconds(120)).pollInterval(Duration.ofSeconds(1)).until(() -> {
-			String local = webClient.method(HttpMethod.GET)
+		new CoreV1Api().replaceNamespacedConfigMap(configMapConfigTree.getMetadata().getName(),
+				configMapConfigTree.getMetadata().getNamespace(), configMapConfigTree, null, null, null, null);
+
+		await().atMost(Duration.ofSeconds(180))
+			.pollInterval(Duration.ofSeconds(1))
+			.until(() -> webClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(String.class)
 				.retryWhen(retrySpec())
-				.block();
-			return "as-mount-changed".equals(local);
-		});
+				.block()
+				.equals("as-mount-changed"));
 	}
 
 }

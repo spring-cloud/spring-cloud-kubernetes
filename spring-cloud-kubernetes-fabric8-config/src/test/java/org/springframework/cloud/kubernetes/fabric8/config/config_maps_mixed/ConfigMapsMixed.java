@@ -16,45 +16,30 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.config_maps_mixed;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestUtil;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.assertj.core.util.Lists.newArrayList;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
-		properties = { "spring.application.name=" + BootstrapConfigMapsMixedTests.APPLICATION_NAME,
-				"spring.cloud.kubernetes.config.enableApi=true",
-				"spring.cloud.kubernetes.config.paths=" + BootstrapConfigMapsMixedTests.FILE_NAME_FULL_PATH,
-				"spring.main.cloud-platform=KUBERNETES" })
+		properties = { "spring.application.name=" + ConfigMapsMixed.APPLICATION_NAME,
+				"spring.cloud.kubernetes.config.enableApi=true", "spring.main.cloud-platform=KUBERNETES" })
 abstract class ConfigMapsMixed {
-
-	protected static final String FILES_ROOT_PATH = "/tmp/scktests";
-
-	protected static final String FILE_NAME = "application-path.yaml";
-
-	protected static final String FILE_NAME_FULL_PATH = FILES_ROOT_PATH + "/" + FILE_NAME;
 
 	protected static final String APPLICATION_NAME = "configmap-mixed-example";
 
 	@Autowired
 	private WebTestClient webClient;
 
-	static void setUpBeforeClass(KubernetesClient mockClient) throws IOException {
+	static void setUpBeforeClass(KubernetesClient mockClient) {
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -63,10 +48,6 @@ abstract class ConfigMapsMixed {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
-
-		Files.createDirectories(Paths.get(FILES_ROOT_PATH));
-		ConfigMapTestUtil.createFileWithContent(FILE_NAME_FULL_PATH,
-				ConfigMapTestUtil.readResourceFile("application-path.yaml"));
 
 		HashMap<String, String> data = new HashMap<>();
 		data.put("bean.morning", "Buenos Dias ConfigMap, %s");
@@ -78,41 +59,6 @@ abstract class ConfigMapsMixed {
 			.build();
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
-	}
-
-	@AfterAll
-	static void teardownAfterClass() {
-		newArrayList(FILE_NAME_FULL_PATH, FILES_ROOT_PATH).forEach(fn -> {
-			try {
-				Files.delete(Paths.get(fn));
-			}
-			catch (IOException ignored) {
-			}
-		});
-	}
-
-	@Test
-	void greetingInputShouldReturnPropertyFromFile() {
-		this.webClient.get()
-			.uri("/api/greeting")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody()
-			.jsonPath("content")
-			.isEqualTo("Hello ConfigMap, World from path");
-	}
-
-	@Test
-	void farewellInputShouldReturnPropertyFromFile() {
-		this.webClient.get()
-			.uri("/api/farewell")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody()
-			.jsonPath("content")
-			.isEqualTo("Bye ConfigMap, World from path");
 	}
 
 	@Test

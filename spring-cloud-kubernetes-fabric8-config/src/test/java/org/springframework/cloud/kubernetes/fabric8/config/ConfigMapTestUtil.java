@@ -17,9 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
 import io.fabric8.kubernetes.client.utils.IOHelpers;
@@ -39,10 +36,6 @@ public final class ConfigMapTestUtil {
 			resource = "";
 		}
 		return resource;
-	}
-
-	public static void createFileWithContent(String file, String content) throws IOException {
-		Files.write(Paths.get(file), content.getBytes(), StandardOpenOption.CREATE);
 	}
 
 }
