@@ -35,6 +35,7 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataResource;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -113,7 +114,6 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(clientProperties, configMapProperties,
 				secretsProperties, location.isOptional(), profiles, environment);
-		resource.setLog(log);
 
 		return List.of(resource);
 	}
@@ -121,16 +121,6 @@ public abstract class KubernetesConfigDataLocationResolver
 	protected abstract void registerBeans(ConfigDataLocationResolverContext resolverContext,
 			ConfigDataLocation location, Profiles profiles, PropertyHolder propertyHolder,
 			KubernetesNamespaceProvider namespaceProvider);
-
-	protected final boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
-		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.retry().enabled()
-				&& configMapProperties.failFast();
-	}
-
-	protected final boolean isRetryEnabledForSecrets(SecretsConfigProperties secretsProperties) {
-		return RETRY_IS_PRESENT && secretsProperties != null && secretsProperties.retry().enabled()
-				&& secretsProperties.failFast();
-	}
 
 	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
 		return new KubernetesNamespaceProvider(environment);
