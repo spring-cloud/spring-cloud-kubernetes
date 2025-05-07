@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,16 +55,6 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 	private final ConfigMapCache cache;
 
 	protected final ConfigMapConfigProperties properties;
-
-	/**
-	 * This constructor is deprecated, and we do not use it anymore internally. It will be
-	 * removed in the next major release.
-	 */
-	@Deprecated(forRemoval = true)
-	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties) {
-		this.properties = properties;
-		this.cache = new ConfigMapCache.NOOPCache();
-	}
 
 	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties, ConfigMapCache cache) {
 		this.properties = properties;

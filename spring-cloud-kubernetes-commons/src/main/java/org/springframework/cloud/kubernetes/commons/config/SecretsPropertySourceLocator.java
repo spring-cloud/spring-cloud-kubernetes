@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,16 +61,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	private final SecretsCache cache;
 
 	protected final SecretsConfigProperties properties;
-
-	/**
-	 * This constructor is deprecated, and we do not use it anymore internally. It will be
-	 * removed in the next major release.
-	 */
-	@Deprecated(forRemoval = true)
-	public SecretsPropertySourceLocator(SecretsConfigProperties properties) {
-		this.properties = properties;
-		this.cache = new SecretsCache.NOOPCache();
-	}
 
 	public SecretsPropertySourceLocator(SecretsConfigProperties properties, SecretsCache cache) {
 		this.properties = properties;
