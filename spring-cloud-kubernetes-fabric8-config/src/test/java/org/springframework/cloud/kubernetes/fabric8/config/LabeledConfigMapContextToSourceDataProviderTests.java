@@ -376,10 +376,10 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	}
 
 	/**
-	 * <<<<<<< HEAD ======= two configmaps are deployed: "color-configmap" with label:
-	 * "{color:blue}" and "color-configmap-k8s" with label: "{color:red}". We search by
-	 * "{color:blue}" and find one configmap. Since profiles are enabled, we will also be
-	 * reading "color-configmap-k8s", even if its labels do not match provided ones.
+	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
+	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
+	 * find one configmap. Since profiles are enabled, we will also be reading
+	 * "color-configmap-k8s", even if its labels do not match provided ones.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
@@ -409,15 +409,14 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		assertThat(sourceData.sourceData().size()).isEqualTo(1);
 		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
-		assertThat(sourceData.sourceData().get("color-configmap-k8s.two")).isEqualTo("2");
-		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
+		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.default");
 
 	}
 
 	/**
-	 * >>>>>>> main <pre>
+	 * <pre>
 	 *     - configmap "color-configmap" with label "{color:blue}"
 	 *     - configmap "shape-configmap" with labels "{color:blue, shape:round}"
 	 *     - configmap "no-fit" with labels "{tag:no-fit}"
@@ -477,15 +476,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		assertThat(sourceData.sourceData().size()).isEqualTo(2);
 
 		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
 		assertThat(sourceData.sourceData().get("shape-configmap.two")).isEqualTo("2");
-		assertThat(sourceData.sourceData().get("color-configmap-k8s.four")).isEqualTo("4");
-		assertThat(sourceData.sourceData().get("shape-configmap-k8s.five")).isEqualTo("5");
 
-		assertThat(sourceData.sourceName())
-			.isEqualTo("configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
+		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.shape-configmap.default");
 
 	}
 
