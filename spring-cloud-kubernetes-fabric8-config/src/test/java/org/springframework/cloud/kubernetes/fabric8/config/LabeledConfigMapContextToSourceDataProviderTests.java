@@ -40,6 +40,8 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author wind57
  */
@@ -292,10 +294,10 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertThat(firstKey).isEqualTo("another-blue-configmap.blue-configmap.first");
+			Assertions.assertThat(firstKey).isEqualTo("blue-configmap.first");
 		}
 
-		Assertions.assertThat(secondKey).isEqualTo("another-blue-configmap.blue-configmap.second");
+		Assertions.assertThat(secondKey).isEqualTo("another-blue-configmap.second");
 		Assertions.assertThat(properties.get(firstKey)).isEqualTo("blue");
 		Assertions.assertThat(properties.get(secondKey)).isEqualTo("blue");
 	}
@@ -410,11 +412,10 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		Assertions.assertThat(sourceData.sourceData().get("color-configmap.color-configmap-k8s.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("color-configmap.color-configmap-k8s.two")).isEqualTo("2");
-		Assertions.assertThat(sourceData.sourceName())
-			.isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
+		assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
+		assertThat(sourceData.sourceData().get("color-configmap-k8s.two")).isEqualTo("2");
+		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
 
 	}
 
@@ -480,25 +481,14 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.one"))
-			.isEqualTo("1");
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.two"))
-			.isEqualTo("2");
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.four"))
-			.isEqualTo("4");
-		Assertions
-			.assertThat(sourceData.sourceData()
-				.get("color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.five"))
-			.isEqualTo("5");
+		assertThat(sourceData.sourceData().size()).isEqualTo(4);
 
-		Assertions.assertThat(sourceData.sourceName())
+		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
+		assertThat(sourceData.sourceData().get("shape-configmap.two")).isEqualTo("2");
+		assertThat(sourceData.sourceData().get("color-configmap-k8s.four")).isEqualTo("4");
+		assertThat(sourceData.sourceData().get("shape-configmap-k8s.five")).isEqualTo("5");
+
+		assertThat(sourceData.sourceName())
 			.isEqualTo("configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
 
 	}
