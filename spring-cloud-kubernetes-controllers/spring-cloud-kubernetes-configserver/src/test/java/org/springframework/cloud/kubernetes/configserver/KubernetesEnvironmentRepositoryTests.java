@@ -90,39 +90,33 @@ class KubernetesEnvironmentRepositoryTests {
 
 	private static final V1ConfigMapList CONFIGMAP_DEV_LIST = new V1ConfigMapList()
 		.addItemsItem(new V1ConfigMapBuilder()
-			.withMetadata(
-					new V1ObjectMetaBuilder().withName("stores").withNamespace("dev").withResourceVersion("1").build())
+			.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace("dev").build())
 			.addToData(Constants.APPLICATION_YAML,
 					"dummy:\n  property:\n    string2: \"dev\"\n    int2: 1\n    bool2: true\n")
 			.build());
 
 	private static final V1SecretList SECRET_LIST = new V1SecretListBuilder()
-		.addToItems(
-				new V1SecretBuilder()
-					.withMetadata(new V1ObjectMetaBuilder().withName("application")
-						.withResourceVersion("0")
-						.withNamespace("default")
-						.build())
-					.addToData("password", "p455w0rd".getBytes())
-					.addToData("username", "user".getBytes())
-					.build())
-		.addToItems(new V1SecretBuilder().withMetadata(
-				new V1ObjectMetaBuilder().withName("stores").withResourceVersion("0").withNamespace("default").build())
+		.addToItems(new V1SecretBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("application").withNamespace("default").build())
+			.addToData("password", "p455w0rd".getBytes())
+			.addToData("username", "user".getBytes())
+			.build())
+		.addToItems(new V1SecretBuilder()
+			.withMetadata(new V1ObjectMetaBuilder().withName("stores").withNamespace("default").build())
 			.addToData("password", "password-from-stores".getBytes())
 			.addToData("username", "stores".getBytes())
 			.build())
 		.addToItems(new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withName("stores-dev")
-				.withResourceVersion("0")
-				.withNamespace("default")
-				.build())
+			.withMetadata(new V1ObjectMetaBuilder().withName("stores-dev").withNamespace("default").build())
 			.addToData("password", "password-from-stores-dev".getBytes())
 			.addToData("username", "stores-dev".getBytes())
 			.build())
 		.build();
 
+	private static final KubernetesConfigServerProperties PROPERTIES = properties();
+
 	@BeforeAll
-	public static void before() {
+	static void before() {
 		KUBERNETES_PROPERTY_SOURCE_SUPPLIER.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
@@ -177,7 +171,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 		Environment environment = environmentRepository.findOne("application", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(2);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -253,7 +247,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(SECRET_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 		Environment environment = environmentRepository.findOne("stores", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(4);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -300,7 +294,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 		Environment environment = environmentRepository.findOne("stores", "dev", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(6);
 		environment.getPropertySources().forEach(propertySource -> {
@@ -364,7 +358,7 @@ class KubernetesEnvironmentRepositoryTests {
 				eq(null), eq(null), eq(null), eq(null), eq(null)))
 			.thenReturn(CONFIGMAP_DEV_LIST);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default");
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 		Environment environment = environmentRepository.findOne("stores-dev", "", "");
 		environment.getPropertySources()
 			.stream()
@@ -412,7 +406,7 @@ class KubernetesEnvironmentRepositoryTests {
 			return propertySources;
 		});
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi, suppliers,
-				"default");
+				"default", PROPERTIES);
 		Environment environment = environmentRepository.findOne("storessingle", "", "");
 		assertThat(environment.getPropertySources().size()).isEqualTo(1);
 		assertThat(environment.getPropertySources().get(0).getName())
@@ -440,6 +434,12 @@ class KubernetesEnvironmentRepositoryTests {
 		assertThat(environment.getPropertySources().get(2).getSource().get("dummy.property.bool2")).isEqualTo(true);
 		assertThat(environment.getPropertySources().get(2).getSource().get("dummy.property.string2")).isEqualTo("a");
 
+	}
+
+	private static KubernetesConfigServerProperties properties() {
+		KubernetesConfigServerProperties properties = new KubernetesConfigServerProperties();
+		properties.setOrder(1);
+		return properties;
 	}
 
 }

@@ -17,13 +17,20 @@
 package org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Blue;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Green;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.GreenK8s;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.GreenProd;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.GreenPurple;
+import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.GreenPurpleK8s;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Stub data is in
@@ -35,6 +42,24 @@ abstract class LabeledConfigMapWithProfileTests {
 
 	@Autowired
 	private WebTestClient webClient;
+
+	@Autowired
+	private Blue blue;
+
+	@Autowired
+	private Green green;
+
+	@Autowired
+	private GreenK8s greenK8s;
+
+	@Autowired
+	private GreenProd greenProd;
+
+	@Autowired
+	private GreenPurple greenPurple;
+
+	@Autowired
+	private GreenPurpleK8s greenPurpleK8s;
 
 	@AfterEach
 	void afterEach() {
@@ -55,30 +80,35 @@ abstract class LabeledConfigMapWithProfileTests {
 	 */
 	@Test
 	void testBlue() {
-		this.webClient.get()
-			.uri("/labeled-configmap/profile/blue")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody(String.class)
-			.value(Matchers.equalTo("1"));
+		assertThat(blue.getOne()).isEqualTo("1");
 	}
 
-	/**
-	 * <pre>
-	 *   this one is taken from : "green-configmap.green-configmap-k8s.green-configmap-prod.green-purple-configmap.green-purple-configmap-k8s".
-	 *   We find "green-configmap", "green-configmap-k8s", "green-configmap-prod" by labels.
-	 * </pre>
-	 */
+	// found by labels
 	@Test
 	void testGreen() {
-		this.webClient.get()
-			.uri("/labeled-configmap/profile/green")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody(String.class)
-			.value(Matchers.equalTo("2#6#7#eight-ish"));
+		assertThat(green.getTwo()).isEqualTo("2");
+	}
+
+	// found because above is found, plus active profile is included
+	@Test
+	void testGreenK8s() {
+		assertThat(greenK8s.getSix()).isEqualTo("6");
+	}
+
+	// found because above is found, plus active profile is included
+	@Test
+	void testGreenProd() {
+		assertThat(greenProd.getSeven()).isEqualTo("7");
+	}
+
+	@Test
+	void testGreenPurple() {
+		assertThat(greenPurple.getEight()).isEqualTo("8");
+	}
+
+	@Test
+	void testGreenPurpleK8s() {
+		assertThat(greenPurpleK8s.getEight()).isEqualTo("eight-ish");
 	}
 
 }

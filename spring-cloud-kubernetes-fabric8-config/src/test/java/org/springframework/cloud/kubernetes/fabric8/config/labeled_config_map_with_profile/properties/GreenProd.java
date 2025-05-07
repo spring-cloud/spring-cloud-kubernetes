@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties;
+package org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("green-configmap")
-public class Green {
+@ConfigurationProperties("green-configmap-prod")
+public class GreenProd {
 
-	private String two;
+	private String seven;
 
-	public String getTwo() {
-		return two;
+	public String getSeven() {
+		return seven;
 	}
 
-	public void setTwo(String two) {
-		this.two = two;
+	public void setSeven(String seven) {
+		this.seven = seven;
 	}
 
 }

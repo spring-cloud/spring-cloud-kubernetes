@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties;
+package org.springframework.cloud.kubernetes.client.config.applications.labeled_secret_with_profile.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("green-configmap")
-public class Green {
+@ConfigurationProperties("green-secret-k8s")
+public class GreenK8s {
 
-	private String two;
+	private String six;
 
-	public String getTwo() {
-		return two;
+	public String getSix() {
+		return six;
 	}
 
-	public void setTwo(String two) {
-		this.two = two;
+	public void setSix(String six) {
+		this.six = six;
 	}
 
 }

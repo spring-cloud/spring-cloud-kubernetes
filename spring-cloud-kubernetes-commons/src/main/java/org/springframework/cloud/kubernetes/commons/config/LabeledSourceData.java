@@ -16,15 +16,22 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.Prefix;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.sourceDataName;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.sourceName;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import static org.springframework.cloud.kubernetes.commons.config.SourceDataFlattener.defaultFlattenedSourceData;
+import static org.springframework.cloud.kubernetes.commons.config.SourceDataFlattener.nameFlattenedSourceData;
+import static org.springframework.cloud.kubernetes.commons.config.SourceDataFlattener.prefixFlattenedSourceData;
 
 /**
  * @author wind57
@@ -40,47 +47,54 @@ public abstract class LabeledSourceData {
 			boolean failFast, String namespace) {
 
 		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
+		String sourceDataName;
 
 		try {
 			data = dataSupplier(labels);
 
-			// need this check because when there is no data, the name of the property
-			// source is using provided labels,
-			// unlike when the data is present: when we use secret names
-			if (data.names().isEmpty()) {
-				String names = labels.keySet()
-					.stream()
-					.sorted()
-					.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-				return SourceData.emptyRecord(ConfigUtils.sourceName(target, names, namespace));
+			LinkedHashSet<String> sourceNames = data.names();
+			Map<String, Object> sourceDataForSourceName = data.data();
+			sourceDataName = sourceDataName(target, sourceNames, namespace);
+
+			if (sourceNames.isEmpty()) {
+				return emptySourceData(labels, target, namespace);
 			}
 
-			if (prefix != ConfigUtils.Prefix.DEFAULT) {
-
-				String prefixToUse;
-				if (prefix == ConfigUtils.Prefix.KNOWN) {
-					prefixToUse = prefix.prefixProvider().get();
-				}
-				else {
-					prefixToUse = data.names()
-						.stream()
-						.sorted()
-						.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-				}
-
-				PrefixContext prefixContext = new PrefixContext(data.data(), prefixToUse, namespace, data.names());
-				return ConfigUtils.withPrefix(target, prefixContext);
+			if (prefix.getName().equals(Prefix.DEFAULT.getName())) {
+				return new SourceData(sourceDataName, defaultFlattenedSourceData(sourceNames, sourceDataForSourceName));
 			}
+
+			if (prefix.getName().equals(Prefix.KNOWN.getName())) {
+				return new SourceData(sourceDataName,
+						prefixFlattenedSourceData(sourceNames, sourceDataForSourceName, prefix.prefixProvider().get()));
+			}
+
+			if (prefix.getName().equals(Prefix.DELAYED.getName())) {
+				return new SourceData(sourceDataName, nameFlattenedSourceData(sourceNames, sourceDataForSourceName));
+			}
+
+			throw new IllegalArgumentException("Unsupported prefix: " + prefix);
 		}
 		catch (Exception e) {
 			LOG.warn("Failure in reading labeled sources");
 			onException(failFast, e);
-			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
+			return new SourceData(sourceDataName(target, data.names(), namespace), Map.of(ERROR_PROPERTY, "true"));
 		}
 
-		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(ConfigUtils.sourceName(target, names, namespace), data.data());
+	}
 
+	/*
+	 * When there is no data, the name of the property source is made from provided
+	 * labels, unlike when the data is present: when we use secret names.
+	 */
+	private SourceData emptySourceData(Map<String, String> labels, String target, String namespace) {
+		String sourceName = labels.keySet()
+			.stream()
+			.sorted()
+			.collect(Collectors.collectingAndThen(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR),
+					sortedLabels -> sourceName(target, sortedLabels, namespace)));
+
+		return SourceData.emptyRecord(sourceName);
 	}
 
 	/**
