@@ -271,10 +271,10 @@ class KubernetesClientServicesListSupplierTests {
 		services.add(serviceATestNamespace);
 
 		StepVerifier.create(instances).expectNext(services).verifyComplete();
-		Assertions.assertThat(
-				output.getOut()).contains("Error retrieving service with name service-a in namespace : no-service");
-		Assertions.assertThat(
-				output.getOut()).contains("discovering services in selective namespaces : [default, no-service, test]");
+		Assertions.assertThat(output.getOut())
+			.contains("Error retrieving service with name service-a in namespace : no-service");
+		Assertions.assertThat(output.getOut())
+			.contains("discovering services in selective namespaces : [default, no-service, test]");
 	}
 
 }

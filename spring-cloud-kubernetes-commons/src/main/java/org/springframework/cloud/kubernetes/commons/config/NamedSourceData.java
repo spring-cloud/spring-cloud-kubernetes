@@ -23,9 +23,14 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.Prefix;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.onException;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.sourceName;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.ERROR_PROPERTY;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.PROPERTY_SOURCE_NAME_SEPARATOR;
+import static org.springframework.cloud.kubernetes.commons.config.SourceDataFlattener.defaultFlattenedSourceData;
+import static org.springframework.cloud.kubernetes.commons.config.SourceDataFlattener.nameFlattenedSourceData;
+import static org.springframework.cloud.kubernetes.commons.config.SourceDataFlattener.prefixFlattenedSourceData;
 
 /**
  * @author wind57
@@ -37,47 +42,68 @@ public abstract class NamedSourceData {
 
 	private static final Log LOG = LogFactory.getLog(NamedSourceData.class);
 
-	public final SourceData compute(String sourceName, ConfigUtils.Prefix prefix, String target, boolean profileSources,
+	public final SourceData compute(String sourceName, Prefix prefix, String target, boolean profileSources,
 			boolean failFast, String namespace, String[] activeProfiles) {
 
-		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
-		// first comes non-profile based source
-		sourceNames.add(sourceName);
+		// first comes a non-profile-based source
+		LinkedHashSet<String> sourceNamesToSearchFor = new LinkedHashSet<>();
+		sourceNamesToSearchFor.add(sourceName);
 
 		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
+		String sourceDataName;
 
 		try {
 			if (profileSources) {
 				for (String activeProfile : activeProfiles) {
-					// add all profile based sources _after_ non-profile based one
-					sourceNames.add(sourceName + "-" + activeProfile);
+					sourceNamesToSearchFor.add(sourceName + "-" + activeProfile);
 				}
 			}
 
-			data = dataSupplier(sourceNames);
+			data = dataSupplier(sourceNamesToSearchFor);
+			Map<String, Object> sourceDataForSourceName = data.data();
+			LinkedHashSet<String> sourceNamesFound = data.names();
+			String sortedNames = data.names()
+				.stream()
+				.sorted()
+				.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+			sourceDataName = generateSourceName(target, sortedNames, namespace, activeProfiles);
 
 			if (data.names().isEmpty()) {
-				String emptySourceName = ConfigUtils.sourceName(target, sourceName, namespace);
-				LOG.debug("Will return empty source with name : " + emptySourceName);
-				return SourceData.emptyRecord(emptySourceName);
+				return emptySourceData(target, sourceName, namespace);
 			}
 
-			if (prefix != ConfigUtils.Prefix.DEFAULT) {
-				// since we are in a named source, calling get on the supplier is safe
-				String prefixToUse = prefix.prefixProvider().get();
-				PrefixContext prefixContext = new PrefixContext(data.data(), prefixToUse, namespace, data.names());
-				return ConfigUtils.withPrefix(target, prefixContext);
+			if (prefix.getName().equals(Prefix.DEFAULT.getName())) {
+				return new SourceData(sourceDataName,
+						defaultFlattenedSourceData(sourceNamesFound, sourceDataForSourceName));
 			}
+
+			if (prefix.getName().equals(Prefix.KNOWN.getName())) {
+				return new SourceData(sourceDataName, prefixFlattenedSourceData(sourceNamesFound,
+						sourceDataForSourceName, prefix.prefixProvider().get()));
+			}
+
+			if (prefix.getName().equals(Prefix.DELAYED.getName())) {
+				return new SourceData(sourceDataName,
+						nameFlattenedSourceData(sourceNamesFound, sourceDataForSourceName));
+			}
+
+			throw new IllegalArgumentException("Unsupported prefix: " + prefix);
 
 		}
 		catch (Exception e) {
 			LOG.warn("Failure in reading named sources");
 			onException(failFast, e);
-			data = new MultipleSourcesContainer(data.names(), Map.of(ERROR_PROPERTY, "true"));
+			String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+			return new SourceData(generateSourceName(target, names, namespace, activeProfiles),
+					Map.of(ERROR_PROPERTY, "true"));
 		}
 
-		String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
-		return new SourceData(generateSourceName(target, names, namespace, activeProfiles), data.data());
+	}
+
+	private SourceData emptySourceData(String target, String sourceName, String namespace) {
+		String emptySourceName = sourceName(target, sourceName, namespace);
+		LOG.debug("Will return empty source with name : " + emptySourceName);
+		return SourceData.emptyRecord(emptySourceName);
 	}
 
 	protected String generateSourceName(String target, String sourceName, String namespace, String[] activeProfiles) {
