@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties;
 
-import org.springframework.cloud.config.server.environment.EnvironmentRepository;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import static org.mockito.Mockito.mock;
+@ConfigurationProperties("green-configmap-prod")
+public class GreenProd {
 
-@Configuration
-class MockConfig {
+	private String seven;
 
-	@Bean
-	@Profile("kubernetesdisabled")
-	public EnvironmentRepository environmentRepository() {
-		return mock(EnvironmentRepository.class);
+	public String getSeven() {
+		return seven;
+	}
+
+	public void setSeven(String seven) {
+		this.seven = seven;
 	}
 
 }
