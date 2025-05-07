@@ -117,8 +117,8 @@ class KubernetesClientServiceInstanceMapperTests {
 		V1Service service = createService("database", "default", annotations, labels, servicePorts);
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		Assertions.assertThat(serviceInstance).isNull();
-		Assertions.assertThat(output.getOut()).contains(
-			"service : database does not have any ServicePort(s), will not consider it for load balancing");
+		Assertions.assertThat(output.getOut())
+			.contains("service : database does not have any ServicePort(s), will not consider it for load balancing");
 	}
 
 	@Test

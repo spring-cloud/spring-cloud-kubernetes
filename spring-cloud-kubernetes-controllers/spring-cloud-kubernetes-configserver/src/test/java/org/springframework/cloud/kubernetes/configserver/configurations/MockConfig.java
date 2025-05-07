@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.configserver.configurations;
 
-import java.util.Map;
-import java.util.Set;
+import org.springframework.cloud.config.server.environment.EnvironmentRepository;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-/**
- * A holder for data needed to compute prefix based properties, in case of a secret or
- * config map.
- *
- * @author wind57
- * @deprecated will be deleted in a future release.
- */
-@Deprecated(forRemoval = true)
-public record PrefixContext(Map<String, Object> data, String prefix, String namespace,
-		Set<String> propertySourceNames) {
+import static org.mockito.Mockito.mock;
+
+@Configuration
+public class MockConfig {
+
+	@Bean
+	@Profile("kubernetesdisabled")
+	public EnvironmentRepository environmentRepository() {
+		return mock(EnvironmentRepository.class);
+	}
+
 }
