@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.fabric8.config.labeled_config_map_with_profile.properties;
 
-import java.util.Map;
-import java.util.Set;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * A holder for data needed to compute prefix based properties, in case of a secret or
- * config map.
- *
- * @author wind57
- * @deprecated will be deleted in a future release.
- */
-@Deprecated(forRemoval = true)
-public record PrefixContext(Map<String, Object> data, String prefix, String namespace,
-		Set<String> propertySourceNames) {
+@ConfigurationProperties("green-purple-configmap-k8s")
+public class GreenPurpleK8s {
+
+	private String eight;
+
+	public String getEight() {
+		return eight;
+	}
+
+	public void setEight(String eight) {
+		this.eight = eight;
+	}
+
 }
