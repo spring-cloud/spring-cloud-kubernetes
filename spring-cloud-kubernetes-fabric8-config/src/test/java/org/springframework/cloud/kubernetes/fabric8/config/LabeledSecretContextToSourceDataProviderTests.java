@@ -41,6 +41,8 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * Tests only for the happy-path scenarios. All others are tested elsewhere.
  *
@@ -292,10 +294,10 @@ class LabeledSecretContextToSourceDataProviderTests {
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertThat(firstKey).isEqualTo("another-blue-secret.blue-secret.first");
+			Assertions.assertThat(firstKey).isEqualTo("blue-secret.first");
 		}
 
-		Assertions.assertThat(secondKey).isEqualTo("another-blue-secret.blue-secret.second");
+		Assertions.assertThat(secondKey).isEqualTo("another-blue-secret.second");
 		Assertions.assertThat(properties.get(firstKey)).isEqualTo("blue");
 		Assertions.assertThat(properties.get(secondKey)).isEqualTo("blue");
 	}
@@ -374,6 +376,50 @@ class LabeledSecretContextToSourceDataProviderTests {
 	}
 
 	/**
+<<<<<<< HEAD
+=======
+	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
+	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
+	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
+	 * even if its labels do not match provided ones.
+	 */
+	@Test
+	void searchWithLabelsOneSecretFoundAndOneFromProfileFound() {
+		Secret colorSecret = new SecretBuilder().withNewMetadata()
+			.withName("color-secret")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
+			.build();
+
+		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
+			.withName("color-secret-k8s")
+			.withLabels(Collections.singletonMap("color", "red"))
+			.endMetadata()
+			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
+			.build();
+
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
+		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+
+		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
+				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+
+		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("color-secret-k8s.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.color-secret-k8s.default");
+
+	}
+
+	/**
+>>>>>>> main
 	 * <pre>
 	 *     - secret "color-secret" with label "{color:blue}"
 	 *     - secret "shape-secret" with labels "{color:blue, shape:round}"
@@ -434,10 +480,14 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		Assertions.assertThat(sourceData.sourceData().get("color-secret.shape-secret.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("color-secret.shape-secret.two")).isEqualTo("2");
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.shape-secret.default");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
+		assertThat(sourceData.sourceData().get("shape-secret.two")).isEqualTo("2");
+		assertThat(sourceData.sourceData().get("color-secret-k8s.four")).isEqualTo("4");
+		assertThat(sourceData.sourceData().get("shape-secret-k8s.five")).isEqualTo("5");
+
+		assertThat(sourceData.sourceName())
+			.isEqualTo("secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
 
 	}
 

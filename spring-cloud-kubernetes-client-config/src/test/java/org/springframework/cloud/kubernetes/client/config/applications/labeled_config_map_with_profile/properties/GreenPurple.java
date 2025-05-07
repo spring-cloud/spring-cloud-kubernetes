@@ -18,17 +18,17 @@ package org.springframework.cloud.kubernetes.client.config.applications.labeled_
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("green-configmap")
-public class Green {
+@ConfigurationProperties("green-purple-configmap")
+public class GreenPurple {
 
-	private String two;
+	private String eight;
 
-	public String getTwo() {
-		return two;
+	public String getEight() {
+		return eight;
 	}
 
-	public void setTwo(String two) {
-		this.two = two;
+	public void setEight(String eight) {
+		this.eight = eight;
 	}
 
 }
