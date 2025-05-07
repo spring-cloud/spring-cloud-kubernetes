@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.configserver;
+package org.springframework.cloud.kubernetes.configserver.configurations;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -22,14 +22,18 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.ClientBuilder;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
  * @author Ryan Baxter
  */
-public class TestBootstrapConfig {
+@Configuration
+@ConditionalOnProperty(value = "test.first.config.enabled", havingValue = "true", matchIfMissing = false)
+public class FirstConfig {
 
 	@Bean
 	WireMockServer wireMockServer() {
@@ -41,9 +45,7 @@ public class TestBootstrapConfig {
 
 	@Bean
 	ApiClient apiClient(WireMockServer wireMockServer) {
-		ApiClient apiClient = new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
-		apiClient.setDebugging(true);
-		return apiClient;
+		return new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
 	}
 
 	@Bean

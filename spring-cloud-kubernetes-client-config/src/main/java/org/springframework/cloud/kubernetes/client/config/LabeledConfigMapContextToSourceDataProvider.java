@@ -34,11 +34,10 @@ class LabeledConfigMapContextToSourceDataProvider implements Supplier<Kubernetes
 	 * There could be many sources that are read based on incoming labels, for which we
 	 * will be computing a single Map<String, Object> in the end.
 	 *
-	 * If there is no config maps found for the provided labels, we will return an "empty"
-	 * SourceData. Its name is going to be the concatenated labels mapped to an empty Map.
+	 * If there are no config maps found for the provided labels, we will return an
+	 * "empty" SourceData. Its name is going to be the concatenated labels mapped to an
+	 * empty Map.
 	 *
-	 * If we find config maps(s) for the provided labels, its name is going to be the
-	 * concatenated names mapped to the data they hold as a Map.
 	 */
 	@Override
 	public KubernetesClientContextToSourceData get() {
