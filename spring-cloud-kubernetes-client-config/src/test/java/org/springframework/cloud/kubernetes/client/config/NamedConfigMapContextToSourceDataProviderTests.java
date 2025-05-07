@@ -169,18 +169,18 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true,
-				ConfigUtils.Prefix.DEFAULT, true, true);
+				ConfigUtils.Prefix.DEFAULT, true);
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("with-profile");
+		environment.addActiveProfile("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
-				false);
+				true);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default.with-profile");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
-		Assertions.assertThat(sourceData.sourceData().get("taste")).isEqualTo("mango");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default");
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red", "taste", "mango"));
 
 	}
 
