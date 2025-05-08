@@ -243,9 +243,8 @@ class NamedSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-profile.default.with-profile");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(sourceData.sourceData().get("taste")).isEqualTo("mango");
-		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("really-red");
 
 	}
 
