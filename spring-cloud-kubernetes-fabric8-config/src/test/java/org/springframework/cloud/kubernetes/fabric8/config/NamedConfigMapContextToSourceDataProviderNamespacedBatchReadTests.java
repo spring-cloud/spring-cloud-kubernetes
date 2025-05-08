@@ -424,7 +424,7 @@ class NamedConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(redSourceData.sourceData().get("some.color")).isEqualTo("really-red");
 		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getAll()).contains("Will read individual configmaps in namespace");
+		Assertions.assertThat(output.getAll()).doesNotContain("Will read individual configmaps in namespace");
 
 		NormalizedSource greenNormalizedSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, PREFIX,
 				false);

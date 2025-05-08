@@ -396,7 +396,7 @@ class NamedSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(redSourceData.sourceData().get("some.color")).isEqualTo("red");
 		Assertions.assertThat(output.getAll()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getAll()).contains("Will read individual secrets in namespace");
+		Assertions.assertThat(output.getAll()).doesNotContain("Will read individual secrets in namespace");
 
 		NormalizedSource greenNormalizedSource = new NamedSecretNormalizedSource("green", NAMESPACE, true, PREFIX,
 				false);
