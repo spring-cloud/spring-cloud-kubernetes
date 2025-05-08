@@ -44,8 +44,7 @@ final class SourceDataFlattener {
 	static Map<String, Object> prefixFlattenedSourceData(LinkedHashMap<String, Map<String, Object>> sourceData,
 			String prefix) {
 		Map<String, Object> flattenedData = new HashMap<>();
-		sourceData.values().forEach(data ->
-			data.forEach((key, value) -> flattenedData.put(prefix + "." + key, value)));
+		sourceData.values().forEach(data -> data.forEach((key, value) -> flattenedData.put(prefix + "." + key, value)));
 		return flattenedData;
 	}
 
@@ -55,8 +54,7 @@ final class SourceDataFlattener {
 	 */
 	static Map<String, Object> nameFlattenedSourceData(LinkedHashMap<String, Map<String, Object>> sourceData) {
 		Map<String, Object> flattenedData = new HashMap<>();
-		sourceData.forEach((name, data) ->
-			data.forEach((key, value) -> flattenedData.put(name + "." + key, value)));
+		sourceData.forEach((name, data) -> data.forEach((key, value) -> flattenedData.put(name + "." + key, value)));
 		return flattenedData;
 	}
 
