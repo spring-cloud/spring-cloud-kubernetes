@@ -475,9 +475,9 @@ spring:
 
 The same processing rules apply when generating property source as for config maps. The only difference is that
 potentially, looking up secrets by labels can mean that we find more than one source. In such a case, prefix (if specified via `useNameAsPrefix`)
-will be the names of all secrets found for those particular labels.
+will be the name of the secret found for those particular labels.
 
-One more thing to bear in mind is that we support `prefix` per _source_, not per secret. The easiest way to explain this is via an example:
+One more thing to bear in mind is that we support `prefix` per _secret_. The easiest way to explain this is via an example:
 
 [source.yaml]
 ----
@@ -496,14 +496,11 @@ spring:
             useNameAsPrefix: true
 ----
 
-Suppose that a query matching such a label will provide two secrets as a result: `secret-a` and `secret-b`.
-Both of these secrets have the same property name: `color=sea-blue` and `color=ocean-blue`. It is undefined which
-`color` will end-up as part of property sources, but the prefix for it will be `secret-a.secret-b`
-(concatenated sorted naturally, names of the secrets).
+Suppose that a query matching such a label will return two secrets as a result: `secretA` and `secretB`.
+Both of these secrets have the same property name: `color=sea-blue` and `color=ocean-blue`. Because `useNamesAsPrefix=true`, there will be two property sources loaded:
 
-If you need more fine-grained results, adding more labels to identify the secret uniquely would be an option.
-
-
+ - `secretA.color=sea-blue`
+ - `secretB.color=ocean-blue`
 
 By default, besides reading the config map that is specified in the `sources` configuration, Spring will also try to read
 all properties from "profile aware" sources. The easiest way to explain this is via an example. Let's suppose your application
