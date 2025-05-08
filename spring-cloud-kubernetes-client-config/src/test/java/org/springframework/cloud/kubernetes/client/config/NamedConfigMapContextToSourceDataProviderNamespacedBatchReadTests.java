@@ -186,7 +186,7 @@ class NamedConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default");
 		Assertions.assertThat(sourceData.sourceData())
-			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red", "taste", "mango"));
+			.containsExactlyInAnyOrderEntriesOf(Map.of("taste", "mango"));
 
 	}
 
