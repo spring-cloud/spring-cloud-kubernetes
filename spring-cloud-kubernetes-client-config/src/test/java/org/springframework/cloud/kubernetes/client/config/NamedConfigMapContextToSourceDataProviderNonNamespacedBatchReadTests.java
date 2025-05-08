@@ -28,9 +28,9 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,8 +114,8 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.blue.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.blue.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
 
 	}
 
@@ -143,8 +143,8 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), COLOR_REALLY_RED);
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(COLOR_REALLY_RED);
 
 	}
 
@@ -180,9 +180,9 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default.with-profile");
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("taste"), "mango");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default.with-profile");
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData().get("taste")).isEqualTo("mango");
 
 	}
 
@@ -223,10 +223,10 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-profile.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-profile.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
+		Assertions.assertThat(sourceData.sourceData().get("some.color")).isEqualTo("really-red");
+		Assertions.assertThat(sourceData.sourceData().get("some.taste")).isEqualTo("mango");
 
 	}
 
@@ -277,11 +277,11 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.red-with-shape.red-with-taste.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 3);
-		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
-		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.red-with-shape.red-with-taste.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(3);
+		Assertions.assertThat(sourceData.sourceData().get("some.color")).isEqualTo("really-red");
+		Assertions.assertThat(sourceData.sourceData().get("some.taste")).isEqualTo("mango");
+		Assertions.assertThat(sourceData.sourceData().get("some.shape")).isEqualTo("round");
 
 	}
 
@@ -309,8 +309,8 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.application.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.application.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
 	}
 
 	/**
@@ -339,8 +339,8 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), COLOR_REALLY_RED);
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(sourceData.sourceData()).isEqualTo(COLOR_REALLY_RED);
 	}
 
 	/**
@@ -365,8 +365,8 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	/**
@@ -397,8 +397,8 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "configmap.one.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.one.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	/**
@@ -434,11 +434,12 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData redData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertEquals(redSourceData.sourceName(), "configmap.red.default");
-		Assertions.assertEquals(redSourceData.sourceData(), Map.of("color", "red"));
+		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red.default");
+		Assertions.assertThat(redSourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("color", "red"));
 
-		Assertions.assertFalse(output.getAll().contains("Loaded all config maps in namespace '" + NAMESPACE + "'"));
-		Assertions.assertTrue(output.getAll().contains("Will read individual configmaps in namespace"));
+		Assertions.assertThat(output.getAll())
+			.doesNotContain("Loaded all config maps in namespace '" + NAMESPACE + "'");
+		Assertions.assertThat(output.getAll()).contains("Will read individual configmaps in namespace");
 
 		NormalizedSource greenSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, true);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
@@ -446,16 +447,17 @@ class NamedConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData greenData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertEquals(greenSourceData.sourceName(), "configmap.green.default");
-		Assertions.assertEquals(greenSourceData.sourceData(), Map.of("color", "green"));
+		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("configmap.green.default");
+		Assertions.assertThat(greenSourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "green"));
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertEquals(out.length, 1);
+		Assertions.assertThat(out.length).isEqualTo(1);
 
 		// meaning that the second read was done from the cache
 		out = output.getAll().split("Will read individual configmaps in namespace");
-		Assertions.assertEquals(out.length, 3);
+		Assertions.assertThat(out.length).isEqualTo(3);
 
 	}
 

@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.Collections;
 import java.util.Map;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -29,9 +28,9 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.util.ClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -104,8 +103,9 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.default");
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red"));
 
 	}
 
@@ -144,9 +144,9 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("color"), "really-red");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("really-red");
 
 	}
 
@@ -172,8 +172,8 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.blue.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.blue.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
 	}
 
 	/**
@@ -202,8 +202,9 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.default");
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red"));
 	}
 
 	/**
@@ -237,9 +238,9 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-profile.default.with-profile");
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("taste"), "mango");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-profile.default.with-profile");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(sourceData.sourceData().get("taste")).isEqualTo("mango");
 
 	}
 
@@ -275,10 +276,10 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-taste.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-taste.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
+		Assertions.assertThat(sourceData.sourceData().get("some.color")).isEqualTo("really-red");
+		Assertions.assertThat(sourceData.sourceData().get("some.taste")).isEqualTo("mango");
 
 	}
 
@@ -320,12 +321,12 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red.red-with-shape.red-with-taste.default");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-shape.red-with-taste.default");
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 3);
-		Assertions.assertEquals(sourceData.sourceData().get("some.color"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("some.taste"), "mango");
-		Assertions.assertEquals(sourceData.sourceData().get("some.shape"), "round");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(3);
+		Assertions.assertThat(sourceData.sourceData().get("some.color")).isEqualTo("really-red");
+		Assertions.assertThat(sourceData.sourceData().get("some.taste")).isEqualTo("mango");
+		Assertions.assertThat(sourceData.sourceData().get("some.shape")).isEqualTo("round");
 
 	}
 
@@ -351,8 +352,8 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.single-yaml.default");
-		Assertions.assertEquals(sourceData.sourceData(), Map.of("key", "value"));
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.single-yaml.default");
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	/**
@@ -388,11 +389,11 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData redData = new NamedSecretContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertEquals(redSourceData.sourceName(), "secret.red.default");
-		Assertions.assertEquals(redSourceData.sourceData(), Map.of("color", "red"));
+		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("secret.red.default");
+		Assertions.assertThat(redSourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("color", "red"));
 
-		Assertions.assertFalse(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
-		Assertions.assertTrue(output.getAll().contains("Will read individual secrets in namespace"));
+		Assertions.assertThat(output.getAll()).doesNotContain(("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+		Assertions.assertThat(output.getAll()).contains("Will read individual secrets in namespace");
 
 		NormalizedSource greenSource = new NamedSecretNormalizedSource("green", NAMESPACE, true, true);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
@@ -400,16 +401,17 @@ class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData greenData = new NamedSecretContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertEquals(greenSourceData.sourceName(), "secret.green.default");
-		Assertions.assertEquals(greenSourceData.sourceData(), Map.of("color", "green"));
+		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("secret.green.default");
+		Assertions.assertThat(greenSourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "green"));
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertEquals(out.length, 1);
+		Assertions.assertThat(out.length).isEqualTo(1);
 
 		// meaning that the second read was done from the cache
 		out = output.getAll().split("Will read individual secrets in namespace");
-		Assertions.assertEquals(out.length, 3);
+		Assertions.assertThat(out.length).isEqualTo(3);
 
 	}
 

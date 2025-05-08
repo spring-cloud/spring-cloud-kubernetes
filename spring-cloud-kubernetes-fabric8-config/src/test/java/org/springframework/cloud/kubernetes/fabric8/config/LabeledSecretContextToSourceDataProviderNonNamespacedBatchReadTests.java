@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -107,8 +107,9 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.test-secret.default", sourceData.sourceName());
-		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.test-secret.default");
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("secretName", "secretValue"));
 
 	}
 
@@ -151,10 +152,10 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.red-secret.red-secret-again.default");
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("colorOne"), "really-red");
-		Assertions.assertEquals(sourceData.sourceData().get("colorTwo"), "really-red-again");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red-secret.red-secret-again.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
+		Assertions.assertThat(sourceData.sourceData().get("colorOne")).isEqualTo("really-red");
+		Assertions.assertThat(sourceData.sourceData().get("colorTwo")).isEqualTo("really-red-again");
 
 	}
 
@@ -180,8 +181,8 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color.default");
-		Assertions.assertEquals(sourceData.sourceData(), Collections.emptyMap());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
 	}
 
 	/**
@@ -210,8 +211,9 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.test-secret.default", sourceData.sourceName());
-		Assertions.assertEquals(Map.of("secretName", "secretValue"), sourceData.sourceData());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.test-secret.default");
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("secretName", "secretValue"));
 	}
 
 	/**
@@ -240,8 +242,9 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals("secret.blue-secret.default", sourceData.sourceName());
-		Assertions.assertEquals(Map.of("me.what-color", "blue-color"), sourceData.sourceData());
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.blue-secret.default");
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("me.what-color", "blue-color"));
 	}
 
 	/**
@@ -280,21 +283,21 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.another-blue-secret.blue-secret.default");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.another-blue-secret.blue-secret.default");
 
 		Map<String, Object> properties = sourceData.sourceData();
-		Assertions.assertEquals(2, properties.size());
+		Assertions.assertThat(properties).hasSize(2);
 		Iterator<String> keys = properties.keySet().iterator();
 		String firstKey = keys.next();
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertEquals(firstKey, "another-blue-secret.blue-secret.first");
+			Assertions.assertThat(firstKey).isEqualTo("blue-secret.first");
 		}
 
-		Assertions.assertEquals(secondKey, "another-blue-secret.blue-secret.second");
-		Assertions.assertEquals(properties.get(firstKey), "blue");
-		Assertions.assertEquals(properties.get(secondKey), "blue");
+		Assertions.assertThat(secondKey).isEqualTo("another-blue-secret.second");
+		Assertions.assertThat(properties.get(firstKey)).isEqualTo("blue");
+		Assertions.assertThat(properties.get(secondKey)).isEqualTo("blue");
 	}
 
 	/**
@@ -329,8 +332,8 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertTrue(sourceData.sourceData().isEmpty());
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color.default");
+		Assertions.assertThat(sourceData.sourceData()).isEmpty();
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color.default");
 
 	}
 
@@ -366,9 +369,9 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("one"), "1");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(sourceData.sourceData().get("one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 
 	}
 
@@ -434,11 +437,11 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 2);
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.shape-secret.one"), "1");
-		Assertions.assertEquals(sourceData.sourceData().get("color-secret.shape-secret.two"), "2");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
+		Assertions.assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("shape-secret.two")).isEqualTo("2");
 
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.shape-secret.default");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.shape-secret.default");
 
 	}
 
@@ -464,9 +467,9 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertEquals(sourceData.sourceData().size(), 1);
-		Assertions.assertEquals(sourceData.sourceData().get("color"), "blue");
-		Assertions.assertEquals(sourceData.sourceName(), "secret.color-secret.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("blue");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 	}
 
 	/**
@@ -505,11 +508,11 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertEquals(redSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(redSourceData.sourceData().get("red.one"), "1");
+		Assertions.assertThat(redSourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(redSourceData.sourceData().get("red.one")).isEqualTo("1");
 
-		Assertions.assertFalse(output.getAll().contains("Loaded all secrets in namespace '" + NAMESPACE + "'"));
-		Assertions.assertTrue(output.getAll().contains("Will read individual secrets in namespace"));
+		Assertions.assertThat(output.getAll()).doesNotContain("Loaded all secrets in namespace '" + NAMESPACE + "'");
+		Assertions.assertThat(output.getAll()).contains("Will read individual secrets in namespace");
 
 		NormalizedSource greenNormalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED);
@@ -518,16 +521,16 @@ class LabeledSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertEquals(greenSourceData.sourceData().size(), 1);
-		Assertions.assertEquals(greenSourceData.sourceData().get("green.two"), "2");
+		Assertions.assertThat(greenSourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(greenSourceData.sourceData().get("green.two")).isEqualTo("2");
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertEquals(out.length, 1);
+		Assertions.assertThat(out.length).isEqualTo(1);
 
 		// meaning that the second read was done from the cache
 		out = output.getAll().split("Will read individual secrets in namespace");
-		Assertions.assertEquals(out.length, 3);
+		Assertions.assertThat(out.length).isEqualTo(3);
 
 	}
 

@@ -19,15 +19,14 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.Base64;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
@@ -65,8 +64,8 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 			.create();
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "red"), new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(Map.of(), result.data());
-		Assertions.assertTrue(result.names().isEmpty());
+		Assertions.assertThat(result.data()).isEmpty();
+		Assertions.assertThat(result.names()).isEmpty();
 	}
 
 	/**
@@ -87,8 +86,12 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
-		Assertions.assertEquals(Map.of("property", "value"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("my-secret");
+		Assertions.assertThat(data.get("property")).isEqualTo("value");
+
 	}
 
 	/**
@@ -110,8 +113,12 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(Set.of("my-secret"), result.names());
-		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("my-secret");
+		Assertions.assertThat(data.get("key1")).isEqualTo("value1");
+
 	}
 
 	/**
@@ -141,12 +148,19 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertTrue(result.names().contains("my-secret"));
-		Assertions.assertTrue(result.names().contains("my-secret-2"));
+		Assertions.assertThat(result.names()).contains("my-secret");
+		Assertions.assertThat(result.names()).contains("my-secret-2");
 
-		Assertions.assertEquals(2, result.data().size());
-		Assertions.assertEquals("value", result.data().get("property"));
-		Assertions.assertEquals("value-2", result.data().get("property-2"));
+		Assertions.assertThat(result.data()).hasSize(2);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> secretData = (Map<String, Object>) result.data().get("my-secret");
+		Assertions.assertThat(secretData.get("property")).isEqualTo("value");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> secretData2 = (Map<String, Object>) result.data().get("my-secret-2");
+		Assertions.assertThat(secretData2.get("property-2")).isEqualTo("value-2");
+
 	}
 
 	/**
@@ -205,12 +219,17 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), NAMESPACED_BATCH_READ);
 
-		Assertions.assertTrue(result.names().contains("blue-circle-secret"));
-		Assertions.assertTrue(result.names().contains("blue-square-secret"));
+		Assertions.assertThat(result.names()).contains("blue-circle-secret");
+		Assertions.assertThat(result.names()).contains("blue-square-secret");
 
-		Assertions.assertEquals(2, result.data().size());
-		Assertions.assertEquals("1", result.data().get("one"));
-		Assertions.assertEquals("2", result.data().get("two"));
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("blue-circle-secret");
+		Assertions.assertThat(data.get("one")).isEqualTo("1");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data2 = (Map<String, Object>) result.data().get("blue-square-secret");
+		Assertions.assertThat(data2.get("two")).isEqualTo("2");
+
 	}
 
 	/**
@@ -228,8 +247,8 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		names.add("nope");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(0, result.names().size());
-		Assertions.assertEquals(0, result.data().size());
+		Assertions.assertThat(result.names()).isEmpty();
+		Assertions.assertThat(result.data()).isEmpty();
 	}
 
 	/**
@@ -250,8 +269,11 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(1, result.names().size());
-		Assertions.assertEquals("value", result.data().get("property"));
+		Assertions.assertThat(result.names()).hasSize(1);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("my-secret");
+		Assertions.assertThat(data.get("property")).isEqualTo("value");
 	}
 
 	/**
@@ -272,8 +294,11 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
-		Assertions.assertTrue(result.data().isEmpty());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Assertions.assertThat(data).isEmpty();
 	}
 
 	/**
@@ -292,8 +317,8 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		names.add("my-config-map-not-found");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(Set.of(), result.names());
-		Assertions.assertTrue(result.data().isEmpty());
+		Assertions.assertThat(result.names()).isEmpty();
+		Assertions.assertThat(result.data()).isEmpty();
 	}
 
 	/**
@@ -315,8 +340,12 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
-		Assertions.assertEquals(Map.of("property", "value"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Assertions.assertThat(data.get("property")).isEqualTo("value");
+
 	}
 
 	/**
@@ -340,8 +369,12 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertEquals(Set.of("my-config-map"), result.names());
-		Assertions.assertEquals(Map.of("key1", "value1"), result.data());
+		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Assertions.assertThat(data.get("key1")).isEqualTo("value1");
+
 	}
 
 	/**
@@ -372,12 +405,19 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment(), NAMESPACED_BATCH_READ);
-		Assertions.assertTrue(result.names().contains("my-config-map"));
-		Assertions.assertTrue(result.names().contains("my-config-map-2"));
+		Assertions.assertThat(result.names()).contains("my-config-map");
+		Assertions.assertThat(result.names()).contains("my-config-map-2");
 
-		Assertions.assertEquals(2, result.data().size());
-		Assertions.assertEquals("value", result.data().get("property"));
-		Assertions.assertEquals("value-2", result.data().get("property-2"));
+		Assertions.assertThat(result.data()).hasSize(2);
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Assertions.assertThat(data.get("property")).isEqualTo("value");
+
+		@SuppressWarnings("unchecked")
+		Map<String, Object> data2 = (Map<String, Object>) result.data().get("my-config-map-2");
+		Assertions.assertThat(data2.get("property-2")).isEqualTo("value-2");
+
 	}
 
 }
