@@ -16,9 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
