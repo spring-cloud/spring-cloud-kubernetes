@@ -21,11 +21,13 @@ import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
+import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEADER_ELECTION_PROPERTY_PREFIX;
+
 /**
  * @author wind57
  */
 // @formatter:off
-@ConfigurationProperties("spring.cloud.kubernetes.leader.election")
+@ConfigurationProperties(LEADER_ELECTION_PROPERTY_PREFIX)
 public record LeaderElectionProperties(
 	@DefaultValue("true") boolean waitForPodReady,
 	@DefaultValue("true") boolean publishEvents,

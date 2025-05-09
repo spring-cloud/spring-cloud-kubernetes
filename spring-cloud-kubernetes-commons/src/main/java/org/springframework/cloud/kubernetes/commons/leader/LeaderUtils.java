@@ -36,6 +36,10 @@ import static org.springframework.cloud.kubernetes.commons.KubernetesClientPrope
  */
 public final class LeaderUtils {
 
+	public static final String LEADER_ELECTION_PROPERTY_PREFIX = "spring.cloud.kubernetes.leader.election";
+
+	public static final String LEADER_ELECTION_ENABLED_PROPERTY = LEADER_ELECTION_PROPERTY_PREFIX + ".enabled";
+
 	private static final LogAccessor LOG = new LogAccessor(LeaderUtils.class);
 
 	// k8s environment variable responsible for host name

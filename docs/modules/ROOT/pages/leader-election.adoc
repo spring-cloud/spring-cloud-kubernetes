@@ -28,7 +28,7 @@ spring.cloud.kubernetes.leader.config-map-name=leader
 
 '''
 
-There is another way you can configure leader election, and it comes with native support in the fabric8 library. In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDKs "preview" features.
+There is another way you can configure leader election, and it comes with native support in the fabric8 library (k8s native client support is not yet implemented). In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDKs "preview" features.
 
 To be able to use it, you need to set the property:
 
@@ -72,7 +72,7 @@ Like with the old implementation, we will publish events by default, but this ca
 spring.cloud.kubernetes.leader.election.publishEvents=false
 ----
 
-There are a few parameters that control how the leader election process will happen. In order to explain them, we need to look at the high level implementation of this process. All the candidates (pods), try to become the leader, or they try to _acquire_ the lock. If the lock is already taken, they will continue to retry to acquire it every `spring.cloud.kubernetes.leader.election.retryPeriod` (value is specified as `java.time.Duration`, and by default it is 2 seconds).
+There are a few parameters that control how the leader election process will happen. To explain them, we need to look at the high-level implementation of this process. All the candidate pods try to become the leader, or they try to _acquire_ the lock. If the lock is already taken, they will continue to retry to acquire it every `spring.cloud.kubernetes.leader.election.retryPeriod` (value is specified as `java.time.Duration`, and by default it is 2 seconds).
 
 If the lock is not taken, current pod becomes the leader. It does so by inserting a so-called "record" into the lock (`Lease` or `ConfigMap`). Among the things that the "record" contains, is the `leaseDuration` (that you can specify via `spring.cloud.kubernetes.leader.election.leaseDuration`; by default it is 15 seconds and is of type `java.time.Duration`). This acts like a TTL on the lock: no other candidate can acquire the lock, unless this period has expired (from the last renewal time).
 
