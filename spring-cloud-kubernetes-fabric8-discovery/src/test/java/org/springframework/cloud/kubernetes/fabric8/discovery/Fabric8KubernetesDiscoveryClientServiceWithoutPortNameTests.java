@@ -36,7 +36,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 
 /**
  * @author wind57
@@ -69,7 +71,8 @@ class Fabric8KubernetesDiscoveryClientServiceWithoutPortNameTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true);
-		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties, a -> null);
+		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(mockClient, properties,
+				new ServicePortSecureResolver(properties), new KubernetesNamespaceProvider((String) null), a -> true);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);

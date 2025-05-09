@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.client.discovery;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author wind57
  */
 @SpringBootApplication
-class Fabric8DiscoveryApp {
+public class Fabric8DiscoveryApp {
 
 	public static void main(String[] args) {
 		SpringApplication.run(Fabric8DiscoveryApp.class, args);
