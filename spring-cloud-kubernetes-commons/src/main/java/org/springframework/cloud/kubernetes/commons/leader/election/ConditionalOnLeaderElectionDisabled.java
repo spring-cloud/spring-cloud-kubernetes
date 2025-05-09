@@ -23,9 +23,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEADER_ELECTION_ENABLED_PROPERTY;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEADER_ELECTION_ENABLED_PROPERTY;
 
 /**
  * Provides a more succinct conditional for:
