@@ -75,9 +75,12 @@ abstract class LabeledSecretWithProfile {
 	 *     - secret with name "color-secret-k8s", with labels : "{color: not-blue}"
 	 *     - secret with name "green-secret-k8s", with labels : "{color: green-k8s}"
 	 *     - secret with name "green-secret-prod", with labels : "{color: green-prod}"
+	<<<<<<< HEAD
+	=======
 	 *
 	 *     	a test that proves order: first read non-profile based secrets, thus profile based
 	 *     	secrets override non-profile ones.
+	>>>>>>> main
 	 *     - secret with name "green-purple-secret", labels "{color: green, shape: round}", data: "{eight: 8}"
 	 *     - secret with name "green-purple-secret-k8s", labels "{color: black}", data: "{eight: eight-ish}"
 	 * </pre>
@@ -97,7 +100,7 @@ abstract class LabeledSecretWithProfile {
 				Base64.getEncoder().encodeToString("1".getBytes(StandardCharsets.UTF_8)));
 		createSecret("color-secret", colorSecret, Collections.singletonMap("color", "blue"));
 
-		// is not taken, since "profileSpecificSources=false" for the above
+		// is not taken
 		Map<String, String> colorSecretK8s = Collections.singletonMap("five",
 				Base64.getEncoder().encodeToString("5".getBytes(StandardCharsets.UTF_8)));
 		createSecret("color-secret-k8s", colorSecretK8s, Collections.singletonMap("color", "not-blue"));
@@ -107,15 +110,15 @@ abstract class LabeledSecretWithProfile {
 				Base64.getEncoder().encodeToString("2".getBytes(StandardCharsets.UTF_8)));
 		createSecret("green-secret", greenSecret, Collections.singletonMap("color", "green"));
 
-		// is taken because k8s profile is active and "profileSpecificSources=true"
+		// is taken
 		Map<String, String> shapeSecretK8s = Collections.singletonMap("six",
 				Base64.getEncoder().encodeToString("6".getBytes(StandardCharsets.UTF_8)));
-		createSecret("green-secret-k8s", shapeSecretK8s, Collections.singletonMap("color", "green-k8s"));
+		createSecret("green-secret-k8s", shapeSecretK8s, Collections.singletonMap("color", "green"));
 
-		// // is taken because prod profile is active and "profileSpecificSources=true"
+		// // is taken
 		Map<String, String> shapeSecretProd = Collections.singletonMap("seven",
 				Base64.getEncoder().encodeToString("7".getBytes(StandardCharsets.UTF_8)));
-		createSecret("green-secret-prod", shapeSecretProd, Collections.singletonMap("color", "green-prod"));
+		createSecret("green-secret-prod", shapeSecretProd, Collections.singletonMap("color", "green"));
 
 		// not taken
 		Map<String, String> redSecret = Collections.singletonMap("three",
@@ -135,7 +138,7 @@ abstract class LabeledSecretWithProfile {
 		// is taken and thus overrides the above
 		Map<String, String> greenPurpleK8s = Collections.singletonMap("eight",
 				Base64.getEncoder().encodeToString("eight-ish".getBytes(StandardCharsets.UTF_8)));
-		createSecret("green-purple-secret-k8s", greenPurpleK8s, Map.of("color", "black"));
+		createSecret("green-purple-secret-k8s", greenPurpleK8s, Map.of("color", "green"));
 
 	}
 
@@ -154,7 +157,7 @@ abstract class LabeledSecretWithProfile {
 	/**
 	 * <pre>
 	 *     this one is taken from : "blue.one". We find "color-secret" by labels, and
-	 *     "color-secrets-k8s" exists, but "includeProfileSpecificSources=false", thus not taken.
+	 *     "color-secrets-k8s".
 	 *     Since "explicitPrefix=blue", we take "blue.one"
 	 * </pre>
 	 */
@@ -165,7 +168,13 @@ abstract class LabeledSecretWithProfile {
 
 	/**
 	 * <pre>
+	<<<<<<< HEAD
+	 *   this one is taken from : "green-purple-secret.green-purple-secret-k8s.green-secret.green-secret-k8s.green-secret-prod".
+	 *   We find "green-secret", "green-secrets-k8s" and "green-secrets-prod" by labels.
+	 *   Also "green-purple-secret" and "green-purple-secret-k8s" are found.
+	=======
 	 *   We find "green-secret" by labels.
+	>>>>>>> main
 	 * </pre>
 	 */
 	@Test

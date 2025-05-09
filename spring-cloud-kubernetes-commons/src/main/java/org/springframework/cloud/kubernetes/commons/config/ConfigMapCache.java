@@ -24,7 +24,7 @@ public interface ConfigMapCache {
 	/**
 	 * Discards all stored entries from the cache.
 	 */
-	void discardAll();
+	void discardConfigMaps();
 
 	/**
 	 * an implementation that does nothing. In the next major release it will become
@@ -33,7 +33,7 @@ public interface ConfigMapCache {
 	class NOOPCache implements ConfigMapCache {
 
 		@Override
-		public void discardAll() {
+		public void discardConfigMaps() {
 		}
 
 	}

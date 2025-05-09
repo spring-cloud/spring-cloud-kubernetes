@@ -33,6 +33,11 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPr
 import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.env.Environment;
 
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNamespaceBatched.strippedConfigMapsBatchRead;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNamespaceBatched.strippedSecretsBatchRead;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonNamespaceBatched.strippedConfigMapsNonBatchRead;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesNonNamespaceBatched.strippedSecretsNonBatchRead;
+
 /**
  * Utility class that works with configuration properties.
  *
@@ -60,41 +65,27 @@ public final class Fabric8ConfigUtils {
 
 	/**
 	 * <pre>
-	 *     1. read all secrets in the provided namespace
-	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. with secret names from (2), find out if there are any profile based secrets (if profiles is not empty)
-	 *     4. concat (2) and (3) and these are the secrets we are interested in
-	 *     5. see if any of the secrets from (4) has a single yaml/properties file
-	 *     6. gather all the names of the secrets (from 4) + data they hold
-	 * </pre>
-	 */
-	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
-		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(client, namespace);
-		if (strippedSecrets.isEmpty()) {
-			return MultipleSourcesContainer.empty();
-		}
-		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, profiles, true);
-	}
-
-	/**
-	 * <pre>
 	 *     1. read all config maps in the provided namespace
-	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. with config maps names from (2), find out if there are any profile based ones (if profiles is not empty)
-	 *     4. concat (2) and (3) and these are the config maps we are interested in
-	 *     5. see if any from (4) has a single yaml/properties file
-	 *     6. gather all the names of the config maps (from 4) + data they hold
+	 *     2. from the above, filter the ones that we care about (by name)
+	 *     3. see if any of the config maps has a single yaml/properties file
+	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
-		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(client, namespace);
-		if (strippedConfigMaps.isEmpty()) {
-			return MultipleSourcesContainer.empty();
+	static MultipleSourcesContainer configMapsDataByName(KubernetesClient client, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment, boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedConfigMaps;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all configmaps in namespace : " + namespace);
+			strippedConfigMaps = strippedConfigMapsBatchRead(client, namespace);
+		}
+		else {
+			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with names : " + sourceNames);
+			strippedConfigMaps = strippedConfigMapsNonBatchRead(client, namespace, sourceNames);
 		}
 
-		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, profiles, false);
+		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false);
 	}
 
 	/**
@@ -106,47 +97,70 @@ public final class Fabric8ConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByName(KubernetesClient client, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
-		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(client, namespace);
-		if (strippedSecrets.isEmpty()) {
-			return MultipleSourcesContainer.empty();
+			LinkedHashSet<String> sourceNames, Environment environment, boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedSecrets;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all secrets in namespace : " + namespace);
+			strippedSecrets = strippedSecretsBatchRead(client, namespace);
 		}
+		else {
+			LOG.debug("Will read individual secrets in namespace : " + namespace + " with names : " + sourceNames);
+			strippedSecrets = strippedSecretsNonBatchRead(client, namespace, sourceNames);
+		}
+
 		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, true);
 	}
 
 	/**
 	 * <pre>
 	 *     1. read all config maps in the provided namespace
-	 *     2. from the above, filter the ones that we care about (by name)
-	 *     3. see if any of the config maps has a single yaml/properties file
+	 *     2. from the above, filter the ones that we care about (filter by labels)
+	 *     3. see if any from (2) has a single yaml/properties file
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByName(KubernetesClient client, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment) {
-		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(client, namespace);
-		if (strippedConfigMaps.isEmpty()) {
-			return MultipleSourcesContainer.empty();
+	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
+			Map<String, String> labels, Environment environment, boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedConfigMaps;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all configmaps in namespace : " + namespace);
+			strippedConfigMaps = strippedConfigMapsBatchRead(client, namespace);
 		}
-		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false);
+		else {
+			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with labels : " + labels);
+			strippedConfigMaps = strippedConfigMapsNonBatchRead(client, namespace, labels);
+		}
+
+		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, false);
 	}
 
-	private static List<StrippedSourceContainer> strippedConfigMaps(KubernetesClient client, String namespace) {
-		List<StrippedSourceContainer> strippedConfigMaps = Fabric8ConfigMapsCache.byNamespace(client, namespace);
-		if (strippedConfigMaps.isEmpty()) {
-			LOG.debug("No configmaps in namespace '" + namespace + "'");
+	/**
+	 * <pre>
+	 *     1. read all secrets in the provided namespace
+	 *     2. from the above, filter the ones that we care about (filter by labels)
+	 *     3. see if any of the secrets from (2) has a single yaml/properties file
+	 *     4. gather all the names of the secrets + data they hold
+	 * </pre>
+	 */
+	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
+			Map<String, String> labels, Environment environment, boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedSecrets;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all secrets in namespace : " + namespace);
+			strippedSecrets = strippedSecretsBatchRead(client, namespace);
+		}
+		else {
+			LOG.debug("Will read individual secrets in namespace : " + namespace + " with labels : " + labels);
+			strippedSecrets = strippedSecretsNonBatchRead(client, namespace, labels);
 		}
 
-		return strippedConfigMaps;
-	}
-
-	private static List<StrippedSourceContainer> strippedSecrets(KubernetesClient client, String namespace) {
-		List<StrippedSourceContainer> strippedSecrets = Fabric8SecretsCache.byNamespace(client, namespace);
-		if (strippedSecrets.isEmpty()) {
-			LOG.debug("No secrets in namespace '" + namespace + "'");
-		}
-
-		return strippedSecrets;
+		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, true);
 	}
 
 }
