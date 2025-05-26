@@ -88,7 +88,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointSlicesEnabledButNotSupported() {
 		boolean useEndpointSlices = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices, false, null);
 
 		V1APIResourceList list = new V1APIResourceListBuilder().addToResources(new V1APIResource()).build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
@@ -111,7 +111,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointSlicesEnabledButNotSupportedViaApiVersions() {
 		boolean useEndpointSlices = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices, false, null);
 
 		V1APIResourceList list = new V1APIResourceListBuilder()
 			.addToResources(new V1APIResourceBuilder().withName("not-the-one").build())
@@ -133,7 +133,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointsSupport() {
 		boolean useEndpointSlices = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices, false, null);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(null, apiClient, properties, NAMESPACE_PROVIDER);
 
 		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(KubernetesEndpointsCatalogWatch.class);
@@ -147,7 +147,7 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 	void testEndpointSlicesSupport() {
 		boolean useEndpointSlices = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
+				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices, false, null);
 
 		V1APIResourceList list = new V1APIResourceListBuilder()
 			.addToResources(new V1APIResourceBuilder().withName("endpointslices").withKind(ENDPOINT_SLICE).build())
