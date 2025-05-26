@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledConfigMapNormalizedSource;
@@ -48,13 +47,12 @@ class LabeledConfigMapContextToSourceDataProvider implements Supplier<Kubernetes
 
 			return new LabeledSourceData() {
 				@Override
-				public MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles) {
+				public MultipleSourcesContainer dataSupplier(Map<String, String> labels) {
 					return KubernetesClientConfigUtils.configMapsDataByLabels(context.client(), context.namespace(),
-							labels, context.environment(), profiles);
+							labels, context.environment());
 				}
 
-			}.compute(source.labels(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
+			}.compute(source.labels(), source.prefix(), source.target(), source.failFast(), context.namespace());
 		};
 
 	}
