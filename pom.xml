@@ -80,14 +80,6 @@
 		</maven-checkstyle-plugin.failsOnViolation>
 		<maven-checkstyle-plugin.includeTestSourceDirectory>true
 		</maven-checkstyle-plugin.includeTestSourceDirectory>
-		<!-- We are overriding the version of Jackson here because Fabric8 is
-			 is not compatible with Jackson 2.19.0 which used in Spring Boot 3.5.x
-			 We cannot use Jackson 2.19.0 until we can upgrade to Fabric8
-			 7.3.0.
-			 See https://github.com/fabric8io/kubernetes-client/issues/7036
-			 See https://github.com/spring-projects/spring-boot/commit/e1ff4fbaf99bfcfdf0828ed07664b208a3ca6157
-		-->
-		<jackson.version>2.18.4</jackson.version>
 	</properties>
 
 	<modules>
