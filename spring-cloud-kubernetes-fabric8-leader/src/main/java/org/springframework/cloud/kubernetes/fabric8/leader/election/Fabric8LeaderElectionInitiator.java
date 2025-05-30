@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.fabric8.kubernetes.api.model.Pod;
@@ -44,7 +43,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	private static final LogAccessor LOG = new LogAccessor(Fabric8LeaderElectionInitiator.class);
 
-	private final CachedSingleThreadScheduler scheduler = new CachedSingleThreadScheduler();
+	private final CachedSingleThreadScheduler podReadyScheduler = new CachedSingleThreadScheduler();
 
 	private final String holderIdentity;
 
@@ -58,12 +57,12 @@ final class Fabric8LeaderElectionInitiator {
 
 	private final AtomicReference<ExecutorService> executorService = new AtomicReference<>();
 
-	private final AtomicReference<ScheduledFuture<?>> scheduledFuture = new AtomicReference<>();
+	private final AtomicReference<ScheduledFuture<?>> podReadyTask = new AtomicReference<>();
 
 	private final AtomicReference<CompletableFuture<?>> leaderFutureReference = new AtomicReference<>();
 
 	// not private for testing
-	final AtomicBoolean destroyCalled = new AtomicBoolean(false);
+	volatile boolean destroyCalled = false;
 
 	Fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace, KubernetesClient fabric8KubernetesClient,
 			LeaderElectionConfig leaderElectionConfig, LeaderElectionProperties leaderElectionProperties) {
@@ -93,7 +92,7 @@ final class Fabric8LeaderElectionInitiator {
 		// wait until pod is ready
 		if (leaderElectionProperties.waitForPodReady()) {
 			LOG.info(() -> "need to wait until pod is ready : " + holderIdentity);
-			scheduledFuture.set(scheduler.scheduleWithFixedDelay(() -> {
+			podReadyTask.set(podReadyScheduler.scheduleWithFixedDelay(() -> {
 
 				try {
 					LOG.info(() -> "waiting for pod : " + holderIdentity + " in namespace : " + podNamespace
@@ -127,12 +126,13 @@ final class Fabric8LeaderElectionInitiator {
 						if (error != null) {
 							LOG.error(() -> "readiness failed for : " + holderIdentity);
 							LOG.error(() -> "leader election for : " + holderIdentity + " will not start");
-							scheduledFuture.get().cancel(true);
 						}
 						else {
 							LOG.info(() -> holderIdentity + " is ready");
-							scheduledFuture.get().cancel(true);
 						}
+						// we cancel the future that checks readiness of the pod
+						// and thus also close the pool that was running it.
+						podReadyTask.get().cancel(true);
 					});
 				try {
 					ready.get();
@@ -158,11 +158,11 @@ final class Fabric8LeaderElectionInitiator {
 	void preDestroy() {
 		destroyCalled();
 		LOG.info(() -> "preDestroy called in the leader initiator : " + holderIdentity);
-		if (scheduledFuture.get() != null) {
+		if (podReadyTask.get() != null) {
 			// if the task is not running, this has no effect
 			// if the task is running, calling this will also make sure
 			// that the caching executor will shut down too.
-			scheduledFuture.get().cancel(true);
+			podReadyTask.get().cancel(true);
 		}
 
 		if (leaderFutureReference.get() != null) {
@@ -175,7 +175,7 @@ final class Fabric8LeaderElectionInitiator {
 	}
 
 	void destroyCalled() {
-		destroyCalled.set(true);
+		destroyCalled = true;
 	}
 
 	void shutDownExecutor() {
@@ -194,7 +194,7 @@ final class Fabric8LeaderElectionInitiator {
 				}
 
 				if (error instanceof CancellationException) {
-					if (!destroyCalled.get()) {
+					if (!destroyCalled) {
 						LOG.warn(() -> "renewal failed for  : " + holderIdentity + ", will re-start it after : " +
 							leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
 						try {
