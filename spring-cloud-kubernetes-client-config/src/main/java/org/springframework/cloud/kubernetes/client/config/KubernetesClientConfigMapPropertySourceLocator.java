@@ -41,19 +41,20 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 
 	public KubernetesClientConfigMapPropertySourceLocator(CoreV1Api coreV1Api, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(properties, new KubernetesClientConfigMapsCache());
+		super(properties, new KubernetesClientSourcesNamespaceBatched());
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(NormalizedSource source, ConfigurableEnvironment environment) {
+	protected MapPropertySource getMapPropertySource(NormalizedSource source, ConfigurableEnvironment environment,
+			boolean namespacedBatchRead) {
 
 		String normalizedNamespace = source.namespace().orElse(null);
 		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
 
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
-				environment);
+				environment, true, namespacedBatchRead);
 		return new KubernetesClientConfigMapPropertySource(context);
 	}
 

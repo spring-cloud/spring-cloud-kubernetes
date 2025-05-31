@@ -41,19 +41,20 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {
-		super(secretsConfigProperties, new KubernetesClientSecretsCache());
+		super(secretsConfigProperties, new KubernetesClientSourcesNamespaceBatched());
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
 	}
 
 	@Override
-	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source) {
+	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source,
+			boolean namespacedBatchRead) {
 
 		String normalizedNamespace = source.namespace().orElse(null);
 		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
 
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
-				environment);
+				environment, true, namespacedBatchRead);
 
 		return new KubernetesClientSecretsPropertySource(context);
 	}
