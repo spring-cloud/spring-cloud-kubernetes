@@ -107,8 +107,8 @@ You might have to give proper RBAC to be able to use this functionality, for exa
 [source]
 ----
  - apiGroups: [ "coordination.k8s.io" ]
-   resources: [ "leases" ]
-   verbs: [ "get", "update", "create"]
+   resources: [ "leases", "configmaps" ]
+   verbs: [ "get", "update", "create", "patch"]
 ----
 
 

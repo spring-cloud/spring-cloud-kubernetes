@@ -37,7 +37,7 @@ final class FixedPortsK3sContainer extends K3sContainer {
 	/**
 	 * Test containers exposed ports.
 	 */
-	private static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888, 9092, 32321 };
+	private static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888, 9092, 32321, 32322 };
 
 	/**
 	 * Rancher version to use for test-containers.

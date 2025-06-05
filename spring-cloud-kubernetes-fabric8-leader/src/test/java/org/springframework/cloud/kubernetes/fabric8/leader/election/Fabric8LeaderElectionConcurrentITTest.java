@@ -45,8 +45,8 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 class Fabric8LeaderElectionConcurrentITTest {
 
 	private static final LeaderElectionProperties PROPERTIES = new LeaderElectionProperties(false, false,
-		Duration.ofSeconds(15), "default", "lease-lock", Duration.ofSeconds(5), Duration.ofSeconds(2),
-		Duration.ofSeconds(5), false);
+			Duration.ofSeconds(15), "default", "lease-lock", Duration.ofSeconds(5), Duration.ofSeconds(2),
+			Duration.ofSeconds(5), false);
 
 	private static K3sContainer container;
 
@@ -113,42 +113,37 @@ class Fabric8LeaderElectionConcurrentITTest {
 		failLeaderRenewal(leader, one, two);
 
 		/*
-		 * we simulated above that renewal failed and leader future was canceled.
-		 * In this case, the 'notLeader' picks up the leadership, the 'leader'
-		 * is now a "follower", it re-tries to take leadership.
+		 * we simulated above that renewal failed and leader future was canceled. In this
+		 * case, the 'notLeader' picks up the leadership, the 'leader' is now a
+		 * "follower", it re-tries to take leadership.
 		 */
-		awaitForMessageFromPosition(output, beforeRelease,
-			"id : " + follower + " is the new leader");
+		awaitForMessageFromPosition(output, beforeRelease, "id : " + follower + " is the new leader");
 		awaitForMessageFromPosition(output, beforeRelease,
 				"Attempting to renew leader lease 'LeaseLock: " + "default - lease-lock (" + follower + ")'...");
 		awaitForMessageFromPosition(output, beforeRelease,
-			"Acquired lease 'LeaseLock: default - lease-lock (" + follower + ")'");
+				"Acquired lease 'LeaseLock: default - lease-lock (" + follower + ")'");
 
 		// proves that the canceled leader tries to acquire again the leadership
 		awaitForMessageFromPosition(output, beforeRelease,
-			"Attempting to acquire leader lease 'LeaseLock: default - lease-lock (" + leader + ")'...");
-		awaitForMessageFromPosition(output, beforeRelease,
-			"Lock is held by " + follower + " and has not yet expired");
+				"Attempting to acquire leader lease 'LeaseLock: default - lease-lock (" + leader + ")'...");
+		awaitForMessageFromPosition(output, beforeRelease, "Lock is held by " + follower + " and has not yet expired");
 
 		/*
-		 * we simulate the renewal failure one more time.
-		 * we know that leader = 'follower'
+		 * we simulate the renewal failure one more time. we know that leader = 'follower'
 		 */
 		beforeRelease = output.getOut().length();
 		failLeaderRenewal(follower, one, two);
 
+		awaitForMessageFromPosition(output, beforeRelease, "id : " + leader + " is the new leader");
 		awaitForMessageFromPosition(output, beforeRelease,
-			"id : " + leader + " is the new leader");
+				"Attempting to renew leader lease 'LeaseLock: " + "default - lease-lock (" + leader + ")'...");
 		awaitForMessageFromPosition(output, beforeRelease,
-			"Attempting to renew leader lease 'LeaseLock: " + "default - lease-lock (" + leader + ")'...");
-		awaitForMessageFromPosition(output, beforeRelease,
-			"Acquired lease 'LeaseLock: default - lease-lock (" + leader + ")'");
+				"Acquired lease 'LeaseLock: default - lease-lock (" + leader + ")'");
 
 		// proves that the canceled leader tries to acquire again the leadership
 		awaitForMessageFromPosition(output, beforeRelease,
-			"Attempting to acquire leader lease 'LeaseLock: default - lease-lock (" + follower + ")'...");
-		awaitForMessageFromPosition(output, beforeRelease, "Lock is held by " + leader +
-			" and has not yet expired");
+				"Attempting to acquire leader lease 'LeaseLock: default - lease-lock (" + follower + ")'...");
+		awaitForMessageFromPosition(output, beforeRelease, "Lock is held by " + leader + " and has not yet expired");
 
 	}
 
@@ -208,10 +203,12 @@ class Fabric8LeaderElectionConcurrentITTest {
 			.until(() -> output.getOut().substring(from).contains(message));
 	}
 
-	private LeaderAndFollower leaderAndFollower(
-			LeaderElectionConfig leaderElectionConfig, KubernetesClient kubernetesClient) {
+	private LeaderAndFollower leaderAndFollower(LeaderElectionConfig leaderElectionConfig,
+			KubernetesClient kubernetesClient) {
 		boolean oneIsLeader = leaderElectionConfig.getLock()
-			.get(kubernetesClient).getHolderIdentity().equals(HOLDER_IDENTITY_ONE);
+			.get(kubernetesClient)
+			.getHolderIdentity()
+			.equals(HOLDER_IDENTITY_ONE);
 
 		if (oneIsLeader) {
 			return new LeaderAndFollower("one", "two");

@@ -61,8 +61,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	private final AtomicReference<CompletableFuture<?>> leaderFutureReference = new AtomicReference<>();
 
-	// not private for testing
-	volatile boolean destroyCalled = false;
+	private volatile boolean destroyCalled = false;
 
 	Fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace, KubernetesClient fabric8KubernetesClient,
 			LeaderElectionConfig leaderElectionConfig, LeaderElectionProperties leaderElectionProperties) {
@@ -74,19 +73,19 @@ final class Fabric8LeaderElectionInitiator {
 	}
 
 	/**
-	 *  in a CachedSingleThreadScheduler start pod readiness and keep it running 'forever',
-	 *  until it is successful or failed. That is run in a daemon thread.
+	 * in a CachedSingleThreadScheduler start pod readiness and keep it running 'forever',
+	 * until it is successful or failed. That is run in a daemon thread.
 	 *
-	 *  In a different pool ('executorService'), block until the above CompletableFuture is done.
-	 *  Only when it's done, start the leader election process.
-	 *  If pod readiness fails, leader election is not started.
+	 * In a different pool ('executorService'), block until the above CompletableFuture is
+	 * done. Only when it's done, start the leader election process. If pod readiness
+	 * fails, leader election is not started.
 	 *
- 	 */
+	 */
 	@PostConstruct
 	void postConstruct() {
 		LOG.info(() -> "starting leader initiator : " + holderIdentity);
-		executorService.set(Executors.newSingleThreadExecutor(
-			r -> new Thread(r, "Fabric8LeaderElectionInitiator-" + holderIdentity)));
+		executorService.set(Executors
+			.newSingleThreadExecutor(r -> new Thread(r, "Fabric8LeaderElectionInitiator-" + holderIdentity)));
 		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
 
 		// wait until pod is ready
@@ -104,8 +103,8 @@ final class Fabric8LeaderElectionInitiator {
 						podReadyFuture.complete(null);
 					}
 					else {
-						LOG.info(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is not ready, "
-								+ "will retry in one second");
+						LOG.debug(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace
+								+ " is not ready, " + "will retry in one second");
 					}
 				}
 				catch (Exception e) {
@@ -121,19 +120,18 @@ final class Fabric8LeaderElectionInitiator {
 		// and in the same thread start the leader election
 		executorService.get().submit(() -> {
 			if (leaderElectionProperties.waitForPodReady()) {
-				CompletableFuture<?> ready = podReadyFuture
-					.whenComplete((ok, error) -> {
-						if (error != null) {
-							LOG.error(() -> "readiness failed for : " + holderIdentity);
-							LOG.error(() -> "leader election for : " + holderIdentity + " will not start");
-						}
-						else {
-							LOG.info(() -> holderIdentity + " is ready");
-						}
-						// we cancel the future that checks readiness of the pod
-						// and thus also close the pool that was running it.
-						podReadyTask.get().cancel(true);
-					});
+				CompletableFuture<?> ready = podReadyFuture.whenComplete((ok, error) -> {
+					if (error != null) {
+						LOG.error(() -> "readiness failed for : " + holderIdentity);
+						LOG.error(() -> "leader election for : " + holderIdentity + " will not start");
+					}
+					else {
+						LOG.info(() -> holderIdentity + " is ready");
+					}
+					// we cancel the future that checks readiness of the pod
+					// and thus also close the pool that was running it.
+					podReadyTask.get().cancel(true);
+				});
 				try {
 					ready.get();
 				}
@@ -195,8 +193,8 @@ final class Fabric8LeaderElectionInitiator {
 
 				if (error instanceof CancellationException) {
 					if (!destroyCalled) {
-						LOG.warn(() -> "renewal failed for  : " + holderIdentity + ", will re-start it after : " +
-							leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
+						LOG.warn(() -> "renewal failed for  : " + holderIdentity + ", will re-start it after : "
+								+ leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
 						try {
 							TimeUnit.SECONDS.sleep(leaderElectionProperties.waitAfterRenewalFailure().toSeconds());
 						}
