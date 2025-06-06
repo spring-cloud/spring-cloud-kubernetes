@@ -33,7 +33,7 @@
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
 		<kubernetes-fabric8-client.version>6.9.2</kubernetes-fabric8-client.version>
-		<kubernetes-native-client.version>19.0.2</kubernetes-native-client.version>
+		<kubernetes-native-client.version>19.0.3</kubernetes-native-client.version>
 		<wiremock.version>3.9.2</wiremock.version>
 	</properties>
 	<dependencyManagement>
