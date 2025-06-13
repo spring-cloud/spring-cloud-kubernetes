@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.client.utils.CachedSingleThreadScheduler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
+import org.springframework.cloud.kubernetes.commons.PodReady;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
 import org.springframework.core.log.LogAccessor;
 
@@ -43,7 +44,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	private static final LogAccessor LOG = new LogAccessor(Fabric8LeaderElectionInitiator.class);
 
-	private final CachedSingleThreadScheduler podReadyScheduler = new CachedSingleThreadScheduler();
+	private final PodReady podReady = new PodReady();
 
 	private final String holderIdentity;
 
@@ -86,34 +87,18 @@ final class Fabric8LeaderElectionInitiator {
 		LOG.info(() -> "starting leader initiator : " + holderIdentity);
 		executorService.set(Executors
 			.newSingleThreadExecutor(r -> new Thread(r, "Fabric8LeaderElectionInitiator-" + holderIdentity)));
-		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
+		CompletableFuture<Void> podReadyFuture;
 
 		// wait until pod is ready
 		if (leaderElectionProperties.waitForPodReady()) {
-			LOG.info(() -> "need to wait until pod is ready : " + holderIdentity);
-			podReadyTask.set(podReadyScheduler.scheduleWithFixedDelay(() -> {
+			LOG.info(() -> "will wait until pod " + holderIdentity + " is ready : ");
+			podReadyFuture = podReady.podReady(() -> {
+				Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(holderIdentity).get();
+				return Readiness.isPodReady(pod);
+			}, holderIdentity, podNamespace);
 
-				try {
-					LOG.info(() -> "waiting for pod : " + holderIdentity + " in namespace : " + podNamespace
-							+ " to be ready");
-					Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(holderIdentity).get();
-					boolean podReady = Readiness.isPodReady(pod);
-					if (podReady) {
-						LOG.info(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is ready");
-						podReadyFuture.complete(null);
-					}
-					else {
-						LOG.debug(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace
-								+ " is not ready, " + "will retry in one second");
-					}
-				}
-				catch (Exception e) {
-					LOG.error(() -> "exception waiting for pod : " + e.getMessage());
-					LOG.error(() -> "leader election for " + holderIdentity + "  was not successful");
-					podReadyFuture.completeExceptionally(e);
-				}
-
-			}, 1, 1, TimeUnit.SECONDS));
+		} else {
+			podReadyFuture = new CompletableFuture<>();
 		}
 
 		// wait in a different thread until the pod is ready
