@@ -24,8 +24,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * This is taken from fabric8 with some minor changes
- * (we need it, so it could be placed in the common package)
+ * This is taken from fabric8 with some minor changes (we need it, so it could be placed
+ * in the common package).
+ *
  * @author wind57
  */
 public final class CachedSingleThreadScheduler {
@@ -33,14 +34,14 @@ public final class CachedSingleThreadScheduler {
 	private final ReentrantLock lock = new ReentrantLock();
 
 	private final long ttlMillis;
+
 	private ScheduledThreadPoolExecutor executor;
 
 	public CachedSingleThreadScheduler(long ttlMillis) {
 		this.ttlMillis = ttlMillis;
 	}
 
-	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay,
-			long delay, TimeUnit unit) {
+	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
 		try {
 			lock.lock();
 			this.startExecutor();
@@ -66,7 +67,8 @@ public final class CachedSingleThreadScheduler {
 		if (this.executor == null) {
 			this.executor = new ScheduledThreadPoolExecutor(1, threadFactory());
 			this.executor.setRemoveOnCancelPolicy(true);
-			this.executor.scheduleWithFixedDelay(this::shutdownCheck, this.ttlMillis, this.ttlMillis, TimeUnit.MILLISECONDS);
+			this.executor.scheduleWithFixedDelay(this::shutdownCheck, this.ttlMillis, this.ttlMillis,
+					TimeUnit.MILLISECONDS);
 		}
 
 	}

@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.kubernetes.commons;
 
-import org.springframework.core.log.LogAccessor;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
+
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author wind57
@@ -30,8 +30,7 @@ public final class PodReady {
 	private static final LogAccessor LOG = new LogAccessor(PodReady.class);
 
 	private final CachedSingleThreadScheduler podReadyScheduler = new CachedSingleThreadScheduler(
-		TimeUnit.SECONDS.toMillis(10)
-	);
+			TimeUnit.SECONDS.toMillis(10));
 
 	public CompletableFuture<Void> podReady(BooleanSupplier isPodReady, String holderIdentity, String podNamespace) {
 
@@ -41,14 +40,14 @@ public final class PodReady {
 
 			try {
 				LOG.info(() -> "waiting for pod : " + holderIdentity + " in namespace : " + podNamespace
-					+ " to be ready");
+						+ " to be ready");
 				if (isPodReady.getAsBoolean()) {
 					LOG.info(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is ready");
 					podReadyFuture.complete(null);
 				}
 				else {
-					LOG.debug(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace
-						+ " is not ready, " + "will retry in one second");
+					LOG.debug(() -> "Pod : " + holderIdentity + " in namespace : " + podNamespace + " is not ready, "
+							+ "will retry in one second");
 				}
 			}
 			catch (Exception e) {

@@ -29,7 +29,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElector;
 import io.fabric8.kubernetes.client.readiness.Readiness;
-import io.fabric8.kubernetes.client.utils.CachedSingleThreadScheduler;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -97,7 +96,8 @@ final class Fabric8LeaderElectionInitiator {
 				return Readiness.isPodReady(pod);
 			}, holderIdentity, podNamespace);
 
-		} else {
+		}
+		else {
 			podReadyFuture = new CompletableFuture<>();
 		}
 
