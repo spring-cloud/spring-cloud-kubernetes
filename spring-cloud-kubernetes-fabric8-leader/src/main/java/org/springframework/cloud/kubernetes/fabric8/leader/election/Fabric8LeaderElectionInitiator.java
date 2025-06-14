@@ -20,7 +20,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -56,8 +55,6 @@ final class Fabric8LeaderElectionInitiator {
 	private final LeaderElectionProperties leaderElectionProperties;
 
 	private final AtomicReference<ExecutorService> executorService = new AtomicReference<>();
-
-	private final AtomicReference<ScheduledFuture<?>> podReadyTask = new AtomicReference<>();
 
 	private final AtomicReference<CompletableFuture<?>> leaderFutureReference = new AtomicReference<>();
 
@@ -115,7 +112,7 @@ final class Fabric8LeaderElectionInitiator {
 					}
 					// we cancel the future that checks readiness of the pod
 					// and thus also close the pool that was running it.
-					podReadyTask.get().cancel(true);
+					podReady.getPodReadyTask().get().cancel(true);
 				});
 				try {
 					ready.get();
@@ -141,11 +138,11 @@ final class Fabric8LeaderElectionInitiator {
 	void preDestroy() {
 		destroyCalled();
 		LOG.info(() -> "preDestroy called in the leader initiator : " + holderIdentity);
-		if (podReadyTask.get() != null) {
+		if (podReady.getPodReadyTask().get() != null) {
 			// if the task is not running, this has no effect
 			// if the task is running, calling this will also make sure
 			// that the caching executor will shut down too.
-			podReadyTask.get().cancel(true);
+			podReady.getPodReadyTask().get().cancel(true);
 		}
 
 		if (leaderFutureReference.get() != null) {

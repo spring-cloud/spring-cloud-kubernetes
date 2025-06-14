@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.commons;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 
 import org.springframework.core.log.LogAccessor;
@@ -29,6 +31,8 @@ public final class PodReady {
 
 	private static final LogAccessor LOG = new LogAccessor(PodReady.class);
 
+	private final AtomicReference<ScheduledFuture<?>> podReadyTask = new AtomicReference<>();
+
 	private final CachedSingleThreadScheduler podReadyScheduler = new CachedSingleThreadScheduler(
 			TimeUnit.SECONDS.toMillis(10));
 
@@ -36,7 +40,7 @@ public final class PodReady {
 
 		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
 
-		podReadyScheduler.scheduleWithFixedDelay(() -> {
+		podReadyTask.set(podReadyScheduler.scheduleWithFixedDelay(() -> {
 
 			try {
 				LOG.info(() -> "waiting for pod : " + holderIdentity + " in namespace : " + podNamespace
@@ -56,10 +60,14 @@ public final class PodReady {
 				podReadyFuture.completeExceptionally(e);
 			}
 
-		}, 1, 1, TimeUnit.SECONDS);
+		}, 1, 1, TimeUnit.SECONDS));
 
 		return podReadyFuture;
 
+	}
+
+	public AtomicReference<ScheduledFuture<?>> getPodReadyTask() {
+		return podReadyTask;
 	}
 
 }
