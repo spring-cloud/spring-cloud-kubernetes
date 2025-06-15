@@ -1,7 +1,7 @@
 [[configmap-propertysource]]
 = Using a `ConfigMap` `PropertySource`
 
-Kubernetes provides a resource named https://kubernetes.io/docs/user-guide/configmap/[`ConfigMap`] to externalize the
+Kubernetes provides a resource named https://kubernetes.io/docs/concepts/configuration/configmap/[`ConfigMap`] to externalize the
 parameters to pass to your application in the form of key-value pairs or embedded `application.properties` or `application.yaml` files.
 The link:https://github.com/spring-cloud/spring-cloud-kubernetes/tree/master/spring-cloud-kubernetes-fabric8-config[Spring Cloud Kubernetes Config] project makes Kubernetes `ConfigMap` instances available
 during application startup and triggers hot reloading of beans or Spring context when changes are detected on
