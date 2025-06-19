@@ -74,7 +74,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -93,7 +93,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -112,7 +112,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -131,7 +131,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -182,7 +182,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -201,7 +201,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -254,7 +254,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -273,7 +273,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -327,7 +327,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
@@ -349,7 +349,7 @@ class KubernetesInformerReactiveDiscoveryClientAutoConfigurationApplicationConte
 			assertThat(context).hasSingleBean(KubernetesInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
-			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).size().isEqualTo(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
