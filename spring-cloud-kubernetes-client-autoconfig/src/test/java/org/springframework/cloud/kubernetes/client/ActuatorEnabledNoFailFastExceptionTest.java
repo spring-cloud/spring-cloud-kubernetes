@@ -77,7 +77,7 @@ class ActuatorEnabledNoFailFastExceptionTest {
 
 	private static void mocks() {
 		envReaderMockedStatic = Mockito.mockStatic(EnvReader.class);
-		pathsMockedStatic = Mockito.mockStatic(Paths.class);
+		pathsMockedStatic = Mockito.mockStatic(Paths.class, Mockito.CALLS_REAL_METHODS);
 
 		envReaderMockedStatic.when(() -> EnvReader.getEnv(KubernetesClientPodUtils.KUBERNETES_SERVICE_HOST))
 			.thenReturn("k8s-host");
