@@ -11,6 +11,7 @@
 	<packaging>pom</packaging>
 
 	<artifactId>spring-cloud-kubernetes-controllers</artifactId>
+	<name>${project.artifactId}</name>
 
 	<modules>
 		<module>spring-cloud-kubernetes-configuration-watcher</module>

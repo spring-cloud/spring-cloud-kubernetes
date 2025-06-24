@@ -10,6 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-kubernetes-test-support</artifactId>
+	<name>${project.artifactId}</name>
 
 	<dependencies>
 
