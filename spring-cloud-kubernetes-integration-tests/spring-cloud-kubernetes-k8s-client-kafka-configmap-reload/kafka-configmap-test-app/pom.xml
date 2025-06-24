@@ -10,6 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>kafka-configmap-test-app</artifactId>
+	<name>${project.artifactId}</name>
 
 	<properties>
 		<spring-boot.repackage.skip>true</spring-boot.repackage.skip>

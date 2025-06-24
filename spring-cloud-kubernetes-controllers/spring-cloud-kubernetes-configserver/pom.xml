@@ -10,6 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-kubernetes-configserver</artifactId>
+	<name>${project.artifactId}</name>
 
 	<properties>
 		<docker.registry.organization>springcloud</docker.registry.organization>
