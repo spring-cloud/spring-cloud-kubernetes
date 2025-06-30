@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.kubernetes.client.example.App;
@@ -67,7 +67,7 @@ class ActuatorEnabledFailFastExceptionTest {
 
 	@Test
 	void test() throws ApiException {
-		Health health = healthIndicator.getHealth(true);
+		Health health = healthIndicator.health(true);
 		Assertions.assertThat(Status.DOWN).isSameAs(health.getStatus());
 		Mockito.verify(coreV1Api).readNamespacedPod("host", "my-namespace", null);
 	}
