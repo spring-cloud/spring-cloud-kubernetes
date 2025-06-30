@@ -21,9 +21,7 @@ import java.net.UnknownHostException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,17 +34,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@ExtendWith(MockitoExtension.class)
-public class LeaderControllerTest {
+public class LeaderControllerTests {
 
-	@Mock
-	private OnGrantedEvent mockOnGrantedEvent;
+	private final OnGrantedEvent mockOnGrantedEvent = Mockito.mock(OnGrantedEvent.class);
 
-	@Mock
-	private OnRevokedEvent mockOnRevokedEvent;
+	private final OnRevokedEvent mockOnRevokedEvent = Mockito.mock(OnRevokedEvent.class);
 
-	@Mock
-	private Context mockContext;
+	private final Context mockContext = Mockito.mock(Context.class);
 
 	private String host;
 
