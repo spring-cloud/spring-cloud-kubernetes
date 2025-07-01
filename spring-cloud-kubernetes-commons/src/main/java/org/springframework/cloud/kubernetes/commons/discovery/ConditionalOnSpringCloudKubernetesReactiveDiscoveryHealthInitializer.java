@@ -35,7 +35,7 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEna
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnClass(name = "org.springframework.boot.health.contributor.ReactiveHealthIndicator")
+@ConditionalOnClass(name = {"org.springframework.boot.health.contributor.ReactiveHealthIndicator", "org.springframework.boot.actuate.health.HealthEndpoint"})
 @ConditionalOnDiscoveryHealthIndicatorEnabled
 public @interface ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer {
 
