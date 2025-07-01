@@ -26,6 +26,12 @@
 		<version>3.1.7-SNAPSHOT</version>
 	</parent>
 
+	<!-- override the ones coming from spring-cloud-build, until it is fixed other there -->
+	<properties>
+		<maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
+		<maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+	</properties>
+
 	<artifactId>spring-cloud-kubernetes-examples</artifactId>
 	<packaging>pom</packaging>
 
