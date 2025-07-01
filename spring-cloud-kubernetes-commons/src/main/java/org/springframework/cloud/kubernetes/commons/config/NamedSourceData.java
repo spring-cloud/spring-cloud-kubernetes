@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -60,31 +62,29 @@ public abstract class NamedSourceData {
 			}
 
 			data = dataSupplier(sourceNamesToSearchFor);
-			Map<String, Object> sourceDataForSourceName = data.data();
-			LinkedHashSet<String> sourceNamesFound = data.names();
-			String sortedNames = data.names()
-				.stream()
+			LinkedHashMap<String, Map<String, Object>> sourceData = data.data();
+
+			Set<String> sourceNamesFound = sourceData.keySet();
+			String sortedNames = sourceNamesFound.stream()
 				.sorted()
 				.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 			sourceDataName = generateSourceName(target, sortedNames, namespace, activeProfiles);
 
-			if (data.names().isEmpty()) {
+			if (sourceData.isEmpty()) {
 				return emptySourceData(target, sourceName, namespace);
 			}
 
 			if (prefix.getName().equals(Prefix.DEFAULT.getName())) {
-				return new SourceData(sourceDataName,
-						defaultFlattenedSourceData(sourceNamesFound, sourceDataForSourceName));
+				return new SourceData(sourceDataName, defaultFlattenedSourceData(sourceData));
 			}
 
 			if (prefix.getName().equals(Prefix.KNOWN.getName())) {
-				return new SourceData(sourceDataName, prefixFlattenedSourceData(sourceNamesFound,
-						sourceDataForSourceName, prefix.prefixProvider().get()));
+				return new SourceData(sourceDataName,
+						prefixFlattenedSourceData(sourceData, prefix.prefixProvider().get()));
 			}
 
 			if (prefix.getName().equals(Prefix.DELAYED.getName())) {
-				return new SourceData(sourceDataName,
-						nameFlattenedSourceData(sourceNamesFound, sourceDataForSourceName));
+				return new SourceData(sourceDataName, nameFlattenedSourceData(sourceData));
 			}
 
 			throw new IllegalArgumentException("Unsupported prefix: " + prefix);
@@ -93,7 +93,11 @@ public abstract class NamedSourceData {
 		catch (Exception e) {
 			LOG.warn("Failure in reading named sources");
 			onException(failFast, e);
-			String names = data.names().stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
+			String names = data.data()
+				.keySet()
+				.stream()
+				.sorted()
+				.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 			return new SourceData(generateSourceName(target, names, namespace, activeProfiles),
 					Map.of(ERROR_PROPERTY, "true"));
 		}
