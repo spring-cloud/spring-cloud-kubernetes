@@ -46,7 +46,9 @@ runs:
             -Dhttp.keepAlive=false \
             -Dmaven.wagon.http.pool=false \
             -Dmaven.wagon.http.retryHandler.class=standard \
+            -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
             -Dmaven.wagon.http.retryHandler.count=3 \
+            -Dmaven.resolver.transport=wagon \
             -Dspring-boot.build-image.skip=true          
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
