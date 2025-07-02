@@ -155,6 +155,7 @@ runs:
               -Dhttp.keepAlive=false \
               -Dmaven.wagon.http.pool=false \
               -Dmaven.wagon.http.retryHandler.class=standard \
+              -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
               -Dmaven.wagon.http.retryHandler.count=3 \
               -Dspring-boot.build-image.skip=true
         
