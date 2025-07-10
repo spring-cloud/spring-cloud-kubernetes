@@ -103,7 +103,8 @@ public class KubernetesDiscoveryClientAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnClass(name = {"org.springframework.boot.health.contributor.ReactiveHealthIndicator", "org.springframework.boot.actuate.health.HealthEndpoint"})
+		@ConditionalOnClass(name = { "org.springframework.boot.health.contributor.ReactiveHealthIndicator",
+				"org.springframework.boot.actuate.health.HealthEndpoint" })
 		@ConditionalOnDiscoveryHealthIndicatorEnabled
 		public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
 				KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties,
