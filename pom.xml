@@ -33,6 +33,7 @@
 	<version>5.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
+	<description>Spring Cloud Kubernetes</description>
 
 	<url>https://cloud.spring.io</url>
 	<inceptionYear>2017</inceptionYear>
@@ -49,7 +50,28 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
+	<developers>
+		<developer>
+			<id>sgibb</id>
+			<name>Spencer Gibb</name>
+			<email>spencer.gibb at broadcom.com</email>
+			<organization>Broadcom, Inc.</organization>
+			<organizationUrl>https://www.spring.io</organizationUrl>
+			<roles>
+				<role>lead</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>rbaxter</id>
+			<name>Ryan Baxter</name>
+			<email>ryan.baxter at broadcom.com</email>
+			<organization>Broadcom, Inc.</organization>
+			<organizationUrl>https://www.spring.io</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+	</developers>
 	<scm>
 		<url>https://github.com/spring-cloud/spring-cloud-kubernetes</url>
 		<connection>
@@ -229,6 +251,23 @@
 	</reporting>
 
 	<profiles>
+		<profile>
+			<id>central</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<configuration>
+							<excludeArtifacts>
+								<artifact>spring-cloud-kubernetes-examples</artifact>
+								<artifact>spring-cloud-kubernetes-integration-tests</artifact>
+							</excludeArtifacts>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>spring</id>
 			<repositories>
