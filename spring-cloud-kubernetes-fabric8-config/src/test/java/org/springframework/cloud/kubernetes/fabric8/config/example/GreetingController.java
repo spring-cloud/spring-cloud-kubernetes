@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * @author Charles Moulliard
  */
@@ -52,6 +54,11 @@ class GreetingController {
 	@RequestMapping("/api/bonjour")
 	ResponseMessage bonjour(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getBonjour(), name));
+	}
+
+	@RequestMapping("/api/items")
+	List<String> array() {
+		return properties.getItems();
 	}
 
 }

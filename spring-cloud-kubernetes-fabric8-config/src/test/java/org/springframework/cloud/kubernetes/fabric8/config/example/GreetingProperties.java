@@ -18,6 +18,9 @@ package org.springframework.cloud.kubernetes.fabric8.config.example;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @ConfigurationProperties(prefix = "bean")
 class GreetingProperties {
 
@@ -28,6 +31,8 @@ class GreetingProperties {
 	private String morning = "Good morning, %s!";
 
 	private String bonjour = "Bonjour, %s!";
+
+	private List<String> items = List.of();
 
 	String getGreeting() {
 		return this.greeting;
@@ -61,4 +66,11 @@ class GreetingProperties {
 		this.bonjour = bonjour;
 	}
 
+	List<String> getItems() {
+		return items;
+	}
+
+	void setItems(List<String> items) {
+		this.items = items;
+	}
 }

@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: my-spring-config-test-app
+  main:
+    cloud-platform: kubernetes
+    allow-bean-definition-overriding: true
+  cloud:
+    kubernetes:
+      reload:
+        enabled: true
+    discovery:
+      client:
+        composite-indicator:
+          enabled: false
+bean:
+  items:
+    - Item 1
+    - Item 2
+    - Item 3
+    - Item 4
+    - Item 5
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+bean:
+  items:
+    - Item 6
+    - Item 7
+    - Item 8
