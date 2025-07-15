@@ -15,7 +15,9 @@ runs:
     - name: find all classpath entries
       shell: bash
       run: |
-        ./mvnw -q exec:exec -Dexec.classpathScope="test" -Dexec.executable="echo" -Dexec.args="%classpath" | tr : "\n" > /tmp/deps.txt
+        # skip 'spring-cloud-kubernetes-controllers' project since we do not want to run tests from it.
+        # we already do that in the 'build-controllers-project/action.yaml', that happens before this step
+        ./mvnw -q exec:exec -Dexec.classpathScope="test" -Dexec.executable="echo" -Dexec.args="%classpath" | tr : "\n" | grep -v spring-cloud-kubernetes-controllers > /tmp/deps.txt
 
     - name: find all tests
       shell: bash
