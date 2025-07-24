@@ -63,7 +63,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiGroups() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false, null);
 
 		APIGroupList groupList = new APIGroupListBuilder().build();
 		mockServer.expect().withPath("/apis").andReturn(200, groupList).always();
@@ -84,7 +84,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesEnabledButNotSupportedViaApiVersions() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false, null);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
 			.withGroupVersion("discovery.k8s.io/v1")
@@ -109,7 +109,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointsSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, false);
+				false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
 		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(Fabric8EndpointsCatalogWatch.class);
@@ -122,7 +122,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesSupportTests {
 	@Test
 	void testEndpointSlicesSupport() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), "", null, 0, true);
+				false, "", Set.of(), Map.of(), "", null, 0, true, false, null);
 		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
 		GroupVersionForDiscovery forDiscovery = new GroupVersionForDiscoveryBuilder()
