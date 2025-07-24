@@ -30,12 +30,12 @@ import io.kubernetes.client.openapi.models.V1SecretList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.config.environment.Environment;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsCache;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesNamespaceBatched;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,8 +102,14 @@ class KubernetesPropertySourceSupplierTests {
 
 	@AfterEach
 	void afterEach() {
-		new KubernetesClientConfigMapsCache().discardAll();
-		new KubernetesClientSecretsCache().discardAll();
+		new KubernetesClientSourcesNamespaceBatched().discardConfigMaps();
+		new KubernetesClientSourcesNamespaceBatched().discardSecrets();
+	}
+
+	@BeforeEach
+	void beforeEach() {
+		new KubernetesClientSourcesNamespaceBatched().discardConfigMaps();
+		new KubernetesClientSourcesNamespaceBatched().discardSecrets();
 	}
 
 	@Test

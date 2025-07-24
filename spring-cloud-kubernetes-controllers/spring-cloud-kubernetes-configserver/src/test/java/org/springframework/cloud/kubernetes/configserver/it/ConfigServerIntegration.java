@@ -36,8 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.test.client.TestRestTemplate;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsCache;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -131,9 +129,6 @@ abstract class ConfigServerIntegration {
 		WireMock.shutdownServer();
 		wireMockServer.stop();
 		wireMockServer.shutdownServer();
-
-		new KubernetesClientConfigMapsCache().discardAll();
-		new KubernetesClientSecretsCache().discardAll();
 	}
 
 	@Test
