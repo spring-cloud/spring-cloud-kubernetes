@@ -305,8 +305,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "color-configmap-k8s" with no labels. We search by "{color:red}", do not find
-	 * anything and thus have an empty SourceData. profile based sources are enabled, but
-	 * it has no effect.
+	 * anything and thus have an empty SourceData.
 	 */
 	@Test
 	void searchWithLabelsNoConfigmapsFound() {
@@ -326,7 +325,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DEFAULT, true);
@@ -343,7 +341,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "shape-configmap" with label: "{shape:round}". We search by "{color:blue}" and find
-	 * one configmap. profile based sources are enabled, but it has no effect.
+	 * one configmap.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFound() {
@@ -363,7 +361,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmap).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT, true);
@@ -412,10 +409,9 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		assertThat(sourceData.sourceData().size()).isEqualTo(1);
 		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
-		assertThat(sourceData.sourceData().get("color-configmap-k8s.two")).isEqualTo("2");
-		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
+		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.default");
 
 	}
 
@@ -429,7 +425,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	 * </pre>
 	 */
 	@Test
-	void searchWithLabelsTwoConfigMapsFoundAndOneFromProfileFound() {
+	void searchWithLabelsTwoConfigMapsFound() {
 		ConfigMap colorConfigMap = new ConfigMapBuilder().withNewMetadata()
 			.withName("color-configmap")
 			.withLabels(Collections.singletonMap("color", "blue"))
@@ -472,7 +468,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		mockClient.configMaps().inNamespace(NAMESPACE).resource(shapeConfigmapK8s).create();
 
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, true);
@@ -481,15 +476,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		assertThat(sourceData.sourceData().size()).isEqualTo(2);
 
 		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
 		assertThat(sourceData.sourceData().get("shape-configmap.two")).isEqualTo("2");
-		assertThat(sourceData.sourceData().get("color-configmap-k8s.four")).isEqualTo("4");
-		assertThat(sourceData.sourceData().get("shape-configmap-k8s.five")).isEqualTo("5");
 
-		assertThat(sourceData.sourceName())
-			.isEqualTo("configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
+		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.shape-configmap.default");
 
 	}
 

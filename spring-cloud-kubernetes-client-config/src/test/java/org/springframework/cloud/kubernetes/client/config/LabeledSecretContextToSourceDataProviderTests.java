@@ -108,7 +108,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		// blue does not match red
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), false, false);
+				Collections.singletonMap("color", "blue"), false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -136,7 +136,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false, false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -168,7 +168,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false, false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -193,7 +193,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false, false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -226,8 +226,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("me", false, false, null);
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false, prefix,
-				false);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false, prefix);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -272,7 +271,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DELAYED, false);
+				ConfigUtils.Prefix.DELAYED);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -304,7 +303,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	/**
 	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
 	 * "shape-secret" with label: "{shape:round}". We search by "{color:blue}" and find
-	 * one secret. profile based sources are enabled, but it has no effect.
+	 * one secret.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFound() {
@@ -331,7 +330,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DEFAULT, true);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -346,9 +345,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 	/**
 	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
-	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
-	 * even if its labels do not match provided ones.
+	 * "color-secret-k8s" with label: "{color:blue}". We search by "{color:blue}" and find
+	 * both.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFoundAndOneFromProfileFound() {
@@ -362,7 +360,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1Secret shapeSecret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
 				.withName("color-secret-k8s")
 				.build())
@@ -374,10 +372,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DELAYED, true);
+				ConfigUtils.Prefix.DELAYED);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
@@ -427,7 +424,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1Secret colorSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
 				.withName("color-secret-k8s")
 				.build())
@@ -435,7 +432,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 			.build();
 
 		V1Secret shapeSecretK8s = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("shape", "triangle"))
+			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "blue"))
 				.withNamespace(NAMESPACE)
 				.withName("shape-secret-k8s")
 				.build())
@@ -451,10 +448,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DELAYED, true);
+				ConfigUtils.Prefix.DELAYED);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
 
 		KubernetesClientContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
@@ -490,7 +486,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false,
-				ConfigUtils.Prefix.DEFAULT, true);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -535,7 +531,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource redSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "red"), false,
-				ConfigUtils.Prefix.DEFAULT, false);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
 				new MockEnvironment());
 		KubernetesClientContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
@@ -547,7 +543,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Assertions.assertThat(output.getOut()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
 
 		NormalizedSource greenSource = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
-				ConfigUtils.Prefix.DEFAULT, false);
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
 				new MockEnvironment());
 		KubernetesClientContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
