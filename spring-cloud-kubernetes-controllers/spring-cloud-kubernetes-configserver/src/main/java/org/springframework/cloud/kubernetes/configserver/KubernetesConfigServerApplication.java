@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.configserver;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.cloud.config.server.ConfigServerApplication;
 import org.springframework.cloud.config.server.EnableConfigServer;
 
 /**
@@ -29,7 +28,8 @@ import org.springframework.cloud.config.server.EnableConfigServer;
 public class KubernetesConfigServerApplication {
 
 	public static void main(String[] args) {
-		new SpringApplicationBuilder(ConfigServerApplication.class).run(args);
+		new SpringApplicationBuilder(KubernetesConfigServerApplication.class)
+			.properties("spring.config.name=configserver").run(args);
 	}
 
 }
