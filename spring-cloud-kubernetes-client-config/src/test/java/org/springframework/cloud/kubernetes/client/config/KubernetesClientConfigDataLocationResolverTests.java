@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
-import java.util.function.Supplier;
-
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.assertj.core.api.Assertions;
@@ -31,7 +29,6 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
-import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
@@ -49,13 +46,10 @@ import org.springframework.mock.env.MockEnvironment;
 @ExtendWith(OutputCaptureExtension.class)
 class KubernetesClientConfigDataLocationResolverTests {
 
-	private static final DeferredLogFactory FACTORY = Supplier::get;
-
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
 		.mock(ConfigDataLocationResolverContext.class);
 
-	private static final KubernetesClientConfigDataLocationResolver RESOLVER = new KubernetesClientConfigDataLocationResolver(
-			FACTORY);
+	private static final KubernetesClientConfigDataLocationResolver RESOLVER = new KubernetesClientConfigDataLocationResolver();
 
 	/*
 	 * both ConfigMapConfigProperties and SecretsConfigProperties are null, thus they are
