@@ -1,11 +1,14 @@
 spring:
   application:
     name: poll-reload-mount-boostrap
-  cloud:
-    kubernetes:
-      reload:
-        enabled: true
-        strategy: refresh
-        mode: polling
-        period: 5000
-        monitoring-secrets: true
+
+management:
+  endpoint:
+    refresh:
+      access: unrestricted
+    restart:
+      access: unrestricted
+  endpoints:
+    web:
+      exposure:
+        include: '*'

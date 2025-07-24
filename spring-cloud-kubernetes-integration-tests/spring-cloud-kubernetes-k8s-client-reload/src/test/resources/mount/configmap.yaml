@@ -4,5 +4,4 @@ metadata:
   name: configmap-reload # different from the application name
   namespace: default
 data:
-  application.properties: |
-    from.properties.configmap.key=as-mount-initial
+  from.properties.configmap.key: "as-mount-initial"

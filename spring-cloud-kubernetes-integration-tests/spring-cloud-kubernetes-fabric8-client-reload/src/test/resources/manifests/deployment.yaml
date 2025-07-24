@@ -30,9 +30,7 @@ spec:
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_FABRIC8_CONFIG_RELOAD
               value: "DEBUG"
             - name: SPRING_PROFILES_ACTIVE
-              value: "with-bootstrap"
-            - name: SPRING_CLOUD_BOOTSTRAP_ENABLED
-              value: "TRUE"
+              value: "configtree"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_COMMONS_CONFIG
               value: "DEBUG"
 
@@ -44,4 +42,4 @@ spec:
         - name: "config-map-volume"
           configMap:
             defaultMode: 420
-            name: "poll-reload"
+            name: "poll-reload-configtree"
