@@ -29,7 +29,8 @@ public class KubernetesConfigServerApplication {
 
 	public static void main(String[] args) {
 		new SpringApplicationBuilder(KubernetesConfigServerApplication.class)
-			.properties("spring.config.name=configserver").run(args);
+			.properties("spring.config.name=configserver")
+			.run(args);
 	}
 
 }
