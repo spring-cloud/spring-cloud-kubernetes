@@ -37,9 +37,10 @@ public final class PodReady {
 			TimeUnit.SECONDS.toMillis(10));
 
 	/**
-	 * The resulting CompletableFuture is completed when pod is ready according to the BooleanSupplier.
-	 * You are supposed to properly get rid of this task, but calling the other public method
-	 * getPodReadyTask and cancel it, this will take care to shutdown the executor it was running in.
+	 * The resulting CompletableFuture is completed when pod is ready according to the
+	 * BooleanSupplier. You are supposed to properly get rid of this task, but calling the
+	 * other public method getPodReadyTask and cancel it, this will take care to shutdown
+	 * the executor it was running in.
 	 */
 	public CompletableFuture<Void> podReady(BooleanSupplier isPodReady, String holderIdentity, String podNamespace) {
 

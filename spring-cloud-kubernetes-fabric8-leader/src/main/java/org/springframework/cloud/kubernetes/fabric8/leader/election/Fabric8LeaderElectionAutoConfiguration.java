@@ -26,7 +26,6 @@ import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.ConfigM
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.LeaseLock;
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.Lock;
 
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -35,6 +34,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.leader.election.ConditionalOnLeaderElectionEnabled;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
 import org.springframework.context.annotation.Bean;
