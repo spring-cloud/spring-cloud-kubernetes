@@ -20,6 +20,10 @@ bean:
     - Item 4
     - Item 5
 
+  map:
+    name: ER
+    role: user
+
 ---
 spring:
   config:
@@ -31,3 +35,12 @@ bean:
     - Item 6
     - Item 7
     - Item 8
+
+  map:
+    name: Alice
+    role: admin
+
+---
+bean:
+  items:
+    - Item 10

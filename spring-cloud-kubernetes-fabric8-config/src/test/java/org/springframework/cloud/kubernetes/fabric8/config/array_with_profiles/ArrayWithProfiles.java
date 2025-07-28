@@ -16,18 +16,15 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.array_with_profiles;
 
+import java.util.HashMap;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.reactive.server.WebTestClient;
-
-import java.util.HashMap;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestUtil.readResourceFile;
@@ -36,13 +33,9 @@ import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestU
  * @author wind57
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = TestApplication.class,
-	properties = { "spring.application.name=array-with-profiles",
-		"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
-@ActiveProfiles("dev")
+		properties = { "spring.application.name=array-with-profiles", "spring.cloud.kubernetes.reload.enabled=false",
+				"spring.main.cloud-platform=KUBERNETES" })
 abstract class ArrayWithProfiles {
-
-	@Autowired
-	private WebTestClient webClient;
 
 	private static final String APPLICATION_NAME = "array-with-profiles";
 
@@ -65,17 +58,6 @@ abstract class ArrayWithProfiles {
 				.addToData(data)
 				.build())
 			.create();
-	}
-
-	@Test
-	void testItemsEndpoint() {
-		this.webClient.get()
-			.uri("/api/items")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody()
-			.consumeWith(System.out::println);
 	}
 
 }

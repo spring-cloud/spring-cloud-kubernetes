@@ -16,17 +16,27 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.array_with_profiles;
 
+import java.util.List;
+import java.util.Map;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * @author wind57
  */
-@TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true" })
+@TestPropertySource(properties = { "spring.config.import=kubernetes:" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class BootstrapArrayWithProfilesTests extends ArrayWithProfiles {
+class ConfigDataMultipleYamlDocumentsNoActiveProfileTests extends ArrayWithProfiles {
+
+	@Autowired
+	private WebTestClient webClient;
 
 	private static KubernetesClient mockClient;
 
@@ -34,4 +44,39 @@ class BootstrapArrayWithProfilesTests extends ArrayWithProfiles {
 	public static void setUpBeforeClass() {
 		setUpBeforeClass(mockClient);
 	}
+
+	/**
+	 * <pre>
+	 *     - dev is not an active profile
+	 *     - which means beans.items = [Item 10]
+	 * </pre>
+	 */
+	@Test
+	void testItemsEndpoint() {
+		this.webClient.get()
+			.uri("/api/items")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(List.class)
+			.isEqualTo(List.of("Item 10"));
+	}
+
+	/**
+	 * <pre>
+	 *     - dev is not an active profile
+	 *     - which means beans.map = {"name", "ER", "role", "user"}
+	 * </pre>
+	 */
+	@Test
+	void testMapEndpoint() {
+		this.webClient.get()
+			.uri("/api/map")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.isEqualTo(Map.of("name", "ER", "role", "user"));
+	}
+
 }

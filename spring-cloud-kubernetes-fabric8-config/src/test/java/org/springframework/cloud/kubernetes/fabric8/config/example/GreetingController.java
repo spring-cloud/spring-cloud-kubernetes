@@ -16,12 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.example;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * @author Charles Moulliard
@@ -57,8 +58,13 @@ class GreetingController {
 	}
 
 	@RequestMapping("/api/items")
-	List<String> array() {
+	List<String> items() {
 		return properties.getItems();
+	}
+
+	@RequestMapping("/api/map")
+	Map<String, String> map() {
+		return properties.getMap();
 	}
 
 }
