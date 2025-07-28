@@ -71,7 +71,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 			String propertyValue = singleEntry.getValue();
 			if (propertyName.endsWith(".yml") || propertyName.endsWith(".yaml")) {
 				LOG.debug("The single property with name: [" + propertyName + "] will be treated as a yaml file");
-				return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(propertyValue);
+				return yamlParserGenerator(environment).apply(propertyValue);
 			}
 			else if (propertyName.endsWith(".properties")) {
 				LOG.debug("The single property with name: [" + propertyName + "] will be treated as a properties file");
@@ -184,7 +184,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 			}
 			else {
 				LOG.debug("entry : " + resourceName + " will be treated as a single yml/yaml file");
-				return yamlParserGenerator(environment).andThen(PROPERTIES_TO_MAP).apply(content);
+				return yamlParserGenerator(environment).apply(content);
 			}
 		}
 
