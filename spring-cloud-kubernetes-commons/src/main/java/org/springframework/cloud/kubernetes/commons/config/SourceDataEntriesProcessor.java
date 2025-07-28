@@ -176,7 +176,7 @@ public class SourceDataEntriesProcessor extends MapPropertySource {
 
 	private static Map<String, Object> extractProperties(String resourceName, String content, Environment environment) {
 
-		if (resourceName.endsWith(".yml") || resourceName.endsWith(".yaml") || resourceName.endsWith(".properties")) {
+		if (ENDS_IN_EXTENSION.test(resourceName)) {
 
 			if (resourceName.endsWith(".properties")) {
 				LOG.debug("entry : " + resourceName + " will be treated as a single properties file");
