@@ -65,6 +65,9 @@ class Fabric8LeaderElectionAutoConfigurationTests {
 			assertThat(context).hasSingleBean(LeaderElectionConfig.class);
 			assertThat(context).hasSingleBean(Lock.class);
 			assertThat(context).hasSingleBean(Fabric8LeaderElectionCallbacks.class);
+			assertThat(context).hasBean("onStartLeadingCallback");
+			assertThat(context).hasBean("onStopLeadingCallback");
+			assertThat(context).hasBean("onNewLeaderCallback");
 		});
 	}
 

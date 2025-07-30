@@ -23,10 +23,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author wind57
  */
 @SpringBootApplication
-public class AppA {
+public class App {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AppA.class, args);
+		SpringApplication.run(App.class, args);
 	}
 
 }
