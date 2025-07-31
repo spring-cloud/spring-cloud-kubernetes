@@ -61,4 +61,9 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 			.subscribeOn(Schedulers.boundedElastic());
 	}
 
+	@Override
+	public int getOrder() {
+		return kubernetesDiscoveryClient.getOrder();
+	}
+
 }
