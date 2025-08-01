@@ -49,6 +49,20 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  * {@link org.springframework.beans.factory.config.YamlPropertiesFactoryBean} that takes
  * care to override profile-based collections and maps.
  *
+ * Unlike YamlPropertiesFactoryBean, which flattens collections and maps, this one does things a bit different.
+ *
+ * <ul>
+ *     <li>read all the documents in a yaml file</li>
+ *     <li>flatten all properties besides collection and maps,
+ *     		YamlPropertiesFactoryBean does not do that and starts flattening everything</li>
+ *     <li>take only those that match the document matchers</li>
+ *     <li>split them in two : those that have profile activation and those that don't</li>
+ *     <li>override properties in the non-profile based yamls with the ones from profile based ones.
+ *     This achieves the same result as a plain spring-boot app, where profile based properties have a higher
+ *     precedence.</li>
+ *     <li>once the overriding happened, we do another flattening, this time including collection and maps</li>
+ * </ul>
+ *
  * @author wind57
  */
 final class CustomYamlPropertiesFactoryBean {
