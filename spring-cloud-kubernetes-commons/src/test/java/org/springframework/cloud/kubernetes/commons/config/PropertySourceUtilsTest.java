@@ -21,83 +21,77 @@ import java.util.Properties;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.willReturn;
 
-@ExtendWith(MockitoExtension.class)
-public class PropertySourceUtilsTest {
+class PropertySourceUtilsTest {
 
-	@Mock
-	private Environment environment;
+	private final Environment environment = Mockito.mock(Environment.class);
 
 	@Test
 	void yamlParserGenerator_noProfile() {
-		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		Properties properties = function.apply("spring:\n  application:\n    name: myTestApp\n");
-		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
-		assertThat(properties.getProperty("spring.profiles")).isNull();
-		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
+		Function<String, Map<String, Object>> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Map<String, Object> properties = function.apply("spring:\n  application:\n    name: myTestApp\n");
+		assertThat(properties.get("spring.application.name")).isEqualTo("myTestApp");
+		assertThat(properties.get("spring.profiles")).isNull();
+		assertThat(properties.get("spring.config.activate.on-profile")).isNull();
 	}
 
 	@Test
 	void yamlParserGenerator_simpleProperties() {
-		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		Properties properties = function.apply("propA: A\npropB: B");
-		assertThat(properties.getProperty("propA")).isEqualTo("A");
-		assertThat(properties.getProperty("propB")).isEqualTo("B");
-		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
+		Function<String, Map<String, Object>> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Map<String, Object> properties = function.apply("propA: A\npropB: B");
+		assertThat(properties.get("propA")).isEqualTo("A");
+		assertThat(properties.get("propB")).isEqualTo("B");
+		assertThat(properties.get("spring.config.activate.on-profile")).isNull();
 	}
 
 	@Test
 	void yamlParserGenerator_springProfiles_matchProfile() {
-		willReturn(Boolean.TRUE).given(environment).acceptsProfiles(any(Profiles.class));
-		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		Properties properties = function.apply(
+		Mockito.when(environment.acceptsProfiles(Mockito.any(Profiles.class))).thenReturn(true);
+		Function<String, Map<String, Object>> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Map<String, Object> properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
-		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myDummyApp");
-		assertThat(properties.getProperty("spring.profiles")).isEqualTo("dummy");
-		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
+		assertThat(properties.get("spring.application.name")).isEqualTo("myDummyApp");
+		assertThat(properties.get("spring.profiles")).isEqualTo("dummy");
+		assertThat(properties.get("spring.config.activate.on-profile")).isNull();
 	}
 
 	@Test
 	void yamlParserGenerator_springProfiles_mismatchProfile() {
-		willReturn(Boolean.FALSE).given(environment).acceptsProfiles(any(Profiles.class));
-		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		Properties properties = function.apply(
+		Mockito.when(environment.acceptsProfiles(Mockito.any(Profiles.class))).thenReturn(false);
+		Function<String, Map<String, Object>> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Map<String, Object> properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  profiles: dummy\n  application:\n    name: myDummyApp");
-		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
-		assertThat(properties.getProperty("spring.profiles")).isNull();
-		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
+		assertThat(properties.get("spring.application.name")).isEqualTo("myTestApp");
+		assertThat(properties.get("spring.profiles")).isNull();
+		assertThat(properties.get("spring.config.activate.on-profile")).isNull();
 	}
 
 	@Test
 	void yamlParserGenerator_springConfigActivateOnProfile_matchProfile() {
-		willReturn(Boolean.TRUE).given(environment).acceptsProfiles(any(Profiles.class));
-		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		Properties properties = function.apply(
+		Mockito.when(environment.acceptsProfiles(Mockito.any(Profiles.class))).thenReturn(true);
+		Function<String, Map<String, Object>> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Map<String, Object> properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
-		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myDummyApp");
-		assertThat(properties.getProperty("spring.profiles")).isNull();
-		assertThat(properties.getProperty("spring.config.activate.on-profile")).isEqualTo("dummy");
+		assertThat(properties.get("spring.application.name")).isEqualTo("myDummyApp");
+		assertThat(properties.get("spring.profiles")).isNull();
+		assertThat(properties.get("spring.config.activate.on-profile")).isEqualTo("dummy");
 	}
 
 	@Test
 	void yamlParserGenerator_springConfigActivateOnProfile_mismatchProfile() {
-		willReturn(Boolean.FALSE).given(environment).acceptsProfiles(any(Profiles.class));
-		Function<String, Properties> function = PropertySourceUtils.yamlParserGenerator(environment);
-		Properties properties = function.apply(
+		Mockito.when(environment.acceptsProfiles(Mockito.any(Profiles.class))).thenReturn(false);
+		Function<String, Map<String, Object>> function = PropertySourceUtils.yamlParserGenerator(environment);
+		Map<String, Object> properties = function.apply(
 				"spring:\n  application:\n    name: myTestApp\n---\nspring:\n  config:\n    activate:\n      on-profile: dummy\n  application:\n    name: myDummyApp");
-		assertThat(properties.getProperty("spring.application.name")).isEqualTo("myTestApp");
-		assertThat(properties.getProperty("spring.profiles")).isNull();
-		assertThat(properties.getProperty("spring.config.activate.on-profile")).isNull();
+		assertThat(properties.get("spring.application.name")).isEqualTo("myTestApp");
+		assertThat(properties.get("spring.profiles")).isNull();
+		assertThat(properties.get("spring.config.activate.on-profile")).isNull();
 	}
 
 	@Test

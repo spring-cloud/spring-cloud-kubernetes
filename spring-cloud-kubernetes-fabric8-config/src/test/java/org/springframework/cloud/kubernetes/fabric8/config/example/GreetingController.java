@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.example;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,6 +55,16 @@ class GreetingController {
 	@RequestMapping("/api/bonjour")
 	ResponseMessage bonjour(@RequestParam(value = "name", defaultValue = "World") String name) {
 		return new ResponseMessage(String.format(this.properties.getBonjour(), name));
+	}
+
+	@RequestMapping("/api/items")
+	List<String> items() {
+		return properties.getItems();
+	}
+
+	@RequestMapping("/api/map")
+	Map<String, String> map() {
+		return properties.getMap();
 	}
 
 }

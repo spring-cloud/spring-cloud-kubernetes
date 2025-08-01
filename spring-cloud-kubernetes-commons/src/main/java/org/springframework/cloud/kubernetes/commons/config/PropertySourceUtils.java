@@ -19,17 +19,14 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus.ABSTAIN;
@@ -76,9 +73,9 @@ public final class PropertySourceUtils {
 	 * @param environment Environment.
 	 * @return properties.
 	 */
-	public static Function<String, Properties> yamlParserGenerator(Environment environment) {
-		return s -> {
-			YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
+	public static Function<String, Map<String, Object>> yamlParserGenerator(Environment environment) {
+		return source -> {
+			CustomYamlPropertiesFactoryBean yamlFactory = new CustomYamlPropertiesFactoryBean();
 			yamlFactory.setDocumentMatchers(properties -> {
 				if (environment != null) {
 					String profiles = null;
@@ -98,8 +95,7 @@ public final class PropertySourceUtils {
 				}
 				return ABSTAIN;
 			});
-			yamlFactory.setResources(new ByteArrayResource(s.getBytes(StandardCharsets.UTF_8)));
-			return yamlFactory.getObject();
+			return yamlFactory.createProperties(source);
 		};
 	}
 
@@ -109,6 +105,7 @@ public final class PropertySourceUtils {
 	 * @param <T> type of the argument
 	 * @return a {@link BinaryOperator}
 	 */
+	@Deprecated(forRemoval = true)
 	public static <T> BinaryOperator<T> throwingMerger() {
 		return (left, right) -> {
 			throw new IllegalStateException("Duplicate key " + left);
