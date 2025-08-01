@@ -42,8 +42,8 @@ class RefreshTriggerAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Profile({ AMQP, KAFKA })
 	BusRefreshTrigger busRefreshTrigger(ApplicationEventPublisher applicationEventPublisher,
-			BusProperties busProperties) {
-		return new BusRefreshTrigger(applicationEventPublisher, busProperties.getId());
+			BusProperties busProperties, ConfigurationWatcherConfigurationProperties properties) {
+		return new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(), properties);
 	}
 
 	@Bean

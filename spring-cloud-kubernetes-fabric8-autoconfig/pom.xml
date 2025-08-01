@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>3.1.7-SNAPSHOT</version>
+		<version>3.2.3-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -48,6 +48,17 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-kubernetes-commons</artifactId>
+		</dependency>
+		<!-- Spring Boot removed its dependency management of okhttp in Spring Boot 3.4.0 -->
+		<!-- This resulted in a different version fo okhttp in Spring Cloud 2024.0.0 -->
+		<!-- Spring Cloud is now managing the okhttp dependency version in Spring Cloud Commons -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>logging-interceptor</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

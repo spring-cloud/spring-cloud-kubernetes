@@ -58,7 +58,7 @@
 |spring.cloud.kubernetes.config.retry |  | 
 |spring.cloud.kubernetes.config.sources |  | 
 |spring.cloud.kubernetes.config.use-name-as-prefix | `+++false+++` | 
-|spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | if discover is enabled for all namespaces
+|spring.cloud.kubernetes.discovery.all-namespaces | `+++false+++` | if discovery is enabled for all namespaces
 |spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | timeout for initializing discovery cache, will abort the application if exceeded.
 |spring.cloud.kubernetes.discovery.discovery-server-url |  | 
 |spring.cloud.kubernetes.discovery.enabled | `+++true+++` | if kubernetes discovery is enabled
@@ -91,7 +91,7 @@
 |spring.cloud.kubernetes.leader.update-period | `+++60000ms+++` | Leadership status check period. Default: 60s
 |spring.cloud.kubernetes.loadbalancer.cluster-domain | `+++cluster.local+++` | cluster domain.
 |spring.cloud.kubernetes.loadbalancer.enabled | `+++true+++` | Load balancer enabled,default true.
-|spring.cloud.kubernetes.loadbalancer.mode |  | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
+|spring.cloud.kubernetes.loadbalancer.mode | `+++pod+++` | {@link KubernetesLoadBalancerMode} setting load balancer server list with ip of pod or service name. default value is POD.
 |spring.cloud.kubernetes.loadbalancer.port-name | `+++http+++` | service port name.
 |spring.cloud.kubernetes.reload.enable-reload-filtering | `+++false+++` | create an informer only for sources that have 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only relevant for event based reloading.
 |spring.cloud.kubernetes.reload.enabled | `+++false+++` | Enables the Kubernetes configuration reload on change.

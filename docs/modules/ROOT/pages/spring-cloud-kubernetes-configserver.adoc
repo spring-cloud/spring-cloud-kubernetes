@@ -4,7 +4,7 @@
 The Spring Cloud Kubernetes Config Server, is based on https://spring.io/projects/spring-cloud-config[Spring Cloud Config Server] and adds an https://docs.spring.io/spring-cloud-config/docs/current/reference/html/#_environment_repository[environment repository] for Kubernetes
 https://kubernetes.io/docs/concepts/configuration/configmap/[Config Maps] and https://kubernetes.io/docs/concepts/configuration/secret/[Secrets].
 
-This is component is completely optional.  However, it allows you to continue to leverage configuration
+This component is completely optional.  However, it allows you to continue to leverage configuration
 you may have stored in existing environment repositories (Git, SVN, Vault, etc) with applications that you are running on Kubernetes.
 
 A default image is located on https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-configserver[Docker Hub] which will allow you to easily get a Config Server deployed on Kubernetes without building
