@@ -75,7 +75,7 @@ public final class PropertySourceUtils {
 	 */
 	public static Function<String, Map<String, Object>> yamlParserGenerator(Environment environment) {
 		return source -> {
-			CustomYamlPropertiesFactoryBean yamlFactory = new CustomYamlPropertiesFactoryBean();
+			ProfileActivationAwareYamlPropertiesFactoryBean yamlFactory = new ProfileActivationAwareYamlPropertiesFactoryBean();
 			yamlFactory.setDocumentMatchers(properties -> {
 				if (environment != null) {
 					String profiles = null;

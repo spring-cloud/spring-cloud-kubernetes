@@ -49,7 +49,18 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  * {@link org.springframework.beans.factory.config.YamlPropertiesFactoryBean} that takes
  * care to override profile-based collections and maps.
  *
- * Unlike YamlPropertiesFactoryBean, which flattens collections and maps, this one does things a bit different.
+ * We can't use the same functionality of loading yaml files that spring-boot does :
+ * {@link org.springframework.boot.env.YamlPropertySourceLoader} and thus OriginTrackedYamlLoader,
+ * because spring-boot loads every single yaml document (all in a file) into a separate PropertySource.
+ * So each yaml document ends up in a separate PropertySource. We, on the other hand, have to load all yaml documents
+ * into a single Properties file, that ends up being a single PropertySource.
+ * This happens because we first have to read configmaps / secrets
+ * and only at that point do we know if a yaml contains more than one document.
+ *
+ * As such, we mimic the same things that spring-boot achieves by creating our own yaml reader, that is neavily based
+ * on the YamlPropertiesFactoryBean.
+ *
+ * This is how it does things:
  *
  * <ul>
  *     <li>read all the documents in a yaml file</li>
@@ -65,9 +76,9 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  *
  * @author wind57
  */
-final class CustomYamlPropertiesFactoryBean {
+final class ProfileActivationAwareYamlPropertiesFactoryBean {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(CustomYamlPropertiesFactoryBean.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ProfileActivationAwareYamlPropertiesFactoryBean.class));
 
 	private List<DocumentMatcher> documentMatchers = Collections.emptyList();
 
