@@ -103,7 +103,7 @@ public class Fabric8LeaderAutoConfiguration {
 		return new Fabric8LeaderRecordWatcher(leaderProperties, fabric8LeadershipController, kubernetesClient);
 	}
 
-	@Bean(destroyMethod = "stop")
+	@Bean
 	public LeaderInitiator leaderInitiator(LeaderProperties leaderProperties,
 			Fabric8LeadershipController fabric8LeadershipController,
 			Fabric8LeaderRecordWatcher fabric8LeaderRecordWatcher, Fabric8PodReadinessWatcher hostPodWatcher) {
