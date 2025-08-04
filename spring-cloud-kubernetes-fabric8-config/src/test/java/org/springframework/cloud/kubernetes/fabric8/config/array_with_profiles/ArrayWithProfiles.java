@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,40 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.config_maps_with_active_profiles;
+package org.springframework.cloud.kubernetes.fabric8.config.array_with_profiles;
 
 import java.util.HashMap;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestUtil.readResourceFile;
 
 /**
- * @author Ali Shahbour
+ * @author wind57
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = TestApplication.class,
-		properties = { "spring.application.name=configmap-with-active-profile-name-example",
-				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
-@ActiveProfiles("development")
-abstract class ConfigMapsWithActiveProfilesName {
+		properties = { "spring.application.name=array-with-profiles", "spring.cloud.kubernetes.reload.enabled=false",
+				"spring.main.cloud-platform=KUBERNETES" })
+abstract class ArrayWithProfiles {
 
-	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
+	private static final String APPLICATION_NAME = "array-with-profiles";
 
-	@Autowired
-	private WebTestClient webClient;
-
-	public static void setUpBeforeClass(KubernetesClient mockClient) {
+	static void setUpBeforeClass(KubernetesClient mockClient) {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
@@ -57,7 +49,7 @@ abstract class ConfigMapsWithActiveProfilesName {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		HashMap<String, String> data = new HashMap<>();
-		data.put(Constants.APPLICATION_YML, readResourceFile("application-with-profiles.yaml"));
+		data.put(Constants.APPLICATION_YML, readResourceFile("array-with-profiles.yaml"));
 		mockClient.configMaps()
 			.inNamespace("test")
 			.resource(new ConfigMapBuilder().withNewMetadata()
@@ -66,41 +58,6 @@ abstract class ConfigMapsWithActiveProfilesName {
 				.addToData(data)
 				.build())
 			.create();
-
-		HashMap<String, String> dataWithName = new HashMap<>();
-		dataWithName.put(Constants.APPLICATION_YML, readResourceFile("application-with-active-profiles-name.yaml"));
-		mockClient.configMaps()
-			.inNamespace("test")
-			.resource(new ConfigMapBuilder().withNewMetadata()
-				.withName(APPLICATION_NAME + "-development")
-				.endMetadata()
-				.addToData(dataWithName)
-				.build())
-			.create();
-	}
-
-	@Test
-	public void testGreetingEndpoint() {
-		this.webClient.get()
-			.uri("/api/greeting")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody()
-			.jsonPath("content")
-			.isEqualTo("Hello ConfigMap Active Profile Name, World!");
-	}
-
-	@Test
-	public void testFarewellEndpoint() {
-		this.webClient.get()
-			.uri("/api/farewell")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody()
-			.jsonPath("content")
-			.isEqualTo("Goodbye ConfigMap default, World!");
 	}
 
 }
