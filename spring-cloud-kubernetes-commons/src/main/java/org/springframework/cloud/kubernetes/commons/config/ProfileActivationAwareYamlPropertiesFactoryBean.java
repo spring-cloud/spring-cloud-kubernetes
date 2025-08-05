@@ -50,35 +50,38 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRI
  * care to override profile-based collections and maps.
  *
  * We can't use the same functionality of loading yaml files that spring-boot does :
- * {@link org.springframework.boot.env.YamlPropertySourceLoader} and thus OriginTrackedYamlLoader,
- * because spring-boot loads every single yaml document (all in a file) into a separate PropertySource.
- * So each yaml document ends up in a separate PropertySource. We, on the other hand, have to load all yaml documents
- * into a single Properties file, that ends up being a single PropertySource.
- * This happens because we first have to read configmaps / secrets
- * and only at that point do we know if a yaml contains more than one document.
+ * {@link org.springframework.boot.env.YamlPropertySourceLoader} and thus
+ * OriginTrackedYamlLoader, because spring-boot loads every single yaml document (all in a
+ * file) into a separate PropertySource. So each yaml document ends up in a separate
+ * PropertySource. We, on the other hand, have to load all yaml documents into a single
+ * Properties file, that ends up being a single PropertySource. This happens because we
+ * first have to read configmaps / secrets and only at that point do we know if a yaml
+ * contains more than one document.
  *
- * As such, we mimic the same things that spring-boot achieves by creating our own yaml reader, that is neavily based
- * on the YamlPropertiesFactoryBean.
+ * As such, we mimic the same things that spring-boot achieves by creating our own yaml
+ * reader, that is neavily based on the YamlPropertiesFactoryBean.
  *
  * This is how it does things:
  *
  * <ul>
- *     <li>read all the documents in a yaml file</li>
- *     <li>flatten all properties besides collection and maps,
- *     		YamlPropertiesFactoryBean does not do that and starts flattening everything</li>
- *     <li>take only those that match the document matchers</li>
- *     <li>split them in two : those that have profile activation and those that don't</li>
- *     <li>override properties in the non-profile based yamls with the ones from profile based ones.
- *     This achieves the same result as a plain spring-boot app, where profile based properties have a higher
- *     precedence.</li>
- *     <li>once the overriding happened, we do another flattening, this time including collection and maps</li>
+ * <li>read all the documents in a yaml file</li>
+ * <li>flatten all properties besides collection and maps, YamlPropertiesFactoryBean does
+ * not do that and starts flattening everything</li>
+ * <li>take only those that match the document matchers</li>
+ * <li>split them in two : those that have profile activation and those that don't</li>
+ * <li>override properties in the non-profile based yamls with the ones from profile based
+ * ones. This achieves the same result as a plain spring-boot app, where profile based
+ * properties have a higher precedence.</li>
+ * <li>once the overriding happened, we do another flattening, this time including
+ * collection and maps</li>
  * </ul>
  *
  * @author wind57
  */
 final class ProfileActivationAwareYamlPropertiesFactoryBean {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ProfileActivationAwareYamlPropertiesFactoryBean.class));
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(ProfileActivationAwareYamlPropertiesFactoryBean.class));
 
 	private List<DocumentMatcher> documentMatchers = Collections.emptyList();
 
