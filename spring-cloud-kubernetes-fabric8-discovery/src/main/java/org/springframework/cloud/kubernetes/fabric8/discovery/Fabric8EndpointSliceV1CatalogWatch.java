@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -72,13 +73,21 @@ final class Fabric8EndpointSliceV1CatalogWatch
 			endpointSlices = endpointSlices(context, namespace, client);
 		}
 
+		return state(endpointSlices);
+	}
+
+	/**
+	 * This one is visible for testing, especially since fabric8 mock client will save
+	 * null subsets as empty lists, thus blocking some unit test.
+	 */
+	List<EndpointNameAndNamespace> state(List<EndpointSlice> endpointSlices) {
 		Stream<ObjectReference> references = endpointSlices.stream()
 			.map(EndpointSlice::getEndpoints)
+			.filter(Objects::nonNull)
 			.flatMap(List::stream)
 			.map(Endpoint::getTargetRef);
 
 		return Fabric8CatalogWatchContext.state(references);
-
 	}
 
 	private List<EndpointSlice> endpointSlices(Fabric8CatalogWatchContext context, String namespace,

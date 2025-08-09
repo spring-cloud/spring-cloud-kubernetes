@@ -235,6 +235,17 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 						new EndpointNameAndNamespace("podF", "namespaceB")));
 	}
 
+	@Test
+	@Override
+	void testWithoutSubsetsOrEndpoints() {
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA"),
+				Map.of("color", "blue"), ENDPOINT_SLICES);
+
+		endpointsWithoutSubsets("namespaceA", Map.of("color", "blue"), "podA");
+		// we do not fail here, even if Subsets are not present
+		invokeAndAssert(watch, List.of());
+	}
+
 	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649
 	static KubernetesClient endpointsMockClient() {
 		return mockClient;

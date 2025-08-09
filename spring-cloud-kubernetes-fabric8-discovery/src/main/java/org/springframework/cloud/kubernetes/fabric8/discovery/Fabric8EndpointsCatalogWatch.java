@@ -44,16 +44,23 @@ final class Fabric8EndpointsCatalogWatch
 		List<Endpoints> endpoints = endpoints(context.properties(), context.kubernetesClient(),
 				context.namespaceProvider(), "catalog-watcher", null, ALWAYS_TRUE);
 
-		/**
-		 * <pre>
-		 *   - An "Endpoints" holds a List of EndpointSubset.
-		 *   - A single EndpointSubset holds a List of EndpointAddress
-		 *
-		 *   - (The union of all EndpointSubsets is the Set of all Endpoints)
-		 *   - Set of Endpoints is the cartesian product of :
-		 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
-		 * </pre>
-		 */
+		return state(endpoints);
+	}
+
+	/**
+	 * This one is visible for testing, especially since fabric8 mock client will save
+	 * null subsets as empty lists, thus blocking some unit test.
+	 *
+	 * <pre>
+	 *   - An "Endpoints" holds a List of EndpointSubset.
+	 *   - A single EndpointSubset holds a List of EndpointAddress
+	 *
+	 *   - (The union of all EndpointSubsets is the Set of all Endpoints)
+	 *   - Set of Endpoints is the cartesian product of :
+	 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
+	 * </pre>
+	 */
+	List<EndpointNameAndNamespace> state(List<Endpoints> endpoints) {
 		Stream<ObjectReference> references = endpoints.stream()
 			.map(Endpoints::getSubsets)
 			.filter(Objects::nonNull)
