@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -73,13 +74,18 @@ final class KubernetesEndpointSlicesCatalogWatch
 			endpointSlices = namespacedEndpointSlices(api, namespace, context.properties().serviceLabels());
 		}
 
+		return generateState(endpointSlices);
+
+	}
+
+	List<EndpointNameAndNamespace> generateState(List<V1EndpointSlice> endpointSlices) {
 		Stream<V1ObjectReference> references = endpointSlices.stream()
 			.map(V1EndpointSlice::getEndpoints)
+			.filter(Objects::nonNull)
 			.flatMap(List::stream)
 			.map(V1Endpoint::getTargetRef);
 
 		return KubernetesCatalogWatchContext.state(references);
-
 	}
 
 	private List<V1EndpointSlice> endpointSlices(DiscoveryV1Api api, Map<String, String> labels) {
