@@ -44,7 +44,7 @@ final class Fabric8EndpointsCatalogWatch
 		List<Endpoints> endpoints = endpoints(context.properties(), context.kubernetesClient(),
 				context.namespaceProvider(), "catalog-watcher", null, ALWAYS_TRUE);
 
-		return state(endpoints);
+		return generateState(endpoints);
 	}
 
 	/**
@@ -60,7 +60,7 @@ final class Fabric8EndpointsCatalogWatch
 	 *     EndpointSubset::getAddresses and EndpointSubset::getPorts (each is a List)
 	 * </pre>
 	 */
-	List<EndpointNameAndNamespace> state(List<Endpoints> endpoints) {
+	List<EndpointNameAndNamespace> generateState(List<Endpoints> endpoints) {
 		Stream<ObjectReference> references = endpoints.stream()
 			.map(Endpoints::getSubsets)
 			.filter(Objects::nonNull)

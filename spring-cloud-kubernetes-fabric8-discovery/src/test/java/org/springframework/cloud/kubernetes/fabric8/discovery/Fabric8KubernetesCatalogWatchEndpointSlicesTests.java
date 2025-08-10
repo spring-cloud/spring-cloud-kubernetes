@@ -20,11 +20,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.discovery.v1.Endpoint;
+import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
+import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSliceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Some tests that use the fabric8 mock client, using EndpointSlices
@@ -188,6 +194,17 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 
 		// we do not fail here, even if Endpoints are not present.
 		invokeAndAssert(watch, List.of());
+	}
+
+	@Test
+	void generateStateEndpointsWithoutEndpoints() {
+
+		Fabric8EndpointSliceV1CatalogWatch catalogWatch = new Fabric8EndpointSliceV1CatalogWatch();
+		EndpointSlice sliceNoEndpoints = endpointSliceWithoutEndpoints("namespaceA", Map.of("color", "blue"), "podA");
+
+
+		// even if Endpoints are missing, we do not fail
+		assertThat(catalogWatch.generateState(List.of(sliceNoEndpoints))).isEmpty();
 	}
 
 	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649

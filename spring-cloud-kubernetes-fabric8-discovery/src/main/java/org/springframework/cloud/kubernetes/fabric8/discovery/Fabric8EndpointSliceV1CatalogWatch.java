@@ -73,14 +73,14 @@ final class Fabric8EndpointSliceV1CatalogWatch
 			endpointSlices = endpointSlices(context, namespace, client);
 		}
 
-		return state(endpointSlices);
+		return generateState(endpointSlices);
 	}
 
 	/**
 	 * This one is visible for testing, especially since fabric8 mock client will save
 	 * null subsets as empty lists, thus blocking some unit test.
 	 */
-	List<EndpointNameAndNamespace> state(List<EndpointSlice> endpointSlices) {
+	List<EndpointNameAndNamespace> generateState(List<EndpointSlice> endpointSlices) {
 		Stream<ObjectReference> references = endpointSlices.stream()
 			.map(EndpointSlice::getEndpoints)
 			.filter(Objects::nonNull)

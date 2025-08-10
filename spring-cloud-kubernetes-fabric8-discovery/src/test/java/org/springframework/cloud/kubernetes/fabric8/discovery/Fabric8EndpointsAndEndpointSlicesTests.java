@@ -319,7 +319,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
-	void endpointsWithoutSubsets(String namespace, Map<String, String> labels, String podName) {
+	Endpoints endpointsWithoutSubsets(String namespace, Map<String, String> labels, String podName) {
 
 		// though we set it to null here, the mock client when creating it
 		// will set it to an empty list. I will keep it like this, may be client changes
@@ -331,6 +331,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 			.withSubsets(endpointSubsets)
 			.build();
 		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
+		return endpoints;
 	}
 
 	void service(String namespace, Map<String, String> labels, String podName) {
@@ -359,7 +360,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 	}
 
-	static void endpointSliceWithoutEndpoints(String namespace, Map<String, String> labels, String podName) {
+	static EndpointSlice endpointSliceWithoutEndpoints(String namespace, Map<String, String> labels, String podName) {
 
 		List<Endpoint> endpoints = null;
 
@@ -372,6 +373,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 			.build();
 
 		mockClient().discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
+		return slice;
 
 	}
 
