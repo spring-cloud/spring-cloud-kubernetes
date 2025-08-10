@@ -235,6 +235,16 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	 */
 	abstract void testTwoNamespacesOutOfThree();
 
+	/**
+	 * <pre>
+	 *      - in the old API (plain Endpoints), tests that subsets are missing
+	 *        and we do not fail.
+	 *      - in the new API (EndpointSlices), tests that Endpoints are missing
+	 *        and we do not fail.
+	 * </pre>
+	 */
+	abstract void testWithoutSubsetsOrEndpoints();
+
 	KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels, Set<String> namespaces,
 			boolean endpointSlices) {
 
@@ -309,6 +319,21 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
+	Endpoints endpointsWithoutSubsets(String namespace, Map<String, String> labels, String podName) {
+
+		// though we set it to null here, the mock client when creating it
+		// will set it to an empty list. I will keep it like this, may be client changes
+		// in the future and we have the case still covered by a test
+		List<EndpointSubset> endpointSubsets = null;
+
+		Endpoints endpoints = new EndpointsBuilder()
+			.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
+			.withSubsets(endpointSubsets)
+			.build();
+		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
+		return endpoints;
+	}
+
 	void service(String namespace, Map<String, String> labels, String podName) {
 
 		Service service = new ServiceBuilder()
@@ -332,6 +357,23 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 			.build();
 
 		mockClient().discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
+
+	}
+
+	static EndpointSlice endpointSliceWithoutEndpoints(String namespace, Map<String, String> labels, String podName) {
+
+		List<Endpoint> endpoints = null;
+
+		EndpointSlice slice = new EndpointSliceBuilder()
+			.withMetadata(new ObjectMetaBuilder().withNamespace(namespace)
+				.withName("slice-" + podName)
+				.withLabels(labels)
+				.build())
+			.withEndpoints(endpoints)
+			.build();
+
+		mockClient().discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
+		return slice;
 
 	}
 
