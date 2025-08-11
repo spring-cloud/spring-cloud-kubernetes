@@ -199,7 +199,6 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 		Fabric8EndpointSliceV1CatalogWatch catalogWatch = new Fabric8EndpointSliceV1CatalogWatch();
 		EndpointSlice sliceNoEndpoints = endpointSliceWithoutEndpoints("namespaceA", Map.of("color", "blue"), "podA");
 
-
 		// even if Endpoints are missing, we do not fail
 		assertThat(catalogWatch.generateState(List.of(sliceNoEndpoints))).isEmpty();
 	}
