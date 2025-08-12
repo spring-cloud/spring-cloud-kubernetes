@@ -1,0 +1,30 @@
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          kubernetes:
+            fabric8:
+              leader: DEBUG
+
+spring:
+  application:
+    name: fabric8-leader-app-a
+  cloud:
+    kubernetes:
+      leader:
+        election:
+          enabled: true
+management:
+  endpoint:
+    info:
+      access: unrestricted
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+server:
+  port: 8080
