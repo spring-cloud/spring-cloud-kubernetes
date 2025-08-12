@@ -25,6 +25,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -38,6 +39,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test cases for the Endpoints support
@@ -189,6 +191,32 @@ class KubernetesCatalogWatchEndpointsTests extends KubernetesEndpointsAndEndpoin
 				USE_ENDPOINT_SLICES);
 
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "b")));
+	}
+
+	@Test
+	@Override
+	void testWithoutSubsetsOrEndpoints() {
+		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=key%3Dvalue%2Ckey1%3Dvalue1")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointsNoSubsets()))));
+		// otherwise the stub might fail
+		LinkedHashMap<String, String> map = new LinkedHashMap<>();
+		map.put("key", "value");
+		map.put("key1", "value1");
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", map, coreV1Api, null,
+				USE_ENDPOINT_SLICES);
+
+		invokeAndAssert(watch, List.of());
+	}
+
+	@Test
+	void generateStateEndpointsWithoutSubsets() {
+
+		KubernetesEndpointsCatalogWatch catalogWatch = new KubernetesEndpointsCatalogWatch();
+		List<V1Endpoints> endpoints = endpointsNoSubsets().getItems();
+
+		// we do not fail, even if Subsets are not present
+		List<EndpointNameAndNamespace> result = catalogWatch.generateState(endpoints);
+		assertThat(result).isEmpty();
 	}
 
 }
