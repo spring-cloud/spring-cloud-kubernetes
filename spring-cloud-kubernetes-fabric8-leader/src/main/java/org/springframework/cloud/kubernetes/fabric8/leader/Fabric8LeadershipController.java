@@ -145,7 +145,8 @@ public class Fabric8LeadershipController extends LeadershipController {
 	}
 
 	private boolean isPodReady(String name) {
-		return kubernetesClient.pods().withName(name).isReady();
+		//return kubernetesClient.pods().inNamespace("default").withName(name).isReady();
+		return true;
 	}
 
 	private ConfigMap getConfigMap() {

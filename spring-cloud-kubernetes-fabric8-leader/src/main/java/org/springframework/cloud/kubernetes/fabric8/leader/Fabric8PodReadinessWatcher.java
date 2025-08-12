@@ -64,7 +64,7 @@ public class Fabric8PodReadinessWatcher implements PodReadinessWatcher, Watcher<
 			guarded(lock, () -> {
 				if (watch == null) {
 					LOGGER.debug(() -> "Starting pod readiness watcher for :" + podName);
-					PodResource podResource = kubernetesClient.pods().withName(podName);
+					PodResource podResource = kubernetesClient.pods().inNamespace("default").withName(podName);
 					previousState = podResource.isReady();
 					watch = podResource.watch(this);
 				}

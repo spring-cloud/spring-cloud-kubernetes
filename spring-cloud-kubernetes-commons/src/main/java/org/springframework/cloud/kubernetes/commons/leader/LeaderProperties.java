@@ -60,7 +60,7 @@ public class LeaderProperties {
 	/**
 	 * Leadership status check period. Default: 60s
 	 */
-	private Duration updatePeriod = Duration.ofMillis(60000);
+	private Duration updatePeriod = Duration.ofMillis(10000);
 
 	/**
 	 * Enable/disable publishing events in case leadership acquisition fails. Default:

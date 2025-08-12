@@ -20,13 +20,18 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.EnvReader;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.util.StringUtils;
 
 /**
  * @author wind57
  */
 public final class LeaderUtils {
+
+	private static final Log LOG = LogFactory.getLog(LeaderUtils.class);
 
 	// k8s environment variable responsible for host name
 	private static final String HOSTNAME = "HOSTNAME";
@@ -49,6 +54,9 @@ public final class LeaderUtils {
 		try {
 			lock.lock();
 			runnable.run();
+		}
+		catch (Exception e) {
+			LOG.error(e.getMessage(), e);
 		}
 		finally {
 			lock.unlock();
