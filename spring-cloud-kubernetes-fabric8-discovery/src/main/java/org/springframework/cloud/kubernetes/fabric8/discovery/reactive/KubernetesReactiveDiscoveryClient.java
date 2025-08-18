@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery.reactive;
 
+import java.util.Objects;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -25,8 +27,6 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunction;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClient;
-
-import java.util.Objects;
 
 /**
  * Kubernetes implementation of {@link ReactiveDiscoveryClient}. Currently relies on the
