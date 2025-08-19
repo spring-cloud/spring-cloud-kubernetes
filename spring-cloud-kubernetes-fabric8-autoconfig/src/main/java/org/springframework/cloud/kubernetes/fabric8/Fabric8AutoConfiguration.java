@@ -52,10 +52,6 @@ public class Fabric8AutoConfiguration {
 		return left != null ? (int) left.toMillis() : right;
 	}
 
-	private static Long orDurationLong(Duration left, Long right) {
-		return left != null ? left.toMillis() : right;
-	}
-
 	@Bean
 	@ConditionalOnMissingBean(Config.class)
 	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
