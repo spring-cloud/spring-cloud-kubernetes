@@ -17,7 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -32,31 +32,19 @@ final class SourceDataFlattener {
 	/**
 	 * Flattens the data from rawData without any additional processing.
 	 */
-	static Map<String, Object> defaultFlattenedSourceData(LinkedHashSet<String> names, Map<String, Object> rawData) {
+	static Map<String, Object> defaultFlattenedSourceData(LinkedHashMap<String, Map<String, Object>> sourceData) {
 		Map<String, Object> flattenedData = new HashMap<>();
-
-		names.forEach(name -> {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.getOrDefault(name, Map.of());
-			flattenedData.putAll(singleDataEntry);
-		});
-
+		sourceData.values().forEach(flattenedData::putAll);
 		return flattenedData;
 	}
 
 	/**
 	 * Flattens the data from rawData by adding a prefix for each key.
 	 */
-	static Map<String, Object> prefixFlattenedSourceData(LinkedHashSet<String> names, Map<String, Object> rawData,
+	static Map<String, Object> prefixFlattenedSourceData(LinkedHashMap<String, Map<String, Object>> sourceData,
 			String prefix) {
 		Map<String, Object> flattenedData = new HashMap<>();
-
-		names.forEach(name -> {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.getOrDefault(name, Map.of());
-			singleDataEntry.forEach((key, value) -> flattenedData.put(prefix + "." + key, value));
-		});
-
+		sourceData.values().forEach(data -> data.forEach((key, value) -> flattenedData.put(prefix + "." + key, value)));
 		return flattenedData;
 	}
 
@@ -64,15 +52,9 @@ final class SourceDataFlattener {
 	 * Flattens the data from rawData by adding a prefix for each key, which is equal to
 	 * the source name.
 	 */
-	static Map<String, Object> nameFlattenedSourceData(LinkedHashSet<String> names, Map<String, Object> rawData) {
+	static Map<String, Object> nameFlattenedSourceData(LinkedHashMap<String, Map<String, Object>> sourceData) {
 		Map<String, Object> flattenedData = new HashMap<>();
-
-		names.forEach(name -> {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> singleDataEntry = (Map<String, Object>) rawData.getOrDefault(name, Map.of());
-			singleDataEntry.forEach((key, value) -> flattenedData.put(name + "." + key, value));
-		});
-
+		sourceData.forEach((name, data) -> data.forEach((key, value) -> flattenedData.put(name + "." + key, value)));
 		return flattenedData;
 	}
 
