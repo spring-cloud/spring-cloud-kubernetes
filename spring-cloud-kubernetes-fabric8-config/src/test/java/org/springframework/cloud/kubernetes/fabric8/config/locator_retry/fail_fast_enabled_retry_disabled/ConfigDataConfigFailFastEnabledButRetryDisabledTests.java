@@ -73,7 +73,7 @@ class ConfigDataConfigFailFastEnabledButRetryDisabledTests extends ConfigFailFas
 		ConfigMapConfigProperties properties(Environment environment) {
 			return new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true, null, null, false, true,
 					Boolean.parseBoolean(environment.getProperty("spring.cloud.kubernetes.config.fail-fast")),
-					RetryProperties.DEFAULT);
+					RetryProperties.DEFAULT, true);
 		}
 
 	}

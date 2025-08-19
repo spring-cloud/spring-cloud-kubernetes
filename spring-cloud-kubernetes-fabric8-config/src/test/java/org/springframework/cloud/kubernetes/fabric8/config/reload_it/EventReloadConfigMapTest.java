@@ -162,7 +162,8 @@ public class EventReloadConfigMapTest {
 			// simulate that environment already has a Fabric8ConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-					List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT);
+					List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT,
+					false);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient,
@@ -185,7 +186,7 @@ public class EventReloadConfigMapTest {
 		@Primary
 		ConfigMapConfigProperties configMapConfigProperties() {
 			return new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT);
+					false, true, FAIL_FAST, RetryProperties.DEFAULT, false);
 		}
 
 		@Bean

@@ -16,10 +16,15 @@
 
 package org.springframework.cloud.kubernetes.client.config.applications.sources_order;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.util.ClientBuilder;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -28,6 +33,8 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
  * The stub data for this test is in :
@@ -44,6 +51,18 @@ abstract class SourcesOrderTests {
 
 	@Autowired
 	private WebTestClient webClient;
+
+	@BeforeAll
+	static void setup() {
+		WireMockServer wireMockServer = new WireMockServer(options().dynamicPort());
+
+		wireMockServer.start();
+		WireMock.configureFor("localhost", wireMockServer.port());
+
+		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
+		client.setDebugging(true);
+		Configuration.setDefaultApiClient(client);
+	}
 
 	@AfterEach
 	void afterEach() {

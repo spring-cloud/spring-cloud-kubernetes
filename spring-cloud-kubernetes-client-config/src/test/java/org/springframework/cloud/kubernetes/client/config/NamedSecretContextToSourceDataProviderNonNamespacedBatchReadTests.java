@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,9 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
-import io.kubernetes.client.openapi.models.V1SecretList;
-import io.kubernetes.client.openapi.models.V1SecretListBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,7 +49,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 @ExtendWith(OutputCaptureExtension.class)
-class NamedSecretContextToSourceDataProviderTests {
+class NamedSecretContextToSourceDataProviderNonNamespacedBatchReadTests {
+
+	private static final boolean NAMESPACED_BATCH_READ = false;
 
 	private static final ConfigUtils.Prefix PREFIX = ConfigUtils.findPrefix("some", false, false, "irrelevant");
 
@@ -73,7 +74,12 @@ class NamedSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
-		new KubernetesClientSecretsCache().discardAll();
+		new KubernetesClientSourcesNamespaceBatched().discardSecrets();
+	}
+
+	@AfterAll
+	static void afterAll() {
+		WireMock.shutdownServer();
 	}
 
 	/**
@@ -86,20 +92,20 @@ class NamedSecretContextToSourceDataProviderTests {
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
 			.addToData(COLOR_REALLY_RED)
 			.build();
-		V1SecretList secretList = new V1SecretList().addItemsItem(red);
-		stubCall(secretList);
+		stubCall(red, "/api/v1/namespaces/default/secrets/red");
 		CoreV1Api api = new CoreV1Api();
 
 		// blue does not match red
 		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red"));
 
 	}
 
@@ -114,32 +120,32 @@ class NamedSecretContextToSourceDataProviderTests {
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
 			.addToData(COLOR_REALLY_RED)
 			.build();
+		stubCall(red, "/api/v1/namespaces/default/secrets/red");
 
 		V1Secret blue = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("blue").build())
 			.addToData(COLOR_REALLY_RED)
 			.build();
+		stubCall(blue, "/api/v1/namespaces/default/secrets/blue");
 
 		V1Secret pink = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("pink").build())
 			.addToData(COLOR_REALLY_RED)
 			.build();
+		stubCall(pink, "/api/v1/namespaces/default/secrets/pink");
 
-		V1SecretList secretList = new V1SecretListBuilder().addToItems(red).addToItems(blue).addToItems(pink).build();
-
-		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
 		// blue does not match red, nor pink
 		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.default");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("really-red");
 
 	}
@@ -155,14 +161,13 @@ class NamedSecretContextToSourceDataProviderTests {
 			.addToData(COLOR_REALLY_RED)
 			.build();
 
-		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
-		stubCall(secretList);
+		stubCall(secret, "/api/v1/namespaces/default/secrets/blue");
 		CoreV1Api api = new CoreV1Api();
 
 		// blue does not match red
 		NormalizedSource source = new NamedSecretNormalizedSource("blue", NAMESPACE, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -186,20 +191,20 @@ class NamedSecretContextToSourceDataProviderTests {
 			.addToData(COLOR_REALLY_RED)
 			.build();
 
-		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
-		stubCall(secretList);
+		stubCall(secret, "/api/v1/namespaces/default/secrets/red");
 		CoreV1Api api = new CoreV1Api();
 
 		String wrongNamespace = NAMESPACE + "nope";
 		NormalizedSource source = new NamedSecretNormalizedSource("red", wrongNamespace, false, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("color", "really-red"));
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "really-red"));
 	}
 
 	/**
@@ -213,15 +218,14 @@ class NamedSecretContextToSourceDataProviderTests {
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
 			.addToData(COLOR_REALLY_RED)
 			.build();
+		stubCall(red, "/api/v1/namespaces/default/secrets/red");
 
 		V1Secret mango = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-profile").build())
 			.addToData("taste", "mango".getBytes())
 			.build();
+		stubCall(mango, "/api/v1/namespaces/default/secrets/red-with-profile");
 
-		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango);
-
-		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, false, ConfigUtils.Prefix.DEFAULT,
@@ -229,15 +233,14 @@ class NamedSecretContextToSourceDataProviderTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.addActiveProfile("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
-				true);
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-profile.default.with-profile");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(sourceData.sourceData().get("taste")).isEqualTo("mango");
-		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("really-red");
 
 	}
 
@@ -254,27 +257,27 @@ class NamedSecretContextToSourceDataProviderTests {
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
 			.addToData(COLOR_REALLY_RED)
 			.build();
+		stubCall(red, "/api/v1/namespaces/default/secrets/red");
 
 		V1Secret mango = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
 			.addToData("taste", "mango".getBytes())
 			.build();
+		stubCall(mango, "/api/v1/namespaces/default/secrets/red-with-taste");
 
-		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango);
-
-		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.addActiveProfile("with-taste");
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				true, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-taste.default");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
 		Assertions.assertThat(sourceData.sourceData().get("some.color")).isEqualTo("really-red");
 		Assertions.assertThat(sourceData.sourceData().get("some.taste")).isEqualTo("mango");
 
@@ -293,33 +296,34 @@ class NamedSecretContextToSourceDataProviderTests {
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red").build())
 			.addToData(COLOR_REALLY_RED)
 			.build();
+		stubCall(red, "/api/v1/namespaces/default/secrets/red");
 
 		V1Secret mango = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-taste").build())
 			.addToData("taste", "mango".getBytes())
 			.build();
+		stubCall(mango, "/api/v1/namespaces/default/secrets/red-with-taste");
 
 		V1Secret shape = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withNamespace(NAMESPACE).withName("red-with-shape").build())
 			.addToData("shape", "round".getBytes())
 			.build();
+		stubCall(shape, "/api/v1/namespaces/default/secrets/red-with-shape");
 
-		V1SecretList secretList = new V1SecretList().addItemsItem(red).addItemsItem(mango).addItemsItem(shape);
-
-		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new NamedSecretNormalizedSource("red", NAMESPACE, true, PREFIX, true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-taste", "with-shape");
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				true, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red.red-with-shape.red-with-taste.default");
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(3);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(3);
 		Assertions.assertThat(sourceData.sourceData().get("some.color")).isEqualTo("really-red");
 		Assertions.assertThat(sourceData.sourceData().get("some.taste")).isEqualTo("mango");
 		Assertions.assertThat(sourceData.sourceData().get("some.shape")).isEqualTo("round");
@@ -337,20 +341,19 @@ class NamedSecretContextToSourceDataProviderTests {
 			.withMetadata(new V1ObjectMetaBuilder().withName("single-yaml").withNamespace(NAMESPACE).build())
 			.addToData("single.yaml", "key: value".getBytes())
 			.build();
-		V1SecretList secretList = new V1SecretList().addItemsItem(singleYaml);
+		stubCall(singleYaml, "/api/v1/namespaces/default/secrets/single-yaml");
 
-		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new NamedSecretNormalizedSource("single-yaml", NAMESPACE, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new NamedSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.single-yaml.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("key", "value"));
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("key", "value"));
 	}
 
 	/**
@@ -359,60 +362,61 @@ class NamedSecretContextToSourceDataProviderTests {
 	 *     - one secret is deployed with name "green"
 	 *
 	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
-	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * 	   - we then search for the "green" one, and it is retrieved again from the cluster, non cached.
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void nonCache(CapturedOutput output) {
 		V1Secret red = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
 			.addToData("color", "red".getBytes())
 			.build();
+		stubCall(red, "/api/v1/namespaces/default/secrets/red");
 
 		V1Secret green = new V1SecretBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("green").withNamespace(NAMESPACE).build())
 			.addToData("color", "green".getBytes())
 			.build();
+		stubCall(green, "/api/v1/namespaces/default/secrets/green");
 
-		V1SecretList configMapList = new V1SecretList().addItemsItem(red).addItemsItem(green);
-
-		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
 
 		MockEnvironment environment = new MockEnvironment();
 
 		NormalizedSource redSource = new NamedSecretNormalizedSource("red", NAMESPACE, true, false);
 		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
-				environment);
+				environment, false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData redData = new NamedSecretContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("secret.red.default");
-		Assertions.assertThat(redSourceData.sourceData()).isEqualTo(Map.of("color", "red"));
-		Assertions.assertThat(output.getAll()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
+		Assertions.assertThat(redSourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("color", "red"));
+
+		Assertions.assertThat(output.getAll()).doesNotContain(("Loaded all secrets in namespace '" + NAMESPACE + "'"));
+		Assertions.assertThat(output.getAll()).contains("Will read individual secrets in namespace");
 
 		NormalizedSource greenSource = new NamedSecretNormalizedSource("green", NAMESPACE, true, true);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
-				environment);
+				environment, false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData greenData = new NamedSecretContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
 		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("secret.green.default");
-		Assertions.assertThat(greenSourceData.sourceData()).isEqualTo(Map.of("color", "green"));
+		Assertions.assertThat(greenSourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("color", "green"));
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
+		Assertions.assertThat(out.length).isEqualTo(1);
 
 		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
+		out = output.getAll().split("Will read individual secrets in namespace");
+		Assertions.assertThat(out.length).isEqualTo(3);
 
 	}
 
-	private void stubCall(V1SecretList list) {
-		stubFor(get("/api/v1/namespaces/default/secrets")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+	private void stubCall(V1Secret secret, String path) {
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secret))));
 	}
 
 }

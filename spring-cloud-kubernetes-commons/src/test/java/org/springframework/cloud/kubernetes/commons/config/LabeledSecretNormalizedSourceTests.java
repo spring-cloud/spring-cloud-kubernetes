@@ -31,8 +31,8 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testEqualsAndHashCode() {
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false, false);
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, false);
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, false);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true);
 
 		Assertions.assertThat(left.hashCode()).isEqualTo(right.hashCode());
 		Assertions.assertThat(left).isEqualTo(right);
@@ -48,10 +48,8 @@ class LabeledSecretNormalizedSourceTests {
 		ConfigUtils.Prefix knownLeft = ConfigUtils.findPrefix("left", false, false, "some");
 		ConfigUtils.Prefix knownRight = ConfigUtils.findPrefix("right", false, false, "some");
 
-		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, true, knownLeft,
-				false);
-		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, knownRight,
-				false);
+		LabeledSecretNormalizedSource left = new LabeledSecretNormalizedSource("namespace", labels, true, knownLeft);
+		LabeledSecretNormalizedSource right = new LabeledSecretNormalizedSource("namespace", labels, true, knownRight);
 
 		Assertions.assertThat(left.hashCode()).isEqualTo(right.hashCode());
 		Assertions.assertThat(left).isEqualTo(right);
@@ -59,40 +57,37 @@ class LabeledSecretNormalizedSourceTests {
 
 	@Test
 	void testType() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		Assertions.assertThat(source.type()).isSameAs(NormalizedSourceType.LABELED_SECRET);
 	}
 
 	@Test
 	void testImmutableGetLabels() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		Assertions.assertThatThrownBy(() -> source.labels().put("c", "d")).isInstanceOf(RuntimeException.class);
 	}
 
 	@Test
 	void testTarget() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, false);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false);
 		Assertions.assertThat(source.target()).isEqualTo("secret");
 	}
 
 	@Test
 	void testConstructorFields() {
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, "some");
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix,
-				true);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, false, prefix);
 		Assertions.assertThat(source.name().isEmpty()).isTrue();
 		Assertions.assertThat(source.namespace().get()).isEqualTo("namespace");
 		Assertions.assertThat(source.failFast()).isFalse();
-		Assertions.assertThat(source.profileSpecificSources()).isTrue();
 	}
 
 	@Test
 	void testConstructorWithoutPrefixFields() {
-		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true, true);
+		LabeledSecretNormalizedSource source = new LabeledSecretNormalizedSource("namespace", labels, true);
 		Assertions.assertThat(source.namespace().get()).isEqualTo("namespace");
 		Assertions.assertThat(source.failFast()).isTrue();
 		Assertions.assertThat(ConfigUtils.Prefix.DEFAULT).isSameAs(source.prefix());
-		Assertions.assertThat(source.profileSpecificSources()).isTrue();
 	}
 
 }
