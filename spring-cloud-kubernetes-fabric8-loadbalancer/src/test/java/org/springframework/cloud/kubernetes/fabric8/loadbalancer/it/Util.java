@@ -27,13 +27,6 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.reactive.function.client.WebClient;
-
 /**
  * @author wind57
  */
@@ -61,26 +54,6 @@ public final class Util {
 				.build())
 			.withMetadata(new ObjectMetaBuilder().withName("random-name").withNamespace(namespace).build())
 			.build();
-	}
-
-	@TestConfiguration
-	public static class LoadBalancerConfiguration {
-
-		@Bean
-		@LoadBalanced
-		WebClient.Builder client() {
-			return WebClient.builder();
-		}
-
-	}
-
-	@SpringBootApplication
-	public static class Configuration {
-
-		public static void main(String[] args) {
-			SpringApplication.run(Configuration.class);
-		}
-
 	}
 
 }
