@@ -6,13 +6,12 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes-examples</artifactId>
-		<version>3.3.0-SNAPSHOT</version>
+		<version>5.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>kubernetes-leader-election-example</artifactId>
 	<name>Spring Cloud Kubernetes :: Examples :: Leader Election</name>
-	<description>Leader election demonstration with Spring Integration and ConfigMap
-	</description>
+	<description>Leader election demonstration with Spring Integration and ConfigMap</description>
 
 	<dependencyManagement>
 		<dependencies>
@@ -72,14 +71,6 @@
 				<configuration>
 					<skip>true</skip>
 				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.5.3</version>
-			</plugin>
-			<plugin>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.5.3</version>
 			</plugin>
 		</plugins>
 	</build>
