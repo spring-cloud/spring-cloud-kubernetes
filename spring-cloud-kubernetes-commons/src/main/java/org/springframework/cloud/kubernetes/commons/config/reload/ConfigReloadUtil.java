@@ -88,7 +88,7 @@ public final class ConfigReloadUtil {
 	 * @return finds all registered property sources of the given type
 	 */
 	@SuppressWarnings("unchecked")
-	public static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
+	static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
 			ConfigurableEnvironment environment) {
 		List<S> managedSources = new ArrayList<>();
 
