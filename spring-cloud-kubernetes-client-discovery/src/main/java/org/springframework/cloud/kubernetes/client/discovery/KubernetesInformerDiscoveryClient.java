@@ -35,7 +35,6 @@ import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -87,11 +86,12 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
 			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
-			KubernetesDiscoveryProperties properties) {
+			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api) {
 		this.sharedInformerFactories = sharedInformerFactories;
 
 		this.serviceListers = serviceListers;
 		this.endpointsListers = endpointsListers;
+		this.coreV1Api = coreV1Api;
 		this.informersReadyFunc = () -> {
 			boolean serviceInformersReady = serviceInformers.isEmpty() || serviceInformers.stream()
 				.map(SharedInformer::hasSynced)

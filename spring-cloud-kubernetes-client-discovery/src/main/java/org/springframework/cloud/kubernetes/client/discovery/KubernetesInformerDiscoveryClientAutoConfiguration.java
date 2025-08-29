@@ -21,6 +21,7 @@ import java.util.List;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.apache.commons.logging.LogFactory;
@@ -77,9 +78,10 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 	KubernetesInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
 			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
 			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties) {
+			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api) {
 		return new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
-			List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties);
+			List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties, coreV1Api);
 	}
 
 	@Bean
@@ -88,9 +90,10 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 	KubernetesInformerDiscoveryClient selectiveNamespacesKubernetesInformerDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
-			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties) {
+			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api) {
 		return new KubernetesInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
-				serviceInformers, endpointsInformers, properties);
+				serviceInformers, endpointsInformers, properties, coreV1Api);
 	}
 
 }

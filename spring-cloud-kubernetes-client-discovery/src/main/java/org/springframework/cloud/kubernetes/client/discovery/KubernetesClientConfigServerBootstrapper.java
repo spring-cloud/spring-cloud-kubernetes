@@ -17,11 +17,13 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.Collections;
+import java.util.List;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -96,8 +98,9 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 					.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
 				Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsSharedIndexInformer.getIndexer());
 				KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-						sharedInformerFactory, serviceLister, endpointsLister, serviceSharedIndexInformer,
-						endpointsSharedIndexInformer, discoveryProperties);
+					List.of(sharedInformerFactory), List.of(serviceLister), List.of(endpointsLister),
+					List.of(serviceSharedIndexInformer), List.of(endpointsSharedIndexInformer), discoveryProperties,
+					new CoreV1Api(apiClient));
 				try {
 					discoveryClient.afterPropertiesSet();
 					return discoveryClient::getInstances;

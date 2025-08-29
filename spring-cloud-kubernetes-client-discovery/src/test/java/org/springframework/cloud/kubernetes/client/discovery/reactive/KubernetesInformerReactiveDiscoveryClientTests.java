@@ -23,6 +23,7 @@ import java.util.Set;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
@@ -76,6 +77,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		.addSubsetsItem(new V1EndpointSubset().addPortsItem(new CoreV1EndpointPort().port(8080))
 			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")));
 
+	private static final CoreV1Api CORE_V1_API = Mockito.mock(CoreV1Api.class);
+
 	@AfterEach
 	void afterEach() {
 		serviceCache = new Cache<>();
@@ -92,8 +95,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						kubernetesDiscoveryProperties));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, kubernetesDiscoveryProperties, CORE_V1_API));
 
 		StepVerifier.create(discoveryClient.getServices())
 			.expectNext(TEST_SERVICE_1.getMetadata().getName(), TEST_SERVICE_2.getMetadata().getName())
@@ -108,8 +111,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister();
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						KubernetesDiscoveryProperties.DEFAULT));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT, CORE_V1_API));
 
 		StepVerifier.create(discoveryClient.getServices())
 			.expectNext(TEST_SERVICE_1.getMetadata().getName())
@@ -128,8 +131,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						kubernetesDiscoveryProperties));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, kubernetesDiscoveryProperties, CORE_V1_API));
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
 			.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
@@ -150,8 +153,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						kubernetesDiscoveryProperties));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, kubernetesDiscoveryProperties, CORE_V1_API));
 
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
 			.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
@@ -186,8 +189,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						kubernetesDiscoveryProperties));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, kubernetesDiscoveryProperties, CORE_V1_API));
 
 		List<String> result = discoveryClient.getServices().collectList().block();
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -220,8 +223,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				allNamespaces, Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						kubernetesDiscoveryProperties));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, kubernetesDiscoveryProperties, CORE_V1_API));
 
 		List<String> result = discoveryClient.getServices().collectList().block();
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -270,8 +273,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						kubernetesDiscoveryProperties));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, kubernetesDiscoveryProperties, CORE_V1_API));
 
 		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -321,8 +324,8 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
-				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
-						kubernetesDiscoveryProperties));
+				new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
+					List.of(endpointsLister), null, null, kubernetesDiscoveryProperties, CORE_V1_API));
 
 		List<ServiceInstance> result = discoveryClient.getInstances("endpoints-x").collectList().block();
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -338,8 +341,9 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_ALL, TEST_SERVICE_1, TEST_SERVICE_2);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(TEST_ENDPOINTS_1);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(sharedInformerFactory,
-				serviceLister, endpointsLister, null, null, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+			List.of(sharedInformerFactory), List.of(serviceLister), List.of(endpointsLister), null, null,
+			properties, CORE_V1_API);
 
 		Assertions.assertThat(discoveryClient.getOrder()).isEqualTo(57);
 	}
