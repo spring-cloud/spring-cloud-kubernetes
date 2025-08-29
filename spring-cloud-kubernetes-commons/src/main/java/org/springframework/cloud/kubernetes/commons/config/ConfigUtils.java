@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -157,21 +158,6 @@ public final class ConfigUtils {
 		LOG.warn(e.getMessage() + ". Ignoring.", e);
 	}
 
-	/*
-	 * This method will return a SourceData that has a name in the form :
-	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
-	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
-	 */
-	@Deprecated(forRemoval = true)
-	public static SourceData withPrefix(String target, PrefixContext context) {
-		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
-		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
-
-		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR,
-				context.propertySourceNames().stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new)));
-		return new SourceData(sourceName(target, propertySourceTokens, context.namespace()), withPrefix);
-	}
-
 	public static String sourceName(String target, String applicationName, String namespace) {
 		return target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}
@@ -201,8 +187,7 @@ public final class ConfigUtils {
 		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
 			.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
 
-		LinkedHashSet<String> foundSourceNames = new LinkedHashSet<>();
-		Map<String, Object> data = new HashMap<>();
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
 
 		// This is an ordered stream, and it means that non-profile-based sources will be
 		// processed before profile-based sources.
@@ -212,7 +197,6 @@ public final class ConfigUtils {
 			StrippedSourceContainer stripped = hashByName.get(sourceName);
 			if (stripped != null) {
 				LOG.debug("Found source with name : '" + sourceName + "' in namespace: '" + namespace + "'");
-				foundSourceNames.add(sourceName);
 				// see if data is a single yaml/properties file and if it needs decoding
 				Map<String, String> rawData = stripped.data();
 				if (decode) {
@@ -237,7 +221,7 @@ public final class ConfigUtils {
 			}
 		});
 
-		return new MultipleSourcesContainer(foundSourceNames, data);
+		return new MultipleSourcesContainer(data);
 	}
 
 	static boolean processSource(boolean includeDefaultProfileData, Environment environment, String sourceName,
@@ -273,7 +257,7 @@ public final class ConfigUtils {
 				.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
 	}
 
-	static String sourceDataName(String target, LinkedHashSet<String> sourceNames, String namespace) {
+	static String sourceDataName(String target, Set<String> sourceNames, String namespace) {
 		String sortedNames = sourceNames.stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 		return sourceName(target, sortedNames, namespace);
 	}
@@ -318,13 +302,11 @@ public final class ConfigUtils {
 		all.addAll(byLabels);
 		all.addAll(byProfile);
 
-		LinkedHashSet<String> sourceNames = new LinkedHashSet<>();
-		Map<String, Object> data = new HashMap<>();
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
 
 		all.forEach(source -> {
 			String foundSourceName = source.name();
 			LOG.debug("Loaded source with name : '" + foundSourceName + " in namespace: '" + namespace + "'");
-			sourceNames.add(foundSourceName);
 
 			Map<String, String> rawData = source.data();
 			if (decode) {
@@ -335,7 +317,7 @@ public final class ConfigUtils {
 			data.put(foundSourceName, dataFromOneSource);
 		});
 
-		return new MultipleSourcesContainer(sourceNames, data);
+		return new MultipleSourcesContainer(data);
 	}
 
 	private static Map<String, String> decodeData(Map<String, String> data) {
