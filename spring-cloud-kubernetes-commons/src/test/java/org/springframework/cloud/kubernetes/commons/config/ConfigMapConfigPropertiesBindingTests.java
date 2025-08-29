@@ -37,7 +37,6 @@ class ConfigMapConfigPropertiesBindingTests {
 			ConfigMapConfigProperties props = context.getBean(ConfigMapConfigProperties.class);
 			Assertions.assertThat(props).isNotNull();
 			Assertions.assertThat(props.enableApi()).isTrue();
-			Assertions.assertThat(props.paths().isEmpty()).isTrue();
 			Assertions.assertThat(props.sources().isEmpty()).isTrue();
 			Assertions.assertThat(props.labels().isEmpty()).isTrue();
 			Assertions.assertThat(props.enabled()).isTrue();
@@ -60,7 +59,6 @@ class ConfigMapConfigPropertiesBindingTests {
 	void testWithNonDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
 			.withPropertyValues("spring.cloud.kubernetes.config.enableApi=false",
-					"spring.cloud.kubernetes.config.paths[0]=a", "spring.cloud.kubernetes.config.paths[1]=b",
 					"spring.cloud.kubernetes.config.sources[0].name=source-a",
 					"spring.cloud.kubernetes.config.sources[0].namespace=source-namespace-a",
 					"spring.cloud.kubernetes.config.sources[0].labels.key=source-value",
@@ -82,11 +80,6 @@ class ConfigMapConfigPropertiesBindingTests {
 				ConfigMapConfigProperties props = context.getBean(ConfigMapConfigProperties.class);
 				Assertions.assertThat(props).isNotNull();
 				Assertions.assertThat(props.enableApi()).isFalse();
-
-				Assertions.assertThat(props.paths().size()).isEqualTo(2);
-				Assertions.assertThat(props.paths().get(0)).isEqualTo("a");
-				Assertions.assertThat(props.paths().get(1)).isEqualTo("b");
-
 				Assertions.assertThat(props.sources().size()).isEqualTo(1);
 				ConfigMapConfigProperties.Source source = props.sources().get(0);
 				Assertions.assertThat(source.name()).isEqualTo("source-a");
