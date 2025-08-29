@@ -18,8 +18,8 @@ package org.springframework.cloud.kubernetes.commons.discovery;
 
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.ApplicationEventPublisher;
