@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.config.server.environment.NativeEnvironmentRepository;
@@ -31,6 +30,7 @@ import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerA
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,7 +85,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
@@ -125,7 +125,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
@@ -163,7 +163,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
@@ -202,7 +202,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test

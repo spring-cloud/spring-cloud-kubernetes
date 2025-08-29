@@ -32,7 +32,7 @@ use and use the starters for that library only.
     <artifactId>spring-cloud-starter-kubernetes-client</artifactId>
 </dependency>
 ----
-| <<DiscoveryClient for Kubernetes,Discovery Client>> implementation that
+| xref:discovery-client.adoc[Discovery Client] implementation that
 resolves service names to Kubernetes Services.
 
 | [source,xml]
