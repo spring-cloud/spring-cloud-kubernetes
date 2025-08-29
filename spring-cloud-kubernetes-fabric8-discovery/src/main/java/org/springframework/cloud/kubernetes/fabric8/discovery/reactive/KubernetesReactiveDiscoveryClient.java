@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery.reactive;
 
+import java.util.Objects;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -25,7 +27,6 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunction;
 import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClient;
-import org.springframework.util.Assert;
 
 /**
  * Kubernetes implementation of {@link ReactiveDiscoveryClient}. Currently relies on the
@@ -50,7 +51,7 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 
 	@Override
 	public Flux<ServiceInstance> getInstances(String serviceId) {
-		Assert.notNull(serviceId, "[Assertion failed] - the object argument must not be null");
+		Objects.requireNonNull(serviceId, "serviceId must not be null");
 		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
 			.subscribeOn(Schedulers.boundedElastic());
 	}
@@ -59,6 +60,11 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 	public Flux<String> getServices() {
 		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
 			.subscribeOn(Schedulers.boundedElastic());
+	}
+
+	@Override
+	public int getOrder() {
+		return kubernetesDiscoveryClient.getOrder();
 	}
 
 }

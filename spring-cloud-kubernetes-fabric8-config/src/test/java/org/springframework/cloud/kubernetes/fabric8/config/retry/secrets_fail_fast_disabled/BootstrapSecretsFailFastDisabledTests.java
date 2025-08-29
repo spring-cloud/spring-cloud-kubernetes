@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 @TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true" })
 @EnableKubernetesMockClient
@@ -39,7 +39,7 @@ class BootstrapSecretsFailFastDisabledTests extends SecretsFailFastDisabled {
 		setup(mockClient, mockServer);
 	}
 
-	@SpyBean
+	@MockitoSpyBean
 	private Fabric8SecretsPropertySourceLocator propertySourceLocator;
 
 	@BeforeEach
