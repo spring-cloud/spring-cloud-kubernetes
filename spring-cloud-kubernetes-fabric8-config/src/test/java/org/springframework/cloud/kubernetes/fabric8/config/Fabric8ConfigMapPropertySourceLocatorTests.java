@@ -65,7 +65,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-				Map.of(), true, name, namespace, false, true, true, RetryProperties.DEFAULT);
+				Map.of(), true, name, namespace, false, true, true, RetryProperties.DEFAULT, true);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -83,7 +83,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
+				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT, true);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));

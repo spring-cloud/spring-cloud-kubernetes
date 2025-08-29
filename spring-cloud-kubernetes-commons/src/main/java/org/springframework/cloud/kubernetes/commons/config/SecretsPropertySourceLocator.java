@@ -90,7 +90,8 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 			if (this.properties.enableApi()) {
 				uniqueSources.forEach(s -> {
-					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(env, s);
+					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(env, s,
+							properties.namespacedBatchRead());
 
 					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
 						LOG.warn("Failed to load source: " + s);
@@ -102,7 +103,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				});
 			}
 
-			cache.discardAll();
+			cache.discardSecrets();
 			return composite;
 		}
 		return null;
@@ -114,13 +115,13 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	}
 
 	private SecretsPropertySource getSecretsPropertySourceForSingleSecret(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource) {
+			NormalizedSource normalizedSource, boolean namespacedBatchRead) {
 
-		return getPropertySource(environment, normalizedSource);
+		return getPropertySource(environment, normalizedSource, namespacedBatchRead);
 	}
 
 	protected abstract SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource);
+			NormalizedSource normalizedSource, boolean namespacedBatchRead);
 
 	protected void putPathConfig(CompositePropertySource composite) {
 

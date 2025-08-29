@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
-class LabeledConfigMapContextToSourceDataProviderTests {
+class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
+
+	private static final boolean NAMESPACED_BATCH_READ = true;
 
 	private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
@@ -87,7 +90,12 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
-		new KubernetesClientConfigMapsCache().discardAll();
+		new KubernetesClientSourcesNamespaceBatched().discardConfigMaps();
+	}
+
+	@AfterAll
+	static void afterAll() {
+		WireMock.shutdownServer();
 	}
 
 	/**
@@ -111,7 +119,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, LABELS, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -161,7 +169,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -193,7 +201,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -226,7 +234,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		String wrongNamespace = NAMESPACE + "nope";
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(wrongNamespace, LABELS, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -258,7 +266,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		ConfigUtils.Prefix mePrefix = ConfigUtils.findPrefix("me", false, false, "irrelevant");
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, mePrefix, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -304,7 +312,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DELAYED, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -357,7 +365,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -396,7 +404,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -409,9 +417,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
-	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
-	 * find one configmap. Since profiles are enabled, we will also be reading
-	 * "color-configmap-k8s", even if its labels do not match provided ones.
+	 * "color-configmap-k8s" with label: "{color:blue}". We search by "{color:blue}" and
+	 * find them both.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
@@ -426,7 +433,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
-				.withLabels(RED_LABEL)
+				.withLabels(BLUE_LABEL)
 				.withNamespace(NAMESPACE)
 				.build())
 			.addToData("two", "2")
@@ -437,11 +444,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DELAYED, true);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -491,7 +498,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		V1ConfigMap colorConfigmapK8s = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
-				.withLabels(RED_LABEL)
+				.withLabels(BLUE_LABEL)
 				.withNamespace(NAMESPACE)
 				.build())
 			.addToData("four", "4")
@@ -499,7 +506,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		V1ConfigMap shapeConfigmapK8s = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap-k8s")
-				.withLabels(Map.of("shape", "triangle"))
+				.withLabels(BLUE_LABEL)
 				.withNamespace(NAMESPACE)
 				.build())
 			.addToData("five", "5")
@@ -514,11 +521,11 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DELAYED, true);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				false, NAMESPACED_BATCH_READ);
 
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -569,7 +576,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource redSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "red"), false,
 				ConfigUtils.Prefix.DEFAULT, false);
 		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData redData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
@@ -581,7 +588,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		NormalizedSource greenSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 				ConfigUtils.Prefix.DEFAULT, false);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), false, NAMESPACED_BATCH_READ);
 		KubernetesClientContextToSourceData greenData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 

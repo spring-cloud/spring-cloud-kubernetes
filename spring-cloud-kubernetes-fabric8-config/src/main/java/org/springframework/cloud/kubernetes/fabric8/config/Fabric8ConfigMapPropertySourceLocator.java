@@ -45,19 +45,20 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 
 	Fabric8ConfigMapPropertySourceLocator(KubernetesClient client, ConfigMapConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
-		super(properties, new Fabric8ConfigMapsCache());
+		super(properties, new Fabric8SourcesNamespaceBatched());
 		this.client = client;
 		this.provider = provider;
 	}
 
 	@Override
 	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
-			ConfigurableEnvironment environment) {
+			ConfigurableEnvironment environment, boolean namespacedBatchRead) {
 		// NormalizedSource has a namespace, but users can skip it.
 		// In such cases we try to get it elsewhere
 		String namespace = getApplicationNamespace(this.client, normalizedSource.namespace().orElse(null),
 				normalizedSource.target(), provider);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment,
+				namespacedBatchRead);
 		return new Fabric8ConfigMapPropertySource(context);
 	}
 

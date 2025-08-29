@@ -53,7 +53,7 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Fabric8Co
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
 					return Fabric8ConfigUtils.secretsDataByName(context.client(), context.namespace(), sourceNames,
-							context.environment());
+							context.environment(), context.namespacedBatchRead());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
 					source.failFast(), context.namespace(), context.environment().getActiveProfiles());

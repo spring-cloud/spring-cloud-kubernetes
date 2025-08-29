@@ -46,6 +46,7 @@ class ConfigMapConfigPropertiesBindingTests {
 			Assertions.assertThat(props.useNameAsPrefix()).isFalse();
 			Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
 			Assertions.assertThat(props.failFast()).isFalse();
+			Assertions.assertThat(props.namespacedBatchRead()).isTrue();
 
 			Assertions.assertThat(props.retry()).isNotNull();
 			Assertions.assertThat(props.retry().initialInterval()).isEqualTo(1000L);
@@ -53,6 +54,7 @@ class ConfigMapConfigPropertiesBindingTests {
 			Assertions.assertThat(props.retry().maxInterval()).isEqualTo(2000L);
 			Assertions.assertThat(props.retry().maxAttempts()).isEqualTo(6);
 			Assertions.assertThat(props.retry().enabled()).isTrue();
+
 		});
 	}
 
@@ -77,7 +79,8 @@ class ConfigMapConfigPropertiesBindingTests {
 					"spring.cloud.kubernetes.config.retry.multiplier=1.2",
 					"spring.cloud.kubernetes.config.retry.max-interval=3",
 					"spring.cloud.kubernetes.config.retry.max-attempts=4",
-					"spring.cloud.kubernetes.config.retry.enabled=false")
+					"spring.cloud.kubernetes.config.retry.enabled=false",
+					"spring.cloud.kubernetes.config.namespaced-batch-read=false")
 			.run(context -> {
 				ConfigMapConfigProperties props = context.getBean(ConfigMapConfigProperties.class);
 				Assertions.assertThat(props).isNotNull();
@@ -106,6 +109,7 @@ class ConfigMapConfigPropertiesBindingTests {
 				Assertions.assertThat(props.useNameAsPrefix()).isTrue();
 				Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
 				Assertions.assertThat(props.failFast()).isTrue();
+				Assertions.assertThat(props.namespacedBatchRead()).isFalse();
 
 				RetryProperties retryProperties = props.retry();
 				Assertions.assertThat(retryProperties).isNotNull();

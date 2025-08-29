@@ -65,7 +65,7 @@ class Fabric8SecretsPropertySourceLocatorTests {
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
 		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(), true, name, namespace, false, true, true, RetryProperties.DEFAULT);
+				List.of(), true, name, namespace, false, true, true, RetryProperties.DEFAULT, true);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -83,7 +83,7 @@ class Fabric8SecretsPropertySourceLocatorTests {
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
 		SecretsConfigProperties configMapConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT);
+				List.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT, true);
 
 		Fabric8SecretsPropertySourceLocator locator = new Fabric8SecretsPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));

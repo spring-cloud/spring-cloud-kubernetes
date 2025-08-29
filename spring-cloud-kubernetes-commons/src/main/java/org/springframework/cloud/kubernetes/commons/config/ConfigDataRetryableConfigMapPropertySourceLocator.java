@@ -65,8 +65,8 @@ public class ConfigDataRetryableConfigMapPropertySourceLocator extends ConfigMap
 
 	@Override
 	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
-			ConfigurableEnvironment environment) {
-		return configMapPropertySourceLocator.getMapPropertySource(normalizedSource, environment);
+			ConfigurableEnvironment environment, boolean namespacedBatchRead) {
+		return configMapPropertySourceLocator.getMapPropertySource(normalizedSource, environment, namespacedBatchRead);
 	}
 
 	@Override

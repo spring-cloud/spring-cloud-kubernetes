@@ -46,6 +46,7 @@ class SecretsConfigPropertiesBindingTests {
 			Assertions.assertThat(props.useNameAsPrefix()).isFalse();
 			Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
 			Assertions.assertThat(props.failFast()).isFalse();
+			Assertions.assertThat(props.namespacedBatchRead()).isTrue();
 
 			Assertions.assertThat(props.retry()).isNotNull();
 			Assertions.assertThat(props.retry().initialInterval()).isEqualTo(1000L);
@@ -77,7 +78,8 @@ class SecretsConfigPropertiesBindingTests {
 					"spring.cloud.kubernetes.secrets.retry.multiplier=1.2",
 					"spring.cloud.kubernetes.secrets.retry.max-interval=3",
 					"spring.cloud.kubernetes.secrets.retry.max-attempts=4",
-					"spring.cloud.kubernetes.secrets.retry.enabled=false")
+					"spring.cloud.kubernetes.secrets.retry.enabled=false",
+					"spring.cloud.kubernetes.secrets.namespaced-batch-read=false")
 			.run(context -> {
 				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 				Assertions.assertThat(props).isNotNull();
@@ -96,6 +98,7 @@ class SecretsConfigPropertiesBindingTests {
 				Assertions.assertThat(source.explicitPrefix()).isEqualTo("source-prefix");
 				Assertions.assertThat(source.useNameAsPrefix()).isTrue();
 				Assertions.assertThat(source.includeProfileSpecificSources()).isTrue();
+				Assertions.assertThat(props.namespacedBatchRead()).isFalse();
 
 				Assertions.assertThat(props.labels().size()).isEqualTo(1);
 				Assertions.assertThat(props.labels().get("label-a")).isEqualTo("label-a");
