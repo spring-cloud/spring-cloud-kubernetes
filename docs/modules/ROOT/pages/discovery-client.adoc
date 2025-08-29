@@ -48,7 +48,7 @@ HTTP Based `DiscoveryClient`
 ====
 
 NOTE: `spring-cloud-starter-kubernetes-discoveryclient` is designed to be used with the
-<<spring-cloud-kubernetes-discoveryserver, Spring Cloud Kubernetes DiscoveryServer>>.
+xref:spring-cloud-kubernetes-discoveryserver.adoc[Spring Cloud Kubernetes DiscoveryServer].
 
 To enable loading of the `DiscoveryClient`, add `@EnableDiscoveryClient` to the according configuration or application class, as the following example shows:
 

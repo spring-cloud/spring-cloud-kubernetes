@@ -20,12 +20,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for endpoints based catalog watch
@@ -234,6 +237,32 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 				List.of(new EndpointNameAndNamespace("podB", "namespaceA"),
 						new EndpointNameAndNamespace("podD", "namespaceB"),
 						new EndpointNameAndNamespace("podF", "namespaceB")));
+	}
+
+	@Test
+	@Override
+	void testWithoutSubsetsOrEndpoints() {
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA"),
+				Map.of("color", "blue"), ENDPOINT_SLICES);
+
+		endpointsWithoutSubsets("namespaceA", Map.of("color", "blue"), "podA");
+		// we do not fail here, even if Subsets are not present
+		invokeAndAssert(watch, List.of());
+	}
+
+	@Test
+	void generateStateEndpointsWithoutSubsets() {
+
+		Fabric8EndpointsCatalogWatch catalogWatch = new Fabric8EndpointsCatalogWatch();
+
+		// though we set it to null here, the mock client when creating it
+		// will set it to an empty list. I will keep it like this, may be client changes
+		// in the future and we have the case still covered by a test
+		Endpoints endpoints = endpointsWithoutSubsets("c", Map.of(), "d");
+
+		// we do not fail, even if Subsets are not present
+		List<EndpointNameAndNamespace> result = catalogWatch.generateState(List.of(endpoints));
+		assertThat(result).isEmpty();
 	}
 
 	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649

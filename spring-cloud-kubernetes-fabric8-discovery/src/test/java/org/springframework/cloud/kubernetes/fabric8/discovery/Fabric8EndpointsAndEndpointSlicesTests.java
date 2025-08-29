@@ -235,8 +235,23 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	 */
 	abstract void testTwoNamespacesOutOfThree();
 
+<<<<<<< HEAD
 	Fabric8KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels,
 			Set<String> namespaces, boolean endpointSlices) {
+=======
+	/**
+	 * <pre>
+	 *      - in the old API (plain Endpoints), tests that subsets are missing
+	 *        and we do not fail.
+	 *      - in the new API (EndpointSlices), tests that Endpoints are missing
+	 *        and we do not fail.
+	 * </pre>
+	 */
+	abstract void testWithoutSubsetsOrEndpoints();
+
+	KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels, Set<String> namespaces,
+			boolean endpointSlices) {
+>>>>>>> main
 
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
@@ -312,6 +327,21 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
+	Endpoints endpointsWithoutSubsets(String namespace, Map<String, String> labels, String podName) {
+
+		// though we set it to null here, the mock client when creating it
+		// will set it to an empty list. I will keep it like this, may be client changes
+		// in the future and we have the case still covered by a test
+		List<EndpointSubset> endpointSubsets = null;
+
+		Endpoints endpoints = new EndpointsBuilder()
+			.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
+			.withSubsets(endpointSubsets)
+			.build();
+		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
+		return endpoints;
+	}
+
 	void service(String namespace, Map<String, String> labels, String podName) {
 
 		Service service = new ServiceBuilder()
@@ -338,7 +368,28 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 	}
 
+<<<<<<< HEAD
 	static void invokeAndAssert(Fabric8KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
+=======
+	static EndpointSlice endpointSliceWithoutEndpoints(String namespace, Map<String, String> labels, String podName) {
+
+		List<Endpoint> endpoints = null;
+
+		EndpointSlice slice = new EndpointSliceBuilder()
+			.withMetadata(new ObjectMetaBuilder().withNamespace(namespace)
+				.withName("slice-" + podName)
+				.withLabels(labels)
+				.build())
+			.withEndpoints(endpoints)
+			.build();
+
+		mockClient().discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
+		return slice;
+
+	}
+
+	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
+>>>>>>> main
 		watch.catalogServicesWatch();
 
 		verify(APPLICATION_EVENT_PUBLISHER, Mockito.atLeastOnce())

@@ -56,4 +56,9 @@ final class Fabric8KubernetesReactiveDiscoveryClient implements ReactiveDiscover
 			.subscribeOn(Schedulers.boundedElastic());
 	}
 
+	@Override
+	public int getOrder() {
+		return fabric8KubernetesDiscoveryClient.getOrder();
+	}
+
 }

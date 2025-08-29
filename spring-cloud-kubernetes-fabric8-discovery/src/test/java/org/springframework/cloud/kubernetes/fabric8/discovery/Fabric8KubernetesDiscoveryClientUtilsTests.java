@@ -107,7 +107,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 0);
+		Assertions.assertThat(addresses).isEmpty();
 	}
 
 	/**
@@ -126,7 +126,7 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 					new EndpointAddressBuilder().withHostname("two").build())
 			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 2);
+		Assertions.assertThat(addresses.size()).isEqualTo(2);
 	}
 
 	/**
@@ -146,9 +146,9 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
 			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 2);
+		Assertions.assertThat(addresses.size()).isEqualTo(2);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
-		Assertions.assertEquals(hostNames, List.of("one", "two"));
+		Assertions.assertThat(hostNames).containsExactlyInAnyOrder("one", "two");
 	}
 
 	/**
@@ -168,9 +168,9 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
 			.build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
-		Assertions.assertEquals(addresses.size(), 3);
+		Assertions.assertThat(addresses.size()).isEqualTo(3);
 		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
-		Assertions.assertEquals(hostNames, List.of("one", "three", "two"));
+		Assertions.assertThat(hostNames).containsExactlyInAnyOrder("one", "three", "two");
 	}
 
 	/*

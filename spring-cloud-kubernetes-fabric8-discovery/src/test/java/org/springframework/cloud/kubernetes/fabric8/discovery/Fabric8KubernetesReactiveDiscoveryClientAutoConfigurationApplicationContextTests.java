@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,7 +146,7 @@ class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContex
 
 	@Test
 	void healthEnabledClassNotPresent() {
-		setupWithFilteredClassLoader("org.springframework.boot.actuate.health.ReactiveHealthIndicator",
+		setupWithFilteredClassLoader("org.springframework.boot.health.contributor.ReactiveHealthIndicator",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner
