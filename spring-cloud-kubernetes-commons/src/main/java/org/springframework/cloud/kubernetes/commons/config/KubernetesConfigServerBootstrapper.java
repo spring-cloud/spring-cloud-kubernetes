@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,22 +38,10 @@ public abstract class KubernetesConfigServerBootstrapper implements BootstrapReg
 		return !ClassUtils.isPresent("org.springframework.cloud.config.client.ConfigServerInstanceProvider", null);
 	}
 
-	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(Binder binder,
-			BindHandler bindHandler) {
-		return binder
-			.bind(KubernetesDiscoveryProperties.PREFIX, Bindable.of(KubernetesDiscoveryProperties.class), bindHandler)
-			.orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
-	}
-
 	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(BootstrapContext bootstrapContext) {
 		PropertyResolver propertyResolver = getPropertyResolver(bootstrapContext);
 		return propertyResolver.resolveConfigurationProperties(KubernetesDiscoveryProperties.PREFIX,
 				KubernetesDiscoveryProperties.class, () -> KubernetesDiscoveryProperties.DEFAULT);
-	}
-
-	public static KubernetesClientProperties createKubernetesClientProperties(Binder binder, BindHandler bindHandler) {
-		return binder.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
-			.withNamespace(new KubernetesNamespaceProvider(binder, bindHandler).getNamespace());
 	}
 
 	public static KubernetesClientProperties createKubernetesClientProperties(BootstrapContext bootstrapContext) {
