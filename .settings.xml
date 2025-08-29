@@ -47,6 +47,10 @@
 			</repositories>
 			<pluginRepositories>
 				<pluginRepository>
+					<id>central</id>
+					<url>https://repo1.maven.org/maven2/</url>
+				</pluginRepository>
+				<pluginRepository>
 					<id>spring-snapshots</id>
 					<name>Spring Snapshots</name>
 					<url>https://repo.spring.io/snapshot</url>
