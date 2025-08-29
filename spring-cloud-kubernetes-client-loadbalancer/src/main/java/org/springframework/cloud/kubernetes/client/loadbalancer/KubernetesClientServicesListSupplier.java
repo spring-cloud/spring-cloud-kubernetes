@@ -57,32 +57,34 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
-		List<ServiceInstance> result = new ArrayList<>();
-		String serviceName = getServiceId();
-		LOG.debug(() -> "serviceID : " + serviceName);
+		return Flux.defer(() -> {
+			List<ServiceInstance> result = new ArrayList<>();
+			String serviceName = getServiceId();
+			LOG.debug(() -> "serviceID : " + serviceName);
 
-		if (discoveryProperties.allNamespaces()) {
-			LOG.debug(() -> "discovering services in all namespaces");
-			List<V1Service> services = services(null, serviceName);
-			services.forEach(service -> addMappedService(mapper, result, service));
-		}
-		else if (!discoveryProperties.namespaces().isEmpty()) {
-			List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
-			LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
-			selectiveNamespaces.forEach(selectiveNamespace -> {
-				List<V1Service> services = services(selectiveNamespace, serviceName);
+			if (discoveryProperties.allNamespaces()) {
+				LOG.debug(() -> "discovering services in all namespaces");
+				List<V1Service> services = services(null, serviceName);
 				services.forEach(service -> addMappedService(mapper, result, service));
-			});
-		}
-		else {
-			String namespace = getApplicationNamespace(null, "loadbalancer-service", kubernetesNamespaceProvider);
-			LOG.debug(() -> "discovering services in namespace : " + namespace);
-			List<V1Service> services = services(namespace, serviceName);
-			services.forEach(service -> addMappedService(mapper, result, service));
-		}
+			}
+			else if (!discoveryProperties.namespaces().isEmpty()) {
+				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
+				LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
+				selectiveNamespaces.forEach(selectiveNamespace -> {
+					List<V1Service> services = services(selectiveNamespace, serviceName);
+					services.forEach(service -> addMappedService(mapper, result, service));
+				});
+			}
+			else {
+				String namespace = getApplicationNamespace(null, "loadbalancer-service", kubernetesNamespaceProvider);
+				LOG.debug(() -> "discovering services in namespace : " + namespace);
+				List<V1Service> services = services(namespace, serviceName);
+				services.forEach(service -> addMappedService(mapper, result, service));
+			}
 
-		LOG.debug(() -> "found services : " + result);
-		return Flux.just(result);
+			LOG.debug(() -> "found services : " + result);
+			return Flux.just(result);
+		});
 	}
 
 	private void addMappedService(KubernetesServiceInstanceMapper<V1Service> mapper, List<ServiceInstance> services,

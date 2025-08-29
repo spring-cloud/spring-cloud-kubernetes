@@ -57,51 +57,53 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
-		List<ServiceInstance> result = new ArrayList<>();
-		String serviceName = getServiceId();
-		LOG.debug(() -> "serviceID : " + serviceName);
+		return Flux.defer(() -> {
+			List<ServiceInstance> result = new ArrayList<>();
+			String serviceName = getServiceId();
+			LOG.debug(() -> "serviceID : " + serviceName);
 
-		if (discoveryProperties.allNamespaces()) {
-			LOG.debug(() -> "discovering services in all namespaces");
-			List<Service> services = kubernetesClient.services()
-				.inAnyNamespace()
-				.withField("metadata.name", serviceName)
-				.list()
-				.getItems();
-			services.forEach(service -> addMappedService(mapper, result, service));
-		}
-		else if (!discoveryProperties.namespaces().isEmpty()) {
-			List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
-			LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
-			selectiveNamespaces.forEach(selectiveNamespace -> {
-				Service service = kubernetesClient.services()
-					.inNamespace(selectiveNamespace)
-					.withName(serviceName)
-					.get();
+			if (discoveryProperties.allNamespaces()) {
+				LOG.debug(() -> "discovering services in all namespaces");
+				List<Service> services = kubernetesClient.services()
+					.inAnyNamespace()
+					.withField("metadata.name", serviceName)
+					.list()
+					.getItems();
+				services.forEach(service -> addMappedService(mapper, result, service));
+			}
+			else if (!discoveryProperties.namespaces().isEmpty()) {
+				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
+				LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
+				selectiveNamespaces.forEach(selectiveNamespace -> {
+					Service service = kubernetesClient.services()
+						.inNamespace(selectiveNamespace)
+						.withName(serviceName)
+						.get();
+					if (service != null) {
+						addMappedService(mapper, result, service);
+					}
+					else {
+						LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
+								+ selectiveNamespace);
+					}
+				});
+			}
+			else {
+				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
+						namespaceProvider);
+				LOG.debug(() -> "discovering services in namespace : " + namespace);
+				Service service = kubernetesClient.services().inNamespace(namespace).withName(serviceName).get();
 				if (service != null) {
 					addMappedService(mapper, result, service);
 				}
 				else {
-					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
-							+ selectiveNamespace);
+					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : " + namespace);
 				}
-			});
-		}
-		else {
-			String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
-					namespaceProvider);
-			LOG.debug(() -> "discovering services in namespace : " + namespace);
-			Service service = kubernetesClient.services().inNamespace(namespace).withName(serviceName).get();
-			if (service != null) {
-				addMappedService(mapper, result, service);
 			}
-			else {
-				LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : " + namespace);
-			}
-		}
 
-		LOG.debug(() -> "found services : " + result);
-		return Flux.just(result);
+			LOG.debug(() -> "found services : " + result);
+			return Flux.just(result);
+		});
 	}
 
 	private void addMappedService(KubernetesServiceInstanceMapper<Service> mapper, List<ServiceInstance> services,
