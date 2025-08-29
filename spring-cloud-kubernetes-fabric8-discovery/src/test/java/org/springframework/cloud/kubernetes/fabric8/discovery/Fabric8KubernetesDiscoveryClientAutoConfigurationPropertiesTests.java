@@ -39,50 +39,51 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * @author Oleg Vyukov
+ * @author Ryan Dawson
  * @author Tim Ysewyn
  */
-class KubernetesCatalogServicesWatchConfigurationTest {
+class Fabric8KubernetesDiscoveryClientAutoConfigurationPropertiesTests {
 
 	private ConfigurableApplicationContext context;
 
 	@AfterEach
-	void close() {
+	void afterEach() {
 		if (context != null) {
 			context.close();
 		}
 	}
 
 	@Test
-	void kubernetesCatalogWatchDisabled() {
-		setup("spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
-		assertThat(context.containsBean("kubernetesCatalogWatch")).isFalse();
+	void kubernetesDiscoveryDisabled() {
+		setup("spring.cloud.kubernetes.discovery.enabled=false",
+				"spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false");
+		assertThat(context.getBeanNamesForType(Fabric8KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
-	void kubernetesCatalogWatchWhenKubernetesDisabled() {
+	void kubernetesDiscoveryWhenKubernetesDisabled() {
 		setup();
-		assertThat(context.containsBean("kubernetesCatalogWatch")).isFalse();
+		assertThat(context.getBeanNamesForType(Fabric8KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
-	void kubernetesCatalogWatchWhenServiceDiscoveryDisabled() {
+	void kubernetesDiscoveryWhenDiscoveryDisabled() {
 		setup("spring.cloud.discovery.enabled=false");
-		assertThat(context.containsBean("kubernetesCatalogWatch")).isFalse();
+		assertThat(context.getBeanNamesForType(Fabric8KubernetesDiscoveryClient.class)).isEmpty();
 	}
 
 	@Test
-	void kubernetesCatalogWatchDefaultEnabled() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.use-endpoint-slices=false");
-		assertThat(context.containsBean("kubernetesCatalogWatch")).isTrue();
+	void kubernetesDiscoveryDefaultEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES");
+		assertThat(context.getBeanNamesForType(Fabric8KubernetesDiscoveryClient.class)).hasSize(1);
 	}
 
 	private void setup(String... env) {
 		List<String> envList = new ArrayList<>(Arrays.asList(env));
 		envList.add("spring.cloud.config.enabled=false");
 		context = new SpringApplicationBuilder(PropertyPlaceholderAutoConfiguration.class,
-				KubernetesClientTestConfiguration.class, KubernetesCatalogWatchAutoConfiguration.class,
-				KubernetesDiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class)
+				KubernetesClientTestConfiguration.class, Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+				KubernetesDiscoveryPropertiesAutoConfiguration.class, Fabric8DiscoveryClientSpelAutoConfiguration.class)
 			.web(WebApplicationType.NONE)
 			.properties(envList.toArray(new String[0]))
 			.run();

@@ -30,11 +30,11 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test various conditionals for {@link KubernetesDiscoveryClientAutoConfiguration}
+ * Test various conditionals for {@link Fabric8KubernetesDiscoveryClientAutoConfiguration}
  *
  * @author wind57
  */
-class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
+class Fabric8KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 
 	private ApplicationContextRunner applicationContextRunner;
 
@@ -42,8 +42,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -53,8 +52,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=true");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -64,8 +62,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).doesNotHaveBean(KubernetesClientServicesFunction.class);
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -75,8 +72,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=true");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -86,8 +82,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).doesNotHaveBean(KubernetesClientServicesFunction.class);
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -97,8 +92,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=true");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -108,8 +102,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).doesNotHaveBean(KubernetesClientServicesFunction.class);
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -119,8 +112,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=true");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -130,8 +122,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -141,8 +132,7 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
@@ -155,25 +145,26 @@ class KubernetesDiscoveryClientAutoConfigurationApplicationContextTests {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.reactive.enabled=false");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientServicesFunction.class);
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8KubernetesDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 		});
 	}
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-					KubernetesDiscoveryPropertiesAutoConfiguration.class))
+					KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-					KubernetesDiscoveryPropertiesAutoConfiguration.class))
+					KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					Fabric8DiscoveryClientSpelAutoConfiguration.class))
 			.withClassLoader(new FilteredClassLoader(cls))
 			.withPropertyValues(properties);
 	}

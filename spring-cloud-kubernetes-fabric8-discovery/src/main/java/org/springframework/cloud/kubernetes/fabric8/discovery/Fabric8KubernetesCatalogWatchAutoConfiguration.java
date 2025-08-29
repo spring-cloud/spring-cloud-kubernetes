@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +37,13 @@ import org.springframework.core.env.Environment;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesCatalogWatcherEnabled
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesCatalogWatchAutoConfiguration {
+public class Fabric8KubernetesCatalogWatchAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client,
+	Fabric8KubernetesCatalogWatch kubernetesCatalogWatch(KubernetesClient client,
 			KubernetesDiscoveryProperties properties, Environment environment) {
-		return new KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
+		return new Fabric8KubernetesCatalogWatch(client, properties, new KubernetesNamespaceProvider(environment));
 	}
 
 }

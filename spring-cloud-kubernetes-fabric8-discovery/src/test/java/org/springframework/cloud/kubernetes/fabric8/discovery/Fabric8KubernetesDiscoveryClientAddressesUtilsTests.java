@@ -32,7 +32,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 /**
  * @author wind57
  */
-class KubernetesDiscoveryClientUtilsTests {
+class Fabric8KubernetesDiscoveryClientAddressesUtilsTests {
 
 	/**
 	 * <pre>

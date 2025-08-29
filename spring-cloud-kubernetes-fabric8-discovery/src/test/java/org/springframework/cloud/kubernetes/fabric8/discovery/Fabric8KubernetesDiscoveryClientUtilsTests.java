@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.EndpointAddress;
+import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
@@ -31,7 +33,9 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.mock.env.MockEnvironment;
@@ -42,6 +46,7 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Kube
 /**
  * @author wind57
  */
+@ExtendWith(OutputCaptureExtension.class)
 @EnableKubernetesMockClient(crud = true, https = false)
 class Fabric8KubernetesDiscoveryClientUtilsTests {
 
@@ -52,13 +57,9 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 		client.services().inAnyNamespace().delete();
 	}
 
-	/**
-	 * <pre>
-	 *     - all-namespaces = true
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "B"
-	 *     - no filters are applied, so both are present
-	 * </pre>
+	/*
+	 * <pre> - all-namespaces = true - serviceA present in namespace "A" - serviceB
+	 * present in namespace "B" - no filters are applied, so both are present </pre>
 	 */
 	@Test
 	void testServicesAllNamespacesNoFilters() {
@@ -74,13 +75,10 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 			.containsExactlyInAnyOrder("serviceA", "serviceB");
 	}
 
-	/**
-	 * <pre>
-	 *     - all-namespaces = true
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "B"
-	 *     - we search only for "serviceA" filter, so only one is returned
-	 * </pre>
+	/*
+	 * <pre> - all-namespaces = true - serviceA present in namespace "A" - serviceB
+	 * present in namespace "B" - we search only for "serviceA" filter, so only one is
+	 * returned </pre>
 	 */
 	@Test
 	void testServicesAllNamespacesNameFilter() {
@@ -98,11 +96,87 @@ class Fabric8KubernetesDiscoveryClientUtilsTests {
 
 	/**
 	 * <pre>
-	 *     - all-namespaces = true
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "B"
-	 *     - we search with a filter where a label with name "letter" and value "b" is present
+	 *      - ready addresses are empty
+	 *      - not ready addresses are not included
 	 * </pre>
+	 */
+	@Test
+	void testEmptyAddresses() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertThat(addresses).isEmpty();
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses are not included
+	 * </pre>
+	 */
+	@Test
+	void testReadyAddressesOnly() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+					new EndpointAddressBuilder().withHostname("two").build())
+			.build();
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertThat(addresses.size()).isEqualTo(2);
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses has a single entry, but we do not take it
+	 * </pre>
+	 */
+	@Test
+	void testReadyAddressesTakenNotReadyAddressesNotTaken() {
+		boolean includeNotReadyAddresses = false;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+					new EndpointAddressBuilder().withHostname("two").build())
+			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
+			.build();
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertThat(addresses.size()).isEqualTo(2);
+		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
+		Assertions.assertThat(hostNames).containsExactlyInAnyOrder("one", "two");
+	}
+
+	/**
+	 * <pre>
+	 *      - ready addresses has two entries
+	 *      - not ready addresses has a single entry, but we do not take it
+	 * </pre>
+	 */
+	@Test
+	void testBothAddressesTaken() {
+		boolean includeNotReadyAddresses = true;
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
+			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
+					new EndpointAddressBuilder().withHostname("two").build())
+			.withNotReadyAddresses(new EndpointAddressBuilder().withHostname("three").build())
+			.build();
+		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
+		Assertions.assertThat(addresses.size()).isEqualTo(3);
+		List<String> hostNames = addresses.stream().map(EndpointAddress::getHostname).sorted().toList();
+		Assertions.assertThat(hostNames).containsExactlyInAnyOrder("one", "three", "two");
+	}
+
+	/*
+	 * <pre> - all-namespaces = true - serviceA present in namespace "A" - serviceB
+	 * present in namespace "B" - we search with a filter where a label with name "letter"
+	 * and value "b" is present </pre>
 	 */
 	@Test
 	void testServicesAllNamespacesPredicateFilter() {

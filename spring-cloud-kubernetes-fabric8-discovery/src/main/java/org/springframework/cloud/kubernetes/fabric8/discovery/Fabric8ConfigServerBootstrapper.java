@@ -61,8 +61,8 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 			if (!getDiscoveryEnabled(context)) {
 				return (id) -> Collections.emptyList();
 			}
-			if (context.isRegistered(KubernetesDiscoveryClient.class)) {
-				KubernetesDiscoveryClient client = context.get(KubernetesDiscoveryClient.class);
+			if (context.isRegistered(Fabric8KubernetesDiscoveryClient.class)) {
+				Fabric8KubernetesDiscoveryClient client = context.get(Fabric8KubernetesDiscoveryClient.class);
 				return client::getInstances;
 			}
 			else {
@@ -72,12 +72,11 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 					.kubernetesClientConfig(context.get(KubernetesClientProperties.class));
 				KubernetesClient kubernetesClient = fabric8AutoConfiguration.kubernetesClient(config);
 				KubernetesDiscoveryProperties discoveryProperties = context.get(KubernetesDiscoveryProperties.class);
-				KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(kubernetesClient,
-						discoveryProperties,
-						KubernetesClientServicesFunctionProvider.servicesFunction(discoveryProperties,
-								new KubernetesNamespaceProvider(propertyResolver
-									.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null))),
-						null, new ServicePortSecureResolver(discoveryProperties));
+				Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(
+						kubernetesClient, discoveryProperties, new ServicePortSecureResolver(discoveryProperties),
+						new KubernetesNamespaceProvider(propertyResolver
+							.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)),
+						new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(discoveryProperties));
 				return discoveryClient::getInstances;
 			}
 		});

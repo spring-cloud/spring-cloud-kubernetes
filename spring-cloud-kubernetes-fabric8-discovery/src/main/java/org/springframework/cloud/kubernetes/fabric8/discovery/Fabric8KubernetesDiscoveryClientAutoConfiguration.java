@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.function.Predicate;
+
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
@@ -24,6 +27,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
@@ -47,31 +51,26 @@ import org.springframework.core.log.LogAccessor;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
-@AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesDiscoveryClientAutoConfiguration {
+@AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+		Fabric8DiscoveryClientSpelAutoConfiguration.class })
+class Fabric8KubernetesDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesDiscoveryClientAutoConfiguration.class));
+			LogFactory.getLog(Fabric8KubernetesDiscoveryClientAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
-			Environment environment) {
-		return KubernetesClientServicesFunctionProvider.servicesFunction(properties, environment);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-		return new KubernetesDiscoveryClient(client, properties, kubernetesClientServicesFunction, null,
-				new ServicePortSecureResolver(properties));
+	Fabric8KubernetesDiscoveryClient kubernetesDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
+		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+		return new Fabric8KubernetesDiscoveryClient(client, properties, servicePortSecureResolver, namespaceProvider,
+				predicate);
 	}
 
 	@Bean
 	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
-	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);

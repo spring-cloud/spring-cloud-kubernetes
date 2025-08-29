@@ -90,7 +90,7 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
 				true, 60, false, null, Set.of(443, 8443), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false);
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(443).build());
 		Service service = buildService("test", "test-namespace", "abc", ports, null, null);

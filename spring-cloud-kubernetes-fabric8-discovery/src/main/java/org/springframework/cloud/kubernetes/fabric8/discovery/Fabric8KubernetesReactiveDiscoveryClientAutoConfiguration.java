@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery.reactive;
+package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.function.Predicate;
+
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.LogFactory;
 
@@ -29,15 +32,14 @@ import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCom
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunction;
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesClientServicesFunctionProvider;
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,25 +56,22 @@ import org.springframework.core.log.LogAccessor;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesDiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesReactiveDiscoveryClientAutoConfiguration {
+		Fabric8KubernetesDiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+		Fabric8DiscoveryClientSpelAutoConfiguration.class })
+class Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesReactiveDiscoveryClientAutoConfiguration.class));
+			LogFactory.getLog(Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
-			Environment environment) {
-		return KubernetesClientServicesFunctionProvider.servicesFunction(properties, environment);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties properties,
-			KubernetesClientServicesFunction kubernetesClientServicesFunction) {
-		return new KubernetesReactiveDiscoveryClient(client, properties, kubernetesClientServicesFunction);
+	Fabric8KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
+		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+		Fabric8KubernetesDiscoveryClient fabric8KubernetesDiscoveryClient = new Fabric8KubernetesDiscoveryClient(client,
+				properties, servicePortSecureResolver, namespaceProvider, predicate);
+		return new Fabric8KubernetesReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 	}
 
 	/**
@@ -89,8 +88,8 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
-	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
+	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
+			Fabric8KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
 

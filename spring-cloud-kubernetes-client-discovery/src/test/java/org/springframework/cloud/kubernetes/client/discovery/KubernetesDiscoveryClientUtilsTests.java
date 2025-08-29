@@ -68,7 +68,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testEmptyServiceLabelsFromService(CapturedOutput output) {
 		Map<String, String> propertiesLabels = Map.of("key", "value");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false);
 		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
@@ -89,7 +89,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = Map.of("a", "b");
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();
@@ -113,7 +113,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();
@@ -137,7 +137,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
 		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();
@@ -161,7 +161,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = Map.of("a", "b");
 		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();

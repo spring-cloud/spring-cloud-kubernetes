@@ -700,7 +700,7 @@ class KubernetesInformerDiscoveryClientTests {
 
 	private static KubernetesDiscoveryProperties properties(boolean allNamespaces, Map<String, String> labels) {
 		return new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(), true, 60, false, null, Set.of(),
-				labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false);
 	}
 
 }

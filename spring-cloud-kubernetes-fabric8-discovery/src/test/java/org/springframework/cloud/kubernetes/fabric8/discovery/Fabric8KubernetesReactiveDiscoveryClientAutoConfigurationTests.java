@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery.reactive;
+package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,28 +28,29 @@ import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.discovery.KubernetesDiscoveryClientAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Tim Ysewyn
  */
-class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
+class Fabric8KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,
 				ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-				Fabric8AutoConfiguration.class, KubernetesDiscoveryClientAutoConfiguration.class,
-				KubernetesReactiveDiscoveryClientAutoConfiguration.class,
+				Fabric8AutoConfiguration.class, Fabric8KubernetesDiscoveryClientAutoConfiguration.class,
+				Fabric8KubernetesReactiveDiscoveryClientAutoConfiguration.class,
 				KubernetesDiscoveryPropertiesAutoConfiguration.class));
 
 	@Test
 	void shouldWorkWithDefaults() {
-		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES").run(context -> {
-			assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
-			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
-		});
+		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
+			.run(context -> {
+				assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
+				assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
+			});
 	}
 
 	@Test
@@ -99,7 +100,8 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 	@Test
 	void worksWithoutHealth() {
 		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
-			.withClassLoader(new FilteredClassLoader("org.springframework.boot.health"))
+			.withConfiguration(AutoConfigurations.of(Fabric8DiscoveryClientSpelAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate"))
 			.run(context -> {
 				assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
 				assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);

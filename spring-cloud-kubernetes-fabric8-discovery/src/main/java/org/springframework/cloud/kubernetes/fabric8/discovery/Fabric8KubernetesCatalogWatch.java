@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,21 +43,21 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 /**
  * @author Oleg Vyukov
  */
-public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
+final class Fabric8KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 
 	private static final String DISCOVERY_GROUP_VERSION = DISCOVERY_GROUP + "/" + DISCOVERY_VERSION;
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesCatalogWatch.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8KubernetesCatalogWatch.class));
 
 	private final Fabric8CatalogWatchContext context;
 
 	private Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> stateGenerator;
 
-	private volatile List<EndpointNameAndNamespace> catalogEndpointsState = null;
+	private volatile List<EndpointNameAndNamespace> catalogEndpointsState;
 
 	private ApplicationEventPublisher publisher;
 
-	public KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
+	Fabric8KubernetesCatalogWatch(KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties,
 			KubernetesNamespaceProvider namespaceProvider) {
 		context = new Fabric8CatalogWatchContext(kubernetesClient, properties, namespaceProvider);
 	}
@@ -68,7 +68,7 @@ public class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 	}
 
 	@Scheduled(fixedDelayString = "${" + CATALOG_WATCH_PROPERTY_WITH_DEFAULT_VALUE + "}")
-	public void catalogServicesWatch() {
+	void catalogServicesWatch() {
 		try {
 
 			List<EndpointNameAndNamespace> currentState = stateGenerator.apply(context);
