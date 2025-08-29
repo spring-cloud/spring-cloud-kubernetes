@@ -82,37 +82,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	// visible only for testing and
-	// must be constructor injected in a future release
-	@Autowired
-	CoreV1Api coreV1Api;
-
-	@Deprecated(forRemoval = true)
-	public KubernetesInformerDiscoveryClient(String namespace, SharedInformerFactory sharedInformerFactory,
-			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
-			KubernetesDiscoveryProperties properties) {
-		this.sharedInformerFactories = List.of(sharedInformerFactory);
-		this.serviceListers = List.of(serviceLister);
-		this.endpointsListers = List.of(endpointsLister);
-		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
-		this.properties = properties;
-		filter = filter(properties);
-		servicePortSecureResolver = new ServicePortSecureResolver(properties);
-	}
-
-	public KubernetesInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
-			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
-			KubernetesDiscoveryProperties properties) {
-		this.sharedInformerFactories = List.of(sharedInformerFactory);
-		this.serviceListers = List.of(serviceLister);
-		this.endpointsListers = List.of(endpointsLister);
-		this.informersReadyFunc = () -> serviceInformer.hasSynced() && endpointsInformer.hasSynced();
-		this.properties = properties;
-		filter = filter(properties);
-		servicePortSecureResolver = new ServicePortSecureResolver(properties);
-	}
+	private final CoreV1Api coreV1Api;
 
 	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,

@@ -157,21 +157,6 @@ public final class ConfigUtils {
 		LOG.warn(e.getMessage() + ". Ignoring.", e);
 	}
 
-	/*
-	 * This method will return a SourceData that has a name in the form :
-	 * "configmap.my-configmap.my-configmap-2.namespace" and the "data" from the context
-	 * is appended with prefix. So if incoming is "a=b", the result will be : "prefix.a=b"
-	 */
-	@Deprecated(forRemoval = true)
-	public static SourceData withPrefix(String target, PrefixContext context) {
-		Map<String, Object> withPrefix = CollectionUtils.newHashMap(context.data().size());
-		context.data().forEach((key, value) -> withPrefix.put(context.prefix() + "." + key, value));
-
-		String propertySourceTokens = String.join(PROPERTY_SOURCE_NAME_SEPARATOR,
-				context.propertySourceNames().stream().sorted().collect(Collectors.toCollection(LinkedHashSet::new)));
-		return new SourceData(sourceName(target, propertySourceTokens, context.namespace()), withPrefix);
-	}
-
 	public static String sourceName(String target, String applicationName, String namespace) {
 		return target + PROPERTY_SOURCE_NAME_SEPARATOR + applicationName + PROPERTY_SOURCE_NAME_SEPARATOR + namespace;
 	}

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -96,19 +95,6 @@ public final class PropertySourceUtils {
 				return ABSTAIN;
 			});
 			return yamlFactory.createProperties(source);
-		};
-	}
-
-	/**
-	 * returns a {@link BinaryOperator} that unconditionally throws an
-	 * {@link IllegalStateException}.
-	 * @param <T> type of the argument
-	 * @return a {@link BinaryOperator}
-	 */
-	@Deprecated(forRemoval = true)
-	public static <T> BinaryOperator<T> throwingMerger() {
-		return (left, right) -> {
-			throw new IllegalStateException("Duplicate key " + left);
 		};
 	}
 

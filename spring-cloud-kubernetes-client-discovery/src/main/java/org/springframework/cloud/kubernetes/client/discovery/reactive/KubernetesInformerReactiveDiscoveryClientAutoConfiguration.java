@@ -40,7 +40,6 @@ import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnSelect
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerSelectiveNamespacesAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer;
@@ -70,29 +69,6 @@ public class KubernetesInformerReactiveDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesInformerReactiveDiscoveryClientAutoConfiguration.class));
-
-	@Deprecated(forRemoval = true)
-	public ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			KubernetesInformerReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties,
-			KubernetesClientPodUtils podUtils) {
-		ReactiveDiscoveryClientHealthIndicator healthIndicator = new ReactiveDiscoveryClientHealthIndicator(client,
-				properties);
-		InstanceRegisteredEvent<RegisteredEventSource> event = new InstanceRegisteredEvent<>(
-				new RegisteredEventSource("kubernetes", podUtils.isInsideKubernetes(), podUtils.currentPod().get()),
-				null);
-		healthIndicator.onApplicationEvent(event);
-		return healthIndicator;
-	}
-
-	@Deprecated(forRemoval = true)
-	public KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, SharedInformerFactory sharedInformerFactory,
-			Lister<V1Service> serviceLister, Lister<V1Endpoints> endpointsLister,
-			SharedInformer<V1Service> serviceInformer, SharedInformer<V1Endpoints> endpointsInformer,
-			KubernetesDiscoveryProperties properties) {
-		return new KubernetesInformerReactiveDiscoveryClient(kubernetesNamespaceProvider, sharedInformerFactory,
-				serviceLister, endpointsLister, serviceInformer, endpointsInformer, properties);
-	}
 
 	/**
 	 * Post an event so that health indicator is initialized.

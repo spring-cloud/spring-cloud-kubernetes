@@ -60,20 +60,6 @@ public class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 
 	private final boolean failFast;
 
-	@Deprecated(forRemoval = true)
-	public KubernetesClientPodUtils(CoreV1Api client, String namespace) {
-		if (client == null) {
-			throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
-		}
-
-		this.client = client;
-		this.hostName = EnvReader.getEnv(HOSTNAME);
-		this.serviceHost = EnvReader.getEnv(KUBERNETES_SERVICE_HOST);
-		this.current = LazilyInstantiate.using(this::internalGetPod);
-		this.namespace = namespace;
-		this.failFast = false;
-	}
-
 	// mainly needed for the health and info contributors, so that they report DOWN
 	// correctly
 	public KubernetesClientPodUtils(CoreV1Api client, String namespace, boolean failFast) {
