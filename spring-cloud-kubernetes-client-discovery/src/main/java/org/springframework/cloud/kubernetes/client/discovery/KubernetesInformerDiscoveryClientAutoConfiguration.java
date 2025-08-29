@@ -81,7 +81,7 @@ public class KubernetesInformerDiscoveryClientAutoConfiguration {
 			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties,
 			CoreV1Api coreV1Api) {
 		return new KubernetesInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
-			List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties, coreV1Api);
+				List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties, coreV1Api);
 	}
 
 	@Bean

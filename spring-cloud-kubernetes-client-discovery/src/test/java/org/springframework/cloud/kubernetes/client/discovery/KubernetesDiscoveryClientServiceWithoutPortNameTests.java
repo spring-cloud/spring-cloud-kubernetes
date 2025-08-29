@@ -36,8 +36,8 @@ import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
+
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
@@ -95,8 +95,8 @@ class KubernetesDiscoveryClientServiceWithoutPortNameTests {
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true);
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
-			List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-			List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);

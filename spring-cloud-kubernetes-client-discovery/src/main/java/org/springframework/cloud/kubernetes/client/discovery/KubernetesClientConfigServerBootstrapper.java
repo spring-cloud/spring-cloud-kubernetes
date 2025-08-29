@@ -98,9 +98,9 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 					.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
 				Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsSharedIndexInformer.getIndexer());
 				KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
-					List.of(sharedInformerFactory), List.of(serviceLister), List.of(endpointsLister),
-					List.of(serviceSharedIndexInformer), List.of(endpointsSharedIndexInformer), discoveryProperties,
-					new CoreV1Api(apiClient));
+						List.of(sharedInformerFactory), List.of(serviceLister), List.of(endpointsLister),
+						List.of(serviceSharedIndexInformer), List.of(endpointsSharedIndexInformer), discoveryProperties,
+						new CoreV1Api(apiClient));
 				try {
 					discoveryClient.afterPropertiesSet();
 					return discoveryClient::getInstances;
