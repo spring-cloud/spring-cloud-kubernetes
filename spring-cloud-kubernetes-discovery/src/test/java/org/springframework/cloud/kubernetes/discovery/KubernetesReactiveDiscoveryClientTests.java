@@ -107,7 +107,6 @@ class KubernetesReactiveDiscoveryClientTests {
 
 	@Test
 	void getInstances() {
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
 				wireMockServer.baseUrl());

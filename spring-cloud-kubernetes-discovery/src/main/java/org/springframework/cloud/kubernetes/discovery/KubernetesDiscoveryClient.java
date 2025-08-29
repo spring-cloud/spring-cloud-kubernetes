@@ -42,17 +42,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient {
 
 	private final String discoveryServerUrl;
 
-	@Deprecated(forRemoval = true)
-	public KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryClientProperties properties) {
-		if (!StringUtils.hasText(properties.getDiscoveryServerUrl())) {
-			throw new DiscoveryServerUrlInvalidException();
-		}
-		this.rest = rest;
-		this.emptyNamespaces = properties.getNamespaces().isEmpty();
-		this.namespaces = properties.getNamespaces();
-		this.discoveryServerUrl = properties.getDiscoveryServerUrl();
-	}
-
 	KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
 		if (!StringUtils.hasText(kubernetesDiscoveryProperties.discoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
