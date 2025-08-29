@@ -4,6 +4,12 @@ runs:
   using: "composite"
   steps:
 
+    - name: Disable man-db to make package install and removal faster
+      shell: bash
+      run: |
+        echo 'set man-db/auto-update false' | sudo debconf-communicate >/dev/null
+        sudo dpkg-reconfigure man-db 
+
     - name: Free Disk Space
       uses: jlumbroso/free-disk-space@main
       with:

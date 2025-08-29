@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,7 +49,7 @@ import static org.mockito.Mockito.verify;
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=false" },
-		classes = TestApplication.class)
+		classes = { TestApplication.class, Fabric8ConfigMapPropertySourceLocator.class })
 abstract class ConfigFailFastEnabledButRetryDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps/application";
@@ -69,7 +69,7 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 	}
 
-	@SpyBean
+	@MockitoSpyBean
 	private Fabric8ConfigMapPropertySourceLocator propertySourceLocator;
 
 	@Autowired
