@@ -86,7 +86,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	void testDiscoveryGetServicesAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_ALL, TEST_SERVICE_1, TEST_SERVICE_2,
 				TEST_SERVICE_3);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister();
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null, null, 0, false, false, null);
@@ -105,7 +105,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetServicesOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_1, TEST_SERVICE_1, TEST_SERVICE_2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister();
 
 		KubernetesInformerReactiveDiscoveryClient discoveryClient = new KubernetesInformerReactiveDiscoveryClient(
 				new KubernetesInformerDiscoveryClient(sharedInformerFactory, serviceLister, endpointsLister, null, null,
@@ -121,7 +121,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetInstanceAllNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_ALL, TEST_SERVICE_1, TEST_SERVICE_2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(NAMESPACE_1, TEST_ENDPOINTS_1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(TEST_ENDPOINTS_1);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, true,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
@@ -143,7 +143,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	@Test
 	void testDiscoveryGetInstanceOneNamespaceShouldWork() {
 		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_1, TEST_SERVICE_1, TEST_SERVICE_2);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(NAMESPACE_1, TEST_ENDPOINTS_1);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(TEST_ENDPOINTS_1);
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(), true, 60, false, null, Set.of(), Map.of(), null,
@@ -173,7 +173,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	 */
 	@Test
 	void testAllNamespacesTwoServicesPresent() {
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister();
 
 		boolean allNamespaces = true;
 		V1Service serviceA = new V1Service().metadata(new V1ObjectMeta().name("service-a").namespace("namespace-a"));
@@ -207,7 +207,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 	 */
 	@Test
 	void testSingleNamespaceTwoServicesPresent() {
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister("");
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister();
 
 		boolean allNamespaces = false;
 		V1Service serviceA = new V1Service().metadata(new V1ObjectMeta().name("service-a").namespace("namespace-a"));
@@ -330,6 +330,20 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		Assertions.assertThat(byIp).contains("1.1.1.1");
 	}
 
+	@Test
+	void testOrder() {
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("a", "b"),
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 57, false, true);
+
+		Lister<V1Service> serviceLister = setupServiceLister(NAMESPACE_ALL, TEST_SERVICE_1, TEST_SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(TEST_ENDPOINTS_1);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(sharedInformerFactory,
+				serviceLister, endpointsLister, null, null, properties);
+
+		Assertions.assertThat(discoveryClient.getOrder()).isEqualTo(57);
+	}
+
 	private Lister<V1Service> setupServiceLister(String namespace, V1Service... services) {
 		Lister<V1Service> serviceLister = new Lister<>(serviceCache, namespace);
 		for (V1Service svc : services) {
@@ -338,7 +352,7 @@ class KubernetesInformerReactiveDiscoveryClientTests {
 		return serviceLister;
 	}
 
-	private Lister<V1Endpoints> setupEndpointsLister(String namespace, V1Endpoints... endpoints) {
+	private Lister<V1Endpoints> setupEndpointsLister(V1Endpoints... endpoints) {
 		Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsCache);
 		for (V1Endpoints ep : endpoints) {
 			endpointsCache.add(ep);

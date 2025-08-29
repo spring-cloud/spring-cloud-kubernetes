@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.Mockito.spy;
 
@@ -45,7 +45,7 @@ class ConfigDataConfigRetryEnabledTests extends ConfigRetryEnabled {
 
 	private static KubernetesClient mockClient;
 
-	@MockBean
+	@MockitoBean
 	private KubernetesNamespaceProvider namespaceProvider;
 
 	@BeforeAll

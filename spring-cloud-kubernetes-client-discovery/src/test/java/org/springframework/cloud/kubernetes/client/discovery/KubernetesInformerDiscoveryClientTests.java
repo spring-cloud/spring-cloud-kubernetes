@@ -619,6 +619,20 @@ class KubernetesInformerDiscoveryClientTests {
 		server.shutdown();
 	}
 
+	@Test
+	void testOrder() {
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("a", "b"),
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 57, false, true);
+
+		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
+		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
+
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
+
+		assertThat(discoveryClient.getOrder()).isEqualTo(57);
+	}
+
 	private Lister<V1Service> setupServiceLister(V1Service... services) {
 		Cache<V1Service> serviceCache = new Cache<>();
 		Lister<V1Service> serviceLister = new Lister<>(serviceCache);

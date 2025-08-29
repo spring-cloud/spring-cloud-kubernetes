@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.config.boostrap.stubs.BootstrapKubernetesClientSanitizeEnvEndpointStub.stubData;
+import static org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.BootstrapKubernetesClientSanitizeEnvEndpointStub.stubData;
 
 /**
  * @author wind57
