@@ -44,9 +44,6 @@ abstract class ConfigMapsWithActiveProfilesName {
 
 	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";
 
-	@Autowired(required = false)
-	Config config;
-
 	@Autowired
 	private WebTestClient webClient;
 

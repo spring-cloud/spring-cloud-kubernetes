@@ -25,6 +25,8 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.models.V1EndpointSlice;
+import io.kubernetes.client.openapi.models.V1EndpointSliceList;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -38,6 +40,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test cases for the Endpoint Slices support
@@ -189,6 +192,38 @@ class KubernetesCatalogWatchEndpointSlicesTests extends KubernetesEndpointsAndEn
 				USE_ENDPOINT_SLICES);
 
 		invokeAndAssert(watch, List.of(new EndpointNameAndNamespace("a", "b")));
+	}
+
+	@Test
+	@Override
+	void testWithoutSubsetsOrEndpoints() {
+
+		// even though we set Endpoints here to null, when
+		// deserializing, it will be an empty List.
+		// I'm going to leave the test here in case the client changes in this regard.
+		// 'generateStateEndpointsWithoutEndpoints' test covers the null Subsets anyway
+		V1EndpointSliceList endpointSlices = endpointSlicesNoEndpoints();
+
+		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=key%3Dvalue%2Ckey1%3Dvalue1")
+			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(endpointSlices))));
+		// otherwise the stub might fail
+		LinkedHashMap<String, String> map = new LinkedHashMap<>();
+		map.put("key", "value");
+		map.put("key1", "value1");
+		KubernetesCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", map, null, apiClient,
+				USE_ENDPOINT_SLICES);
+
+		invokeAndAssert(watch, List.of());
+	}
+
+	@Test
+	void generateStateEndpointsWithoutEndpoints() {
+
+		KubernetesEndpointSlicesCatalogWatch catalogWatch = new KubernetesEndpointSlicesCatalogWatch();
+		List<V1EndpointSlice> endpointSlicesNoEndpoints = endpointSlicesNoEndpoints().getItems();
+
+		// even if Endpoints are missing, we do not fail
+		assertThat(catalogWatch.generateState(endpointSlicesNoEndpoints)).isEmpty();
 	}
 
 }
