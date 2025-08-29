@@ -217,7 +217,7 @@ public final class ConfigUtils {
 				}
 			}
 			else {
-				LOG.warn("sourceName : " + sourceName + " was requested, but not found in namespace : " + namespace);
+				LOG.debug("sourceName : " + sourceName + " was requested, but not found in namespace : " + namespace);
 			}
 		});
 

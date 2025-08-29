@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.ReactiveHealthContributorRegistry;
+import org.springframework.boot.health.registry.HealthContributorRegistry;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.web.server.test.LocalManagementPort;
 import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -37,7 +37,7 @@ class ActuatorEnabledHealthTest {
 	private WebTestClient webClient;
 
 	@Autowired
-	private ReactiveHealthContributorRegistry registry;
+	private HealthContributorRegistry registry;
 
 	@LocalManagementPort
 	private int port;
