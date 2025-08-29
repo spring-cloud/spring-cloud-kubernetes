@@ -30,7 +30,8 @@ If it is needed to explicitly enable or disable this awareness, use `spring.main
 
 - Another breaking change is the additional `list` verb needed for loading configmaps/secrets. For example:
 
-```
+[source,yaml]
+----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -39,7 +40,7 @@ rules:
   - apiGroups: ["", "extensions", "apps", "discovery.k8s.io"]
     resources: ["configmaps", "pods", "services", "endpoints", "secrets", "endpointslices"]
     verbs: ["get", "list", "watch"]
-```
+----
 
 [[kubernetes-profile-autoconfiguration]]
 == Kubernetes Profile Autoconfiguration
