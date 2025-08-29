@@ -635,8 +635,8 @@ class Fabric8KubernetesDiscoveryClientTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60L,
 				false, "", Set.of(), Map.of(), "", null, 57, false);
 
-		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(
-			client, properties, null, null, null);
+		Fabric8KubernetesDiscoveryClient discoveryClient = new Fabric8KubernetesDiscoveryClient(client, properties,
+				null, null, null);
 
 		Assertions.assertThat(discoveryClient.getOrder()).isEqualTo(57);
 	}

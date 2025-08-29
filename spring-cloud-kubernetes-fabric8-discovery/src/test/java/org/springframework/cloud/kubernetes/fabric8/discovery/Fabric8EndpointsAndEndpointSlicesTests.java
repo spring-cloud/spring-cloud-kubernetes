@@ -235,10 +235,6 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	 */
 	abstract void testTwoNamespacesOutOfThree();
 
-<<<<<<< HEAD
-	Fabric8KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels,
-			Set<String> namespaces, boolean endpointSlices) {
-=======
 	/**
 	 * <pre>
 	 *      - in the old API (plain Endpoints), tests that subsets are missing
@@ -249,9 +245,8 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	 */
 	abstract void testWithoutSubsetsOrEndpoints();
 
-	KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels, Set<String> namespaces,
-			boolean endpointSlices) {
->>>>>>> main
+	Fabric8KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels,
+			Set<String> namespaces, boolean endpointSlices) {
 
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
@@ -368,9 +363,6 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 	}
 
-<<<<<<< HEAD
-	static void invokeAndAssert(Fabric8KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
-=======
 	static EndpointSlice endpointSliceWithoutEndpoints(String namespace, Map<String, String> labels, String podName) {
 
 		List<Endpoint> endpoints = null;
@@ -388,8 +380,8 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 	}
 
-	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
->>>>>>> main
+	static void invokeAndAssert(Fabric8KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
+
 		watch.catalogServicesWatch();
 
 		verify(APPLICATION_EVENT_PUBLISHER, Mockito.atLeastOnce())

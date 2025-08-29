@@ -185,7 +185,7 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 	@Test
 	@Override
 	void testWithoutSubsetsOrEndpoints() {
-		KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA"),
+		Fabric8KubernetesCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("namespaceA"),
 				Map.of("color", "blue"), ENDPOINT_SLICES);
 
 		endpointSliceWithoutEndpoints("namespaceA", Map.of("color", "blue"), "podA");
