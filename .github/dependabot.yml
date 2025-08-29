@@ -15,23 +15,12 @@ updates:
     schedule:
       interval: daily
     target-branch: main
-    ignore:
-      # only upgrade by minor or patch
-      - dependency-name: "*"
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-  - package-ecosystem: maven
-    directory: /
-    schedule:
-      interval: daily
-    target-branch: 3.1.x
-    ignore:
-      # only upgrade by minor or patch
-      - dependency-name: "*"
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
+#    ignore:
+#      # only upgrade by minor or patch
+#      - dependency-name: "*"
+#        update-types:
+#          - version-update:semver-major
+#          - version-update:semver-minor
   - package-ecosystem: maven
     directory: /
     schedule:
@@ -43,6 +32,18 @@ updates:
         update-types:
           - version-update:semver-major
           - version-update:semver-minor
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: daily
+    target-branch: 3.3.x
+    ignore:
+      # only upgrade by minor or patch
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+
   - package-ecosystem: npm
     target-branch: docs-build
     directory: /
@@ -54,12 +55,12 @@ updates:
     schedule:
       interval: weekly
   - package-ecosystem: npm
-    target-branch: 3.1.x
+    target-branch: 3.2.x
     directory: /docs
     schedule:
       interval: weekly
   - package-ecosystem: npm
-    target-branch: 3.2.x
+    target-branch: 3.3.x
     directory: /docs
     schedule:
       interval: weekly
