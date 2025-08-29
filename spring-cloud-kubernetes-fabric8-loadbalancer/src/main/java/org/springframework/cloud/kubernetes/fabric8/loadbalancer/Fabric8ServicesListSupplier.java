@@ -101,7 +101,7 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 		}
 
 		LOG.debug(() -> "found services : " + result);
-		return Flux.defer(() -> Flux.just(result));
+		return Flux.just(result);
 	}
 
 	private void addMappedService(KubernetesServiceInstanceMapper<Service> mapper, List<ServiceInstance> services,
