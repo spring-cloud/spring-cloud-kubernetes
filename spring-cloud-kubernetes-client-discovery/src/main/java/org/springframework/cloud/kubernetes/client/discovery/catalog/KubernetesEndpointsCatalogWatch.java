@@ -72,16 +72,21 @@ final class KubernetesEndpointsCatalogWatch
 			endpoints = namespacedEndpoints(coreV1Api, namespace, context.properties().serviceLabels());
 		}
 
-		/**
-		 * <pre>
-		 *   - An "V1Endpoints" holds a List of V1EndpointSubset.
-		 *   - A single V1EndpointSubset holds a List of V1EndpointAddress
-		 *
-		 *   - (The union of all V1EndpointSubsets is the Set of all V1Endpoints)
-		 *   - Set of V1Endpoints is the cartesian product of :
-		 *     V1EndpointSubset::getAddresses and V1EndpointSubset::getPorts (each is a List)
-		 * </pre>
-		 */
+		return generateState(endpoints);
+
+	}
+
+	/**
+	 * <pre>
+	 *   - An "V1Endpoints" holds a List of V1EndpointSubset.
+	 *   - A single V1EndpointSubset holds a List of V1EndpointAddress
+	 *
+	 *   - (The union of all V1EndpointSubsets is the Set of all V1Endpoints)
+	 *   - Set of V1Endpoints is the cartesian product of :
+	 *     V1EndpointSubset::getAddresses and V1EndpointSubset::getPorts (each is a List)
+	 * </pre>
+	 */
+	List<EndpointNameAndNamespace> generateState(List<V1Endpoints> endpoints) {
 		Stream<V1ObjectReference> references = endpoints.stream()
 			.map(V1Endpoints::getSubsets)
 			.filter(Objects::nonNull)
@@ -92,7 +97,6 @@ final class KubernetesEndpointsCatalogWatch
 			.map(V1EndpointAddress::getTargetRef);
 
 		return KubernetesCatalogWatchContext.state(references);
-
 	}
 
 	private List<V1Endpoints> endpoints(CoreV1Api client, Map<String, String> labels) {
