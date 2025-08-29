@@ -82,7 +82,7 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 		}
 
 		LOG.debug(() -> "found services : " + result);
-		return Flux.defer(() -> Flux.just(result));
+		return Flux.just(result);
 	}
 
 	private void addMappedService(KubernetesServiceInstanceMapper<V1Service> mapper, List<ServiceInstance> services,

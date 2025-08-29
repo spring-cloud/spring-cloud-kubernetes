@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.example;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "bean")
@@ -28,6 +32,10 @@ class GreetingProperties {
 	private String morning = "Good morning, %s!";
 
 	private String bonjour = "Bonjour, %s!";
+
+	private List<String> items = List.of();
+
+	private Map<String, String> map = new HashMap<>();
 
 	String getGreeting() {
 		return this.greeting;
@@ -59,6 +67,22 @@ class GreetingProperties {
 
 	void setBonjour(String bonjour) {
 		this.bonjour = bonjour;
+	}
+
+	List<String> getItems() {
+		return items;
+	}
+
+	void setItems(List<String> items) {
+		this.items = items;
+	}
+
+	Map<String, String> getMap() {
+		return map;
+	}
+
+	void setMap(Map<String, String> map) {
+		this.map = map;
 	}
 
 }
