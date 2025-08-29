@@ -499,7 +499,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 		@Bean
 		KubernetesClientProperties kubernetesClientProperties() {
 			return new KubernetesClientProperties(null, null, null, "default", null, null, null, null, null, null, null,
-					null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+					null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
 					null);
 		}
 
