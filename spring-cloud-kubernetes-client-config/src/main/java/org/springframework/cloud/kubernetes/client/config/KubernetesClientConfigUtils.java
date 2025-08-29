@@ -65,38 +65,34 @@ public final class KubernetesClientConfigUtils {
 	 * <pre>
 	 *     1. read all secrets in the provided namespace
 	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. with secret names from (2), find out if there are any profile based secrets (if profiles is not empty)
-	 *     4. concat (2) and (3) and these are the secrets we are interested in
-	 *     5. see if any of the secrets from (4) has a single yaml/properties file
-	 *     6. gather all the names of the secrets (from 4) + data they hold
+	 *     3. see if any of the secrets from (2) has a single yaml/properties file
+	 *     4. gather all the names of the secrets + data they hold
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByLabels(CoreV1Api coreV1Api, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
+			Map<String, String> labels, Environment environment) {
 		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
 		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, profiles, DECODE);
+		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, DECODE);
 	}
 
 	/**
 	 * <pre>
 	 *     1. read all config maps in the provided namespace
 	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. with config maps names from (2), find out if there are any profile based ones (if profiles is not empty)
-	 *     4. concat (2) and (3) and these are the config maps we are interested in
-	 *     5. see if any from (4) has a single yaml/properties file
-	 *     6. gather all the names of the config maps (from 4) + data they hold
+	 *     3. see if any from (2) has a single yaml/properties file
+	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByLabels(CoreV1Api coreV1Api, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
+			Map<String, String> labels, Environment environment) {
 		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
 		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, profiles, DECODE);
+		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, DECODE);
 	}
 
 	/**
