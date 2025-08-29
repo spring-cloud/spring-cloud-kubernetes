@@ -46,12 +46,6 @@ public final class KubernetesClientServicesFunctionProvider {
 
 	}
 
-	@Deprecated(forRemoval = true)
-	public static KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
-			Binder binder, BindHandler bindHandler) {
-		return servicesFunction(properties, new KubernetesNamespaceProvider(binder, bindHandler));
-	}
-
 	public static KubernetesClientServicesFunction servicesFunction(KubernetesDiscoveryProperties properties,
 			KubernetesNamespaceProvider namespaceProvider) {
 
