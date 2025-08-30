@@ -79,7 +79,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -117,7 +117,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -156,7 +156,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -196,7 +196,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -235,7 +235,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -277,7 +277,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -324,7 +324,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -370,7 +370,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
-				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -413,7 +413,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
-				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
@@ -455,7 +455,7 @@ class Fabric8DiscoveryServicesAdapterTests {
 		MockEnvironment environment = new MockEnvironment();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
-				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false);
+				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null, null, 0, false, false, null);
 
 		Fabric8DiscoveryServicesAdapter adapter = new Fabric8DiscoveryServicesAdapter(
 				new KubernetesDiscoveryClientAutoConfiguration().servicesFunction(properties, environment), properties,
