@@ -93,9 +93,9 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 	private List<V1Service> services(String namespace, String serviceName) {
 		if (namespace == null) {
 			try {
-				return coreV1Api
-					.listServiceForAllNamespaces(null, null, "metadata.name=" + serviceName, null, null, null, null,
-							null, null, null, null)
+				return coreV1Api.listServiceForAllNamespaces()
+					.fieldSelector("metadata.name=" + serviceName)
+					.execute()
 					.getItems();
 			}
 			catch (ApiException apiException) {
@@ -106,9 +106,9 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 		else {
 			try {
 				// there is going to be a single service here, if found
-				return coreV1Api
-					.listNamespacedService(namespace, null, null, null, "metadata.name=" + serviceName, null, null,
-							null, null, null, null, null)
+				return coreV1Api.listNamespacedService(namespace)
+					.fieldSelector("metadata.name=" + serviceName)
+					.execute()
 					.getItems();
 			}
 			catch (ApiException apiException) {

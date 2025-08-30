@@ -168,7 +168,7 @@ class KubernetesClientPodUtilsTests {
 	}
 
 	private void mockPodResult() throws ApiException {
-		Mockito.when(client.readNamespacedPod(POD_HOSTNAME, "namespace", null)).thenReturn(POD);
+		Mockito.when(client.readNamespacedPod(POD_HOSTNAME, "namespace").execute()).thenReturn(POD);
 	}
 
 }

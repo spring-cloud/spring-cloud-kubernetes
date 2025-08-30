@@ -101,6 +101,7 @@ class KubernetesCatalogWatch implements ApplicationEventPublisherAware {
 			CustomObjectsApi customObjectsApi = new CustomObjectsApi(apiClient);
 			try {
 				List<V1APIResource> resources = customObjectsApi.getAPIResources(DISCOVERY_GROUP, DISCOVERY_VERSION)
+					.execute()
 					.getResources();
 				boolean found = resources.stream().map(V1APIResource::getKind).anyMatch(ENDPOINT_SLICE::equals);
 				if (!found) {
