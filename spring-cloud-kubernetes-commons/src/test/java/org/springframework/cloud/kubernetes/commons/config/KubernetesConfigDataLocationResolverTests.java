@@ -156,7 +156,7 @@ class KubernetesConfigDataLocationResolverTests {
 		DefaultBootstrapContext context = new DefaultBootstrapContext();
 		KubernetesClientProperties properties = new KubernetesClientProperties(null, null, null, null, null, null, null,
 				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, "user-agent");
+				null, null, "user-agent");
 		context.register(KubernetesClientProperties.class, BootstrapRegistry.InstanceSupplier.of(properties));
 
 		Mockito.when(RESOLVER_CONTEXT.getBinder()).thenReturn(binder);
