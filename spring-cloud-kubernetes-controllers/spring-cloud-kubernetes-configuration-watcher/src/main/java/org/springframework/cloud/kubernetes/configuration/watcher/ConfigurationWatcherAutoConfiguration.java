@@ -47,18 +47,18 @@ import org.springframework.web.reactive.function.client.WebClient;
 @AutoConfigureAfter({ RefreshTriggerAutoConfiguration.class, BusRabbitAutoConfiguration.class,
 		BusKafkaAutoConfiguration.class })
 @AutoConfigureBefore(BusStreamAutoConfiguration.class)
-public class ConfigurationWatcherAutoConfiguration {
+class ConfigurationWatcherAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public WebClient webClient(WebClient.Builder webClientBuilder) {
+	WebClient webClient(WebClient.Builder webClientBuilder) {
 		return webClientBuilder.build();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
-	public ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
+	ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(AbstractEnvironment environment,
 			CoreV1Api coreV1Api, KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
@@ -72,7 +72,7 @@ public class ConfigurationWatcherAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-	public SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
+	SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(AbstractEnvironment environment,
 			CoreV1Api coreV1Api, KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy,
