@@ -53,17 +53,8 @@ public class DiscoveryServerController {
 		return reactiveDiscoveryClient.getInstances(name);
 	}
 
-	/**
-	 * use the "appInstanceNonDeprecated" instead.
-	 */
-	@Deprecated(forRemoval = true)
-	@GetMapping("/app/{name}/{instanceId}")
-	public Mono<ServiceInstance> appInstance(@PathVariable String name, @PathVariable String instanceId) {
-		return innerAppInstance(name, instanceId);
-	}
-
 	@GetMapping("/apps/{name}/{instanceId}")
-	Mono<ServiceInstance> appInstanceNonDeprecated(@PathVariable String name, @PathVariable String instanceId) {
+	Mono<ServiceInstance> appInstance(@PathVariable String name, @PathVariable String instanceId) {
 		return innerAppInstance(name, instanceId);
 	}
 

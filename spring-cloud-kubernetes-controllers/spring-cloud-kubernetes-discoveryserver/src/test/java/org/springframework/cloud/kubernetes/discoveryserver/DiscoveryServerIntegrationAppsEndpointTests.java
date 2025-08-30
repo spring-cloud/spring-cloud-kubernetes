@@ -18,10 +18,12 @@ package org.springframework.cloud.kubernetes.discoveryserver;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
@@ -147,8 +149,9 @@ class DiscoveryServerIntegrationAppsEndpointTests {
 			Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE_A, TEST_SERVICE_B);
 			Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS_A, TEST_ENDPOINTS_B);
 
-			return new KubernetesInformerDiscoveryClient(SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null,
-					null, KubernetesDiscoveryProperties.DEFAULT);
+			return new KubernetesInformerDiscoveryClient(List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister),
+					List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT,
+					Mockito.mock(CoreV1Api.class));
 		}
 
 	}

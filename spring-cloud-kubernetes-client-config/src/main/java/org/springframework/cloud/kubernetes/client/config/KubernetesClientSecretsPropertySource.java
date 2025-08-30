@@ -29,11 +29,6 @@ import org.springframework.cloud.kubernetes.commons.config.SourceData;
  */
 public class KubernetesClientSecretsPropertySource extends SecretsPropertySource {
 
-	@Deprecated(forRemoval = true)
-	public KubernetesClientSecretsPropertySource(SourceData sourceData) {
-		super(sourceData);
-	}
-
 	private static final EnumMap<NormalizedSourceType, KubernetesClientContextToSourceData> STRATEGIES = new EnumMap<>(
 			NormalizedSourceType.class);
 
