@@ -50,7 +50,7 @@ class Fabric8ConfigDataLocationResolverTests {
 	private static final ConfigDataLocationResolverContext RESOLVER_CONTEXT = Mockito
 		.mock(ConfigDataLocationResolverContext.class);
 
-	private static final Fabric8ConfigDataLocationResolver RESOLVER = new Fabric8ConfigDataLocationResolver(FACTORY);
+	private static final Fabric8ConfigDataLocationResolver RESOLVER = new Fabric8ConfigDataLocationResolver();
 
 	/*
 	 * both ConfigMapConfigProperties and SecretsConfigProperties are null, thus they are

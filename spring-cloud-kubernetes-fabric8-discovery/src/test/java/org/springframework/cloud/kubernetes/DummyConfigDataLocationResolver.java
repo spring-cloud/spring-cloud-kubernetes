@@ -22,7 +22,7 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigDataLocationResolver;
+import org.springframework.cloud.kubernetes.commons.config.configdata.KubernetesConfigDataLocationResolver;
 
 /**
  * @author wind57

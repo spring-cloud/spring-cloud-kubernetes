@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.commons.config.configdata;
 
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.logging.Log;
-
 import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.StringUtils;
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesConfigDataResource extends ConfigDataResource {
+public final class KubernetesConfigDataResource extends ConfigDataResource {
 
 	private final KubernetesClientProperties properties;
 
@@ -43,13 +43,11 @@ public class KubernetesConfigDataResource extends ConfigDataResource {
 
 	private final Profiles profiles;
 
-	private Log log;
+	private final Environment environment;
 
-	private Environment environment;
-
-	public KubernetesConfigDataResource(KubernetesClientProperties properties,
-			ConfigMapConfigProperties configMapProperties, SecretsConfigProperties secretsConfigProperties,
-			boolean optional, Profiles profiles, Environment environment) {
+	KubernetesConfigDataResource(KubernetesClientProperties properties, ConfigMapConfigProperties configMapProperties,
+			SecretsConfigProperties secretsConfigProperties, boolean optional, Profiles profiles,
+			Environment environment) {
 		this.properties = properties;
 		this.configMapProperties = configMapProperties;
 		this.secretsConfigProperties = secretsConfigProperties;
@@ -88,20 +86,8 @@ public class KubernetesConfigDataResource extends ConfigDataResource {
 		return this.profiles.getAccepted();
 	}
 
-	public void setLog(Log log) {
-		this.log = log;
-	}
-
-	public Log getLog() {
-		return this.log;
-	}
-
 	public Environment getEnvironment() {
 		return environment;
-	}
-
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
 	}
 
 	@Override
