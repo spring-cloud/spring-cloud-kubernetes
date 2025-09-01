@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-								 Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
+			Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
 		KubernetesClientProperties kubernetesClientProperties = properties.clientProperties();
 		ConfigMapConfigProperties configMapProperties = properties.configMapProperties();
 		SecretsConfigProperties secretsProperties = properties.secretsProperties();
@@ -55,31 +55,31 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 
 		if (configMapProperties != null && configMapProperties.enabled()) {
 			ConfigMapPropertySourceLocator configMapPropertySourceLocator = new KubernetesClientConfigMapPropertySourceLocator(
-				coreV1Api, configMapProperties, namespaceProvider);
+					coreV1Api, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
 				configMapPropertySourceLocator = new ConfigDataRetryableConfigMapPropertySourceLocator(
-					configMapPropertySourceLocator, configMapProperties, new KubernetesClientConfigMapsCache());
+						configMapPropertySourceLocator, configMapProperties, new KubernetesClientConfigMapsCache());
 			}
 
 			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator,
-				"configDataConfigMapPropertySourceLocator");
+					"configDataConfigMapPropertySourceLocator");
 		}
 
 		if (secretsProperties != null && secretsProperties.enabled()) {
 			SecretsPropertySourceLocator secretsPropertySourceLocator = new KubernetesClientSecretsPropertySourceLocator(
-				coreV1Api, namespaceProvider, secretsProperties);
+					coreV1Api, namespaceProvider, secretsProperties);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
 				secretsPropertySourceLocator = new ConfigDataRetryableSecretsPropertySourceLocator(
-					secretsPropertySourceLocator, secretsProperties, new KubernetesClientSecretsCache());
+						secretsPropertySourceLocator, secretsProperties, new KubernetesClientSecretsCache());
 			}
 
 			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class, secretsPropertySourceLocator,
-				"configDataSecretsPropertySourceLocator");
+					"configDataSecretsPropertySourceLocator");
 		}
 	}
 
 	private CoreV1Api registerClientAndCoreV1Api(ConfigurableBootstrapContext bootstrapContext,
-												 KubernetesClientProperties kubernetesClientProperties) {
+			KubernetesClientProperties kubernetesClientProperties) {
 		ApiClient apiClient = kubernetesApiClient();
 		apiClient.setUserAgent(kubernetesClientProperties.userAgent());
 		registerSingle(bootstrapContext, ApiClient.class, apiClient, "configDataApiClient");

@@ -29,7 +29,7 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
 /**
  * @author wind57
  */
-record ConfigDataProperties(KubernetesClientProperties clientProperties,
+public record ConfigDataProperties(KubernetesClientProperties clientProperties,
 		ConfigMapConfigProperties configMapProperties, SecretsConfigProperties secretsProperties) {
 
 	static ConfigDataProperties of(ConfigDataLocationResolverContext context) {
@@ -43,7 +43,7 @@ record ConfigDataProperties(KubernetesClientProperties clientProperties,
 		boolean configEnabled = binder.bind("spring.cloud.kubernetes.config.enabled", boolean.class).orElse(true);
 		if (configEnabled) {
 			configMapProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX,
-				ConfigMapConfigProperties.class);
+					ConfigMapConfigProperties.class);
 		}
 
 		boolean secretsEnabled = binder.bind("spring.cloud.kubernetes.secrets.enabled", boolean.class).orElse(true);

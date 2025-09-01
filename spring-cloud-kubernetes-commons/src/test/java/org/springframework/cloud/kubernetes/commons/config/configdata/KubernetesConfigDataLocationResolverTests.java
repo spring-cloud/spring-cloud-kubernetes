@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config.configdata;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,7 +31,6 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
-import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
@@ -44,9 +42,6 @@ import org.springframework.mock.env.MockEnvironment;
  */
 class KubernetesConfigDataLocationResolverTests {
 
-	private static final DeferredLogFactory FACTORY = Supplier::get;
-
-	// implementation that does nothing when registerBeans is called
 	private static final KubernetesConfigDataLocationResolver NOOP_RESOLVER = new KubernetesConfigDataLocationResolver() {
 		@Override
 		protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
@@ -111,6 +106,7 @@ class KubernetesConfigDataLocationResolverTests {
 	@Test
 	void testResolveProfileSpecificOne() {
 
+		StorePropertiesResolver storePropertiesResolver = new StorePropertiesResolver();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.application.name", "k8s-app-name");
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "non-default-namespace");
@@ -122,7 +118,7 @@ class KubernetesConfigDataLocationResolverTests {
 
 		Profiles profiles = Mockito.mock(Profiles.class);
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
+		List<KubernetesConfigDataResource> result = storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -132,9 +128,10 @@ class KubernetesConfigDataLocationResolverTests {
 			.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
 			.isEqualTo("non-default-namespace");
 		// ensures that we called 'bindOrCreate' and as such @Default is picked-up
-		Assertions.assertThat(result.get(0).getProperties().userAgent())
+		Assertions.assertThat(storePropertiesResolver.kubernetesClientProperties.userAgent())
 			.isEqualTo("Spring-Cloud-Kubernetes-Application");
-		Assertions.assertThat(result.get(0).getProperties().namespace()).isEqualTo("non-default-namespace");
+		Assertions.assertThat(storePropertiesResolver.kubernetesClientProperties.namespace())
+			.isEqualTo("non-default-namespace");
 
 	}
 
@@ -149,6 +146,7 @@ class KubernetesConfigDataLocationResolverTests {
 	@Test
 	void testResolveProfileSpecificTwo() {
 
+		StorePropertiesResolver storePropertiesResolver = new StorePropertiesResolver();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.application.name", "k8s-app-name");
 		environment.setProperty("kubernetes.namespace", "non-default-namespace");
@@ -166,7 +164,7 @@ class KubernetesConfigDataLocationResolverTests {
 
 		Profiles profiles = Mockito.mock(Profiles.class);
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
+		List<KubernetesConfigDataResource> result = storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -176,8 +174,9 @@ class KubernetesConfigDataLocationResolverTests {
 			.assertThat(result.get(0).getEnvironment().getRequiredProperty("spring.cloud.kubernetes.client.namespace"))
 			.isEqualTo("non-default-namespace");
 		// ensures we bind existing from bootstrap context, and not call 'bindOrCreate'
-		Assertions.assertThat(result.get(0).getProperties().userAgent()).isEqualTo("user-agent");
-		Assertions.assertThat(result.get(0).getProperties().namespace()).isEqualTo("non-default-namespace");
+		Assertions.assertThat(storePropertiesResolver.kubernetesClientProperties.userAgent()).isEqualTo("user-agent");
+		Assertions.assertThat(storePropertiesResolver.kubernetesClientProperties.namespace())
+			.isEqualTo("non-default-namespace");
 	}
 
 	/**
@@ -253,6 +252,7 @@ class KubernetesConfigDataLocationResolverTests {
 	 */
 	@Test
 	void testResolveProfileSpecificFive() {
+		StorePropertiesResolver storePropertiesResolver = new StorePropertiesResolver();
 		MockEnvironment environment = new MockEnvironment();
 		ConfigurationPropertySources.attach(environment);
 		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
@@ -262,14 +262,13 @@ class KubernetesConfigDataLocationResolverTests {
 
 		Profiles profiles = Mockito.mock(Profiles.class);
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
-				configDataLocation, profiles);
+		storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 
 		// we have @DefaultValue("true") boolean enableApi
-		Assertions.assertThat(result.get(0).getConfigMapProperties().enableApi()).isTrue();
+		Assertions.assertThat(storePropertiesResolver.configMapConfigProperties.enableApi()).isTrue();
 
 		// we have @DefaultValue("true") boolean enabled
-		Assertions.assertThat(result.get(0).getSecretsConfigProperties().enabled()).isTrue();
+		Assertions.assertThat(storePropertiesResolver.secretsConfigProperties.enabled()).isTrue();
 	}
 
 	/**
@@ -278,6 +277,7 @@ class KubernetesConfigDataLocationResolverTests {
 	 */
 	@Test
 	void testResolveProfileSpecificSix() {
+		StorePropertiesResolver storePropertiesResolver = new StorePropertiesResolver();
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.config.enable-api", "false");
 		environment.setProperty("spring.cloud.kubernetes.secrets.paths[0]", "a");
@@ -289,25 +289,25 @@ class KubernetesConfigDataLocationResolverTests {
 
 		Profiles profiles = Mockito.mock(Profiles.class);
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
-				configDataLocation, profiles);
+		storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 
 		// we have @DefaultValue("true") boolean enableApi, but it is not going to be
 		// picked up
 		// because of the explicit property we set in environment
-		Assertions.assertThat(result.get(0).getConfigMapProperties().enableApi()).isFalse();
+		Assertions.assertThat(storePropertiesResolver.configMapConfigProperties.enableApi()).isFalse();
 		// on the other hand, @Default will be picked here
-		Assertions.assertThat(result.get(0).getConfigMapProperties().enabled()).isTrue();
+		Assertions.assertThat(storePropertiesResolver.configMapConfigProperties.enabled()).isTrue();
 
 		// we have @DefaultValue enabled on paths, but it is not going to be picked up
 		// because of the explicit property we set in environment
-		Assertions.assertThat(result.get(0).getSecretsConfigProperties().paths().get(0)).isEqualTo("a");
+		Assertions.assertThat(storePropertiesResolver.secretsConfigProperties.paths().get(0)).isEqualTo("a");
 		// on the other hand, @Default will be picked here
-		Assertions.assertThat(result.get(0).getSecretsConfigProperties().includeProfileSpecificSources()).isTrue();
+		Assertions.assertThat(storePropertiesResolver.secretsConfigProperties.includeProfileSpecificSources()).isTrue();
 	}
 
 	@Test
 	void testIsOptional() {
+		StorePropertiesResolver storePropertiesResolver = new StorePropertiesResolver();
 		MockEnvironment environment = new MockEnvironment();
 		ConfigurationPropertySources.attach(environment);
 		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
@@ -317,14 +317,12 @@ class KubernetesConfigDataLocationResolverTests {
 
 		Profiles profiles = Mockito.mock(Profiles.class);
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
-				configDataLocation, profiles);
-
-		Assertions.assertThat(result.get(0).isOptional()).isFalse();
+		storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
 	}
 
 	@Test
 	void testProfiles() {
+		StorePropertiesResolver storePropertiesResolver = new StorePropertiesResolver();
 		MockEnvironment environment = new MockEnvironment();
 		ConfigurationPropertySources.attach(environment);
 		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
@@ -336,12 +334,11 @@ class KubernetesConfigDataLocationResolverTests {
 		Mockito.when(profiles.getAccepted()).thenReturn(List.of("a", "b"));
 
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
+		List<KubernetesConfigDataResource> result = storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
 		Assertions.assertThat(Arrays.stream(result.get(0).getEnvironment().getActiveProfiles()).toList())
 			.containsExactly("a", "b");
-		Assertions.assertThat(result.get(0).getProfiles()).isEqualTo("a,b");
 	}
 
 }

@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.annotation.Nonnull;
+import reactor.util.annotation.NonNull;
+
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.boot.context.config.ConfigDataLocationResolver;
@@ -59,22 +62,22 @@ public abstract class KubernetesConfigDataLocationResolver
 	}
 
 	@Override
-	public final boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
+	public final boolean isResolvable(@Nonnull ConfigDataLocationResolverContext context, ConfigDataLocation location) {
 		return location.hasPrefix(getPrefix())
 				&& (KUBERNETES.isEnforced(context.getBinder()) || KUBERNETES.isDetected(new StandardEnvironment()));
 	}
 
 	@Override
-	public final List<KubernetesConfigDataResource> resolve(ConfigDataLocationResolverContext context,
-			ConfigDataLocation location)
+	public final List<KubernetesConfigDataResource> resolve(@NonNull ConfigDataLocationResolverContext context,
+			@Nonnull ConfigDataLocation location)
 			throws ConfigDataLocationNotFoundException, ConfigDataResourceNotFoundException {
 		return Collections.emptyList();
 	}
 
 	@Override
 	public final List<KubernetesConfigDataResource> resolveProfileSpecific(
-			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
-			throws ConfigDataLocationNotFoundException {
+			@Nonnull ConfigDataLocationResolverContext resolverContext, @NonNull ConfigDataLocation location,
+			@Nonnull Profiles profiles) throws ConfigDataLocationNotFoundException {
 
 		ConfigDataProperties properties = ConfigDataProperties.of(resolverContext);
 
@@ -89,8 +92,7 @@ public abstract class KubernetesConfigDataLocationResolver
 		KubernetesNamespaceProvider namespaceProvider = kubernetesNamespaceProvider(environment);
 		registerBeans(resolverContext, location, profiles, properties, namespaceProvider);
 
-		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(properties.clientProperties(),
-				properties.configMapProperties(), properties.secretsProperties(), location.isOptional(), profiles,
+		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(location.isOptional(), profiles,
 				environment);
 
 		return List.of(resource);

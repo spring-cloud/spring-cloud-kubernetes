@@ -52,8 +52,8 @@ class KubernetesConfigDataLoaderTests {
 
 	private static final ConfigurableEnvironment ENVIRONMENT = new MockEnvironment();
 
-	private static final KubernetesConfigDataResource EMPTY_RESOURCE = new KubernetesConfigDataResource(null, null,
-			null, false, PROFILES, ENVIRONMENT);
+	private static final KubernetesConfigDataResource EMPTY_RESOURCE = new KubernetesConfigDataResource(false, PROFILES,
+			ENVIRONMENT);
 
 	/**
 	 * we do not override this method in our implementation, so it should report true for
@@ -117,9 +117,9 @@ class KubernetesConfigDataLoaderTests {
 	 * both ConfigMapPropertySourceLocator and SecretsPropertySourceLocator are registered
 	 * in bootstrap context.
 	 */
-	@SuppressWarnings({ "raw", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	void testBothRegistered() throws IOException {
+	void testBothRegistered() {
 
 		PropertySource configMapPropertySource = new MockPropertySource("k8s-config-map");
 		PropertySource secretsPropertySource = new MockPropertySource("k8s-secrets");

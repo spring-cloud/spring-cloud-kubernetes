@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.config.configdata;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
