@@ -74,19 +74,13 @@ class KubernetesPropertySourceSupplierTests {
 
 	@BeforeAll
 	static void beforeAll() throws ApiException {
-		when(CORE_V1_API.listNamespacedConfigMap("default").execute())
-			.thenReturn(CONFIGMAP_DEFAULT_LIST);
-		when(CORE_V1_API.listNamespacedConfigMap("team-a").execute())
-			.thenReturn(CONFIGMAP_TEAM_A_LIST);
-		when(CORE_V1_API.listNamespacedConfigMap("team-b").execute())
-			.thenReturn(CONFIGMAP_TEAM_B_LIST);
+		when(CORE_V1_API.listNamespacedConfigMap("default").execute()).thenReturn(CONFIGMAP_DEFAULT_LIST);
+		when(CORE_V1_API.listNamespacedConfigMap("team-a").execute()).thenReturn(CONFIGMAP_TEAM_A_LIST);
+		when(CORE_V1_API.listNamespacedConfigMap("team-b").execute()).thenReturn(CONFIGMAP_TEAM_B_LIST);
 
-		when(CORE_V1_API.listNamespacedSecret("default").execute())
-			.thenReturn(SECRET_DEFAULT_LIST);
-		when(CORE_V1_API.listNamespacedSecret("team-a").execute())
-			.thenReturn(SECRET_TEAM_A_LIST);
-		when(CORE_V1_API.listNamespacedSecret("team-b").execute())
-			.thenReturn(SECRET_TEAM_B_LIST);
+		when(CORE_V1_API.listNamespacedSecret("default").execute()).thenReturn(SECRET_DEFAULT_LIST);
+		when(CORE_V1_API.listNamespacedSecret("team-a").execute()).thenReturn(SECRET_TEAM_A_LIST);
+		when(CORE_V1_API.listNamespacedSecret("team-b").execute()).thenReturn(SECRET_TEAM_B_LIST);
 	}
 
 	@AfterAll

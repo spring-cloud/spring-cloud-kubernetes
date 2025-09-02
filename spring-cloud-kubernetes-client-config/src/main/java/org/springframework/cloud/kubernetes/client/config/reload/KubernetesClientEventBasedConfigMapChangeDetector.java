@@ -26,16 +26,12 @@ import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
-import io.kubernetes.client.util.CallGenerator;
-import io.kubernetes.client.util.CallGeneratorParams;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import okhttp3.Call;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
@@ -128,7 +124,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 			factories.add(factory);
 			GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi = new GenericKubernetesApi<>(
-				V1ConfigMap.class, V1ConfigMapList.class, "", "v1", "configmaps", apiClient);
+					V1ConfigMap.class, V1ConfigMapList.class, "", "v1", "configmaps", apiClient);
 			informer = factory.sharedIndexInformerFor(configMapApi, V1ConfigMap.class, 0L, namespace);
 
 			LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter[0]);

@@ -21,7 +21,6 @@ import java.io.StringReader;
 import java.time.Duration;
 
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
