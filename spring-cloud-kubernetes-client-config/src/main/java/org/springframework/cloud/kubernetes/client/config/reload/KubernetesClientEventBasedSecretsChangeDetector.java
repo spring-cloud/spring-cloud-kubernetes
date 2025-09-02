@@ -31,7 +31,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
-import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
@@ -126,9 +126,12 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			}
 			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 			factories.add(factory);
-			GenericKubernetesApi<V1Secret, V1SecretList> secretApi = new GenericKubernetesApi<>(V1Secret.class,
-					V1SecretList.class, "", "v1", "secrets", apiClient);
-			informer = factory.sharedIndexInformerFor(secretApi, V1Secret.class, 0L, namespace);
+			informer = factory
+				.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedSecret(namespace)
+					.timeoutSeconds(params.timeoutSeconds)
+					.resourceVersion(params.resourceVersion)
+					.watch(params.watch)
+					.buildCall(null), V1Secret.class, V1SecretList.class);
 
 			LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);
 

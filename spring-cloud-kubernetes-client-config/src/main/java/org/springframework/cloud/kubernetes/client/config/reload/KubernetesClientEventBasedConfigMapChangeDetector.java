@@ -29,7 +29,7 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
-import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
@@ -123,9 +123,12 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			}
 			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 			factories.add(factory);
-			GenericKubernetesApi<V1ConfigMap, V1ConfigMapList> configMapApi = new GenericKubernetesApi<>(
-					V1ConfigMap.class, V1ConfigMapList.class, "", "v1", "configmaps", apiClient);
-			informer = factory.sharedIndexInformerFor(configMapApi, V1ConfigMap.class, 0L, namespace);
+			informer = factory
+				.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
+					.timeoutSeconds(params.timeoutSeconds)
+					.resourceVersion(params.resourceVersion)
+					.watch(params.watch)
+					.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
 			LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter[0]);
 
