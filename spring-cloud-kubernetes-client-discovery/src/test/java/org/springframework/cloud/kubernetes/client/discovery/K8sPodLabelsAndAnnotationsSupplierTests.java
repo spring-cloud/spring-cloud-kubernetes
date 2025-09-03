@@ -28,6 +28,9 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.discovery.PodLabelsAndAnnotations;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * @author wind57
  */
@@ -37,7 +40,7 @@ class K8sPodLabelsAndAnnotationsSupplierTests {
 
 	private static final String POD_NAME = "my-pod";
 
-	private final CoreV1Api coreV1Api = Mockito.mock(CoreV1Api.class);
+	private final CoreV1Api coreV1Api = mock(CoreV1Api.class);
 
 	@AfterEach
 	void afterEach() {
@@ -46,9 +49,10 @@ class K8sPodLabelsAndAnnotationsSupplierTests {
 
 	@Test
 	void noObjetMeta() throws Exception {
-
-		Mockito.when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE).execute())
+		CoreV1Api.APIreadNamespacedPodRequest request = mock(CoreV1Api.APIreadNamespacedPodRequest.class);
+		when(request.execute())
 			.thenReturn(new V1PodBuilder().withMetadata(new V1ObjectMetaBuilder().withName(POD_NAME).build()).build());
+		when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE)).thenReturn(request);
 
 		PodLabelsAndAnnotations result = K8sPodLabelsAndAnnotationsSupplier.nonExternalName(coreV1Api, NAMESPACE)
 			.apply(POD_NAME);
@@ -59,14 +63,15 @@ class K8sPodLabelsAndAnnotationsSupplierTests {
 
 	@Test
 	void labelsAndAnnotationsPresent() throws Exception {
-
-		Mockito.when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE).execute())
-			.thenReturn(new V1PodBuilder()
-				.withMetadata(new V1ObjectMetaBuilder().withName(POD_NAME)
-					.withLabels(Map.of("a", "b"))
-					.withAnnotations(Map.of("c", "d"))
-					.build())
-				.build());
+		CoreV1Api.APIreadNamespacedPodRequest request = mock(CoreV1Api.APIreadNamespacedPodRequest.class);
+		when(request.execute()).thenReturn(
+				new V1PodBuilder()
+					.withMetadata(new V1ObjectMetaBuilder().withName(POD_NAME)
+						.withLabels(Map.of("a", "b"))
+						.withAnnotations(Map.of("c", "d"))
+						.build())
+					.build());
+		when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE)).thenReturn(request);
 
 		PodLabelsAndAnnotations result = K8sPodLabelsAndAnnotationsSupplier.nonExternalName(coreV1Api, NAMESPACE)
 			.apply(POD_NAME);

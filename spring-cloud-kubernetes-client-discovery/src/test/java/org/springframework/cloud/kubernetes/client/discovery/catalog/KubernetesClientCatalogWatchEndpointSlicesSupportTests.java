@@ -90,7 +90,12 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 
-		V1APIResourceList list = new V1APIResourceListBuilder().addToResources(new V1APIResource()).build();
+		V1APIResourceList list = new V1APIResourceListBuilder()
+			.addToResources(new V1APIResource().kind("Foo").name("Endpoint").namespaced(false).singularName("Endpoint"))
+			.withApiVersion("v1")
+			.withGroupVersion("v1")
+			.withKind("Foo")
+			.build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
 
@@ -114,7 +119,14 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 
 		V1APIResourceList list = new V1APIResourceListBuilder()
-			.addToResources(new V1APIResourceBuilder().withName("not-the-one").build())
+			.addToResources(new V1APIResourceBuilder().withName("not-the-one")
+				.withKind("FOO")
+				.withNamespaced(false)
+				.withSingularName("Endpoint")
+				.build())
+			.withApiVersion("v1")
+			.withGroupVersion("v1")
+			.withKind("ResourceList")
 			.build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
@@ -150,7 +162,14 @@ class KubernetesClientCatalogWatchEndpointSlicesSupportTests {
 				false, "", Set.of(), Map.of(), "", null, 0, useEndpointSlices);
 
 		V1APIResourceList list = new V1APIResourceListBuilder()
-			.addToResources(new V1APIResourceBuilder().withName("endpointslices").withKind(ENDPOINT_SLICE).build())
+			.addToResources(new V1APIResourceBuilder().withName("endpointslices")
+				.withKind(ENDPOINT_SLICE)
+				.withNamespaced(false)
+				.withSingularName("Endpoint")
+				.build())
+			.withApiVersion("v1")
+			.withGroupVersion("v1")
+			.withKind("ResourceList")
 			.build();
 		stubFor(get("/apis/discovery.k8s.io/v1")
 			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));

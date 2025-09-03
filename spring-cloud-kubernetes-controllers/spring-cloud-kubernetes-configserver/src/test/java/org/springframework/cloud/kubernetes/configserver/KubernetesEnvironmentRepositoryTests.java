@@ -212,13 +212,15 @@ class KubernetesEnvironmentRepositoryTests {
 	}
 
 	private void mockRequests(CoreV1Api coreApi) throws ApiException {
-		CoreV1Api.APIlistNamespacedConfigMapRequest defaultConfigRequest = mock(CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		CoreV1Api.APIlistNamespacedConfigMapRequest defaultConfigRequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
 		when(defaultConfigRequest.execute()).thenReturn(CONFIGMAP_DEFAULT_LIST);
 		when(coreApi.listNamespacedConfigMap(eq("default"))).thenReturn(defaultConfigRequest);
 		CoreV1Api.APIlistNamespacedSecretRequest secretRequest = mock(CoreV1Api.APIlistNamespacedSecretRequest.class);
 		when(secretRequest.execute()).thenReturn(SECRET_LIST);
 		when(coreApi.listNamespacedSecret(eq("default"))).thenReturn(secretRequest);
-		CoreV1Api.APIlistNamespacedConfigMapRequest devConfigRequest = mock(CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		CoreV1Api.APIlistNamespacedConfigMapRequest devConfigRequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
 		when(devConfigRequest.execute()).thenReturn(CONFIGMAP_DEV_LIST);
 		when(coreApi.listNamespacedConfigMap(eq("dev"))).thenReturn(devConfigRequest);
 	}
@@ -354,7 +356,8 @@ class KubernetesEnvironmentRepositoryTests {
 	@Test
 	public void testSingleConfigMapMultipleSources() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
-		CoreV1Api.APIlistNamespacedConfigMapRequest configMapRequest = mock(CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		CoreV1Api.APIlistNamespacedConfigMapRequest configMapRequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
 		when(configMapRequest.execute()).thenReturn(CONFIGMAP_ONE_LIST);
 		when(coreApi.listNamespacedConfigMap(eq("default"))).thenReturn(configMapRequest);
 		CoreV1Api.APIlistNamespacedSecretRequest secretRequest = mock(CoreV1Api.APIlistNamespacedSecretRequest.class);
