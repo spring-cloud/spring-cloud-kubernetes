@@ -32,6 +32,12 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
 public record ConfigDataProperties(KubernetesClientProperties clientProperties,
 		ConfigMapConfigProperties configMapProperties, SecretsConfigProperties secretsProperties) {
 
+	private static final Class<ConfigMapConfigProperties> CONFIGMAP_PROPERTIES_CLASS = ConfigMapConfigProperties.class;
+
+	private static final Class<SecretsConfigProperties> SECRETS_PROPERTIES_CLASS = SecretsConfigProperties.class;
+
+	private static final Class<KubernetesClientProperties> CLIENT_PROPERTIES_CLASS = KubernetesClientProperties.class;
+
 	static ConfigDataProperties of(ConfigDataLocationResolverContext context) {
 
 		KubernetesClientProperties clientProperties;
@@ -42,13 +48,12 @@ public record ConfigDataProperties(KubernetesClientProperties clientProperties,
 
 		boolean configEnabled = binder.bind("spring.cloud.kubernetes.config.enabled", boolean.class).orElse(true);
 		if (configEnabled) {
-			configMapProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX,
-					ConfigMapConfigProperties.class);
+			configMapProperties = binder.bindOrCreate(ConfigMapConfigProperties.PREFIX, CONFIGMAP_PROPERTIES_CLASS);
 		}
 
 		boolean secretsEnabled = binder.bind("spring.cloud.kubernetes.secrets.enabled", boolean.class).orElse(true);
 		if (secretsEnabled) {
-			secretsProperties = binder.bindOrCreate(SecretsConfigProperties.PREFIX, SecretsConfigProperties.class);
+			secretsProperties = binder.bindOrCreate(SecretsConfigProperties.PREFIX, SECRETS_PROPERTIES_CLASS);
 		}
 
 		String namespace = binder.bind("spring.cloud.kubernetes.client.namespace", String.class)
@@ -65,16 +70,16 @@ public record ConfigDataProperties(KubernetesClientProperties clientProperties,
 
 		ConfigurableBootstrapContext bootstrapContext = resolverContext.getBootstrapContext();
 
-		registerSingle(bootstrapContext, KubernetesClientProperties.class, clientProperties,
+		registerSingle(bootstrapContext, CLIENT_PROPERTIES_CLASS, clientProperties,
 				"configDataKubernetesClientProperties");
 
 		if (configMapProperties != null) {
-			registerSingle(bootstrapContext, ConfigMapConfigProperties.class, configMapProperties,
+			registerSingle(bootstrapContext, CONFIGMAP_PROPERTIES_CLASS, configMapProperties,
 					"configDataConfigMapConfigProperties");
 		}
 
 		if (secretsProperties != null) {
-			registerSingle(bootstrapContext, SecretsConfigProperties.class, secretsProperties,
+			registerSingle(bootstrapContext, SECRETS_PROPERTIES_CLASS, secretsProperties,
 					"configDataSecretsConfigProperties");
 		}
 
@@ -83,14 +88,14 @@ public record ConfigDataProperties(KubernetesClientProperties clientProperties,
 	private static KubernetesClientProperties clientProperties(ConfigDataLocationResolverContext context,
 			String namespace) {
 		KubernetesClientProperties kubernetesClientProperties;
-		if (context.getBootstrapContext().isRegistered(KubernetesClientProperties.class)) {
-			kubernetesClientProperties = context.getBootstrapContext()
-				.get(KubernetesClientProperties.class)
-				.withNamespace(namespace);
+		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
+		KubernetesClientProperties registeredClientProperties = bootstrapContext.get(CLIENT_PROPERTIES_CLASS);
+		if (bootstrapContext.isRegistered(CLIENT_PROPERTIES_CLASS) && registeredClientProperties != null) {
+			kubernetesClientProperties = registeredClientProperties.withNamespace(namespace);
 		}
 		else {
 			kubernetesClientProperties = context.getBinder()
-				.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
+				.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(CLIENT_PROPERTIES_CLASS))
 				.withNamespace(namespace);
 		}
 		return kubernetesClientProperties;

@@ -32,7 +32,8 @@ class DummyConfigDataLocationResolver extends KubernetesConfigDataLocationResolv
 
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-		Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
+			Profiles profiles, ConfigDataProperties properties, KubernetesNamespaceProvider namespaceProvider) {
 
 	}
+
 }
