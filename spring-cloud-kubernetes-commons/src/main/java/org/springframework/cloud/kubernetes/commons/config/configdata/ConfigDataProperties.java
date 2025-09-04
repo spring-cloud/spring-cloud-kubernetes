@@ -89,9 +89,9 @@ public record ConfigDataProperties(KubernetesClientProperties clientProperties,
 			String namespace) {
 		KubernetesClientProperties kubernetesClientProperties;
 		ConfigurableBootstrapContext bootstrapContext = context.getBootstrapContext();
-		KubernetesClientProperties registeredClientProperties = bootstrapContext.get(CLIENT_PROPERTIES_CLASS);
-		if (bootstrapContext.isRegistered(CLIENT_PROPERTIES_CLASS) && registeredClientProperties != null) {
-			kubernetesClientProperties = registeredClientProperties.withNamespace(namespace);
+		if (bootstrapContext.isRegistered(CLIENT_PROPERTIES_CLASS)
+				&& bootstrapContext.get(CLIENT_PROPERTIES_CLASS) != null) {
+			kubernetesClientProperties = bootstrapContext.get(CLIENT_PROPERTIES_CLASS).withNamespace(namespace);
 		}
 		else {
 			kubernetesClientProperties = context.getBinder()
