@@ -474,15 +474,31 @@ public final class Util {
 
 	private void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
 		await().timeout(Duration.ofSeconds(180)).until(() -> {
-			appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
-			return false;
+			try {
+				appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
+				return false;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return true;
+				}
+				throw new RuntimeException(e);
+			}
 		});
 	}
 
 	private void waitForServiceToBeDeleted(String serviceName, String namespace) {
 		await().timeout(Duration.ofSeconds(180)).until(() -> {
-			coreV1Api.readNamespacedService(serviceName, namespace).execute();
-			return false;
+			try {
+				coreV1Api.readNamespacedService(serviceName, namespace).execute();
+				return false;
+			}
+			catch (ApiException e) {
+				if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+					return true;
+				}
+				throw new RuntimeException(e);
+			}
 		});
 	}
 

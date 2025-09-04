@@ -86,8 +86,13 @@ abstract class K8sClientReloadBase {
 	}
 
 	protected static void replaceConfigMap(CoreV1Api api, V1ConfigMap configMap) {
-		api.replaceNamespacedConfigMap(configMap.getMetadata().getName(), configMap.getMetadata().getNamespace(),
-				configMap);
+		try {
+			api.replaceNamespacedConfigMap(configMap.getMetadata().getName(), configMap.getMetadata().getNamespace(),
+				configMap).execute();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	protected static void manifests(Phase phase, Util util, String namespace, String imageName) {
