@@ -391,7 +391,11 @@ public final class Util {
 				.filter(apiServiceName -> apiServiceName.contains("metrics.k8s.io"))
 				.findFirst()
 				.ifPresent(apiServiceName -> {
-					apiInstance.deleteAPIService(apiServiceName);
+					try {
+						apiInstance.deleteAPIService(apiServiceName).execute();
+					} catch (ApiException e) {
+						throw new RuntimeException(e);
+					}
 				});
 
 			coreV1Api.deleteNamespace(name).execute();
