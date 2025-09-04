@@ -463,7 +463,7 @@ public final class Util {
 				try {
 					coreV1Api.readNamespacedConfigMap(configMapName, namespace).execute();
 				}
-				catch(ApiException apiException) {
+				catch (ApiException apiException) {
 					if (apiException.getCode() == 404) {
 						// a 404 here means it was deleted
 						return true;
@@ -498,7 +498,7 @@ public final class Util {
 				try {
 					coreV1Api.readNamespacedSecret(secretName, namespace).execute();
 				}
-				catch(ApiException apiException) {
+				catch (ApiException apiException) {
 					if (apiException.getCode() == 404) {
 						// a 404 here means it was deleted
 						return true;
