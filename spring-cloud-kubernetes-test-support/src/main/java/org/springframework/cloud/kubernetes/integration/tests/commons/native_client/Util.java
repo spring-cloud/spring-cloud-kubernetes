@@ -185,7 +185,8 @@ public final class Util {
 
 	public void createNamespace(String name) {
 		try {
-			coreV1Api.createNamespace(new V1NamespaceBuilder().withNewMetadata().withName(name).and().build()).execute();
+			coreV1Api.createNamespace(new V1NamespaceBuilder().withNewMetadata().withName(name).and().build())
+				.execute();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -212,8 +213,8 @@ public final class Util {
 
 			if (service != null) {
 				service.getMetadata().setNamespace(namespace);
-				coreV1Api.deleteNamespacedService(service.getMetadata().getName(),
-						service.getMetadata().getNamespace()).execute();
+				coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace())
+					.execute();
 				waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
 			}
 
@@ -301,7 +302,8 @@ public final class Util {
 			notExistsHandler(accountSupplier, accountDefaulter);
 
 			V1RoleBinding roleBinding = (V1RoleBinding) yaml("setup/role-binding.yaml");
-			notExistsHandler(() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace).execute(),
+			notExistsHandler(
+					() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace).execute(),
 					() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding).execute());
 
 			V1Role role = (V1Role) yaml("setup/role.yaml");
@@ -335,7 +337,8 @@ public final class Util {
 				roleBinding.getMetadata().setNamespace(namespace);
 				try {
 					notExistsHandler(
-							() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace).execute(),
+							() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace)
+								.execute(),
 							() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding).execute());
 				}
 				catch (Exception e) {
@@ -355,7 +358,8 @@ public final class Util {
 			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
 			V1RoleBinding roleBinding = (V1RoleBinding) yaml("cluster/role-binding.yaml");
 
-			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace).execute();
+			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
+				.execute();
 			rbacApi.deleteClusterRole(clusterRole.getMetadata().getName()).execute();
 			namespaces.forEach(namespace -> {
 				roleBinding.getMetadata().setNamespace(namespace);
@@ -393,7 +397,8 @@ public final class Util {
 				.ifPresent(apiServiceName -> {
 					try {
 						apiInstance.deleteAPIService(apiServiceName).execute();
-					} catch (ApiException e) {
+					}
+					catch (ApiException e) {
 						throw new RuntimeException(e);
 					}
 				});
