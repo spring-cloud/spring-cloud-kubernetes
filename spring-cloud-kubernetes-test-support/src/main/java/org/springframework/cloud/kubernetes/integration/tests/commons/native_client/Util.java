@@ -459,16 +459,70 @@ public final class Util {
 	private void waitForConfigMap(String namespace, V1ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
-			coreV1Api.readNamespacedConfigMap(configMapName, namespace).execute();
-			return phase.equals(Phase.CREATE);
+			if (phase == Phase.DELETE) {
+				try {
+					coreV1Api.readNamespacedConfigMap(configMapName, namespace).execute();
+				}
+				catch(ApiException apiException) {
+					if (apiException.getCode() == 404) {
+						// a 404 here means it was deleted
+						return true;
+					}
+					throw new RuntimeException(apiException);
+				}
+				// if we did not get an ApiException, we still have the resource,
+				// retry as such, because we want it deleted
+				return false;
+			}
+			else {
+				try {
+					coreV1Api.readNamespacedConfigMap(configMapName, namespace).execute();
+				}
+				catch (ApiException apiException) {
+					if (apiException.getCode() == 404) {
+						// we want it created, but it's not yet
+						return false;
+					}
+					throw new RuntimeException(apiException);
+				}
+				// if we did not get an ApiException, we have the resource created
+				return true;
+			}
 		});
 	}
 
 	private void waitForSecret(String namespace, V1Secret secret, Phase phase) {
 		String secretName = secretName(secret);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
-			coreV1Api.readNamespacedSecret(secretName, namespace).execute();
-			return phase.equals(Phase.CREATE);
+			if (phase == Phase.DELETE) {
+				try {
+					coreV1Api.readNamespacedSecret(secretName, namespace).execute();
+				}
+				catch(ApiException apiException) {
+					if (apiException.getCode() == 404) {
+						// a 404 here means it was deleted
+						return true;
+					}
+					throw new RuntimeException(apiException);
+				}
+				// if we did not get an ApiException, we still have the resource,
+				// retry as such, because we want it deleted
+				return false;
+			}
+			else {
+				try {
+					coreV1Api.readNamespacedSecret(secretName, namespace).execute();
+				}
+				catch (ApiException apiException) {
+					if (apiException.getCode() == 404) {
+						// we want it created, but it's not yet
+						return false;
+					}
+					throw new RuntimeException(apiException);
+				}
+				// if we did not get an ApiException, we have the resource created
+				return true;
+			}
 		});
 	}
 
