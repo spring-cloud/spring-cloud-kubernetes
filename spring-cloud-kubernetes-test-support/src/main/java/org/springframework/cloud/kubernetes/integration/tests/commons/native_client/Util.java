@@ -329,7 +329,7 @@ public final class Util {
 			notExistsHandler(accountSupplier, accountDefaulter);
 
 			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
-			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName()),
+			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName()).execute(),
 					() -> rbacApi.createClusterRole(clusterRole).execute());
 
 			V1RoleBinding roleBinding = (V1RoleBinding) yaml("cluster/role-binding.yaml");
