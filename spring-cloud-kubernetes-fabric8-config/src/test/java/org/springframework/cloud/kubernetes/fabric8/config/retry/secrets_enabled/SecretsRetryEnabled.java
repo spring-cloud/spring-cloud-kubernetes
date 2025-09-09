@@ -70,6 +70,8 @@ abstract class SecretsRetryEnabled {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+		System.setProperty(Config.KUBERNETES_REQUEST_RETRY_BACKOFFLIMIT_SYSTEM_PROPERTY, "0");
+		System.setProperty(Config.KUBERNETES_REQUEST_RETRY_BACKOFFINTERVAL_SYSTEM_PROPERTY, "0");
 
 		// return empty secret list to not fail context creation
 		mockServer.expect().withPath(LIST_API).andReturn(200, new SecretListBuilder().build()).once();

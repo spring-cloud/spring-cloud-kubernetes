@@ -39,6 +39,8 @@ abstract class CoreTestClientViaSystemProperties {
 	@BeforeAll
 	static void setUpBeforeClass() {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, "masterURL");
+		System.setProperty(Config.KUBERNETES_REQUEST_RETRY_BACKOFFLIMIT_SYSTEM_PROPERTY, "0");
+		System.setProperty(Config.KUBERNETES_REQUEST_RETRY_BACKOFFINTERVAL_SYSTEM_PROPERTY, "0");
 	}
 
 	@Test

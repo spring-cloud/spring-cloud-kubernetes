@@ -66,6 +66,10 @@ class Fabric8SecretsPropertySourceMockTests {
 
 	@Test
 	void labeledStrategyShouldThrowExceptionOnFailureWhenFailFastIsEnabled() {
+
+		client.getConfiguration().setRequestRetryBackoffInterval(0);
+		client.getConfiguration().setRequestRetryBackoffLimit(0);
+
 		final String namespace = "default";
 		final Map<String, String> labels = Collections.singletonMap("a", "b");
 		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
