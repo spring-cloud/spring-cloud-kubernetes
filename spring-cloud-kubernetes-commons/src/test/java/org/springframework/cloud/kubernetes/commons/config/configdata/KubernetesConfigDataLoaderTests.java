@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.config;
+package org.springframework.cloud.kubernetes.commons.config.configdata;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +27,8 @@ import org.springframework.boot.DefaultBootstrapContext;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.Profiles;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
@@ -50,8 +52,8 @@ class KubernetesConfigDataLoaderTests {
 
 	private static final ConfigurableEnvironment ENVIRONMENT = new MockEnvironment();
 
-	private static final KubernetesConfigDataResource EMPTY_RESOURCE = new KubernetesConfigDataResource(null, null,
-			null, false, PROFILES, ENVIRONMENT);
+	private static final KubernetesConfigDataResource EMPTY_RESOURCE = new KubernetesConfigDataResource(false, PROFILES,
+			ENVIRONMENT);
 
 	/**
 	 * we do not override this method in our implementation, so it should report true for
@@ -115,9 +117,9 @@ class KubernetesConfigDataLoaderTests {
 	 * both ConfigMapPropertySourceLocator and SecretsPropertySourceLocator are registered
 	 * in bootstrap context.
 	 */
-	@SuppressWarnings({ "raw", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	void testBothRegistered() throws IOException {
+	void testBothRegistered() {
 
 		PropertySource configMapPropertySource = new MockPropertySource("k8s-config-map");
 		PropertySource secretsPropertySource = new MockPropertySource("k8s-secrets");
