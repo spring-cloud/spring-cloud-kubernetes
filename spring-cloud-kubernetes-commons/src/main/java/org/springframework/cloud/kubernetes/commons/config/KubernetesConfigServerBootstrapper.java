@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.BootstrapRegistryInitializer;
+import org.springframework.boot.bootstrap.BootstrapContext;
+import org.springframework.boot.bootstrap.BootstrapRegistryInitializer;
 import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;

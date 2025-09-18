@@ -575,12 +575,12 @@ If you want your application to fail the start-up process in such cases, you can
 
 [#config-map-retry]
 You can also make your application retry loading `ConfigMap` property sources on a failure. First, you need to
-set `spring.cloud.kubernetes.config.fail-fast=true`. Then you need to add `spring-retry` 
-and `spring-boot-starter-aop` to your classpath. You can configure retry properties such as
+set `spring.cloud.kubernetes.config.fail-fast=true`. Then you need to add `spring-retry`
+and `spring-boot-starter-aspectj` to your classpath. You can configure retry properties such as
 the maximum number of attempts, backoff options like initial interval, multiplier, max interval by setting the
 `spring.cloud.kubernetes.config.retry.*` properties.
 
-NOTE: If you already have `spring-retry` and `spring-boot-starter-aop` on the classpath for some reason
+NOTE: If you already have `spring-retry` and `spring-boot-starter-aspectj` on the classpath for some reason
 and want to enable fail-fast, but do not want retry to be enabled; you can disable retry for `ConfigMap` `PropertySources`
 by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 
