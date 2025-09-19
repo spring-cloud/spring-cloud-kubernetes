@@ -31,7 +31,7 @@ import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.cloud.config.client.ConfigServerConfigDataLocationResolver;
 import org.springframework.cloud.config.client.ConfigServerConfigDataLocationResolver.PropertyResolver;
 import org.springframework.cloud.config.client.ConfigServerInstanceProvider;
