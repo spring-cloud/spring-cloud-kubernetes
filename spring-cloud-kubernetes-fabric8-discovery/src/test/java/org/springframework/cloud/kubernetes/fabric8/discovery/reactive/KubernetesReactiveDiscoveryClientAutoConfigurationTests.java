@@ -97,9 +97,9 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationTests {
 	}
 
 	@Test
-	void worksWithoutActuator() {
+	void worksWithoutHealth() {
 		contextRunner.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
-			.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate"))
+			.withClassLoader(new FilteredClassLoader("org.springframework.boot.health"))
 			.run(context -> {
 				assertThat(context).hasSingleBean(ReactiveDiscoveryClient.class);
 				assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);

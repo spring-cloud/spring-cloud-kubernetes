@@ -34,7 +34,7 @@ import org.springframework.boot.cloud.CloudPlatform;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnClass(name = "org.springframework.boot.actuate.health.HealthIndicator")
+@ConditionalOnClass(name = "org.springframework.boot.health.contributor.HealthIndicator")
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public @interface ConditionalOnKubernetesHealthIndicatorEnabled {
 

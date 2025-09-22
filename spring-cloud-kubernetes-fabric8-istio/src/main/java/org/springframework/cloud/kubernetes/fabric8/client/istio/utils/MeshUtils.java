@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.client.istio.utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.cloud.kubernetes.fabric8.client.istio.IstioClientProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;

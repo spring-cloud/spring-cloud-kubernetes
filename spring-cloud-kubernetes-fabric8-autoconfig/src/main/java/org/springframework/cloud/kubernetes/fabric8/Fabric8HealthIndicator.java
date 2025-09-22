@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
 
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.AbstractKubernetesHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.util.CollectionUtils;

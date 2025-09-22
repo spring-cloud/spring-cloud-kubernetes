@@ -1,2 +1,2 @@
-org.springframework.boot.BootstrapRegistryInitializer=\
+org.springframework.boot.bootstrap.BootstrapRegistryInitializer=\
 org.springframework.cloud.kubernetes.discovery.ConfigServerBootstrapper

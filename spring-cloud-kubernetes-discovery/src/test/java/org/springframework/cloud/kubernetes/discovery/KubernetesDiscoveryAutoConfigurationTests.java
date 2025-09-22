@@ -18,11 +18,11 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.health.contributor.HealthIndicator;
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 

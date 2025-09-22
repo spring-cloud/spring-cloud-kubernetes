@@ -16,8 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.BootstrapRegistryInitializer;
+import org.springframework.boot.bootstrap.BootstrapContext;
+import org.springframework.boot.bootstrap.BootstrapRegistryInitializer;
 import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -38,22 +38,10 @@ public abstract class KubernetesConfigServerBootstrapper implements BootstrapReg
 		return !ClassUtils.isPresent("org.springframework.cloud.config.client.ConfigServerInstanceProvider", null);
 	}
 
-	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(Binder binder,
-			BindHandler bindHandler) {
-		return binder
-			.bind(KubernetesDiscoveryProperties.PREFIX, Bindable.of(KubernetesDiscoveryProperties.class), bindHandler)
-			.orElseGet(() -> KubernetesDiscoveryProperties.DEFAULT);
-	}
-
 	public static KubernetesDiscoveryProperties createKubernetesDiscoveryProperties(BootstrapContext bootstrapContext) {
 		PropertyResolver propertyResolver = getPropertyResolver(bootstrapContext);
 		return propertyResolver.resolveConfigurationProperties(KubernetesDiscoveryProperties.PREFIX,
 				KubernetesDiscoveryProperties.class, () -> KubernetesDiscoveryProperties.DEFAULT);
-	}
-
-	public static KubernetesClientProperties createKubernetesClientProperties(Binder binder, BindHandler bindHandler) {
-		return binder.bindOrCreate(KubernetesClientProperties.PREFIX, Bindable.of(KubernetesClientProperties.class))
-			.withNamespace(new KubernetesNamespaceProvider(binder, bindHandler).getNamespace());
 	}
 
 	public static KubernetesClientProperties createKubernetesClientProperties(BootstrapContext bootstrapContext) {

@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-kubernetes</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>3.2.3-SNAPSHOT</version>
+		<version>5.0.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -13,6 +13,10 @@
 	<name>${project.artifactId}</name>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-restclient</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -39,6 +43,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-autoconfigure</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-health</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>

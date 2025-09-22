@@ -18,8 +18,8 @@ package org.springframework.cloud.kubernetes.commons;
 
 import java.util.Map;
 
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health;
 
 /**
  * @author Ryan Baxter

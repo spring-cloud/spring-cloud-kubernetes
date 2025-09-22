@@ -144,7 +144,7 @@ class KubernetesReactiveDiscoveryClientAutoConfigurationApplicationContextTests 
 
 	@Test
 	void healthEnabledClassNotPresent() {
-		setupWithFilteredClassLoader("org.springframework.boot.actuate.health.ReactiveHealthIndicator",
+		setupWithFilteredClassLoader("org.springframework.boot.health.contributor.ReactiveHealthIndicator",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
 		applicationContextRunner.run(context -> {

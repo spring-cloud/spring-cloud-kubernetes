@@ -25,7 +25,7 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.web.server.test.LocalManagementPort;
 import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 import org.springframework.context.annotation.Bean;

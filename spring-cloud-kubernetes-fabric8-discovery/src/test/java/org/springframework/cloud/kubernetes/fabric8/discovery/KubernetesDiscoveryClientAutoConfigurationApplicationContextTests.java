@@ -18,8 +18,8 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;

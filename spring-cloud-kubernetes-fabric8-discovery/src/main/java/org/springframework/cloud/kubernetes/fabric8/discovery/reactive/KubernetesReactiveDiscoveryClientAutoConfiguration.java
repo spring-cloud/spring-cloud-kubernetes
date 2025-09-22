@@ -79,7 +79,7 @@ public class KubernetesReactiveDiscoveryClientAutoConfiguration {
 	 * Post an event so that health indicator is initialized.
 	 */
 	@Bean
-	@ConditionalOnClass(name = "org.springframework.boot.actuate.health.ReactiveHealthIndicator")
+	@ConditionalOnClass(name = "org.springframework.boot.health.contributor.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
 			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {

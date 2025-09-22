@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.boot.actuate.autoconfigure.amqp.RabbitHealthContributorAutoConfiguration;
+import org.springframework.boot.amqp.autoconfigure.health.RabbitHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;

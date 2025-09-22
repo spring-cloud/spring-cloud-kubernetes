@@ -57,7 +57,7 @@ An example should make a lot more sense. Let's suppose that `spring.application.
 we have a single active profile called `k8s`. For a configuration as below:
 
 
-[source]
+[source,yaml]
 ----
 kind: ConfigMap
 apiVersion: v1
@@ -92,7 +92,7 @@ The order of loading properties is a as follows:
 This means that profile based sources take precedence over non-profile based sources (just like in a vanilla Spring app); and plain properties take precedence over both profile and non-profile based sources. Here is an example:
 
 ====
-[source]
+[source,yaml]
 ----
 kind: ConfigMap
 apiVersion: v1
@@ -101,7 +101,7 @@ metadata:
 data:
   my-app-k8s.yaml: |-
     key1=valueA
-	key2=valueB
+    key2=valueB
   my-app.yaml: |-
     key1=valueC
     key2=valueA
@@ -318,13 +318,13 @@ spec:
     metadata:
       labels:
         app: deployment-name
-	spec:
-		containers:
-		- name: container-name
-		  image: your-image
-		  env:
-		  - name: SPRING_PROFILES_ACTIVE
-			value: "development"
+    spec:
+      containers:
+        - name: container-name
+          image: your-image
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "development"
 ----
 
 You could run into a situation where there are multiple configs maps that have the same property names. For example:
@@ -447,7 +447,7 @@ will result in three properties being generated:
 The same way you configure a prefix for configmaps, you can do it for secrets also; both for secrets that are based on name
 and the ones based on labels. For example:
 
-[source.yaml]
+[source,yaml]
 ----
 spring:
   application:
@@ -479,7 +479,7 @@ will be the name of the secret found for those particular labels.
 
 One more thing to bear in mind is that we support `prefix` per _secret_. The easiest way to explain this is via an example:
 
-[source.yaml]
+[source,yaml]
 ----
 spring:
   application:
@@ -553,7 +553,8 @@ This behavior is controlled by the `spring.cloud.kubernetes.config.paths` proper
 addition to or instead of the mechanism described earlier.
 `spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
 
-```
+[source,yaml]
+----
 spring:
   cloud:
     kubernetes:
@@ -561,7 +562,7 @@ spring:
         paths:
           - /tmp/application.properties
           - /var/application.yaml
-```
+----
 
 NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
 functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
@@ -574,12 +575,12 @@ If you want your application to fail the start-up process in such cases, you can
 
 [#config-map-retry]
 You can also make your application retry loading `ConfigMap` property sources on a failure. First, you need to
-set `spring.cloud.kubernetes.config.fail-fast=true`. Then you need to add `spring-retry` 
-and `spring-boot-starter-aop` to your classpath. You can configure retry properties such as
+set `spring.cloud.kubernetes.config.fail-fast=true`. Then you need to add `spring-retry`
+and `spring-boot-starter-aspectj` to your classpath. You can configure retry properties such as
 the maximum number of attempts, backoff options like initial interval, multiplier, max interval by setting the
 `spring.cloud.kubernetes.config.retry.*` properties.
 
-NOTE: If you already have `spring-retry` and `spring-boot-starter-aop` on the classpath for some reason
+NOTE: If you already have `spring-retry` and `spring-boot-starter-aspectj` on the classpath for some reason
 and want to enable fail-fast, but do not want retry to be enabled; you can disable retry for `ConfigMap` `PropertySources`
 by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 
@@ -599,4 +600,3 @@ by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 | `spring.cloud.kubernetes.config.retry.max-interval`     | `Long`    | `2000`                       | Maximum interval for backoff.
 | `spring.cloud.kubernetes.config.retry.multiplier`       | `Double`  | `1.1`                        | Multiplier for next interval.
 |===
-

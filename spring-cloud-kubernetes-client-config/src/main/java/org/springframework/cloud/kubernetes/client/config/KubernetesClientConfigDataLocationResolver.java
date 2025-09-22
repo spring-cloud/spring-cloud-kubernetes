@@ -19,8 +19,8 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.boot.bootstrap.BootstrapRegistry;
+import org.springframework.boot.bootstrap.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;

@@ -30,8 +30,8 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.kubernetes.client.example.App;
@@ -67,14 +67,14 @@ class ActuatorEnabledFailFastExceptionTest {
 
 	@Test
 	void test() throws ApiException {
-		Health health = healthIndicator.getHealth(true);
+		Health health = healthIndicator.health(true);
 		Assertions.assertThat(Status.DOWN).isSameAs(health.getStatus());
 		Mockito.verify(coreV1Api).readNamespacedPod("host", "my-namespace", null);
 	}
 
 	private static void mocks() {
 		envReaderMockedStatic = Mockito.mockStatic(EnvReader.class);
-		pathsMockedStatic = Mockito.mockStatic(Paths.class);
+		pathsMockedStatic = Mockito.mockStatic(Paths.class, Mockito.CALLS_REAL_METHODS);
 
 		envReaderMockedStatic.when(() -> EnvReader.getEnv(KubernetesClientPodUtils.KUBERNETES_SERVICE_HOST))
 			.thenReturn("k8s-host");

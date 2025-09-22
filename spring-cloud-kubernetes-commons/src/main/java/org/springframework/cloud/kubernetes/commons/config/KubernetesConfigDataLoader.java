@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.boot.bootstrap.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigData.Option;
 import org.springframework.boot.context.config.ConfigDataLoader;

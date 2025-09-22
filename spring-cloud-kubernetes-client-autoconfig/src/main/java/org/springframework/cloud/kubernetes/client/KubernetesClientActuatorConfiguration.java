@@ -18,8 +18,8 @@ package org.springframework.cloud.kubernetes.client;
 
 import io.kubernetes.client.openapi.models.V1Pod;
 
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
 import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
+import org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.autoconfig.ConditionalOnKubernetesHealthIndicatorEnabled;
 import org.springframework.context.annotation.Bean;
