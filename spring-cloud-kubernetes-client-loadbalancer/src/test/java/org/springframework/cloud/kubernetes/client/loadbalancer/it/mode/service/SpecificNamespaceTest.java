@@ -34,11 +34,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.loadbalancer.KubernetesClientServicesListSupplier;
+import org.springframework.cloud.kubernetes.client.loadbalancer.it.App;
+import org.springframework.cloud.kubernetes.client.loadbalancer.it.LoadBalancerConfiguration;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
@@ -49,8 +50,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
-import static org.springframework.cloud.kubernetes.client.loadbalancer.it.Util.Configuration;
-import static org.springframework.cloud.kubernetes.client.loadbalancer.it.Util.LoadBalancerConfiguration;
 
 /**
  * @author wind57
@@ -59,7 +58,7 @@ import static org.springframework.cloud.kubernetes.client.loadbalancer.it.Util.L
 		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.discovery.all-namespaces=false",
 				"spring.cloud.kubernetes.client.namespace=a" },
-		classes = { LoadBalancerConfiguration.class, Configuration.class })
+		classes = { LoadBalancerConfiguration.class, App.class })
 class SpecificNamespaceTest {
 
 	private static final String SERVICE_A_URL = "http://my-service";
@@ -74,6 +73,7 @@ class SpecificNamespaceTest {
 
 	private static WireMockServer serviceBMockServer;
 
+	@SuppressWarnings("rawtypes")
 	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
 		.mockStatic(KubernetesServiceInstanceMapper.class);
 
@@ -83,7 +83,7 @@ class SpecificNamespaceTest {
 	private WebClient.Builder builder;
 
 	@Autowired
-	private ObjectProvider<LoadBalancerClientFactory> loadBalancerClientFactory;
+	private LoadBalancerClientFactory loadBalancerClientFactory;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -91,6 +91,7 @@ class SpecificNamespaceTest {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
+
 		mockWatchers();
 
 		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
@@ -153,7 +154,6 @@ class SpecificNamespaceTest {
 		Assertions.assertThat(serviceAResult).isEqualTo("service-a-reached");
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
-			.getIfAvailable()
 			.getProvider("my-service", ServiceInstanceListSupplier.class)
 			.getIfAvailable();
 		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(KubernetesClientServicesListSupplier.class);
