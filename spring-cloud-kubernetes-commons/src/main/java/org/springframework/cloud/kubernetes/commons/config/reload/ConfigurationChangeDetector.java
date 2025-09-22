@@ -20,7 +20,6 @@ import java.util.Objects;
 
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
 /**
@@ -33,16 +32,9 @@ public abstract class ConfigurationChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ConfigurationChangeDetector.class));
 
-	protected ConfigurableEnvironment environment;
-
-	protected ConfigReloadProperties properties;
-
 	protected ConfigurationUpdateStrategy strategy;
 
-	public ConfigurationChangeDetector(ConfigurableEnvironment environment, ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy) {
-		this.environment = Objects.requireNonNull(environment);
-		this.properties = Objects.requireNonNull(properties);
+	public ConfigurationChangeDetector(ConfigurationUpdateStrategy strategy) {
 		this.strategy = Objects.requireNonNull(strategy);
 	}
 

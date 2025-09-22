@@ -65,11 +65,14 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final boolean enableReloadFiltering;
 
+	private final AbstractEnvironment environment;
+
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider) {
-		super(environment, properties, strategy);
+		super(strategy);
+		this.environment = environment;
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
 		this.enableReloadFiltering = properties.enableReloadFiltering();
