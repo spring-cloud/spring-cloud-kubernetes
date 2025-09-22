@@ -33,6 +33,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<image>
+						<env>
+							<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
+						</env>
+					</image>
 					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
 				</configuration>
 				<executions>
