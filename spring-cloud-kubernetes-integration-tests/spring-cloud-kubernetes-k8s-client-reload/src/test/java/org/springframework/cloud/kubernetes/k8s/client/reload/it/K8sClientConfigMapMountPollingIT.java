@@ -109,7 +109,7 @@ class K8sClientConfigMapMountPollingIT extends K8sClientReloadBase {
 		// our polling will detect that and restart the app
 		V1ConfigMap configMap = (V1ConfigMap) util.yaml("mount/configmap.yaml");
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.configmap.key=as-mount-changed"));
-		coreV1Api.replaceNamespacedConfigMap("configmap-reload", NAMESPACE, configMap, null, null, null, null);
+		coreV1Api.replaceNamespacedConfigMap("configmap-reload", NAMESPACE, configMap).execute();
 
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
 				IMAGE_NAME);
