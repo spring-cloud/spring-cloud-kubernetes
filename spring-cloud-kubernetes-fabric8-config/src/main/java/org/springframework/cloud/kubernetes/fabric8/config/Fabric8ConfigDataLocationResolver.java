@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.boot.ConfigurableBootstrapContext;
+import org.springframework.boot.bootstrap.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;

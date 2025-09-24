@@ -107,11 +107,10 @@ abstract class DiscoveryServerClientBase {
 			RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
 
 			if (phase == Phase.CREATE) {
-				rbacApi.createClusterRoleBinding(clusterRoleBinding, null, null, null, null);
+				rbacApi.createClusterRoleBinding(clusterRoleBinding).execute();
 			}
 			else {
-				rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName(), null, null, null, null,
-						null, null);
+				rbacApi.deleteClusterRoleBinding(clusterRoleBinding.getMetadata().getName()).execute();
 			}
 		}
 		catch (Exception e) {

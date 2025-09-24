@@ -127,9 +127,11 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 			factories.add(factory);
 			informer = factory
-				.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace,
-						null, null, null, null, filter[0], null, params.resourceVersion, null, null,
-						params.timeoutSeconds, params.watch, null), V1Secret.class, V1SecretList.class);
+				.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedSecret(namespace)
+					.timeoutSeconds(params.timeoutSeconds)
+					.resourceVersion(params.resourceVersion)
+					.watch(params.watch)
+					.buildCall(null), V1Secret.class, V1SecretList.class);
 
 			LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);
 

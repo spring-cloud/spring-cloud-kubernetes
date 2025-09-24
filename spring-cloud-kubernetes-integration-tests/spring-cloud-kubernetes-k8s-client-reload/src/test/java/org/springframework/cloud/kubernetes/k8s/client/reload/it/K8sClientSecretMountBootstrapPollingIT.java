@@ -100,7 +100,7 @@ class K8sClientSecretMountBootstrapPollingIT extends K8sClientReloadBase {
 		// our polling will detect that and restart the app
 		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
 		secret.setData(Map.of("from.properties.secret.key", "as-mount-changed".getBytes(StandardCharsets.UTF_8)));
-		coreV1Api.replaceNamespacedSecret("secret-reload", NAMESPACE, secret, null, null, null, null);
+		coreV1Api.replaceNamespacedSecret("secret-reload", NAMESPACE, secret).execute();
 
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
 				IMAGE_NAME);

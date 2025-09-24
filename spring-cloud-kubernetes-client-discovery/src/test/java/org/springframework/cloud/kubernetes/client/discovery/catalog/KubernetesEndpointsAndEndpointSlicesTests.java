@@ -22,7 +22,6 @@ import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Endpoint;
 import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointSliceBuilder;
@@ -172,6 +171,7 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 						new V1EndpointSubsetBuilder().addToAddresses(new V1EndpointAddressBuilder()
 							.withTargetRef(
 									new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
+							.withIp("127.0.0.1")
 							.build()).build())
 					.build())
 			.build();
@@ -184,17 +184,21 @@ abstract class KubernetesEndpointsAndEndpointSlicesTests {
 	}
 
 	V1EndpointSliceList endpointSlices(String name, String namespace) {
-		return new V1EndpointSliceListBuilder()
-			.addToItems(new V1EndpointSliceBuilder().addToEndpoints(new V1EndpointBuilder()
-				.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
-				.build()).build())
+		return new V1EndpointSliceListBuilder().addToItems(
+				new V1EndpointSliceBuilder()
+					.addToEndpoints(new V1EndpointBuilder()
+						.withTargetRef(new V1ObjectReferenceBuilder().withName(name).withNamespace(namespace).build())
+						.build())
+					.withAddressType("type")
+					.build())
 			.build();
 	}
 
 	V1EndpointSliceList endpointSlicesNoEndpoints() {
-		List<V1Endpoint> endpoints = null;
 		return new V1EndpointSliceListBuilder().withKind("V1EndpointSliceList")
-			.addToItems(new V1EndpointSliceBuilder().withEndpoints(endpoints).build())
+			.addToItems(new V1EndpointSliceBuilder().withEndpoints(new V1EndpointBuilder().build())
+				.withAddressType("type")
+				.build())
 			.build();
 	}
 
