@@ -134,7 +134,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		// sleep for 5 seconds
 		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
-		Assertions.assertThat(rightProperties.getValue()).isEqualTo("right-initial");
+		Assertions.assertThat(rightProperties.getValue()).isEqualTo("right-after-change");
 
 		// then deploy a new version of right-configmap-with-label
 		// but only add a label, this does not trigger a refresh

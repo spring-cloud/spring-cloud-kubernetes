@@ -27,6 +27,9 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<image>
+						<env>
+							<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
+						</env>
 						<name>${env.IMAGE}</name>
 						<pullPolicy>IF_NOT_PRESENT</pullPolicy>
 					</image>
