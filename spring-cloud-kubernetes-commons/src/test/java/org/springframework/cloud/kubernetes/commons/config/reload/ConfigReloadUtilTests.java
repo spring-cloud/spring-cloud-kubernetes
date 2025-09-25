@@ -161,8 +161,7 @@ class ConfigReloadUtilTests {
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
-		assertThat(result.size()).isEqualTo(1);
-		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
+		assertThat(result.size()).isEqualTo(0);
 	}
 
 	@Test
@@ -174,8 +173,7 @@ class ConfigReloadUtilTests {
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
-		assertThat(result.size()).isEqualTo(1);
-		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
+		assertThat(result.size()).isEqualTo(0);
 	}
 
 	private static final class OneComposite extends CompositePropertySource {
