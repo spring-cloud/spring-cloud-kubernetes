@@ -154,25 +154,23 @@ class ConfigUtilsTests {
 	void testMerge() {
 
 		StrippedSourceContainer configMapOne = new StrippedSourceContainer(Map.of(), "configmap-one",
-				Map.of(Constants.APPLICATION_YAML, "propA: A\npropB: B"));
+			Map.of(Constants.APPLICATION_YAML, "propA: A\npropB: B"));
 
 		StrippedSourceContainer configMapOneK8s = new StrippedSourceContainer(Map.of(), "configmap-one-kubernetes",
-				Map.of(Constants.APPLICATION_YAML, "propA: AA\npropC: C"));
+			Map.of(Constants.APPLICATION_YAML, "propA: AA\npropC: C"));
 
 		LinkedHashSet<String> sourceNames = Stream.of("configmap-one", "configmap-one-kubernetes")
 			.collect(Collectors.toCollection(LinkedHashSet::new));
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(List.of(configMapOne, configMapOneK8s),
-				new MockEnvironment(), sourceNames, "default", false);
+			new MockEnvironment(), sourceNames, "default", false);
 
 		Assertions.assertThat(result.data().size()).isEqualTo(2);
-		@SuppressWarnings("unchecked")
-		Map<String, Object> one = (Map<String, Object>) result.data().get("configmap-one");
+		Map<String, Object> one = result.data().get("configmap-one");
 		Assertions.assertThat(one.get("propA")).isEqualTo("A");
 		Assertions.assertThat(one.get("propB")).isEqualTo("B");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> oneKubernetes = (Map<String, Object>) result.data().get("configmap-one-kubernetes");
+		Map<String, Object> oneKubernetes = result.data().get("configmap-one-kubernetes");
 		Assertions.assertThat(oneKubernetes.get("propA")).isEqualTo("AA");
 		Assertions.assertThat(oneKubernetes.get("propC")).isEqualTo("C");
 
@@ -205,26 +203,24 @@ class ConfigUtilsTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	void testIssue1757() {
 
 		StrippedSourceContainer containerA = new StrippedSourceContainer(Map.of("load", "true"), "client-1",
-				Map.of("client-id", "clientA", "client-secret", "a"));
+			Map.of("client-id", "clientA", "client-secret", "a"));
 
 		StrippedSourceContainer containerB = new StrippedSourceContainer(Map.of("load", "true"), "client-2",
-				Map.of("client-id", "clientB", "client-secret", "b"));
+			Map.of("client-id", "clientB", "client-secret", "b"));
 
 		MultipleSourcesContainer container = ConfigUtils.processLabeledData(List.of(containerA, containerB),
-				new MockEnvironment(), Map.of("load", "true"), "default", Set.of(), false);
+			new MockEnvironment(), Map.of("load", "true"), "default", Set.of(), false);
 
-		System.out.println(container);
-		assertThat(container.names()).containsExactlyInAnyOrder("client-1", "client-2");
+		assertThat(container.data().keySet()).containsExactlyInAnyOrder("client-1", "client-2");
 
-		Map<String, Object> client1Data = (Map<String, Object>) container.data().get("client-1");
+		Map<String, Object> client1Data = container.data().get("client-1");
 		assertThat(client1Data)
 			.containsExactlyInAnyOrderEntriesOf(Map.of("client-id", "clientA", "client-secret", "a"));
 
-		Map<String, Object> client2Data = (Map<String, Object>) container.data().get("client-2");
+		Map<String, Object> client2Data = container.data().get("client-2");
 		assertThat(client2Data)
 			.containsExactlyInAnyOrderEntriesOf(Map.of("client-id", "clientB", "client-secret", "b"));
 

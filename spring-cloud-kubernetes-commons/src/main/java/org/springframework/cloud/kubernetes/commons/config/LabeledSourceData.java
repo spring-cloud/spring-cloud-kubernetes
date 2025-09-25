@@ -17,7 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Arrays;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,7 +46,7 @@ public abstract class LabeledSourceData {
 	private static final Log LOG = LogFactory.getLog(LabeledSourceData.class);
 
 	public final SourceData compute(Map<String, String> labels, Prefix prefix, String target, boolean profileSources,
-			boolean failFast, String namespace, String[] activeProfiles) {
+		boolean failFast, String namespace, String[] activeProfiles) {
 
 		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 		String sourceDataName;
@@ -57,26 +57,24 @@ public abstract class LabeledSourceData {
 				profiles = Arrays.stream(activeProfiles).collect(Collectors.toSet());
 			}
 			data = dataSupplier(labels, profiles);
+			LinkedHashMap<String, Map<String, Object>> sourceData = data.data();
+			sourceDataName = sourceDataName(target, sourceData.keySet(), namespace);
 
-			LinkedHashSet<String> sourceNames = data.names();
-			Map<String, Object> sourceDataForSourceName = data.data();
-			sourceDataName = sourceDataName(target, sourceNames, namespace);
-
-			if (sourceNames.isEmpty()) {
+			if (sourceData.isEmpty()) {
 				return emptySourceData(labels, target, namespace);
 			}
 
 			if (prefix.getName().equals(Prefix.DEFAULT.getName())) {
-				return new SourceData(sourceDataName, defaultFlattenedSourceData(sourceNames, sourceDataForSourceName));
+				return new SourceData(sourceDataName, defaultFlattenedSourceData(sourceData));
 			}
 
 			if (prefix.getName().equals(Prefix.KNOWN.getName())) {
 				return new SourceData(sourceDataName,
-						prefixFlattenedSourceData(sourceNames, sourceDataForSourceName, prefix.prefixProvider().get()));
+					prefixFlattenedSourceData(sourceData, prefix.prefixProvider().get()));
 			}
 
 			if (prefix.getName().equals(Prefix.DELAYED.getName())) {
-				return new SourceData(sourceDataName, nameFlattenedSourceData(sourceNames, sourceDataForSourceName));
+				return new SourceData(sourceDataName, nameFlattenedSourceData(sourceData));
 			}
 
 			throw new IllegalArgumentException("Unsupported prefix: " + prefix);
@@ -84,7 +82,8 @@ public abstract class LabeledSourceData {
 		catch (Exception e) {
 			LOG.warn("Failure in reading labeled sources");
 			onException(failFast, e);
-			return new SourceData(sourceDataName(target, data.names(), namespace), Map.of(ERROR_PROPERTY, "true"));
+			return new SourceData(sourceDataName(target, data.data().keySet(), namespace),
+				Map.of(ERROR_PROPERTY, "true"));
 		}
 
 	}
@@ -98,7 +97,7 @@ public abstract class LabeledSourceData {
 			.stream()
 			.sorted()
 			.collect(Collectors.collectingAndThen(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR),
-					sortedLabels -> sourceName(target, sortedLabels, namespace)));
+				sortedLabels -> sourceName(target, sortedLabels, namespace)));
 
 		return SourceData.emptyRecord(sourceName);
 	}
