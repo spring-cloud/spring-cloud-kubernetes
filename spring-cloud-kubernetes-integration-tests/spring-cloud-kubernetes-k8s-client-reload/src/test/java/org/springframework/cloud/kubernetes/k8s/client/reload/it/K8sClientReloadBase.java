@@ -88,7 +88,8 @@ abstract class K8sClientReloadBase {
 	protected static void replaceConfigMap(CoreV1Api api, V1ConfigMap configMap) {
 		try {
 			api.replaceNamespacedConfigMap(configMap.getMetadata().getName(), configMap.getMetadata().getNamespace(),
-				configMap).execute();
+					configMap)
+				.execute();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
