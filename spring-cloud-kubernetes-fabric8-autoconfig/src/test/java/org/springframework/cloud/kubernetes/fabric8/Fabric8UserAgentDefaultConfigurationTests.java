@@ -37,7 +37,7 @@ class Fabric8UserAgentDefaultConfigurationTests {
 	@Test
 	void testUserAgent() {
 		String userAgent = client.getConfiguration().getUserAgent();
-		assertThat(userAgent).isEqualTo("fabric8-kubernetes-client/7.3.1");
+		assertThat(userAgent).isEqualTo("fabric8-kubernetes-client/7.4.0");
 	}
 
 }

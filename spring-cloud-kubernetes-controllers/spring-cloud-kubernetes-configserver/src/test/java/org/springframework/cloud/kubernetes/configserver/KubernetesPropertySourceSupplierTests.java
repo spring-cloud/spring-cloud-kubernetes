@@ -39,6 +39,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecret
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,25 +75,31 @@ class KubernetesPropertySourceSupplierTests {
 
 	@BeforeAll
 	static void beforeAll() throws ApiException {
-		when(CORE_V1_API.listNamespacedConfigMap("default", null, null, null, null, null, null, null, null, null, null,
-				null))
-			.thenReturn(CONFIGMAP_DEFAULT_LIST);
-		when(CORE_V1_API.listNamespacedConfigMap("team-a", null, null, null, null, null, null, null, null, null, null,
-				null))
-			.thenReturn(CONFIGMAP_TEAM_A_LIST);
-		when(CORE_V1_API.listNamespacedConfigMap("team-b", null, null, null, null, null, null, null, null, null, null,
-				null))
-			.thenReturn(CONFIGMAP_TEAM_B_LIST);
+		CoreV1Api.APIlistNamespacedConfigMapRequest defaultRequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		when(defaultRequest.execute()).thenReturn(CONFIGMAP_DEFAULT_LIST);
+		when(CORE_V1_API.listNamespacedConfigMap(eq("default"))).thenReturn(defaultRequest);
+		CoreV1Api.APIlistNamespacedConfigMapRequest teamARequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		when(teamARequest.execute()).thenReturn(CONFIGMAP_TEAM_A_LIST);
+		when(CORE_V1_API.listNamespacedConfigMap(eq("team-a"))).thenReturn(teamARequest);
+		CoreV1Api.APIlistNamespacedConfigMapRequest teamBRequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		when(teamBRequest.execute()).thenReturn(CONFIGMAP_TEAM_B_LIST);
+		when(CORE_V1_API.listNamespacedConfigMap(eq("team-b"))).thenReturn(teamBRequest);
 
-		when(CORE_V1_API.listNamespacedSecret("default", null, null, null, null, null, null, null, null, null, null,
-				null))
-			.thenReturn(SECRET_DEFAULT_LIST);
-		when(CORE_V1_API.listNamespacedSecret("team-a", null, null, null, null, null, null, null, null, null, null,
-				null))
-			.thenReturn(SECRET_TEAM_A_LIST);
-		when(CORE_V1_API.listNamespacedSecret("team-b", null, null, null, null, null, null, null, null, null, null,
-				null))
-			.thenReturn(SECRET_TEAM_B_LIST);
+		CoreV1Api.APIlistNamespacedSecretRequest defaultSecretRequest = mock(
+				CoreV1Api.APIlistNamespacedSecretRequest.class);
+		when(defaultSecretRequest.execute()).thenReturn(SECRET_DEFAULT_LIST);
+		when(CORE_V1_API.listNamespacedSecret(eq("default"))).thenReturn(defaultSecretRequest);
+		CoreV1Api.APIlistNamespacedSecretRequest teamASecretRequest = mock(
+				CoreV1Api.APIlistNamespacedSecretRequest.class);
+		when(teamASecretRequest.execute()).thenReturn(SECRET_TEAM_A_LIST);
+		when(CORE_V1_API.listNamespacedSecret(eq("team-a"))).thenReturn(teamASecretRequest);
+		CoreV1Api.APIlistNamespacedSecretRequest teamBSecretRequest = mock(
+				CoreV1Api.APIlistNamespacedSecretRequest.class);
+		when(teamBSecretRequest.execute()).thenReturn(SECRET_TEAM_B_LIST);
+		when(CORE_V1_API.listNamespacedSecret(eq("team-b"))).thenReturn(teamBSecretRequest);
 	}
 
 	@AfterAll
