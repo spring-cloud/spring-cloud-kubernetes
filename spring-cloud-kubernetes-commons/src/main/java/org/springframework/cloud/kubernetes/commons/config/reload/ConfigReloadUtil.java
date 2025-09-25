@@ -27,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -111,10 +110,6 @@ public final class ConfigReloadUtil {
 				// we know that the type is correct here
 				managedSources.add((S) mountConfigMapPropertySource);
 			}
-			else if (source instanceof SecretsPropertySource secretsPropertySource) {
-				// we know that the type is correct here
-				managedSources.add((S) secretsPropertySource);
-			}
 			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
 				LOG.debug(() -> "bootstrap delegate class : " + propertySource.getClass());
@@ -124,10 +119,6 @@ public final class ConfigReloadUtil {
 				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
 					// we know that the type is correct here
 					managedSources.add((S) mountConfigMapPropertySource);
-				}
-				else if (propertySource instanceof SecretsPropertySource secretsPropertySource) {
-					// we know that the type is correct here
-					managedSources.add((S) secretsPropertySource);
 				}
 			}
 		}
