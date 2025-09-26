@@ -46,7 +46,7 @@ public abstract class LabeledSourceData {
 	private static final Log LOG = LogFactory.getLog(LabeledSourceData.class);
 
 	public final SourceData compute(Map<String, String> labels, Prefix prefix, String target, boolean profileSources,
-		boolean failFast, String namespace, String[] activeProfiles) {
+			boolean failFast, String namespace, String[] activeProfiles) {
 
 		MultipleSourcesContainer data = MultipleSourcesContainer.empty();
 		String sourceDataName;
@@ -70,7 +70,7 @@ public abstract class LabeledSourceData {
 
 			if (prefix.getName().equals(Prefix.KNOWN.getName())) {
 				return new SourceData(sourceDataName,
-					prefixFlattenedSourceData(sourceData, prefix.prefixProvider().get()));
+						prefixFlattenedSourceData(sourceData, prefix.prefixProvider().get()));
 			}
 
 			if (prefix.getName().equals(Prefix.DELAYED.getName())) {
@@ -83,7 +83,7 @@ public abstract class LabeledSourceData {
 			LOG.warn("Failure in reading labeled sources");
 			onException(failFast, e);
 			return new SourceData(sourceDataName(target, data.data().keySet(), namespace),
-				Map.of(ERROR_PROPERTY, "true"));
+					Map.of(ERROR_PROPERTY, "true"));
 		}
 
 	}
@@ -97,7 +97,7 @@ public abstract class LabeledSourceData {
 			.stream()
 			.sorted()
 			.collect(Collectors.collectingAndThen(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR),
-				sortedLabels -> sourceName(target, sortedLabels, namespace)));
+					sortedLabels -> sourceName(target, sortedLabels, namespace)));
 
 		return SourceData.emptyRecord(sourceName);
 	}

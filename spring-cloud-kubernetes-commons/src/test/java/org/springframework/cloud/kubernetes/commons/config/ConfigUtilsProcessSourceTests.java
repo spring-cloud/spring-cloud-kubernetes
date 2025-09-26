@@ -78,7 +78,7 @@ class ConfigUtilsProcessSourceTests {
 		boolean includeDefaultProfileData = true;
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
-			namespace, decode, includeDefaultProfileData);
+				namespace, decode, includeDefaultProfileData);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("configmap-a");
 
@@ -159,7 +159,7 @@ class ConfigUtilsProcessSourceTests {
 		boolean includeDefaultProfileData = false;
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
-			namespace, decode, includeDefaultProfileData);
+				namespace, decode, includeDefaultProfileData);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("account");
 
@@ -254,7 +254,7 @@ class ConfigUtilsProcessSourceTests {
 		boolean includeDefaultProfileData = false;
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
-			namespace, decode, includeDefaultProfileData);
+				namespace, decode, includeDefaultProfileData);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("account-default");
 
@@ -368,7 +368,7 @@ class ConfigUtilsProcessSourceTests {
 		boolean includeDefaultProfileData = false;
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
-			namespace, decode, includeDefaultProfileData);
+				namespace, decode, includeDefaultProfileData);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("account");
 
@@ -456,7 +456,7 @@ class ConfigUtilsProcessSourceTests {
 		boolean includeDefaultProfileData = false;
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(strippedSources, environment, sourceNames,
-			namespace, decode, includeDefaultProfileData);
+				namespace, decode, includeDefaultProfileData);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("account-k8s");
 

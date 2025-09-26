@@ -61,7 +61,7 @@ class Fabric8ConfigUtilsTests {
 			.resource(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build())
 			.create();
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-			Map.of("color", "red"), new MockEnvironment(), Set.of());
+				Map.of("color", "red"), new MockEnvironment(), Set.of());
 		Assertions.assertThat(result.data()).isEmpty();
 		Assertions.assertThat(result.data().keySet()).isEmpty();
 	}
@@ -79,7 +79,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-			Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment(), Set.of());
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -100,7 +100,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-			Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment(), Set.of());
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -123,13 +123,13 @@ class Fabric8ConfigUtilsTests {
 			.inNamespace("spring-k8s")
 			.resource(new SecretBuilder()
 				.withMetadata(
-					new ObjectMetaBuilder().withName("my-secret-2").withLabels(Map.of("color", "pink")).build())
+						new ObjectMetaBuilder().withName("my-secret-2").withLabels(Map.of("color", "pink")).build())
 				.addToData(Map.of("property-2", Base64.getEncoder().encodeToString("value-2".getBytes())))
 				.build())
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-			Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment(), Set.of());
 		Assertions.assertThat(result.data().keySet()).contains("my-secret");
 		Assertions.assertThat(result.data().keySet()).contains("my-secret-2");
 
@@ -196,7 +196,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-			Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
+				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
 
 		Assertions.assertThat(result.data().keySet()).contains("blue-circle-secret");
 		Assertions.assertThat(result.data().keySet()).contains("blue-square-secret");
@@ -223,7 +223,7 @@ class Fabric8ConfigUtilsTests {
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("nope");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data()).isEmpty();
 		Assertions.assertThat(result.data()).isEmpty();
 	}
@@ -241,7 +241,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-secret");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data().size()).isEqualTo(1);
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -270,7 +270,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-secret-2");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).contains("my-secret");
 		Assertions.assertThat(result.data().keySet()).contains("my-secret-2");
 
@@ -296,7 +296,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-config-map");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
 		Map<String, Object> data = result.data().get("my-config-map");
@@ -314,7 +314,7 @@ class Fabric8ConfigUtilsTests {
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-config-map-not-found");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).isEmpty();
 		Assertions.assertThat(result.data()).isEmpty();
 	}
@@ -333,7 +333,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-config-map");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
 		Map<String, Object> data = result.data().get("my-config-map");
@@ -355,7 +355,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-config-map");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
 		Map<String, Object> data = result.data().get("my-config-map");
@@ -385,7 +385,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-config-map-2");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
-			new MockEnvironment());
+				new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).contains("my-config-map");
 		Assertions.assertThat(result.data().keySet()).contains("my-config-map-2");
 
@@ -401,10 +401,10 @@ class Fabric8ConfigUtilsTests {
 	@Test
 	void testNamespacesFromProperties() {
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties(false, true, false,
-			ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-			Duration.ofMillis(15000), Set.of("non-default"), false, Duration.ofSeconds(2));
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(15000), Set.of("non-default"), false, Duration.ofSeconds(2));
 		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null,
-			new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
+				new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
 		Assertions.assertThat(namespaces.size()).isEqualTo(1);
 		Assertions.assertThat(namespaces.iterator().next()).isEqualTo("non-default");
 	}
@@ -415,7 +415,7 @@ class Fabric8ConfigUtilsTests {
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "some");
 		KubernetesNamespaceProvider provider = new KubernetesNamespaceProvider(environment);
 		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null, provider, ConfigReloadProperties.DEFAULT,
-			"configmap");
+				"configmap");
 		Assertions.assertThat(namespaces.size()).isEqualTo(1);
 		Assertions.assertThat(namespaces.iterator().next()).isEqualTo("some");
 	}

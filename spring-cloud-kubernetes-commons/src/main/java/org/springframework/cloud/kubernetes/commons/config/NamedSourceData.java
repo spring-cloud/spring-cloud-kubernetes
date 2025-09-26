@@ -45,7 +45,7 @@ public abstract class NamedSourceData {
 	private static final Log LOG = LogFactory.getLog(NamedSourceData.class);
 
 	public final SourceData compute(String sourceName, Prefix prefix, String target, boolean profileSources,
-		boolean failFast, String namespace, String[] activeProfiles) {
+			boolean failFast, String namespace, String[] activeProfiles) {
 
 		// first comes a non-profile-based source
 		LinkedHashSet<String> sourceNamesToSearchFor = new LinkedHashSet<>();
@@ -80,7 +80,7 @@ public abstract class NamedSourceData {
 
 			if (prefix.getName().equals(Prefix.KNOWN.getName())) {
 				return new SourceData(sourceDataName,
-					prefixFlattenedSourceData(sourceData, prefix.prefixProvider().get()));
+						prefixFlattenedSourceData(sourceData, prefix.prefixProvider().get()));
 			}
 
 			if (prefix.getName().equals(Prefix.DELAYED.getName())) {
@@ -99,7 +99,7 @@ public abstract class NamedSourceData {
 				.sorted()
 				.collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 			return new SourceData(generateSourceName(target, names, namespace, activeProfiles),
-				Map.of(ERROR_PROPERTY, "true"));
+					Map.of(ERROR_PROPERTY, "true"));
 		}
 
 	}

@@ -58,9 +58,9 @@ public final class ConfigUtils {
 
 	// sourceName (configmap or secret name) ends with : "-dev.yaml" or the like.
 	private static final BiPredicate<String, String> ENDS_WITH_PROFILE_AND_EXTENSION = (sourceName,
-		activeProfile) -> sourceName.endsWith("-" + activeProfile + ".yml")
-		|| sourceName.endsWith("-" + activeProfile + ".yaml")
-		|| sourceName.endsWith("-" + activeProfile + ".properties");
+			activeProfile) -> sourceName.endsWith("-" + activeProfile + ".yml")
+					|| sourceName.endsWith("-" + activeProfile + ".yaml")
+					|| sourceName.endsWith("-" + activeProfile + ".properties");
 
 	private static final ApplicationListener<?> NO_OP = (e) -> {
 	};
@@ -71,7 +71,7 @@ public final class ConfigUtils {
 	public static String getApplicationName(Environment env, String configName, String configurationTarget) {
 		if (!StringUtils.hasLength(configName)) {
 			LOG.debug(configurationTarget + " name has not been set, taking it from property/env "
-				+ SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME + ")");
+					+ SPRING_APPLICATION_NAME + " (default=" + FALLBACK_APPLICATION_NAME + ")");
 			configName = env.getProperty(SPRING_APPLICATION_NAME, FALLBACK_APPLICATION_NAME);
 		}
 
@@ -91,7 +91,7 @@ public final class ConfigUtils {
 	 * @return prefix to use in normalized sources
 	 */
 	public static Prefix findPrefix(String explicitPrefix, Boolean useNameAsPrefix, boolean defaultUseNameAsPrefix,
-		String normalizedName) {
+			String normalizedName) {
 		// if explicitPrefix is set, it takes priority over useNameAsPrefix
 		// (either the one from 'spring.cloud.kubernetes.config|secrets' or
 		// 'spring.cloud.kubernetes.config|secrets.sources')
@@ -141,7 +141,7 @@ public final class ConfigUtils {
 	 * @return useProfileNameAsPrefix to be used in normalized sources
 	 */
 	public static boolean includeProfileSpecificSources(boolean defaultIncludeProfileSpecificSources,
-		Boolean includeProfileSpecificSources) {
+			Boolean includeProfileSpecificSources) {
 		if (includeProfileSpecificSources != null) {
 			return includeProfileSpecificSources;
 		}
@@ -171,7 +171,7 @@ public final class ConfigUtils {
 	}
 
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
-		Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
+			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
 		return processNamedData(strippedSources, environment, sourceNames, namespace, decode, true);
 	}
 
@@ -181,8 +181,8 @@ public final class ConfigUtils {
 	 * defined order).
 	 */
 	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
-		Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode,
-		boolean includeDefaultProfileData) {
+			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode,
+			boolean includeDefaultProfileData) {
 
 		Map<String, StrippedSourceContainer> hashByName = strippedSources.stream()
 			.collect(Collectors.toMap(StrippedSourceContainer::name, Function.identity()));
@@ -212,7 +212,7 @@ public final class ConfigUtils {
 				 */
 				if (processSource(includeDefaultProfileData, environment, sourceName, rawData)) {
 					Map<String, Object> processedData = SourceDataEntriesProcessor.processAllEntries(
-						rawData == null ? Map.of() : rawData, environment, includeDefaultProfileData);
+							rawData == null ? Map.of() : rawData, environment, includeDefaultProfileData);
 					data.put(sourceName, processedData);
 				}
 			}
@@ -225,7 +225,7 @@ public final class ConfigUtils {
 	}
 
 	static boolean processSource(boolean includeDefaultProfileData, Environment environment, String sourceName,
-		Map<String, String> sourceRawData) {
+			Map<String, String> sourceRawData) {
 		List<String> activeProfiles = Arrays.stream(environment.getActiveProfiles()).toList();
 
 		boolean emptyActiveProfiles = activeProfiles.isEmpty();
@@ -236,7 +236,7 @@ public final class ConfigUtils {
 		boolean defaultProfilePresent = activeProfiles.contains("default");
 
 		return includeDefaultProfileData || emptyActiveProfiles || profileBasedSourceName || defaultProfilePresent
-			|| rawDataContainsProfileBasedSource(activeProfiles, sourceRawData).getAsBoolean();
+				|| rawDataContainsProfileBasedSource(activeProfiles, sourceRawData).getAsBoolean();
 	}
 
 	/*
@@ -248,7 +248,7 @@ public final class ConfigUtils {
 	 * yaml/yml/properties. For example: 'account-k8s.yaml' or the like.
 	 */
 	static BooleanSupplier rawDataContainsProfileBasedSource(List<String> activeProfiles,
-		Map<String, String> sourceRawData) {
+			Map<String, String> sourceRawData) {
 		return () -> Optional.ofNullable(sourceRawData)
 			.orElse(Map.of())
 			.keySet()
@@ -269,8 +269,8 @@ public final class ConfigUtils {
 	 * these names to find any profile-based sources.
 	 */
 	public static MultipleSourcesContainer processLabeledData(List<StrippedSourceContainer> containers,
-		Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
-		boolean decode) {
+			Environment environment, Map<String, String> labels, String namespace, Set<String> profiles,
+			boolean decode) {
 
 		// find sources by provided labels
 		List<StrippedSourceContainer> byLabels = containers.stream().filter(one -> {
@@ -327,7 +327,7 @@ public final class ConfigUtils {
 	}
 
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
-		String name, ApplicationListener<?> listener) {
+			String name, ApplicationListener<?> listener) {
 		bootstrapContext.registerIfAbsent(cls, BootstrapRegistry.InstanceSupplier.of(instance));
 		bootstrapContext.addCloseListener(event -> {
 
@@ -341,7 +341,7 @@ public final class ConfigUtils {
 	}
 
 	public static <T> void registerSingle(ConfigurableBootstrapContext bootstrapContext, Class<T> cls, T instance,
-		String name) {
+			String name) {
 		registerSingle(bootstrapContext, cls, instance, name, NO_OP);
 	}
 
