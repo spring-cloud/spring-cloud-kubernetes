@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import com.github.dockerjava.api.command.ListImagesCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
@@ -36,7 +35,6 @@ import com.github.dockerjava.api.command.SaveImageCmd;
 import com.github.dockerjava.api.model.Image;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.assertj.core.api.Assertions;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
@@ -77,54 +75,6 @@ public final class Commons {
 
 	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) throws Exception {
 		loadImage("springcloud/" + project, pomVersion(), project, container);
-	}
-
-	/**
-	 * assert that "left" is present and if so, "right" is not.
-	 */
-	public static void assertReloadLogStatements(String left, String right, String appLabel) {
-
-		try {
-			String appPodName = CONTAINER
-				.execInContainer("sh", "-c",
-						"kubectl get pods -l app=" + appLabel + " -o=name --no-headers | tr -d '\n'")
-				.getStdout();
-			LOG.info("appPodName : ->" + appPodName + "<-");
-			// we issue a pollDelay to let the logs sync in, otherwise the results are not
-			// going to be correctly asserted
-			await().pollDelay(20, TimeUnit.SECONDS)
-				.pollInterval(Duration.ofSeconds(5))
-				.atMost(Duration.ofSeconds(120))
-				.until(() -> {
-
-					Container.ExecResult result = CONTAINER.execInContainer("sh", "-c",
-							"kubectl logs " + appPodName.trim() + "| grep " + "'" + left + "'");
-					String error = result.getStderr();
-					String ok = result.getStdout();
-
-					LOG.info("error is : -->" + error + "<--");
-
-					if (ok != null && !ok.isBlank()) {
-
-						if (!right.isBlank()) {
-							String notPresent = CONTAINER
-								.execInContainer("sh", "-c",
-										"kubectl logs " + appPodName.trim() + "| grep " + "'" + right + "'")
-								.getStdout();
-
-							Assertions.assertThat(notPresent).isNullOrEmpty();
-						}
-
-						return true;
-					}
-					LOG.info("log statement not yet present");
-					return false;
-				});
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
 	}
 
 	/**

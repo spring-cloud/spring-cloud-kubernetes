@@ -25,19 +25,15 @@ import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1EndpointsListBuilder;
+import io.kubernetes.client.openapi.models.V1ListMetaBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.openapi.models.V1ServiceListBuilder;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.context.annotation.Bean;
-import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * @author wind57
@@ -142,24 +138,26 @@ public final class Util {
 			.willReturn(WireMock.aResponse().withBody(new JSON().serialize(endpointsList)).withStatus(200)));
 	}
 
-	@TestConfiguration
-	public static class LoadBalancerConfiguration {
+	public static void mockWatchers(WireMockServer wireMockServer) {
+		V1Service serviceA = Util.service("a", "service-a", 8888);
 
-		@Bean
-		@LoadBalanced
-		WebClient.Builder client() {
-			return WebClient.builder();
-		}
+		V1ServiceList serviceListA = new V1ServiceListBuilder()
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(serviceA)
+			.build();
 
-	}
+		servicesInNamespaceServiceMode(wireMockServer, serviceListA, "a", "service-a");
 
-	@SpringBootApplication
-	public static class Configuration {
+		V1Endpoints endpointsA = Util.endpoints("a", "service-a", 8888, "127.0.0.1");
 
-		public static void main(String[] args) {
-			SpringApplication.run(Configuration.class);
-		}
+		V1EndpointsList endpointsListA = new V1EndpointsListBuilder()
+			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
+			.endMetadata()
+			.withItems(endpointsA)
+			.build();
 
+		Util.endpointsInNamespaceServiceMode(wireMockServer, endpointsListA, "a", "service-a");
 	}
 
 }
