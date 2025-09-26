@@ -72,7 +72,7 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 
 	private final Fabric8DiscoveryServicesAdapter adapter;
 
-	private KubernetesClient client;
+	private final KubernetesClient client;
 
 	private KubernetesNamespaceProvider namespaceProvider;
 
@@ -94,14 +94,6 @@ public class KubernetesDiscoveryClient implements DiscoveryClient, EnvironmentAw
 		this.kubernetesClientServicesFunction = kubernetesClientServicesFunction;
 		this.adapter = new Fabric8DiscoveryServicesAdapter(kubernetesClientServicesFunction,
 				kubernetesDiscoveryProperties, filter);
-	}
-
-	public KubernetesClient getClient() {
-		return this.client;
-	}
-
-	public void setClient(KubernetesClient client) {
-		this.client = client;
 	}
 
 	@Override
