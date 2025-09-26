@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.MountSecretPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
@@ -157,11 +158,12 @@ class ConfigReloadUtilTests {
 	void testSecretsPropertySource() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
-		propertySources.addFirst(new SecretsPropertySource(new SourceData("secret", Map.of("a", "b"))));
+		propertySources.addFirst(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b"))));
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
-		assertThat(result.size()).isEqualTo(0);
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
 	}
 
 	@Test
@@ -169,11 +171,12 @@ class ConfigReloadUtilTests {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources
-			.addFirst(new OneBootstrap<>(new SecretsPropertySource(new SourceData("secret", Map.of("a", "b")))));
+			.addFirst(new OneBootstrap<>(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b")))));
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
-		assertThat(result.size()).isEqualTo(0);
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
 	}
 
 	private static final class OneComposite extends CompositePropertySource {
