@@ -69,6 +69,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private final Set<String> namespaces;
 
+	private final ConfigurableEnvironment environment;
+
 	private final boolean enableReloadFiltering;
 
 	private final ResourceEventHandler<V1Secret> handler = new ResourceEventHandler<>() {
@@ -105,7 +107,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(environment, properties, strategy);
+		super(strategy);
+		this.environment = environment;
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
