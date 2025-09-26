@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.example;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+package org.springframework.cloud.kubernetes.commons.config;
 
 /**
- *
+ * @author wind57
  */
-@EnableConfigurationProperties(GreetingProperties.class)
-@SpringBootApplication
-public class App {
+public final class MountSecretPropertySource extends SecretsPropertySource {
 
-	public static void main(String[] args) {
-		SpringApplication.run(App.class, args);
+	public MountSecretPropertySource(SourceData sourceData) {
+		super(sourceData);
 	}
 
 }
