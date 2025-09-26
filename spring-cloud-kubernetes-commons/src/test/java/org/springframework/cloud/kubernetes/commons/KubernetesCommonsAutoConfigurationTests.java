@@ -18,10 +18,12 @@ package org.springframework.cloud.kubernetes.commons;
 
 import org.junit.jupiter.api.Test;
 
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,6 +51,13 @@ class KubernetesCommonsAutoConfigurationTests {
 
 	@SpringBootApplication
 	static class App {
+
+		@Bean
+		public PodUtils<Object> podUtils() {
+			PodUtils<Object> podUtils = Mockito.mock(PodUtils.class);
+			Mockito.when(podUtils.currentPod()).thenReturn(Object::new);
+			return podUtils;
+		}
 
 	}
 
