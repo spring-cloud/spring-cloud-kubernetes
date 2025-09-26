@@ -63,13 +63,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-		"spring.cloud.bootstrap.name=polling-reload-configmap-and-secret",
-		"spring.main.cloud-platform=KUBERNETES", "spring.application.name=polling-reload-configmap-and-secret",
-		"spring.main.allow-bean-definition-overriding=true",
-		"spring.cloud.kubernetes.client.namespace=spring-k8s",
-		"logging.level.org.springframework.cloud.kubernetes.commons.config.reload=debug" },
-	classes = { PollingReloadConfigMapAndSecretTest.TestConfig.class, App.class })
+		properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
+				"spring.cloud.bootstrap.name=polling-reload-configmap-and-secret",
+				"spring.main.cloud-platform=KUBERNETES", "spring.application.name=polling-reload-configmap-and-secret",
+				"spring.main.allow-bean-definition-overriding=true",
+				"spring.cloud.kubernetes.client.namespace=spring-k8s",
+				"logging.level.org.springframework.cloud.kubernetes.commons.config.reload=debug" },
+		classes = { PollingReloadConfigMapAndSecretTest.TestConfig.class, App.class })
 @EnableKubernetesMockClient(crud = true, https = false)
 @ExtendWith(OutputCaptureExtension.class)
 class PollingReloadConfigMapAndSecretTest {
@@ -95,12 +95,12 @@ class PollingReloadConfigMapAndSecretTest {
 
 		// namespace: spring-k8s, name: secret-a
 		Map<String, String> secretA = Collections.singletonMap("one",
-			Base64.getEncoder().encodeToString("a".getBytes(StandardCharsets.UTF_8)));
+				Base64.getEncoder().encodeToString("a".getBytes(StandardCharsets.UTF_8)));
 		createSecret("secret-a", secretA);
 
 		// namespace: spring-k8s, name: secret-b
 		Map<String, String> secretB = Collections.singletonMap("two",
-			Base64.getEncoder().encodeToString("b".getBytes(StandardCharsets.UTF_8)));
+				Base64.getEncoder().encodeToString("b".getBytes(StandardCharsets.UTF_8)));
 		createSecret("secret-b", secretB);
 
 		// namespace: spring-k8s, name: configmap-a
@@ -121,8 +121,8 @@ class PollingReloadConfigMapAndSecretTest {
 			.map(PropertySource::getName)
 			.collect(Collectors.toSet());
 		assertThat(sources).contains("bootstrapProperties-configmap.configmap-b.spring-k8s",
-			"bootstrapProperties-configmap.configmap-a.spring-k8s",
-			"bootstrapProperties-secret.secret-b.spring-k8s", "bootstrapProperties-secret.secret-a.spring-k8s");
+				"bootstrapProperties-configmap.configmap-a.spring-k8s",
+				"bootstrapProperties-secret.secret-b.spring-k8s", "bootstrapProperties-secret.secret-a.spring-k8s");
 
 		// 1. first, wait for a cycle where we see the configmaps as being the same
 		Awaitility.await()
@@ -171,20 +171,20 @@ class PollingReloadConfigMapAndSecretTest {
 		@Bean
 		@Primary
 		PollingConfigMapChangeDetector pollingConfigMapChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
+				ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
+				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator) {
 			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 			scheduler.initialize();
 			return new PollingConfigMapChangeDetector(environment, configReloadProperties, configurationUpdateStrategy,
-				Fabric8ConfigMapPropertySource.class, fabric8ConfigMapPropertySourceLocator, scheduler);
+					Fabric8ConfigMapPropertySource.class, fabric8ConfigMapPropertySourceLocator, scheduler);
 		}
 
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, true, true, ConfigReloadProperties.ReloadStrategy.REFRESH,
-				ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(200), Set.of(NAMESPACE),
-				false, Duration.ofSeconds(2));
+					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(200), Set.of(NAMESPACE),
+					false, Duration.ofSeconds(2));
 		}
 
 		@Bean
