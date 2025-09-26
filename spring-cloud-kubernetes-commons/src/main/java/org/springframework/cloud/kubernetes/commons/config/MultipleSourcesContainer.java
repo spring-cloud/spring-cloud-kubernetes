@@ -16,7 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -25,10 +25,9 @@ import java.util.Map;
  * Container that stores multiple sources, to be exact their names and their flattenned
  * data. We force a LinkedHashSet on purpose, to preserve the order of sources.
  */
-public record MultipleSourcesContainer(LinkedHashSet<String> names, Map<String, Object> data) {
+public record MultipleSourcesContainer(LinkedHashMap<String, Map<String, Object>> data) {
 
-	private static final MultipleSourcesContainer EMPTY = new MultipleSourcesContainer(new LinkedHashSet<>(0),
-			Map.of());
+	private static final MultipleSourcesContainer EMPTY = new MultipleSourcesContainer(new LinkedHashMap<>(0));
 
 	public static MultipleSourcesContainer empty() {
 		return EMPTY;

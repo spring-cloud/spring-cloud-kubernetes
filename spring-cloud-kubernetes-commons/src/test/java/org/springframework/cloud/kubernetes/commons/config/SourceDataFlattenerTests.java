@@ -16,8 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
@@ -36,15 +35,11 @@ class SourceDataFlattenerTests {
 	 */
 	@Test
 	void defaultFlattenedSourceDataNoOverlap() {
-		LinkedHashSet<String> names = new LinkedHashSet<>();
-		names.add("nameA");
-		names.add("nameB");
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("nameA", Map.of("a", "b"));
+		data.put("nameB", Map.of("c", "d"));
 
-		Map<String, Object> rawData = new HashMap<>();
-		rawData.put("nameA", Map.of("a", "b"));
-		rawData.put("nameB", Map.of("c", "d"));
-
-		Map<String, Object> result = SourceDataFlattener.defaultFlattenedSourceData(names, rawData);
+		Map<String, Object> result = SourceDataFlattener.defaultFlattenedSourceData(data);
 		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("a", "b", "c", "d"));
 
 	}
@@ -58,17 +53,12 @@ class SourceDataFlattenerTests {
 	 */
 	@Test
 	void defaultFlattenedSourceDataOverlap() {
-		LinkedHashSet<String> names = new LinkedHashSet<>();
-		names.add("nameA");
-		names.add("nameB");
-		names.add("nameC");
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("nameA", Map.of("a", "b"));
+		data.put("nameB", Map.of("c", "d"));
+		data.put("nameC", Map.of("a", "w"));
 
-		Map<String, Object> rawData = new HashMap<>();
-		rawData.put("nameA", Map.of("a", "b"));
-		rawData.put("nameB", Map.of("c", "d"));
-		rawData.put("nameC", Map.of("a", "w"));
-
-		Map<String, Object> result = SourceDataFlattener.defaultFlattenedSourceData(names, rawData);
+		Map<String, Object> result = SourceDataFlattener.defaultFlattenedSourceData(data);
 		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("a", "w", "c", "d"));
 
 	}
@@ -82,15 +72,11 @@ class SourceDataFlattenerTests {
 	 */
 	@Test
 	void prefixFlattenedSourceDataNoOverlap() {
-		LinkedHashSet<String> names = new LinkedHashSet<>();
-		names.add("nameA");
-		names.add("nameB");
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("nameA", Map.of("a", "b"));
+		data.put("nameB", Map.of("c", "d"));
 
-		Map<String, Object> rawData = new HashMap<>();
-		rawData.put("nameA", Map.of("a", "b"));
-		rawData.put("nameB", Map.of("c", "d"));
-
-		Map<String, Object> result = SourceDataFlattener.prefixFlattenedSourceData(names, rawData, "one");
+		Map<String, Object> result = SourceDataFlattener.prefixFlattenedSourceData(data, "one");
 		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one.a", "b", "one.c", "d"));
 
 	}
@@ -105,17 +91,12 @@ class SourceDataFlattenerTests {
 	 */
 	@Test
 	void prefixFlattenedSourceDataOverlap() {
-		LinkedHashSet<String> names = new LinkedHashSet<>();
-		names.add("nameA");
-		names.add("nameB");
-		names.add("nameC");
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("nameA", Map.of("a", "b"));
+		data.put("nameB", Map.of("c", "d"));
+		data.put("nameC", Map.of("a", "w"));
 
-		Map<String, Object> rawData = new HashMap<>();
-		rawData.put("nameA", Map.of("a", "b"));
-		rawData.put("nameB", Map.of("c", "d"));
-		rawData.put("nameC", Map.of("a", "w"));
-
-		Map<String, Object> result = SourceDataFlattener.prefixFlattenedSourceData(names, rawData, "one");
+		Map<String, Object> result = SourceDataFlattener.prefixFlattenedSourceData(data, "one");
 		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("one.a", "w", "one.c", "d"));
 
 	}
@@ -128,15 +109,11 @@ class SourceDataFlattenerTests {
 	 */
 	@Test
 	void nameFlattenedSourceDataNoOverlap() {
-		LinkedHashSet<String> names = new LinkedHashSet<>();
-		names.add("nameA");
-		names.add("nameB");
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("nameA", Map.of("a", "b"));
+		data.put("nameB", Map.of("c", "d"));
 
-		Map<String, Object> rawData = new HashMap<>();
-		rawData.put("nameA", Map.of("a", "b"));
-		rawData.put("nameB", Map.of("c", "d"));
-
-		Map<String, Object> result = SourceDataFlattener.nameFlattenedSourceData(names, rawData);
+		Map<String, Object> result = SourceDataFlattener.nameFlattenedSourceData(data);
 		Assertions.assertThat(result).containsExactlyInAnyOrderEntriesOf(Map.of("nameA.a", "b", "nameB.c", "d"));
 
 	}
@@ -150,17 +127,12 @@ class SourceDataFlattenerTests {
 	 */
 	@Test
 	void nameFlattenedSourceDataOverlap() {
-		LinkedHashSet<String> names = new LinkedHashSet<>();
-		names.add("nameA");
-		names.add("nameB");
-		names.add("nameC");
+		LinkedHashMap<String, Map<String, Object>> data = new LinkedHashMap<>();
+		data.put("nameA", Map.of("a", "b"));
+		data.put("nameB", Map.of("c", "d"));
+		data.put("nameC", Map.of("a", "w"));
 
-		Map<String, Object> rawData = new HashMap<>();
-		rawData.put("nameA", Map.of("a", "b"));
-		rawData.put("nameB", Map.of("c", "d"));
-		rawData.put("nameC", Map.of("a", "w"));
-
-		Map<String, Object> result = SourceDataFlattener.nameFlattenedSourceData(names, rawData);
+		Map<String, Object> result = SourceDataFlattener.nameFlattenedSourceData(data);
 		Assertions.assertThat(result)
 			.containsExactlyInAnyOrderEntriesOf(Map.of("nameA.a", "b", "nameB.c", "d", "nameC.a", "w"));
 
