@@ -43,7 +43,7 @@ class KubernetesDiscoveryClientFilterTests {
 
 		String spelFilter = null;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, null, 0, false);
+				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		Predicate<V1Service> predicate = KubernetesDiscoveryClientUtils.filter(properties);
 		Assertions.assertThat(predicate).isNotNull();
@@ -55,7 +55,7 @@ class KubernetesDiscoveryClientFilterTests {
 
 		String spelFilter = "some";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, null, 0, false);
+				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		Predicate<V1Service> predicate = KubernetesDiscoveryClientUtils.filter(properties);
 		Assertions.assertThat(predicate).isNotNull();
@@ -68,7 +68,7 @@ class KubernetesDiscoveryClientFilterTests {
 				#root.metadata.namespace matches "^.+A$"
 				""";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, null, 0, false);
+				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		V1Service a = new V1ServiceBuilder().withNewMetadata().withNamespace("namespace-A").withName("a").and().build();
 
@@ -90,7 +90,7 @@ class KubernetesDiscoveryClientFilterTests {
 				#root.metadata.namespace matches "^.+A$"
 				""";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, null, 0, false);
+				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		V1Service a = new V1ServiceBuilder().withNewMetadata().withNamespace("namespace-B").withName("a").and().build();
 
@@ -111,7 +111,7 @@ class KubernetesDiscoveryClientFilterTests {
 				#root.metadata.namespace matches "^.+A$"
 				""";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, null, 0, false);
+				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 
 		V1Service a = new V1ServiceBuilder().withNewMetadata().withNamespace("namespace-B").withName("a").and().build();
 

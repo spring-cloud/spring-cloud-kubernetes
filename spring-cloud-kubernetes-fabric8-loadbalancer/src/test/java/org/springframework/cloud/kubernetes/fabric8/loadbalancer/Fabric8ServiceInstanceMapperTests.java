@@ -90,7 +90,7 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties properties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, true, Set.of(),
 				true, 60, false, null, Set.of(443, 8443), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(443).build());
 		Service service = buildService("test", "test-namespace", "abc", ports, null, null);
@@ -123,7 +123,7 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true);
+				true, false, null);
 
 		List<ServicePort> ports = new ArrayList<>();
 		ports.add(new ServicePortBuilder().withPort(443).build());
@@ -151,7 +151,7 @@ class Fabric8ServiceInstanceMapperTests {
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true);
+				true, false, null);
 
 		List<ServicePort> ports = List.of();
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
@@ -176,7 +176,7 @@ class Fabric8ServiceInstanceMapperTests {
 		loadBalancerProperties.setPortName("my-port-name");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true);
+				true, false, null);
 
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
@@ -205,7 +205,7 @@ class Fabric8ServiceInstanceMapperTests {
 		loadBalancerProperties.setPortName("my-different-port-name");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true);
+				true, false, null);
 
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("my-port-name").build());
 		Service service = buildService("test", "test-namespace", "abc", ports, Map.of(), Map.of());
@@ -231,7 +231,7 @@ class Fabric8ServiceInstanceMapperTests {
 		loadBalancerProperties.setPortName("");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true);
+				true, false, null);
 
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("one").build(),
 				new ServicePortBuilder().withPort(8081).withName("two").build());
@@ -256,7 +256,7 @@ class Fabric8ServiceInstanceMapperTests {
 		loadBalancerProperties.setPortName("one");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true);
+				true, false, null);
 
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("one").build(),
 				new ServicePortBuilder().withPort(8081).withName("two").build());
@@ -281,7 +281,7 @@ class Fabric8ServiceInstanceMapperTests {
 		loadBalancerProperties.setPortName("three");
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, false, Set.of(),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				true);
+				true, false, null);
 
 		List<ServicePort> ports = List.of(new ServicePortBuilder().withPort(8080).withName("one").build(),
 				new ServicePortBuilder().withPort(8081).withName("two").build());

@@ -68,7 +68,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testEmptyServiceLabelsFromService(CapturedOutput output) {
 		Map<String, String> propertiesLabels = Map.of("key", "value");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
 		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().name("my-service")).build();
 
 		boolean result = matchesServiceLabels(service, properties);
@@ -89,7 +89,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = Map.of("a", "b");
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();
@@ -113,7 +113,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
 		Map<String, String> serviceLabels = Map.of("a", "b");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();
@@ -137,7 +137,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
 		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();
@@ -161,7 +161,7 @@ class KubernetesDiscoveryClientUtilsTests {
 		Map<String, String> propertiesLabels = Map.of("a", "b");
 		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false);
+				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
 		V1Service service = new V1ServiceBuilder()
 			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
 			.build();
@@ -244,7 +244,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testEmptyAddresses() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder().build();
 		List<V1EndpointAddress> addresses = KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertThat(addresses).isEmpty();
@@ -260,7 +260,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testReadyAddressesOnly() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
 			.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
 					new V1EndpointAddressBuilder().withHostname("two").build())
@@ -279,7 +279,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testReadyAddressesTakenNotReadyAddressesNotTaken() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
 			.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
 					new V1EndpointAddressBuilder().withHostname("two").build())
@@ -300,7 +300,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testBothAddressesTaken() {
 		boolean includeNotReadyAddresses = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		V1EndpointSubset endpointSubset = new V1EndpointSubsetBuilder()
 			.withAddresses(new V1EndpointAddressBuilder().withHostname("one").build(),
 					new V1EndpointAddressBuilder().withHostname("two").build())

@@ -242,7 +242,7 @@ class KubernetesInformerDiscoveryClientTests {
 
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = new KubernetesDiscoveryProperties(true, false,
 				Set.of(), true, 60, true, null, Set.of(), Map.of(), null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, kubernetesDiscoveryProperties);
@@ -407,7 +407,8 @@ class KubernetesInformerDiscoveryClientTests {
 				#root.metadata.namespace matches "^.+1$"
 				""";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				false, spelFilter, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+				false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
@@ -430,7 +431,8 @@ class KubernetesInformerDiscoveryClientTests {
 		// without filter, both match
 		String spelFilter = "";
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				false, spelFilter, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+				false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
@@ -451,7 +453,7 @@ class KubernetesInformerDiscoveryClientTests {
 				#root.metadata.namespace matches "^.+1$"
 				""";
 		properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L, false, spelFilter, Set.of(),
-				Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false);
+				Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 		discoveryClient = new KubernetesInformerDiscoveryClient(SHARED_INFORMER_FACTORY, serviceLister, endpointsLister,
 				null, null, properties);
 
@@ -480,7 +482,7 @@ class KubernetesInformerDiscoveryClientTests {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
 				false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
-				0, false);
+				0, false, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
@@ -503,7 +505,7 @@ class KubernetesInformerDiscoveryClientTests {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
 				false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
-				0, false);
+				0, false, false, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
@@ -538,7 +540,7 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
 				"labels-prefix-", true, "annotations-prefix-", true, "ports-prefix");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
-				60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true);
+				60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
@@ -595,7 +597,7 @@ class KubernetesInformerDiscoveryClientTests {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true,
 				"labels-prefix-", true, "annotations-prefix-", true, "ports-prefix", true, true);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("a", "b"),
-				true, 60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true);
+				true, 60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true, null);
 
 		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
 				SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null, null, properties);
@@ -620,7 +622,7 @@ class KubernetesInformerDiscoveryClientTests {
 	@Test
 	void testOrder() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("a", "b"),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 57, false, true);
+				true, 60L, false, "", Set.of(), Map.of(), "", null, 57, false, true, null);
 
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
@@ -700,7 +702,7 @@ class KubernetesInformerDiscoveryClientTests {
 
 	private static KubernetesDiscoveryProperties properties(boolean allNamespaces, Map<String, String> labels) {
 		return new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(), true, 60, false, null, Set.of(),
-				labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true);
+				labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 	}
 
 }

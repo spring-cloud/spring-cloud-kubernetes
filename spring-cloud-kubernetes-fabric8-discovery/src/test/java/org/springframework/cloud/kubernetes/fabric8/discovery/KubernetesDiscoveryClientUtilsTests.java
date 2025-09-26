@@ -44,7 +44,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testEmptyAddresses() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder().build();
 		List<EndpointAddress> addresses = Fabric8KubernetesDiscoveryClientUtils.addresses(endpointSubset, properties);
 		Assertions.assertThat(addresses).isEmpty();
@@ -60,7 +60,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testReadyAddressesOnly() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
 			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 					new EndpointAddressBuilder().withHostname("two").build())
@@ -79,7 +79,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testReadyAddressesTakenNotReadyAddressesNotTaken() {
 		boolean includeNotReadyAddresses = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
 			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 					new EndpointAddressBuilder().withHostname("two").build())
@@ -101,7 +101,7 @@ class KubernetesDiscoveryClientUtilsTests {
 	void testBothAddressesTaken() {
 		boolean includeNotReadyAddresses = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false);
+				includeNotReadyAddresses, "", Set.of(), Map.of(), "", null, 0, false, false, null);
 		EndpointSubset endpointSubset = new EndpointSubsetBuilder()
 			.withAddresses(new EndpointAddressBuilder().withHostname("one").build(),
 					new EndpointAddressBuilder().withHostname("two").build())
