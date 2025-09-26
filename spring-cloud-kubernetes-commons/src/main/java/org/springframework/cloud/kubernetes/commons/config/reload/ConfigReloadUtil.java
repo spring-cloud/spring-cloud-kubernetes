@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.MountSecretPropertySource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -89,6 +89,7 @@ public final class ConfigReloadUtil {
 	 * @deprecated this method will not be public in the next major release.
 	 */
 	@Deprecated(forRemoval = false)
+	@SuppressWarnings("unchecked")
 	public static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
 			ConfigurableEnvironment environment) {
 		List<S> managedSources = new ArrayList<>();
@@ -111,9 +112,9 @@ public final class ConfigReloadUtil {
 				// we know that the type is correct here
 				managedSources.add((S) mountConfigMapPropertySource);
 			}
-			else if (source instanceof SecretsPropertySource secretsPropertySource) {
+			else if (source instanceof MountSecretPropertySource mountSecretPropertySource) {
 				// we know that the type is correct here
-				managedSources.add((S) secretsPropertySource);
+				managedSources.add((S) mountSecretPropertySource);
 			}
 			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
@@ -125,9 +126,9 @@ public final class ConfigReloadUtil {
 					// we know that the type is correct here
 					managedSources.add((S) mountConfigMapPropertySource);
 				}
-				else if (propertySource instanceof SecretsPropertySource secretsPropertySource) {
+				else if (propertySource instanceof MountSecretPropertySource mountSecretPropertySource) {
 					// we know that the type is correct here
-					managedSources.add((S) secretsPropertySource);
+					managedSources.add((S) mountSecretPropertySource);
 				}
 			}
 		}

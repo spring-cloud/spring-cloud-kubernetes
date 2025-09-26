@@ -152,17 +152,17 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	 * @author wind57
 	 */
 	private static class SecretsPropertySourceCollector
-			implements Collector<Path, List<SecretsPropertySource>, List<SecretsPropertySource>> {
+			implements Collector<Path, List<MountSecretPropertySource>, List<MountSecretPropertySource>> {
 
 		@Override
-		public Supplier<List<SecretsPropertySource>> supplier() {
+		public Supplier<List<MountSecretPropertySource>> supplier() {
 			return ArrayList::new;
 		}
 
 		@Override
-		public BiConsumer<List<SecretsPropertySource>, Path> accumulator() {
+		public BiConsumer<List<MountSecretPropertySource>, Path> accumulator() {
 			return (list, filePath) -> {
-				SecretsPropertySource source = property(filePath);
+				MountSecretPropertySource source = property(filePath);
 				if (source != null) {
 					list.add(source);
 				}
@@ -170,7 +170,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 		}
 
 		@Override
-		public BinaryOperator<List<SecretsPropertySource>> combiner() {
+		public BinaryOperator<List<MountSecretPropertySource>> combiner() {
 			return (left, right) -> {
 				left.addAll(right);
 				return left;
@@ -178,7 +178,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 		}
 
 		@Override
-		public Function<List<SecretsPropertySource>, List<SecretsPropertySource>> finisher() {
+		public Function<List<MountSecretPropertySource>, List<MountSecretPropertySource>> finisher() {
 			return Function.identity();
 		}
 
@@ -187,7 +187,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			return EnumSet.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH);
 		}
 
-		private SecretsPropertySource property(Path filePath) {
+		private MountSecretPropertySource property(Path filePath) {
 
 			String fileName = filePath.getFileName().toString();
 
@@ -195,7 +195,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				String content = new String(Files.readAllBytes(filePath)).trim();
 				String sourceName = fileName.toLowerCase(Locale.ROOT);
 				SourceData sourceData = new SourceData(sourceName, Map.of(fileName, content));
-				return new SecretsPropertySource(sourceData);
+				return new MountSecretPropertySource(sourceData);
 			}
 			catch (IOException e) {
 				LOG.warn("Error reading properties file", e);
