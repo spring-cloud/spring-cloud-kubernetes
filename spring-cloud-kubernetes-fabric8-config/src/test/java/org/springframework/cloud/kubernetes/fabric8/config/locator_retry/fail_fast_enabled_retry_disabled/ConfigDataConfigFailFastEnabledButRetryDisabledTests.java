@@ -66,8 +66,8 @@ class ConfigDataConfigFailFastEnabledButRetryDisabledTests extends ConfigFailFas
 
 		/**
 		 * we need this config because ConfigMapConfigProperties is now a record, so we
-		 * can't use @MockitoSpyBean on it. We also read the property of fail-fast from the
-		 * Environment, that in turn is set in the @SpringBootTest properties.
+		 * can't use @MockitoSpyBean on it. We also read the property of fail-fast from
+		 * the Environment, that in turn is set in the @SpringBootTest properties.
 		 */
 		@Bean
 		ConfigMapConfigProperties properties(Environment environment) {
