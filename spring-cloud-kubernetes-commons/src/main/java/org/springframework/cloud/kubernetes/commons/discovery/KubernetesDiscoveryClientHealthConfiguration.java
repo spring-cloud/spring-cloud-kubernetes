@@ -34,13 +34,13 @@ import org.springframework.core.log.LogAccessor;
 public class KubernetesDiscoveryClientHealthConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesDiscoveryClientHealthConfiguration.class));
+			LogFactory.getLog(KubernetesDiscoveryClientHealthConfiguration.class));
 
 	@Bean
 	@ConditionalOnClass({ HealthIndicator.class })
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
