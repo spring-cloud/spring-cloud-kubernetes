@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountSecretPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.EnumerablePropertySource;
