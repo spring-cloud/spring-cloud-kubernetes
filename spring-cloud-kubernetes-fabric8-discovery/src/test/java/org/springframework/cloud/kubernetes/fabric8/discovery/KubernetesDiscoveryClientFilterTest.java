@@ -112,7 +112,8 @@ class KubernetesDiscoveryClientFilterTest {
 		when(this.kubernetesClient.services()).thenReturn(this.serviceOperation);
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
+				false, "", Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false,
+				null);
 		KubernetesDiscoveryClient client = new KubernetesDiscoveryClient(this.kubernetesClient, properties,
 				this.kubernetesClientServicesFunction);
 

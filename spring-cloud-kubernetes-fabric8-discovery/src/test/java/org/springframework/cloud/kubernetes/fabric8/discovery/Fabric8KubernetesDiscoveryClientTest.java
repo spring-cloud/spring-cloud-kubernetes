@@ -232,7 +232,8 @@ class Fabric8KubernetesDiscoveryClientTest {
 		mockClient.services().inNamespace(namespace2).resource(service2).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
-				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
+				null);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(mockClient, properties,
 				KubernetesClient::services, x -> true, new ServicePortSecureResolver(properties));
