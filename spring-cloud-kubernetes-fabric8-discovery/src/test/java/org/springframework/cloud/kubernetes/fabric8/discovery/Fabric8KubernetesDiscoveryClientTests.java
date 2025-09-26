@@ -518,7 +518,8 @@ class Fabric8KubernetesDiscoveryClientTests {
 
 		// last argument is irrelevant, as getServices does not care about that flag
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
-				60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+				60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false,
+				null);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<String> result = discoveryClient.getServices();
