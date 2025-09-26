@@ -125,7 +125,7 @@ class Fabric8KubernetesDiscoveryClientTests {
 		Set<String> namespaces = Set.of();
 		Map<String, String> serviceLabels = Map.of("color", "blue");
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
-				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false , null);
+				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false, null);
 
 		KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(client, properties, null, null, null);
 		List<Endpoints> result = discoveryClient.getEndPointsList("blue-service");
