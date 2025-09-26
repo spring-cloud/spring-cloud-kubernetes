@@ -63,7 +63,7 @@ class Fabric8ConfigUtilsTests {
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "red"), new MockEnvironment(), Set.of());
 		Assertions.assertThat(result.data()).isEmpty();
-		Assertions.assertThat(result.names()).isEmpty();
+		Assertions.assertThat(result.data().keySet()).isEmpty();
 	}
 
 	// secret "my-secret" is deployed with label {color:pink}; we search for it by same
@@ -80,10 +80,9 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
+		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-secret");
+		Map<String, Object> data = result.data().get("my-secret");
 		Assertions.assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("property", "value"));
 	}
 
@@ -102,10 +101,9 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-secret");
+		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-secret");
+		Map<String, Object> data = result.data().get("my-secret");
 		Assertions.assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("key1", "value1"));
 	}
 
@@ -132,15 +130,13 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("color", "pink"), new MockEnvironment(), Set.of());
-		Assertions.assertThat(result.names()).contains("my-secret");
-		Assertions.assertThat(result.names()).contains("my-secret-2");
+		Assertions.assertThat(result.data().keySet()).contains("my-secret");
+		Assertions.assertThat(result.data().keySet()).contains("my-secret-2");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> mySecretData = (Map<String, Object>) result.data().get("my-secret");
+		Map<String, Object> mySecretData = result.data().get("my-secret");
 		Assertions.assertThat(mySecretData).containsExactlyInAnyOrderEntriesOf(Map.of("property", "value"));
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> mySecret2Data = (Map<String, Object>) result.data().get("my-secret-2");
+		Map<String, Object> mySecret2Data = result.data().get("my-secret-2");
 		Assertions.assertThat(mySecret2Data).containsExactlyInAnyOrderEntriesOf(Map.of("property-2", "value-2"));
 	}
 
@@ -202,20 +198,17 @@ class Fabric8ConfigUtilsTests {
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
 
-		Assertions.assertThat(result.names()).contains("blue-circle-secret");
-		Assertions.assertThat(result.names()).contains("blue-square-secret");
-		Assertions.assertThat(result.names()).contains("blue-square-secret-k8s");
+		Assertions.assertThat(result.data().keySet()).contains("blue-circle-secret");
+		Assertions.assertThat(result.data().keySet()).contains("blue-square-secret");
+		Assertions.assertThat(result.data().keySet()).contains("blue-square-secret-k8s");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> dataBlueSecret = (Map<String, Object>) result.data().get("blue-circle-secret");
+		Map<String, Object> dataBlueSecret = result.data().get("blue-circle-secret");
 		Assertions.assertThat(dataBlueSecret).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1"));
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> dataSquareSecret = (Map<String, Object>) result.data().get("blue-square-secret");
+		Map<String, Object> dataSquareSecret = result.data().get("blue-square-secret");
 		Assertions.assertThat(dataSquareSecret).containsExactlyInAnyOrderEntriesOf(Map.of("two", "2"));
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> dataSquareSecretK8s = (Map<String, Object>) result.data().get("blue-square-secret-k8s");
+		Map<String, Object> dataSquareSecretK8s = result.data().get("blue-square-secret-k8s");
 		Assertions.assertThat(dataSquareSecretK8s).containsExactlyInAnyOrderEntriesOf(Map.of("four", "4"));
 
 	}
@@ -231,7 +224,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("nope");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names()).isEmpty();
+		Assertions.assertThat(result.data()).isEmpty();
 		Assertions.assertThat(result.data()).isEmpty();
 	}
 
@@ -249,10 +242,9 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names().size()).isEqualTo(1);
+		Assertions.assertThat(result.data().size()).isEqualTo(1);
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-secret");
+		Map<String, Object> data = result.data().get("my-secret");
 		Assertions.assertThat(data.get("property")).isEqualTo("value");
 	}
 
@@ -279,17 +271,15 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names()).contains("my-secret");
-		Assertions.assertThat(result.names()).contains("my-secret-2");
+		Assertions.assertThat(result.data().keySet()).contains("my-secret");
+		Assertions.assertThat(result.data().keySet()).contains("my-secret-2");
 
 		Assertions.assertThat(result.data().size()).isEqualTo(2);
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-secret");
+		Map<String, Object> data = result.data().get("my-secret");
 		Assertions.assertThat(data.get("property")).isEqualTo("value");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data2 = (Map<String, Object>) result.data().get("my-secret-2");
+		Map<String, Object> data2 = result.data().get("my-secret-2");
 		Assertions.assertThat(data2.get("property-2")).isEqualTo("value-2");
 	}
 
@@ -307,10 +297,9 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Map<String, Object> data = result.data().get("my-config-map");
 		Assertions.assertThat(data).isEmpty();
 	}
 
@@ -326,7 +315,7 @@ class Fabric8ConfigUtilsTests {
 		names.add("my-config-map-not-found");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names()).isEmpty();
+		Assertions.assertThat(result.data().keySet()).isEmpty();
 		Assertions.assertThat(result.data()).isEmpty();
 	}
 
@@ -345,10 +334,9 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Map<String, Object> data = result.data().get("my-config-map");
 		Assertions.assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("property", "value"));
 	}
 
@@ -368,10 +356,9 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names()).containsExactlyInAnyOrder("my-config-map");
+		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Map<String, Object> data = result.data().get("my-config-map");
 		Assertions.assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("key1", "value1"));
 	}
 
@@ -399,17 +386,15 @@ class Fabric8ConfigUtilsTests {
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsDataByName(client, "spring-k8s", names,
 				new MockEnvironment());
-		Assertions.assertThat(result.names()).contains("my-config-map");
-		Assertions.assertThat(result.names()).contains("my-config-map-2");
+		Assertions.assertThat(result.data().keySet()).contains("my-config-map");
+		Assertions.assertThat(result.data().keySet()).contains("my-config-map-2");
 
 		Assertions.assertThat(result.data().size()).isEqualTo(2);
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data = (Map<String, Object>) result.data().get("my-config-map");
+		Map<String, Object> data = result.data().get("my-config-map");
 		Assertions.assertThat(data).containsExactlyInAnyOrderEntriesOf(Map.of("property", "value"));
 
-		@SuppressWarnings("unchecked")
-		Map<String, Object> data2 = (Map<String, Object>) result.data().get("my-config-map-2");
+		Map<String, Object> data2 = result.data().get("my-config-map-2");
 		Assertions.assertThat(data2).containsExactlyInAnyOrderEntriesOf(Map.of("property-2", "value-2"));
 	}
 
