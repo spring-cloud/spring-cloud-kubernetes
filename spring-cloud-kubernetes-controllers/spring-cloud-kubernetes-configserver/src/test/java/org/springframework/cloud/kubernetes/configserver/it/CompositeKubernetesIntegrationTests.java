@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
@@ -33,6 +32,7 @@ import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerA
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,7 +92,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
@@ -132,7 +132,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
@@ -170,7 +170,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
@@ -209,7 +209,7 @@ class CompositeKubernetesIntegrationTests {
 		@LocalServerPort
 		private int port;
 
-		@SpyBean
+		@MockitoSpyBean
 		private NativeEnvironmentRepository nativeEnvironmentRepository;
 
 		@Test
