@@ -58,6 +58,8 @@ import static org.mockito.Mockito.when;
  */
 abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
+	static KubernetesClient mockClient;
+
 	static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = Mockito.mock(KubernetesNamespaceProvider.class);
 
 	static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
@@ -68,7 +70,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	@BeforeAll
 	static void setUp() {
 		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient().getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
@@ -79,8 +81,8 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	@AfterEach
 	void afterEach() {
 		Mockito.reset(APPLICATION_EVENT_PUBLISHER);
-		mockClient().discovery().v1().endpointSlices().inAnyNamespace().delete();
-		mockClient().endpoints().inAnyNamespace().delete();
+		mockClient.discovery().v1().endpointSlices().inAnyNamespace().delete();
+		mockClient.endpoints().inAnyNamespace().delete();
 	}
 
 	/**
@@ -251,7 +253,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
 				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false, null);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient(), properties, NAMESPACE_PROVIDER);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -272,7 +274,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
 				Set.of(namespace), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false, null);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient(), properties, NAMESPACE_PROVIDER);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -291,7 +293,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, namespaces, true, 60,
 				false, "", Set.of(), labels, "", null, 0, false, false, null);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient(), properties, NAMESPACE_PROVIDER);
+		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -316,7 +318,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 			.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
 			.withSubsets(List.of(endpointSubset))
 			.build();
-		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
+		mockClient.endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
 	Endpoints endpointsWithoutSubsets(String namespace, Map<String, String> labels, String podName) {
@@ -330,7 +332,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 			.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
 			.withSubsets(endpointSubsets)
 			.build();
-		mockClient().endpoints().inNamespace(namespace).resource(endpoints).create();
+		mockClient.endpoints().inNamespace(namespace).resource(endpoints).create();
 		return endpoints;
 	}
 
@@ -339,7 +341,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		Service service = new ServiceBuilder()
 			.withMetadata(new ObjectMetaBuilder().withLabels(labels).withName("endpoints-" + podName).build())
 			.build();
-		mockClient().services().inNamespace(namespace).resource(service).create();
+		mockClient.services().inNamespace(namespace).resource(service).create();
 	}
 
 	static void endpointSlice(String namespace, Map<String, String> labels, String podName) {
@@ -356,7 +358,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 			.withEndpoints(endpoint)
 			.build();
 
-		mockClient().discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
+		mockClient.discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
 
 	}
 
@@ -372,7 +374,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 			.withEndpoints(endpoints)
 			.build();
 
-		mockClient().discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
+		mockClient.discovery().v1().endpointSlices().inNamespace(namespace).resource(slice).create();
 		return slice;
 
 	}
@@ -387,13 +389,6 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		assertThat(event.getValue()).isInstanceOf(List.class);
 
 		assertThat(event.getValue()).isEqualTo(state);
-	}
-
-	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649
-	private static KubernetesClient mockClient() {
-		return Fabric8KubernetesCatalogWatchEndpointsTests.endpointsMockClient() != null
-				? Fabric8KubernetesCatalogWatchEndpointsTests.endpointsMockClient()
-				: Fabric8KubernetesCatalogWatchEndpointSlicesTests.endpointSlicesMockClient();
 	}
 
 }
