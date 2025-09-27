@@ -17,5 +17,5 @@ runs:
         android: true
         dotnet: true
         haskell: true
-        large-packages: true
-        swap-storage: true
+        large-packages: false
+        swap-storage: false
