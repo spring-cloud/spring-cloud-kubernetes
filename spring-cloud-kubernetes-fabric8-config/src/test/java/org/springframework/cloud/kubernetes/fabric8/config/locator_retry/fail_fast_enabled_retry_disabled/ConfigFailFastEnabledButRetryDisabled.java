@@ -99,7 +99,7 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 
 		@Bean
 		Fabric8ConfigMapPropertySourceLocator propertySourceLocator(KubernetesClient client,
-			ConfigMapConfigProperties properties, KubernetesNamespaceProvider provider) {
+				ConfigMapConfigProperties properties, KubernetesNamespaceProvider provider) {
 			return new VisibleFabric8ConfigMapPropertySourceLocator(client, properties, provider);
 		}
 
