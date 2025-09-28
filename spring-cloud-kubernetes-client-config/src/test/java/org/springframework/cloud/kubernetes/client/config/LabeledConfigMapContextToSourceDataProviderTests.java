@@ -498,7 +498,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		V1ConfigMap shapeConfigmapK8s = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("shape-configmap-k8s")
-				.withLabels(Map.of("shape", "triangle"))
+				.withLabels(BLUE_LABEL)
 				.withNamespace(NAMESPACE)
 				.build())
 			.addToData("five", "5")
@@ -513,7 +513,6 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DELAYED, true);
