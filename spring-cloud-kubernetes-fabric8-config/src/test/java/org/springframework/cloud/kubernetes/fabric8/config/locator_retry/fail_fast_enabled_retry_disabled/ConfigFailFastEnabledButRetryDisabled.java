@@ -54,7 +54,8 @@ import static org.mockito.Mockito.verify;
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=false" },
-		classes = { TestApplication.class, Fabric8ConfigMapPropertySourceLocator.class, ConfigFailFastEnabledButRetryDisabled.ConfigForTest.class })
+		classes = { TestApplication.class, Fabric8ConfigMapPropertySourceLocator.class,
+				ConfigFailFastEnabledButRetryDisabled.ConfigForTest.class })
 abstract class ConfigFailFastEnabledButRetryDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps/application";
@@ -99,7 +100,7 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 
 		@Bean
 		Fabric8ConfigMapPropertySourceLocator propertySourceLocator(KubernetesClient client,
-			ConfigMapConfigProperties properties, KubernetesNamespaceProvider provider) {
+				ConfigMapConfigProperties properties, KubernetesNamespaceProvider provider) {
 			return new VisibleFabric8ConfigMapPropertySourceLocator(client, properties, provider);
 		}
 
