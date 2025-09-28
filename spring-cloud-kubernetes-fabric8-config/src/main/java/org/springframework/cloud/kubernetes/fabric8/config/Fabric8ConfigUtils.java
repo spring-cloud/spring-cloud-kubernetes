@@ -107,7 +107,7 @@ public final class Fabric8ConfigUtils {
 		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, true);
+		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, true, true);
 	}
 
 	/**
@@ -124,7 +124,7 @@ public final class Fabric8ConfigUtils {
 		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false);
+		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false, true);
 	}
 
 	private static List<StrippedSourceContainer> strippedConfigMaps(KubernetesClient client, String namespace) {

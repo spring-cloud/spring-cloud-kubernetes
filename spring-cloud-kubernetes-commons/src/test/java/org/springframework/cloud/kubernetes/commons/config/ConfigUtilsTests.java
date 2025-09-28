@@ -162,7 +162,7 @@ class ConfigUtilsTests {
 			.collect(Collectors.toCollection(LinkedHashSet::new));
 
 		MultipleSourcesContainer result = ConfigUtils.processNamedData(List.of(configMapOne, configMapOneK8s),
-				new MockEnvironment(), sourceNames, "default", false);
+				new MockEnvironment(), sourceNames, "default", false, true);
 
 		Assertions.assertThat(result.data().size()).isEqualTo(2);
 		Map<String, Object> one = result.data().get("configmap-one");
