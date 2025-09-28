@@ -103,7 +103,7 @@ abstract class LabeledConfigMapWithProfile {
 
 		// is taken
 		Map<String, String> greenConfigMapK8s = Collections.singletonMap("six", "6");
-		createConfigMap("green-configmap-k8s", greenConfigMapK8s, Collections.singletonMap("color", "green-k8s"));
+		createConfigMap("green-configmap-k8s", greenConfigMapK8s, Collections.singletonMap("color", "green"));
 
 		// is taken
 		Map<String, String> greenConfigMapProd = Collections.singletonMap("seven", "7");
@@ -160,8 +160,7 @@ abstract class LabeledConfigMapWithProfile {
 	}
 
 	/**
-	 * we find "green-configmap" by labels, and since 'k8s' is an active profile, this one
-	 * is taken also (includeProfileSpecificSources=true)
+	 * found by labels
 	 */
 	@Test
 	void testGreenK8s() {
@@ -169,8 +168,7 @@ abstract class LabeledConfigMapWithProfile {
 	}
 
 	/**
-	 * we find "green-configmap" by labels, and since 'prod' is an active profile, this
-	 * one is taken also (includeProfileSpecificSources=true)
+	 * found by labels
 	 */
 	@Test
 	void testGreenProd() {
@@ -186,8 +184,7 @@ abstract class LabeledConfigMapWithProfile {
 	}
 
 	/**
-	 * we find "green-configmap" by labels, and since 'prod' is an active profile, this
-	 * one is taken also (includeProfileSpecificSources=true)
+	 * found by labels
 	 */
 	@Test
 	void testGreenPurpleK8s() {
