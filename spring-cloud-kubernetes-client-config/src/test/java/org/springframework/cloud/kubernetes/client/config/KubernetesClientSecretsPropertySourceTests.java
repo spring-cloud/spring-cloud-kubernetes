@@ -35,6 +35,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -193,7 +194,7 @@ class KubernetesClientSecretsPropertySourceTests {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("spring.cloud.kubernetes.secret", "true");
 
-		NormalizedSource source = new LabeledSecretNormalizedSource("default", labels, false, false);
+		NormalizedSource source = new LabeledSecretNormalizedSource("default", labels, false, ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 

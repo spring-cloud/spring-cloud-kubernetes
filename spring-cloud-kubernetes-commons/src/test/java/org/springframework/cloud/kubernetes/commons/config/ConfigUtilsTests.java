@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -212,7 +211,7 @@ class ConfigUtilsTests {
 				Map.of("client-id", "clientB", "client-secret", "b"));
 
 		MultipleSourcesContainer container = ConfigUtils.processLabeledData(List.of(containerA, containerB),
-				new MockEnvironment(), Map.of("load", "true"), "default", Set.of(), false);
+				new MockEnvironment(), Map.of("load", "true"), "default", false);
 
 		assertThat(container.data().keySet()).containsExactlyInAnyOrder("client-1", "client-2");
 

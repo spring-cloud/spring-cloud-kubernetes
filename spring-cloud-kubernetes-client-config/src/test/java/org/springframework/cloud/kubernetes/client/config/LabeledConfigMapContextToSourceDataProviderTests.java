@@ -409,9 +409,8 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
-	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
-	 * find one configmap. Since profiles are enabled, we will also be reading
-	 * "color-configmap-k8s", even if its labels do not match provided ones.
+	 * "color-configmap-k8s" with label: "{color:blue}". We search by "{color:blue}" and
+	 * find them both.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
@@ -426,7 +425,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		V1ConfigMap two = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
-				.withLabels(RED_LABEL)
+				.withLabels(BLUE_LABEL)
 				.withNamespace(NAMESPACE)
 				.build())
 			.addToData("two", "2")
@@ -491,7 +490,7 @@ class LabeledConfigMapContextToSourceDataProviderTests {
 
 		V1ConfigMap colorConfigmapK8s = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("color-configmap-k8s")
-				.withLabels(RED_LABEL)
+				.withLabels(BLUE_LABEL)
 				.withNamespace(NAMESPACE)
 				.build())
 			.addToData("four", "4")

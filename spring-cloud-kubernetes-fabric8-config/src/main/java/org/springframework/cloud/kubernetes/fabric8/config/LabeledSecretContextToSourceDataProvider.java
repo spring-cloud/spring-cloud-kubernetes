@@ -54,13 +54,13 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 
 			return new LabeledSourceData() {
 				@Override
-				public MultipleSourcesContainer dataSupplier(Map<String, String> labels, Set<String> profiles) {
+				public MultipleSourcesContainer dataSupplier(Map<String, String> labels) {
 					return Fabric8ConfigUtils.secretsDataByLabels(context.client(), context.namespace(), labels,
-							context.environment(), profiles);
+							context.environment());
 				}
 
-			}.compute(source.labels(), source.prefix(), source.target(), source.profileSpecificSources(),
-					source.failFast(), context.namespace(), context.environment().getActiveProfiles());
+			}.compute(source.labels(), source.prefix(), source.target(),
+					source.failFast(), context.namespace());
 		};
 
 	}

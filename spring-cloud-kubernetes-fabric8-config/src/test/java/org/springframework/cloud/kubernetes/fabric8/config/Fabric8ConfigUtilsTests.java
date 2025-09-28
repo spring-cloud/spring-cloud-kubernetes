@@ -61,7 +61,7 @@ class Fabric8ConfigUtilsTests {
 			.resource(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build())
 			.create();
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "red"), new MockEnvironment(), Set.of());
+				Map.of("color", "red"), new MockEnvironment());
 		Assertions.assertThat(result.data()).isEmpty();
 		Assertions.assertThat(result.data().keySet()).isEmpty();
 	}
@@ -79,7 +79,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -100,7 +100,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -129,7 +129,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), Set.of());
+				Map.of("color", "pink"), new MockEnvironment());
 		Assertions.assertThat(result.data().keySet()).contains("my-secret");
 		Assertions.assertThat(result.data().keySet()).contains("my-secret-2");
 
@@ -196,7 +196,7 @@ class Fabric8ConfigUtilsTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
-				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), Set.of("k8s"));
+				Map.of("tag", "fit", "color", "blue"), new MockEnvironment());
 
 		Assertions.assertThat(result.data().keySet()).contains("blue-circle-secret");
 		Assertions.assertThat(result.data().keySet()).contains("blue-square-secret");

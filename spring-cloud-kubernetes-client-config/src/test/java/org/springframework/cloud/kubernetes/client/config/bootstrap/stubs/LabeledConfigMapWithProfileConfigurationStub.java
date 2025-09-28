@@ -74,10 +74,8 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 	 *     - configmap with name "green-configmap-k8s", with labels : "{color: green-k8s}"
 	 *     - configmap with name "green-configmap-prod", with labels : "{color: green-prod}"
 	 *
-	 *     # a test that proves order: first read non-profile based configmaps, thus profile based
-	 *     # configmaps override non-profile ones.
 	 *     - configmap with name "green-purple-configmap", labels "{color: green, shape: round}", data: "{eight: 8}"
-	 *     - configmap with name "green-purple-configmap-k8s", labels "{color: black}", data: "{eight: eight-ish}"
+	 *     - configmap with name "green-purple-configmap-k8s", labels "{color: green}", data: "{eight: eight-ish}"
 	 * </pre>
 	 */
 	public static void stubData() {
@@ -112,7 +110,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 		V1ConfigMap greenConfigMapK8s = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-k8s")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "green-k8s"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("six", "6"))
 			.build();
@@ -121,7 +119,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 		V1ConfigMap greenConfigMapProd = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("green-configmap-prod")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "green-prod"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("seven", "7"))
 			.build();
@@ -157,7 +155,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 		V1ConfigMap greenPurpleConfigMapK8s = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("green-purple-configmap-k8s")
 				.withNamespace("spring-k8s")
-				.withLabels(Map.of("color", "black"))
+				.withLabels(Map.of("color", "green"))
 				.build())
 			.addToData(Collections.singletonMap("eight", "eight-ish"))
 			.build();
