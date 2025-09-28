@@ -520,9 +520,10 @@ spring:
 ----
 
 Besides reading the `config-map-one`, Spring will also try to read `config-map-one-dev`; in this particular order. Each active profile
-generates such a profile aware config map.
+generates such a profile aware configmap.
 
-Though your application should not be impacted by such a config map, it can be disabled if needed:
+You can disable this "profile based sources" and then `config-map-one-dev` will
+not be attempted:
 
 [source,yaml]
 ----
@@ -538,6 +539,9 @@ spring:
           - name: config-map-one
             includeProfileSpecificSources: false
 ----
+
+NOTE: Since version `5.0.0-M1`, `includeProfileSpecificSources` is only supported for named sources (`spring.cloud.kubernetes.sources.name=XXX`); support for labeled sources has been removed.
+
 
 Notice that just like before, there are two levels where you can specify this property: for all config maps or
 for individual ones; the latter having a higher priority.
