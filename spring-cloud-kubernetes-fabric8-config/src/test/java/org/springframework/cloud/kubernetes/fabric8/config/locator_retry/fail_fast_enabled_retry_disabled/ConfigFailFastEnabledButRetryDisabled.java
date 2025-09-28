@@ -23,9 +23,14 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
+import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8ConfigMapPropertySourceLocator;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -49,7 +54,7 @@ import static org.mockito.Mockito.verify;
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
 				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=false" },
-		classes = { TestApplication.class, Fabric8ConfigMapPropertySourceLocator.class })
+		classes = { TestApplication.class, Fabric8ConfigMapPropertySourceLocator.class, ConfigFailFastEnabledButRetryDisabled.ConfigForTest.class })
 abstract class ConfigFailFastEnabledButRetryDisabled {
 
 	private static final String API = "/api/v1/namespaces/default/configmaps/application";
@@ -87,6 +92,17 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 
 		// verify that propertySourceLocator.locate is called only once
 		verify(propertySourceLocator, times(1)).locate(any());
+	}
+
+	@TestConfiguration
+	static class ConfigForTest {
+
+		@Bean
+		Fabric8ConfigMapPropertySourceLocator propertySourceLocator(KubernetesClient client,
+			ConfigMapConfigProperties properties, KubernetesNamespaceProvider provider) {
+			return new VisibleFabric8ConfigMapPropertySourceLocator(client, properties, provider);
+		}
+
 	}
 
 }

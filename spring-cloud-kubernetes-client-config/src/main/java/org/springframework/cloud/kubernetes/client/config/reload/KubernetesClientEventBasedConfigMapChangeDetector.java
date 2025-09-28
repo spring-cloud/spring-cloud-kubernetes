@@ -67,6 +67,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private final Set<String> namespaces;
 
+	private final ConfigurableEnvironment environment;
+
 	private final boolean enableReloadFiltering;
 
 	private final ResourceEventHandler<V1ConfigMap> handler = new ResourceEventHandler<>() {
@@ -102,7 +104,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(environment, properties, strategy);
+		super(strategy);
+		this.environment = environment;
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();

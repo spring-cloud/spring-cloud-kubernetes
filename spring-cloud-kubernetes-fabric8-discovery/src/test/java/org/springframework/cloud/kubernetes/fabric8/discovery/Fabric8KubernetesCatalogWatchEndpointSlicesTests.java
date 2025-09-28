@@ -203,9 +203,4 @@ class Fabric8KubernetesCatalogWatchEndpointSlicesTests extends Fabric8EndpointsA
 		assertThat(catalogWatch.generateState(List.of(sliceNoEndpoints))).isEmpty();
 	}
 
-	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649
-	static KubernetesClient endpointSlicesMockClient() {
-		return mockClient;
-	}
-
 }

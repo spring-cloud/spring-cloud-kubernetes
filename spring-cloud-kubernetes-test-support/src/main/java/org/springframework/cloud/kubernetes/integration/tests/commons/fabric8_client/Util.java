@@ -115,14 +115,14 @@ public final class Util {
 	public void busybox(String namespace, Phase phase) {
 		InputStream deploymentStream = inputStream("busybox/deployment.yaml");
 		InputStream serviceStream = inputStream("busybox/service.yaml");
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
 		String busyboxVersion = Images.busyboxVersion();
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		String imageWithVersion = imageWithoutVersion + ":" + busyboxVersion;
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
-		Service service = client.services().load(serviceStream).item();
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "busybox", deployment, service, false);
@@ -307,12 +307,12 @@ public final class Util {
 		InputStream deploymentStream = inputStream("wiremock/wiremock-deployment.yaml");
 		InputStream serviceStream = inputStream("wiremock/wiremock-service.yaml");
 
-		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		String imageWithVersion = imageWithoutVersion + ":" + Images.wiremockVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
-		Service service = client.services().load(serviceStream).item();
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
 		if (!withNodePort) {
 			// we assume we only have one 'http' port
 			service.getSpec().getPorts().get(0).setNodePort(null);
@@ -394,31 +394,24 @@ public final class Util {
 
 	private void innerSetup(String namespace, InputStream serviceAccountAsStream, InputStream roleBindingAsStream,
 			InputStream roleAsStream) {
-		ServiceAccount serviceAccountFromStream = client.serviceAccounts()
-			.inNamespace(namespace)
-			.load(serviceAccountAsStream)
-			.item();
+		ServiceAccount serviceAccount = Serialization.unmarshal(serviceAccountAsStream, ServiceAccount.class);
 		if (client.serviceAccounts()
 			.inNamespace(namespace)
-			.withName(serviceAccountFromStream.getMetadata().getName())
+			.withName(serviceAccount.getMetadata().getName())
 			.get() == null) {
-			client.serviceAccounts().inNamespace(namespace).resource(serviceAccountFromStream).create();
+			client.serviceAccounts().inNamespace(namespace).resource(serviceAccount).create();
 		}
 
-		RoleBinding roleBindingFromStream = client.rbac()
-			.roleBindings()
-			.inNamespace(namespace)
-			.load(roleBindingAsStream)
-			.item();
+		RoleBinding roleBinding = Serialization.unmarshal(roleBindingAsStream, RoleBinding.class);
 		if (client.rbac()
 			.roleBindings()
 			.inNamespace(namespace)
-			.withName(roleBindingFromStream.getMetadata().getName())
+			.withName(roleBinding.getMetadata().getName())
 			.get() == null) {
-			client.rbac().roleBindings().inNamespace(namespace).resource(roleBindingFromStream).create();
+			client.rbac().roleBindings().inNamespace(namespace).resource(roleBinding).create();
 		}
 
-		Role roleFromStream = client.rbac().roles().inNamespace(namespace).load(roleAsStream).item();
+		Role roleFromStream = Serialization.unmarshal(roleAsStream, Role.class);
 		if (client.rbac()
 			.roles()
 			.inNamespace(namespace)

@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -39,8 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEndpointSlicesTests {
 
 	private static final Boolean ENDPOINT_SLICES = false;
-
-	private static KubernetesClient mockClient;
 
 	@AfterEach
 	void afterEach() {
@@ -262,11 +259,6 @@ class Fabric8KubernetesCatalogWatchEndpointsTests extends Fabric8EndpointsAndEnd
 		// we do not fail, even if Subsets are not present
 		List<EndpointNameAndNamespace> result = catalogWatch.generateState(List.of(endpoints));
 		assertThat(result).isEmpty();
-	}
-
-	// work-around for : https://github.com/fabric8io/kubernetes-client/issues/4649
-	static KubernetesClient endpointsMockClient() {
-		return mockClient;
 	}
 
 }
