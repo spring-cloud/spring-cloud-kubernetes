@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
@@ -59,8 +58,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 							context.environment());
 				}
 
-			}.compute(source.labels(), source.prefix(), source.target(),
-					source.failFast(), context.namespace());
+			}.compute(source.labels(), source.prefix(), source.target(), source.failFast(), context.namespace());
 		};
 
 	}

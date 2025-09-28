@@ -136,8 +136,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS,
-			false, ConfigUtils.Prefix.DEFAULT);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false,
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -169,8 +169,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL,
-			false, ConfigUtils.Prefix.DEFAULT);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, false,
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -195,8 +195,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 		stubCall(secretList);
 		CoreV1Api api = new CoreV1Api();
 
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope",
-			LABELS, false, ConfigUtils.Prefix.DEFAULT);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false,
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 
@@ -229,8 +229,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		CoreV1Api api = new CoreV1Api();
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("me", false, false, null);
-		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"),
-			false, prefix);
+		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, Map.of("color", "blue"), false, prefix);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
 				new MockEnvironment());
 

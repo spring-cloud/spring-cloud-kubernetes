@@ -194,7 +194,8 @@ class KubernetesClientSecretsPropertySourceTests {
 		Map<String, String> labels = new HashMap<>();
 		labels.put("spring.cloud.kubernetes.secret", "true");
 
-		NormalizedSource source = new LabeledSecretNormalizedSource("default", labels, false, ConfigUtils.Prefix.DEFAULT);
+		NormalizedSource source = new LabeledSecretNormalizedSource("default", labels, false,
+				ConfigUtils.Prefix.DEFAULT);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
 				new MockEnvironment());
 

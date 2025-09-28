@@ -70,7 +70,7 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByLabels(CoreV1Api coreV1Api, String namespace,
-		Map<String, String> labels, Environment environment) {
+			Map<String, String> labels, Environment environment) {
 		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
 		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
@@ -87,7 +87,7 @@ public final class KubernetesClientConfigUtils {
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByLabels(CoreV1Api coreV1Api, String namespace,
-		Map<String, String> labels, Environment environment) {
+			Map<String, String> labels, Environment environment) {
 		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
 		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();

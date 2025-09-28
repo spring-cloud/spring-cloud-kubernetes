@@ -72,7 +72,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, true,
-			ConfigUtils.Prefix.DEFAULT);
+				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
@@ -100,7 +100,7 @@ class Fabric8SecretsPropertySourceMockTests {
 		final String path = String.format("/api/v1/namespaces/%s/secrets", namespace);
 
 		LabeledSecretNormalizedSource labeled = new LabeledSecretNormalizedSource(namespace, labels, false,
-			ConfigUtils.Prefix.DEFAULT);
+				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(client, labeled, "default", new MockEnvironment());
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();

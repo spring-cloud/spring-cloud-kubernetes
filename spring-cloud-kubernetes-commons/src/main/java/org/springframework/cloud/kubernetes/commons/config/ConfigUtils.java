@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -255,7 +256,7 @@ public final class ConfigUtils {
 				.anyMatch(activeProfile -> ENDS_WITH_PROFILE_AND_EXTENSION.test(keyName, activeProfile)));
 	}
 
-	static String sourceDataName(String target, LinkedHashSet<String> sourceNames, String namespace) {
+	static String sourceDataName(String target, Set<String> sourceNames, String namespace) {
 		String sortedNames = sourceNames.stream().sorted().collect(Collectors.joining(PROPERTY_SOURCE_NAME_SEPARATOR));
 		return sourceName(target, sortedNames, namespace);
 	}
