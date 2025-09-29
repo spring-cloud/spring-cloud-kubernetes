@@ -421,10 +421,9 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("color-secret-k8s.two")).isEqualTo("2");
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.color-secret-k8s.default");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 
 	}
 
@@ -490,14 +489,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(4);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
 		assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
 		assertThat(sourceData.sourceData().get("shape-secret.two")).isEqualTo("2");
-		assertThat(sourceData.sourceData().get("color-secret-k8s.four")).isEqualTo("4");
-		assertThat(sourceData.sourceData().get("shape-secret-k8s.five")).isEqualTo("5");
 
-		assertThat(sourceData.sourceName())
-			.isEqualTo("secret.color-secret.color-secret-k8s.shape-secret.shape-secret-k8s.default");
+		assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.shape-secret.default");
 
 	}
 
