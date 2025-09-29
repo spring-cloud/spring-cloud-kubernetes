@@ -62,39 +62,35 @@ public final class Fabric8ConfigUtils {
 	 * <pre>
 	 *     1. read all secrets in the provided namespace
 	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. with secret names from (2), find out if there are any profile based secrets (if profiles is not empty)
-	 *     4. concat (2) and (3) and these are the secrets we are interested in
-	 *     5. see if any of the secrets from (4) has a single yaml/properties file
-	 *     6. gather all the names of the secrets (from 4) + data they hold
+	 *     3. see if any of the secrets from (4) has a single yaml/properties file
+	 *     4. gather all the names of the secrets (from 4) + data they hold
 	 * </pre>
 	 */
 	static MultipleSourcesContainer secretsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
+			Map<String, String> labels, Environment environment) {
 		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(client, namespace);
 		if (strippedSecrets.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
-		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, profiles, true);
+		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, true);
 	}
 
 	/**
 	 * <pre>
 	 *     1. read all config maps in the provided namespace
 	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. with config maps names from (2), find out if there are any profile based ones (if profiles is not empty)
-	 *     4. concat (2) and (3) and these are the config maps we are interested in
-	 *     5. see if any from (4) has a single yaml/properties file
-	 *     6. gather all the names of the config maps (from 4) + data they hold
+	 *     3. see if any from (4) has a single yaml/properties file
+	 *     4. gather all the names of the config maps (from 4) + data they hold
 	 * </pre>
 	 */
 	static MultipleSourcesContainer configMapsDataByLabels(KubernetesClient client, String namespace,
-			Map<String, String> labels, Environment environment, Set<String> profiles) {
+			Map<String, String> labels, Environment environment) {
 		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(client, namespace);
 		if (strippedConfigMaps.isEmpty()) {
 			return MultipleSourcesContainer.empty();
 		}
 
-		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, profiles, false);
+		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, false);
 	}
 
 	/**

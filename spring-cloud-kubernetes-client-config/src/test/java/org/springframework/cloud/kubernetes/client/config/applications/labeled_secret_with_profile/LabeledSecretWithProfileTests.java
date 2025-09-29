@@ -81,9 +81,7 @@ abstract class LabeledSecretWithProfileTests {
 
 	/**
 	 * <pre>
-	 *     this one is taken from : "blue.one". We find "color-secret" by labels, and
-	 *     "color-secrets-k8s" exists, but "includeProfileSpecificSources=false", thus not taken.
-	 *     Since "explicitPrefix=blue", we take "blue.one"
+	 *     this one is taken from : "blue.one". We find "color-secret" by labels.
 	 * </pre>
 	 */
 	@Test

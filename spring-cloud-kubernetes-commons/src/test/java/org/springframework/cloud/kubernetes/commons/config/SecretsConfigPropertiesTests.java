@@ -307,7 +307,6 @@ class SecretsConfigPropertiesTests {
 	 *          - labels:
 	 *          	- name: second-label
 	 * 	          	  value: secret-two
-	 * 	          includeProfileSpecificSources: true
 	 *            useNameAsPrefix: true
 	 *            explicitPrefix: two
 	 *          - labels:
@@ -348,19 +347,15 @@ class SecretsConfigPropertiesTests {
 
 		LabeledSecretNormalizedSource labeled1 = (LabeledSecretNormalizedSource) sources.get(1);
 		Assertions.assertThat(labeled1.prefix().prefixProvider().get()).isEqualTo("one");
-		Assertions.assertThat(labeled1.profileSpecificSources()).isFalse();
 
 		LabeledSecretNormalizedSource labeled3 = (LabeledSecretNormalizedSource) sources.get(3);
 		Assertions.assertThat(labeled3.prefix().prefixProvider().get()).isEqualTo("two");
-		Assertions.assertThat(labeled3.profileSpecificSources()).isTrue();
 
 		LabeledSecretNormalizedSource labeled5 = (LabeledSecretNormalizedSource) sources.get(5);
 		Assertions.assertThat(labeled5.prefix().prefixProvider().get()).isEqualTo("three");
-		Assertions.assertThat(labeled5.profileSpecificSources()).isFalse();
 
 		LabeledSecretNormalizedSource labeled7 = (LabeledSecretNormalizedSource) sources.get(7);
 		Assertions.assertThat(labeled7.prefix()).isSameAs(ConfigUtils.Prefix.DEFAULT);
-		Assertions.assertThat(labeled7.profileSpecificSources()).isFalse();
 
 		Set<NormalizedSource> set = new LinkedHashSet<>(sources);
 		Assertions.assertThat(set.size()).isEqualTo(5);

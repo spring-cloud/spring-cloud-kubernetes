@@ -75,10 +75,8 @@ abstract class LabeledConfigMapWithProfile {
 	 *     - configmap with name "green-configmap-k8s", with labels : "{color: green-k8s}"
 	 *     - configmap with name "green-configmap-prod", with labels : "{color: green-prod}"
 	 *
-	 *     # a test that proves order: first read non-profile based configmaps, thus profile based
-	 *     # configmaps override non-profile ones.
 	 *     - configmap with name "green-purple-configmap", labels "{color: green, shape: round}", data: "{eight: 8}"
-	 *     - configmap with name "green-purple-configmap-k8s", labels "{color: black}", data: "{eight: eight-ish}"
+	 *     - configmap with name "green-purple-configmap-k8s", labels "{color: green}", data: "{eight: eight-ish}"
 	 * </pre>
 	 */
 	static void setUpBeforeClass(KubernetesClient mockClient) {
@@ -95,7 +93,7 @@ abstract class LabeledConfigMapWithProfile {
 		Map<String, String> colorConfigMap = Collections.singletonMap("one", "1");
 		createConfigMap("color-configmap", colorConfigMap, Collections.singletonMap("color", "blue"));
 
-		// is not taken, since "profileSpecificSources=false" for the above
+		// is not taken
 		Map<String, String> colorConfigMapK8s = Collections.singletonMap("five", "5");
 		createConfigMap("color-configmap-k8s", colorConfigMapK8s, Collections.singletonMap("color", "not-blue"));
 
@@ -103,13 +101,13 @@ abstract class LabeledConfigMapWithProfile {
 		Map<String, String> greenConfigMap = Collections.singletonMap("two", "2");
 		createConfigMap("green-configmap", greenConfigMap, Collections.singletonMap("color", "green"));
 
-		// is taken because k8s profile is active and "profileSpecificSources=true"
+		// is taken
 		Map<String, String> greenConfigMapK8s = Collections.singletonMap("six", "6");
-		createConfigMap("green-configmap-k8s", greenConfigMapK8s, Collections.singletonMap("color", "green-k8s"));
+		createConfigMap("green-configmap-k8s", greenConfigMapK8s, Collections.singletonMap("color", "green"));
 
-		// is taken because prod profile is active and "profileSpecificSources=true"
+		// is taken
 		Map<String, String> greenConfigMapProd = Collections.singletonMap("seven", "7");
-		createConfigMap("green-configmap-prod", greenConfigMapProd, Collections.singletonMap("color", "green-prod"));
+		createConfigMap("green-configmap-prod", greenConfigMapProd, Collections.singletonMap("color", "green"));
 
 		// not taken
 		Map<String, String> redConfigMap = Collections.singletonMap("three", "3");
@@ -125,7 +123,7 @@ abstract class LabeledConfigMapWithProfile {
 
 		// is taken and thus overrides the above
 		Map<String, String> greenPurpleK8s = Collections.singletonMap("eight", "eight-ish");
-		createConfigMap("green-purple-configmap-k8s", greenPurpleK8s, Map.of("color", "black"));
+		createConfigMap("green-purple-configmap-k8s", greenPurpleK8s, Map.of("color", "green"));
 
 	}
 
@@ -144,7 +142,7 @@ abstract class LabeledConfigMapWithProfile {
 	/**
 	 * <pre>
 	 *     this one is taken from : "blue.one". We find "color-configmap" by labels, and
-	 *     "color-configmap-k8s" exists, but "includeProfileSpecificSources=false", thus not taken.
+	 *     "color-configmap-k8s" exists, but not taken.
 	 *     Since "explicitPrefix=blue", we take "blue.one"
 	 * </pre>
 	 */
@@ -162,8 +160,7 @@ abstract class LabeledConfigMapWithProfile {
 	}
 
 	/**
-	 * we find "green-configmap" by labels, and since 'k8s' is an active profile, this one
-	 * is taken also (includeProfileSpecificSources=true)
+	 * found by labels
 	 */
 	@Test
 	void testGreenK8s() {
@@ -171,8 +168,7 @@ abstract class LabeledConfigMapWithProfile {
 	}
 
 	/**
-	 * we find "green-configmap" by labels, and since 'prod' is an active profile, this
-	 * one is taken also (includeProfileSpecificSources=true)
+	 * found by labels
 	 */
 	@Test
 	void testGreenProd() {
@@ -188,8 +184,7 @@ abstract class LabeledConfigMapWithProfile {
 	}
 
 	/**
-	 * we find "green-configmap" by labels, and since 'prod' is an active profile, this
-	 * one is taken also (includeProfileSpecificSources=true)
+	 * found by labels
 	 */
 	@Test
 	void testGreenPurpleK8s() {
