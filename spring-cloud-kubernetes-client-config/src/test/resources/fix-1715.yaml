@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: fix-1715
+  cloud:
+    kubernetes:
+      config:
+        namespace: spring-k8s
+        sources:
+
+          - name: a-by-name
+            useNameAsPrefix: true
+            includeProfileSpecificSources: true
+
+          - labels:
+              color: blue
+            useNameAsPrefix: true
+            includeProfileSpecificSources: true
