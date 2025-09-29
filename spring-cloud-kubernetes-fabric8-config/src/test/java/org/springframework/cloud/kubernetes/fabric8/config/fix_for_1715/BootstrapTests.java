@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.applications.test_for_1715;
+package org.springframework.cloud.kubernetes.fabric8.config.fix_for_1715;
 
-import org.springframework.boot.test.context.SpringBootTest;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.junit.jupiter.api.BeforeAll;
+
+import org.springframework.test.context.TestPropertySource;
 
 /**
- * Stubs for this test are in
- * {@link org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.FixFor1715ConfigurationStub}
- *
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Fix1715App.class,
-		properties = { "spring.cloud.bootstrap.name=fix-1715", "fix.1715.enabled=true",
-				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
-				"spring.cloud.kubernetes.client.namespace=spring-k8s" })
+@TestPropertySource(properties = { "spring.cloud.bootstrap.enabled=true", "spring.cloud.bootstrap.name=fix-1715" })
+@EnableKubernetesMockClient(crud = true, https = false)
 public class BootstrapTests extends AbstractTests {
+
+	private static KubernetesClient mockClient;
+
+	@BeforeAll
+	static void setUpBeforeClass() {
+		setUpBeforeClass(mockClient);
+	}
 
 }

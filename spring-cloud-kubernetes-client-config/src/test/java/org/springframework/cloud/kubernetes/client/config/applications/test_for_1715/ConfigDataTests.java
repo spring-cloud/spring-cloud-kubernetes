@@ -26,13 +26,11 @@ import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.test.context.ActiveProfiles;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
 import static org.springframework.cloud.kubernetes.client.config.bootstrap.stubs.FixFor1715ConfigurationStub.stubData;
 
-@ActiveProfiles({ "k8s" })
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Fix1715App.class,
 		properties = { "spring.cloud.application.name=fix-1715", "fix.1715.enabled=true",
 				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:,classpath:./fix-1715.yaml" })

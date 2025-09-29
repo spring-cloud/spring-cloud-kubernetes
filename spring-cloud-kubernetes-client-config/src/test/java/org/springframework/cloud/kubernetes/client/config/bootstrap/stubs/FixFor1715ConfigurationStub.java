@@ -82,7 +82,7 @@ public class FixFor1715ConfigurationStub {
 				.withNamespace("spring-k8s")
 				.withLabels(Map.of("color", "blue"))
 				.build())
-			.addToData(Map.of("aByLabel", "aByLabel"))
+			.addToData(Map.of("aByLabelK8s", "aByLabelK8s"))
 			.build();
 
 		// the actual stub for CoreV1Api calls

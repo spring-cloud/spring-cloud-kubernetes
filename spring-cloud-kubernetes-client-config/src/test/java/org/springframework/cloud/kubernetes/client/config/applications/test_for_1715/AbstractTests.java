@@ -21,12 +21,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.client.config.applications.test_for_1715.properties.APropertySourceByLabel;
 import org.springframework.cloud.kubernetes.client.config.applications.test_for_1715.properties.APropertySourceByName;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
+@ActiveProfiles({ "k8s" })
 abstract class AbstractTests {
 
 	@Autowired
