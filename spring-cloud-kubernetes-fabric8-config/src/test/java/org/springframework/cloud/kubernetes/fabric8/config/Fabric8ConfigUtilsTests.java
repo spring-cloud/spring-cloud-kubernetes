@@ -198,18 +198,14 @@ class Fabric8ConfigUtilsTests {
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsDataByLabels(client, "spring-k8s",
 				Map.of("tag", "fit", "color", "blue"), new MockEnvironment());
 
-		Assertions.assertThat(result.data().keySet()).contains("blue-circle-secret");
-		Assertions.assertThat(result.data().keySet()).contains("blue-square-secret");
-		Assertions.assertThat(result.data().keySet()).contains("blue-square-secret-k8s");
+		Assertions.assertThat(result.data().keySet())
+			.containsExactlyInAnyOrder("blue-circle-secret", "blue-square-secret");
 
 		Map<String, Object> dataBlueSecret = result.data().get("blue-circle-secret");
 		Assertions.assertThat(dataBlueSecret).containsExactlyInAnyOrderEntriesOf(Map.of("one", "1"));
 
 		Map<String, Object> dataSquareSecret = result.data().get("blue-square-secret");
 		Assertions.assertThat(dataSquareSecret).containsExactlyInAnyOrderEntriesOf(Map.of("two", "2"));
-
-		Map<String, Object> dataSquareSecretK8s = result.data().get("blue-square-secret-k8s");
-		Assertions.assertThat(dataSquareSecretK8s).containsExactlyInAnyOrderEntriesOf(Map.of("four", "4"));
 
 	}
 
