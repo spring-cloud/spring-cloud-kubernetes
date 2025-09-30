@@ -9,5 +9,5 @@ runs:
         CURRENT_INDEX: ${{ matrix.current_index }}
       run: |
         cd spring-cloud-kubernetes-controllers
-        .././mvnw -DCURRENT_INSTANCE=${CURRENT_INDEX} -T 1C -U clean install
+        .././mvnw -DCURRENT_INSTANCE=${CURRENT_INDEX} -Pexecutable -T 1C -U clean install
         cd ..
