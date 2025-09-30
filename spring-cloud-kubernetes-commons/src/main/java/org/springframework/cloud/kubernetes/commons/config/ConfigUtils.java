@@ -169,11 +169,6 @@ public final class ConfigUtils {
 		return name;
 	}
 
-	public static MultipleSourcesContainer processNamedData(List<StrippedSourceContainer> strippedSources,
-			Environment environment, LinkedHashSet<String> sourceNames, String namespace, boolean decode) {
-		return processNamedData(strippedSources, environment, sourceNames, namespace, decode, true);
-	}
-
 	/**
 	 * Transforms raw data from one or multiple sources into an entry of source names and
 	 * flattened data that they all hold (potentially overriding entries without any
