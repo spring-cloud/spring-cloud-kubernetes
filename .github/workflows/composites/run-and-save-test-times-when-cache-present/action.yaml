@@ -150,7 +150,7 @@ runs:
               -Dsurefire-reports-directory=surefire-reports/${CURRENT_INDEX} \
               -Dfailsafe-reports-directory=failsafe-reports/${CURRENT_INDEX} \
               -e clean install \
-              -P sonar -nsu --batch-mode \
+              -P sonar,executable -nsu --batch-mode \
               -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
               -Dhttp.keepAlive=false \
               -Dmaven.wagon.http.pool=false \
