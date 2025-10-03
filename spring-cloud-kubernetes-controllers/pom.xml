@@ -31,6 +31,11 @@
 	<profiles>
 		<profile>
 			<id>executable</id>
+			<activation>
+				<property>
+					<name>!skipExecutable</name>
+				</property>
+			</activation>
 			<build>
 				<plugins>
 				<plugin>
@@ -59,6 +64,8 @@
 							</goals>
 							<configuration>
 								<classifier>exec</classifier>
+								<!-- DO NOT attach the executable JAR - this prevents deployment -->
+								<attach>false</attach>
 							</configuration>
 						</execution>
 						<execution>
@@ -67,6 +74,8 @@
 							</goals>
 							<configuration>
 								<classifier>exec</classifier>
+								<!-- DO NOT attach the executable JAR - this prevents deployment -->
+								<attach>false</attach>
 							</configuration>
 						</execution>
 					</executions>
