@@ -21,45 +21,70 @@
 
 	<build>
 		<plugins>
-
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<image>
-						<env>
-							<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
-						</env>
-						<name>${env.IMAGE}</name>
-						<pullPolicy>IF_NOT_PRESENT</pullPolicy>
-					</image>
-					<goal>build-image</goal>
-				</configuration>
-				<executions>
-					<execution>
-						<id>build-image</id>
-						<phase>package</phase>
-						<goals>
-							<goal>build-image-no-fork</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>repackage</id>
-						<phase>package</phase>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
 			</plugin>
-
 		</plugins>
-
 	</build>
 
+	<profiles>
+		<profile>
+			<id>executable</id>
+			<activation>
+				<property>
+					<name>!skipExecutable</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+					<configuration>
+						<image>
+							<env>
+								<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
+							</env>
+							<name>${env.IMAGE}</name>
+							<pullPolicy>IF_NOT_PRESENT</pullPolicy>
+						</image>
+						<goal>build-image</goal>
+					</configuration>
+					<executions>
+						<execution>
+							<id>build-image</id>
+							<phase>package</phase>
+							<goals>
+								<goal>build-image-no-fork</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>repackage</id>
+							<phase>package</phase>
+							<goals>
+								<goal>repackage</goal>
+							</goals>
+							<configuration>
+								<classifier>exec</classifier>
+								<!-- DO NOT attach the executable JAR - this prevents deployment -->
+								<attach>false</attach>
+							</configuration>
+						</execution>
+						<execution>
+							<goals>
+								<goal>repackage</goal>
+							</goals>
+							<configuration>
+								<classifier>exec</classifier>
+								<!-- DO NOT attach the executable JAR - this prevents deployment -->
+								<attach>false</attach>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
