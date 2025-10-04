@@ -23,6 +23,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
+import static org.springframework.cloud.kubernetes.commons.config.ReadType.BATCH;
+import static org.springframework.cloud.kubernetes.commons.config.ReadType.SINGLE;
+
 /**
  * @author wind57
  *
@@ -46,6 +49,7 @@ class SecretsConfigPropertiesBindingTests {
 			Assertions.assertThat(props.useNameAsPrefix()).isFalse();
 			Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
 			Assertions.assertThat(props.failFast()).isFalse();
+			Assertions.assertThat(props.readType()).isSameAs(BATCH);
 
 			Assertions.assertThat(props.retry()).isNotNull();
 			Assertions.assertThat(props.retry().initialInterval()).isEqualTo(1000L);
@@ -77,7 +81,8 @@ class SecretsConfigPropertiesBindingTests {
 					"spring.cloud.kubernetes.secrets.retry.multiplier=1.2",
 					"spring.cloud.kubernetes.secrets.retry.max-interval=3",
 					"spring.cloud.kubernetes.secrets.retry.max-attempts=4",
-					"spring.cloud.kubernetes.secrets.retry.enabled=false")
+					"spring.cloud.kubernetes.secrets.retry.enabled=false",
+					"spring.cloud.kubernetes.secrets.read-type=SINGLE")
 			.run(context -> {
 				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 				Assertions.assertThat(props).isNotNull();
@@ -106,6 +111,8 @@ class SecretsConfigPropertiesBindingTests {
 				Assertions.assertThat(props.useNameAsPrefix()).isTrue();
 				Assertions.assertThat(props.includeProfileSpecificSources()).isTrue();
 				Assertions.assertThat(props.failFast()).isTrue();
+
+				Assertions.assertThat(props.readType()).isSameAs(SINGLE);
 
 				RetryProperties retryProperties = props.retry();
 				Assertions.assertThat(retryProperties).isNotNull();

@@ -23,11 +23,13 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +46,7 @@ class ConfigMapsTest {
 
 	@AfterEach
 	void afterEach() {
-		new Fabric8ConfigMapsCache().discardAll();
+		Fabric8SourcesBatchRead.discardConfigMaps();
 	}
 
 	@Test
@@ -91,7 +93,8 @@ class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(),
+				ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -111,7 +114,8 @@ class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(),
+				ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -131,7 +135,8 @@ class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(),
+				ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -151,7 +156,8 @@ class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(),
+				ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 
@@ -169,9 +175,10 @@ class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "namespace", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(),
+				ReadType.BATCH);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
+		Assertions.assertThatCode(() -> new Fabric8ConfigMapPropertySource(context)).doesNotThrowAnyException();
 
 		// no exception is thrown for unparseable content
 	}
@@ -188,7 +195,8 @@ class ConfigMapsTest {
 
 		mockClient.configMaps().inNamespace("test").resource(configMap).create();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(configMapName, "test", false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "test", new MockEnvironment(),
+				ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
 

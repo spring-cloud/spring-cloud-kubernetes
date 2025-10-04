@@ -35,8 +35,8 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 	private SecretsPropertySourceLocator secretsPropertySourceLocator;
 
 	public ConfigDataRetryableSecretsPropertySourceLocator(SecretsPropertySourceLocator propertySourceLocator,
-			SecretsConfigProperties secretsConfigProperties, SecretsCache cache) {
-		super(secretsConfigProperties, cache);
+			SecretsConfigProperties secretsConfigProperties) {
+		super(secretsConfigProperties);
 		this.secretsPropertySourceLocator = propertySourceLocator;
 		this.retryTemplate = RetryTemplate.builder()
 			.maxAttempts(properties.retry().maxAttempts())
@@ -57,8 +57,8 @@ public class ConfigDataRetryableSecretsPropertySourceLocator extends SecretsProp
 
 	@Override
 	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource) {
-		return this.secretsPropertySourceLocator.getPropertySource(environment, normalizedSource);
+			NormalizedSource normalizedSource, ReadType readType) {
+		return this.secretsPropertySourceLocator.getPropertySource(environment, normalizedSource, readType);
 	}
 
 	public SecretsPropertySourceLocator getSecretsPropertySourceLocator() {

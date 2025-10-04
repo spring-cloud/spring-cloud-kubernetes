@@ -21,13 +21,17 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8SourcesBatchRead.discardSecrets;
 
 /**
  * Kubernetes {@link PropertySourceLocator} for secrets.
@@ -45,19 +49,27 @@ public class Fabric8SecretsPropertySourceLocator extends SecretsPropertySourceLo
 
 	Fabric8SecretsPropertySourceLocator(KubernetesClient client, SecretsConfigProperties properties,
 			KubernetesNamespaceProvider provider) {
-		super(properties, new Fabric8SecretsCache());
+		super(properties);
 		this.client = client;
 		this.provider = provider;
 	}
 
 	@Override
+	public PropertySource<?> locate(Environment environment) {
+		PropertySource<?> propertySource = super.locate(environment);
+		discardSecrets();
+		return propertySource;
+	}
+
+	@Override
 	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource) {
+			NormalizedSource normalizedSource, ReadType readType) {
 		// NormalizedSource has a namespace, but users can skip it.
 		// In such cases we try to get it elsewhere
 		String namespace = getApplicationNamespace(client, normalizedSource.namespace().orElse(null),
 				normalizedSource.target(), provider);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, normalizedSource, namespace, environment,
+				readType);
 		return new Fabric8SecretsPropertySource(context);
 	}
 

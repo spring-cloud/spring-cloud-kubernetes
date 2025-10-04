@@ -56,7 +56,7 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 				@Override
 				public MultipleSourcesContainer dataSupplier(Map<String, String> labels) {
 					return KubernetesClientConfigUtils.secretsDataByLabels(context.client(), context.namespace(),
-							labels, context.environment());
+							labels, context.environment(), context.namespacedBatchRead());
 				}
 
 			}.compute(source.labels(), source.prefix(), source.target(), source.failFast(), context.namespace());

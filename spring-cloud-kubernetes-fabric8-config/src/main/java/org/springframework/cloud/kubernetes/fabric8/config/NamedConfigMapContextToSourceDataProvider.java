@@ -19,10 +19,12 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
+
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.sourceName;
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.configMapsByName;
 
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a named config
@@ -55,15 +57,15 @@ final class NamedConfigMapContextToSourceDataProvider implements Supplier<Fabric
 				protected String generateSourceName(String target, String sourceName, String namespace,
 						String[] activeProfiles) {
 					if (source.appendProfileToName()) {
-						return ConfigUtils.sourceName(target, sourceName, namespace, activeProfiles);
+						return sourceName(target, sourceName, namespace, activeProfiles);
 					}
 					return super.generateSourceName(target, sourceName, namespace, activeProfiles);
 				}
 
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
-					return Fabric8ConfigUtils.configMapsDataByName(context.client(), context.namespace(), sourceNames,
-							context.environment());
+					return configMapsByName(context.client(), context.namespace(), sourceNames, context.environment(),
+							context.readType());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
 					source.failFast(), context.namespace(), context.environment().getActiveProfiles());

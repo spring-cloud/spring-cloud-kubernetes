@@ -29,6 +29,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1ConfigMapListBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.assertj.core.api.Assertions;
@@ -50,15 +51,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
-class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
+class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 
-	private static final boolean NAMESPACED_BATCH_READ = true;
+	private static final boolean NAMESPACED_BATCH_READ = false;
 
 	private static final Map<String, String> LABELS = new LinkedHashMap<>();
 
@@ -112,9 +112,10 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 				.build())
 			.addToData("name", "value")
 			.build();
-		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
 
-		stubCall(configMapList);
+		V1ConfigMapList configMapList = new V1ConfigMapListBuilder().addToItems(one).build();
+		stubCall(configMapList,
+			"/api/v1/namespaces/default/configmaps?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, LABELS, true, false);
@@ -125,7 +126,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.test-configmap.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("name", "value"));
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("name", "value"));
 
 	}
 
@@ -164,7 +165,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.addItemsItem(redTwo)
 			.addItemsItem(blue);
 
-		stubCall(configMapList);
+		stubCall(configMapList, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dred");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true, false);
@@ -175,7 +176,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red-configmap.red-configmap-again.default");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
 		Assertions.assertThat(sourceData.sourceData().get("colorOne")).isEqualTo("really-red");
 		Assertions.assertThat(sourceData.sourceData().get("colorTwo")).isEqualTo("really-red-again");
 
@@ -196,7 +197,11 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
 
-		stubCall(configMapList);
+		// pink returns one
+		stubCall(configMapList, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dpink");
+
+		// blue returns none
+		stubCall(new V1ConfigMapList(), "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true, false);
@@ -227,8 +232,9 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.addToData("name", "value")
 			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
+		stubCall(configMapList,
+			"/api/v1/namespaces/default/configmaps?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
 
-		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
 
 		String wrongNamespace = NAMESPACE + "nope";
@@ -240,7 +246,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.test-configmap.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("name", "value"));
+		Assertions.assertThat(sourceData.sourceData()).containsExactlyInAnyOrderEntriesOf(Map.of("name", "value"));
 	}
 
 	/**
@@ -259,8 +265,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.addToData("what-color", "blue-color")
 			.build();
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one);
+		stubCall(configMapList, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dblue");
 
-		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
 
 		ConfigUtils.Prefix mePrefix = ConfigUtils.findPrefix("me", false, false, "irrelevant");
@@ -272,7 +278,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.blue-configmap.default");
-		Assertions.assertThat(sourceData.sourceData()).isEqualTo(Map.of("me.what-color", "blue-color"));
+		Assertions.assertThat(sourceData.sourceData())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("me.what-color", "blue-color"));
 	}
 
 	/**
@@ -306,7 +313,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
 
-		stubCall(configMapList);
+		stubCall(configMapList, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
@@ -321,13 +328,13 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.isEqualTo("configmap.another-blue-configmap.blue-configmap.default");
 
 		Map<String, Object> properties = sourceData.sourceData();
-		Assertions.assertThat(properties.size()).isEqualTo(2);
+		Assertions.assertThat(properties).hasSize(2);
 		Iterator<String> keys = properties.keySet().iterator();
 		String firstKey = keys.next();
 		String secondKey = keys.next();
 
 		if (firstKey.contains("first")) {
-			Assertions.assertThat(firstKey).isEqualTo("blue-configmap.first");
+			Assertions.assertThat("blue-configmap.first").isEqualTo(firstKey);
 		}
 
 		Assertions.assertThat(secondKey).isEqualTo("another-blue-configmap.second");
@@ -338,8 +345,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "color-configmap-k8s" with no labels. We search by "{color:red}", do not find
-	 * anything and thus have an empty SourceData. profile based sources are enabled, but
-	 * it has no effect.
+	 * anything and thus have an empty SourceData.
 	 */
 	@Test
 	void searchWithLabelsNoConfigmapsFound() {
@@ -359,7 +365,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
 
-		stubCall(configMapList);
+		stubCall(configMapList, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dblue");
+		stubCall(new V1ConfigMapList(), "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dred");
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, RED_LABEL, true,
@@ -378,7 +385,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 	/**
 	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
 	 * "shape-configmap" with label: "{shape:round}". We search by "{color:blue}" and find
-	 * one configmap. profile based sources are enabled, but it has no effect.
+	 * one configmap.
 	 */
 	@Test
 	void searchWithLabelsOneConfigMapFound() {
@@ -396,9 +403,12 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.addToData("two", "2")
 			.build();
 
-		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
+		V1ConfigMapList configMapListOne = new V1ConfigMapList().addItemsItem(one);
+		stubCall(configMapListOne, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dblue");
 
-		stubCall(configMapList);
+		V1ConfigMapList configMapListTwo = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
+		stubCall(configMapListTwo, "/api/v1/namespaces/default/configmaps?labelSelector=shape%3Dround");
+
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledConfigMapNormalizedSource(NAMESPACE, BLUE_LABEL, true,
@@ -409,7 +419,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(sourceData.sourceData().get("one")).isEqualTo("1");
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.default");
 
@@ -440,8 +450,8 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.build();
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(one).addItemsItem(two);
+		stubCall(configMapList, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dblue");
 
-		stubCall(configMapList);
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
 
@@ -453,10 +463,11 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
-		assertThat(sourceData.sourceData().get("color-configmap-k8s.two")).isEqualTo("2");
-		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap-k8s.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceName())
+			.isEqualTo("configmap.color-configmap.color-configmap-k8s.default");
 
 	}
 
@@ -518,7 +529,7 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.addItemsItem(colorConfigmapK8s)
 			.addItemsItem(shapeConfigmapK8s);
 
-		stubCall(configMapList);
+		stubCall(configMapList, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dblue");
 		CoreV1Api api = new CoreV1Api();
 		MockEnvironment environment = new MockEnvironment();
 
@@ -530,13 +541,13 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		assertThat(sourceData.sourceData().size()).isEqualTo(4);
-		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
-		assertThat(sourceData.sourceData().get("shape-configmap.two")).isEqualTo("2");
-		assertThat(sourceData.sourceData().get("color-configmap-k8s.four")).isEqualTo("4");
-		assertThat(sourceData.sourceData().get("shape-configmap-k8s.five")).isEqualTo("5");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(4);
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("shape-configmap.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceData().get("color-configmap-k8s.four")).isEqualTo("4");
+		Assertions.assertThat(sourceData.sourceData().get("shape-configmap-k8s.five")).isEqualTo("5");
 
-		assertThat(sourceData.sourceName())
+		Assertions.assertThat(sourceData.sourceName())
 			.isEqualTo("configmap.color-configmap.color-configmap-k8s.shape-configmap.shape-configmap-k8s.default");
 
 	}
@@ -547,11 +558,11 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 	 *     - one configmap is deployed with label {"color", "green"}
 	 *
 	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
-	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
+	 * 	   - we then search for the "green" one, and it is not cached.
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void nonCache(CapturedOutput output) {
 		V1ConfigMap red = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withLabels(Map.of("color", "red"))
 				.withNamespace(NAMESPACE)
@@ -568,9 +579,12 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 			.addToData("color", "green")
 			.build();
 
-		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(red).addItemsItem(green);
+		V1ConfigMapList configMapListRed = new V1ConfigMapList().addItemsItem(red);
+		stubCall(configMapListRed, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dred");
 
-		stubCall(configMapList);
+		V1ConfigMapList configMapListGreen = new V1ConfigMapList().addItemsItem(green);
+		stubCall(configMapListGreen, "/api/v1/namespaces/default/configmaps?labelSelector=color%3Dgreen");
+
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource redSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "red"), false,
@@ -580,10 +594,13 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData redData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(redSourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(redSourceData.sourceData().get("color")).isEqualTo("red");
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red-configmap.default");
-		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
+
+		Assertions.assertThat(output.getAll())
+			.doesNotContain("Loaded all config maps in namespace '" + NAMESPACE + "'");
+		Assertions.assertThat(output.getAll()).contains("Will read individual configmaps in namespace");
 
 		NormalizedSource greenSource = new LabeledConfigMapNormalizedSource(NAMESPACE, Map.of("color", "green"), false,
 			ConfigUtils.Prefix.DEFAULT, false);
@@ -592,22 +609,21 @@ class LabeledConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		KubernetesClientContextToSourceData greenData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(greenSourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(greenSourceData.sourceData().get("color")).isEqualTo("green");
 		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("configmap.green-configmap.default");
 
 		// meaning there is a single entry with such a log statement
 		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
+		Assertions.assertThat(out.length).isEqualTo(1);
 
 		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
+		out = output.getAll().split("Will read individual configmaps in namespace");
+		Assertions.assertThat(out.length).isEqualTo(3);
 	}
 
-	private void stubCall(V1ConfigMapList list) {
-		stubFor(get("/api/v1/namespaces/default/configmaps")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+	private void stubCall(V1ConfigMapList configMapList, String path) {
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
 	}
 
 }

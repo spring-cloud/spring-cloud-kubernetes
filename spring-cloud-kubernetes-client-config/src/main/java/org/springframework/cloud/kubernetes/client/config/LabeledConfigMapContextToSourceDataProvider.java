@@ -49,7 +49,7 @@ class LabeledConfigMapContextToSourceDataProvider implements Supplier<Kubernetes
 				@Override
 				public MultipleSourcesContainer dataSupplier(Map<String, String> labels) {
 					return KubernetesClientConfigUtils.configMapsDataByLabels(context.client(), context.namespace(),
-							labels, context.environment());
+							labels, context.environment(), context.namespacedBatchRead());
 				}
 
 			}.compute(source.labels(), source.prefix(), source.target(), source.failFast(), context.namespace());

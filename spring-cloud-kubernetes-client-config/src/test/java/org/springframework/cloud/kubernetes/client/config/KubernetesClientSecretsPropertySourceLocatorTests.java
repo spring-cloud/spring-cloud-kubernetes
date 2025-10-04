@@ -58,6 +58,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ExtendWith(OutputCaptureExtension.class)
 class KubernetesClientSecretsPropertySourceLocatorTests {
 
+	private static final boolean NAMESPACED_BATCH_READ = true;
+
 	private static final String LIST_API = "/api/v1/namespaces/default/secrets";
 
 	private static final String LIST_BODY = """
@@ -147,7 +149,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 				Collections.emptyMap(), null, null, null);
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(source1, source2), true, "app", "default", false, true, false, RetryProperties.DEFAULT);
+				List.of(source1, source2), true, "app", "default", false, true, false, RetryProperties.DEFAULT,
+				NAMESPACED_BATCH_READ);
 
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
@@ -161,7 +164,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(), true, "db-secret", "default", false, true, false, RetryProperties.DEFAULT);
+				List.of(), true, "db-secret", "default", false, true, false, RetryProperties.DEFAULT,
+				NAMESPACED_BATCH_READ);
 
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
@@ -183,7 +187,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(), true, "db-secret", "", false, true, false, RetryProperties.DEFAULT);
+				List.of(), true, "db-secret", "", false, true, false, RetryProperties.DEFAULT,
+				NAMESPACED_BATCH_READ);
 
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
@@ -196,7 +201,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(), true, "db-secret", "default", false, true, true, RetryProperties.DEFAULT);
+				List.of(), true, "db-secret", "default", false, true, true, RetryProperties.DEFAULT,
+				NAMESPACED_BATCH_READ);
 
 		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);
@@ -211,7 +217,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
 		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-				List.of(), true, "db-secret", "default", false, true, false, RetryProperties.DEFAULT);
+				List.of(), true, "db-secret", "default", false, true, false, RetryProperties.DEFAULT,
+				NAMESPACED_BATCH_READ);
 
 		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties);

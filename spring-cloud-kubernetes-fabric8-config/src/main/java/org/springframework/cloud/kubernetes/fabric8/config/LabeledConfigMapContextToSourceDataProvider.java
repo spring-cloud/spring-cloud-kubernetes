@@ -23,6 +23,8 @@ import org.springframework.cloud.kubernetes.commons.config.LabeledConfigMapNorma
 import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.configMapsByLabels;
+
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled config
  * map.
@@ -55,8 +57,8 @@ final class LabeledConfigMapContextToSourceDataProvider implements Supplier<Fabr
 			return new LabeledSourceData() {
 				@Override
 				public MultipleSourcesContainer dataSupplier(Map<String, String> labels) {
-					return Fabric8ConfigUtils.configMapsDataByLabels(context.client(), context.namespace(), labels,
-							context.environment());
+					return configMapsByLabels(context.client(), context.namespace(), labels, context.environment(),
+							context.readType());
 				}
 
 			}.compute(source.labels(), source.prefix(), source.target(), source.failFast(), context.namespace());

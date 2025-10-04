@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.core.env.Environment;
 
 /**
@@ -28,5 +29,5 @@ import org.springframework.core.env.Environment;
  * @author wind57
  */
 record Fabric8ConfigContext(KubernetesClient client, NormalizedSource normalizedSource, String namespace,
-		Environment environment) {
+		Environment environment, ReadType readType) {
 }

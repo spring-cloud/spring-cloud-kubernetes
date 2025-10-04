@@ -27,15 +27,13 @@ import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.cloud.config.environment.Environment;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsCache;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesBatchRead;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,15 +100,16 @@ class KubernetesPropertySourceSupplierTests {
 		when(CORE_V1_API.listNamespacedSecret(eq("team-b"))).thenReturn(teamBSecretRequest);
 	}
 
-	@AfterAll
-	static void afterAll() {
-		Mockito.reset(CORE_V1_API);
-	}
-
 	@AfterEach
 	void afterEach() {
-		new KubernetesClientConfigMapsCache().discardAll();
-		new KubernetesClientSecretsCache().discardAll();
+		new KubernetesClientSourcesBatchRead().discardConfigMaps();
+		new KubernetesClientSourcesBatchRead().discardSecrets();
+	}
+
+	@BeforeEach
+	void beforeEach() {
+		new KubernetesClientSourcesBatchRead().discardConfigMaps();
+		new KubernetesClientSourcesBatchRead().discardSecrets();
 	}
 
 	@Test

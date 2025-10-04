@@ -20,8 +20,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -31,8 +35,13 @@ import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContai
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
+import org.springframework.util.ObjectUtils;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesBatchRead.strippedConfigMaps;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesBatchRead.strippedSecrets;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesSingleRead.strippedConfigMaps;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesSingleRead.strippedSecrets;
 
 /**
  * @author Ryan Baxter
@@ -52,7 +61,7 @@ public final class KubernetesClientConfigUtils {
 	 * finds namespaces to be used for the event based reloading.
 	 */
 	public static Set<String> namespaces(KubernetesNamespaceProvider provider, ConfigReloadProperties properties,
-			String target) {
+		String target) {
 		Set<String> namespaces = properties.namespaces();
 		if (namespaces.isEmpty()) {
 			namespaces = Set.of(getApplicationNamespace(null, target, provider));
@@ -63,36 +72,29 @@ public final class KubernetesClientConfigUtils {
 
 	/**
 	 * <pre>
-	 *     1. read all secrets in the provided namespace
-	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. see if any of the secrets from (2) has a single yaml/properties file
-	 *     4. gather all the names of the secrets + data they hold
-	 * </pre>
-	 */
-	static MultipleSourcesContainer secretsDataByLabels(CoreV1Api coreV1Api, String namespace,
-			Map<String, String> labels, Environment environment) {
-		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
-		if (strippedSecrets.isEmpty()) {
-			return MultipleSourcesContainer.empty();
-		}
-		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, DECODE);
-	}
-
-	/**
-	 * <pre>
 	 *     1. read all config maps in the provided namespace
-	 *     2. from the above, filter the ones that we care about (filter by labels)
-	 *     3. see if any from (2) has a single yaml/properties file
+	 *     2. from the above, filter the ones that we care about (by name)
+	 *     3. see if any of the config maps has a single yaml/properties file
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByLabels(CoreV1Api coreV1Api, String namespace,
-			Map<String, String> labels, Environment environment) {
-		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
-		if (strippedConfigMaps.isEmpty()) {
-			return MultipleSourcesContainer.empty();
+	static MultipleSourcesContainer configMapsDataByName(CoreV1Api client, String namespace,
+		LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData,
+		boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedConfigMaps;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all configmaps in namespace : " + namespace);
+			strippedConfigMaps = strippedConfigMaps(client, namespace);
 		}
-		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, DECODE);
+		else {
+			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with names : " + sourceNames);
+			strippedConfigMaps = KubernetesClientSourcesSingleRead.strippedConfigMaps(client, namespace, sourceNames);
+		}
+
+		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false,
+			includeDefaultProfileData);
 	}
 
 	/**
@@ -103,49 +105,101 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the secrets + decoded data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer secretsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData) {
-		List<StrippedSourceContainer> strippedSecrets = strippedSecrets(coreV1Api, namespace);
-		if (strippedSecrets.isEmpty()) {
-			return MultipleSourcesContainer.empty();
+	static MultipleSourcesContainer secretsDataByName(CoreV1Api client, String namespace,
+		LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData,
+		boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedSecrets;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all secrets in namespace : " + namespace);
+			strippedSecrets = strippedSecrets(client, namespace);
 		}
-		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, DECODE,
-				includeDefaultProfileData);
+		else {
+			LOG.debug("Will read individual secrets in namespace : " + namespace + " with names : " + sourceNames);
+			strippedSecrets = KubernetesClientSourcesSingleRead.strippedSecrets(client, namespace, sourceNames);
+		}
+
+		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, false,
+			includeDefaultProfileData);
 	}
 
 	/**
 	 * <pre>
 	 *     1. read all config maps in the provided namespace
-	 *     2. from the above, filter the ones that we care about (by name)
-	 *     3. see if any of the config maps has a single yaml/properties file
+	 *     2. from the above, filter the ones that we care about (filter by labels)
+	 *     3. see if any from (2) has a single yaml/properties file
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByName(CoreV1Api coreV1Api, String namespace,
-			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData) {
-		List<StrippedSourceContainer> strippedConfigMaps = strippedConfigMaps(coreV1Api, namespace);
-		if (strippedConfigMaps.isEmpty()) {
-			return MultipleSourcesContainer.empty();
+	static MultipleSourcesContainer configMapsDataByLabels(CoreV1Api client, String namespace,
+		Map<String, String> labels, Environment environment, boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedConfigMaps;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all configmaps in namespace : " + namespace);
+			strippedConfigMaps = strippedConfigMaps(client, namespace);
 		}
-		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, DECODE,
-				includeDefaultProfileData);
+		else {
+			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with labels : " + labels);
+			strippedConfigMaps = KubernetesClientSourcesSingleRead.strippedConfigMaps(client, namespace, labels);
+		}
+
+		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, false);
 	}
 
-	private static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api coreV1Api, String namespace) {
-		List<StrippedSourceContainer> strippedConfigMaps = KubernetesClientConfigMapsCache.byNamespace(coreV1Api,
-				namespace);
-		if (strippedConfigMaps.isEmpty()) {
-			LOG.debug("No configmaps in namespace '" + namespace + "'");
+	/**
+	 * <pre>
+	 *     1. read all secrets in the provided namespace
+	 *     2. from the above, filter the ones that we care about (filter by labels)
+	 *     3. see if any of the secrets from (2) has a single yaml/properties file
+	 *     4. gather all the names of the secrets + data they hold
+	 * </pre>
+	 */
+	static MultipleSourcesContainer secretsDataByLabels(CoreV1Api client, String namespace, Map<String, String> labels,
+		Environment environment, boolean namespacedBatchRead) {
+
+		List<StrippedSourceContainer> strippedSecrets;
+
+		if (namespacedBatchRead) {
+			LOG.debug("Will read all secrets in namespace : " + namespace);
+			strippedSecrets = strippedSecrets(client, namespace);
 		}
-		return strippedConfigMaps;
+		else {
+			LOG.debug("Will read individual secrets in namespace : " + namespace + " with labels : " + labels);
+			strippedSecrets = KubernetesClientSourcesSingleRead.strippedSecrets(client, namespace, labels);
+		}
+
+		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, false);
 	}
 
-	private static List<StrippedSourceContainer> strippedSecrets(CoreV1Api coreV1Api, String namespace) {
-		List<StrippedSourceContainer> strippedSecrets = KubernetesClientSecretsCache.byNamespace(coreV1Api, namespace);
-		if (strippedSecrets.isEmpty()) {
-			LOG.debug("No secrets in namespace '" + namespace + "'");
+	static List<StrippedSourceContainer> stripSecrets(List<V1Secret> secrets) {
+		return secrets.stream()
+			.map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(), secret.getMetadata().getName(),
+				transform(secret.getData())))
+			.toList();
+	}
+
+	static List<StrippedSourceContainer> stripConfigMaps(List<V1ConfigMap> configMaps) {
+		return configMaps.stream()
+			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
+				configMap.getMetadata().getName(), configMap.getData()))
+			.toList();
+	}
+
+	static void handleApiException(ApiException e, String sourceName) {
+		if (e.getCode() == 404) {
+			LOG.warn("source with name : " + sourceName + " not found. Ignoring");
 		}
-		return strippedSecrets;
+		else {
+			throw new RuntimeException(e.getResponseBody(), e);
+		}
+	}
+
+	private static Map<String, String> transform(Map<String, byte[]> in) {
+		return ObjectUtils.isEmpty(in) ? Map.of()
+			: in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
 	}
 
 }

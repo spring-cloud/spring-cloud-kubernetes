@@ -20,11 +20,14 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
@@ -41,19 +44,25 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 	public KubernetesClientSecretsPropertySourceLocator(CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, SecretsConfigProperties secretsConfigProperties) {
-		super(secretsConfigProperties, new KubernetesClientSecretsCache());
+		super(secretsConfigProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
 	}
 
 	@Override
-	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source) {
+	public PropertySource<?> locate(Environment environment) {
+		Pro
+	}
+
+	@Override
+	protected SecretsPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source,
+			ReadType readType) {
 
 		String normalizedNamespace = source.namespace().orElse(null);
 		String namespace = getApplicationNamespace(normalizedNamespace, source.target(), kubernetesNamespaceProvider);
 
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreV1Api, source, namespace,
-				environment);
+				environment, true, readType);
 
 		return new KubernetesClientSecretsPropertySource(context);
 	}

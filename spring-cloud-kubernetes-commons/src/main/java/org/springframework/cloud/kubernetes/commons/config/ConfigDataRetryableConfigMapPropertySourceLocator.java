@@ -36,9 +36,8 @@ public class ConfigDataRetryableConfigMapPropertySourceLocator extends ConfigMap
 	private ConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
 	public ConfigDataRetryableConfigMapPropertySourceLocator(
-			ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigMapConfigProperties properties,
-			ConfigMapCache cache) {
-		super(properties, cache);
+			ConfigMapPropertySourceLocator configMapPropertySourceLocator, ConfigMapConfigProperties properties) {
+		super(properties);
 		this.configMapPropertySourceLocator = configMapPropertySourceLocator;
 		this.retryTemplate = RetryTemplate.builder()
 			.maxAttempts(properties.retry().maxAttempts())
@@ -49,8 +48,8 @@ public class ConfigDataRetryableConfigMapPropertySourceLocator extends ConfigMap
 
 	@Override
 	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
-			ConfigurableEnvironment environment) {
-		return configMapPropertySourceLocator.getMapPropertySource(normalizedSource, environment);
+			ConfigurableEnvironment environment, ReadType readType) {
+		return configMapPropertySourceLocator.getMapPropertySource(normalizedSource, environment, readType);
 	}
 
 	@Override

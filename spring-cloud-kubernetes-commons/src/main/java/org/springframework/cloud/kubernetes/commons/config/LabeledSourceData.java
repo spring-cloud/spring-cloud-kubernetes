@@ -103,6 +103,6 @@ public abstract class LabeledSourceData {
 	 * @return a container that holds the names of the source that were found and their
 	 * data
 	 */
-	public abstract MultipleSourcesContainer dataSupplier(Map<String, String> labels);
+	protected abstract MultipleSourcesContainer dataSupplier(Map<String, String> labels);
 
 }

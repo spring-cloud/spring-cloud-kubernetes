@@ -58,13 +58,10 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 
 	private static final Log LOG = LogFactory.getLog(SecretsPropertySourceLocator.class);
 
-	private final SecretsCache cache;
-
 	protected final SecretsConfigProperties properties;
 
-	public SecretsPropertySourceLocator(SecretsConfigProperties properties, SecretsCache cache) {
+	public SecretsPropertySourceLocator(SecretsConfigProperties properties) {
 		this.properties = properties;
-		this.cache = cache;
 	}
 
 	@Override
@@ -79,11 +76,11 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			putPathConfig(composite);
 
 			if (this.properties.enableApi()) {
-				uniqueSources.forEach(s -> {
-					MapPropertySource propertySource = getSecretsPropertySourceForSingleSecret(env, s);
+				uniqueSources.forEach(secretSource -> {
+					MapPropertySource propertySource = getPropertySource(env, secretSource, properties.readType());
 
 					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
-						LOG.warn("Failed to load source: " + s);
+						LOG.warn("Failed to load source: " + secretSource);
 					}
 					else {
 						LOG.debug("Adding secret property source " + propertySource.getName());
@@ -92,7 +89,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 				});
 			}
 
-			cache.discardAll();
 			return composite;
 		}
 		return null;
@@ -103,14 +99,8 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 		return PropertySourceLocator.super.locateCollection(environment);
 	}
 
-	private SecretsPropertySource getSecretsPropertySourceForSingleSecret(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource) {
-
-		return getPropertySource(environment, normalizedSource);
-	}
-
 	protected abstract SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource);
+			NormalizedSource normalizedSource, ReadType readType);
 
 	protected void putPathConfig(CompositePropertySource composite) {
 

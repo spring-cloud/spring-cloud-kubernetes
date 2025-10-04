@@ -37,6 +37,8 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.springframework.cloud.kubernetes.commons.config.ReadType.BATCH;
+
 /**
  * @author wind57
  */
@@ -228,10 +230,10 @@ class KubernetesConfigDataLocationResolverTests {
 		// 'one' and 'two' prove that we have not registered ConfigMapConfigProperties and
 		// SecretsConfigProperties in the bootstrap context
 		ConfigMapConfigProperties one = new ConfigMapConfigProperties(false, List.of(), List.of(), Map.of(), false,
-				null, null, false, false, false, null);
+				null, null, false, false, false, null, BATCH);
 
 		SecretsConfigProperties two = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), false, null,
-				null, false, false, false, null);
+				null, false, false, false, null, ReadType.BATCH);
 
 		KubernetesClientProperties kubernetesClientProperties = RESOLVER_CONTEXT.getBootstrapContext()
 			.get(KubernetesClientProperties.class);

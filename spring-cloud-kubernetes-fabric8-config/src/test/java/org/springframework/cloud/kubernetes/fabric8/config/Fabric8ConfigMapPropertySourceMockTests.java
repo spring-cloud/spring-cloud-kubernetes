@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +39,8 @@ class Fabric8ConfigMapPropertySourceMockTests {
 
 		Mockito.when(client.getNamespace()).thenReturn("namespace");
 		NormalizedSource source = new NamedConfigMapNormalizedSource("configmap", null, false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, source, "", new MockEnvironment(),
+				ReadType.BATCH);
 		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
 
@@ -47,7 +49,8 @@ class Fabric8ConfigMapPropertySourceMockTests {
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("configMap", null, false, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(client, source, "", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(client, source, "", new MockEnvironment(),
+				ReadType.BATCH);
 		assertThat(new Fabric8ConfigMapPropertySource(context)).isNotNull();
 	}
 

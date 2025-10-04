@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -73,7 +74,7 @@ class ConfigDataConfigFailFastEnabledButRetryDisabledTests extends ConfigFailFas
 		ConfigMapConfigProperties properties(Environment environment) {
 			return new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true, null, null, false, true,
 					Boolean.parseBoolean(environment.getProperty("spring.cloud.kubernetes.config.fail-fast")),
-					RetryProperties.DEFAULT);
+					RetryProperties.DEFAULT, ReadType.BATCH);
 		}
 
 	}
