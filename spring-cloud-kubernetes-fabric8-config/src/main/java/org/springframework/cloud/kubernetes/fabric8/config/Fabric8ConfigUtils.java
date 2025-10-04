@@ -89,7 +89,7 @@ public final class Fabric8ConfigUtils {
 			strippedConfigMaps = strippedConfigMaps(client, namespace, sourceNames);
 		}
 
-		return processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false, false);
+		return processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false, true);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public final class Fabric8ConfigUtils {
 			strippedSecrets = strippedSecrets(client, namespace, sourceNames);
 		}
 
-		return processNamedData(strippedSecrets, environment, sourceNames, namespace, true, false);
+		return processNamedData(strippedSecrets, environment, sourceNames, namespace, true, true);
 	}
 
 	/**
