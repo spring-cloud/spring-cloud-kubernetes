@@ -40,7 +40,7 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.APPL
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8ConfigUtilsNamespacedBatchReadTests {
+class Fabric8ConfigUtilsBatchReadTests {
 
 	private KubernetesClient client;
 

@@ -42,16 +42,12 @@ import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
- * Tests only for the happy-path scenarios. All others are tested elsewhere.
- *
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
 @ExtendWith(OutputCaptureExtension.class)
-class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
+class LabeledSecretContextToSourceDataProviderSingleReadTests {
 
 	private static final String NAMESPACE = "default";
 
@@ -106,7 +102,7 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -152,13 +148,13 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.red-secret.red-secret-again.default");
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
 		Assertions.assertThat(sourceData.sourceData().get("colorOne")).isEqualTo("really-red");
 		Assertions.assertThat(sourceData.sourceData().get("colorTwo")).isEqualTo("really-red-again");
 
@@ -182,7 +178,7 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -213,7 +209,7 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -244,7 +240,7 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, mePrefix);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -285,7 +281,7 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -293,7 +289,7 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.another-blue-secret.blue-secret.default");
 
 		Map<String, Object> properties = sourceData.sourceData();
-		Assertions.assertThat(properties.size()).isEqualTo(2);
+		Assertions.assertThat(properties).hasSize(2);
 		Iterator<String> keys = properties.keySet().iterator();
 		String firstKey = keys.next();
 		String secondKey = keys.next();
@@ -334,7 +330,7 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
-				ReadType.BATCH);
+				ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -371,54 +367,13 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
-				ReadType.BATCH);
+				ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(sourceData.sourceData().get("one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
-
-	}
-
-	/**
-	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
-	 * "color-secret-k8s" with label: "{color:red}". We search by "{color:blue}" and find
-	 * one secret. Since profiles are enabled, we will also be reading "color-secret-k8s",
-	 * even if its labels do not match provided ones.
-	 */
-	@Test
-	void searchWithLabelsOneSecretFoundAndOneFromProfileFound() {
-		Secret colorSecret = new SecretBuilder().withNewMetadata()
-			.withName("color-secret")
-			.withLabels(Collections.singletonMap("color", "blue"))
-			.endMetadata()
-			.addToData("one", Base64.getEncoder().encodeToString("1".getBytes()))
-			.build();
-
-		Secret colorSecretK8s = new SecretBuilder().withNewMetadata()
-			.withName("color-secret-k8s")
-			.withLabels(Collections.singletonMap("color", "red"))
-			.endMetadata()
-			.addToData("two", Base64.getEncoder().encodeToString("2".getBytes()))
-			.build();
-
-		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
-		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
-		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
-
-		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
-				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
-				ReadType.BATCH);
-
-		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
-		SourceData sourceData = data.apply(context);
-
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
-		Assertions.assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 
 	}
@@ -480,16 +435,16 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
-				ReadType.BATCH);
+				ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
-		assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
-		assertThat(sourceData.sourceData().get("shape-secret.two")).isEqualTo("2");
+		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
+		Assertions.assertThat(sourceData.sourceData().get("color-secret.one")).isEqualTo("1");
+		Assertions.assertThat(sourceData.sourceData().get("shape-secret.two")).isEqualTo("2");
 
-		assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.shape-secret.default");
+		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.shape-secret.default");
 
 	}
 
@@ -510,12 +465,12 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(sourceData.sourceData().get("color")).isEqualTo("blue");
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("secret.color-secret.default");
 	}
@@ -552,31 +507,25 @@ class LabeledSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		NormalizedSource redNormalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DELAYED);
 		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE,
-				environment, ReadType.BATCH);
+				environment, ReadType.SINGLE);
 		Fabric8ContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(redSourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(redSourceData.sourceData().get("red.one")).isEqualTo("1");
-		Assertions.assertThat(output.getAll()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
+
+		Assertions.assertThat(output.getAll()).doesNotContain("Loaded all secrets in namespace '" + NAMESPACE + "'");
+		Assertions.assertThat(output.getAll()).contains("Will read individual secrets in namespace");
 
 		NormalizedSource greenNormalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED);
 		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE,
-				environment, ReadType.BATCH);
+				environment, ReadType.SINGLE);
 		Fabric8ContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
+		Assertions.assertThat(greenSourceData.sourceData()).hasSize(1);
 		Assertions.assertThat(greenSourceData.sourceData().get("green.two")).isEqualTo("2");
-
-		// meaning there is a single entry with such a log statement
-		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
-
-		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
 
 	}
 

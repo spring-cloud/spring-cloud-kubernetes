@@ -39,7 +39,7 @@ import static org.springframework.cloud.kubernetes.commons.config.Constants.APPL
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
+class Fabric8ConfigUtilsSingleReadTests {
 
 	private KubernetesClient client;
 
@@ -62,7 +62,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 			.resource(new SecretBuilder().withMetadata(new ObjectMetaBuilder().withName("my-secret").build()).build())
 			.create();
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsByLabels(client, "spring-k8s",
-				Map.of("color", "red"), new MockEnvironment(), ReadType.BATCH);
+				Map.of("color", "red"), new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data()).isEmpty();
 	}
 
@@ -83,7 +83,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), ReadType.BATCH);
+				Map.of("color", "pink"), new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -109,7 +109,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), ReadType.BATCH);
+				Map.of("color", "pink"), new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-secret");
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -143,7 +143,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsByLabels(client, "spring-k8s",
-				Map.of("color", "pink"), new MockEnvironment(), ReadType.BATCH);
+				Map.of("color", "pink"), new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).contains("my-secret");
 		Assertions.assertThat(result.data().keySet()).contains("my-secret-2");
 
@@ -211,7 +211,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 			.create();
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsByLabels(client, "spring-k8s",
-				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), ReadType.BATCH);
+				Map.of("tag", "fit", "color", "blue"), new MockEnvironment(), ReadType.SINGLE);
 
 		Assertions.assertThat(result.data().keySet()).contains("blue-circle-secret");
 		Assertions.assertThat(result.data().keySet()).contains("blue-square-secret");
@@ -238,7 +238,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("nope");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsByName(client, "spring-k8s", names,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data()).isEmpty();
 	}
 
@@ -259,7 +259,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		names.add("my-secret");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.secretsByName(client, "spring-k8s", names,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).hasSize(1);
 
 		Map<String, Object> data = result.data().get("my-secret");
@@ -283,7 +283,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		names.add("my-config-map");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsByName(client, "spring-k8s", names,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
 		Map<String, Object> data = result.data().get("my-config-map");
@@ -305,7 +305,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		LinkedHashSet<String> names = new LinkedHashSet<>();
 		names.add("my-config-map-not-found");
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsByName(client, "spring-k8s", names,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data()).isEmpty();
 	}
 
@@ -327,7 +327,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		names.add("my-config-map");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsByName(client, "spring-k8s", names,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
 		Map<String, Object> data = result.data().get("my-config-map");
@@ -355,7 +355,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		names.add("my-config-map");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsByName(client, "spring-k8s", names,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map");
 
 		Map<String, Object> data = result.data().get("my-config-map");
@@ -390,7 +390,7 @@ class Fabric8ConfigUtilsNonNamespacedBatchReadTests {
 		names.add("my-config-map-2");
 
 		MultipleSourcesContainer result = Fabric8ConfigUtils.configMapsByName(client, "spring-k8s", names,
-				new MockEnvironment(), ReadType.BATCH);
+				new MockEnvironment(), ReadType.SINGLE);
 		Assertions.assertThat(result.data().keySet()).containsExactlyInAnyOrder("my-config-map", "my-config-map-2");
 
 		Assertions.assertThat(result.data()).hasSize(2);

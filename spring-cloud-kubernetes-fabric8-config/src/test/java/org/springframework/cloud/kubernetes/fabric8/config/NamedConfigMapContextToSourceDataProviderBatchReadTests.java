@@ -27,10 +27,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -44,8 +41,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-@ExtendWith(OutputCaptureExtension.class)
-class NamedConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
+class NamedConfigMapContextToSourceDataProviderBatchReadTests {
 
 	private static final String NAMESPACE = "default";
 
@@ -394,7 +390,7 @@ class NamedConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void cache() {
 
 		ConfigMap red = new ConfigMapBuilder().withNewMetadata()
 			.withName("red")
@@ -422,8 +418,9 @@ class NamedConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red.default");
 		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(redSourceData.sourceData().get("some.color")).isEqualTo("really-red");
-		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getAll()).doesNotContain("Will read individual configmaps in namespace");
+
+		// delete the configmap, if caching is not present, the test would fail
+		mockClient.configMaps().inNamespace(NAMESPACE).withName(green.getMetadata().getName()).delete();
 
 		NormalizedSource greenNormalizedSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, PREFIX,
 				false);
@@ -435,14 +432,6 @@ class NamedConfigMapContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("configmap.green.default");
 		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(greenSourceData.sourceData().get("some.taste")).isEqualTo("mango");
-
-		// meaning there is a single entry with such a log statement
-		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
-
-		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
 
 	}
 

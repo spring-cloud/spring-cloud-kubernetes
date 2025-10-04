@@ -26,14 +26,12 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -41,12 +39,13 @@ import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-@ExtendWith(OutputCaptureExtension.class)
-class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
+class LabeledConfigMapContextToSourceDataProviderBatchReadTests {
 
 	private static final String NAMESPACE = "default";
 
@@ -60,13 +59,13 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 
 	private static KubernetesClient mockClient;
 
-	static {
-		LABELS.put("label2", "value2");
-		LABELS.put("label1", "value1");
-	}
+	private static KubernetesMockServer mockServer;
 
 	@BeforeAll
 	static void beforeAll() {
+
+		LABELS.put("label2", "value2");
+		LABELS.put("label1", "value1");
 
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, mockClient.getConfiguration().getMasterUrl());
@@ -152,7 +151,7 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		SourceData sourceData = data.apply(context);
 
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.red-configmap.red-configmap-again.default");
-		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(2);
 		Assertions.assertThat(sourceData.sourceData().get("colorOne")).isEqualTo("really-red");
 		Assertions.assertThat(sourceData.sourceData().get("colorTwo")).isEqualTo("really-red-again");
 
@@ -287,7 +286,7 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 			.isEqualTo("configmap.another-blue-configmap.blue-configmap.default");
 
 		Map<String, Object> properties = sourceData.sourceData();
-		Assertions.assertThat(properties).hasSize(2);
+		Assertions.assertThat(properties.size()).isEqualTo(2);
 		Iterator<String> keys = properties.keySet().iterator();
 		String firstKey = keys.next();
 		String secondKey = keys.next();
@@ -333,7 +332,7 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData()).isEmpty();
+		Assertions.assertThat(sourceData.sourceData().isEmpty()).isTrue();
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color.default");
 
 	}
@@ -370,9 +369,50 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(sourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(sourceData.sourceData().get("one")).isEqualTo("1");
 		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.default");
+
+	}
+
+	/**
+	 * two configmaps are deployed: "color-configmap" with label: "{color:blue}" and
+	 * "color-configmap-k8s" with label: "{color:red}". We search by "{color:blue}" and
+	 * find one configmap. Since profiles are enabled, we will also be reading
+	 * "color-configmap-k8s", even if its labels do not match provided ones.
+	 */
+	@Test
+	void searchWithLabelsOneConfigMapFoundAndOneFromProfileFound() {
+		ConfigMap colorConfigmap = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap")
+			.withLabels(Collections.singletonMap("color", "blue"))
+			.endMetadata()
+			.addToData("one", "1")
+			.build();
+
+		ConfigMap colorConfigmapK8s = new ConfigMapBuilder().withNewMetadata()
+			.withName("color-configmap-k8s")
+			.withLabels(Collections.singletonMap("color", "red"))
+			.endMetadata()
+			.addToData("two", "2")
+			.build();
+
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmap).create();
+		mockClient.configMaps().inNamespace(NAMESPACE).resource(colorConfigmapK8s).create();
+		MockEnvironment environment = new MockEnvironment();
+		environment.setActiveProfiles("k8s");
+
+		NormalizedSource normalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
+				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED, true);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				ReadType.BATCH);
+
+		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
+		SourceData sourceData = data.apply(context);
+
+		assertThat(sourceData.sourceData().size()).isEqualTo(1);
+		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
+		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.default");
 
 	}
 
@@ -438,11 +478,12 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData data = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
 
-		Assertions.assertThat(sourceData.sourceData()).hasSize(2);
-		Assertions.assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
-		Assertions.assertThat(sourceData.sourceData().get("shape-configmap.two")).isEqualTo("2");
+		assertThat(sourceData.sourceData().size()).isEqualTo(2);
 
-		Assertions.assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.shape-configmap.default");
+		assertThat(sourceData.sourceData().get("color-configmap.one")).isEqualTo("1");
+		assertThat(sourceData.sourceData().get("shape-configmap.two")).isEqualTo("2");
+
+		assertThat(sourceData.sourceName()).isEqualTo("configmap.color-configmap.shape-configmap.default");
 
 	}
 
@@ -451,11 +492,11 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 	 *     - configmap "red-configmap" with label "{color:red}"
 	 *     - configmap "green-configmap" with labels "{color:green}"
 	 *     - we first search for "red" and find it, and it is retrieved from the cluster via the client.
-	 * 	   - we then search for the "green" one, and it is not retrieved from the cache.
+	 * 	   - we then search for the "green" one, and it is retrieved from the cache this time.
 	 * </pre>
 	 */
 	@Test
-	void nonCache(CapturedOutput output) {
+	void cache() {
 		ConfigMap redConfigMap = new ConfigMapBuilder().withNewMetadata()
 			.withName("red-configmap")
 			.withLabels(Collections.singletonMap("color", "red"))
@@ -482,12 +523,10 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData redData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
-		Assertions.assertThat(redSourceData.sourceData()).hasSize(1);
-		Assertions.assertThat(redSourceData.sourceData().get("red-configmap.one")).isEqualTo("1");
+		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 
-		Assertions.assertThat(output.getAll())
-			.doesNotContain("Loaded all config maps in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getOut()).contains("Will read individual configmaps in namespace");
+		// delete the configmap, if caching is not present, the test would fail
+		mockClient.configMaps().inNamespace(NAMESPACE).withName(greenConfigmap.getMetadata().getName()).delete();
 
 		NormalizedSource greenNormalizedSource = new LabeledConfigMapNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED, true);
@@ -496,16 +535,8 @@ class LabeledConfigMapContextToSourceDataProviderNonNamespacedBatchReadTests {
 		Fabric8ContextToSourceData greenData = new LabeledConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
-		Assertions.assertThat(greenSourceData.sourceData()).hasSize(1);
+		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(greenSourceData.sourceData().get("green-configmap.two")).isEqualTo("2");
-
-		// meaning there is a single entry with such a log statement
-		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(1);
-
-		// meaning that both reads were non cached
-		out = output.getAll().split("Will read individual configmaps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(3);
 
 	}
 

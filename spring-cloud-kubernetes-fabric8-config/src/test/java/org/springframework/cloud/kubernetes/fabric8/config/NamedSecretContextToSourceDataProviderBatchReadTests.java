@@ -28,10 +28,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
@@ -45,8 +42,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-@ExtendWith(OutputCaptureExtension.class)
-class NamedSecretContextToSourceDataProviderNamespacedBatchReadTests {
+class NamedSecretContextToSourceDataProviderBatchReadTests {
 
 	private static final String NAMESPACE = "default";
 
@@ -367,7 +363,7 @@ class NamedSecretContextToSourceDataProviderNamespacedBatchReadTests {
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void cache() {
 
 		Secret red = new SecretBuilder().withNewMetadata()
 			.withName("red")
@@ -394,8 +390,9 @@ class NamedSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("secret.red.default");
 		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(redSourceData.sourceData().get("some.color")).isEqualTo("red");
-		Assertions.assertThat(output.getAll()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
-		Assertions.assertThat(output.getAll()).doesNotContain("Will read individual secrets in namespace");
+
+		// delete the configmap, if caching is not present, the test would fail
+		mockClient.secrets().inNamespace(NAMESPACE).withName(green.getMetadata().getName()).delete();
 
 		NormalizedSource greenNormalizedSource = new NamedSecretNormalizedSource("green", NAMESPACE, true, PREFIX,
 				false);
@@ -407,14 +404,6 @@ class NamedSecretContextToSourceDataProviderNamespacedBatchReadTests {
 		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("secret.green.default");
 		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(greenSourceData.sourceData().get("some.taste")).isEqualTo("mango");
-
-		// meaning there is a single entry with such a log statement
-		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
-
-		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
 
 	}
 
