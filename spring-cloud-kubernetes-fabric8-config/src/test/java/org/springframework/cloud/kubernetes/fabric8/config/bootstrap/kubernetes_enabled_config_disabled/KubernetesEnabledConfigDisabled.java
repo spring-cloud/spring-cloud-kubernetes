@@ -22,12 +22,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
+@TestPropertySource(properties = { "spring.cloud.kubernetes.secrets.enabled=true",
+	"spring.cloud.kubernetes.client.namespace=test" })
 abstract class KubernetesEnabledConfigDisabled {
 
 	@Autowired

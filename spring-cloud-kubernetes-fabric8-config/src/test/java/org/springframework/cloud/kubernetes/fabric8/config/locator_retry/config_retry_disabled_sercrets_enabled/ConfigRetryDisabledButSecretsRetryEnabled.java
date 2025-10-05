@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.config.locator_retry.config_retry_disabled_sercrets_enabled;
 
 import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -41,11 +42,14 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
 				"spring.cloud.kubernetes.config.fail-fast=true", "spring.cloud.kubernetes.config.retry.enabled=false",
-				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.main.cloud-platform=KUBERNETES" },
+				"spring.cloud.kubernetes.secrets.fail-fast=true", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.kubernetes.secrets.enabled=true" },
 		classes = TestApplication.class)
 abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 
-	private static final String API = "/api/v1/namespaces/default/configmaps";
+	private static final String CONFIG_MAPS_API = "/api/v1/namespaces/default/configmaps";
+
+	private static final String SECRETS_API = "/api/v1/namespaces/default/secrets";
 
 	private static KubernetesMockServer mockServer;
 
@@ -64,8 +68,10 @@ abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
-		// return empty secret list to not fail context creation
-		mockServer.expect().withPath(API).andReturn(200, new ConfigMapListBuilder().build()).always();
+		// return empty configmap list to not fail context creation
+		mockServer.expect().withPath(CONFIG_MAPS_API).andReturn(200, new ConfigMapListBuilder().build()).always();
+
+		mockServer.expect().withPath(SECRETS_API).andReturn(200, new ServiceListBuilder().build()).always();
 	}
 
 	@Autowired
@@ -81,7 +87,7 @@ abstract class ConfigRetryDisabledButSecretsRetryEnabled {
 		 * enabled.
 		 */
 		mockServer.clearExpectations();
-		mockServer.expect().withPath(API).andReturn(500, "Internal Server Error").once();
+		mockServer.expect().withPath(CONFIG_MAPS_API).andReturn(500, "Internal Server Error").once();
 
 		assertRetryBean(context);
 		assertThatThrownBy(() -> psl.locate(new MockEnvironment())).isInstanceOf(IllegalStateException.class)

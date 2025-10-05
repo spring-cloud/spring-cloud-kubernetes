@@ -125,7 +125,7 @@ public class SecretsEnableRetryWithoutFailFastTest {
 	public void doesNotContainRetryableSecretsPropertySourceLocator() throws Exception {
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 		setup("debug=true", "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.test.enable-retry=true",
-				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true");
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enabled=true");
 		assertThat(context.containsBean("retryableSecretsPropertySourceLocator")).isFalse();
 	}
 

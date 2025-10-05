@@ -37,7 +37,7 @@ class ConfigDataFabric8SanitizeEnvEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
-					"management.endpoints.web.exposure.include=*" })
+					"management.endpoints.web.exposure.include=*", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
 	@Nested
 	class DefaultSettingsTest extends Fabric8SecretsSanitize {
@@ -106,7 +106,7 @@ class ConfigDataFabric8SanitizeEnvEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=*",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
-					"management.endpoint.env.show-values=NEVER" })
+					"management.endpoint.env.show-values=NEVER", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
 	@Nested
 	class ExplicitNever extends Fabric8SecretsSanitize {
@@ -184,7 +184,8 @@ class ConfigDataFabric8SanitizeEnvEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=*",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
-					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=false" })
+					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=false",
+					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
 	@Nested
 	class AlwaysWithoutSanitizingFunction extends Fabric8SecretsSanitize {
@@ -262,7 +263,8 @@ class ConfigDataFabric8SanitizeEnvEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=*",
 					"spring.config.import=kubernetes:,classpath:./sanitize-two.yaml",
-					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=true" })
+					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=true",
+					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
 	@Nested
 	class AlwaysWithSanitizingFunction extends Fabric8SecretsSanitize {

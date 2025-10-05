@@ -65,7 +65,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(), Map.of(),
 				true, name, namespace, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
@@ -83,7 +83,7 @@ class Fabric8ConfigMapPropertySourceLocatorTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(), Map.of(),
 				true, name, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,

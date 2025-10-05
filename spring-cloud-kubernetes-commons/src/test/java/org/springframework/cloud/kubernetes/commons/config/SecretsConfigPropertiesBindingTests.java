@@ -39,10 +39,9 @@ class SecretsConfigPropertiesBindingTests {
 		new ApplicationContextRunner().withUserConfiguration(Config.class).run(context -> {
 			SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 			Assertions.assertThat(props).isNotNull();
-			Assertions.assertThat(props.enableApi()).isFalse();
 			Assertions.assertThat(props.sources()).isEmpty();
 			Assertions.assertThat(props.labels()).isEmpty();
-			Assertions.assertThat(props.enabled()).isTrue();
+			Assertions.assertThat(props.enabled()).isFalse();
 			Assertions.assertThat(props.name()).isNull();
 			Assertions.assertThat(props.namespace()).isNull();
 			Assertions.assertThat(props.useNameAsPrefix()).isFalse();
@@ -62,8 +61,7 @@ class SecretsConfigPropertiesBindingTests {
 	@Test
 	void testWithNonDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
-			.withPropertyValues("spring.cloud.kubernetes.secrets.enableApi=false",
-					"spring.cloud.kubernetes.secrets.sources[0].name=source-a",
+			.withPropertyValues("spring.cloud.kubernetes.secrets.sources[0].name=source-a",
 					"spring.cloud.kubernetes.secrets.sources[0].namespace=source-namespace-a",
 					"spring.cloud.kubernetes.secrets.sources[0].labels.key=source-value",
 					"spring.cloud.kubernetes.secrets.sources[0].explicit-prefix=source-prefix",
@@ -84,7 +82,6 @@ class SecretsConfigPropertiesBindingTests {
 			.run(context -> {
 				SecretsConfigProperties props = context.getBean(SecretsConfigProperties.class);
 				Assertions.assertThat(props).isNotNull();
-				Assertions.assertThat(props.enableApi()).isFalse();
 
 				Assertions.assertThat(props.sources().size()).isEqualTo(1);
 				SecretsConfigProperties.Source source = props.sources().get(0);

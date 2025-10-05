@@ -35,7 +35,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithPrefixApp.class,
-		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.application.name=named-secret-with-prefix" })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.application.name=named-secret-with-prefix",
+			"spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true" })
 abstract class NamedSecretWithPrefix {
 
 	private static KubernetesClient mockClient;

@@ -68,7 +68,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"spring.main.cloud-platform=KUBERNETES", "spring.application.name=polling-reload-configmap-and-secret",
 				"spring.main.allow-bean-definition-overriding=true",
 				"spring.cloud.kubernetes.client.namespace=spring-k8s",
-				"logging.level.org.springframework.cloud.kubernetes.commons.config.reload=debug" },
+				"logging.level.org.springframework.cloud.kubernetes.commons.config.reload=debug",
+				"spring.cloud.kubernetes.secrets.enabled=true" },
 		classes = { PollingReloadConfigMapAndSecretTest.TestConfig.class, App.class })
 @EnableKubernetesMockClient(crud = true, https = false)
 @ExtendWith(OutputCaptureExtension.class)

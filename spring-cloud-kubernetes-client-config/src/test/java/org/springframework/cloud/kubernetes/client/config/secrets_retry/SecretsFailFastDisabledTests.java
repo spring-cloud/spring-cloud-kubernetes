@@ -49,7 +49,7 @@ import static org.mockito.Mockito.verify;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.client.namespace=default",
-				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enable-api=true",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enabled=true",
 				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
 		classes = SecretsRetryApplication.class)
 class SecretsFailFastDisabledTests {
@@ -74,7 +74,7 @@ class SecretsFailFastDisabledTests {
 
 	private static void stubConfigMapAndSecretsDefaults() {
 		// return empty config map / secret list to not fail context creation
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
+		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(new V1SecretList()))));
 	}
 
 	@AfterAll
