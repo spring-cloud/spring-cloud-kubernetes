@@ -51,6 +51,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.client.config.VisibleKubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -217,7 +218,7 @@ class EventReloadConfigMapTest {
 			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
 					List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true, FAIL_FAST,
-					RetryProperties.DEFAULT, true);
+					RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,
@@ -240,7 +241,7 @@ class EventReloadConfigMapTest {
 		@Primary
 		ConfigMapConfigProperties configMapConfigProperties() {
 			return new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT, true);
+					false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 		}
 
 		@Bean

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,7 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 
 final class KubernetesClientSourcesSingleRead {
 
-	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesClientSourcesSingleRead.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientSourcesSingleRead.class));
 
 	private KubernetesClientSourcesSingleRead() {
 
@@ -48,7 +47,7 @@ final class KubernetesClientSourcesSingleRead {
 	 * read configmaps by name, one by one, without caching them.
 	 */
 	static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api client, String namespace,
-		LinkedHashSet<String> sourceNames) {
+			LinkedHashSet<String> sourceNames) {
 
 		List<V1ConfigMap> configMaps = new ArrayList<>(sourceNames.size());
 
@@ -79,7 +78,7 @@ final class KubernetesClientSourcesSingleRead {
 	 * read secrets by name, one by one, without caching them.
 	 */
 	static List<StrippedSourceContainer> strippedSecrets(CoreV1Api client, String namespace,
-		LinkedHashSet<String> sourceNames) {
+			LinkedHashSet<String> sourceNames) {
 
 		List<V1Secret> secrets = new ArrayList<>(sourceNames.size());
 
@@ -110,12 +109,14 @@ final class KubernetesClientSourcesSingleRead {
 	 * read configmaps by labels, without caching them.
 	 */
 	static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api client, String namespace,
-		Map<String, String> labels) {
+			Map<String, String> labels) {
 
 		List<V1ConfigMap> configMaps;
 		try {
-			configMaps = client
-				.listNamespacedConfigMap(namespace).labelSelector(labelSelector(labels)).execute().getItems();
+			configMaps = client.listNamespacedConfigMap(namespace)
+				.labelSelector(labelSelector(labels))
+				.execute()
+				.getItems();
 		}
 		catch (ApiException e) {
 			throw new RuntimeException(e.getResponseBody(), e);
@@ -136,12 +137,11 @@ final class KubernetesClientSourcesSingleRead {
 	 * read secrets by labels, without caching them.
 	 */
 	static List<StrippedSourceContainer> strippedSecrets(CoreV1Api client, String namespace,
-		Map<String, String> labels) {
+			Map<String, String> labels) {
 
 		List<V1Secret> secrets;
 		try {
-			secrets = client
-				.listNamespacedSecret(namespace).labelSelector(labelSelector(labels)).execute().getItems();
+			secrets = client.listNamespacedSecret(namespace).labelSelector(labelSelector(labels)).execute().getItems();
 		}
 		catch (ApiException e) {
 			throw new RuntimeException(e.getResponseBody(), e);
@@ -159,8 +159,7 @@ final class KubernetesClientSourcesSingleRead {
 	}
 
 	private static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream()
-			.map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
+		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
 	}
 
 }

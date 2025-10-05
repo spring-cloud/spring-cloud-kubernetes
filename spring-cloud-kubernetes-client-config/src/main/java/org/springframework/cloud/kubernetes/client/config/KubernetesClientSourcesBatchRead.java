@@ -35,6 +35,10 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  */
 public final class KubernetesClientSourcesBatchRead {
 
+	private KubernetesClientSourcesBatchRead() {
+
+	}
+
 	/**
 	 * at the moment our loading of config maps is using a single thread, but might change
 	 * in the future, thus a thread safe structure.
@@ -43,11 +47,11 @@ public final class KubernetesClientSourcesBatchRead {
 
 	private static final ConcurrentHashMap<String, List<StrippedSourceContainer>> CONFIGMAPS_CACHE = new ConcurrentHashMap<>();
 
-	static void discardSecrets() {
+	public static void discardSecrets() {
 		SECRETS_CACHE.clear();
 	}
 
-	static void discardConfigMaps() {
+	public static void discardConfigMaps() {
 		CONFIGMAPS_CACHE.clear();
 	}
 

@@ -26,15 +26,15 @@ import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Secret;
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.util.ObjectUtils;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
@@ -42,17 +42,15 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesBatchRead.strippedSecrets;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesSingleRead.strippedConfigMaps;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesSingleRead.strippedSecrets;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.processLabeledData;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.processNamedData;
 
 /**
  * @author Ryan Baxter
  */
 public final class KubernetesClientConfigUtils {
 
-	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigUtils.class);
-
-	// k8s-native client already returns data from secrets as being decoded
-	// this flags makes sure we use it everywhere
-	private static final boolean DECODE = Boolean.FALSE;
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientConfigUtils.class));
 
 	private KubernetesClientConfigUtils() {
 	}
@@ -61,7 +59,7 @@ public final class KubernetesClientConfigUtils {
 	 * finds namespaces to be used for the event based reloading.
 	 */
 	public static Set<String> namespaces(KubernetesNamespaceProvider provider, ConfigReloadProperties properties,
-		String target) {
+			String target) {
 		Set<String> namespaces = properties.namespaces();
 		if (namespaces.isEmpty()) {
 			namespaces = Set.of(getApplicationNamespace(null, target, provider));
@@ -78,23 +76,24 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByName(CoreV1Api client, String namespace,
-		LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData,
-		boolean namespacedBatchRead) {
+	static MultipleSourcesContainer configMapsByName(CoreV1Api client, String namespace,
+			LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData,
+			ReadType readType) {
 
 		List<StrippedSourceContainer> strippedConfigMaps;
 
-		if (namespacedBatchRead) {
-			LOG.debug("Will read all configmaps in namespace : " + namespace);
+		if (readType.equals(ReadType.BATCH)) {
+			LOG.debug(() -> "Will read all configmaps in namespace : " + namespace);
 			strippedConfigMaps = strippedConfigMaps(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with names : " + sourceNames);
-			strippedConfigMaps = KubernetesClientSourcesSingleRead.strippedConfigMaps(client, namespace, sourceNames);
+			LOG.debug(() -> "Will read individual configmaps in namespace : " + namespace + " with names : "
+					+ sourceNames);
+			strippedConfigMaps = strippedConfigMaps(client, namespace, sourceNames);
 		}
 
-		return ConfigUtils.processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false,
-			includeDefaultProfileData);
+		return processNamedData(strippedConfigMaps, environment, sourceNames, namespace, false,
+				includeDefaultProfileData);
 	}
 
 	/**
@@ -105,23 +104,22 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the secrets + decoded data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer secretsDataByName(CoreV1Api client, String namespace,
-		LinkedHashSet<String> sourceNames, Environment environment, boolean includeDefaultProfileData,
-		boolean namespacedBatchRead) {
+	static MultipleSourcesContainer secretsByName(CoreV1Api client, String namespace, LinkedHashSet<String> sourceNames,
+			Environment environment, boolean includeDefaultProfileData, ReadType readType) {
 
 		List<StrippedSourceContainer> strippedSecrets;
 
-		if (namespacedBatchRead) {
-			LOG.debug("Will read all secrets in namespace : " + namespace);
+		if (readType.equals(ReadType.BATCH)) {
+			LOG.debug(() -> "Will read all secrets in namespace : " + namespace);
 			strippedSecrets = strippedSecrets(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual secrets in namespace : " + namespace + " with names : " + sourceNames);
-			strippedSecrets = KubernetesClientSourcesSingleRead.strippedSecrets(client, namespace, sourceNames);
+			LOG.debug(
+					() -> "Will read individual secrets in namespace : " + namespace + " with names : " + sourceNames);
+			strippedSecrets = strippedSecrets(client, namespace, sourceNames);
 		}
 
-		return ConfigUtils.processNamedData(strippedSecrets, environment, sourceNames, namespace, false,
-			includeDefaultProfileData);
+		return processNamedData(strippedSecrets, environment, sourceNames, namespace, false, includeDefaultProfileData);
 	}
 
 	/**
@@ -132,21 +130,21 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the config maps + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer configMapsDataByLabels(CoreV1Api client, String namespace,
-		Map<String, String> labels, Environment environment, boolean namespacedBatchRead) {
+	static MultipleSourcesContainer configMapsByLabels(CoreV1Api client, String namespace, Map<String, String> labels,
+			Environment environment, ReadType readType) {
 
 		List<StrippedSourceContainer> strippedConfigMaps;
 
-		if (namespacedBatchRead) {
-			LOG.debug("Will read all configmaps in namespace : " + namespace);
+		if (readType.equals(ReadType.BATCH)) {
+			LOG.debug(() -> "Will read all configmaps in namespace : " + namespace);
 			strippedConfigMaps = strippedConfigMaps(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with labels : " + labels);
-			strippedConfigMaps = KubernetesClientSourcesSingleRead.strippedConfigMaps(client, namespace, labels);
+			LOG.debug(() -> "Will read individual configmaps in namespace : " + namespace + " with labels : " + labels);
+			strippedConfigMaps = strippedConfigMaps(client, namespace, labels);
 		}
 
-		return ConfigUtils.processLabeledData(strippedConfigMaps, environment, labels, namespace, false);
+		return processLabeledData(strippedConfigMaps, environment, labels, namespace, false);
 	}
 
 	/**
@@ -157,40 +155,40 @@ public final class KubernetesClientConfigUtils {
 	 *     4. gather all the names of the secrets + data they hold
 	 * </pre>
 	 */
-	static MultipleSourcesContainer secretsDataByLabels(CoreV1Api client, String namespace, Map<String, String> labels,
-		Environment environment, boolean namespacedBatchRead) {
+	static MultipleSourcesContainer secretsByLabels(CoreV1Api client, String namespace, Map<String, String> labels,
+			Environment environment, ReadType readType) {
 
 		List<StrippedSourceContainer> strippedSecrets;
 
-		if (namespacedBatchRead) {
-			LOG.debug("Will read all secrets in namespace : " + namespace);
+		if (readType.equals(ReadType.BATCH)) {
+			LOG.debug(() -> "Will read all secrets in namespace : " + namespace);
 			strippedSecrets = strippedSecrets(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual secrets in namespace : " + namespace + " with labels : " + labels);
-			strippedSecrets = KubernetesClientSourcesSingleRead.strippedSecrets(client, namespace, labels);
+			LOG.debug(() -> "Will read individual secrets in namespace : " + namespace + " with labels : " + labels);
+			strippedSecrets = strippedSecrets(client, namespace, labels);
 		}
 
-		return ConfigUtils.processLabeledData(strippedSecrets, environment, labels, namespace, false);
+		return processLabeledData(strippedSecrets, environment, labels, namespace, false);
 	}
 
 	static List<StrippedSourceContainer> stripSecrets(List<V1Secret> secrets) {
 		return secrets.stream()
 			.map(secret -> new StrippedSourceContainer(secret.getMetadata().getLabels(), secret.getMetadata().getName(),
-				transform(secret.getData())))
+					transform(secret.getData())))
 			.toList();
 	}
 
 	static List<StrippedSourceContainer> stripConfigMaps(List<V1ConfigMap> configMaps) {
 		return configMaps.stream()
 			.map(configMap -> new StrippedSourceContainer(configMap.getMetadata().getLabels(),
-				configMap.getMetadata().getName(), configMap.getData()))
+					configMap.getMetadata().getName(), configMap.getData()))
 			.toList();
 	}
 
 	static void handleApiException(ApiException e, String sourceName) {
 		if (e.getCode() == 404) {
-			LOG.warn("source with name : " + sourceName + " not found. Ignoring");
+			LOG.warn(() -> "source with name : " + sourceName + " not found. Ignoring");
 		}
 		else {
 			throw new RuntimeException(e.getResponseBody(), e);
@@ -199,7 +197,7 @@ public final class KubernetesClientConfigUtils {
 
 	private static Map<String, String> transform(Map<String, byte[]> in) {
 		return ObjectUtils.isEmpty(in) ? Map.of()
-			: in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
+				: in.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, en -> new String(en.getValue())));
 	}
 
 }

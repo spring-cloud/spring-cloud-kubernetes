@@ -102,14 +102,14 @@ class KubernetesPropertySourceSupplierTests {
 
 	@AfterEach
 	void afterEach() {
-		new KubernetesClientSourcesBatchRead().discardConfigMaps();
-		new KubernetesClientSourcesBatchRead().discardSecrets();
+		KubernetesClientSourcesBatchRead.discardConfigMaps();
+		KubernetesClientSourcesBatchRead.discardSecrets();
 	}
 
 	@BeforeEach
 	void beforeEach() {
-		new KubernetesClientSourcesBatchRead().discardConfigMaps();
-		new KubernetesClientSourcesBatchRead().discardSecrets();
+		KubernetesClientSourcesBatchRead.discardConfigMaps();
+		KubernetesClientSourcesBatchRead.discardSecrets();
 	}
 
 	@Test

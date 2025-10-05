@@ -52,6 +52,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.VisibleKubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -221,7 +222,8 @@ class EventReloadSecretTest {
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-					List.of(), true, SECRET_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT, true);
+					List.of(), true, SECRET_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT,
+					ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(coreV1Api,
@@ -244,7 +246,7 @@ class EventReloadSecretTest {
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
 			return new SecretsConfigProperties(true, Map.of(), List.of(), List.of(), true, SECRET_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT, true);
+					false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 		}
 
 		@Bean

@@ -30,6 +30,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesBatchRead.discardSecrets;
 
 /**
  * @author Ryan Baxter
@@ -51,7 +52,9 @@ public class KubernetesClientSecretsPropertySourceLocator extends SecretsPropert
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
-		Pro
+		PropertySource<?> propertySource = super.locate(environment);
+		discardSecrets();
+		return propertySource;
 	}
 
 	@Override

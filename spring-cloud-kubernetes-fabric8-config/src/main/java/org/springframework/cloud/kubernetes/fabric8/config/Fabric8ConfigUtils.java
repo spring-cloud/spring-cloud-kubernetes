@@ -24,7 +24,6 @@ import java.util.Set;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -33,6 +32,7 @@ import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.core.env.Environment;
+import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.processLabeledData;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.processNamedData;
@@ -49,7 +49,7 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8Sources
  */
 public final class Fabric8ConfigUtils {
 
-	private static final Log LOG = LogFactory.getLog(Fabric8ConfigUtils.class);
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ConfigUtils.class));
 
 	private Fabric8ConfigUtils() {
 	}
@@ -81,11 +81,12 @@ public final class Fabric8ConfigUtils {
 		List<StrippedSourceContainer> strippedConfigMaps;
 
 		if (readType.equals(ReadType.BATCH)) {
-			LOG.debug("Will read all configmaps in namespace : " + namespace);
+			LOG.debug(() -> "Will read all configmaps in namespace : " + namespace);
 			strippedConfigMaps = strippedConfigMaps(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with names : " + sourceNames);
+			LOG.debug(() -> "Will read individual configmaps in namespace : " + namespace + " with names : "
+					+ sourceNames);
 			strippedConfigMaps = strippedConfigMaps(client, namespace, sourceNames);
 		}
 
@@ -106,11 +107,12 @@ public final class Fabric8ConfigUtils {
 		List<StrippedSourceContainer> strippedSecrets;
 
 		if (readType.equals(ReadType.BATCH)) {
-			LOG.debug("Will read all secrets in namespace : " + namespace);
+			LOG.debug(() -> "Will read all secrets in namespace : " + namespace);
 			strippedSecrets = strippedSecrets(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual secrets in namespace : " + namespace + " with names : " + sourceNames);
+			LOG.debug(
+					() -> "Will read individual secrets in namespace : " + namespace + " with names : " + sourceNames);
 			strippedSecrets = strippedSecrets(client, namespace, sourceNames);
 		}
 
@@ -131,11 +133,11 @@ public final class Fabric8ConfigUtils {
 		List<StrippedSourceContainer> strippedConfigMaps;
 
 		if (readType.equals(ReadType.BATCH)) {
-			LOG.debug("Will read all configmaps in namespace : " + namespace);
+			LOG.debug(() -> "Will read all configmaps in namespace : " + namespace);
 			strippedConfigMaps = strippedConfigMaps(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual configmaps in namespace : " + namespace + " with labels : " + labels);
+			LOG.debug(() -> "Will read individual configmaps in namespace : " + namespace + " with labels : " + labels);
 			strippedConfigMaps = strippedConfigMaps(client, namespace, labels);
 		}
 
@@ -156,11 +158,11 @@ public final class Fabric8ConfigUtils {
 		List<StrippedSourceContainer> strippedSecrets;
 
 		if (readType.equals(ReadType.BATCH)) {
-			LOG.debug("Will read all secrets in namespace : " + namespace);
+			LOG.debug(() -> "Will read all secrets in namespace : " + namespace);
 			strippedSecrets = strippedSecrets(client, namespace);
 		}
 		else {
-			LOG.debug("Will read individual secrets in namespace : " + namespace + " with labels : " + labels);
+			LOG.debug(() -> "Will read individual secrets in namespace : " + namespace + " with labels : " + labels);
 			strippedSecrets = strippedSecrets(client, namespace, labels);
 		}
 
