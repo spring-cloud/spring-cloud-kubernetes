@@ -38,8 +38,8 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void emptySourcesSecretName() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true,
-				null, "namespace", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true, null,
+				"namespace", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> source = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(source.size()).isEqualTo(1);
@@ -79,9 +79,8 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(null, "spring-k8s",
 				Map.of("three", "3"), null, false, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(),
-				List.of(one, two, three), true, null, "namespace", false, true, false, RetryProperties.DEFAULT,
-				ReadType.BATCH);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(one, two, three),
+				true, null, "namespace", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> result = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(result.size()).isEqualTo(6);
@@ -122,8 +121,8 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixUnsetEmptySources() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true,
-				"secret-a", "namespace", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true, "secret-a",
+				"namespace", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
@@ -149,8 +148,8 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixSetEmptySources() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true,
-				"secret-a", "namespace", true, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true, "secret-a",
+				"namespace", true, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
@@ -223,9 +222,8 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source("secret-three", "spring-k8s",
 				Map.of(), null, true, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(),
-				List.of(one, two, three), true, "secret-one", null, false, true, false, RetryProperties.DEFAULT,
-				ReadType.BATCH);
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(one, two, three),
+				true, "secret-one", null, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(3);

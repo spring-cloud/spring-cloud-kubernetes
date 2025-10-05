@@ -330,6 +330,22 @@ public final class Util {
 
 	}
 
+	public void configWatcher(Phase phase) {
+
+		InputStream deploymentStream = inputStream("config-watcher/deployment.yaml");
+		InputStream serviceStream = inputStream("config-watcher/service.yaml");
+
+		Deployment deployment = client.apps().deployments().load(deploymentStream).item();
+		Service service = client.services().load(serviceStream).item();
+
+		if (phase.equals(Phase.CREATE)) {
+			createAndWait("default", deployment.getMetadata().getName(), deployment, service, true);
+		}
+		else if (phase.equals(Phase.DELETE)) {
+			deleteAndWait("default", deployment, service);
+		}
+	}
+
 	private void waitForSecret(String namespace, Secret secret, Phase phase) {
 		String secretName = secretName(secret);
 		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {

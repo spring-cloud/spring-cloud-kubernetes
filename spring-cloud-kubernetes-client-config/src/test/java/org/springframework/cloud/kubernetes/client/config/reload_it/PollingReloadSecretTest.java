@@ -195,8 +195,7 @@ class PollingReloadSecretTest {
 			// KubernetesClientSecretPropertySource,
 			// otherwise we can't properly test reload functionality
 			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-					List.of(), true, SECRET_NAME, NAMESPACE, false, true, false, RetryProperties.DEFAULT,
-					ReadType.BATCH);
+					true, SECRET_NAME, NAMESPACE, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(coreV1Api,
@@ -218,8 +217,8 @@ class PollingReloadSecretTest {
 		@Bean
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
-			return new SecretsConfigProperties(true, Map.of(), List.of(), List.of(), true, SECRET_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
+			return new SecretsConfigProperties(true, Map.of(), List.of(), true, SECRET_NAME, NAMESPACE, false, true,
+					FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 		}
 
 		@Bean

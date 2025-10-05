@@ -30,8 +30,8 @@ class ConfigMapProperties {
 		return key;
 	}
 
-	void setKey(String key1) {
-		this.key = key1;
+	void setKey(String key) {
+		this.key = key;
 	}
 
 }
