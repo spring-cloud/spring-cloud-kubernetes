@@ -540,7 +540,7 @@ spring:
             includeProfileSpecificSources: false
 ----
 
-NOTE: Since version `5.0.0-M1`, `includeProfileSpecificSources` is only supported for named sources (`spring.cloud.kubernetes.sources.name=XXX`); support for labeled sources has been removed.
+NOTE: Since version `5.0.0`, `includeProfileSpecificSources` is only supported for named sources (`spring.cloud.kubernetes.sources.name=XXX`); support for labeled sources has been removed.
 
 
 Notice that just like before, there are two levels where you can specify this property: for all config maps or
@@ -566,7 +566,7 @@ and want to enable fail-fast, but do not want retry to be enabled; you can disab
 by setting `spring.cloud.kubernetes.config.retry.enabled=false`.
 
 
-NOTE: Since version `5.0.0-M3`, we have introduced the possibility to read sources individually. Until now, we would go to the namespace and read all the configmaps / secrets available and then filter out the ones requested. Since `5.0.0-M3` you can specify that you want to read them individually, by setting the property: `spring.cloud.kubernetes.config.read-type=SINGLE`. The previous option to read them all in a namespace is controlled by `spring.cloud.kubernetes.config.read-type=BATCH` and it is the default option.
+NOTE: Since version `5.0.0`, we have introduced the possibility to read sources individually. Until now, we would go to the namespace and read all the configmaps / secrets available and then filter out the ones requested. Since `5.0.0-M3` you can specify that you want to read them individually, by setting the property: `spring.cloud.kubernetes.config.read-type=SINGLE`. The previous option to read them all in a namespace is controlled by `spring.cloud.kubernetes.config.read-type=BATCH` and it is the default option.
 
 .Properties:
 [options="header,footer"]
