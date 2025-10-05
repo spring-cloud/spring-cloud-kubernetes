@@ -52,17 +52,14 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 	private static final Log LOG = LogFactory.getLog(ConfigMapPropertySourceLocator.class);
 
-	private final ConfigMapCache cache;
-
 	protected final ConfigMapConfigProperties properties;
 
-	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties, ConfigMapCache cache) {
+	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties properties) {
 		this.properties = properties;
-		this.cache = cache;
 	}
 
 	protected abstract MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
-			ConfigurableEnvironment environment);
+			ConfigurableEnvironment environment, ReadType readType);
 
 	@Override
 	public PropertySource<?> locate(Environment environment) {
@@ -72,10 +69,11 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 			if (this.properties.enableApi()) {
 				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
 				LOG.debug("Config Map normalized sources : " + sources);
-				sources.forEach(s -> {
-					MapPropertySource propertySource = getMapPropertySource(s, env);
+				sources.forEach(configMapSource -> {
+					MapPropertySource propertySource = getMapPropertySource(configMapSource, env,
+							properties.readType());
 					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
-						LOG.warn("Failed to load source: " + s);
+						LOG.warn("Failed to load source: " + configMapSource);
 					}
 					else {
 						LOG.debug("Adding config map property source " + propertySource.getName());
@@ -86,7 +84,6 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 
 			addPropertySourcesFromPaths(environment, composite);
 
-			cache.discardAll();
 			return composite;
 		}
 		return null;

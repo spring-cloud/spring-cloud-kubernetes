@@ -41,6 +41,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -91,7 +92,7 @@ public class KubernetesConfigServerAutoConfiguration {
 				NamedConfigMapNormalizedSource source = new NamedConfigMapNormalizedSource(applicationName, space,
 						false, ConfigUtils.Prefix.DEFAULT, true, true);
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
-						springEnv, false);
+						springEnv, false, ReadType.BATCH);
 
 				propertySources.add(new KubernetesClientConfigMapPropertySource(context));
 			});
@@ -111,7 +112,7 @@ public class KubernetesConfigServerAutoConfiguration {
 				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false,
 						ConfigUtils.Prefix.DEFAULT, true, true);
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
-						springEnv, false);
+						springEnv, false, ReadType.BATCH);
 				propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			});
 

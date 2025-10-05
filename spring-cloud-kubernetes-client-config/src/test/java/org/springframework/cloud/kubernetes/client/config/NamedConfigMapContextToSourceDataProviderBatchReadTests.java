@@ -31,29 +31,30 @@ import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ObjectMetaBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
  * @author wind57
  */
-@ExtendWith(OutputCaptureExtension.class)
-class NamedConfigMapContextToSourceDataProviderTests {
+class NamedConfigMapContextToSourceDataProviderBatchReadTests {
 
 	private static final String NAMESPACE = "default";
 
@@ -82,7 +83,12 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
-		new KubernetesClientConfigMapsCache().discardAll();
+		KubernetesClientSourcesBatchRead.discardConfigMaps();
+	}
+
+	@AfterAll
+	static void afterAll() {
+		WireMock.shutdownServer();
 	}
 
 	/**
@@ -104,7 +110,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource(BLUE_CONFIG_MAP_NAME, NAMESPACE, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -134,7 +140,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -147,8 +153,6 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	/**
 	 * <pre>
 	 *     - two configmaps deployed : "red" and "red-with-profile".
-	 *     - "red" is matched directly, "red-with-profile" is matched because we have an active profile
-	 *       "active-profile"
 	 * </pre>
 	 */
 	@Test
@@ -173,7 +177,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		MockEnvironment environment = new MockEnvironment();
 		environment.addActiveProfile("with-profile");
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
-				true);
+				true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -215,7 +219,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 				true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-profile");
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -270,7 +275,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 				true);
 		MockEnvironment environment = new MockEnvironment();
 		environment.setActiveProfiles("with-taste", "with-shape");
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -304,7 +310,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("some", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, prefix, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -335,7 +341,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		String wrongNamespace = NAMESPACE + "nope";
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, wrongNamespace, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -362,7 +368,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource(RED_CONFIG_MAP_NAME, NAMESPACE, true, false);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -394,7 +400,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("k8s");
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource("one", NAMESPACE, true, true);
-		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment);
+		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, NAMESPACE, environment,
+				true, ReadType.BATCH);
 
 		KubernetesClientContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -413,7 +420,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void cache() {
 		V1ConfigMap red = new V1ConfigMapBuilder()
 			.withMetadata(new V1ObjectMetaBuilder().withName("red").withNamespace(NAMESPACE).build())
 			.addToData("color", "red")
@@ -433,36 +440,29 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource redSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, false);
 		KubernetesClientConfigContext redContext = new KubernetesClientConfigContext(api, redSource, NAMESPACE,
-				environment);
+				environment, true, ReadType.BATCH);
 		KubernetesClientContextToSourceData redData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red.default");
 		Assertions.assertThat(redSourceData.sourceData()).isEqualTo(Map.of("color", "red"));
-		Assertions.assertThat(output.getOut()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
 
 		NormalizedSource greenSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, true);
 		KubernetesClientConfigContext greenContext = new KubernetesClientConfigContext(api, greenSource, NAMESPACE,
-				environment);
+				environment, false, ReadType.BATCH);
 		KubernetesClientContextToSourceData greenData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
 		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("configmap.green.default");
 		Assertions.assertThat(greenSourceData.sourceData()).isEqualTo(Map.of("color", "green"));
 
-		// meaning there is a single entry with such a log statement
-		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
-
-		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
-
+		// called only once, since the use caching
+		verify(1, getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
 	}
 
 	private void stubCall(V1ConfigMapList list) {
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(list))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(list))));
 	}
 
 }

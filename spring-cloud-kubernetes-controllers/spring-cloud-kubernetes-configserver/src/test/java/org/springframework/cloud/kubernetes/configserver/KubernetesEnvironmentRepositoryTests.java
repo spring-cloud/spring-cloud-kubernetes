@@ -30,19 +30,20 @@ import io.kubernetes.client.openapi.models.V1SecretListBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigContext;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsCache;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSourcesBatchRead;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.core.env.MapPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -123,13 +124,13 @@ class KubernetesEnvironmentRepositoryTests {
 			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false,
 					true);
 			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource,
-					"default", springEnv);
+					"default", springEnv, true, ReadType.BATCH);
 			propertySources.add(new KubernetesClientConfigMapPropertySource(defaultContext));
 
 			if ("stores".equals(applicationName) && "dev".equals(namespace)) {
 				NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, true);
 				KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
-						springEnv);
+						springEnv, true, ReadType.BATCH);
 				propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
 			}
 			return propertySources;
@@ -139,7 +140,7 @@ class KubernetesEnvironmentRepositoryTests {
 
 			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false, true);
 			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
-					springEnv);
+					springEnv, true, ReadType.BATCH);
 
 			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;
@@ -147,13 +148,19 @@ class KubernetesEnvironmentRepositoryTests {
 	}
 
 	@AfterEach
-	void after() {
-		new KubernetesClientConfigMapsCache().discardAll();
-		new KubernetesClientSecretsCache().discardAll();
+	void afterEach() {
+		KubernetesClientSourcesBatchRead.discardConfigMaps();
+		KubernetesClientSourcesBatchRead.discardSecrets();
+	}
+
+	@BeforeEach
+	void beforeEach() {
+		KubernetesClientSourcesBatchRead.discardConfigMaps();
+		KubernetesClientSourcesBatchRead.discardSecrets();
 	}
 
 	@Test
-	public void testApplicationCase() throws ApiException {
+	void testApplicationCase() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
@@ -179,7 +186,7 @@ class KubernetesEnvironmentRepositoryTests {
 	}
 
 	@Test
-	public void testApplicationCaseWithNewConstructor() throws ApiException {
+	void testApplicationCaseWithNewConstructor() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		KubernetesConfigServerProperties properties = mock(KubernetesConfigServerProperties.class);
 		when(properties.getOrder()).thenReturn(0);
@@ -211,22 +218,8 @@ class KubernetesEnvironmentRepositoryTests {
 		assertThat(environmentRepository.getOrder()).isEqualTo(0);
 	}
 
-	private void mockRequests(CoreV1Api coreApi) throws ApiException {
-		CoreV1Api.APIlistNamespacedConfigMapRequest defaultConfigRequest = mock(
-				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
-		when(defaultConfigRequest.execute()).thenReturn(CONFIGMAP_DEFAULT_LIST);
-		when(coreApi.listNamespacedConfigMap(eq("default"))).thenReturn(defaultConfigRequest);
-		CoreV1Api.APIlistNamespacedSecretRequest secretRequest = mock(CoreV1Api.APIlistNamespacedSecretRequest.class);
-		when(secretRequest.execute()).thenReturn(SECRET_LIST);
-		when(coreApi.listNamespacedSecret(eq("default"))).thenReturn(secretRequest);
-		CoreV1Api.APIlistNamespacedConfigMapRequest devConfigRequest = mock(
-				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
-		when(devConfigRequest.execute()).thenReturn(CONFIGMAP_DEV_LIST);
-		when(coreApi.listNamespacedConfigMap(eq("dev"))).thenReturn(devConfigRequest);
-	}
-
 	@Test
-	public void testStoresCase() throws ApiException {
+	void testStoresCase() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
@@ -265,7 +258,7 @@ class KubernetesEnvironmentRepositoryTests {
 	}
 
 	@Test
-	public void testStoresProfileCase() throws ApiException {
+	void testStoresProfileCase() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
@@ -321,7 +314,7 @@ class KubernetesEnvironmentRepositoryTests {
 	}
 
 	@Test
-	public void testApplicationPropertiesAnSecretsOverride() throws ApiException {
+	void testApplicationPropertiesAnSecretsOverride() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
@@ -354,7 +347,7 @@ class KubernetesEnvironmentRepositoryTests {
 	}
 
 	@Test
-	public void testSingleConfigMapMultipleSources() throws ApiException {
+	void testSingleConfigMapMultipleSources() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		CoreV1Api.APIlistNamespacedConfigMapRequest configMapRequest = mock(
 				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
@@ -369,7 +362,7 @@ class KubernetesEnvironmentRepositoryTests {
 			NormalizedSource devSource = new NamedConfigMapNormalizedSource(name, namespace, false,
 					ConfigUtils.Prefix.DEFAULT, true, true);
 			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "default",
-					environment);
+					environment, true, ReadType.BATCH);
 			propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
 			return propertySources;
 		});
@@ -408,6 +401,20 @@ class KubernetesEnvironmentRepositoryTests {
 		KubernetesConfigServerProperties properties = new KubernetesConfigServerProperties();
 		properties.setOrder(1);
 		return properties;
+	}
+
+	private void mockRequests(CoreV1Api coreApi) throws ApiException {
+		CoreV1Api.APIlistNamespacedConfigMapRequest defaultConfigRequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		when(defaultConfigRequest.execute()).thenReturn(CONFIGMAP_DEFAULT_LIST);
+		when(coreApi.listNamespacedConfigMap(eq("default"))).thenReturn(defaultConfigRequest);
+		CoreV1Api.APIlistNamespacedSecretRequest secretRequest = mock(CoreV1Api.APIlistNamespacedSecretRequest.class);
+		when(secretRequest.execute()).thenReturn(SECRET_LIST);
+		when(coreApi.listNamespacedSecret(eq("default"))).thenReturn(secretRequest);
+		CoreV1Api.APIlistNamespacedConfigMapRequest devConfigRequest = mock(
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+		when(devConfigRequest.execute()).thenReturn(CONFIGMAP_DEV_LIST);
+		when(coreApi.listNamespacedConfigMap(eq("dev"))).thenReturn(devConfigRequest);
 	}
 
 }

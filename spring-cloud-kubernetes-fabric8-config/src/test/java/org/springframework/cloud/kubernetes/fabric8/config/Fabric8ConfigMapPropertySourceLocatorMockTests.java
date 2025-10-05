@@ -29,6 +29,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -47,13 +48,13 @@ class Fabric8ConfigMapPropertySourceLocatorMockTests {
 	void constructorWithoutClientNamespaceMustFail() {
 
 		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-				Map.of(), true, "name", null, false, true, false, RetryProperties.DEFAULT);
+				Map.of(), true, "name", null, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
 		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, false, PREFIX, false);
-		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment()))
+		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment(), ReadType.BATCH))
 			.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 

@@ -43,6 +43,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -169,7 +170,8 @@ class EventReloadSecretTest {
 			// Fabric8SecretsPropertySourceLocator,
 			// otherwise we can't properly test reload functionality
 			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, Map.of(), List.of(),
-					List.of(), true, SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT);
+					List.of(), true, SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT,
+					ReadType.SINGLE);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient,
@@ -192,7 +194,7 @@ class EventReloadSecretTest {
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
 			return new SecretsConfigProperties(true, Map.of(), List.of(), List.of(), true, SECRET_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT);
+					false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
 		}
 
 		@Bean

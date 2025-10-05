@@ -23,6 +23,8 @@ import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormaliz
 import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.secretsByLabels;
+
 /**
  * Provides an implementation of {@link KubernetesClientContextToSourceData} for a labeled
  * secret.
@@ -55,8 +57,8 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Kuberne
 			return new LabeledSourceData() {
 				@Override
 				public MultipleSourcesContainer dataSupplier(Map<String, String> labels) {
-					return KubernetesClientConfigUtils.secretsDataByLabels(context.client(), context.namespace(),
-							labels, context.environment());
+					return secretsByLabels(context.client(), context.namespace(), labels, context.environment(),
+							context.readType());
 				}
 
 			}.compute(source.labels(), source.prefix(), source.target(), source.failFast(), context.namespace());

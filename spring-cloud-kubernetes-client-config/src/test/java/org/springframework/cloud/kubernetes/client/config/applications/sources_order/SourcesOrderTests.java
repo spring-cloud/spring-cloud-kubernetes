@@ -16,10 +16,16 @@
 
 package org.springframework.cloud.kubernetes.client.config.applications.sources_order;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.util.ClientBuilder;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -48,6 +54,18 @@ abstract class SourcesOrderTests {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
+	}
+
+	@BeforeAll
+	static void setup() {
+		WireMockServer wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+
+		wireMockServer.start();
+		WireMock.configureFor("localhost", wireMockServer.port());
+
+		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
+		client.setDebugging(true);
+		Configuration.setDefaultApiClient(client);
 	}
 
 	@AfterAll

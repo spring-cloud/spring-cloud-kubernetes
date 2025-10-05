@@ -19,23 +19,15 @@ package org.springframework.cloud.kubernetes.commons.config;
 /**
  * @author wind57
  */
-public interface SecretsCache {
+public enum ReadType {
 
 	/**
-	 * Discards all stored entries from the cache.
+	 * read sources in a batch (all in namespace).
 	 */
-	void discardAll();
-
+	BATCH,
 	/**
-	 * an implementation that does nothing. In the next major release it will become
-	 * absolute and must be removed.
+	 * read sources individually.
 	 */
-	class NOOPCache implements SecretsCache {
-
-		@Override
-		public void discardAll() {
-		}
-
-	}
+	SINGLE;
 
 }

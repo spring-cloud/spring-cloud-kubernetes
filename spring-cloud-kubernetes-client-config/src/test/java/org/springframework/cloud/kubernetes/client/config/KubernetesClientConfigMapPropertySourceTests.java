@@ -35,6 +35,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -97,18 +98,18 @@ class KubernetesClientConfigMapPropertySourceTests {
 	@AfterEach
 	public void afterEach() {
 		WireMock.reset();
-		new KubernetesClientConfigMapsCache().discardAll();
+		KubernetesClientSourcesBatchRead.discardConfigMaps();
 	}
 
 	@Test
 	public void propertiesFile() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(PROPERTIES_CONFIGMAP_LIST))));
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
-				new MockEnvironment());
+				new MockEnvironment(), false, ReadType.BATCH);
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
 
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
@@ -125,11 +126,11 @@ class KubernetesClientConfigMapPropertySourceTests {
 	public void yamlFile() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(YAML_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(YAML_CONFIGMAP_LIST))));
 
 		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-641", "default", false, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
-				new MockEnvironment());
+				new MockEnvironment(), false, ReadType.BATCH);
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
 
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
@@ -146,12 +147,12 @@ class KubernetesClientConfigMapPropertySourceTests {
 	public void propertiesFileWithPrefix() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get("/api/v1/namespaces/default/configmaps")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(PROPERTIES_CONFIGMAP_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(PROPERTIES_CONFIGMAP_LIST))));
 
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(api, source, "default",
-				new MockEnvironment());
+				new MockEnvironment(), false, ReadType.BATCH);
 		KubernetesClientConfigMapPropertySource propertySource = new KubernetesClientConfigMapPropertySource(context);
 
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));
@@ -171,7 +172,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("bootstrap-640", "default", false, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
-				new MockEnvironment());
+				new MockEnvironment(), false, ReadType.BATCH);
 
 		assertThat(new KubernetesClientConfigMapPropertySource(context)).isNotNull();
 	}
@@ -184,7 +185,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", true, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
-				new MockEnvironment());
+				new MockEnvironment(), false, ReadType.BATCH);
 
 		assertThatThrownBy(() -> new KubernetesClientConfigMapPropertySource(context))
 			.isInstanceOf(IllegalStateException.class)
@@ -200,7 +201,7 @@ class KubernetesClientConfigMapPropertySourceTests {
 		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix("prefix", false, false, null);
 		NormalizedSource source = new NamedConfigMapNormalizedSource("my-config", "default", false, prefix, true);
 		KubernetesClientConfigContext context = new KubernetesClientConfigContext(new CoreV1Api(), source, "default",
-				new MockEnvironment());
+				new MockEnvironment(), false, ReadType.BATCH);
 
 		assertThatNoException().isThrownBy((() -> new KubernetesClientConfigMapPropertySource(context)));
 		verify(getRequestedFor(urlEqualTo("/api/v1/namespaces/default/configmaps")));

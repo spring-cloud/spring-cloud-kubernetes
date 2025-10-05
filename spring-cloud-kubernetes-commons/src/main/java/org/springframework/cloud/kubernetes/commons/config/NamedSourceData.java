@@ -121,6 +121,6 @@ public abstract class NamedSourceData {
 	 * preserve the order: non-profile source first and then the rest
 	 * @return an Entry that holds the names of the source that were found and their data
 	 */
-	public abstract MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames);
+	protected abstract MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames);
 
 }

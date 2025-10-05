@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.configserver.it;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +26,6 @@ import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.config.server.environment.NativeEnvironmentRepository;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapsCache;
 import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -45,11 +43,6 @@ import static org.mockito.Mockito.when;
  * @author Arjav Dongaonkar
  */
 class CompositeKubernetesIntegrationTests {
-
-	@AfterEach
-	void after() {
-		new KubernetesClientConfigMapsCache().discardAll();
-	}
 
 	@Nested
 	@SpringBootTest(classes = { KubernetesConfigServerApplication.class },

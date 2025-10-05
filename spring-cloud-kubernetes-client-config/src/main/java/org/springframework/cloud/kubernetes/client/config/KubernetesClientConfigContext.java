@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.core.env.Environment;
 
 /**
@@ -27,10 +28,5 @@ import org.springframework.core.env.Environment;
  * @author wind57
  */
 public record KubernetesClientConfigContext(CoreV1Api client, NormalizedSource normalizedSource, String namespace,
-		Environment environment, boolean includeDefaultProfileData) {
-
-	public KubernetesClientConfigContext(CoreV1Api client, NormalizedSource normalizedSource, String namespace,
-			Environment environment) {
-		this(client, normalizedSource, namespace, environment, true);
-	}
+		Environment environment, boolean includeDefaultProfileData, ReadType readType) {
 }

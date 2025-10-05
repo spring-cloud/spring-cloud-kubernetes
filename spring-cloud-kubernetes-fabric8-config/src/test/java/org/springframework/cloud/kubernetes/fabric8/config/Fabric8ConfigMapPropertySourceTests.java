@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -50,7 +51,7 @@ class Fabric8ConfigMapPropertySourceTests {
 
 	@AfterEach
 	void afterEach() {
-		new Fabric8ConfigMapsCache().discardAll();
+		Fabric8SourcesBatchRead.discardConfigMaps();
 	}
 
 	@Test
@@ -61,7 +62,8 @@ class Fabric8ConfigMapPropertySourceTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, true, DEFAULT, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment(),
+				ReadType.BATCH);
 		assertThatThrownBy(() -> new Fabric8ConfigMapPropertySource(context)).isInstanceOf(IllegalStateException.class)
 			.hasMessageContaining("v1/namespaces/default/configmaps. Message: Internal Server Error.");
 	}
@@ -74,7 +76,8 @@ class Fabric8ConfigMapPropertySourceTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").always();
 		NormalizedSource source = new NamedConfigMapNormalizedSource(name, namespace, false, false);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment());
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "default", new MockEnvironment(),
+				ReadType.BATCH);
 		assertThatNoException().isThrownBy(() -> new Fabric8ConfigMapPropertySource(context));
 	}
 

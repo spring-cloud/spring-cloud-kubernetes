@@ -23,6 +23,8 @@ import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormaliz
 import org.springframework.cloud.kubernetes.commons.config.LabeledSourceData;
 import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContainer;
 
+import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.secretsByLabels;
+
 /**
  * Provides an implementation of {@link Fabric8ContextToSourceData} for a labeled secret.
  *
@@ -54,8 +56,8 @@ final class LabeledSecretContextToSourceDataProvider implements Supplier<Fabric8
 			return new LabeledSourceData() {
 				@Override
 				public MultipleSourcesContainer dataSupplier(Map<String, String> labels) {
-					return Fabric8ConfigUtils.secretsDataByLabels(context.client(), context.namespace(), labels,
-							context.environment());
+					return secretsByLabels(context.client(), context.namespace(), labels, context.environment(),
+							context.readType());
 				}
 
 			}.compute(source.labels(), source.prefix(), source.target(), source.failFast(), context.namespace());

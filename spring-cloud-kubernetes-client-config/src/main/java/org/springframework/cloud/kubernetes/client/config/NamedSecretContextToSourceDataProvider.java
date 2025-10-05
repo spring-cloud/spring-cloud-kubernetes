@@ -24,6 +24,8 @@ import org.springframework.cloud.kubernetes.commons.config.MultipleSourcesContai
 import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NamedSourceData;
 
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.secretsByName;
+
 /**
  * Provides an implementation of {@link KubernetesClientContextToSourceData} for a named
  * secret.
@@ -53,8 +55,8 @@ final class NamedSecretContextToSourceDataProvider implements Supplier<Kubernete
 
 				@Override
 				public MultipleSourcesContainer dataSupplier(LinkedHashSet<String> sourceNames) {
-					return KubernetesClientConfigUtils.secretsDataByName(context.client(), context.namespace(),
-							sourceNames, context.environment(), context.includeDefaultProfileData());
+					return secretsByName(context.client(), context.namespace(), sourceNames, context.environment(),
+							context.includeDefaultProfileData(), context.readType());
 				}
 			}.compute(source.name().orElseThrow(), source.prefix(), source.target(), source.profileSpecificSources(),
 					source.failFast(), context.namespace(), context.environment().getActiveProfiles());

@@ -27,13 +27,11 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -43,8 +41,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-@ExtendWith(OutputCaptureExtension.class)
-class NamedConfigMapContextToSourceDataProviderTests {
+class NamedConfigMapContextToSourceDataProviderBatchReadTests {
 
 	private static final String NAMESPACE = "default";
 
@@ -70,7 +67,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.configMaps().inNamespace(NAMESPACE).delete();
-		new Fabric8ConfigMapsCache().discardAll();
+		Fabric8SourcesBatchRead.discardConfigMaps();
 	}
 
 	/**
@@ -92,7 +89,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("blue", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -121,7 +118,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -162,7 +159,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true,
 				ConfigUtils.Prefix.DEFAULT, true, true);
 
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -175,12 +173,12 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 	/**
 	 * <pre>
-	*     - two configmaps deployed : "red" and "red-with-profile".
-	*     - "red" is matched directly, "red-with-profile" is matched because we have an active profile
-	*       "active-profile"
-	*     -  This takes into consideration the prefix, that we explicitly specify.
-	*        Notice that prefix works for profile based config maps as well.
-	* </pre>
+	 *     - two configmaps deployed : "red" and "red-with-profile".
+	 *     - "red" is matched directly, "red-with-profile" is matched because we have an active profile
+	 *       "active-profile"
+	 *     -  This takes into consideration the prefix, that we explicitly specify.
+	 *        Notice that prefix works for profile based config maps as well.
+	 * </pre>
 	 */
 	@Test
 	void matchIncludeSingleProfileWithPrefix() {
@@ -206,7 +204,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		env.setActiveProfiles("with-profile");
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX, true);
 
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -255,7 +254,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		env.setActiveProfiles("with-taste", "with-shape");
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX, true);
 
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, env,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -285,7 +285,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("application", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -315,7 +315,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		String wrongNamespace = NAMESPACE + "nope";
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", wrongNamespace, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -342,7 +342,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, false);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -372,7 +372,8 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("one", NAMESPACE, true, true);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -389,7 +390,7 @@ class NamedConfigMapContextToSourceDataProviderTests {
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void cache() {
 
 		ConfigMap red = new ConfigMapBuilder().withNewMetadata()
 			.withName("red")
@@ -409,32 +410,28 @@ class NamedConfigMapContextToSourceDataProviderTests {
 		MockEnvironment env = new MockEnvironment();
 		NormalizedSource redNormalizedSource = new NamedConfigMapNormalizedSource("red", NAMESPACE, true, PREFIX,
 				false);
-		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE, env);
+		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE, env,
+				ReadType.BATCH);
 		Fabric8ContextToSourceData redData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
 		Assertions.assertThat(redSourceData.sourceName()).isEqualTo("configmap.red.default");
 		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(redSourceData.sourceData().get("some.color")).isEqualTo("really-red");
-		Assertions.assertThat(output.getAll()).contains("Loaded all config maps in namespace '" + NAMESPACE + "'");
+
+		// delete the configmap, if caching is not present, the test would fail
+		mockClient.configMaps().inNamespace(NAMESPACE).withName(green.getMetadata().getName()).delete();
 
 		NormalizedSource greenNormalizedSource = new NamedConfigMapNormalizedSource("green", NAMESPACE, true, PREFIX,
 				false);
-		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE, env);
+		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE, env,
+				ReadType.BATCH);
 		Fabric8ContextToSourceData greenData = new NamedConfigMapContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
 		Assertions.assertThat(greenSourceData.sourceName()).isEqualTo("configmap.green.default");
 		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(greenSourceData.sourceData().get("some.taste")).isEqualTo("mango");
-
-		// meaning there is a single entry with such a log statement
-		String[] out = output.getAll().split("Loaded all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
-
-		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all config maps in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
 
 	}
 

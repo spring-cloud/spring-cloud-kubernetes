@@ -31,13 +31,11 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.config.ConfigUtils;
 import org.springframework.cloud.kubernetes.commons.config.LabeledSecretNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
+import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -49,8 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-@ExtendWith(OutputCaptureExtension.class)
-class LabeledSecretContextToSourceDataProviderTests {
+class LabeledSecretContextToSourceDataProviderBatchReadTests {
 
 	private static final String NAMESPACE = "default";
 
@@ -63,11 +60,6 @@ class LabeledSecretContextToSourceDataProviderTests {
 	private static final Map<String, String> BLUE_LABEL = Map.of("color", "blue");
 
 	private static KubernetesClient mockClient;
-
-	static {
-		LABELS.put("label2", "value2");
-		LABELS.put("label1", "value1");
-	}
 
 	@BeforeAll
 	static void beforeAll() {
@@ -88,7 +80,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	@AfterEach
 	void afterEach() {
 		mockClient.secrets().inNamespace(NAMESPACE).delete();
-		new Fabric8SecretsCache().discardAll();
+		Fabric8SourcesBatchRead.discardSecrets();
 	}
 
 	/**
@@ -110,7 +102,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -156,7 +148,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, RED_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -186,7 +178,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE, BLUE_LABEL, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -217,7 +209,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, true,
 				ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -248,7 +240,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, mePrefix);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -289,7 +281,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -314,8 +306,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	/**
 	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
 	 * "color-secret-k8s" with no labels. We search by "{color:red}", do not find anything
-	 * and thus have an empty SourceData. profile based sources are enabled, but it has no
-	 * effect.
+	 * and thus have an empty SourceData.
 	 */
 	@Test
 	void searchWithLabelsNoSecretFound() {
@@ -335,11 +326,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecretK8s).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DEFAULT);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -352,7 +343,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	/**
 	 * two secrets are deployed: secret "color-secret" with label: "{color:blue}" and
 	 * "shape-secret" with label: "{shape:round}". We search by "{color:blue}" and find
-	 * one secret. profile based sources are enabled, but it has no effect.
+	 * one secret.
 	 */
 	@Test
 	void searchWithLabelsOneSecretFound() {
@@ -372,11 +363,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).resource(colorSecret).create();
 		mockClient.secrets().inNamespace(NAMESPACE).resource(shapeSecret).create();
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -416,7 +407,8 @@ class LabeledSecretContextToSourceDataProviderTests {
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -437,7 +429,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 * </pre>
 	 */
 	@Test
-	void searchWithLabelsTwoSecretsFoundAndOneFromProfileFound() {
+	void searchWithLabelsTwoSecretsFound() {
 		Secret colorSecret = new SecretBuilder().withNewMetadata()
 			.withName("color-secret")
 			.withLabels(Collections.singletonMap("color", "blue"))
@@ -480,11 +472,11 @@ class LabeledSecretContextToSourceDataProviderTests {
 		mockClient.secrets().inNamespace(NAMESPACE).resource(shapeSecretK8s).create();
 
 		MockEnvironment environment = new MockEnvironment();
-		environment.setActiveProfiles("k8s");
 
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DELAYED);
-		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment);
+		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE, environment,
+				ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -514,7 +506,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource normalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "blue"), true, ConfigUtils.Prefix.DEFAULT);
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, normalizedSource, NAMESPACE,
-				new MockEnvironment());
+				new MockEnvironment(), ReadType.BATCH);
 
 		Fabric8ContextToSourceData data = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData sourceData = data.apply(context);
@@ -533,7 +525,7 @@ class LabeledSecretContextToSourceDataProviderTests {
 	 * </pre>
 	 */
 	@Test
-	void cache(CapturedOutput output) {
+	void cache() {
 		Secret red = new SecretBuilder().withNewMetadata()
 			.withName("red")
 			.withLabels(Collections.singletonMap("color", "red"))
@@ -556,31 +548,25 @@ class LabeledSecretContextToSourceDataProviderTests {
 		NormalizedSource redNormalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "red"), true, ConfigUtils.Prefix.DELAYED);
 		Fabric8ConfigContext redContext = new Fabric8ConfigContext(mockClient, redNormalizedSource, NAMESPACE,
-				environment);
+				environment, ReadType.BATCH);
 		Fabric8ContextToSourceData redData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData redSourceData = redData.apply(redContext);
 
 		Assertions.assertThat(redSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(redSourceData.sourceData().get("red.one")).isEqualTo("1");
-		Assertions.assertThat(output.getAll()).contains("Loaded all secrets in namespace '" + NAMESPACE + "'");
+
+		// delete the configmap, if caching is not present, the test would fail
+		mockClient.secrets().inNamespace(NAMESPACE).withName(green.getMetadata().getName()).delete();
 
 		NormalizedSource greenNormalizedSource = new LabeledSecretNormalizedSource(NAMESPACE,
 				Collections.singletonMap("color", "green"), true, ConfigUtils.Prefix.DELAYED);
 		Fabric8ConfigContext greenContext = new Fabric8ConfigContext(mockClient, greenNormalizedSource, NAMESPACE,
-				environment);
+				environment, ReadType.BATCH);
 		Fabric8ContextToSourceData greenData = new LabeledSecretContextToSourceDataProvider().get();
 		SourceData greenSourceData = greenData.apply(greenContext);
 
 		Assertions.assertThat(greenSourceData.sourceData().size()).isEqualTo(1);
 		Assertions.assertThat(greenSourceData.sourceData().get("green.two")).isEqualTo("2");
-
-		// meaning there is a single entry with such a log statement
-		String[] out = output.getAll().split("Loaded all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
-
-		// meaning that the second read was done from the cache
-		out = output.getAll().split("Loaded \\(from cache\\) all secrets in namespace");
-		Assertions.assertThat(out.length).isEqualTo(2);
 
 	}
 

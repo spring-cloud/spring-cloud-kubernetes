@@ -64,7 +64,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 					coreV1Api, configMapProperties, namespaceProvider);
 			if (isRetryEnabledForConfigMap(configMapProperties)) {
 				configMapPropertySourceLocator = new ConfigDataRetryableConfigMapPropertySourceLocator(
-						configMapPropertySourceLocator, configMapProperties, new KubernetesClientConfigMapsCache());
+						configMapPropertySourceLocator, configMapProperties);
 			}
 
 			registerSingle(bootstrapContext, ConfigMapPropertySourceLocator.class, configMapPropertySourceLocator,
@@ -76,7 +76,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 					coreV1Api, namespaceProvider, secretsProperties);
 			if (isRetryEnabledForSecrets(secretsProperties)) {
 				secretsPropertySourceLocator = new ConfigDataRetryableSecretsPropertySourceLocator(
-						secretsPropertySourceLocator, secretsProperties, new KubernetesClientSecretsCache());
+						secretsPropertySourceLocator, secretsProperties);
 			}
 
 			registerSingle(bootstrapContext, SecretsPropertySourceLocator.class, secretsPropertySourceLocator,
