@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles({ "k8s", "prod" })
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LabeledSecretWithProfileApp.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.application.name=labeled-secret-with-profile",
-			"spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true" })
+				"spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true" })
 abstract class LabeledSecretWithProfile {
 
 	private static KubernetesClient mockClient;

@@ -38,7 +38,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @ActiveProfiles("k8s")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NamedSecretWithProfileApp.class,
 		properties = { "spring.application.name=named-secret-with-profile", "spring.main.cloud-platform=KUBERNETES",
-		"spring.cloud.kubernetes.secrets.enabled=true" })
+				"spring.cloud.kubernetes.secrets.enabled=true" })
 abstract class NamedSecretWithProfile {
 
 	private static KubernetesClient mockClient;

@@ -72,8 +72,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 
 		mockServer.expect().withPath(path).andReturn(500, "Internal Server Error").once();
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(), Map.of(),
-				true, name, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(), Map.of(), true,
+				name, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
@@ -173,9 +173,8 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 
 		Source configMapSource = new Source(null, namespace, labels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
-				List.of(configMapSource), labels, true, null, namespace, false, true, false, RetryProperties.DEFAULT,
-				ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(configMapSource),
+				labels, true, null, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		Fabric8ConfigMapPropertySourceLocator locator = new Fabric8ConfigMapPropertySourceLocator(mockClient,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));

@@ -36,7 +36,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SecretsWithLabelsApp.class,
 		properties = { "spring.application.name=secret-with-labels-config", "spring.main.cloud-platform=KUBERNETES",
-		"spring.cloud.kubernetes.secrets.enabled=true" })
+				"spring.cloud.kubernetes.secrets.enabled=true" })
 abstract class SecretsWithLabels {
 
 	private static KubernetesClient mockClient;

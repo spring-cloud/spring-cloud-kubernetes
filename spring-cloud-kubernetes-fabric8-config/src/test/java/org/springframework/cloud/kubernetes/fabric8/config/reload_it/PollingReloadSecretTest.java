@@ -159,8 +159,8 @@ class PollingReloadSecretTest {
 
 			// simulate that environment already has a Fabric8SecretsPropertySource,
 			// otherwise we can't properly test reload functionality
-			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(), List.of(),
-					true, SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
+			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(), List.of(), true,
+					SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient,

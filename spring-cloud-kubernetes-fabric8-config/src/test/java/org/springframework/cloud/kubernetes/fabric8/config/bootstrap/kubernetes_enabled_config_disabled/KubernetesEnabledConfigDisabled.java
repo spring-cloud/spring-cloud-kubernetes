@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.kubernetes.secrets.enabled=true",
-	"spring.cloud.kubernetes.client.namespace=test" })
+		"spring.cloud.kubernetes.client.namespace=test" })
 abstract class KubernetesEnabledConfigDisabled {
 
 	@Autowired

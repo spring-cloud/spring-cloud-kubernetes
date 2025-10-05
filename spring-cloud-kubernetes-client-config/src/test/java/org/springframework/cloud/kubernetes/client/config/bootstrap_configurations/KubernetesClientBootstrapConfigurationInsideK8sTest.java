@@ -27,16 +27,21 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * @author wind57
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = Application.class,
-		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
-class KubernetesEnabled {
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc",
+				"spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true" })
+class KubernetesClientBootstrapConfigurationInsideK8sTest {
 
 	@Autowired
 	private ConfigurableApplicationContext context;
 
+	// tests that @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES) has the desired
+	// effect, meaning when it is enabled, both property sources are present
 	@Test
-	void configAndSecretsBeansArePresent() {
+	public void bothPresent() {
 		assertThat(context.getBeanNamesForType(KubernetesClientConfigMapPropertySourceLocator.class)).hasSize(1);
 		assertThat(context.getBeanNamesForType(KubernetesClientSecretsPropertySourceLocator.class)).hasSize(1);
 	}

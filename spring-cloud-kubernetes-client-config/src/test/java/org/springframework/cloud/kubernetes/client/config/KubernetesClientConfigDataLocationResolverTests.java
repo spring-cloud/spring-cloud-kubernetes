@@ -103,6 +103,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 	@Test
 	void testBothPresent() {
 		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.secrets.enabled", "true");
 		ConfigurationPropertySources.attach(environment);
 		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
 
@@ -200,6 +201,7 @@ class KubernetesClientConfigDataLocationResolverTests {
 		environment.setProperty("spring.cloud.kubernetes.config.fail-fast", "true");
 		environment.setProperty("spring.cloud.kubernetes.secrets.retry.enabled", "true");
 		environment.setProperty("spring.cloud.kubernetes.secrets.fail-fast", "true");
+		environment.setProperty("spring.cloud.kubernetes.secrets.enabled", "true");
 		ConfigurationPropertySources.attach(environment);
 		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
 

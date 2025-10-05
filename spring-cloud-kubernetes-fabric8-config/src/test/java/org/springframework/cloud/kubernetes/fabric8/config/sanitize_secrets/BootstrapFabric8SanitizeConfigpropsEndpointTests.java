@@ -102,7 +102,8 @@ class BootstrapFabric8SanitizeConfigpropsEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
-					"management.endpoint.configprops.show-values=NEVER", "spring.cloud.kubernetes.secrets.enabled=true" })
+					"management.endpoint.configprops.show-values=NEVER",
+					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
 	@Nested
 	class ExplicitNever extends Fabric8SecretsSanitize {
