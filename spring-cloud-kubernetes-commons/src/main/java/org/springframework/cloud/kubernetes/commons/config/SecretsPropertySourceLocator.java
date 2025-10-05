@@ -16,25 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,6 +49,9 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 		this.properties = properties;
 	}
 
+	protected abstract SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
+			NormalizedSource normalizedSource, ReadType readType);
+
 	@Override
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment env) {
@@ -72,8 +60,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			Set<NormalizedSource> uniqueSources = new HashSet<>(sources);
 			LOG.debug("Secrets normalized sources : " + sources);
 			CompositePropertySource composite = new CompositePropertySource("composite-secrets");
-			// read for secrets mount
-			putPathConfig(composite);
 
 			if (this.properties.enableApi()) {
 				uniqueSources.forEach(secretSource -> {
@@ -97,92 +83,6 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	@Override
 	public Collection<PropertySource<?>> locateCollection(Environment environment) {
 		return PropertySourceLocator.super.locateCollection(environment);
-	}
-
-	protected abstract SecretsPropertySource getPropertySource(ConfigurableEnvironment environment,
-			NormalizedSource normalizedSource, ReadType readType);
-
-	protected void putPathConfig(CompositePropertySource composite) {
-
-		Set<String> uniquePaths = new LinkedHashSet<>(properties.paths());
-
-		if (!uniquePaths.isEmpty()) {
-			LOG.warn(
-					"path support is deprecated and will be removed in a future release. Please use spring.config.import");
-		}
-
-		LOG.debug("paths property sources : " + uniquePaths);
-
-		uniquePaths.stream().map(Paths::get).filter(Files::exists).flatMap(x -> {
-			try {
-				return Files.walk(x);
-			}
-			catch (IOException e) {
-				LOG.warn("Error walking properties files", e);
-				return null;
-			}
-		})
-			.filter(Objects::nonNull)
-			.filter(Files::isRegularFile)
-			.collect(new SecretsPropertySourceCollector())
-			.forEach(composite::addPropertySource);
-	}
-
-	/**
-	 * @author wind57
-	 */
-	private static class SecretsPropertySourceCollector
-			implements Collector<Path, List<MountSecretPropertySource>, List<MountSecretPropertySource>> {
-
-		@Override
-		public Supplier<List<MountSecretPropertySource>> supplier() {
-			return ArrayList::new;
-		}
-
-		@Override
-		public BiConsumer<List<MountSecretPropertySource>, Path> accumulator() {
-			return (list, filePath) -> {
-				MountSecretPropertySource source = property(filePath);
-				if (source != null) {
-					list.add(source);
-				}
-			};
-		}
-
-		@Override
-		public BinaryOperator<List<MountSecretPropertySource>> combiner() {
-			return (left, right) -> {
-				left.addAll(right);
-				return left;
-			};
-		}
-
-		@Override
-		public Function<List<MountSecretPropertySource>, List<MountSecretPropertySource>> finisher() {
-			return Function.identity();
-		}
-
-		@Override
-		public Set<Characteristics> characteristics() {
-			return EnumSet.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH);
-		}
-
-		private MountSecretPropertySource property(Path filePath) {
-
-			String fileName = filePath.getFileName().toString();
-
-			try {
-				String content = new String(Files.readAllBytes(filePath)).trim();
-				String sourceName = fileName.toLowerCase(Locale.ROOT);
-				SourceData sourceData = new SourceData(sourceName, Map.of(fileName, content));
-				return new MountSecretPropertySource(sourceData);
-			}
-			catch (IOException e) {
-				LOG.warn("Error reading properties file", e);
-				return null;
-			}
-		}
-
 	}
 
 }

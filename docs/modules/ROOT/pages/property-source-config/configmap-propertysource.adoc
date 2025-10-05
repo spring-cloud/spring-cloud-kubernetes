@@ -549,29 +549,6 @@ for individual ones; the latter having a higher priority.
 NOTE: You should check the security configuration section. To access config maps from inside a pod you need to have the correct
 Kubernetes service accounts, roles and role bindings.
 
-Another option for using `ConfigMap` instances is to mount them into the Pod by running the Spring Cloud Kubernetes application
-and having Spring Cloud Kubernetes read them from the file system.
-
-NOTE: This feature is deprecated and will be removed in a future release (Use `spring.config.import` instead).
-This behavior is controlled by the `spring.cloud.kubernetes.config.paths` property. You can use it in
-addition to or instead of the mechanism described earlier.
-`spring.cloud.kubernetes.config.paths` expects a List of full paths to each property file, because directories are not being recursively parsed. For example:
-
-[source,yaml]
-----
-spring:
-  cloud:
-    kubernetes:
-      config:
-        paths:
-          - /tmp/application.properties
-          - /var/application.yaml
-----
-
-NOTE:  If you use `spring.cloud.kubernetes.config.paths` or `spring.cloud.kubernetes.secrets.path` the automatic reload
-functionality will not work.  You will need to make a `POST` request to the `/actuator/refresh` endpoint or
-restart/redeploy the application.
-
 [#config-map-fail-fast]
 In some cases, your application may be unable to load some of your `ConfigMaps` using the Kubernetes API.
 If you want your application to fail the start-up process in such cases, you can set
@@ -598,7 +575,6 @@ NOTE: Since version `5.0.0`, we have introduced the possibility to read sources 
 | `spring.cloud.kubernetes.config.enabled`                | `Boolean` | `true`                       | Enable ConfigMaps `PropertySource`
 | `spring.cloud.kubernetes.config.name`                   | `String`  | `${spring.application.name}` | Sets the name of `ConfigMap` to look up
 | `spring.cloud.kubernetes.config.namespace`              | `String`  | Client namespace             | Sets the Kubernetes namespace where to lookup
-| `spring.cloud.kubernetes.config.paths`                  | `List`    | `null`                       | Sets the paths where `ConfigMap` instances are mounted
 | `spring.cloud.kubernetes.config.enableApi`              | `Boolean` | `true`                       | Enable or disable consuming `ConfigMap` instances through APIs
 | `spring.cloud.kubernetes.config.fail-fast`              | `Boolean` | `false`                      | Enable or disable failing the application start-up when an error occurred while loading a `ConfigMap`
 | `spring.cloud.kubernetes.config.retry.enabled`          | `Boolean` | `true`                       | Enable or disable config retry.

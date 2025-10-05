@@ -110,8 +110,8 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), List.of(),
-				Map.of(), true, name, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
+				true, name, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -142,7 +142,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 			.inScenario("started")
 			.willSetStateTo("go-to-next"));
 
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SINGLE_CONFIGMAP_LIST)))
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(SINGLE_CONFIGMAP_LIST)))
 			.inScenario("started")
 			.whenScenarioStateIs("go-to-next")
 			.willSetStateTo("done"));
@@ -152,7 +152,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(configMapNameTwo, namespace,
 				Map.of(), null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
 				RetryProperties.DEFAULT, ReadType.BATCH);
 
@@ -199,7 +199,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(configMapNameTwo, namespace,
 				Map.of(), null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
 				RetryProperties.DEFAULT, ReadType.BATCH);
 
@@ -243,7 +243,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source configMapSource = new ConfigMapConfigProperties.Source(null, namespace, labels,
 				null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(configMapSource), labels, true, null, namespace, false, true, false, RetryProperties.DEFAULT,
 				ReadType.BATCH);
 
@@ -285,7 +285,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 			.willSetStateTo("second"));
 
 		// one that passes
-		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(DOUBLE_CONFIGMAP_LIST)))
+		stubFor(get(path).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(DOUBLE_CONFIGMAP_LIST)))
 			.inScenario("started")
 			.whenScenarioStateIs("second")
 			.willSetStateTo("done"));
@@ -295,7 +295,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(null, namespace,
 				configMapTwoLabels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
 				false, RetryProperties.DEFAULT, ReadType.BATCH);
 
@@ -349,7 +349,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(null, namespace,
 				configMapTwoLabels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
 				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
 				false, RetryProperties.DEFAULT, ReadType.BATCH);
 

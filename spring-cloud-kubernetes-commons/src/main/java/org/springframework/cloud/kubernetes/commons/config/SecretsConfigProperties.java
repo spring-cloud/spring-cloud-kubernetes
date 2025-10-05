@@ -37,9 +37,8 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  */
 @ConfigurationProperties(SecretsConfigProperties.PREFIX)
 public record SecretsConfigProperties(boolean enableApi, @DefaultValue Map<String, String> labels,
-		@DefaultValue List<String> paths, @DefaultValue List<Source> sources, @DefaultValue("true") boolean enabled,
-		String name, String namespace, boolean useNameAsPrefix,
-		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
+		@DefaultValue List<Source> sources, @DefaultValue("true") boolean enabled, String name, String namespace,
+		boolean useNameAsPrefix, @DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
 		@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
 
 	/**

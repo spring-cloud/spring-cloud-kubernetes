@@ -26,11 +26,11 @@ import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.actuate.endpoint.Sanitizer;
 import org.springframework.boot.actuate.endpoint.SanitizingFunction;
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
-import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.MapPropertySource;
 
 import static org.springframework.boot.actuate.endpoint.SanitizableData.SANITIZED_VALUE;
 
@@ -82,7 +82,7 @@ class SanitizeTests {
 	void notSecretsPropertySource() {
 
 		BootstrapPropertySource<?> bootstrapPropertySource = new BootstrapPropertySource<>(
-				new MountConfigMapPropertySource("mount-source", Map.of()));
+				new DummyPropertySource("mount-source", Map.of()));
 
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableData = new SanitizableData(bootstrapPropertySource, "secret", "xyz");
@@ -107,8 +107,7 @@ class SanitizeTests {
 		CompositePropertySource compositePropertySource = new CompositePropertySource("composite");
 		compositePropertySource.addFirstPropertySource(
 				new SecretsPropertySource(new SourceData("secret-source", Map.of("secret", "xyz"))));
-		compositePropertySource
-			.addFirstPropertySource(new MountConfigMapPropertySource("mount-source", Map.of("mount", "abc")));
+		compositePropertySource.addFirstPropertySource(new DummyPropertySource("mount-source", Map.of("mount", "abc")));
 
 		Sanitizer sanitizer = new Sanitizer(SANITIZING_FUNCTIONS);
 		SanitizableData sanitizableDataSecret = new SanitizableData(compositePropertySource, "secret", "xyz");
@@ -116,6 +115,14 @@ class SanitizeTests {
 
 		Assertions.assertThat(sanitizer.sanitize(sanitizableDataSecret, SHOW_UNSANITIZED)).isEqualTo(SANITIZED_VALUE);
 		Assertions.assertThat(sanitizer.sanitize(sanitizableDataMount, SHOW_UNSANITIZED)).isEqualTo("abc");
+	}
+
+	static class DummyPropertySource extends MapPropertySource {
+
+		DummyPropertySource(String name, Map<String, Object> source) {
+			super(name, source);
+		}
+
 	}
 
 }
