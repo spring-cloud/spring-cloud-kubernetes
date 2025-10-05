@@ -54,7 +54,7 @@ SPRING_CLOUD_KUBERNETES_CONFIG_INFORMER_ENABLED=TRUE
 
 This will tell watcher to only monitor sources that have a label: `spring.cloud.kubernetes.config.informer.enabled=true`.
 
-One more important configuration, especially for configmaps and secrets that are mounted as volumes (via `spring.cloud.kubernetes.config.paths`/`spring.cloud.kubernetes.secrets.paths` or using `spring.config.import`) is:
+One more important configuration, especially for configmaps and secrets that are mounted as volumes (via `spring.config.import`) is:
 
 [source]
 ----
