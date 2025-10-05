@@ -48,7 +48,7 @@ class ConfigMapConfigPropertiesTests {
 	 */
 	@Test
 	void testUseNameAsPrefixUnsetEmptySources() {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true,
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), true,
 				"config-map-a", "spring-k8s", false, false, false, RetryProperties.DEFAULT, BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -74,7 +74,7 @@ class ConfigMapConfigPropertiesTests {
 	 */
 	@Test
 	void testUseNameAsPrefixSetEmptySources() {
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true,
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), true,
 				"config-map-a", "spring-k8s", true, false, false, RetryProperties.DEFAULT, BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -105,7 +105,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties.Source one = new ConfigMapConfigProperties.Source("config-map-one", null,
 				Collections.emptyMap(), null, null, null);
 
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), List.of(one), Map.of(),
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one), Map.of(),
 				true, "config-map-a", "spring-k8s", true, false, false, RetryProperties.DEFAULT, BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -148,7 +148,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source("config-map-three", null,
 				Collections.emptyMap(), null, true, null);
 
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), List.of(one, two, three),
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one, two, three),
 				Map.of(), true, "config-map-a", "spring-k8s", true, false, false, RetryProperties.DEFAULT, BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -198,7 +198,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source(null, "config-map-four",
 				Collections.emptyMap(), null, false, null);
 
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true,
 				List.of(one, two, three, four), Map.of(), true, "config-map-a", "spring-k8s", true, false, false,
 				RetryProperties.DEFAULT, BATCH);
 
@@ -232,7 +232,7 @@ class ConfigMapConfigPropertiesTests {
 	@Test
 	void testUseIncludeProfileSpecificSourcesNoChanges() {
 
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true,
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), true,
 				"config-map-a", "spring-k8s", false, true, false, RetryProperties.DEFAULT, BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -261,7 +261,7 @@ class ConfigMapConfigPropertiesTests {
 	@Test
 	void testUseIncludeProfileSpecificSourcesDefaultChanged() {
 
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), List.of(), Map.of(), true,
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), true,
 				"config-map-a", "spring-k8s", false, false, false, RetryProperties.DEFAULT, BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -305,7 +305,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties.Source three = new ConfigMapConfigProperties.Source("config-map-three", null,
 				Collections.emptyMap(), null, null, false);
 
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), List.of(one, two, three),
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one, two, three),
 				Map.of(), true, "config-map-a", "spring-k8s", false, false, false, RetryProperties.DEFAULT, BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -362,7 +362,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties.Source four = new ConfigMapConfigProperties.Source(null, null,
 				Map.of("fourth-label", "configmap-four"), null, null, null);
 
-		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(),
+		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true,
 				List.of(one, two, three, four), Map.of(), true, "config-map-a", "spring-k8s", false, false, false,
 				RetryProperties.DEFAULT, BATCH);
 

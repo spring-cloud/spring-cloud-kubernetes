@@ -38,7 +38,7 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void emptySourcesSecretName() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true,
 				null, "namespace", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> source = properties.determineSources(new MockEnvironment());
@@ -79,7 +79,7 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source(null, "spring-k8s",
 				Map.of("three", "3"), null, false, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(),
 				List.of(one, two, three), true, null, "namespace", false, true, false, RetryProperties.DEFAULT,
 				ReadType.BATCH);
 
@@ -122,7 +122,7 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixUnsetEmptySources() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true,
 				"secret-a", "namespace", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -149,7 +149,7 @@ class SecretsConfigPropertiesTests {
 	@Test
 	void testUseNameAsPrefixSetEmptySources() {
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(), true,
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), true,
 				"secret-a", "namespace", true, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -180,7 +180,7 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties.Source one = new SecretsConfigProperties.Source("secret-one", "spring-k8s", Map.of(),
 				null, true, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(), List.of(one), true,
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(one), true,
 				"secret-one", null, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		List<NormalizedSource> sources = properties.determineSources(new MockEnvironment());
@@ -223,7 +223,7 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties.Source three = new SecretsConfigProperties.Source("secret-three", "spring-k8s",
 				Map.of(), null, true, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(),
 				List.of(one, two, three), true, "secret-one", null, false, true, false, RetryProperties.DEFAULT,
 				ReadType.BATCH);
 
@@ -274,7 +274,7 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source("secret-four", "spring-k8s", Map.of(),
 				null, false, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(),
 				List.of(one, two, three, four), true, "secret-one", "spring-k8s", false, false, false,
 				RetryProperties.DEFAULT, ReadType.BATCH);
 
@@ -336,7 +336,7 @@ class SecretsConfigPropertiesTests {
 		SecretsConfigProperties.Source four = new SecretsConfigProperties.Source(null, "spring-k8s",
 				Map.of("fourth-label", "secret-four"), null, false, false);
 
-		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(), List.of(),
+		SecretsConfigProperties properties = new SecretsConfigProperties(false, Map.of(),
 				List.of(one, two, three, four), false, null, "spring-k8s", false, false, false, RetryProperties.DEFAULT,
 				ReadType.BATCH);
 
