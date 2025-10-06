@@ -28,6 +28,7 @@ import org.springframework.cloud.kubernetes.client.config.applications.labeled_s
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_secret_with_profile.properties.GreenProd;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_secret_with_profile.properties.GreenPurple;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_secret_with_profile.properties.GreenPurpleK8s;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author wind57
  */
+@TestPropertySource(properties = { "spring.cloud.kubernetes.secrets.enabled=true" })
 abstract class LabeledSecretWithProfileTests {
 
 	@Autowired

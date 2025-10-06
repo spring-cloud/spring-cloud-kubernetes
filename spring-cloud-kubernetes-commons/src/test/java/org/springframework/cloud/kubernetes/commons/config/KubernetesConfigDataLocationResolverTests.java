@@ -229,11 +229,11 @@ class KubernetesConfigDataLocationResolverTests {
 
 		// 'one' and 'two' prove that we have not registered ConfigMapConfigProperties and
 		// SecretsConfigProperties in the bootstrap context
-		ConfigMapConfigProperties one = new ConfigMapConfigProperties(false, List.of(), Map.of(), false, null, null,
-				false, false, false, null, BATCH);
+		ConfigMapConfigProperties one = new ConfigMapConfigProperties(List.of(), Map.of(), false, null, null, false,
+				false, false, null, BATCH);
 
-		SecretsConfigProperties two = new SecretsConfigProperties(false, Map.of(), List.of(), false, null, null, false,
-				false, false, null, ReadType.BATCH);
+		SecretsConfigProperties two = new SecretsConfigProperties(Map.of(), List.of(), false, null, null, false, false,
+				false, null, ReadType.BATCH);
 
 		KubernetesClientProperties kubernetesClientProperties = RESOLVER_CONTEXT.getBootstrapContext()
 			.get(KubernetesClientProperties.class);
@@ -265,11 +265,8 @@ class KubernetesConfigDataLocationResolverTests {
 		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
-		// we have @DefaultValue("true") boolean enableApi
-		Assertions.assertThat(result.get(0).getConfigMapProperties().enableApi()).isTrue();
-
-		// we have @DefaultValue("true") boolean enabled
-		Assertions.assertThat(result.get(0).getSecretsConfigProperties().enabled()).isTrue();
+		// we have @DefaultValue("false") boolean enabled
+		Assertions.assertThat(result.get(0).getSecretsConfigProperties().enabled()).isFalse();
 	}
 
 	/**
@@ -279,7 +276,7 @@ class KubernetesConfigDataLocationResolverTests {
 	@Test
 	void testResolveProfileSpecificSix() {
 		MockEnvironment environment = new MockEnvironment();
-		environment.setProperty("spring.cloud.kubernetes.config.enable-api", "false");
+		environment.setProperty("spring.cloud.kubernetes.secret.enabled", "false");
 		environment.setProperty("spring.cloud.kubernetes.secrets.paths[0]", "a");
 		ConfigurationPropertySources.attach(environment);
 		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
@@ -292,10 +289,6 @@ class KubernetesConfigDataLocationResolverTests {
 		List<KubernetesConfigDataResource> result = NOOP_RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT,
 				configDataLocation, profiles);
 
-		// we have @DefaultValue("true") boolean enableApi, but it is not going to be
-		// picked up
-		// because of the explicit property we set in environment
-		Assertions.assertThat(result.get(0).getConfigMapProperties().enableApi()).isFalse();
 		// on the other hand, @Default will be picked here
 		Assertions.assertThat(result.get(0).getConfigMapProperties().enabled()).isTrue();
 

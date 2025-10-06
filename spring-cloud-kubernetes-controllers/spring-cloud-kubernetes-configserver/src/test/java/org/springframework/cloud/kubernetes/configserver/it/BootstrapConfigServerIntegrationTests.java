@@ -24,7 +24,7 @@ import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerA
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
-				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enableApi=true",
+				"spring.profiles.include=kubernetes", "spring.cloud.kubernetes.secrets.enabled=true",
 				"spring.cloud.bootstrap.enabled=true", "test.first.config.enabled=true" },
 		classes = { KubernetesConfigServerApplication.class })
 class BootstrapConfigServerIntegrationTests extends ConfigServerIntegration {

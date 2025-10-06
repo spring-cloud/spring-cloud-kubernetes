@@ -80,7 +80,7 @@ public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
-	@ConditionalOnProperty(value = "spring.cloud.kubernetes.config.enableApi", matchIfMissing = true)
+	@ConditionalOnProperty(value = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
 	public KubernetesPropertySourceSupplier configMapPropertySourceSupplier(
 			KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
@@ -102,7 +102,7 @@ public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
-	@ConditionalOnProperty("spring.cloud.kubernetes.secrets.enableApi")
+	@ConditionalOnProperty("spring.cloud.kubernetes.secrets.enabled")
 	public KubernetesPropertySourceSupplier secretsPropertySourceSupplier(KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);

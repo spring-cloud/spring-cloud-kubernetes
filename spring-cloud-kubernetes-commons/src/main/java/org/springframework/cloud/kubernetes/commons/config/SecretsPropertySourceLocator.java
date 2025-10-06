@@ -61,19 +61,17 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 			LOG.debug("Secrets normalized sources : " + sources);
 			CompositePropertySource composite = new CompositePropertySource("composite-secrets");
 
-			if (this.properties.enableApi()) {
-				uniqueSources.forEach(secretSource -> {
-					MapPropertySource propertySource = getPropertySource(env, secretSource, properties.readType());
+			uniqueSources.forEach(secretSource -> {
+				MapPropertySource propertySource = getPropertySource(env, secretSource, properties.readType());
 
-					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
-						LOG.warn("Failed to load source: " + secretSource);
-					}
-					else {
-						LOG.debug("Adding secret property source " + propertySource.getName());
-						composite.addFirstPropertySource(propertySource);
-					}
-				});
-			}
+				if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
+					LOG.warn("Failed to load source: " + secretSource);
+				}
+				else {
+					LOG.debug("Adding secret property source " + propertySource.getName());
+					composite.addFirstPropertySource(propertySource);
+				}
+			});
 
 			return composite;
 		}

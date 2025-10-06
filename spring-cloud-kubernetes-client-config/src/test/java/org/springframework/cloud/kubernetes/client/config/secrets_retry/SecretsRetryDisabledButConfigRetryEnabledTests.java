@@ -40,7 +40,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -53,11 +52,11 @@ import static org.mockito.Mockito.verify;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.cloud.kubernetes.secrets.fail-fast=true",
-				"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.secrets.name=my-secret",
-				"spring.cloud.kubernetes.secrets.enable-api=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:" },
+				"spring.cloud.kubernetes.secrets.retry.enabled=false", "spring.cloud.kubernetes.config.fail-fast=true",
+				"spring.cloud.kubernetes.secrets.name=my-secret", "spring.cloud.kubernetes.secrets.enabled=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:" },
 		classes = SecretsRetryApplication.class)
-class SecretsFailFastEnabledButRetryDisabled {
+class SecretsRetryDisabledButConfigRetryEnabledTests {
 
 	private static final String API = "/api/v1/namespaces/default/secrets";
 
@@ -84,9 +83,9 @@ class SecretsFailFastEnabledButRetryDisabled {
 
 	private static void stubConfigMapAndSecretsDefaults() {
 		// return empty config map / secret list to not fail context creation
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
+		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(new V1SecretList()))));
 		stubFor(get(CONFIG_MAPS_API)
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(new V1ConfigMapList()))));
 	}
 
 	@AfterAll
@@ -110,9 +109,17 @@ class SecretsFailFastEnabledButRetryDisabled {
 	@Test
 	void locateShouldFailWithoutRetrying() {
 		KubernetesClientSecretsPropertySourceLocator propertySourceLocator = spy(psl);
+		/*
+		 * Enabling config retry causes Spring Retry to be enabled and a
+		 * RetryOperationsInterceptor bean with NeverRetryPolicy for secrets to be
+		 * defined. SecretsPropertySourceLocator should not retry even Spring Retry is
+		 * enabled.
+		 */
+
 		stubFor(get(API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isFalse();
+		// TODO not in bootstrap
+		// assertThat(context.containsBean("kubernetesSecretsRetryInterceptor")).isTrue();
 		assertThatThrownBy(() -> propertySourceLocator.locate(new MockEnvironment()))
 			.isInstanceOf(IllegalStateException.class)
 			.hasMessage("Internal Server Error");

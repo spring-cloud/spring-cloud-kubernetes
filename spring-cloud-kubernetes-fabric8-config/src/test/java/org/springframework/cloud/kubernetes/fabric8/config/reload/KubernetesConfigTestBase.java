@@ -28,11 +28,13 @@ import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.bootstrap.BootstrapConfiguration;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPropertiesAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author Haytham Mohamed
  **/
-class KubernetesConfigTestBase {
+@TestPropertySource(properties = "spring.cloud.kubernetes.secrets.enabled=true")
+abstract class KubernetesConfigTestBase {
 
 	private ConfigurableApplicationContext context;
 

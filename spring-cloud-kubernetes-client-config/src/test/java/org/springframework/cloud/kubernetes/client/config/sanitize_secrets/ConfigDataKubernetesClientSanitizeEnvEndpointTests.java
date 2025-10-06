@@ -34,7 +34,8 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
-					"management.endpoints.web.exposure.include=*", "spring.cloud.kubernetes.client.namespace=test" })
+					"management.endpoints.web.exposure.include=*", "spring.cloud.kubernetes.client.namespace=test",
+					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class DefaultSettingsTest extends ConfigDataSanitize {
 
@@ -95,7 +96,8 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=*",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
-					"management.endpoint.env.show-values=NEVER", "spring.cloud.kubernetes.client.namespace=test" })
+					"management.endpoint.env.show-values=NEVER", "spring.cloud.kubernetes.client.namespace=test",
+					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class ExplicitNever extends ConfigDataSanitize {
 
@@ -166,7 +168,7 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 			properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=*",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=false",
-					"spring.cloud.kubernetes.client.namespace=test" })
+					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class AlwaysWithoutSanitizingFunction extends ConfigDataSanitize {
 
@@ -237,7 +239,7 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 			properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=*",
 					"spring.config.import=kubernetes:,classpath:./sanitize-two.yaml",
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=true",
-					"spring.cloud.kubernetes.client.namespace=test" })
+					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class AlwaysWithSanitizingFunction extends ConfigDataSanitize {
 

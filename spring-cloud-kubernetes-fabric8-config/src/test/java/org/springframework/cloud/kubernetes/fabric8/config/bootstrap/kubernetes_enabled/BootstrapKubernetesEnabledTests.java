@@ -24,7 +24,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
 		properties = { "spring.cloud.kubernetes.client.namespace=default", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true" })
+				"spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true" })
 class BootstrapKubernetesEnabledTests extends KubernetesEnabled {
 
 }

@@ -91,7 +91,7 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 			.retryWhen(retrySpec())
 			.block();
 
-		// we first read the initial value from the configmap
+		// we first read the initial value from the secret
 		assertThat(result).isEqualTo("initial");
 
 		// replace data in secret and wait for k8s to pick it up

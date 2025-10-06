@@ -34,7 +34,8 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 	@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = SanitizeApp.class,
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
-					"bootstrap.sanitize=true", "spring.cloud.kubernetes.client.namespace=test", "debug=true" })
+					"bootstrap.sanitize=true", "spring.cloud.kubernetes.client.namespace=test",
+					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class DefaultSettingsTest {
 
@@ -92,7 +93,7 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
 					"management.endpoint.configprops.show-values=NEVER", "bootstrap.sanitize=true",
-					"spring.cloud.kubernetes.client.namespace=test" })
+					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class ExplicitNever {
 
@@ -164,7 +165,7 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
 					"management.endpoint.configprops.show-values=ALWAYS",
 					"spring.cloud.kubernetes.sanitize.secrets=false", "bootstrap.sanitize=true",
-					"spring.cloud.kubernetes.client.namespace=test" })
+					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class AlwaysWithoutSanitizingFunction {
 
@@ -236,7 +237,7 @@ class BootstrapKubernetesClientSanitizeConfigpropsEndpointTests {
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize-two",
 					"management.endpoint.configprops.show-values=ALWAYS",
 					"spring.cloud.kubernetes.sanitize.secrets=true", "bootstrap.sanitize=true",
-					"spring.cloud.kubernetes.client.namespace=test" })
+					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@Nested
 	class AlwaysWithSanitizingFunction {
 

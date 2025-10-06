@@ -25,6 +25,8 @@ spec:
               value: app
             - name: SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY
               value: "1"
+            - name: SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED
+              value: "TRUE"
           readinessProbe:
             httpGet:
               port: 8888

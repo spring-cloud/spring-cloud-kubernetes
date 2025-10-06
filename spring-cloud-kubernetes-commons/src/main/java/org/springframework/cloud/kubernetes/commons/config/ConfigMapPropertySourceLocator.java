@@ -55,21 +55,18 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		if (environment instanceof ConfigurableEnvironment env) {
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
-			if (this.properties.enableApi()) {
-				Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
-				LOG.debug("Config Map normalized sources : " + sources);
-				sources.forEach(configMapSource -> {
-					MapPropertySource propertySource = getMapPropertySource(configMapSource, env,
-							properties.readType());
-					if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
-						LOG.warn("Failed to load source: " + configMapSource);
-					}
-					else {
-						LOG.debug("Adding config map property source " + propertySource.getName());
-						composite.addFirstPropertySource(propertySource);
-					}
-				});
-			}
+			Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
+			LOG.debug("Config Map normalized sources : " + sources);
+			sources.forEach(configMapSource -> {
+				MapPropertySource propertySource = getMapPropertySource(configMapSource, env, properties.readType());
+				if ("true".equals(propertySource.getProperty(Constants.ERROR_PROPERTY))) {
+					LOG.warn("Failed to load source: " + configMapSource);
+				}
+				else {
+					LOG.debug("Adding config map property source " + propertySource.getName());
+					composite.addFirstPropertySource(propertySource);
+				}
+			});
 
 			return composite;
 		}

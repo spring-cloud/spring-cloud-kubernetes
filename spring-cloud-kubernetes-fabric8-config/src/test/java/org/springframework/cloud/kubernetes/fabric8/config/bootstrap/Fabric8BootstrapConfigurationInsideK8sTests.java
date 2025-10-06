@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=abc",
-				"spring.cloud.bootstrap.enabled=true" })
+				"spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.secrets.enabled=true" })
 class Fabric8BootstrapConfigurationInsideK8sTests {
 
 	@Autowired
