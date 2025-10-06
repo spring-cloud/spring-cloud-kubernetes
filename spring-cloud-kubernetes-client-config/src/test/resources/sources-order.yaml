@@ -5,7 +5,6 @@ spring:
     kubernetes:
       secrets:
         enabled: true
-        enableApi: true
         namespace: spring-k8s
         sources:
           - name: my-secret

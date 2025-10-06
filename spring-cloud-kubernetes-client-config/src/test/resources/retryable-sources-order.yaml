@@ -6,7 +6,6 @@ spring:
       secrets:
         fail-fast: true
         enabled: true
-        enableApi: true
         namespace: spring-k8s
         sources:
           - name: my-secret

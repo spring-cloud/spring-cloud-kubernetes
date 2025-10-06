@@ -184,7 +184,7 @@ spring:
   cloud:
     kubernetes:
       config:
-        enableApi: true
+        enabled: true
         useNameAsPrefix: true
         namespace: spring-k8s
         sources:
@@ -455,7 +455,7 @@ spring:
   cloud:
     kubernetes:
       secrets:
-        enableApi: true
+        enabled: true
         useNameAsPrefix: true
         namespace: spring-k8s
         sources:
@@ -487,7 +487,7 @@ spring:
   cloud:
     kubernetes:
       secrets:
-        enableApi: true
+        enabled: true
         useNameAsPrefix: true
         namespace: spring-k8s
         sources:
