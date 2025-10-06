@@ -276,7 +276,7 @@ class KubernetesConfigDataLocationResolverTests {
 	@Test
 	void testResolveProfileSpecificSix() {
 		MockEnvironment environment = new MockEnvironment();
-		environment.setProperty("spring.cloud.kubernetes.config.enabled", "false");
+		environment.setProperty("spring.cloud.kubernetes.secret.enabled", "false");
 		environment.setProperty("spring.cloud.kubernetes.secrets.paths[0]", "a");
 		ConfigurationPropertySources.attach(environment);
 		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
