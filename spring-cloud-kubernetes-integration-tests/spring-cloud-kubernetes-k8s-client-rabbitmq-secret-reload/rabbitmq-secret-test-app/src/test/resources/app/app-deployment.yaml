@@ -20,6 +20,8 @@ spec:
               value: bus-amqp
             - name: SPRING_RABBITMQ_HOST
               value: rabbitmq-service
+            - name: SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED
+              value: "TRUE"
           readinessProbe:
             httpGet:
               port: 8080
