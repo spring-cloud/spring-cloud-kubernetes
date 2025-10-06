@@ -16,17 +16,11 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
 /**
  * Properties for configuring Kubernetes secrets.
@@ -36,15 +30,19 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  * @author Isik Erhan
  */
 @ConfigurationProperties(SecretsConfigProperties.PREFIX)
-public record SecretsConfigProperties(@DefaultValue("false") boolean enabled,
-	@DefaultValue List<SourceConfigProperties.Source> sources, @DefaultValue Map<String, String> labels,
-	String name, String namespace, boolean useNameAsPrefix,
-	@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
-	@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
+public final class SecretsConfigProperties extends SourceConfigProperties {
 
 	/**
 	 * Prefix for Kubernetes secrets configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.secrets";
+
+	public SecretsConfigProperties(@DefaultValue("false") boolean enabled, @DefaultValue List<Source> sources,
+			@DefaultValue Map<String, String> labels, String name, String namespace, boolean useNameAsPrefix,
+			@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
+			@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
+		super(enabled, sources, labels, name, namespace, useNameAsPrefix, includeProfileSpecificSources, failFast,
+				retry, readType);
+	}
 
 }

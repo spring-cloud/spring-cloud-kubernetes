@@ -110,7 +110,7 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 
 		stubFor(get(path).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(), Map.of(), true,
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
 				name, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		CoreV1Api api = new CoreV1Api();
@@ -152,9 +152,9 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(configMapNameTwo, namespace,
 				Map.of(), null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
-				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
-				RetryProperties.DEFAULT, ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
+				List.of(sourceOne, sourceTwo), Map.of(), null, namespace, false, true, false, RetryProperties.DEFAULT,
+				ReadType.BATCH);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -199,9 +199,9 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(configMapNameTwo, namespace,
 				Map.of(), null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
-				List.of(sourceOne, sourceTwo), Map.of(), true, null, namespace, false, true, false,
-				RetryProperties.DEFAULT, ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
+				List.of(sourceOne, sourceTwo), Map.of(), null, namespace, false, true, false, RetryProperties.DEFAULT,
+				ReadType.BATCH);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -243,8 +243,9 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source configMapSource = new ConfigMapConfigProperties.Source(null, namespace, labels,
 				null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(configMapSource),
-				labels, true, null, namespace, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
+				List.of(configMapSource), labels, null, namespace, false, true, false, RetryProperties.DEFAULT,
+				ReadType.BATCH);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -294,9 +295,9 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(null, namespace,
 				configMapTwoLabels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
-				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
-				false, RetryProperties.DEFAULT, ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
+				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), null, namespace, false, true, false,
+				RetryProperties.DEFAULT, ReadType.BATCH);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,
@@ -348,9 +349,9 @@ class KubernetesClientConfigMapErrorOnReadingSourceTests {
 		ConfigMapConfigProperties.Source sourceTwo = new ConfigMapConfigProperties.Source(null, namespace,
 				configMapTwoLabels, null, null, null);
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
-				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), true, null, namespace, false, true,
-				false, RetryProperties.DEFAULT, ReadType.BATCH);
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true,
+				List.of(sourceOne, sourceTwo), Map.of("one", "1", "two", "2"), null, namespace, false, true, false,
+				RetryProperties.DEFAULT, ReadType.BATCH);
 
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientConfigMapPropertySourceLocator locator = new KubernetesClientConfigMapPropertySourceLocator(api,

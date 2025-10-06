@@ -56,7 +56,7 @@ public abstract class SecretsPropertySourceLocator implements PropertySourceLoca
 	public PropertySource<?> locate(Environment environment) {
 		if (environment instanceof ConfigurableEnvironment env) {
 
-			List<NormalizedSource> sources = this.properties.determineSources(environment);
+			List<NormalizedSource> sources = this.properties.determineSources(false, environment);
 			Set<NormalizedSource> uniqueSources = new HashSet<>(sources);
 			LOG.debug("Secrets normalized sources : " + sources);
 			CompositePropertySource composite = new CompositePropertySource("composite-secrets");

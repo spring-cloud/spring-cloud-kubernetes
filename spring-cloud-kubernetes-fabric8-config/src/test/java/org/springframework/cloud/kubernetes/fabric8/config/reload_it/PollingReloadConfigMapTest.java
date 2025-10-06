@@ -152,8 +152,8 @@ class PollingReloadConfigMapTest {
 
 			// simulate that environment already has a Fabric8ConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
-			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(), Map.of(),
-					true, CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
+			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
 			PropertySource<?> propertySource = new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient,
@@ -175,7 +175,7 @@ class PollingReloadConfigMapTest {
 		@Bean
 		@Primary
 		ConfigMapConfigProperties configMapConfigProperties() {
-			return new ConfigMapConfigProperties(List.of(), Map.of(), true, CONFIG_MAP_NAME, NAMESPACE, false, true,
+			return new ConfigMapConfigProperties(true, List.of(), Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true,
 					FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 		}
 

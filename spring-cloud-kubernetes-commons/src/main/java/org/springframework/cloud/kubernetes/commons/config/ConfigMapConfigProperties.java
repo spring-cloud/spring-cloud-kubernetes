@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  * Config map configuration properties.
@@ -35,11 +36,12 @@ public final class ConfigMapConfigProperties extends SourceConfigProperties {
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.config";
 
-	public ConfigMapConfigProperties(boolean enabled, List<Source> sources, Map<String, String> labels,
-		String name, String namespace, boolean useNameAsPrefix, boolean includeProfileSpecificSources,
-		boolean failFast, RetryProperties retry, ReadType readType) {
-		super(enabled, sources, labels, name, namespace, useNameAsPrefix,
-			includeProfileSpecificSources, failFast, retry, readType);
+	public ConfigMapConfigProperties(@DefaultValue("true") boolean enabled, @DefaultValue List<Source> sources,
+			@DefaultValue Map<String, String> labels, String name, String namespace, boolean useNameAsPrefix,
+			@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
+			@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
+		super(enabled, sources, labels, name, namespace, useNameAsPrefix, includeProfileSpecificSources, failFast,
+				retry, readType);
 	}
 
 }

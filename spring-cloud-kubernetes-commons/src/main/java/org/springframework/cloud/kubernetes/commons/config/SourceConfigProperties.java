@@ -1,36 +1,62 @@
-package org.springframework.cloud.kubernetes.commons.config;
+/*
+ * Copyright 2013-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.core.env.Environment;
+package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
+import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.core.env.Environment;
+
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.Prefix;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.findPrefix;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 import static org.springframework.util.StringUtils.hasLength;
 
-abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties {
+/**
+ * @author wind57
+ */
+public abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties, SecretsConfigProperties {
 
 	private final boolean enabled;
+
 	private final List<Source> sources;
+
 	private final Map<String, String> labels;
+
 	private final String name;
+
 	private final String namespace;
+
 	private final boolean useNameAsPrefix;
+
 	private final boolean includeProfileSpecificSources;
+
 	private final boolean failFast;
+
 	private final RetryProperties retry;
+
 	private final ReadType readType;
 
-	public SourceConfigProperties(@DefaultValue("true") boolean enabled,
-			@DefaultValue List<Source> sources, @DefaultValue Map<String, String> labels,
-			String name, String namespace, boolean useNameAsPrefix,
-			@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
-			@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
+	SourceConfigProperties(boolean enabled, List<Source> sources, Map<String, String> labels, String name,
+			String namespace, boolean useNameAsPrefix, boolean includeProfileSpecificSources, boolean failFast,
+			RetryProperties retry, ReadType readType) {
 
 		this.enabled = enabled;
 		this.sources = sources;
@@ -42,6 +68,83 @@ abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties {
 		this.failFast = failFast;
 		this.retry = retry;
 		this.readType = readType;
+	}
+
+	public boolean enabled() {
+		return enabled;
+	}
+
+	public List<Source> sources() {
+		return sources;
+	}
+
+	public Map<String, String> labels() {
+		return labels;
+	}
+
+	public String name() {
+		return name;
+	}
+
+	public String namespace() {
+		return namespace;
+	}
+
+	public boolean useNameAsPrefix() {
+		return useNameAsPrefix;
+	}
+
+	public boolean includeProfileSpecificSources() {
+		return includeProfileSpecificSources;
+	}
+
+	public boolean failFast() {
+		return failFast;
+	}
+
+	public RetryProperties retry() {
+		return retry;
+	}
+
+	public ReadType readType() {
+		return readType;
+	}
+
+	protected final List<NormalizedSource> determineSources(boolean configMap, Environment environment) {
+		if (sources().isEmpty()) {
+			List<NormalizedSource> result = new ArrayList<>(2);
+			String configurationTarget = configMap ? "ConfigMap" : "Secret";
+			String name = getApplicationName(environment, name(), configurationTarget);
+			NormalizedSource normalizedSource;
+			if (configMap) {
+				normalizedSource = new NamedConfigMapNormalizedSource(name, namespace(), failFast(),
+						includeProfileSpecificSources());
+			}
+			else {
+				normalizedSource = new NamedSecretNormalizedSource(name, this.namespace, this.failFast,
+						this.includeProfileSpecificSources);
+			}
+			result.add(normalizedSource);
+
+			if (!labels().isEmpty()) {
+				NormalizedSource labeledSource;
+				if (configMap) {
+					labeledSource = new LabeledConfigMapNormalizedSource(namespace(), labels(), failFast(),
+							ConfigUtils.Prefix.DEFAULT, false);
+				}
+				else {
+					labeledSource = new LabeledSecretNormalizedSource(this.namespace, this.labels, this.failFast,
+							ConfigUtils.Prefix.DEFAULT);
+				}
+				result.add(labeledSource);
+			}
+			return result;
+		}
+
+		return sources().stream()
+			.flatMap(s -> s.normalize(configMap, name(), namespace(), labels(), includeProfileSpecificSources(),
+					failFast(), useNameAsPrefix(), environment))
+			.toList();
 	}
 
 	/**
@@ -56,11 +159,11 @@ abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties {
 	 * name.
 	 */
 	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels, String explicitPrefix,
-		Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
+			Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
 
 		Stream<NormalizedSource> normalize(boolean configMap, String defaultName, String defaultNamespace,
-			Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
-			boolean defaultUseNameAsPrefix, Environment environment) {
+				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
+				boolean defaultUseNameAsPrefix, Environment environment) {
 
 			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
 
@@ -71,33 +174,30 @@ abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties {
 			String configurationTarget = configMap ? "ConfigMap" : "Secret";
 			String sourceName = getApplicationName(environment, normalizedName, configurationTarget);
 
-			Prefix prefix = findPrefix(explicitPrefix, useNameAsPrefix,
-				defaultUseNameAsPrefix, normalizedName);
+			Prefix prefix = findPrefix(explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, normalizedName);
 
 			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
-				defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
+					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
 
 			NormalizedSource namedSource;
 			if (configMap) {
-				namedSource = new NamedConfigMapNormalizedSource(sourceName, normalizedNamespace,
-					failFast, prefix, includeProfileSpecificSources);
-			} else {
-				namedSource = new NamedSecretNormalizedSource(sourceName, normalizedNamespace,
-					failFast, prefix, includeProfileSpecificSources);
-				normalizedSources.add(namedSource);
+				namedSource = new NamedConfigMapNormalizedSource(sourceName, normalizedNamespace, failFast, prefix,
+						includeProfileSpecificSources);
 			}
-
+			else {
+				namedSource = new NamedSecretNormalizedSource(sourceName, normalizedNamespace, failFast, prefix,
+						includeProfileSpecificSources);
+			}
 			normalizedSources.add(namedSource);
 
 			if (!normalizedLabels.isEmpty()) {
 				NormalizedSource labeledSource;
 				if (configMap) {
-					labeledSource = new LabeledConfigMapNormalizedSource(normalizedNamespace, labels,
-						failFast, prefix, includeProfileSpecificSources);
-				} else {
-					labeledSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels,
-						failFast, prefix);
-					normalizedSources.add(labeledSource);
+					labeledSource = new LabeledConfigMapNormalizedSource(normalizedNamespace, labels, failFast, prefix,
+							includeProfileSpecificSources);
+				}
+				else {
+					labeledSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels, failFast, prefix);
 				}
 				normalizedSources.add(labeledSource);
 
@@ -108,78 +208,4 @@ abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties {
 		}
 	}
 
-	public List<NormalizedSource> determineSources(boolean configMap, Environment environment) {
-		if (getSources().isEmpty()) {
-			List<NormalizedSource> result = new ArrayList<>(2);
-			String configurationTarget = configMap ? "ConfigMap" : "Secret";
-			String name = getApplicationName(environment, getName(), configurationTarget);
-			NormalizedSource normalizedSource;
-			if (configMap) {
-				normalizedSource = new NamedConfigMapNormalizedSource(name, getNamespace(),
-					isFailFast(), isIncludeProfileSpecificSources());
-			} else {
-				normalizedSource = new NamedSecretNormalizedSource(name, this.namespace, this.failFast,
-					this.includeProfileSpecificSources);
-			}
-			result.add(normalizedSource);
-
-			if (!getLabels().isEmpty()) {
-				NormalizedSource labeledSource;
-				if (configMap) {
-					labeledSource = new LabeledConfigMapNormalizedSource(getNamespace(), getLabels(), isFailFast(),
-						ConfigUtils.Prefix.DEFAULT, false);
-				} else {
-					labeledSource = new LabeledSecretNormalizedSource(this.namespace, this.labels, this.failFast,
-						ConfigUtils.Prefix.DEFAULT);
-				}
-				result.add(labeledSource);
-			}
-			return result;
-		}
-
-		return getSources().stream()
-			.flatMap(s -> s.normalize(configMap, getName(), getNamespace(), getLabels(),
-				isIncludeProfileSpecificSources(), isFailFast(), isUseNameAsPrefix(), environment))
-			.toList();
-	}
-
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public List<Source> getSources() {
-		return sources;
-	}
-
-	public Map<String, String> getLabels() {
-		return labels;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getNamespace() {
-		return namespace;
-	}
-
-	public boolean isUseNameAsPrefix() {
-		return useNameAsPrefix;
-	}
-
-	public boolean isIncludeProfileSpecificSources() {
-		return includeProfileSpecificSources;
-	}
-
-	public boolean isFailFast() {
-		return failFast;
-	}
-
-	public RetryProperties getRetry() {
-		return retry;
-	}
-
-	public ReadType getReadType() {
-		return readType;
-	}
 }

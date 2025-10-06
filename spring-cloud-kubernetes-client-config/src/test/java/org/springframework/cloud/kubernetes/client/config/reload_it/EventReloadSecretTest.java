@@ -210,7 +210,7 @@ class EventReloadSecretTest {
 			V1Secret secret = secret(SECRET_NAME, Map.of());
 			V1SecretList secretList = new V1SecretList().addItemsItem(secret);
 
-			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList)))
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList)))
 				.inScenario(SCENARIO_NAME)
 				.whenScenarioStateIs(Scenario.STARTED)
 				.willSetStateTo("go-to-fail"));
@@ -221,7 +221,7 @@ class EventReloadSecretTest {
 			// simulate that environment already has a
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
-			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(), List.of(), true,
+			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
 					SECRET_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
 
@@ -244,7 +244,7 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
-			return new SecretsConfigProperties(Map.of(), List.of(), true, SECRET_NAME, NAMESPACE, false, true,
+			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, false, true,
 					FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 		}
 

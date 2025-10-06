@@ -229,10 +229,10 @@ class KubernetesConfigDataLocationResolverTests {
 
 		// 'one' and 'two' prove that we have not registered ConfigMapConfigProperties and
 		// SecretsConfigProperties in the bootstrap context
-		ConfigMapConfigProperties one = new ConfigMapConfigProperties(List.of(), Map.of(), false, null, null, false,
+		ConfigMapConfigProperties one = new ConfigMapConfigProperties(false, List.of(), Map.of(), null, null, false,
 				false, false, null, BATCH);
 
-		SecretsConfigProperties two = new SecretsConfigProperties(Map.of(), List.of(), false, null, null, false, false,
+		SecretsConfigProperties two = new SecretsConfigProperties(false, List.of(), Map.of(), null, null, false, false,
 				false, null, ReadType.BATCH);
 
 		KubernetesClientProperties kubernetesClientProperties = RESOLVER_CONTEXT.getBootstrapContext()
