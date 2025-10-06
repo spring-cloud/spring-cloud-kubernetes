@@ -31,7 +31,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
 		properties = { "spring.application.name=" + ConfigMapsMixed.APPLICATION_NAME,
-				"spring.cloud.kubernetes.config.enableApi=true", "spring.main.cloud-platform=KUBERNETES" })
+				"spring.cloud.kubernetes.config.enabled=true", "spring.main.cloud-platform=KUBERNETES" })
 abstract class ConfigMapsMixed {
 
 	protected static final String APPLICATION_NAME = "configmap-mixed-example";

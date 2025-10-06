@@ -48,7 +48,7 @@ class CompositeKubernetesIntegrationTests {
 	@SpringBootTest(classes = { KubernetesConfigServerApplication.class },
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.config.server.composite[0].type=kubernetes",
-					"spring.cloud.kubernetes.secrets.enableApi=true", "test.second.config.enabled=true",
+					"spring.cloud.kubernetes.secrets.enabled=true", "test.second.config.enabled=true",
 					"spring.cloud.kubernetes.secrets.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	@ActiveProfiles({ "test", "composite", "kubernetes" })
@@ -78,7 +78,7 @@ class CompositeKubernetesIntegrationTests {
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.config.server.composite[0].type=kubernetes",
 					"spring.cloud.config.server.composite[1].type=native",
-					"spring.cloud.kubernetes.secrets.enableApi=true",
+					"spring.cloud.kubernetes.secrets.enabled=true",
 					"spring.profiles.active=test, composite, kubernetes, native", "test.second.config.enabled=true",
 					"spring.cloud.kubernetes.secrets.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -119,7 +119,7 @@ class CompositeKubernetesIntegrationTests {
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.config.server.composite[0].type=kubernetes",
 					"spring.cloud.config.server.composite[1].type=native",
-					"spring.cloud.kubernetes.config.enableApi=false", "spring.cloud.kubernetes.secrets.enableApi=true",
+					"spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=true",
 					"spring.profiles.active=test ,composite, kubernetes, native", "test.second.config.enabled=true",
 					"spring.cloud.kubernetes.secrets.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -160,7 +160,7 @@ class CompositeKubernetesIntegrationTests {
 					"spring.cloud.config.server.composite[0].type=kubernetes",
 					"spring.cloud.config.server.composite[1].type=native",
 					"spring.profiles.active=test, composite, kubernetes, native", "test.second.config.enabled=true",
-					"spring.cloud.kubernetes.secrets.enabled=true" },
+					"spring.cloud.kubernetes.secrets.enabled=false" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	class KubernetesSecretsDisabledCompositeConfigServerTest {
 
@@ -198,7 +198,7 @@ class CompositeKubernetesIntegrationTests {
 	@SpringBootTest(classes = { KubernetesConfigServerApplication.class },
 			properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
 					"spring.cloud.config.server.native.order=1", "spring.cloud.kubernetes.configserver.order=2",
-					"spring.cloud.kubernetes.secrets.enableApi=true", "test.second.config.enabled=true",
+					"spring.cloud.kubernetes.secrets.enabled=true", "test.second.config.enabled=true",
 					"spring.profiles.active=test, native, kubernetes", "spring.cloud.kubernetes.secrets.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	class NativeAndKubernetesConfigServerTest {

@@ -18,8 +18,8 @@ To enable the Kubernetes environment repository the `kubernetes` profile must be
 You may activate other profiles as well to use other environment repository implementations.
 
 === Config Map and Secret PropertySources
-By default, only Config Map data will be fetched.  To enable Secrets as well you will need to set `spring.cloud.kubernetes.secrets.enableApi=true`.
-You can disable the Config Map `PropertySource` by setting `spring.cloud.kubernetes.config.enableApi=false`.
+By default, only Config Map data will be fetched.  To enable Secrets as well you will need to set `spring.cloud.kubernetes.secrets.enabled=true`.
+You can disable the Config Map `PropertySource` by setting `spring.cloud.kubernetes.config.enabled=false`.
 
 === Fetching Config Map and Secret Data From Additional Namespaces
 By default, the Kubernetes environment repository will only fetch Config Map and Secrets from the namespace in which it is deployed.
