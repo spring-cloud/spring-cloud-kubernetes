@@ -104,7 +104,7 @@ class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase {
 	void kubernetesConfigDataWhenKubernetesConfigDisabledButSecretEnabled() {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.config.import=kubernetes:");
+				"spring.config.import=kubernetes:", "spring.cloud.kubernetes.client.namespace=default");
 		assertThat(getContext().containsBean("configDataConfigMapPropertySourceLocator")).isFalse();
 		assertThat(getContext().containsBean("configDataSecretsPropertySourceLocator")).isTrue();
 	}
