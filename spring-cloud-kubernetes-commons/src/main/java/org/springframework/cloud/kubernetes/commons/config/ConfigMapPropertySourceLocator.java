@@ -55,7 +55,7 @@ public abstract class ConfigMapPropertySourceLocator implements PropertySourceLo
 		if (environment instanceof ConfigurableEnvironment env) {
 
 			CompositePropertySource composite = new CompositePropertySource("composite-configmap");
-			Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(environment));
+			Set<NormalizedSource> sources = new LinkedHashSet<>(this.properties.determineSources(true, environment));
 			LOG.debug("Config Map normalized sources : " + sources);
 			sources.forEach(configMapSource -> {
 				MapPropertySource propertySource = getMapPropertySource(configMapSource, env, properties.readType());

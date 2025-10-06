@@ -147,9 +147,8 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		SecretsConfigProperties.Source source2 = new SecretsConfigProperties.Source("rabbit-password", "",
 				Collections.emptyMap(), null, null, null);
 
-		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(),
-				List.of(source1, source2), true, "app", "default", false, true, false, RetryProperties.DEFAULT,
-				ReadType.BATCH);
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(source1, source2),
+				Map.of(), "app", "default", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
 				new KubernetesNamespaceProvider(new MockEnvironment()), secretsConfigProperties)
@@ -162,7 +161,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 	void getLocateWithOutSources() {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
-		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(), List.of(), true,
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
 				"db-secret", "default", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(api,
@@ -184,7 +183,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(200).withBody(LIST_BODY)));
 
-		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(), List.of(), true,
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
 				"db-secret", "", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		assertThatThrownBy(() -> new KubernetesClientSecretsPropertySourceLocator(api,
@@ -197,7 +196,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(), List.of(), true,
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
 				"db-secret", "default", false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,
@@ -212,7 +211,7 @@ class KubernetesClientSecretsPropertySourceLocatorTests {
 		CoreV1Api api = new CoreV1Api();
 		stubFor(get(LIST_API).willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(Map.of(), List.of(), true,
+		SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
 				"db-secret", "default", false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		KubernetesClientSecretsPropertySourceLocator locator = new KubernetesClientSecretsPropertySourceLocator(api,

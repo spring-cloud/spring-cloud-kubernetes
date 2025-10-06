@@ -47,7 +47,7 @@ class Fabric8ConfigMapPropertySourceLocatorMockTests {
 	@Test
 	void constructorWithoutClientNamespaceMustFail() {
 
-		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(List.of(), Map.of(), true,
+		ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(), Map.of(),
 				"name", null, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 
 		Mockito.when(client.getNamespace()).thenReturn(null);
