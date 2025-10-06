@@ -37,81 +37,14 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  */
 @ConfigurationProperties(SecretsConfigProperties.PREFIX)
 public record SecretsConfigProperties(@DefaultValue("false") boolean enabled,
-		@DefaultValue List<Source> sources, @DefaultValue Map<String, String> labels,
-		String name, String namespace, boolean useNameAsPrefix,
-		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
-		@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
+	@DefaultValue List<SourceConfigProperties.Source> sources, @DefaultValue Map<String, String> labels,
+	String name, String namespace, boolean useNameAsPrefix,
+	@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
+	@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
 
 	/**
 	 * Prefix for Kubernetes secrets configuration properties.
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.secrets";
-
-	/**
-	 * @return A list of Secret source(s) to use.
-	 */
-	public List<NormalizedSource> determineSources(Environment environment) {
-		if (this.sources.isEmpty()) {
-			List<NormalizedSource> result = new ArrayList<>(2);
-			String name = getApplicationName(environment, this.name, "Secret");
-			result.add(new NamedSecretNormalizedSource(name, this.namespace, this.failFast,
-					this.includeProfileSpecificSources));
-
-			if (!labels.isEmpty()) {
-				result.add(new LabeledSecretNormalizedSource(this.namespace, this.labels, this.failFast,
-						ConfigUtils.Prefix.DEFAULT));
-			}
-			return result;
-		}
-
-		return this.sources.stream()
-			.flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.includeProfileSpecificSources,
-					this.failFast, this.useNameAsPrefix, environment))
-			.toList();
-	}
-
-	/**
-	 * @param name The name of the Secret.
-	 * @param namespace The namespace where the Secret is found.
-	 * @param labels The labels of the Secret to find.
-	 * @param explicitPrefix An explicit prefix to be used for properties.
-	 * @param useNameAsPrefix Use secret name as prefix for properties.
-	 * @param includeProfileSpecificSources Use profile name to append to a config map
-	 * name.
-	 */
-	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels, String explicitPrefix,
-			Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
-
-		private Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
-				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
-				boolean defaultUseNameAsPrefix, Environment environment) {
-
-			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
-
-			String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
-			String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-			Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
-
-			String secretName = getApplicationName(environment, normalizedName, "Secret");
-
-			ConfigUtils.Prefix prefix = ConfigUtils.findPrefix(this.explicitPrefix, this.useNameAsPrefix,
-					defaultUseNameAsPrefix, normalizedName);
-
-			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
-					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-			NormalizedSource namedBasedSource = new NamedSecretNormalizedSource(secretName, normalizedNamespace,
-					failFast, prefix, includeProfileSpecificSources);
-			normalizedSources.add(namedBasedSource);
-
-			if (!normalizedLabels.isEmpty()) {
-				NormalizedSource labeledBasedSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels,
-						failFast, prefix);
-				normalizedSources.add(labeledBasedSource);
-			}
-
-			return normalizedSources.build();
-		}
-
-	}
 
 }

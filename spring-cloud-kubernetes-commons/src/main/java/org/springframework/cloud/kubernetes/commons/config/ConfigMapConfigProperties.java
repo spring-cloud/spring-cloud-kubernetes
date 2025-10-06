@@ -16,17 +16,10 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
-
-import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
 
 /**
  * Config map configuration properties.
@@ -47,29 +40,6 @@ public final class ConfigMapConfigProperties extends SourceConfigProperties {
 		boolean failFast, RetryProperties retry, ReadType readType) {
 		super(enabled, sources, labels, name, namespace, useNameAsPrefix,
 			includeProfileSpecificSources, failFast, retry, readType);
-	}
-
-	/**
-	 * @return A list of config map source(s) to use.
-	 */
-	public List<NormalizedSource> determineSources(Environment environment) {
-		if (this.sources.isEmpty()) {
-			List<NormalizedSource> result = new ArrayList<>(2);
-			String name = getApplicationName(environment, this.name, "ConfigMap");
-			result.add(new NamedConfigMapNormalizedSource(name, this.namespace, this.failFast,
-					this.includeProfileSpecificSources));
-
-			if (!labels.isEmpty()) {
-				result.add(new LabeledConfigMapNormalizedSource(this.namespace, this.labels, this.failFast,
-						ConfigUtils.Prefix.DEFAULT, false));
-			}
-			return result;
-		}
-
-		return this.sources.stream()
-			.flatMap(s -> s.normalize(this.name, this.namespace, this.labels, this.includeProfileSpecificSources,
-					this.failFast, this.useNameAsPrefix, environment))
-			.toList();
 	}
 
 }

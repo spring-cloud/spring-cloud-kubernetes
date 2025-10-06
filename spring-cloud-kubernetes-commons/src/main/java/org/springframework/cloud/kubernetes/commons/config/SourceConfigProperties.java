@@ -2,13 +2,16 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.getApplicationName;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.Prefix;
+import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.findPrefix;
+import static org.springframework.util.StringUtils.hasLength;
 
 abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties {
 
@@ -54,37 +57,129 @@ abstract sealed class SourceConfigProperties permits ConfigMapConfigProperties {
 	 */
 	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels, String explicitPrefix,
 		Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
+
+		Stream<NormalizedSource> normalize(boolean configMap, String defaultName, String defaultNamespace,
+			Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
+			boolean defaultUseNameAsPrefix, Environment environment) {
+
+			Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
+
+			String normalizedName = hasLength(name) ? name : defaultName;
+			String normalizedNamespace = hasLength(namespace) ? namespace : defaultNamespace;
+			Map<String, String> normalizedLabels = labels.isEmpty() ? defaultLabels : labels;
+
+			String configurationTarget = configMap ? "ConfigMap" : "Secret";
+			String sourceName = getApplicationName(environment, normalizedName, configurationTarget);
+
+			Prefix prefix = findPrefix(explicitPrefix, useNameAsPrefix,
+				defaultUseNameAsPrefix, normalizedName);
+
+			boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
+				defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
+
+			NormalizedSource namedSource;
+			if (configMap) {
+				namedSource = new NamedConfigMapNormalizedSource(sourceName, normalizedNamespace,
+					failFast, prefix, includeProfileSpecificSources);
+			} else {
+				namedSource = new NamedSecretNormalizedSource(sourceName, normalizedNamespace,
+					failFast, prefix, includeProfileSpecificSources);
+				normalizedSources.add(namedSource);
+			}
+
+			normalizedSources.add(namedSource);
+
+			if (!normalizedLabels.isEmpty()) {
+				NormalizedSource labeledSource;
+				if (configMap) {
+					labeledSource = new LabeledConfigMapNormalizedSource(normalizedNamespace, labels,
+						failFast, prefix, includeProfileSpecificSources);
+				} else {
+					labeledSource = new LabeledSecretNormalizedSource(normalizedNamespace, labels,
+						failFast, prefix);
+					normalizedSources.add(labeledSource);
+				}
+				normalizedSources.add(labeledSource);
+
+			}
+
+			return normalizedSources.build();
+
+		}
 	}
 
-	protected Stream<NormalizedSource> normalize(String defaultName, String defaultNamespace,
-		Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
-		boolean defaultUseNameAsPrefix, Environment environment) {
+	public List<NormalizedSource> determineSources(boolean configMap, Environment environment) {
+		if (getSources().isEmpty()) {
+			List<NormalizedSource> result = new ArrayList<>(2);
+			String configurationTarget = configMap ? "ConfigMap" : "Secret";
+			String name = getApplicationName(environment, getName(), configurationTarget);
+			NormalizedSource normalizedSource;
+			if (configMap) {
+				normalizedSource = new NamedConfigMapNormalizedSource(name, getNamespace(),
+					isFailFast(), isIncludeProfileSpecificSources());
+			} else {
+				normalizedSource = new NamedSecretNormalizedSource(name, this.namespace, this.failFast,
+					this.includeProfileSpecificSources);
+			}
+			result.add(normalizedSource);
 
-		Stream.Builder<NormalizedSource> normalizedSources = Stream.builder();
-
-		String normalizedName = StringUtils.hasLength(this.name) ? this.name : defaultName;
-		String normalizedNamespace = StringUtils.hasLength(this.namespace) ? this.namespace : defaultNamespace;
-		Map<String, String> normalizedLabels = this.labels.isEmpty() ? defaultLabels : this.labels;
-
-		String configMapName = getApplicationName(environment, normalizedName, "Config Map");
-
-		ConfigUtils.Prefix prefix = ConfigUtils.findPrefix(this.explicitPrefix, this.useNameAsPrefix,
-			defaultUseNameAsPrefix, normalizedName);
-
-		boolean includeProfileSpecificSources = ConfigUtils.includeProfileSpecificSources(
-			defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
-		NormalizedSource namedBasedSource = new NamedConfigMapNormalizedSource(configMapName, normalizedNamespace,
-			failFast, prefix, includeProfileSpecificSources);
-		normalizedSources.add(namedBasedSource);
-
-		if (!normalizedLabels.isEmpty()) {
-			NormalizedSource labeledBasedSource = new LabeledConfigMapNormalizedSource(normalizedNamespace, labels,
-				failFast, prefix, includeProfileSpecificSources);
-			normalizedSources.add(labeledBasedSource);
+			if (!getLabels().isEmpty()) {
+				NormalizedSource labeledSource;
+				if (configMap) {
+					labeledSource = new LabeledConfigMapNormalizedSource(getNamespace(), getLabels(), isFailFast(),
+						ConfigUtils.Prefix.DEFAULT, false);
+				} else {
+					labeledSource = new LabeledSecretNormalizedSource(this.namespace, this.labels, this.failFast,
+						ConfigUtils.Prefix.DEFAULT);
+				}
+				result.add(labeledSource);
+			}
+			return result;
 		}
 
-		return normalizedSources.build();
-
+		return getSources().stream()
+			.flatMap(s -> s.normalize(configMap, getName(), getNamespace(), getLabels(),
+				isIncludeProfileSpecificSources(), isFailFast(), isUseNameAsPrefix(), environment))
+			.toList();
 	}
 
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public List<Source> getSources() {
+		return sources;
+	}
+
+	public Map<String, String> getLabels() {
+		return labels;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public boolean isUseNameAsPrefix() {
+		return useNameAsPrefix;
+	}
+
+	public boolean isIncludeProfileSpecificSources() {
+		return includeProfileSpecificSources;
+	}
+
+	public boolean isFailFast() {
+		return failFast;
+	}
+
+	public RetryProperties getRetry() {
+		return retry;
+	}
+
+	public ReadType getReadType() {
+		return readType;
+	}
 }
