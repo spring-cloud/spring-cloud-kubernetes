@@ -95,7 +95,7 @@ class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase {
 	void kubernetesBootstrapWhenKubernetesConfigDisabledButSecretEnabled() {
 		setup(KubernetesClientTestConfiguration.class, "spring.cloud.kubernetes.config.enabled=false",
 				"spring.cloud.kubernetes.secrets.enabled=true", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.bootstrap.enabled=true");
+				"spring.cloud.bootstrap.enabled=true", "spring.cloud.kubernetes.client.namespace=test");
 		assertThat(getContext().containsBean("configMapPropertySourceLocator")).isFalse();
 		assertThat(getContext().containsBean("secretsPropertySourceLocator")).isTrue();
 	}
