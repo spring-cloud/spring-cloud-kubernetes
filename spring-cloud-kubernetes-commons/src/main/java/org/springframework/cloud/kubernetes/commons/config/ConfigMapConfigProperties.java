@@ -35,8 +35,9 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.ge
  * @author Isik Erhan
  */
 @ConfigurationProperties(ConfigMapConfigProperties.PREFIX)
-public record ConfigMapConfigProperties(@DefaultValue List<Source> sources, @DefaultValue Map<String, String> labels,
-		@DefaultValue("true") boolean enabled, String name, String namespace, boolean useNameAsPrefix,
+public record ConfigMapConfigProperties(@DefaultValue("true") boolean enabled,
+		@DefaultValue List<Source> sources, @DefaultValue Map<String, String> labels,
+		String name, String namespace, boolean useNameAsPrefix,
 		@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,
 		@DefaultValue RetryProperties retry, @DefaultValue("BATCH") ReadType readType) {
 
