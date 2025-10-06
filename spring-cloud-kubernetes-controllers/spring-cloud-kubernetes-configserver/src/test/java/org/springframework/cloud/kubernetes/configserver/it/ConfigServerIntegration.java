@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.server.test.client.TestRestTemplate;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
+import org.springframework.test.context.TestPropertySource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -45,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ryan Baxter
  */
+@TestPropertySource(properties = "spring.cloud.kubernetes.secrets.enabled=true")
 abstract class ConfigServerIntegration {
 
 	private static final String SOURCE_NAME = "test-cm";
@@ -117,10 +119,10 @@ abstract class ConfigServerIntegration {
 			.build();
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_CONFIGMAP))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(TEST_CONFIGMAP))));
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_SECRET))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(TEST_SECRET))));
 	}
 
 	@AfterEach
