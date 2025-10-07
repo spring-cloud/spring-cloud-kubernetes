@@ -47,7 +47,7 @@ final class Fabric8PodUtils implements PodUtils<Pod> {
 
 	private final Supplier<Pod> current;
 
-	public Fabric8PodUtils(KubernetesClient client) {
+	Fabric8PodUtils(KubernetesClient client) {
 		if (client == null) {
 			throw new IllegalArgumentException("Must provide an instance of KubernetesClient");
 		}

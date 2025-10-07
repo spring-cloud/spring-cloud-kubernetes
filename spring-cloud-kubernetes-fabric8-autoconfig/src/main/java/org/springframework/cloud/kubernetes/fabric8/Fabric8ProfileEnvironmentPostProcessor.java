@@ -29,8 +29,7 @@ final class Fabric8ProfileEnvironmentPostProcessor extends AbstractKubernetesPro
 
 		try (KubernetesClient client = new KubernetesClientBuilder().build()) {
 			Fabric8PodUtils podUtils = new Fabric8PodUtils(client);
-			return environment.containsProperty("KUBERNETES_SERVICE_HOST")
-					|| podUtils.isInsideKubernetes();
+			return environment.containsProperty("KUBERNETES_SERVICE_HOST") || podUtils.isInsideKubernetes();
 		}
 	}
 

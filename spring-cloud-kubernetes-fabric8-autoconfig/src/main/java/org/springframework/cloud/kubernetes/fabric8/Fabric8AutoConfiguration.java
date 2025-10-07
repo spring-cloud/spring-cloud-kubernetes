@@ -42,11 +42,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
-final class Fabric8AutoConfiguration {
+public final class Fabric8AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(Config.class)
-	Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
+	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
 		Config base = Config.autoConfigure(null);
 		ConfigBuilder builder = new ConfigBuilder(base)
 			// Only set values that have been explicitly specified
@@ -95,7 +95,7 @@ final class Fabric8AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	KubernetesClient kubernetesClient(Config config) {
+	public KubernetesClient kubernetesClient(Config config) {
 		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
