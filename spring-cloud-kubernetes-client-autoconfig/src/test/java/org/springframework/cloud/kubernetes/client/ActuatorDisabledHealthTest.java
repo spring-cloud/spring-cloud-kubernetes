@@ -23,14 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.health.registry.ReactiveHealthContributorRegistry;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.test.LocalManagementPort;
-import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApp.class,
 		properties = { "management.health.kubernetes.enabled=false", "management.endpoint.health.show-details=always",
 				"management.endpoint.health.show-components=always", "spring.main.cloud-platform=KUBERNETES",
 				"management.endpoints.web.exposure.include=health" })

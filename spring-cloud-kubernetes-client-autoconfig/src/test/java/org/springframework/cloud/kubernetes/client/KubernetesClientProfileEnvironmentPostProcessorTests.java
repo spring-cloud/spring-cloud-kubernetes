@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.profile;
+package org.springframework.cloud.kubernetes.client;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.core.env.Environment;
 
 import static io.kubernetes.client.util.Config.ENV_SERVICE_HOST;
@@ -32,7 +31,7 @@ import static org.springframework.cloud.kubernetes.commons.profile.AbstractKuber
  * @author Thomas Vitale
  */
 @SpringBootTest(properties = { ENV_SERVICE_HOST + "=10.0.0.1", ENV_SERVICE_PORT + "=80",
-		"spring.main.cloud-platform=KUBERNETES" }, classes = { App.class })
+		"spring.main.cloud-platform=KUBERNETES" }, classes = { TestApp.class })
 class KubernetesClientProfileEnvironmentPostProcessorTests {
 
 	@Autowired

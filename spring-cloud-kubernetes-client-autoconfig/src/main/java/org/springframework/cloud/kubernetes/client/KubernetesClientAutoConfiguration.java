@@ -38,17 +38,17 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
-public class KubernetesClientAutoConfiguration {
+public final class KubernetesClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CoreV1Api coreApi(ApiClient apiClient) {
+	CoreV1Api coreApi(ApiClient apiClient) {
 		return new CoreV1Api(apiClient);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ApiClient apiClient(KubernetesClientProperties clientProperties) {
+	ApiClient apiClient(KubernetesClientProperties clientProperties) {
 		ApiClient apiClient = kubernetesApiClient();
 		apiClient.setUserAgent(clientProperties.userAgent());
 		return apiClient;
@@ -62,7 +62,7 @@ public class KubernetesClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesClientPodUtils kubernetesPodUtils(CoreV1Api client,
+	KubernetesClientPodUtils kubernetesPodUtils(CoreV1Api client,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		return new KubernetesClientPodUtils(client, kubernetesNamespaceProvider.getNamespace(), true);
 	}
