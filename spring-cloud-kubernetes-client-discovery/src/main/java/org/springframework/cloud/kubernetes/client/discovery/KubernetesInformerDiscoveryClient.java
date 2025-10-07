@@ -35,7 +35,6 @@ import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -82,7 +81,7 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 
 	private final ServicePortSecureResolver servicePortSecureResolver;
 
-	private final CoreV1Api coreV1Api;
+	final CoreV1Api coreV1Api;
 
 	public KubernetesInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
