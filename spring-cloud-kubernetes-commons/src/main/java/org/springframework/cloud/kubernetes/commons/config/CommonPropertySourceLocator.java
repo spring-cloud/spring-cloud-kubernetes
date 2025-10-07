@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -57,7 +58,7 @@ abstract class CommonPropertySourceLocator implements PropertySourceLocator {
 		if (environment instanceof ConfigurableEnvironment env) {
 
 			List<NormalizedSource> sources = properties.determineSources(sourceType, environment);
-			Set<NormalizedSource> uniqueSources = new HashSet<>(sources);
+			Set<NormalizedSource> uniqueSources = new LinkedHashSet<>(sources);
 			LOG.debug(sourceType.name() + " normalized sources : " + uniqueSources);
 			CompositePropertySource composite = new CompositePropertySource(
 					"composite-" + sourceType.name().toLowerCase(Locale.ROOT));
