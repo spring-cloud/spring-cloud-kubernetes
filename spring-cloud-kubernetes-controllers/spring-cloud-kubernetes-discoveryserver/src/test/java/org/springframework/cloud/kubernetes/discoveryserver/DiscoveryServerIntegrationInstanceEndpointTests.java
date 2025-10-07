@@ -82,27 +82,6 @@ class DiscoveryServerIntegrationInstanceEndpointTests {
 	private WebTestClient webTestClient;
 
 	@Test
-	void instanceDeprecated() {
-		Map<String, String> metadata = new HashMap<>();
-		metadata.put("spring", "true");
-		metadata.put("port.http", "8080");
-		metadata.put("k8s_namespace", "namespace");
-		metadata.put("type", "ClusterIP");
-		metadata.put("k8s", "true");
-
-		DefaultKubernetesServiceInstance kubernetesServiceInstance = new DefaultKubernetesServiceInstance(
-				TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
-				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
-				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
-				TEST_SERVICE.getMetadata().getNamespace(), null);
-		webTestClient.get()
-			.uri("/app/test-svc-3/uid2")
-			.exchange()
-			.expectBody(DefaultKubernetesServiceInstance.class)
-			.isEqualTo(kubernetesServiceInstance);
-	}
-
-	@Test
 	void instance() {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("spring", "true");
