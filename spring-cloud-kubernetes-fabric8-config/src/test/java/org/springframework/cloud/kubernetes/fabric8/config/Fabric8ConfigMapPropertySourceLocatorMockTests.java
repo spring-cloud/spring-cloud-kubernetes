@@ -54,7 +54,7 @@ class Fabric8ConfigMapPropertySourceLocatorMockTests {
 		Fabric8ConfigMapPropertySourceLocator source = new Fabric8ConfigMapPropertySourceLocator(client,
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 		NormalizedSource normalizedSource = new NamedConfigMapNormalizedSource("name", null, false, PREFIX, false);
-		assertThatThrownBy(() -> source.getMapPropertySource(normalizedSource, new MockEnvironment(), ReadType.BATCH))
+		assertThatThrownBy(() -> source.getPropertySource(new MockEnvironment(), normalizedSource, ReadType.BATCH))
 			.isInstanceOf(NamespaceResolutionFailedException.class);
 	}
 

@@ -51,7 +51,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), "config-map-a",
 				"spring-k8s", false, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix())
@@ -77,7 +77,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), "config-map-a",
 				"spring-k8s", true, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix())
@@ -108,7 +108,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one), Map.of(),
 				"config-map-a", "spring-k8s", true, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix().prefixProvider().get())
@@ -151,7 +151,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one, two, three), Map.of(),
 				"config-map-a", "spring-k8s", true, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(3);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix())
@@ -201,7 +201,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one, two, three, four),
 				Map.of(), "config-map-a", "spring-k8s", true, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(4);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).prefix().prefixProvider().get())
@@ -234,7 +234,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), "config-map-a",
 				"spring-k8s", false, true, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources()).isTrue();
@@ -263,7 +263,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(), Map.of(), "config-map-a",
 				"spring-k8s", false, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(1);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources()).isFalse();
@@ -307,7 +307,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one, two, three), Map.of(),
 				"config-map-a", "spring-k8s", false, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		Assertions.assertThat(sources.size()).isEqualTo(3);
 
 		Assertions.assertThat(((NamedConfigMapNormalizedSource) sources.get(0)).profileSpecificSources()).isTrue();
@@ -364,7 +364,7 @@ class ConfigMapConfigPropertiesTests {
 		ConfigMapConfigProperties properties = new ConfigMapConfigProperties(true, List.of(one, two, three, four),
 				Map.of(), "config-map-a", "spring-k8s", false, false, false, RetryProperties.DEFAULT, BATCH);
 
-		List<NormalizedSource> sources = properties.determineSources(true, new MockEnvironment());
+		List<NormalizedSource> sources = properties.determineSources(SourceType.CONFIGMAP, new MockEnvironment());
 		// we get 8 property sources, since "named" ones with "application" are
 		// duplicated.
 		// that's OK, since later in the code we get a LinkedHashSet out of them all,

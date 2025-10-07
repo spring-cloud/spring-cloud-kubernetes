@@ -29,7 +29,7 @@ import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 public abstract class SecretsPropertySourceLocator extends CommonPropertySourceLocator {
 
 	public SecretsPropertySourceLocator(SecretsConfigProperties properties) {
-		super(properties, "secrets");
+		super(properties, SourceType.SECRET);
 	}
 
 }

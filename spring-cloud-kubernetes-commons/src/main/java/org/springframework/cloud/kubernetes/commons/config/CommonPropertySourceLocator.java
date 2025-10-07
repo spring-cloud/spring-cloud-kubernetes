@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.logging.LogFactory;
@@ -40,11 +41,11 @@ abstract class CommonPropertySourceLocator implements PropertySourceLocator {
 
 	protected final SourceConfigProperties properties;
 
-	private final String type;
+	private final SourceType sourceType;
 
-	CommonPropertySourceLocator(SourceConfigProperties properties, String type) {
+	CommonPropertySourceLocator(SourceConfigProperties properties, SourceType sourceType) {
 		this.properties = properties;
-		this.type = type;
+		this.sourceType = sourceType;
 	}
 
 	protected abstract MapPropertySource getPropertySource(ConfigurableEnvironment environment,
@@ -55,10 +56,11 @@ abstract class CommonPropertySourceLocator implements PropertySourceLocator {
 
 		if (environment instanceof ConfigurableEnvironment env) {
 
-			List<NormalizedSource> sources = properties.determineSources(false, environment);
+			List<NormalizedSource> sources = properties.determineSources(sourceType, environment);
 			Set<NormalizedSource> uniqueSources = new HashSet<>(sources);
-			LOG.debug(type + " normalized sources : " + uniqueSources);
-			CompositePropertySource composite = new CompositePropertySource("composite-" + type);
+			LOG.debug(sourceType.name() + " normalized sources : " + uniqueSources);
+			CompositePropertySource composite = new CompositePropertySource(
+					"composite-" + sourceType.name().toLowerCase(Locale.ROOT));
 
 			uniqueSources.forEach(secretSource -> {
 				MapPropertySource propertySource = getPropertySource(env, secretSource, properties.readType());
@@ -67,7 +69,8 @@ abstract class CommonPropertySourceLocator implements PropertySourceLocator {
 					LOG.warn(() -> "Failed to load source: " + secretSource);
 				}
 				else {
-					LOG.debug("Adding " + type + " property source " + propertySource.getName());
+					LOG.debug("Adding " + sourceType.name().toLowerCase(Locale.ROOT) + " property source "
+							+ propertySource.getName());
 					composite.addFirstPropertySource(propertySource);
 				}
 			});

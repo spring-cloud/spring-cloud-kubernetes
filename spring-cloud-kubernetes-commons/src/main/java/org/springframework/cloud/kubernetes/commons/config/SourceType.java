@@ -16,17 +16,16 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-/**
- * A PropertySourceLocator that uses config maps.
- *
- * @author Ioannis Canellos
- * @author Michael Moudatsos
- * @author Isik Erhan
- */
-public abstract class ConfigMapPropertySourceLocator extends CommonPropertySourceLocator {
+public enum SourceType {
 
-	public ConfigMapPropertySourceLocator(ConfigMapConfigProperties configMapConfigProperties) {
-		super(configMapConfigProperties, SourceType.CONFIGMAP);
-	}
+	/**
+	 * ConfigMap as the source type.
+	 */
+	CONFIGMAP,
+
+	/**
+	 * Secret as the source type.
+	 */
+	SECRET
 
 }
