@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * test "User-Agent" functionality via system properties
  */
-@SpringBootTest(classes = App.class, properties = "spring.main.cloud-platform=KUBERNETES")
+@SpringBootTest(classes = TestApp.class, properties = "spring.main.cloud-platform=KUBERNETES")
 @DirtiesContext
 class Fabric8ClientUserAgentEnvPropertyTests {
 

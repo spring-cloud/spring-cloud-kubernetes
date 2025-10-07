@@ -1,2 +1,2 @@
 org.springframework.boot.EnvironmentPostProcessor=\
-org.springframework.cloud.kubernetes.fabric8.profile.Fabric8ProfileEnvironmentPostProcessor
+org.springframework.cloud.kubernetes.fabric8.Fabric8ProfileEnvironmentPostProcessor

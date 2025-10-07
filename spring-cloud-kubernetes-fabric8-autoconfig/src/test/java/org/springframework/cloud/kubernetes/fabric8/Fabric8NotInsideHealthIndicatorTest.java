@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -25,25 +25,22 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
-import org.springframework.cloud.kubernetes.example.App;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8HealthIndicator;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8InfoContributor;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
-		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.password=mypassword",
-				"spring.cloud.kubernetes.client.proxy-password=myproxypassword" })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApp.class,
+		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoint.health.show-details=always" })
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8AutoConfigurationTests {
+class Fabric8NotInsideHealthIndicatorTest {
 
 	private static KubernetesClient mockClient;
 
 	@Autowired
-	ConfigurableApplicationContext context;
+	private WebTestClient webClient;
+
+	@LocalManagementPort
+	private int port;
 
 	@BeforeAll
 	static void setUpBeforeClass() {
@@ -66,18 +63,31 @@ class Fabric8AutoConfigurationTests {
 		System.clearProperty(Config.KUBERNETES_HTTP2_DISABLE);
 	}
 
+	/**
+	 * <pre>
+	 * 		"kubernetes":{
+	 * 	    	"status":"UP",
+	 * 	    	"details":{
+	 * 	        	"inside":"false"
+	 * 	        }
+	 * 	     }
+	 * </pre>
+	 */
 	@Test
-	void beansAreCreated() {
-		assertThat(context.getBeanNamesForType(Config.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesClient.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(Fabric8PodUtils.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(Fabric8HealthIndicator.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(Fabric8InfoContributor.class)).hasSize(1);
-		assertThat(context.getBeanNamesForType(KubernetesClientProperties.class)).hasSize(1);
+	void healthEndpointShouldContainKubernetes() {
 
-		Config config = context.getBean(Config.class);
-		assertThat(config.getPassword()).isEqualTo("mypassword");
-		assertThat(config.getProxyPassword()).isEqualTo("myproxypassword");
+		this.webClient.get()
+			.uri("http://localhost:{port}/actuator/health", this.port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("components.kubernetes.status")
+			.isEqualTo("UP")
+			.jsonPath("components.kubernetes.details.inside")
+			.isEqualTo("false");
+
 	}
 
 }

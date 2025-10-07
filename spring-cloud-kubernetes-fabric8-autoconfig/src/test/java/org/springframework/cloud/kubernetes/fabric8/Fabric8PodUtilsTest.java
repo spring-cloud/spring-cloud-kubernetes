@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -35,14 +35,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.EnvReader;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 
 @SuppressWarnings("unchecked")
 class Fabric8PodUtilsTest {
-
-	private static final String KUBERNETES_SERVICE_HOST = Fabric8PodUtils.KUBERNETES_SERVICE_HOST;
-
-	private static final String HOSTNAME = Fabric8PodUtils.HOSTNAME;
 
 	private static final String SERVICE_ACCOUNT_TOKEN_PATH = Config.KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH;
 
@@ -147,11 +142,11 @@ class Fabric8PodUtilsTest {
 	}
 
 	private void mockHost(String host) {
-		envReader.when(() -> EnvReader.getEnv(KUBERNETES_SERVICE_HOST)).thenReturn(host);
+		envReader.when(() -> EnvReader.getEnv("KUBERNETES_SERVICE_HOST")).thenReturn(host);
 	}
 
 	private void mockHostname(String name) {
-		envReader.when(() -> EnvReader.getEnv(HOSTNAME)).thenReturn(name);
+		envReader.when(() -> EnvReader.getEnv("HOSTNAME")).thenReturn(name);
 	}
 
 	private void mockTokenPath(boolean result) {

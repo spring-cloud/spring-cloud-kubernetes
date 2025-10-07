@@ -34,11 +34,11 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Mark Anderson
  */
-public class Fabric8InfoContributor extends AbstractKubernetesInfoContributor {
+final class Fabric8InfoContributor extends AbstractKubernetesInfoContributor {
 
 	private final PodUtils<Pod> utils;
 
-	public Fabric8InfoContributor(PodUtils<Pod> utils) {
+	Fabric8InfoContributor(PodUtils<Pod> utils) {
 		this.utils = utils;
 	}
 

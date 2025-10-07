@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
@@ -26,8 +26,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.test.LocalManagementPort;
-import org.springframework.cloud.kubernetes.example.App;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -40,7 +38,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * test proper fields being set in /actuator/info
  */
 @Import(Fabric8InsideInfoContributorTest.InfoContributorTestConfig.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApp.class,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
 				"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true" })
 class Fabric8InsideInfoContributorTest {
