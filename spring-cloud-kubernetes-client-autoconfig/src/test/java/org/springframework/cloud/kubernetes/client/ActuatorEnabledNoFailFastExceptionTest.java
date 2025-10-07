@@ -34,7 +34,6 @@ import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.context.annotation.Bean;
 
@@ -42,7 +41,7 @@ import org.springframework.context.annotation.Bean;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = { App.class, ActuatorEnabledNoFailFastExceptionTest.ActuatorConfig.class },
+		classes = { TestApp.class, ActuatorEnabledNoFailFastExceptionTest.ActuatorConfig.class },
 		properties = { "management.endpoint.health.show-details=always",
 				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
 				"spring.main.cloud-platform=KUBERNETES" })
@@ -79,9 +78,8 @@ class ActuatorEnabledNoFailFastExceptionTest {
 		envReaderMockedStatic = Mockito.mockStatic(EnvReader.class);
 		pathsMockedStatic = Mockito.mockStatic(Paths.class, Mockito.CALLS_REAL_METHODS);
 
-		envReaderMockedStatic.when(() -> EnvReader.getEnv(KubernetesClientPodUtils.KUBERNETES_SERVICE_HOST))
-			.thenReturn("k8s-host");
-		envReaderMockedStatic.when(() -> EnvReader.getEnv(KubernetesClientPodUtils.HOSTNAME)).thenReturn("host");
+		envReaderMockedStatic.when(() -> EnvReader.getEnv("KUBERNETES_SERVICE_HOST")).thenReturn("k8s-host");
+		envReaderMockedStatic.when(() -> EnvReader.getEnv("HOSTNAME")).thenReturn("host");
 
 		Path serviceAccountTokenPath = Mockito.mock(Path.class);
 		File serviceAccountTokenFile = Mockito.mock(File.class);

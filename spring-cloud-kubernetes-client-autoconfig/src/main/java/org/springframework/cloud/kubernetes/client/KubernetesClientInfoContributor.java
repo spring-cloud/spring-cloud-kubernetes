@@ -31,11 +31,11 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientInfoContributor extends AbstractKubernetesInfoContributor {
+final class KubernetesClientInfoContributor extends AbstractKubernetesInfoContributor {
 
 	private final PodUtils<V1Pod> utils;
 
-	public KubernetesClientInfoContributor(PodUtils<V1Pod> utils) {
+	KubernetesClientInfoContributor(PodUtils<V1Pod> utils) {
 		this.utils = utils;
 	}
 

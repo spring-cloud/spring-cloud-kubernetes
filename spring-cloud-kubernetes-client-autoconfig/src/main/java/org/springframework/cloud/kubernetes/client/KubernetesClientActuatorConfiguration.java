@@ -30,17 +30,17 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesHealthIndicatorEnabled
-public class KubernetesClientActuatorConfiguration {
+final class KubernetesClientActuatorConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledHealthIndicator("kubernetes")
-	public KubernetesClientHealthIndicator kubernetesHealthIndicator(PodUtils<V1Pod> podUtils) {
+	KubernetesClientHealthIndicator kubernetesHealthIndicator(PodUtils<V1Pod> podUtils) {
 		return new KubernetesClientHealthIndicator(podUtils);
 	}
 
 	@Bean
 	@ConditionalOnEnabledInfoContributor("kubernetes")
-	public KubernetesClientInfoContributor kubernetesInfoContributor(PodUtils<V1Pod> podUtils) {
+	KubernetesClientInfoContributor kubernetesInfoContributor(PodUtils<V1Pod> podUtils) {
 		return new KubernetesClientInfoContributor(podUtils);
 	}
 

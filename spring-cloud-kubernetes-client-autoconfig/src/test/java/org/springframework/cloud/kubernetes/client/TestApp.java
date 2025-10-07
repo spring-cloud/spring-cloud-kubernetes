@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.example;
+package org.springframework.cloud.kubernetes.client;
 
-import io.kubernetes.client.openapi.ApiClient;
-import okhttp3.OkHttpClient;
-
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-/**
- * @author wind57
- */
 @SpringBootApplication
-public class App {
+public class TestApp {
 
-	@Bean
-	public ApiClient apiClient() {
-		ApiClient apiClient = mock(ApiClient.class);
-		when(apiClient.getHttpClient()).thenReturn(new OkHttpClient.Builder().build());
-		return apiClient;
+	public static void main(String[] args) {
+		SpringApplication.run(TestApp.class, args);
 	}
 
 }

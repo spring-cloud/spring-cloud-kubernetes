@@ -16,11 +16,18 @@
 
 package org.springframework.cloud.kubernetes.client.default_api;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+
 import io.kubernetes.client.openapi.ApiClient;
+import okhttp3.Request;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.kubernetes.client.TestApp;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,21 +42,23 @@ import static org.assertj.core.api.Assertions.assertThat;
  * creates a defaultApiClient that will be autowired instead of the ApiClient created in
  * KubernetesClientAutoConfiguration
  */
-@SpringBootTest(classes = App.class,
-		properties = { "kubernetes.informer.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
-class DefaultApiClientNotSameAsApiClient {
+@SpringBootTest(classes = TestApp.class, properties = { "kubernetes.informer.enabled=false",
+		"spring.cloud.kubernetes.client.userAgent=non-default", "spring.main.cloud-platform=KUBERNETES" })
+class ApiClientUserAgentNonDefaultHeaderTest {
 
 	@Autowired
 	private ApiClient apiClient;
 
+	@Autowired
+	private ConfigurableApplicationContext context;
+
 	@Test
-	void testCreatedApiClientIsNotDefault() {
+	void testApiClientUserAgentDefaultHeader() throws MalformedURLException {
 		assertThat(apiClient).isNotNull();
-
-		ApiClient defaultApiClient = io.kubernetes.client.openapi.Configuration.getDefaultApiClient();
-		assertThat(defaultApiClient).isNotNull();
-
-		assertThat(defaultApiClient).isNotSameAs(apiClient);
+		Request.Builder builder = new Request.Builder();
+		apiClient.processHeaderParams(Collections.emptyMap(), builder);
+		assertThat(builder.url(new URL("http://example.com")).build().headers().get("User-Agent"))
+			.isEqualTo("non-default");
 	}
 
 }

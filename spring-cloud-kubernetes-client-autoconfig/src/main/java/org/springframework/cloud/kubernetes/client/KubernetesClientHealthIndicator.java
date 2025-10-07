@@ -31,11 +31,11 @@ import org.springframework.util.CollectionUtils;
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientHealthIndicator extends AbstractKubernetesHealthIndicator {
+final class KubernetesClientHealthIndicator extends AbstractKubernetesHealthIndicator {
 
 	private final PodUtils<V1Pod> utils;
 
-	public KubernetesClientHealthIndicator(PodUtils<V1Pod> utils) {
+	KubernetesClientHealthIndicator(PodUtils<V1Pod> utils) {
 		this.utils = utils;
 	}
 

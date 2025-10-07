@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.profile;
+package org.springframework.cloud.kubernetes.client;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.cloud.kubernetes.client.KubernetesClientPodUtils;
 import org.springframework.cloud.kubernetes.commons.profile.AbstractKubernetesProfileEnvironmentPostProcessor;
 import org.springframework.core.env.Environment;
 
@@ -28,7 +27,7 @@ import static io.kubernetes.client.util.Config.ENV_SERVICE_HOST;
  * @author Ryan Baxter
  * @author Thomas Vitale
  */
-public class KubernetesClientProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
+final class KubernetesClientProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
 
 	@Override
 	protected boolean isInsideKubernetes(Environment environment) {

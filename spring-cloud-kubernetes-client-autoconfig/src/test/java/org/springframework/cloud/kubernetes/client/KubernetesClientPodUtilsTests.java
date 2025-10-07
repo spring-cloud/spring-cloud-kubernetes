@@ -43,10 +43,6 @@ import static org.mockito.Mockito.when;
  */
 class KubernetesClientPodUtilsTests {
 
-	private static final String KUBERNETES_SERVICE_HOST = KubernetesClientPodUtils.KUBERNETES_SERVICE_HOST;
-
-	private static final String HOSTNAME = KubernetesClientPodUtils.HOSTNAME;
-
 	private static final String SERVICE_ACCOUNT_TOKEN_PATH = Config.SERVICEACCOUNT_TOKEN_PATH;
 
 	private static final String SERVICE_ACCOUNT_CERT_PATH = Config.SERVICEACCOUNT_CA_PATH;
@@ -150,11 +146,11 @@ class KubernetesClientPodUtilsTests {
 	}
 
 	private void mockHost(String host) {
-		envReader.when(() -> EnvReader.getEnv(KUBERNETES_SERVICE_HOST)).thenReturn(host);
+		envReader.when(() -> EnvReader.getEnv("KUBERNETES_SERVICE_HOST")).thenReturn(host);
 	}
 
 	private void mockHostname(String name) {
-		envReader.when(() -> EnvReader.getEnv(HOSTNAME)).thenReturn(name);
+		envReader.when(() -> EnvReader.getEnv("HOSTNAME")).thenReturn(name);
 	}
 
 	private void mockTokenPath(boolean result) {

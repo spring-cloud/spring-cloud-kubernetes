@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.profile;
+package org.springframework.cloud.kubernetes.client;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.client.example.App;
 import org.springframework.core.env.Environment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +28,7 @@ import static org.springframework.cloud.kubernetes.commons.profile.AbstractKuber
 /**
  * @author Ryan Baxter
  */
-@SpringBootTest(classes = { App.class })
+@SpringBootTest(classes = { TestApp.class })
 class KubernetesClientProfileEnvironmentPostProcessorNoProfileTests {
 
 	@Autowired
