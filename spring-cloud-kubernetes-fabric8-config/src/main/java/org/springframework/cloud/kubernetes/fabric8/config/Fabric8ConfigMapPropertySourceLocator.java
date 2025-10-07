@@ -62,8 +62,8 @@ public class Fabric8ConfigMapPropertySourceLocator extends ConfigMapPropertySour
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(NormalizedSource normalizedSource,
-			ConfigurableEnvironment environment, ReadType readType) {
+	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment,
+			NormalizedSource normalizedSource, ReadType readType) {
 		// NormalizedSource has a namespace, but users can skip it.
 		// In such cases we try to get it elsewhere
 		String namespace = getApplicationNamespace(this.client, normalizedSource.namespace().orElse(null),

@@ -110,13 +110,12 @@ public abstract sealed class SourceConfigProperties permits ConfigMapConfigPrope
 		return readType;
 	}
 
-	protected final List<NormalizedSource> determineSources(boolean configMap, Environment environment) {
+	protected final List<NormalizedSource> determineSources(SourceType sourceType, Environment environment) {
 		if (sources().isEmpty()) {
 			List<NormalizedSource> result = new ArrayList<>(2);
-			String configurationTarget = configMap ? "ConfigMap" : "Secret";
-			String name = getApplicationName(environment, name(), configurationTarget);
+			String name = getApplicationName(environment, name(), sourceType.name());
 			NormalizedSource normalizedSource;
-			if (configMap) {
+			if (sourceType == SourceType.CONFIGMAP) {
 				normalizedSource = new NamedConfigMapNormalizedSource(name, namespace(), failFast(),
 						includeProfileSpecificSources());
 			}
@@ -128,7 +127,7 @@ public abstract sealed class SourceConfigProperties permits ConfigMapConfigPrope
 
 			if (!labels().isEmpty()) {
 				NormalizedSource labeledSource;
-				if (configMap) {
+				if (sourceType == SourceType.CONFIGMAP) {
 					labeledSource = new LabeledConfigMapNormalizedSource(namespace(), labels(), failFast(),
 							ConfigUtils.Prefix.DEFAULT, false);
 				}
@@ -142,7 +141,7 @@ public abstract sealed class SourceConfigProperties permits ConfigMapConfigPrope
 		}
 
 		return sources().stream()
-			.flatMap(s -> s.normalize(configMap, name(), namespace(), labels(), includeProfileSpecificSources(),
+			.flatMap(s -> s.normalize(sourceType, name(), namespace(), labels(), includeProfileSpecificSources(),
 					failFast(), useNameAsPrefix(), environment))
 			.toList();
 	}
@@ -161,7 +160,7 @@ public abstract sealed class SourceConfigProperties permits ConfigMapConfigPrope
 	public record Source(String name, String namespace, @DefaultValue Map<String, String> labels, String explicitPrefix,
 			Boolean useNameAsPrefix, Boolean includeProfileSpecificSources) {
 
-		Stream<NormalizedSource> normalize(boolean configMap, String defaultName, String defaultNamespace,
+		Stream<NormalizedSource> normalize(SourceType sourceType, String defaultName, String defaultNamespace,
 				Map<String, String> defaultLabels, boolean defaultIncludeProfileSpecificSources, boolean failFast,
 				boolean defaultUseNameAsPrefix, Environment environment) {
 
@@ -171,8 +170,7 @@ public abstract sealed class SourceConfigProperties permits ConfigMapConfigPrope
 			String normalizedNamespace = hasLength(namespace) ? namespace : defaultNamespace;
 			Map<String, String> normalizedLabels = labels.isEmpty() ? defaultLabels : labels;
 
-			String configurationTarget = configMap ? "ConfigMap" : "Secret";
-			String sourceName = getApplicationName(environment, normalizedName, configurationTarget);
+			String sourceName = getApplicationName(environment, normalizedName, sourceType.name());
 
 			Prefix prefix = findPrefix(explicitPrefix, useNameAsPrefix, defaultUseNameAsPrefix, normalizedName);
 
@@ -180,7 +178,7 @@ public abstract sealed class SourceConfigProperties permits ConfigMapConfigPrope
 					defaultIncludeProfileSpecificSources, this.includeProfileSpecificSources);
 
 			NormalizedSource namedSource;
-			if (configMap) {
+			if (sourceType == SourceType.CONFIGMAP) {
 				namedSource = new NamedConfigMapNormalizedSource(sourceName, normalizedNamespace, failFast, prefix,
 						includeProfileSpecificSources);
 			}
@@ -192,7 +190,7 @@ public abstract sealed class SourceConfigProperties permits ConfigMapConfigPrope
 
 			if (!normalizedLabels.isEmpty()) {
 				NormalizedSource labeledSource;
-				if (configMap) {
+				if (sourceType == SourceType.CONFIGMAP) {
 					labeledSource = new LabeledConfigMapNormalizedSource(normalizedNamespace, labels, failFast, prefix,
 							includeProfileSpecificSources);
 				}

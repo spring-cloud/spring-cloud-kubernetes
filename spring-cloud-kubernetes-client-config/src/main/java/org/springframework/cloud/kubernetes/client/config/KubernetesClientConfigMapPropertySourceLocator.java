@@ -57,7 +57,7 @@ public class KubernetesClientConfigMapPropertySourceLocator extends ConfigMapPro
 	}
 
 	@Override
-	protected MapPropertySource getMapPropertySource(NormalizedSource source, ConfigurableEnvironment environment,
+	protected MapPropertySource getPropertySource(ConfigurableEnvironment environment, NormalizedSource source,
 			ReadType readType) {
 
 		String normalizedNamespace = source.namespace().orElse(null);
