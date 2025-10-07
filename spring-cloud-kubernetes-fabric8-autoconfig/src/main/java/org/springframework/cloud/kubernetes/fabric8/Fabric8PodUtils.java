@@ -35,17 +35,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Ioannis Canellos
  */
-public class Fabric8PodUtils implements PodUtils<Pod> {
-
-	/**
-	 * HOSTNAME environment variable name.
-	 */
-	public static final String HOSTNAME = "HOSTNAME";
-
-	/**
-	 * KUBERNETES_SERVICE_HOST environment variable name.
-	 */
-	public static final String KUBERNETES_SERVICE_HOST = "KUBERNETES_SERVICE_HOST";
+final class Fabric8PodUtils implements PodUtils<Pod> {
 
 	private static final Log LOG = LogFactory.getLog(Fabric8PodUtils.class);
 
@@ -63,8 +53,8 @@ public class Fabric8PodUtils implements PodUtils<Pod> {
 		}
 
 		this.client = client;
-		this.hostName = EnvReader.getEnv(HOSTNAME);
-		this.serviceHost = EnvReader.getEnv(KUBERNETES_SERVICE_HOST);
+		this.hostName = EnvReader.getEnv("HOSTNAME");
+		this.serviceHost = EnvReader.getEnv("KUBERNETES_SERVICE_HOST");
 		this.current = LazilyInstantiate.using(this::internalGetPod);
 	}
 

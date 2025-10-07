@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import java.util.Collections;
 
@@ -29,8 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.test.LocalManagementPort;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
-import org.springframework.cloud.kubernetes.example.App;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8HealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -44,7 +42,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * test to see if proper fields are set in health when it is running inside the container
  */
 @Import(Fabric8InsideHealthIndicatorTest.KubernetesActuatorTestConfiguration.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = App.class,
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApp.class,
 		properties = { "management.endpoint.health.show-details=always" })
 class Fabric8InsideHealthIndicatorTest {
 

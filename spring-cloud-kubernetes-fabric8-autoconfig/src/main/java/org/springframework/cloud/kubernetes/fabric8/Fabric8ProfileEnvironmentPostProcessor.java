@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.profile;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
 import org.springframework.cloud.kubernetes.commons.profile.AbstractKubernetesProfileEnvironmentPostProcessor;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8PodUtils;
 import org.springframework.core.env.Environment;
 
-public class Fabric8ProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
+final class Fabric8ProfileEnvironmentPostProcessor extends AbstractKubernetesProfileEnvironmentPostProcessor {
 
 	@Override
 	protected boolean isInsideKubernetes(Environment environment) {
 
 		try (KubernetesClient client = new KubernetesClientBuilder().build()) {
 			Fabric8PodUtils podUtils = new Fabric8PodUtils(client);
-			return environment.containsProperty(Fabric8PodUtils.KUBERNETES_SERVICE_HOST)
+			return environment.containsProperty("KUBERNETES_SERVICE_HOST")
 					|| podUtils.isInsideKubernetes();
 		}
 	}

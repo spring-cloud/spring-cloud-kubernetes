@@ -35,11 +35,11 @@ import org.springframework.util.CollectionUtils;
  * @author Ioannis Canellos
  * @author Eddú Meléndez
  */
-public class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
+final class Fabric8HealthIndicator extends AbstractKubernetesHealthIndicator {
 
 	private final PodUtils<Pod> utils;
 
-	public Fabric8HealthIndicator(PodUtils<Pod> utils) {
+	Fabric8HealthIndicator(PodUtils<Pod> utils) {
 		this.utils = utils;
 	}
 

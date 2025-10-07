@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.example;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class App {
+public class TestApp {
 
 }

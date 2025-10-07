@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.profile;
+package org.springframework.cloud.kubernetes.fabric8;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.cloud.kubernetes.example.App;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +31,7 @@ class Fabric8ProfileEnvironmentPostProcessorTests {
 
 	@Test
 	void whenKubernetesEnvironmentAndNoApiAccessThenProfileEnabled() {
-		ConfigurableApplicationContext context = new SpringApplicationBuilder(App.class)
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestApp.class)
 			.web(org.springframework.boot.WebApplicationType.NONE)
 			.properties("KUBERNETES_SERVICE_HOST=10.0.0.1", "spring.main.cloud-platform=KUBERNETES")
 			.run();
@@ -42,7 +41,7 @@ class Fabric8ProfileEnvironmentPostProcessorTests {
 
 	@Test
 	void whenNoKubernetesEnvironmentAndNoApiAccessThenNoProfileEnabled() {
-		ConfigurableApplicationContext context = new SpringApplicationBuilder(App.class)
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestApp.class)
 			.web(org.springframework.boot.WebApplicationType.NONE)
 			.run();
 

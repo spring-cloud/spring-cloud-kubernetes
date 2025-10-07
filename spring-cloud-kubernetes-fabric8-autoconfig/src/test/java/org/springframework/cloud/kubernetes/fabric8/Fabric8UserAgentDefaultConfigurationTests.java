@@ -21,14 +21,13 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.example.App;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = App.class, properties = "spring.main.cloud-platform=KUBERNETES")
+@SpringBootTest(classes = TestApp.class, properties = "spring.main.cloud-platform=KUBERNETES")
 class Fabric8UserAgentDefaultConfigurationTests {
 
 	@Autowired

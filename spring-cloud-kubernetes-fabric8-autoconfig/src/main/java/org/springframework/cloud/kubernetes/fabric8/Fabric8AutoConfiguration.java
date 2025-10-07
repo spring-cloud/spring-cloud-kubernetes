@@ -42,19 +42,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)
-public class Fabric8AutoConfiguration {
-
-	private static <D> D or(D left, D right) {
-		return left != null ? left : right;
-	}
-
-	private static Integer orDurationInt(Duration left, Integer right) {
-		return left != null ? (int) left.toMillis() : right;
-	}
+final class Fabric8AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(Config.class)
-	public Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
+	Config kubernetesClientConfig(KubernetesClientProperties kubernetesClientProperties) {
 		Config base = Config.autoConfigure(null);
 		ConfigBuilder builder = new ConfigBuilder(base)
 			// Only set values that have been explicitly specified
@@ -103,14 +95,22 @@ public class Fabric8AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public KubernetesClient kubernetesClient(Config config) {
+	KubernetesClient kubernetesClient(Config config) {
 		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public Fabric8PodUtils kubernetesPodUtils(KubernetesClient client) {
+	Fabric8PodUtils kubernetesPodUtils(KubernetesClient client) {
 		return new Fabric8PodUtils(client);
+	}
+
+	private static <D> D or(D left, D right) {
+		return left != null ? left : right;
+	}
+
+	private static Integer orDurationInt(Duration left, Integer right) {
+		return left != null ? (int) left.toMillis() : right;
 	}
 
 }
