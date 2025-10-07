@@ -17,10 +17,12 @@
 package org.springframework.cloud.kubernetes.discoveryserver;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
@@ -82,27 +84,6 @@ class DiscoveryServerIntegrationInstanceEndpointTests {
 	private WebTestClient webTestClient;
 
 	@Test
-	void instanceDeprecated() {
-		Map<String, String> metadata = new HashMap<>();
-		metadata.put("spring", "true");
-		metadata.put("port.http", "8080");
-		metadata.put("k8s_namespace", "namespace");
-		metadata.put("type", "ClusterIP");
-		metadata.put("k8s", "true");
-
-		DefaultKubernetesServiceInstance kubernetesServiceInstance = new DefaultKubernetesServiceInstance(
-				TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
-				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
-				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
-				TEST_SERVICE.getMetadata().getNamespace(), null);
-		webTestClient.get()
-			.uri("/app/test-svc-3/uid2")
-			.exchange()
-			.expectBody(DefaultKubernetesServiceInstance.class)
-			.isEqualTo(kubernetesServiceInstance);
-	}
-
-	@Test
 	void instance() {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put("spring", "true");
@@ -143,8 +124,9 @@ class DiscoveryServerIntegrationInstanceEndpointTests {
 			Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE);
 			Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS);
 
-			return new KubernetesInformerDiscoveryClient(SHARED_INFORMER_FACTORY, serviceLister, endpointsLister, null,
-					null, KubernetesDiscoveryProperties.DEFAULT);
+			return new KubernetesInformerDiscoveryClient(List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister),
+					List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT,
+					Mockito.mock(CoreV1Api.class));
 		}
 
 	}

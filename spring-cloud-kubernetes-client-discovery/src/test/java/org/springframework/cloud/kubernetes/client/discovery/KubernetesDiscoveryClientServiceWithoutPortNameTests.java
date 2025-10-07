@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
@@ -35,6 +36,7 @@ import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -43,6 +45,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
  * @author wind57
  */
 class KubernetesDiscoveryClientServiceWithoutPortNameTests {
+
+	private static final CoreV1Api CORE_V1_API = Mockito.mock(CoreV1Api.class);
 
 	private static final String NAMESPACE = "spring-k8s";
 
@@ -90,8 +94,9 @@ class KubernetesDiscoveryClientServiceWithoutPortNameTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true, false, null);
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);

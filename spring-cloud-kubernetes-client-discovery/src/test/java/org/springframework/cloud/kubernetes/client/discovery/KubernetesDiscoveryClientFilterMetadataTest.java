@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
 import io.kubernetes.client.openapi.models.V1Endpoints;
@@ -35,6 +36,7 @@ import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.assertj.core.util.Strings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -47,6 +49,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 class KubernetesDiscoveryClientFilterMetadataTest {
+
+	private static final CoreV1Api CORE_V1_API = Mockito.mock(CoreV1Api.class);
 
 	private static final SharedInformerFactoryStub STUB = new SharedInformerFactoryStub();
 
@@ -80,8 +84,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
@@ -99,8 +104,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
@@ -119,8 +125,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
@@ -139,8 +146,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -159,8 +167,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -179,8 +188,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "test", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -199,8 +209,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -219,8 +230,9 @@ class KubernetesDiscoveryClientFilterMetadataTest {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(STUB, servicesLister,
-				endpointsLister, SERVICE_SHARED_INFORMER_STUB, ENDPOINTS_SHARED_INFORMER_STUB, properties);
+		KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(List.of(STUB),
+				List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
+				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API);
 
 		setup(serviceId, "ns", Map.of("l1", "la1"), Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
 

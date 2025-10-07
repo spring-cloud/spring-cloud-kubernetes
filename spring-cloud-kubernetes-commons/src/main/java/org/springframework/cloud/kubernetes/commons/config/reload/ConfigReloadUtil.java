@@ -84,7 +84,6 @@ public final class ConfigReloadUtil {
 	 * @param <S> property source type
 	 * @param sourceClass class for which property sources will be found
 	 * @return finds all registered property sources of the given type
-	 * @deprecated this method will not be public in the next major release.
 	 */
 	static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
 			ConfigurableEnvironment environment) {
