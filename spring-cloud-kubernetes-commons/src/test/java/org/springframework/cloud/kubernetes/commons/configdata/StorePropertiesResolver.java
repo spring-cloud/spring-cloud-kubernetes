@@ -14,26 +14,34 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes;
+package org.springframework.cloud.kubernetes.commons.configdata;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.Profiles;
+import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.configdata.ConfigDataPropertiesHolder;
-import org.springframework.cloud.kubernetes.commons.configdata.KubernetesConfigDataLocationResolver;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 
 /**
  * @author wind57
  */
-@ConditionalOnProperty(value = "dummy.config.loader.enabled", havingValue = "true", matchIfMissing = false)
-class DummyConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
+class StorePropertiesResolver extends KubernetesConfigDataLocationResolver {
+
+	SecretsConfigProperties secretsConfigProperties;
+
+	ConfigMapConfigProperties configMapConfigProperties;
+
+	KubernetesClientProperties kubernetesClientProperties;
 
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
 			Profiles profiles, ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 
+		secretsConfigProperties = properties.secretsProperties();
+		configMapConfigProperties = properties.configMapProperties();
+		kubernetesClientProperties = properties.clientProperties();
 	}
 
 }
