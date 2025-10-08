@@ -27,6 +27,11 @@ import org.junit.jupiter.api.Test;
  */
 class SourceDataFlattenerTests {
 
+	@Test
+	void testEmpty() {
+		Assertions.assertThat(SourceData.emptyRecord("name").sourceData()).isEmpty();
+	}
+
 	/**
 	 * <pre>
 	 *     - nameA -> [a, b]
