@@ -20,6 +20,7 @@ import java.util.Collections;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import jakarta.annotation.Nonnull;
 
 import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.cloud.config.client.ConfigServerConfigDataLocationResolver.PropertyResolver;
@@ -37,7 +38,7 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 
 	@Override
-	public void initialize(BootstrapRegistry registry) {
+	public void initialize(@Nonnull BootstrapRegistry registry) {
 		if (hasConfigServerInstanceProvider()) {
 			return;
 		}
@@ -61,8 +62,8 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 			if (!getDiscoveryEnabled(context)) {
 				return (id) -> Collections.emptyList();
 			}
-			if (context.isRegistered(KubernetesDiscoveryClient.class)) {
-				KubernetesDiscoveryClient client = context.get(KubernetesDiscoveryClient.class);
+			if (context.isRegistered(Fabric8DiscoveryClient.class)) {
+				Fabric8DiscoveryClient client = context.get(Fabric8DiscoveryClient.class);
 				return client::getInstances;
 			}
 			else {
@@ -72,12 +73,11 @@ class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper
 					.kubernetesClientConfig(context.get(KubernetesClientProperties.class));
 				KubernetesClient kubernetesClient = fabric8AutoConfiguration.kubernetesClient(config);
 				KubernetesDiscoveryProperties discoveryProperties = context.get(KubernetesDiscoveryProperties.class);
-				KubernetesDiscoveryClient discoveryClient = new KubernetesDiscoveryClient(kubernetesClient,
-						discoveryProperties,
-						KubernetesClientServicesFunctionProvider.servicesFunction(discoveryProperties,
-								new KubernetesNamespaceProvider(propertyResolver
-									.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null))),
-						null, new ServicePortSecureResolver(discoveryProperties));
+				Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(kubernetesClient,
+						discoveryProperties, new ServicePortSecureResolver(discoveryProperties),
+						new KubernetesNamespaceProvider(propertyResolver
+							.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)),
+						new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(discoveryProperties));
 				return discoveryClient::getInstances;
 			}
 		});

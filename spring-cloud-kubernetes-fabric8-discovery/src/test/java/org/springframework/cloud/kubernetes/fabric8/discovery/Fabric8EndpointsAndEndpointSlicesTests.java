@@ -62,10 +62,11 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 	static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = Mockito.mock(KubernetesNamespaceProvider.class);
 
-	static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
+	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
 		.forClass(HeartbeatEvent.class);
 
-	static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito.mock(ApplicationEventPublisher.class);
+	private static final ApplicationEventPublisher APPLICATION_EVENT_PUBLISHER = Mockito
+		.mock(ApplicationEventPublisher.class);
 
 	@BeforeAll
 	static void setUp() {
@@ -247,13 +248,14 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 	 */
 	abstract void testWithoutSubsetsOrEndpoints();
 
-	KubernetesCatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels, Set<String> namespaces,
+	Fabric8CatalogWatch createWatcherInAllNamespacesWithLabels(Map<String, String> labels, Set<String> namespaces,
 			boolean endpointSlices) {
 
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
 				true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false, null);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
+		Fabric8CatalogWatch watch = new Fabric8CatalogWatch(mockClient, properties, NAMESPACE_PROVIDER,
+				APPLICATION_EVENT_PUBLISHER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -261,12 +263,11 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		}
 
 		watch.postConstruct();
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		return watch;
 
 	}
 
-	KubernetesCatalogWatch createWatcherInSpecificNamespaceWithLabels(String namespace, Map<String, String> labels,
+	Fabric8CatalogWatch createWatcherInSpecificNamespaceWithLabels(String namespace, Map<String, String> labels,
 			boolean endpointSlices) {
 
 		when(NAMESPACE_PROVIDER.getNamespace()).thenReturn(namespace);
@@ -274,7 +275,8 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
 				Set.of(namespace), true, 60, false, "", Set.of(), labels, "", null, 0, endpointSlices, false, null);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
+		Fabric8CatalogWatch watch = new Fabric8CatalogWatch(mockClient, properties, NAMESPACE_PROVIDER,
+				APPLICATION_EVENT_PUBLISHER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
@@ -282,25 +284,24 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 		}
 
 		watch.postConstruct();
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		return watch;
 
 	}
 
-	KubernetesCatalogWatch createWatcherInSpecificNamespacesWithLabels(Set<String> namespaces,
-			Map<String, String> labels, boolean endpointSlices) {
+	Fabric8CatalogWatch createWatcherInSpecificNamespacesWithLabels(Set<String> namespaces, Map<String, String> labels,
+			boolean endpointSlices) {
 
 		// all-namespaces = false
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, namespaces, true, 60,
 				false, "", Set.of(), labels, "", null, 0, false, false, null);
-		KubernetesCatalogWatch watch = new KubernetesCatalogWatch(mockClient, properties, NAMESPACE_PROVIDER);
+		Fabric8CatalogWatch watch = new Fabric8CatalogWatch(mockClient, properties, NAMESPACE_PROVIDER,
+				APPLICATION_EVENT_PUBLISHER);
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
 			Mockito.doReturn(new Fabric8EndpointSliceV1CatalogWatch()).when(watch).stateGenerator();
 		}
 
-		watch.setApplicationEventPublisher(APPLICATION_EVENT_PUBLISHER);
 		watch.postConstruct();
 		return watch;
 
@@ -379,7 +380,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 	}
 
-	static void invokeAndAssert(KubernetesCatalogWatch watch, List<EndpointNameAndNamespace> state) {
+	static void invokeAndAssert(Fabric8CatalogWatch watch, List<EndpointNameAndNamespace> state) {
 		watch.catalogServicesWatch();
 
 		verify(APPLICATION_EVENT_PUBLISHER, Mockito.atLeastOnce())
