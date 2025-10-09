@@ -27,7 +27,7 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.Service;
 

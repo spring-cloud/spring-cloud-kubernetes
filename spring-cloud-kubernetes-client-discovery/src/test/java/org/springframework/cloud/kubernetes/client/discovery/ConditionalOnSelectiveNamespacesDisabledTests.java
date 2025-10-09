@@ -27,7 +27,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 
-public class ConditionalOnSelectiveNamespacesDisabledTests {
+class ConditionalOnSelectiveNamespacesDisabledTests {
 
 	private static final ConditionalOnSelectiveNamespacesMissing TO_TEST = new ConditionalOnSelectiveNamespacesMissing();
 

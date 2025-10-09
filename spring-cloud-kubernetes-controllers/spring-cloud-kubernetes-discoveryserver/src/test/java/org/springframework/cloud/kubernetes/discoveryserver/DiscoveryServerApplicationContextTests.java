@@ -25,7 +25,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 
 /**

@@ -62,21 +62,20 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 @Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesClientInformerAutoConfiguration {
+final class KubernetesClientInformerAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SharedInformerFactory sharedInformerFactory(ApiClient client) {
+	SharedInformerFactory sharedInformerFactory(ApiClient client) {
 		LOG.debug(() -> "registering sharedInformerFactory for non-selective namespaces");
 		return new SharedInformerFactory(client);
 	}
 
 	@Bean
-	public String kubernetesClientNamespace(KubernetesDiscoveryProperties properties,
-			KubernetesNamespaceProvider provider) {
+	String kubernetesClientNamespace(KubernetesDiscoveryProperties properties, KubernetesNamespaceProvider provider) {
 		String namespace;
 		if (properties.allNamespaces()) {
 			namespace = NAMESPACE_ALL;
@@ -99,7 +98,7 @@ public class KubernetesClientInformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = SharedIndexInformer.class)
-	public SharedIndexInformer<V1Service> servicesSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
+	SharedIndexInformer<V1Service> servicesSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
 			ApiClient apiClient, String kubernetesClientNamespace) {
 
 		GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
@@ -111,7 +110,7 @@ public class KubernetesClientInformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = SharedIndexInformer.class)
-	public SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
+	SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
 			ApiClient apiClient, String kubernetesClientNamespace) {
 
 		GenericKubernetesApi<V1Endpoints, V1EndpointsList> servicesApi = new GenericKubernetesApi<>(V1Endpoints.class,
@@ -123,14 +122,14 @@ public class KubernetesClientInformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = Lister.class)
-	public Lister<V1Service> servicesLister(SharedIndexInformer<V1Service> servicesSharedIndexInformer,
+	Lister<V1Service> servicesLister(SharedIndexInformer<V1Service> servicesSharedIndexInformer,
 			String kubernetesClientNamespace) {
 		return new Lister<>(servicesSharedIndexInformer.getIndexer(), kubernetesClientNamespace);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = Lister.class)
-	public Lister<V1Endpoints> endpointsLister(SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer,
+	Lister<V1Endpoints> endpointsLister(SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer,
 			String kubernetesClientNamespace) {
 		return new Lister<>(endpointsSharedIndexInformer.getIndexer(), kubernetesClientNamespace);
 	}

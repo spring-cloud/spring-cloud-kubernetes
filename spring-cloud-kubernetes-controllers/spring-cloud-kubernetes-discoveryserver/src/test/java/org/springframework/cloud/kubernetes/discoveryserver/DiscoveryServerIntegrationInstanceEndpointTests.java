@@ -40,7 +40,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.reactive.HandleToReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;

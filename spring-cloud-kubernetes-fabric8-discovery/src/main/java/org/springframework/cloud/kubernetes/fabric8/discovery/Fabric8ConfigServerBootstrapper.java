@@ -35,7 +35,7 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 /**
  * @author Ryan Baxter
  */
-class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
+final class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 
 	@Override
 	public void initialize(@Nonnull BootstrapRegistry registry) {

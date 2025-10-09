@@ -26,7 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;

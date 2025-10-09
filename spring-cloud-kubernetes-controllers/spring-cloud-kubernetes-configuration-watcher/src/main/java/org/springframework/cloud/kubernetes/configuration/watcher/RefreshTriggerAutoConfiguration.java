@@ -20,7 +20,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.bus.BusProperties;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

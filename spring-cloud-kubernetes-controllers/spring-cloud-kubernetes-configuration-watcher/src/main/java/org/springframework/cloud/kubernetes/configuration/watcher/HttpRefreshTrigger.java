@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
