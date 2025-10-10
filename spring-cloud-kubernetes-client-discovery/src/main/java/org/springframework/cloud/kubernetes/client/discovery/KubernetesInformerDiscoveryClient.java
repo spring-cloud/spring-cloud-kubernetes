@@ -55,6 +55,7 @@ import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDi
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.externalNameServiceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 
@@ -144,10 +145,8 @@ public class KubernetesInformerDiscoveryClient implements DiscoveryClient {
 						properties);
 
 				K8sInstanceIdHostPodNameSupplier supplierOne = externalName(service);
-				K8sPodLabelsAndAnnotationsSupplier supplierTwo = externalName();
-
-				ServiceInstance externalNameServiceInstance = serviceInstance(null, serviceMetadata, supplierOne,
-						supplierTwo, new ServicePortNameAndNumber(-1, null), serviceInstanceMetadata, properties);
+				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(serviceMetadata,
+					supplierOne, serviceInstanceMetadata);
 				serviceInstances.add(externalNameServiceInstance);
 			}
 		}

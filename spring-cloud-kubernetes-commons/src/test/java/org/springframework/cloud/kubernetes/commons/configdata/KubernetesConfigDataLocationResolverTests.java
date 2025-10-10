@@ -289,11 +289,6 @@ class KubernetesConfigDataLocationResolverTests {
 		Mockito.when(RESOLVER_CONTEXT.getBinder()).thenReturn(binder);
 		Mockito.when(RESOLVER_CONTEXT.getBootstrapContext()).thenReturn(new DefaultBootstrapContext());
 
-		Profiles profiles = Mockito.mock(Profiles.class);
-		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT,
-				configDataLocation, profiles);
-
 		// on the other hand, @Default will be picked here
 		Assertions.assertThat(storePropertiesResolver.configMapConfigProperties.enabled()).isTrue();
 
