@@ -27,7 +27,7 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY_CATALOG
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_DISCOVERY
               value: "DEBUG"
             - name: SPRING_CLOUD_KUBERNETES_DISCOVERY_USE_ENDPOINT_SLICES
               value: "FALSE"
