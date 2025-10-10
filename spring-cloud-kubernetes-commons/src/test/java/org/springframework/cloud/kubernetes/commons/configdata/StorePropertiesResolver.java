@@ -16,9 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.configdata;
 
-import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
-import org.springframework.boot.context.config.Profiles;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
@@ -37,7 +35,7 @@ class StorePropertiesResolver extends KubernetesConfigDataLocationResolver {
 
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
-		ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
+			ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 
 		secretsConfigProperties = properties.secretsProperties();
 		configMapConfigProperties = properties.configMapProperties();

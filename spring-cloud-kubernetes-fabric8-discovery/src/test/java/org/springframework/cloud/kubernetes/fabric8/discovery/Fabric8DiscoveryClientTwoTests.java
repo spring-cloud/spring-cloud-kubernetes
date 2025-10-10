@@ -553,8 +553,8 @@ class Fabric8DiscoveryClientTwoTests {
 		Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(client, properties, null, null, null);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(1);
-		KubernetesExternalNameServiceInstance externalNameServiceInstance =
-			(KubernetesExternalNameServiceInstance) result.get(0);
+		KubernetesExternalNameServiceInstance externalNameServiceInstance = (KubernetesExternalNameServiceInstance) result
+			.get(0);
 		Assertions.assertThat(externalNameServiceInstance.getServiceId()).isEqualTo("blue-service");
 		Assertions.assertThat(externalNameServiceInstance.getHost()).isEqualTo("k8s-spring-b");
 		Assertions.assertThat(externalNameServiceInstance.getPort()).isEqualTo(-1);

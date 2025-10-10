@@ -39,8 +39,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureR
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
-import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.externalNameServiceInstance;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.serviceMetadata;
@@ -50,7 +50,6 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.services;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.externalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.nonExternalName;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.externalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName;
 
 /**
@@ -114,9 +113,8 @@ final class Fabric8DiscoveryClient implements DiscoveryClient {
 
 				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
 
-				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(
-					serviceMetadata, supplierOne, serviceInstanceMetadata
-				);
+				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(serviceMetadata, supplierOne,
+						serviceInstanceMetadata);
 
 				instances.add(externalNameServiceInstance);
 			}

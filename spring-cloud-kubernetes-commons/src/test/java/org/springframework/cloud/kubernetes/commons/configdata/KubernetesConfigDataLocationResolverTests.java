@@ -50,7 +50,7 @@ class KubernetesConfigDataLocationResolverTests {
 
 		@Override
 		protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
-			ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
+				ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 		}
 
 	};

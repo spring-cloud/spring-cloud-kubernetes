@@ -50,11 +50,10 @@ import static org.springframework.cloud.kubernetes.client.discovery.KubernetesCl
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInstanceIdHostPodNameSupplier.externalName;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInstanceIdHostPodNameSupplier.nonExternalName;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientPodLabelsAndAnnotationsSupplier.externalName;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientPodLabelsAndAnnotationsSupplier.nonExternalName;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.endpointsPort;
-import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.externalNameServiceInstance;
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstance;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.serviceInstanceMetadata;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.EXTERNAL_NAME;
 
@@ -144,8 +143,8 @@ class KubernetesClientInformerDiscoveryClient implements DiscoveryClient {
 						properties);
 
 				KubernetesClientInstanceIdHostPodNameSupplier supplierOne = externalName(service);
-				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(serviceMetadata,
-					supplierOne, serviceInstanceMetadata);
+				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(serviceMetadata, supplierOne,
+						serviceInstanceMetadata);
 				serviceInstances.add(externalNameServiceInstance);
 			}
 		}

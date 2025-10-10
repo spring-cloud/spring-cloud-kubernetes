@@ -20,9 +20,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.boot.bootstrap.ConfigurableBootstrapContext;
-import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
-import org.springframework.boot.context.config.Profiles;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
@@ -46,7 +44,7 @@ public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocat
 
 	@Override
 	protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
-		ConfigDataPropertiesHolder propertiesHolder, KubernetesNamespaceProvider namespaceProvider) {
+			ConfigDataPropertiesHolder propertiesHolder, KubernetesNamespaceProvider namespaceProvider) {
 
 		KubernetesClientProperties kubernetesClientProperties = propertiesHolder.clientProperties();
 		ConfigMapConfigProperties configMapProperties = propertiesHolder.configMapProperties();

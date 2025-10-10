@@ -21,9 +21,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.boot.bootstrap.ConfigurableBootstrapContext;
-import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
-import org.springframework.boot.context.config.Profiles;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigDataRetryableConfigMapPropertySourceLocator;
@@ -34,7 +32,6 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperti
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.configdata.ConfigDataPropertiesHolder;
 import org.springframework.cloud.kubernetes.commons.configdata.KubernetesConfigDataLocationResolver;
-import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
 import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.registerSingle;
@@ -45,7 +42,8 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
 public class KubernetesClientConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
 	@Override
-	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
+	protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
+			ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 		KubernetesClientProperties kubernetesClientProperties = properties.clientProperties();
 		ConfigMapConfigProperties configMapProperties = properties.configMapProperties();
 		SecretsConfigProperties secretsProperties = properties.secretsProperties();

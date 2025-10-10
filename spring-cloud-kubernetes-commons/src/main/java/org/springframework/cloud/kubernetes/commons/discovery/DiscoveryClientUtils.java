@@ -159,14 +159,13 @@ public final class DiscoveryClientUtils {
 				podMetadata);
 	}
 
-	public static ServiceInstance externalNameServiceInstance(
-		ServiceMetadata serviceMetadata, Supplier<InstanceIdHostPodName> instanceIdAndHost,
-		Map<String, String> serviceInstanceMetadata) {
+	public static ServiceInstance externalNameServiceInstance(ServiceMetadata serviceMetadata,
+			Supplier<InstanceIdHostPodName> instanceIdAndHost, Map<String, String> serviceInstanceMetadata) {
 
 		InstanceIdHostPodName data = instanceIdAndHost.get();
 
-		return new KubernetesExternalNameServiceInstance(serviceMetadata.name(), data.host(),
-			data.instanceId(), serviceInstanceMetadata);
+		return new KubernetesExternalNameServiceInstance(serviceMetadata.name(), data.host(), data.instanceId(),
+				serviceInstanceMetadata);
 
 	}
 
