@@ -1,5 +1,5 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientConfigClientBootstrapConfiguration
+org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientConfigClientBootstrapConfiguration
 
 org.springframework.boot.bootstrap.BootstrapRegistryInitializer=\
 org.springframework.cloud.kubernetes.client.discovery.KubernetesClientConfigServerBootstrapper

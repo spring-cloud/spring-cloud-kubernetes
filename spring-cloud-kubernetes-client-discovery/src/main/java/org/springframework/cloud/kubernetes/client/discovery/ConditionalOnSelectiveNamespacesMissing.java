@@ -33,7 +33,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  *
  * @author wind57
  */
-public final class ConditionalOnSelectiveNamespacesMissing implements ConfigurationCondition {
+final class ConditionalOnSelectiveNamespacesMissing implements ConfigurationCondition {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(ConditionalOnSelectiveNamespacesMissing.class));

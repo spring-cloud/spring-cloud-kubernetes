@@ -62,7 +62,7 @@ import org.springframework.core.log.LogAccessor;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
-public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
+final class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class));
@@ -70,7 +70,7 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	public List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties) {
+	List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties) {
 		List<String> selectiveNamespaces = properties.namespaces().stream().sorted().toList();
 		LOG.debug(() -> "using selective namespaces : " + selectiveNamespaces);
 		return selectiveNamespaces;
@@ -78,7 +78,7 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = SharedInformerFactory.class, parameterizedContainer = List.class)
-	public List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, List<String> selectiveNamespaces) {
+	List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, List<String> selectiveNamespaces) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howManyNamespaces);
@@ -91,7 +91,7 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class,
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
-	public List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
+	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
 			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
 			ApiClient apiClient) {
 
@@ -109,7 +109,7 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = { List.class, Lister.class })
-	public List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
+	List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
 			List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
@@ -128,7 +128,7 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class,
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
-	public List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
+	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
 			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
 			ApiClient apiClient) {
 
@@ -146,7 +146,7 @@ public class KubernetesClientInformerSelectiveNamespacesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
-	public List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
+	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
 			List<SharedIndexInformer<V1Endpoints>> serviceSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();

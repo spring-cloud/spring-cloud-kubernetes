@@ -20,7 +20,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,9 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DiscoveryServerController {
 
-	private final KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
+	private final KubernetesClientInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	public DiscoveryServerController(KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient) {
+	public DiscoveryServerController(KubernetesClientInformerReactiveDiscoveryClient reactiveDiscoveryClient) {
 		this.reactiveDiscoveryClient = reactiveDiscoveryClient;
 	}
 
