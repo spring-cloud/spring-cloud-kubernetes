@@ -150,7 +150,7 @@ class KubernetesClientServicesListSupplierTests {
 		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
 				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance serviceA = new DefaultKubernetesServiceInstance("0", "service-a",
-				"service-a.default.svc.cluster.local", 80, metadata, false);
+				"service-a.default.svc.cluster.local", 80, metadata, false, null, null, Map.of());
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(serviceA);
 
@@ -218,9 +218,10 @@ class KubernetesClientServicesListSupplierTests {
 		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
 				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0",
-				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false);
+				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false, null, null, Map.of());
 		DefaultKubernetesServiceInstance serviceATestNamespace = new DefaultKubernetesServiceInstance("1", "service-a",
-				"service-a.test.svc.cluster.local", 80, Map.of("k8s_namespace", "test", "type", "V1Service"), false);
+				"service-a.test.svc.cluster.local", 80, Map.of("k8s_namespace", "test", "type", "V1Service"), false,
+				null, null, Map.of());
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(serviceADefaultNamespace);
 		services.add(serviceATestNamespace);
@@ -263,9 +264,10 @@ class KubernetesClientServicesListSupplierTests {
 		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
 				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance serviceADefaultNamespace = new DefaultKubernetesServiceInstance("0",
-				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false);
+				"service-a", "service-a.default.svc.cluster.local", 80, metadata, false, null, null, Map.of());
 		DefaultKubernetesServiceInstance serviceATestNamespace = new DefaultKubernetesServiceInstance("1", "service-a",
-				"service-a.test.svc.cluster.local", 80, Map.of("k8s_namespace", "test", "type", "V1Service"), false);
+				"service-a.test.svc.cluster.local", 80, Map.of("k8s_namespace", "test", "type", "V1Service"), false,
+				null, null, Map.of());
 		List<ServiceInstance> services = new ArrayList<>();
 		services.add(serviceADefaultNamespace);
 		services.add(serviceATestNamespace);

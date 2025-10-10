@@ -107,14 +107,14 @@ class DiscoveryServerIntegrationAppsEndpointTests {
 				TEST_SERVICE_A.getMetadata().getName(),
 				TEST_ENDPOINTS_A.getSubsets().get(0).getAddresses().get(0).getIp(),
 				TEST_ENDPOINTS_A.getSubsets().get(0).getPorts().get(0).getPort(), metadataA, false,
-				TEST_SERVICE_A.getMetadata().getNamespace(), null);
+				TEST_SERVICE_A.getMetadata().getNamespace(), null, Map.of());
 
 		DefaultKubernetesServiceInstance kubernetesServiceInstance2 = new DefaultKubernetesServiceInstance(
 				TEST_ENDPOINTS_B.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
 				TEST_SERVICE_B.getMetadata().getName(),
 				TEST_ENDPOINTS_B.getSubsets().get(0).getAddresses().get(0).getIp(),
 				TEST_ENDPOINTS_B.getSubsets().get(0).getPorts().get(0).getPort(), metadataB, false,
-				TEST_SERVICE_B.getMetadata().getNamespace(), null);
+				TEST_SERVICE_B.getMetadata().getNamespace(), null, Map.of());
 
 		webTestClient.get()
 			.uri("/apps")

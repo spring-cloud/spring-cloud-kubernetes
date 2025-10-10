@@ -225,7 +225,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		fooEndpointPort.setPort(port);
 		List<ServiceInstance> instances = new ArrayList<>();
 		DefaultKubernetesServiceInstance fooServiceInstance = new DefaultKubernetesServiceInstance("foo", "foo",
-				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false);
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false, null, null, Map.of());
 		instances.add(fooServiceInstance);
 		return instances;
 	}
@@ -240,7 +240,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		DefaultKubernetesServiceInstance fooServiceInstance = new DefaultKubernetesServiceInstance("foo", "foo",
-				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false);
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false, null, null, Map.of());
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 	}

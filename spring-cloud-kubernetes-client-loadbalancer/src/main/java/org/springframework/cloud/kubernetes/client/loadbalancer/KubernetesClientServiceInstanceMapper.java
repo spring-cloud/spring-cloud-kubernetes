@@ -116,7 +116,7 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 		boolean secure = secure(port, service);
 
 		return new DefaultKubernetesServiceInstance(metadata.getUid(), metadata.getName(), host, port.getPort(),
-				serviceMetadata(service), secure);
+				serviceMetadata(service), secure, null, null, Map.of());
 	}
 
 	private Map<String, String> serviceMetadata(V1Service service) {
