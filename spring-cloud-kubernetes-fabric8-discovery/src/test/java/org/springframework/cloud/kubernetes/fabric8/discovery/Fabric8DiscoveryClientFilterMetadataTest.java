@@ -323,12 +323,6 @@ class Fabric8DiscoveryClientFilterMetadataTest {
 		}).collect(toList());
 	}
 
-	private static Environment withClientNamespace() {
-		MockEnvironment mockEnvironment = new MockEnvironment();
-		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
-		return mockEnvironment;
-	}
-
 	private static Environment mockEnvironment() {
 		MockEnvironment environment = new MockEnvironment();
 		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");

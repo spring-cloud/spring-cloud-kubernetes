@@ -149,7 +149,6 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		List<String> names = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
 		assertThat(propertySource.getPropertySources()).isEmpty();
 		assertThat(output.getOut()).contains("Failed to load source: { config-map name : 'Optional[one]'");
@@ -181,7 +180,6 @@ class Fabric8ConfigMapErrorOnReadingSourceTests {
 				configMapConfigProperties, new KubernetesNamespaceProvider(new MockEnvironment()));
 
 		CompositePropertySource propertySource = (CompositePropertySource) locator.locate(new MockEnvironment());
-		List<String> sourceNames = propertySource.getPropertySources().stream().map(PropertySource::getName).toList();
 
 		assertThat(propertySource.getPropertySources()).isEmpty();
 		assertThat(output.getOut()).contains("Failed to load source: { config map labels : '{a=b}'");

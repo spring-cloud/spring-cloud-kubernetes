@@ -24,7 +24,6 @@ import java.net.HttpURLConnection;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -626,40 +625,6 @@ public final class Util {
 				LOG.info("Deployment Condition Reason: " + condition.getReason());
 			}
 		}
-	}
-
-	private static boolean isDeploymentReadyAfterPatch(String deploymentName, String namespace,
-			Map<String, String> podLabels) throws ApiException {
-
-		V1DeploymentList deployments = new AppsV1Api().listNamespacedDeployment(namespace)
-			.fieldSelector("metadata.name=" + deploymentName)
-			.execute();
-		if (deployments.getItems().isEmpty()) {
-			Assertions.fail("No deployment with name " + deploymentName);
-		}
-
-		V1Deployment deployment = deployments.getItems().get(0);
-		// if no replicas are defined, it means only 1 is needed
-		int replicas = Optional.ofNullable(deployment.getSpec().getReplicas()).orElse(1);
-		int readyReplicas = Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
-
-		if (readyReplicas != replicas) {
-			LOG.info("ready replicas not yet same as replicas");
-			return false;
-		}
-
-		int pods = new CoreV1Api().listNamespacedPod(namespace)
-			.labelSelector(labelSelector(podLabels))
-			.execute()
-			.getItems()
-			.size();
-
-		if (pods != replicas) {
-			LOG.info("number of pods not yet stabilized");
-			return false;
-		}
-
-		return true;
 	}
 
 	private static <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {

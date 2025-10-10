@@ -31,8 +31,8 @@ import org.springframework.cloud.kubernetes.commons.configdata.KubernetesConfigD
 class Fabric8DummyConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
 	@Override
-	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-			Profiles profiles, ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
+	protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
+		ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 	}
 
 }

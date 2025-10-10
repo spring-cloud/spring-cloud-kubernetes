@@ -45,8 +45,7 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
 public class KubernetesClientConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
 	@Override
-	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-			Profiles profiles, ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
+	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 		KubernetesClientProperties kubernetesClientProperties = properties.clientProperties();
 		ConfigMapConfigProperties configMapProperties = properties.configMapProperties();
 		SecretsConfigProperties secretsProperties = properties.secretsProperties();
@@ -89,10 +88,6 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 		bootstrapContext.registerIfAbsent(CoreV1Api.class, BootstrapRegistry.InstanceSupplier.of(coreV1Api));
 
 		return coreV1Api;
-	}
-
-	protected KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
-		return new KubernetesNamespaceProvider(environment);
 	}
 
 }

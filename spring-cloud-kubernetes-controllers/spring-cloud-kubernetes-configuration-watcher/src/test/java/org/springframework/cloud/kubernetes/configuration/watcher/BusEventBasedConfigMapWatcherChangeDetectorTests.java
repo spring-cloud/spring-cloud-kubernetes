@@ -67,8 +67,6 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
 
-	private BusEventBasedConfigMapWatcherChangeDetector changeDetector;
-
 	private BusProperties busProperties;
 
 	private MockEnvironment mockEnvironment;

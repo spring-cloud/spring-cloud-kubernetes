@@ -45,9 +45,8 @@ import static org.springframework.cloud.kubernetes.commons.config.ConfigUtils.re
 public class Fabric8ConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
 	@Override
-	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-			Profiles profiles, ConfigDataPropertiesHolder propertiesHolder,
-			KubernetesNamespaceProvider namespaceProvider) {
+	protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
+		ConfigDataPropertiesHolder propertiesHolder, KubernetesNamespaceProvider namespaceProvider) {
 
 		KubernetesClientProperties kubernetesClientProperties = propertiesHolder.clientProperties();
 		ConfigMapConfigProperties configMapProperties = propertiesHolder.configMapProperties();

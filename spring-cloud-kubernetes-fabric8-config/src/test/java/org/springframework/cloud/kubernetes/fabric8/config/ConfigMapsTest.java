@@ -159,9 +159,8 @@ class ConfigMapsTest {
 		Fabric8ConfigContext context = new Fabric8ConfigContext(mockClient, source, "", new MockEnvironment(),
 				ReadType.BATCH);
 
-		Fabric8ConfigMapPropertySource cmps = new Fabric8ConfigMapPropertySource(context);
+		Assertions.assertThatCode(() -> new Fabric8ConfigMapPropertySource(context)).doesNotThrowAnyException();
 
-		// no exception is thrown for unparseable content
 	}
 
 	@Test
