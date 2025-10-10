@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -50,7 +51,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 /**
  * @author Ryan Baxter
  */
-class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
+final class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBootstrapper {
 
 	private static final Log LOG = LogFactory.getLog(KubernetesClientConfigServerBootstrapper.class);
 
@@ -70,8 +71,9 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 			if (!getDiscoveryEnabled(context)) {
 				return (id) -> Collections.emptyList();
 			}
-			if (context.isRegistered(KubernetesInformerDiscoveryClient.class)) {
-				KubernetesInformerDiscoveryClient client = context.get(KubernetesInformerDiscoveryClient.class);
+			if (context.isRegistered(KubernetesClientInformerDiscoveryClient.class)) {
+				KubernetesClientInformerDiscoveryClient client = context
+					.get(KubernetesClientInformerDiscoveryClient.class);
 				return client::getInstances;
 			}
 			else {
@@ -97,10 +99,11 @@ class KubernetesClientConfigServerBootstrapper extends KubernetesConfigServerBoo
 				SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer = sharedInformerFactory
 					.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
 				Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsSharedIndexInformer.getIndexer());
-				KubernetesInformerDiscoveryClient discoveryClient = new KubernetesInformerDiscoveryClient(
+				Predicate<V1Service> predicate = x -> true;
+				KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
 						List.of(sharedInformerFactory), List.of(serviceLister), List.of(endpointsLister),
 						List.of(serviceSharedIndexInformer), List.of(endpointsSharedIndexInformer), discoveryProperties,
-						new CoreV1Api(apiClient));
+						new CoreV1Api(apiClient), predicate);
 				try {
 					discoveryClient.afterPropertiesSet();
 					return discoveryClient::getInstances;

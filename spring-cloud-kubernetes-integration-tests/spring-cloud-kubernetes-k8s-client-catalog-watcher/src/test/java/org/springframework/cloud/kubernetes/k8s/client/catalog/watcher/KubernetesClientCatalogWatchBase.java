@@ -42,7 +42,7 @@ import org.springframework.test.context.TestPropertySource;
 		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.import-check.enabled=false",
 				"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=2000",
 				"spring.cloud.kubernetes.client.namespace=default",
-				"logging.level.org.springframework.cloud.kubernetes.client.discovery.catalog=DEBUG" })
+				"logging.level.org.springframework.cloud.kubernetes.client.discovery=DEBUG" })
 @ExtendWith(OutputCaptureExtension.class)
 abstract class KubernetesClientCatalogWatchBase {
 

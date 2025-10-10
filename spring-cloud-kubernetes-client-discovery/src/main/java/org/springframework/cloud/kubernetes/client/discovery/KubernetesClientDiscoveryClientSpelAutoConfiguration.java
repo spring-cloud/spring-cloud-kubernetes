@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
+package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import io.fabric8.kubernetes.api.model.Service;
+import io.kubernetes.client.openapi.models.V1Service;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
@@ -43,18 +43,18 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 @ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesDiscoveryPropertiesAutoConfiguration.class)
-final class Fabric8DiscoveryClientSpelAutoConfiguration {
+final class KubernetesClientDiscoveryClientSpelAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	Predicate<Service> predicate(KubernetesDiscoveryProperties properties) {
+	Predicate<V1Service> predicate(KubernetesDiscoveryProperties properties) {
 		SpelExpressionParser parser = new SpelExpressionParser();
 		SimpleEvaluationContext evaluationContext = SimpleEvaluationContext.forReadOnlyDataBinding()
 			.withInstanceMethods()
 			.build();
 
 		String spelExpression = properties.filter();
-		Predicate<Service> predicate;
+		Predicate<V1Service> predicate;
 		if (spelExpression == null || spelExpression.isEmpty()) {
 			predicate = service -> true;
 		}

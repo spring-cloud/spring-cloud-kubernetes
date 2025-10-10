@@ -46,7 +46,7 @@ import reactor.test.StepVerifier;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -83,7 +83,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
 	@Mock
-	private KubernetesInformerReactiveDiscoveryClient reactiveDiscoveryClient;
+	private KubernetesClientInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
 	private MockEnvironment mockEnvironment;
 

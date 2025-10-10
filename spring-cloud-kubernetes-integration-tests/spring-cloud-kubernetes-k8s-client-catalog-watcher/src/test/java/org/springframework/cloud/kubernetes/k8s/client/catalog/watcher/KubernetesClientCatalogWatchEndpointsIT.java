@@ -75,7 +75,7 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 	 */
 	@Test
 	void testCatalogWatchWithEndpoints(CapturedOutput output) {
-		assertLogStatement(output, "stateGenerator is of type: KubernetesEndpointsCatalogWatch");
+		assertLogStatement(output, "stateGenerator is of type: KubernetesClientEndpointsCatalogWatch");
 		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
