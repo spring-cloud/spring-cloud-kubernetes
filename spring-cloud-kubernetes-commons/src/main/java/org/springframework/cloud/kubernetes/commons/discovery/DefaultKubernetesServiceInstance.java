@@ -38,24 +38,6 @@ public record DefaultKubernetesServiceInstance(String instanceId, String service
 		Map<String, String> metadata, boolean secure, String namespace, String cluster,
 		Map<String, Map<String, String>> podMetadata) implements KubernetesServiceInstance {
 
-	/**
-	 * @param instanceId the id of the instance.
-	 * @param serviceId the id of the service.
-	 * @param host the address where the service instance can be found.
-	 * @param port the port on which the service is running.
-	 * @param metadata a map containing metadata.
-	 * @param secure indicates whether the connection needs to be secure.
-	 */
-	public DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
-			Map<String, String> metadata, boolean secure) {
-		this(instanceId, serviceId, host, port, metadata, secure, null, null, Map.of());
-	}
-
-	public DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
-			Map<String, String> metadata, boolean secure, String namespace, String cluster) {
-		this(instanceId, serviceId, host, port, metadata, secure, namespace, cluster, Map.of());
-	}
-
 	@Override
 	public String getInstanceId() {
 		return this.instanceId;

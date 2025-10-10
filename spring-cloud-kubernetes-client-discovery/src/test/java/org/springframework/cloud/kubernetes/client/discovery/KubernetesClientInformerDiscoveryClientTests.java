@@ -112,7 +112,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1").toArray())
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
 					Map.of("port.<unset>", "80", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-					"namespace1", null));
+					"namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -162,7 +162,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 				new DefaultKubernetesServiceInstance(
 						null, "test-svc-3", "2.2.2.2", 8080, Map.of("spring", "true", "port.<unset>", "8080", "k8s",
 								"true", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-						false, "namespace1", null));
+						false, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -215,7 +215,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 					Map.of("port.<unset>", "8080", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-					"namespace1", null));
+					"namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -230,7 +230,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 					Map.of("port.<unset>", "8080", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-					"namespace1", null));
+					"namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -261,7 +261,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 					Map.of("port.<unset>", "8080", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-					"namespace1", null));
+					"namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -287,7 +287,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 0,
-					Map.of("k8s_namespace", "namespace1", "type", "ClusterIP"), false, "namespace1", null));
+					Map.of("k8s_namespace", "namespace1", "type", "ClusterIP"), false, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -299,10 +299,10 @@ class KubernetesClientInformerDiscoveryClientTests {
 				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
-		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(
-				null, "test-svc-1", "1.1.1.1", 443, Map.of("port.http", "80", "primary-port-name", "https",
-						"port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-				true, "namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(null,
+				"test-svc-1", "1.1.1.1", 443, Map.of("port.http", "80", "primary-port-name", "https", "port.https",
+						"443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+				true, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -315,11 +315,10 @@ class KubernetesClientInformerDiscoveryClientTests {
 				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
-		assertThat(discoveryClient.getInstances("test-svc-1"))
-			.containsOnly(new DefaultKubernetesServiceInstance(
-					null, "test-svc-1", "1.1.1.1", 80, Map.of("port.tcp1", "80", "primary-port-name", "oops",
-							"port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-					false, "namespace1", null));
+		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(
+				null, "test-svc-1", "1.1.1.1", 80, Map.of("port.tcp1", "80", "primary-port-name", "oops", "port.tcp2",
+						"443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
+				false, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -334,7 +333,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 443,
 					Map.of("port.http", "80", "port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-					true, "namespace1", null));
+					true, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -350,7 +349,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
 					Map.of("port.tcp1", "80", "port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-					false, "namespace1", null));
+					false, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -365,7 +364,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 443,
 					Map.of("port.http", "80", "port.https", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-					true, "namespace1", null));
+					true, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -380,7 +379,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
 					Map.of("port.http", "80", "port.tcp", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-					false, "namespace1", null));
+					false, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -396,7 +395,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
 					Map.of("port.tcp1", "80", "port.tcp2", "443", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-					false, "namespace1", null));
+					false, "namespace1", null, Map.of()));
 	}
 
 	@Test
@@ -411,10 +410,10 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(
 				new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 						Map.of("port.<unset>", "8080", "k8s_namespace", "namespace1", "type", "ClusterIP"), false,
-						"namespace1", null),
+						"namespace1", null, Map.of()),
 				new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 						Map.of("port.<unset>", "8080", "k8s_namespace", "namespace2", "type", "ClusterIP"), false,
-						"namespace2", null));
+						"namespace2", null, Map.of()));
 	}
 
 	@Test

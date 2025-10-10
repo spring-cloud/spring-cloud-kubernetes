@@ -137,7 +137,7 @@ class KubernetesClientInformerReactiveDiscoveryClientTests {
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
 			.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 					Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
-					"namespace1", null))
+					"namespace1", null, Map.of()))
 			.expectComplete()
 			.verify();
 
@@ -159,7 +159,7 @@ class KubernetesClientInformerReactiveDiscoveryClientTests {
 		StepVerifier.create(discoveryClient.getInstances("test-svc-1"))
 			.expectNext(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
 					Map.of("type", "ClusterIP", "port.<unset>", "8080", "k8s_namespace", "namespace1"), false,
-					"namespace1", null))
+					"namespace1", null, Map.of()))
 			.expectComplete()
 			.verify();
 

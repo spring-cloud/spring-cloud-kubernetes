@@ -69,7 +69,7 @@ class Fabric8ServiceListSupplierTests {
 	@Test
 	void testPositiveMatch() {
 		when(mapper.map(any(Service.class)))
-			.thenReturn(new DefaultKubernetesServiceInstance("", "", "", 0, null, false));
+			.thenReturn(new DefaultKubernetesServiceInstance("", "", "", 0, null, false, null, null, Map.of()));
 		when(this.client.getNamespace()).thenReturn("test");
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
@@ -84,7 +84,7 @@ class Fabric8ServiceListSupplierTests {
 	@Test
 	void testPositiveMatchAllNamespaces() {
 		when(mapper.map(any(Service.class)))
-			.thenReturn(new DefaultKubernetesServiceInstance("", "", "", 0, null, false));
+			.thenReturn(new DefaultKubernetesServiceInstance("", "", "", 0, null, false, null, null, Map.of()));
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inAnyNamespace()).thenReturn(this.multiDeletable);
 		when(this.multiDeletable.withField("metadata.name", "test-service")).thenReturn(this.multiDeletable);

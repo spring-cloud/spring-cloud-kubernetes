@@ -41,19 +41,19 @@ import static org.mockito.Mockito.when;
 class DiscoveryServerControllerTests {
 
 	private static final DefaultKubernetesServiceInstance SERVICE_A_INSTANCE_1 = new DefaultKubernetesServiceInstance(
-			"serviceAInstance1", "serviceAInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace1", null);
+			"serviceAInstance1", "serviceAInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace1", null, Map.of());
 
 	private static final DefaultKubernetesServiceInstance SERVICE_A_INSTANCE_2 = new DefaultKubernetesServiceInstance(
-			"serviceAInstance2", "serviceAInstance2", "2.2.2.2", 8080, Map.of(), false, "namespace1", null);
+			"serviceAInstance2", "serviceAInstance2", "2.2.2.2", 8080, Map.of(), false, "namespace1", null, Map.of());
 
 	private static final DefaultKubernetesServiceInstance SERVICE_A_INSTANCE_3 = new DefaultKubernetesServiceInstance(
-			"serviceAInstance3", "serviceAInstance3", "2.2.2.2", 8080, Map.of(), false, "namespace2", null);
+			"serviceAInstance3", "serviceAInstance3", "2.2.2.2", 8080, Map.of(), false, "namespace2", null, Map.of());
 
 	private static final DefaultKubernetesServiceInstance SERVICE_B_INSTANCE_1 = new DefaultKubernetesServiceInstance(
-			"serviceBInstance1", "serviceBInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace1", null);
+			"serviceBInstance1", "serviceBInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace1", null, Map.of());
 
 	private static final DefaultKubernetesServiceInstance SERVICE_C_INSTANCE_1 = new DefaultKubernetesServiceInstance(
-			"serviceCInstance1", "serviceCInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace2", null);
+			"serviceCInstance1", "serviceCInstance1", "2.2.2.2", 8080, Map.of(), false, "namespace2", null, Map.of());
 
 	private static Service serviceA;
 
