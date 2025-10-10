@@ -62,7 +62,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @author Ryan Baxter
  * @author Tim Yysewyn
  */
-final class KubernetesClientInformerDiscoveryClient implements DiscoveryClient {
+class KubernetesClientInformerDiscoveryClient implements DiscoveryClient {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerDiscoveryClient.class));

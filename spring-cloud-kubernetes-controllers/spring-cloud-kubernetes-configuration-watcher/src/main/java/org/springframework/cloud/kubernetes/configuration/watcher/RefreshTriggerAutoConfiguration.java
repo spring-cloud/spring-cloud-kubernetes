@@ -20,7 +20,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.bus.BusProperties;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +49,7 @@ class RefreshTriggerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@Profile({ NOT_AMQP_NOT_KAFKA })
-	HttpRefreshTrigger httpRefreshTrigger(KubernetesInformerReactiveDiscoveryClient client,
+	HttpRefreshTrigger httpRefreshTrigger(KubernetesClientInformerReactiveDiscoveryClient client,
 			ConfigurationWatcherConfigurationProperties properties, WebClient webClient) {
 		return new HttpRefreshTrigger(client, properties, webClient);
 	}

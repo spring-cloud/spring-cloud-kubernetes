@@ -27,7 +27,7 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.Service;
 
@@ -61,7 +61,7 @@ class DiscoveryServerControllerTests {
 
 	private static Service serviceC;
 
-	private static KubernetesInformerReactiveDiscoveryClient discoveryClient;
+	private static KubernetesClientInformerReactiveDiscoveryClient discoveryClient;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -80,7 +80,7 @@ class DiscoveryServerControllerTests {
 		List<DefaultKubernetesServiceInstance> serviceCInstanceList = Collections.singletonList(SERVICE_C_INSTANCE_1);
 		Flux<ServiceInstance> serviceCInstances = Flux.fromIterable(serviceCInstanceList);
 
-		discoveryClient = mock(KubernetesInformerReactiveDiscoveryClient.class);
+		discoveryClient = mock(KubernetesClientInformerReactiveDiscoveryClient.class);
 		when(discoveryClient.getServices()).thenReturn(services);
 		when(discoveryClient.getInstances(eq("serviceA"))).thenReturn(serviceAInstances);
 		when(discoveryClient.getInstances(eq("serviceB"))).thenReturn(serviceBInstances);

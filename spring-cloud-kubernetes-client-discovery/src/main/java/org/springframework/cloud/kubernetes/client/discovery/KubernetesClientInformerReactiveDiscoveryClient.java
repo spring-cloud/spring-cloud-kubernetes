@@ -27,11 +27,12 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 /**
  * @author Ryan Baxter
  */
-class KubernetesClientInformerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
+public final class KubernetesClientInformerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
 	private final KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient;
 
-	KubernetesClientInformerReactiveDiscoveryClient(KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
+	public KubernetesClientInformerReactiveDiscoveryClient(
+			KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
 		this.kubernetesDiscoveryClient = kubernetesDiscoveryClient;
 	}
 

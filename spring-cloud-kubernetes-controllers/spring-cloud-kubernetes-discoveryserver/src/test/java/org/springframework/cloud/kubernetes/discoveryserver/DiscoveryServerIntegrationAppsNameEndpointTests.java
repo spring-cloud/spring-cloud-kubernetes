@@ -38,9 +38,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
-import org.springframework.cloud.kubernetes.client.discovery.reactive.HandleToReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.VisibleKubernetesClientInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -117,18 +116,18 @@ class DiscoveryServerIntegrationAppsNameEndpointTests {
 		}
 
 		@Bean
-		KubernetesInformerReactiveDiscoveryClient discoveryClient() {
-			return new HandleToReactiveDiscoveryClient(kubernetesInformerDiscoveryClient());
+		KubernetesClientInformerReactiveDiscoveryClient discoveryClient() {
+			return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesInformerDiscoveryClient());
 		}
 
-		private KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient() {
+		private VisibleKubernetesClientInformerDiscoveryClient kubernetesInformerDiscoveryClient() {
 
 			Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE);
 			Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS);
 
-			return new KubernetesInformerDiscoveryClient(List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister),
-					List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT,
-					Mockito.mock(CoreV1Api.class));
+			return new VisibleKubernetesClientInformerDiscoveryClient(List.of(SHARED_INFORMER_FACTORY),
+					List.of(serviceLister), List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT,
+					Mockito.mock(CoreV1Api.class), x -> true);
 		}
 
 	}

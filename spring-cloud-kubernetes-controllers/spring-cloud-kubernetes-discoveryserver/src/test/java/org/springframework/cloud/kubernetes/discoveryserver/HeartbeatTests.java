@@ -26,7 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
@@ -72,8 +72,8 @@ class HeartbeatTests {
 	static class TestConfig {
 
 		@Bean
-		KubernetesInformerReactiveDiscoveryClient client() {
-			return Mockito.mock(KubernetesInformerReactiveDiscoveryClient.class);
+		KubernetesClientInformerReactiveDiscoveryClient client() {
+			return Mockito.mock(KubernetesClientInformerReactiveDiscoveryClient.class);
 		}
 
 		@Bean

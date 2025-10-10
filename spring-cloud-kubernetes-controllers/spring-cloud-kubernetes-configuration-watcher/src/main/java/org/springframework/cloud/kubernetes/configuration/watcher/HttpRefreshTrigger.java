@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -40,13 +40,13 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(HttpRefreshTrigger.class));
 
-	private final KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
+	private final KubernetesClientInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
 	private final ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
 	private final WebClient webClient;
 
-	HttpRefreshTrigger(KubernetesInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient,
+	HttpRefreshTrigger(KubernetesClientInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties, WebClient webClient) {
 		this.kubernetesReactiveDiscoveryClient = kubernetesReactiveDiscoveryClient;
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
