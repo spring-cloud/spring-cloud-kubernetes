@@ -32,7 +32,7 @@ class KubernetesServiceInstanceTests {
 	@Test
 	void testFirstConstructor() {
 		DefaultKubernetesServiceInstance instance = new DefaultKubernetesServiceInstance("instanceId", "serviceId",
-				"host", 8080, Map.of("k8s_namespace", "spring-k8s"), true);
+				"host", 8080, Map.of("k8s_namespace", "spring-k8s"), true, null, null, Map.of());
 
 		assertThat(instance.getInstanceId()).isEqualTo("instanceId");
 		assertThat(instance.getServiceId()).isEqualTo("serviceId");
@@ -50,7 +50,7 @@ class KubernetesServiceInstanceTests {
 	@Test
 	void testSecondConstructor() {
 		DefaultKubernetesServiceInstance instance = new DefaultKubernetesServiceInstance("instanceId", "serviceId",
-				"host", 8080, Map.of("a", "b"), true, "spring-k8s", "cluster");
+				"host", 8080, Map.of("a", "b"), true, "spring-k8s", "cluster", Map.of());
 
 		assertThat(instance.getInstanceId()).isEqualTo("instanceId");
 		assertThat(instance.getServiceId()).isEqualTo("serviceId");
@@ -97,7 +97,7 @@ class KubernetesServiceInstanceTests {
 
 	private DefaultKubernetesServiceInstance assertServiceInstance(boolean secure) {
 		DefaultKubernetesServiceInstance instance = new DefaultKubernetesServiceInstance("123", "myservice", "1.2.3.4",
-				8080, Collections.emptyMap(), secure);
+				8080, Collections.emptyMap(), secure, null, null, Map.of());
 
 		assertThat(instance.getInstanceId()).isEqualTo("123");
 		assertThat(instance.getServiceId()).isEqualTo("myservice");

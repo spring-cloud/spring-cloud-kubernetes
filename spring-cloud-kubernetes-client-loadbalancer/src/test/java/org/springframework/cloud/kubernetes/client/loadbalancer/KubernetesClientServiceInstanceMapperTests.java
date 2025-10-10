@@ -59,7 +59,7 @@ class KubernetesClientServiceInstanceMapperTests {
 		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "k8s_namespace",
 				"default", "type", "V1Service");
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
-				"database.default.svc.cluster.local", 80, metadata, false);
+				"database.default.svc.cluster.local", 80, metadata, false, null, null, Map.of());
 		assertThat(serviceInstance).isEqualTo(result);
 	}
 
@@ -79,7 +79,7 @@ class KubernetesClientServiceInstanceMapperTests {
 		Map<String, String> metadata = Map.of("org.springframework.cloud", "true", "beta", "true", "secured", "true",
 				"k8s_namespace", "default", "type", "V1Service");
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
-				"database.default.svc.cluster.local", 80, metadata, true);
+				"database.default.svc.cluster.local", 80, metadata, true, null, null, Map.of());
 		assertThat(serviceInstance).isEqualTo(result);
 	}
 
@@ -100,7 +100,7 @@ class KubernetesClientServiceInstanceMapperTests {
 				"default", "type", "V1Service");
 		KubernetesServiceInstance serviceInstance = mapper.map(service);
 		DefaultKubernetesServiceInstance result = new DefaultKubernetesServiceInstance("0", "database",
-				"database.default.svc.cluster.local", 443, metadata, true);
+				"database.default.svc.cluster.local", 443, metadata, true, null, null, Map.of());
 		assertThat(serviceInstance).isEqualTo(result);
 	}
 

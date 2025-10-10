@@ -95,7 +95,7 @@ class DiscoveryServerIntegrationAppsNameEndpointTests {
 				TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getTargetRef().getUid(),
 				TEST_SERVICE.getMetadata().getName(), TEST_ENDPOINTS.getSubsets().get(0).getAddresses().get(0).getIp(),
 				TEST_ENDPOINTS.getSubsets().get(0).getPorts().get(0).getPort(), metadata, false,
-				TEST_SERVICE.getMetadata().getNamespace(), null);
+				TEST_SERVICE.getMetadata().getNamespace(), null, Map.of());
 
 		webTestClient.get()
 			.uri("/apps/test-svc-3")
