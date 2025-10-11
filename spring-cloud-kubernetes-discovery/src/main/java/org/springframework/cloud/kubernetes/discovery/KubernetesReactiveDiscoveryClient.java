@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import reactor.core.publisher.Flux;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
@@ -47,7 +46,6 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 	}
 
 	@Override
-	@Cacheable("serviceinstances")
 	public Flux<ServiceInstance> getInstances(String serviceId) {
 		return webClient.get()
 			.uri("/apps/" + serviceId)
@@ -55,7 +53,6 @@ public class KubernetesReactiveDiscoveryClient implements ReactiveDiscoveryClien
 	}
 
 	@Override
-	@Cacheable("services")
 	public Flux<String> getServices() {
 		return webClient.get()
 			.uri("/apps")
