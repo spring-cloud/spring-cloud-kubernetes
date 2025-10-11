@@ -142,6 +142,57 @@ class Fabric8ReactiveDiscoveryClientAutoConfigurationApplicationContextTests {
 		});
 	}
 
+	/**
+	 * <pre>
+	 *     - no property related to cacheable in the reactive implementation is set, as such:
+	 *     - Fabric8DiscoveryClient is present
+	 *     - Fabric8CacheableDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableDefault() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(Fabric8ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8CacheableReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the reactive implementation = false, as such:
+	 *     - Fabric8DiscoveryClient is present
+	 *     - Fabric8CacheableDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(Fabric8ReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8CacheableReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the reactive implementation = true, as such:
+	 *     - Fabric8ReactiveDiscoveryClient is not present
+	 *     - Fabric8CacheableReactiveDiscoveryClient is present
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
+				"spring.cloud.discovery.client.health-indicator.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(Fabric8ReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8CacheableReactiveDiscoveryClient.class);
+		});
+	}
+
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(UtilAutoConfiguration.class,

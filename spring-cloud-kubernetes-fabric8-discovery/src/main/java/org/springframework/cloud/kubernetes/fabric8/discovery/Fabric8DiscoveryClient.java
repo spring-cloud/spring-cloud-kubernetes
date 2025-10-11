@@ -55,7 +55,7 @@ final class Fabric8DiscoveryClient extends Fabric8AbstractBlockingDiscoveryClien
 
 	@Override
 	public String description() {
-		return "Fabric8 Kubernetes Discovery Client";
+		return "Fabric8 Blocking Discovery Client";
 	}
 
 	@Override

@@ -29,6 +29,8 @@ import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnDiscoveryCacheableBlockingDisabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnDiscoveryCacheableBlockingEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -60,11 +62,23 @@ final class Fabric8DiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableBlockingDisabled
 	Fabric8DiscoveryClient fabric8DiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties properties,
 			Predicate<Service> predicate, Environment environment) {
 		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
 		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 		return new Fabric8DiscoveryClient(client, properties, servicePortSecureResolver, namespaceProvider, predicate);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableBlockingEnabled
+	Fabric8CacheableDiscoveryClient fabric8CacheableDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
+		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+		return new Fabric8CacheableDiscoveryClient(client, properties, servicePortSecureResolver, namespaceProvider,
+				predicate);
 	}
 
 	@Bean

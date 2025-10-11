@@ -51,9 +51,13 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.externalName;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8InstanceIdHostPodNameSupplier.nonExternalName;
 
+/**
+ * @author wind57
+ */
 abstract class Fabric8AbstractBlockingDiscoveryClient implements DiscoveryClient {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8AbstractBlockingDiscoveryClient.class));
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(Fabric8AbstractBlockingDiscoveryClient.class));
 
 	private final KubernetesDiscoveryProperties properties;
 
@@ -65,9 +69,10 @@ abstract class Fabric8AbstractBlockingDiscoveryClient implements DiscoveryClient
 
 	private final Predicate<Service> predicate;
 
-	Fabric8AbstractBlockingDiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-		ServicePortSecureResolver servicePortSecureResolver, KubernetesNamespaceProvider namespaceProvider,
-		Predicate<Service> predicate) {
+	Fabric8AbstractBlockingDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+			ServicePortSecureResolver servicePortSecureResolver, KubernetesNamespaceProvider namespaceProvider,
+			Predicate<Service> predicate) {
 
 		this.client = client;
 		this.properties = kubernetesDiscoveryProperties;
@@ -76,17 +81,14 @@ abstract class Fabric8AbstractBlockingDiscoveryClient implements DiscoveryClient
 		this.predicate = predicate;
 	}
 
-	@Override
-	public String description() {
-		return "Fabric8 Kubernetes Discovery Client";
-	}
+	public abstract String description();
 
 	@Override
 	public List<ServiceInstance> getInstances(String serviceId) {
 		Objects.requireNonNull(serviceId);
 
 		List<Endpoints> allEndpoints = endpoints(properties, client, namespaceProvider, "fabric8-discovery", serviceId,
-			predicate);
+				predicate);
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		for (Endpoints endpoints : allEndpoints) {
@@ -97,17 +99,17 @@ abstract class Fabric8AbstractBlockingDiscoveryClient implements DiscoveryClient
 		if (properties.includeExternalNameServices()) {
 			LOG.debug(() -> "Searching for 'ExternalName' type of services with serviceId : " + serviceId);
 			List<Service> services = services(properties, client, namespaceProvider,
-				s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
-				"fabric8-discovery");
+					s -> s.getSpec().getType().equals(EXTERNAL_NAME), Map.of("metadata.name", serviceId),
+					"fabric8-discovery");
 			for (Service service : services) {
 				ServiceMetadata serviceMetadata = serviceMetadata(service);
 				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
-					properties);
+						properties);
 
 				Fabric8InstanceIdHostPodNameSupplier supplierOne = externalName(service);
 
 				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(serviceMetadata, supplierOne,
-					serviceInstanceMetadata);
+						serviceInstanceMetadata);
 
 				instances.add(externalNameServiceInstance);
 			}
@@ -158,10 +160,11 @@ abstract class Fabric8AbstractBlockingDiscoveryClient implements DiscoveryClient
 			for (EndpointAddress endpointAddress : addresses) {
 
 				Fabric8InstanceIdHostPodNameSupplier supplierOne = nonExternalName(endpointAddress, service);
-				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName(client, namespace);
+				Fabric8PodLabelsAndAnnotationsSupplier supplierTwo = Fabric8PodLabelsAndAnnotationsSupplier
+					.nonExternalName(client, namespace);
 
 				ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, serviceMetadata,
-					supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
+						supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
 				instances.add(serviceInstance);
 			}
 		}

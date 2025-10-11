@@ -150,6 +150,56 @@ class Fabric8DiscoveryClientAutoConfigurationApplicationContextTests {
 		});
 	}
 
+	/**
+	 * <pre>
+	 *     - no property related to cacheable in the blocking implementation is set, as such:
+	 *     - Fabric8DiscoveryClient is present
+	 *     - Fabric8CacheableDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void blockingCacheableDefault() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(Fabric8DiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8CacheableDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the blocking implementation = false, as such:
+	 *     - Fabric8DiscoveryClient is present
+	 *     - Fabric8CacheableDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void blockingCacheableDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(Fabric8DiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(Fabric8CacheableDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the blocking implementation = true, as such:
+	 *     - Fabric8DiscoveryClient is not present
+	 *     - Fabric8CacheableDiscoveryClient is present
+	 * </pre>
+	 */
+	@Test
+	void blockingCacheableEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=true");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(Fabric8DiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8CacheableDiscoveryClient.class);
+		});
+	}
+
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner().withConfiguration(
 				AutoConfigurations.of(Fabric8DiscoveryClientAutoConfiguration.class, Fabric8AutoConfiguration.class,

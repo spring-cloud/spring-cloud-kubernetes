@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,44 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.Objects;
+
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 
 /**
- * Kubernetes implementation of {@link ReactiveDiscoveryClient}. Currently relies on the
- * {@link Fabric8DiscoveryClient} for feature parity.
- *
- * @author Tim Ysewyn
+ * @author wind57
  */
-final class Fabric8ReactiveDiscoveryClient extends Fabric8AbstractReactiveDiscoveryClient {
+abstract class Fabric8AbstractReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
-	Fabric8ReactiveDiscoveryClient(Fabric8DiscoveryClient fabric8DiscoveryClient) {
-		super(fabric8DiscoveryClient);
+	private final Fabric8DiscoveryClient fabric8DiscoveryClient;
+
+	Fabric8AbstractReactiveDiscoveryClient(Fabric8DiscoveryClient fabric8DiscoveryClient) {
+		this.fabric8DiscoveryClient = fabric8DiscoveryClient;
 	}
 
 	@Override
 	public Flux<String> getServices() {
-		return super.getServices();
+		return Flux.defer(() -> Flux.fromIterable(fabric8DiscoveryClient.getServices()))
+			.subscribeOn(Schedulers.boundedElastic());
 	}
 
 	@Override
 	public Flux<ServiceInstance> getInstances(String serviceId) {
-		return super.getInstances(serviceId);
+		Objects.requireNonNull(serviceId, "serviceId must not be null");
+		return Flux.defer(() -> Flux.fromIterable(fabric8DiscoveryClient.getInstances(serviceId)))
+			.subscribeOn(Schedulers.boundedElastic());
 	}
 
 	@Override
-	public String description() {
-		return "Fabric8 Reactive Discovery Client";
-	}
+	public abstract String description();
 
 	@Override
 	public int getOrder() {
-		return super.getOrder();
+		return fabric8DiscoveryClient.getOrder();
 	}
 
 }
