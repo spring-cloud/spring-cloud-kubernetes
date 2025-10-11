@@ -84,8 +84,6 @@ final class TestAssertions {
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS).isEqualTo("UP");
 
-		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS).isEqualTo("UP");
-
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(BLOCKING_SERVICES)
 			.containsExactlyInAnyOrder("kubernetes", "service-wiremock");
 
