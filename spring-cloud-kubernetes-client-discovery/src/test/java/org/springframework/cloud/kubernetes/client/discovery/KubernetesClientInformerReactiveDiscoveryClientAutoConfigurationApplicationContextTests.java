@@ -17,15 +17,23 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.io.StringReader;
+import java.util.Collections;
+import java.util.concurrent.Semaphore;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.extension.Parameters;
+import com.github.tomakehurst.wiremock.extension.PostServeAction;
+import com.github.tomakehurst.wiremock.extension.ServeEventListener;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1ListMeta;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Pod;
+import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.ClientBuilder;
@@ -69,60 +77,22 @@ import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.as
  */
 class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicationContextTests {
 
+	private static final Parameters GET_ENDPOINTS_PARAMETERS = new Parameters();
+
+	private static final Semaphore GET_ENDPOINTS_SEMAPHORE = new Semaphore(1);
+
+	private static final String GET_ENDPOINTS_PARAMETER_NAME = "get-endpoints";
+
 	@RegisterExtension
-	static WireMockExtension apiServer =
+	private static final WireMockExtension API_SERVER =
 		WireMockExtension.newInstance()
-			.options(options().dynamicPort())
+			.options(options().dynamicPort().extensions(new PostServeExtension()))
 			.build();
 
-	@Configuration
-	static class ApiClientConfig {
-
-		@Bean
-		@Primary
-		ApiClient apiClient() throws Exception {
-			ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + apiServer.getPort()).build();
-			return client;
-		}
-
-	}
-
 	@BeforeEach
-	void beforeAll() {
-		apiServer.stubFor(
-			WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/endpoints.*"))
-				.withQueryParam("watch", WireMock.equalTo("false"))
-				.willReturn(
-					WireMock.aResponse()
-						.withStatus(200)
-						.withBody(
-							JSON.serialize(
-								new V1EndpointsList()
-									.metadata(new V1ListMeta().resourceVersion("0"))
-									.addItemsItem(new V1Endpoints().metadata(new V1ObjectMeta().namespace("default")))
-							))));
-
-		WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/endpoints.*"))
-			.withQueryParam("watch", WireMock.equalTo("true"))
-			.willReturn(aResponse().withStatus(200).withBody("{}"));
-
-		apiServer.stubFor(
-			WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/services.*"))
-				.withQueryParam("watch", equalTo("false"))
-				.willReturn(
-					WireMock.aResponse()
-						.withStatus(200)
-						.withBody(
-							JSON.serialize(
-								new V1ServiceList()
-									.metadata(new V1ListMeta().resourceVersion("0"))
-									.addItemsItem(new V1Service().metadata(new V1ObjectMeta().namespace("default")))
-							))));
-
-		apiServer.stubFor(
-			WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/services.*"))
-				.withQueryParam("watch", equalTo("true"))
-				.willReturn(aResponse().withStatus(200).withBody("{}")));
+	void beforeAll() throws InterruptedException {
+		mockEndpointsCall();
+		mockServicesCall();
 	}
 
 	private ApplicationContextRunner applicationContextRunner;
@@ -517,6 +487,82 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			//.withUserConfiguration(ApiClientConfig.class)
 			.withClassLoader(new FilteredClassLoader(name))
 			.withPropertyValues(properties);
+	}
+
+	@Configuration
+	static class ApiClientConfig {
+
+		@Bean
+		@Primary
+		ApiClient apiClient() throws Exception {
+			return new ClientBuilder().setBasePath("http://localhost:" + API_SERVER.getPort()).build();
+		}
+
+	}
+
+	private static void mockEndpointsCall() {
+
+		// watch=false, first call to populate watcher cache
+		API_SERVER.stubFor(
+			WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/endpoints.*"))
+				.withQueryParam("watch", WireMock.equalTo("false"))
+				.willReturn(
+					WireMock.aResponse()
+						.withStatus(200)
+						.withBody(
+							JSON.serialize(
+								new V1EndpointsList()
+									.metadata(new V1ListMeta().resourceVersion("0"))
+									.addItemsItem(new V1Endpoints().metadata(new V1ObjectMeta().namespace("default")))
+							))));
+
+		// watch=true, call to re-sync
+		API_SERVER.stubFor(WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/endpoints.*"))
+			.withQueryParam("watch", WireMock.equalTo("true"))
+			.willReturn(aResponse().withStatus(200).withBody("{}")));
+	}
+
+	private static void mockServicesCall() throws InterruptedException {
+
+		// watch=false, first call to populate watcher cache
+		API_SERVER.stubFor(
+			WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/services.*"))
+				.withQueryParam("watch", equalTo("false"))
+				.willReturn(
+					WireMock.aResponse()
+						.withStatus(200)
+						.withBody(
+							JSON.serialize(
+								new V1ServiceList()
+									.metadata(new V1ListMeta().resourceVersion("0"))
+									.addItemsItem(new V1Service().metadata(new V1ObjectMeta().namespace("default")))
+							))));
+
+		GET_ENDPOINTS_SEMAPHORE.acquire(1);
+		GET_ENDPOINTS_PARAMETERS.put(GET_ENDPOINTS_PARAMETER_NAME, GET_ENDPOINTS_SEMAPHORE);
+		// watch=true, call to re-sync
+		API_SERVER.stubFor(
+			WireMock.get(WireMock.urlMatching("^/api/v1/namespaces/default/services.*"))
+				.withPostServeAction("PostServeExtension", GET_ENDPOINTS_PARAMETERS)
+				.withQueryParam("watch", equalTo("true"))
+				.willReturn(aResponse().withStatus(200).withBody("{}")));
+	}
+
+	private static final class PostServeExtension implements ServeEventListener {
+
+		@Override
+		public String getName() {
+			return "PostServeExtension";
+		}
+
+		@Override
+		public void afterMatch(ServeEvent serveEvent, Parameters parameters) {
+			Object getEndpointsSemaphore = parameters.get(GET_ENDPOINTS_PARAMETER_NAME);
+			if (getEndpointsSemaphore != null) {
+				Semaphore semaphore = (Semaphore) getEndpointsSemaphore;
+				semaphore.release();
+			}
+		}
 	}
 
 }
