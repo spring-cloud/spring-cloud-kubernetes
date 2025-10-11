@@ -89,38 +89,36 @@ class ServiceInstanceSerializationTests {
 	void defaultKubernetesServiceInstanceDeserializationTest() throws JsonProcessingException {
 
 		String serialized = """
-			{
-	  	"instanceId": "instanceId",
-	    	"serviceId": "serviceId",
-	    	"host": "host",
-	    	"port": 8080,
-	    	"metadata": {
-	      	"k8s_namespace": "spring-k8s"
-	    	},
-	    	"secure": true,
-	    	"namespace": "namespace",
-	    	"cluster": "cluster",
-	    	"podMetadata": {
-	      	"pod_root": {
-	        	"pod_key": "pod_value"
-	      	}
-	    	},
-	    	"scheme": "https",
-	    	"uri": "https://host:8080"
-	  		}
-			""";
+				{
+					"instanceId": "instanceId",
+					"serviceId": "serviceId",
+					"host": "host",
+					"port": 8080,
+					"metadata": {
+						"k8s_namespace": "spring-k8s"
+					},
+					"secure": true,
+					"namespace": "namespace",
+					"cluster": "cluster",
+					"podMetadata": {
+						"pod_root": {
+							"pod_key": "pod_value"
+						}
+					},
+					"scheme": "https",
+					"uri": "https://host:8080"
+				}
+				""";
 
-		ServiceInstance deserialized =
-			new ObjectMapper().readValue(serialized, DefaultKubernetesServiceInstance.class);
+		ServiceInstance deserialized = new ObjectMapper().readValue(serialized, DefaultKubernetesServiceInstance.class);
 		assertThat(deserialized.getInstanceId()).isEqualTo("instanceId");
 		assertThat(deserialized.getServiceId()).isEqualTo("serviceId");
 		assertThat(deserialized.getScheme()).isEqualTo("https");
 		assertThat(deserialized.getHost()).isEqualTo("host");
 		assertThat(deserialized.getPort()).isEqualTo(8080);
 		assertThat(deserialized.getUri().toASCIIString()).isEqualTo("https://host:8080");
-		assertThat(deserialized.getMetadata()).containsExactlyInAnyOrderEntriesOf(
-			Map.of("k8s_namespace", "spring-k8s")
-		);
+		assertThat(deserialized.getMetadata())
+			.containsExactlyInAnyOrderEntriesOf(Map.of("k8s_namespace", "spring-k8s"));
 	}
 
 	@Test
