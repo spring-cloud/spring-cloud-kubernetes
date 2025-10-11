@@ -159,6 +159,16 @@ public final class DiscoveryClientUtils {
 				podMetadata);
 	}
 
+	public static ServiceInstance externalNameServiceInstance(ServiceMetadata serviceMetadata,
+			Supplier<InstanceIdHostPodName> instanceIdAndHost, Map<String, String> serviceInstanceMetadata) {
+
+		InstanceIdHostPodName data = instanceIdAndHost.get();
+
+		return new KubernetesExternalNameServiceInstance(serviceMetadata.name(), data.host(), data.instanceId(),
+				serviceInstanceMetadata);
+
+	}
+
 	/**
 	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it
 	 * exists, otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.

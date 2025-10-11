@@ -90,7 +90,7 @@ public abstract class KubernetesConfigDataLocationResolver
 
 		Environment environment = environment(kubernetesConfigData, profiles);
 		KubernetesNamespaceProvider namespaceProvider = kubernetesNamespaceProvider(environment);
-		registerBeans(resolverContext, location, profiles, properties, namespaceProvider);
+		registerBeans(resolverContext, properties, namespaceProvider);
 
 		KubernetesConfigDataResource resource = new KubernetesConfigDataResource(location.isOptional(), profiles,
 				environment);
@@ -99,8 +99,7 @@ public abstract class KubernetesConfigDataLocationResolver
 	}
 
 	protected abstract void registerBeans(ConfigDataLocationResolverContext resolverContext,
-			ConfigDataLocation location, Profiles profiles, ConfigDataPropertiesHolder properties,
-			KubernetesNamespaceProvider namespaceProvider);
+			ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider);
 
 	protected final boolean isRetryEnabledForConfigMap(ConfigMapConfigProperties configMapProperties) {
 		return RETRY_IS_PRESENT && configMapProperties != null && configMapProperties.retry().enabled()

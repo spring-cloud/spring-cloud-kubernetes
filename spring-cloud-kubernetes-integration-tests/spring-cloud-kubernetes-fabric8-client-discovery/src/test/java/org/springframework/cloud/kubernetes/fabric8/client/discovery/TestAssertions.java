@@ -111,7 +111,7 @@ final class TestAssertions {
 			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ExternalName"));
 		assertThat(externalNameInstance.isSecure()).isFalse();
 		assertThat(externalNameInstance.getUri().toASCIIString()).isEqualTo("spring.io");
-		assertThat(externalNameInstance.getScheme()).isEqualTo("http");
+		assertThat(externalNameInstance.getScheme()).isNull();
 	}
 
 	/**

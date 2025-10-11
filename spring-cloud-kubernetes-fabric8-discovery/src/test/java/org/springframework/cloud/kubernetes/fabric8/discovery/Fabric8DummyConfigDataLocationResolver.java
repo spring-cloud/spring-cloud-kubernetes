@@ -17,9 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
-import org.springframework.boot.context.config.Profiles;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.configdata.ConfigDataPropertiesHolder;
 import org.springframework.cloud.kubernetes.commons.configdata.KubernetesConfigDataLocationResolver;
@@ -31,8 +29,8 @@ import org.springframework.cloud.kubernetes.commons.configdata.KubernetesConfigD
 class Fabric8DummyConfigDataLocationResolver extends KubernetesConfigDataLocationResolver {
 
 	@Override
-	protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-			Profiles profiles, ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
+	protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
+			ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 	}
 
 }

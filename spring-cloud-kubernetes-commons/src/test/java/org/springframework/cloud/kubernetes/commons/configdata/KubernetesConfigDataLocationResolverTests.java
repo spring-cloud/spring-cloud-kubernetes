@@ -49,10 +49,8 @@ class KubernetesConfigDataLocationResolverTests {
 	private static final KubernetesConfigDataLocationResolver NOOP_RESOLVER = new KubernetesConfigDataLocationResolver() {
 
 		@Override
-		protected void registerBeans(ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location,
-				Profiles profiles, ConfigDataPropertiesHolder properties,
-				KubernetesNamespaceProvider namespaceProvider) {
-
+		protected void registerBeans(ConfigDataLocationResolverContext resolverContext,
+				ConfigDataPropertiesHolder properties, KubernetesNamespaceProvider namespaceProvider) {
 		}
 
 	};
@@ -293,8 +291,8 @@ class KubernetesConfigDataLocationResolverTests {
 
 		Profiles profiles = Mockito.mock(Profiles.class);
 		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
-		List<KubernetesConfigDataResource> result = storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT,
-				configDataLocation, profiles);
+		storePropertiesResolver.resolveProfileSpecific(RESOLVER_CONTEXT,
+			configDataLocation, profiles);
 
 		// on the other hand, @Default will be picked here
 		Assertions.assertThat(storePropertiesResolver.configMapConfigProperties.enabled()).isTrue();

@@ -69,11 +69,6 @@ public abstract class AbstractKubernetesInfoContributor implements InfoContribut
 	 */
 	public static final String HOST_IP = "hostIp";
 
-	/**
-	 * Labels key.
-	 */
-	public static final String LABELS = "labels";
-
 	private static final Log LOG = LogFactory.getLog(AbstractKubernetesInfoContributor.class);
 
 	@Override
