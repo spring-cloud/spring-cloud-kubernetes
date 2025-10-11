@@ -20,8 +20,8 @@ import java.util.List;
 
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnHttpDiscoveryCatalogWatcherEnabled;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnHttpDiscoveryCatalogWatcherEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnKubernetesCatalogEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

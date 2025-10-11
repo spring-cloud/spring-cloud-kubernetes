@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogWatcherEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnKubernetesCatalogWatcherEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
