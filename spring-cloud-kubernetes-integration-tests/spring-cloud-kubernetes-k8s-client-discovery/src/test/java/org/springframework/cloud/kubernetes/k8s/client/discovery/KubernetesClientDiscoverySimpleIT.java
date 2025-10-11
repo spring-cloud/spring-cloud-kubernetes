@@ -35,6 +35,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
@@ -133,7 +134,7 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 	}
 
 	private void testExternalNameService(DiscoveryClient discoveryClient) {
-		DefaultKubernetesServiceInstance externalNameService = (DefaultKubernetesServiceInstance) discoveryClient
+		KubernetesExternalNameServiceInstance externalNameService = (KubernetesExternalNameServiceInstance) discoveryClient
 			.getInstances("external-name-service")
 			.get(0);
 
