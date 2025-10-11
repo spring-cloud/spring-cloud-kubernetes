@@ -113,10 +113,10 @@ final class KubernetesClientInformerAutoConfiguration {
 	SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
 			ApiClient apiClient, String kubernetesClientNamespace) {
 
-		GenericKubernetesApi<V1Endpoints, V1EndpointsList> servicesApi = new GenericKubernetesApi<>(V1Endpoints.class,
+		GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(V1Endpoints.class,
 				V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 
-		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Endpoints.class, 0L,
+		return sharedInformerFactory.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L,
 				kubernetesClientNamespace);
 	}
 
