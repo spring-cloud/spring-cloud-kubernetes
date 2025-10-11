@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
@@ -35,6 +37,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
  * @param namespace the namespace of the service.
  * @param cluster the cluster the service resides in.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record DefaultKubernetesServiceInstance(String instanceId, String serviceId, String host, int port,
 		Map<String, String> metadata, boolean secure, String namespace, String cluster,
 		Map<String, Map<String, String>> podMetadata) implements KubernetesServiceInstance, Serializable {
