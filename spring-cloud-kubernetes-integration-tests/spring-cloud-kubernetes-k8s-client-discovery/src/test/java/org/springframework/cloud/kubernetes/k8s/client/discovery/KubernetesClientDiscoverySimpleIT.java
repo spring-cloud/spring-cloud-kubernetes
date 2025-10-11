@@ -145,7 +145,7 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 			.containsAllEntriesOf(Map.of("k8s_namespace", "default", "type", "ExternalName"));
 		assertThat(externalNameService.isSecure()).isFalse();
 		assertThat(externalNameService.getUri().toASCIIString()).isEqualTo("spring.io");
-		assertThat(externalNameService.getScheme()).isEqualTo("http");
+		assertThat(externalNameService.getScheme()).isNull();
 	}
 
 	// https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1286
