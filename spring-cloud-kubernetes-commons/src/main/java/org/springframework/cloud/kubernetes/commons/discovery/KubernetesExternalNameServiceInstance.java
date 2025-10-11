@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ import org.springframework.cloud.client.ServiceInstance;
  * @author wind57
  */
 public record KubernetesExternalNameServiceInstance(String serviceId, String host, String instanceId,
-		Map<String, String> metadata) implements ServiceInstance {
+		Map<String, String> metadata) implements ServiceInstance, Serializable {
 
 	@Override
 	public String getServiceId() {
