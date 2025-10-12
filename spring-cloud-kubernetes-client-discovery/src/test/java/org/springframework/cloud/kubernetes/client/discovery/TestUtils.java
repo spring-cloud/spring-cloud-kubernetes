@@ -78,4 +78,31 @@ final class TestUtils {
 		assertThat(endpointsListers.size()).isEqualTo(times);
 	}
 
+	static void assertInformerBeansMissing(AssertableApplicationContext context) {
+		String[] sharedInformerFactoriesBeanName = context
+			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<SharedInformerFactory>>() {
+			}));
+		assertThat(sharedInformerFactoriesBeanName).isEmpty();
+
+		String[] serviceSharedIndexInformersBeanName = context.getBeanNamesForType(
+			ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Service>>>() {
+			}));
+		assertThat(serviceSharedIndexInformersBeanName).isEmpty();
+
+		String[] endpointsSharedIndexInformersBeanName = context.getBeanNamesForType(
+			ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Endpoints>>>() {
+			}));
+		assertThat(endpointsSharedIndexInformersBeanName).isEmpty();
+
+		String[] serviceListersBeanName = context
+			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Service>>>() {
+			}));
+		assertThat(serviceListersBeanName).isEmpty();
+
+		String[] endpointsListersBeanName = context
+			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Endpoints>>>() {
+			}));
+		assertThat(endpointsListersBeanName).isEmpty();
+	}
+
 }

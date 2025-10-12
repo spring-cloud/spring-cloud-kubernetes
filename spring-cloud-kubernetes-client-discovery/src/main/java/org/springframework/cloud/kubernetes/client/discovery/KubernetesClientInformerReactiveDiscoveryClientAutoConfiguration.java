@@ -43,7 +43,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 
@@ -66,7 +65,13 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
-			KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
+			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
+			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+		KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient =
+			new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
+				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
 		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
 	}
 

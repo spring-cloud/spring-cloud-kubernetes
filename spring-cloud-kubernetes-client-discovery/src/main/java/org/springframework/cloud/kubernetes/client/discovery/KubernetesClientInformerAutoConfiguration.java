@@ -52,6 +52,8 @@ import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
+ * This one uses: 'ConditionalOnBlockingOrReactiveDiscoveryEnabled' because beans it contains
+ * are specific to both clients.
  * @author wind57
  */
 @Configuration(proxyBeanMethods = false)
@@ -69,7 +71,7 @@ final class KubernetesClientInformerAutoConfiguration {
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	List<String> k8sDiscoveryClientNamespaces(KubernetesDiscoveryProperties properties,
+	List<String> k8sClientDiscoveryNamespaces(KubernetesDiscoveryProperties properties,
 			KubernetesNamespaceProvider provider) {
 
 		if (properties.allNamespaces()) {
