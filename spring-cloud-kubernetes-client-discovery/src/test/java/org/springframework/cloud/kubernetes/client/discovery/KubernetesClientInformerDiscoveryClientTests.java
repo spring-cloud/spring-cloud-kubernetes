@@ -53,7 +53,7 @@ import org.mockito.Mockito;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameKubernetesServiceInstance;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -571,7 +571,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		assertThat(result.size()).isEqualTo(1);
-		KubernetesExternalNameServiceInstance externalNameServiceInstance = (KubernetesExternalNameServiceInstance) result
+		ExternalNameKubernetesServiceInstance externalNameServiceInstance = (ExternalNameKubernetesServiceInstance) result
 			.get(0);
 		assertThat(externalNameServiceInstance.getServiceId()).isEqualTo("blue-service");
 		assertThat(externalNameServiceInstance.getHost()).isEqualTo("k8s-spring-b");

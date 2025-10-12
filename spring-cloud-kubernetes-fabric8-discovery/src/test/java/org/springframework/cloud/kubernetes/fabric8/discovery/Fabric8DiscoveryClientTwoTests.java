@@ -45,7 +45,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesExternalNameServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameKubernetesServiceInstance;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -553,7 +553,7 @@ class Fabric8DiscoveryClientTwoTests {
 		Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(client, properties, null, null, null);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(1);
-		KubernetesExternalNameServiceInstance externalNameServiceInstance = (KubernetesExternalNameServiceInstance) result
+		ExternalNameKubernetesServiceInstance externalNameServiceInstance = (ExternalNameKubernetesServiceInstance) result
 			.get(0);
 		Assertions.assertThat(externalNameServiceInstance.getServiceId()).isEqualTo("blue-service");
 		Assertions.assertThat(externalNameServiceInstance.getHost()).isEqualTo("k8s-spring-b");
