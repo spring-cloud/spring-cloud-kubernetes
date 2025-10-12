@@ -52,8 +52,8 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
