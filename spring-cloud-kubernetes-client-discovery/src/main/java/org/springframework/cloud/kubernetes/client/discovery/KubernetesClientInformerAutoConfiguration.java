@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -37,7 +40,6 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.NamespaceResolutionFailedException;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -48,7 +50,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 
 import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
-import static io.kubernetes.client.util.Namespaces.NAMESPACE_DEFAULT;
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
@@ -59,79 +60,119 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 @ConditionalOnKubernetesDiscoveryEnabled
 @ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class })
 final class KubernetesClientInformerAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientInformerAutoConfiguration.class));
+		LogFactory.getLog(KubernetesClientInformerAutoConfiguration.class));
 
+	// we rely on the order of namespaces to enable listers, as such provide a bean of
+	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	@ConditionalOnMissingBean
-	SharedInformerFactory sharedInformerFactory(ApiClient client) {
-		LOG.debug(() -> "registering sharedInformerFactory for non-selective namespaces");
-		return new SharedInformerFactory(client);
-	}
+	List<String> k8sDiscoveryClientNamespaces(KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider provider) {
 
-	@Bean
-	String kubernetesClientNamespace(KubernetesDiscoveryProperties properties, KubernetesNamespaceProvider provider) {
-		String namespace;
 		if (properties.allNamespaces()) {
-			namespace = NAMESPACE_ALL;
 			LOG.debug(() -> "serviceSharedInformer will use all-namespaces");
-		}
-		else {
-			try {
-				namespace = getApplicationNamespace(null, "kubernetes client discovery", provider);
-			}
-			catch (NamespaceResolutionFailedException ex) {
-				LOG.warn(() -> "failed to resolve namespace, defaulting to :" + NAMESPACE_DEFAULT
-						+ ". This will fail in a future release.");
-				namespace = NAMESPACE_DEFAULT;
-			}
-			LOG.debug("serviceSharedInformer will use namespace : " + namespace);
+			return List.of(NAMESPACE_ALL);
 		}
 
-		return namespace;
+		if (properties.namespaces() != null && !properties.namespaces().isEmpty()) {
+			List<String> selectiveNamespaces = properties.namespaces().stream().sorted().toList();
+			LOG.debug(() -> "serviceSharedInformers will use selective namespaces : " + selectiveNamespaces);
+			return selectiveNamespaces;
+		}
+
+		String namespace = getApplicationNamespace(null, "kubernetes client discovery", provider);
+		LOG.debug(() -> "using namespace : " + namespace);
+		return List.of(namespace);
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = SharedIndexInformer.class)
-	SharedIndexInformer<V1Service> servicesSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
-			ApiClient apiClient, String kubernetesClientNamespace) {
+	@ConditionalOnMissingBean(value = SharedInformerFactory.class, parameterizedContainer = List.class)
+	List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, List<String> selectiveNamespaces) {
 
-		GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
+		int howManyNamespaces = selectiveNamespaces.size();
+		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howManyNamespaces);
+		for (int i = 0; i < howManyNamespaces; ++i) {
+			sharedInformerFactories.add(new SharedInformerFactory(apiClient));
+		}
+		return sharedInformerFactories;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(value = V1Service.class,
+		parameterizedContainer = { List.class, SharedIndexInformer.class })
+	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
+		List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
+		ApiClient apiClient) {
+
+		int howManyNamespaces = selectiveNamespaces.size();
+		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
+		for (int i = 0; i < howManyNamespaces; ++i) {
+			GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
 				V1ServiceList.class, "", "v1", "services", apiClient);
-
-		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Service.class, 0L,
-				kubernetesClientNamespace);
+			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactories.get(i)
+				.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, selectiveNamespaces.get(i));
+			serviceSharedIndexedInformers.add(sharedIndexInformer);
+		}
+		return serviceSharedIndexedInformers;
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = SharedIndexInformer.class)
-	SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer(SharedInformerFactory sharedInformerFactory,
-			ApiClient apiClient, String kubernetesClientNamespace) {
+	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = { List.class, Lister.class })
+	List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
+		List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers) {
 
-		GenericKubernetesApi<V1Endpoints, V1EndpointsList> servicesApi = new GenericKubernetesApi<>(V1Endpoints.class,
-				V1EndpointsList.class, "", "v1", "endpoints", apiClient);
+		int howManyNamespaces = selectiveNamespaces.size();
+		List<Lister<V1Service>> serviceListers = new ArrayList<>(howManyNamespaces);
 
-		return sharedInformerFactory.sharedIndexInformerFor(servicesApi, V1Endpoints.class, 0L,
-				kubernetesClientNamespace);
+		for (int i = 0; i < howManyNamespaces; ++i) {
+			String namespace = selectiveNamespaces.get(i);
+			Lister<V1Service> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer(), namespace);
+			LOG.debug(() -> "registering lister (for services) in namespace : " + namespace);
+			serviceListers.add(lister);
+		}
+
+		return serviceListers;
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = Lister.class)
-	Lister<V1Service> servicesLister(SharedIndexInformer<V1Service> servicesSharedIndexInformer,
-			String kubernetesClientNamespace) {
-		return new Lister<>(servicesSharedIndexInformer.getIndexer(), kubernetesClientNamespace);
+	@ConditionalOnMissingBean(value = V1Endpoints.class,
+		parameterizedContainer = { List.class, SharedIndexInformer.class })
+	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
+		List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
+		ApiClient apiClient) {
+
+		int howManyNamespaces = selectiveNamespaces.size();
+		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
+		for (int i = 0; i < howManyNamespaces; ++i) {
+			GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
+				V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
+			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactories.get(i)
+				.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, selectiveNamespaces.get(i));
+			endpointsSharedIndexedInformers.add(sharedIndexInformer);
+		}
+		return endpointsSharedIndexedInformers;
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = Lister.class)
-	Lister<V1Endpoints> endpointsLister(SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer,
-			String kubernetesClientNamespace) {
-		return new Lister<>(endpointsSharedIndexInformer.getIndexer(), kubernetesClientNamespace);
+	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
+	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
+		List<SharedIndexInformer<V1Endpoints>> serviceSharedIndexInformers) {
+
+		int howManyNamespaces = selectiveNamespaces.size();
+		List<Lister<V1Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
+
+		for (int i = 0; i < howManyNamespaces; ++i) {
+			String namespace = selectiveNamespaces.get(i);
+			Lister<V1Endpoints> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer());
+			LOG.debug(() -> "registering lister (for endpoints) in namespace : " + namespace);
+			endpointsListers.add(lister);
+		}
+
+		return endpointsListers;
 	}
 
 }

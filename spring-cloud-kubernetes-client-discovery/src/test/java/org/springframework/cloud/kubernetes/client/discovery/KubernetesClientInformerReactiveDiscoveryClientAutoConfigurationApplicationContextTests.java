@@ -433,8 +433,8 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 					KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class,
 					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
-					KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerAutoConfiguration.class,
+					KubernetesCommonsAutoConfiguration.class,
 					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
 			.withUserConfiguration(ApiClientConfig.class)
 			.withPropertyValues(properties);
@@ -446,7 +446,6 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 					KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class,
 					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
 					KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
 					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
 			.withUserConfiguration(ApiClientConfig.class)

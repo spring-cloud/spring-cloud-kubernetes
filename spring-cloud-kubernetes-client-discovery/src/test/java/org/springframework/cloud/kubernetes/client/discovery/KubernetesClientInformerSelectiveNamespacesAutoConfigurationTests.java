@@ -59,7 +59,7 @@ class KubernetesClientInformerSelectiveNamespacesAutoConfigurationTests {
 					"spring.cloud.kubernetes.discovery.namespaces[1]=" + NAMESPACE_B,
 					"spring.main.cloud-platform=kubernetes")
 			.withConfiguration(
-					AutoConfigurations.of(KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class))
+					AutoConfigurations.of(KubernetesClientInformerAutoConfiguration.class))
 			.withUserConfiguration(Config.class)
 			.run(context -> {
 				assertThat(context.getBean("selectiveNamespaces")).isNotNull();

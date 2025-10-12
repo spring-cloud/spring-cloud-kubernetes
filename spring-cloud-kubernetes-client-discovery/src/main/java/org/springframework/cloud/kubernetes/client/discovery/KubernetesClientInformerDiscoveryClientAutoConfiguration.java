@@ -37,7 +37,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -48,28 +47,12 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-		KubernetesClientInformerAutoConfiguration.class,
-		KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
 		KubernetesClientDiscoveryClientSpelAutoConfiguration.class })
 @Import(KubernetesDiscoveryClientHealthConfiguration.class)
 final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
-	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
-			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties,
-			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		return new KubernetesClientInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
-				List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties, coreV1Api,
-				predicate);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesPresent.class)
 	KubernetesClientInformerDiscoveryClient selectiveNamespacesKubernetesInformerDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,

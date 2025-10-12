@@ -56,13 +56,19 @@ import org.springframework.core.log.LogAccessor;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
-		KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
+		KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		KubernetesClientDiscoveryClientSpelAutoConfiguration.class })
 final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class));
+
+	@Bean
+	@ConditionalOnMissingBean
+	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
+			KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
+		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
+	}
 
 	/**
 	 * Post an event so that health indicator is initialized.
@@ -70,7 +76,7 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
 	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
-			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
@@ -81,41 +87,9 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
 	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			KubernetesClientInformerReactiveDiscoveryClient client,
-			DiscoveryClientHealthIndicatorProperties properties) {
+		KubernetesClientInformerReactiveDiscoveryClient client,
+		DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
-			KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
-		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
-	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
-			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties,
-			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		return new KubernetesClientInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
-				List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties, coreV1Api,
-				predicate);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesPresent.class)
-	KubernetesClientInformerDiscoveryClient selectiveNamespacesKubernetesClientInformerDiscoveryClient(
-			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
-			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
-			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
-			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		return new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
-				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
 	}
 
 }
