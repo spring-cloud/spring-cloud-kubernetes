@@ -22,6 +22,9 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.commons.util.UtilAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -38,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.assertInformerBeansMissing;
 import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.assertInformerBeansPresent;
 
 /**
@@ -150,15 +154,15 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	@Test
 	void kubernetesDiscoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.enabled=true");
+				"spring.cloud.kubernetes.discovery.enabled=true", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 
-			assertInformerBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -203,9 +207,10 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			// simpleReactiveDiscoveryClientHealthIndicator
+			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertInformerBeansPresent(context , 4);
+			assertInformerBeansMissing(context);
 		});
 	}
 
@@ -401,19 +406,24 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
-					KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					KubernetesClientInformerAutoConfiguration.class,
-					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
-			.withUserConfiguration(ApiClientConfig.class)
+			.withConfiguration(AutoConfigurations.of(
+				KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class,
+				KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
+				UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+				KubernetesClientInformerAutoConfiguration.class,
+				KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
+				KubernetesCommonsAutoConfiguration.class,
+				KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
+			.withUserConfiguration(KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContextTests.ApiClientConfig.class)
 			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
+					KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class,
 					KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-				KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerAutoConfiguration.class,
 					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
 			.withClassLoader(new FilteredClassLoader(cls))
 			.withUserConfiguration(ApiClientConfig.class)
