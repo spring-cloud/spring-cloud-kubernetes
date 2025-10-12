@@ -284,7 +284,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.reactive.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -324,7 +324,6 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).hasBean("selectiveNamespacesKubernetesClientInformerDiscoveryClient");
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
@@ -394,7 +393,6 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 				"spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).hasBean("selectiveNamespacesKubernetesClientInformerDiscoveryClient");
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
@@ -411,6 +409,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 					KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
 					KubernetesCommonsAutoConfiguration.class,
 					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
 			.withUserConfiguration(ApiClientConfig.class)
@@ -424,6 +423,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
 					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 					KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
 					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
 			.withUserConfiguration(ApiClientConfig.class)
 			.withClassLoader(new FilteredClassLoader(name))
