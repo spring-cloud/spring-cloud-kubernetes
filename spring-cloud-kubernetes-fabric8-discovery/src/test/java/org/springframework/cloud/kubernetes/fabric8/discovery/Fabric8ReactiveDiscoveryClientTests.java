@@ -87,7 +87,7 @@ class Fabric8ReactiveDiscoveryClientTests {
 		Fabric8DiscoveryClient fabric8DiscoveryClient = new Fabric8DiscoveryClient(kubernetesClient,
 				KubernetesDiscoveryProperties.DEFAULT, SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
-		assertThat(client.description()).isEqualTo("Fabric8 Kubernetes Reactive Discovery Client");
+		assertThat(client.description()).isEqualTo("Fabric8 Reactive Discovery Client");
 		assertThat(client.getOrder()).isEqualTo(ReactiveDiscoveryClient.DEFAULT_ORDER);
 	}
 
