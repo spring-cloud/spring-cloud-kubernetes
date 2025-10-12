@@ -40,10 +40,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.assertNonSelectiveNamespacesBeansMissing;
-import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.assertNonSelectiveNamespacesBeansPresent;
-import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.assertSelectiveNamespacesBeansMissing;
-import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.assertSelectiveNamespacesBeansPresent;
+import static org.springframework.cloud.kubernetes.client.discovery.TestUtils.assertInformerBeansPresent;
 
 /**
  * Test various conditionals for
@@ -75,8 +72,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -94,8 +90,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 3);
+			assertInformerBeansPresent(context, 3);
 		});
 	}
 
@@ -113,8 +108,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -132,8 +126,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 3);
+			assertInformerBeansPresent(context, 3);
 		});
 	}
 
@@ -148,8 +141,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 2);
 		});
 	}
 
@@ -164,8 +156,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 3);
 		});
 	}
 
@@ -183,8 +174,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 2);
 		});
 	}
 
@@ -202,8 +192,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -219,8 +208,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			// only "simple" one from commons, as ours is not picked up
 			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 2);
 		});
 	}
 
@@ -236,8 +224,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			// only "simple" one from commons, as ours is not picked up
 			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 2);
 		});
 	}
 
@@ -255,8 +242,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 2);
 		});
 	}
 
@@ -274,8 +260,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -290,8 +275,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -306,8 +290,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -328,8 +311,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 2);
 		});
 	}
 
@@ -350,8 +332,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -367,8 +348,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -385,8 +365,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -403,8 +382,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertNonSelectiveNamespacesBeansPresent(context);
-			assertSelectiveNamespacesBeansMissing(context);
+			assertInformerBeansPresent(context , 2);
 		});
 	}
 
@@ -422,8 +400,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertNonSelectiveNamespacesBeansMissing(context);
-			assertSelectiveNamespacesBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
