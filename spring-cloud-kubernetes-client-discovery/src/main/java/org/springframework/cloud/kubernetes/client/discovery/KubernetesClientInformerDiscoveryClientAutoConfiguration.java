@@ -53,7 +53,7 @@ final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	KubernetesClientInformerDiscoveryClient selectiveNamespacesKubernetesInformerDiscoveryClient(
+	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
 			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
