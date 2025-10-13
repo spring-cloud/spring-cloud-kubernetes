@@ -123,7 +123,7 @@ class ServiceInstanceSerializationTests {
 
 	@Test
 	void externalNameServiceInstanceSerializationTest() throws JsonProcessingException {
-		KubernetesExternalNameServiceInstance instance = new KubernetesExternalNameServiceInstance("serviceId", "host",
+		ExternalNameKubernetesServiceInstance instance = new ExternalNameKubernetesServiceInstance("serviceId", "host",
 				"instanceId", Map.of("a", "b"));
 		String serialized = new ObjectMapper().writeValueAsString(instance);
 
