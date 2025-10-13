@@ -62,16 +62,23 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class));
 
+	// in case blocking is disabled
 	@Bean
 	@ConditionalOnMissingBean
-	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
+	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClientForReactiveImplementation(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
 			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
 			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient = new KubernetesClientInformerDiscoveryClient(
-				sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
-				properties, coreV1Api, predicate);
+
+		return new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
+				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
+			KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
 		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
 	}
 
