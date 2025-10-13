@@ -26,7 +26,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 /**
@@ -46,23 +45,8 @@ class KubernetesClientInformerDiscoveryClient extends KubernetesClientAbstractIn
 	}
 
 	@Override
-	public List<String> getServices() {
-		return super.getServices();
-	}
-
-	@Override
-	public List<ServiceInstance> getInstances(String serviceId) {
-		return super.getInstances(serviceId);
-	}
-
-	@Override
 	public String description() {
 		return "Kubernetes Native Discovery Client";
-	}
-
-	@Override
-	public int getOrder() {
-		return super.getOrder();
 	}
 
 }
