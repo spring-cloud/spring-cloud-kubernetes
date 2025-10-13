@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery.conditionals;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,12 +23,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
- * Provides common conditionals to be used for catalog watcher.
+ * Provides a more succinct conditional for:
+ * <code>spring.cloud.kubernetes.discovery.cacheable.blocking.enabled</code>. This
+ * annotation says that caching in the blocking implementation is enabled.
  *
  * @author wind57
  */
@@ -36,11 +36,8 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingOrReactiveDiscoveryEnabled
-@ConditionalOnKubernetesCatalogEnabled
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-public @interface ConditionalOnKubernetesCatalogWatcherEnabled {
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.discovery.cacheable.blocking.enabled", havingValue = "true",
+		matchIfMissing = false)
+public @interface ConditionalOnDiscoveryCacheableBlockingEnabled {
 
 }

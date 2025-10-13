@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2019-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery.conditionals;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,24 +23,20 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
-import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
- * Provides common conditionals to be used for blocking discovery.
+ * Provides a more succinct conditional
+ * <code>spring.cloud.kubernetes.discovery.catalog-services-watch.enabled</code>.
  *
  * @author wind57
  */
-@Target({ ElementType.TYPE })
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-public @interface ConditionalOnSpringCloudKubernetesBlockingDiscovery {
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled",
+		matchIfMissing = true)
+public @interface ConditionalOnKubernetesCatalogEnabled {
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery.conditionals;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,11 +23,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
+import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
+import org.springframework.context.annotation.Conditional;
 
 /**
- * Provides common conditionals to be used for reactive discovery health initializer.
+ * Reverse of {@link ConditionalOnDiscoveryCacheableBlockingEnabled}.
  *
  * @author wind57
  */
@@ -35,9 +35,20 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEna
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnClass(name = { "org.springframework.boot.health.contributor.ReactiveHealthIndicator",
-		"org.springframework.boot.actuate.health.HealthEndpoint" })
-@ConditionalOnDiscoveryHealthIndicatorEnabled
-public @interface ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer {
+@Conditional(ConditionalOnDiscoveryCacheableBlockingDisabled.OnDiscoveryCacheableBlockingDisabled.class)
+public @interface ConditionalOnDiscoveryCacheableBlockingDisabled {
+
+	class OnDiscoveryCacheableBlockingDisabled extends NoneNestedConditions {
+
+		OnDiscoveryCacheableBlockingDisabled() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnDiscoveryCacheableBlockingEnabled
+		static class OnDisabled {
+
+		}
+
+	}
 
 }

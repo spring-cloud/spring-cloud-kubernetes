@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery.conditionals;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,24 +23,21 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
-import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 
 /**
- * Provides common conditionals to be used for reactive discovery.
+ * Provides common conditionals to be used for reactive discovery health initializer.
  *
  * @author wind57
  */
-@Target({ ElementType.TYPE })
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnDiscoveryEnabled
-@ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnReactiveDiscoveryEnabled
-@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
-public @interface ConditionalOnSpringCloudKubernetesReactiveDiscovery {
+@ConditionalOnClass(name = { "org.springframework.boot.health.contributor.ReactiveHealthIndicator",
+		"org.springframework.boot.actuate.health.HealthEndpoint" })
+@ConditionalOnDiscoveryHealthIndicatorEnabled
+public @interface ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer {
 
 }
