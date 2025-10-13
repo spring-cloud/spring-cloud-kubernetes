@@ -23,6 +23,8 @@ import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscov
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableReactiveDisabled;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableReactiveEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesReactiveDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,9 +48,19 @@ class KubernetesDiscoveryClientReactiveAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableReactiveDisabled
 	KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesReactiveDiscoveryClient(webClientBuilder, properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableReactiveEnabled
+	KubernetesCacheableReactiveDiscoveryClient kubernetesCacheableReactiveDiscoveryClient(
+			WebClient.Builder webClientBuilder,
+			KubernetesDiscoveryProperties properties) {
+		return new KubernetesCacheableReactiveDiscoveryClient(webClientBuilder, properties);
 	}
 
 	@Bean

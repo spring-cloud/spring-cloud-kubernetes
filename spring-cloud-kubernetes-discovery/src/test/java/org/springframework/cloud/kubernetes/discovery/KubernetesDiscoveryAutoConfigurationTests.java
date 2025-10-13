@@ -322,6 +322,62 @@ class KubernetesDiscoveryAutoConfigurationTests {
 		});
 	}
 
+	/**
+	 * <pre>
+	 *     - no property related to cacheable in the reactive implementation is set, as such:
+	 *     - KubernetesReactiveDiscoveryClient is present
+	 *     - KubernetesCacheableReactiveDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableDefault() {
+		setupWithFilteredClassLoader(null,
+			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesCacheableReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the reactive implementation = false, as such:
+	 *     - KubernetesReactiveDiscoveryClient is present
+	 *     - KubernetesCacheableReactiveDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableDisabled() {
+		setupWithFilteredClassLoader(null,
+			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=false",
+			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesReactiveDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesCacheableReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the reactive implementation = true, as such:
+	 *     - KubernetesReactiveDiscoveryClient is not present
+	 *     - KubernetesCacheableReactiveDiscoveryClient is present
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableEnabled() {
+		setupWithFilteredClassLoader(null,
+			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
+			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesCacheableReactiveDiscoveryClient.class);
+		});
+	}
+
 	private ApplicationContextRunner applicationContextRunner;
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
