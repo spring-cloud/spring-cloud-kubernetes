@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,35 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.Objects;
+
 import reactor.core.publisher.Flux;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 
-/**
- * Kubernetes implementation of {@link ReactiveDiscoveryClient}. Currently relies on the
- * {@link Fabric8DiscoveryClient} for feature parity.
- *
- * @author Tim Ysewyn
- */
-final class Fabric8ReactiveDiscoveryClient extends Fabric8AbstractReactiveDiscoveryClient {
+public class Fabric8CacheableReactiveDiscoveryClient extends Fabric8AbstractReactiveDiscoveryClient {
 
-	Fabric8ReactiveDiscoveryClient(Fabric8DiscoveryClient fabric8DiscoveryClient) {
+	Fabric8CacheableReactiveDiscoveryClient(Fabric8DiscoveryClient fabric8DiscoveryClient) {
 		super(fabric8DiscoveryClient);
 	}
 
 	@Override
+	@Cacheable("fabric8-reactive-discovery-services")
 	public Flux<String> getServices() {
 		return super.getServices();
 	}
 
 	@Override
+	@Cacheable("fabric8-reactive-discovery-instances")
 	public Flux<ServiceInstance> getInstances(String serviceId) {
+		Objects.requireNonNull(serviceId, "serviceId must not be null");
 		return super.getInstances(serviceId);
 	}
 
 	@Override
 	public String description() {
-		return "Fabric8 Reactive Discovery Client";
+		return "Fabric8 Cacheable Reactive Discovery Client";
 	}
 
 	@Override

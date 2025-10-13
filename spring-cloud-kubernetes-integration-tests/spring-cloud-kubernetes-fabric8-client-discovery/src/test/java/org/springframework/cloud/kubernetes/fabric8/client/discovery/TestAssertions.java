@@ -43,7 +43,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
  */
 final class TestAssertions {
 
-	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].status";
+	private static final String REACTIVE_STATUS = "$.components.reactiveDiscoveryClients.components.['Fabric8 Reactive Discovery Client'].status";
 
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
 
@@ -179,7 +179,7 @@ final class TestAssertions {
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(REACTIVE_STATUS).isEqualTo("UP");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(
-				"$.components.reactiveDiscoveryClients.components.['Fabric8 Kubernetes Reactive Discovery Client'].details.services")
+				"$.components.reactiveDiscoveryClients.components.['Fabric8 Reactive Discovery Client'].details.services")
 			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(BLOCKING_STATUS);

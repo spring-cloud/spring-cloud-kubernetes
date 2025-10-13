@@ -34,6 +34,8 @@ import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscov
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnDiscoveryCacheableReactiveDisabled;
+import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnDiscoveryCacheableReactiveEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -65,6 +67,7 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableReactiveDisabled
 	Fabric8ReactiveDiscoveryClient fabric8ReactiveDiscoveryClient(KubernetesClient client,
 			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
 		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
@@ -72,6 +75,18 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 		Fabric8DiscoveryClient fabric8DiscoveryClient = new Fabric8DiscoveryClient(client, properties,
 				servicePortSecureResolver, namespaceProvider, predicate);
 		return new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableReactiveEnabled
+	Fabric8CacheableReactiveDiscoveryClient fabric8CacheableReactiveDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
+		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
+		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = new Fabric8DiscoveryClient(client, properties,
+				servicePortSecureResolver, namespaceProvider, predicate);
+		return new Fabric8CacheableReactiveDiscoveryClient(fabric8DiscoveryClient);
 	}
 
 	/**

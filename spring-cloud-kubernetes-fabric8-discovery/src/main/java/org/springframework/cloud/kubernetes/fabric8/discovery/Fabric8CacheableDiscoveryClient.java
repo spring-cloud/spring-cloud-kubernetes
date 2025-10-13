@@ -16,25 +16,29 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 
 /**
- * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
+ * Cacheable Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
  *
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-final class Fabric8DiscoveryClient extends Fabric8AbstractBlockingDiscoveryClient {
+class Fabric8CacheableDiscoveryClient extends Fabric8AbstractBlockingDiscoveryClient {
 
-	Fabric8DiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+	Fabric8CacheableDiscoveryClient(KubernetesClient client,
+			KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
 			ServicePortSecureResolver servicePortSecureResolver, KubernetesNamespaceProvider namespaceProvider,
 			Predicate<Service> predicate) {
 
@@ -42,8 +46,25 @@ final class Fabric8DiscoveryClient extends Fabric8AbstractBlockingDiscoveryClien
 	}
 
 	@Override
+	@Cacheable("fabric8-blocking-discovery-services")
+	public List<String> getServices() {
+		return super.getServices();
+	}
+
+	@Override
+	@Cacheable("fabric8-blocking-discovery-instances")
+	public List<ServiceInstance> getInstances(String serviceId) {
+		return super.getInstances(serviceId);
+	}
+
+	@Override
 	public String description() {
-		return "Fabric8 Blocking Discovery Client";
+		return "Fabric8 Cacheable Blocking Discovery Client";
+	}
+
+	@Override
+	public int getOrder() {
+		return super.getOrder();
 	}
 
 }
