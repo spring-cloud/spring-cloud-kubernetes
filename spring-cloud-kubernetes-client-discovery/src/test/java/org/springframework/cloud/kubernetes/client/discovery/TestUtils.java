@@ -35,41 +35,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author wind57
  */
-public final class TestUtils {
+final class TestUtils {
 
 	private TestUtils() {
 
 	}
 
-	public static void assertSelectiveNamespacesBeansMissing(AssertableApplicationContext context) {
-		String[] sharedInformerFactoriesBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<SharedInformerFactory>>() {
-			}));
-		assertThat(sharedInformerFactoriesBeanName).isEmpty();
-
-		String[] serviceSharedIndexInformersBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Service>>>() {
-				}));
-		assertThat(serviceSharedIndexInformersBeanName).isEmpty();
-
-		String[] endpointsSharedIndexInformersBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Endpoints>>>() {
-				}));
-		assertThat(endpointsSharedIndexInformersBeanName).isEmpty();
-
-		String[] serviceListersBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Service>>>() {
-			}));
-		assertThat(serviceListersBeanName).isEmpty();
-
-		String[] endpointsListersBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Endpoints>>>() {
-			}));
-		assertThat(endpointsListersBeanName).isEmpty();
-	}
-
 	@SuppressWarnings("unchecked")
-	public static void assertSelectiveNamespacesBeansPresent(AssertableApplicationContext context, int times) {
+	static void assertInformerBeansPresent(AssertableApplicationContext context, int times) {
 		String sharedInformerFactoriesBeanName = context
 			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<SharedInformerFactory>>() {
 			}))[0];
@@ -105,57 +78,31 @@ public final class TestUtils {
 		assertThat(endpointsListers.size()).isEqualTo(times);
 	}
 
-	@SuppressWarnings("unchecked")
-	public static void assertNonSelectiveNamespacesBeansPresent(AssertableApplicationContext context) {
-		assertThat(context).hasSingleBean(SharedInformerFactory.class);
-
-		String serviceSharedIndexInformerBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<SharedIndexInformer<V1Service>>() {
-				}))[0];
-		SharedIndexInformer<V1Service> serviceSharedIndexInformer = (SharedIndexInformer<V1Service>) context
-			.getBean(serviceSharedIndexInformerBeanName);
-		assertThat(serviceSharedIndexInformer).isNotNull();
-
-		String endpointSharedIndexInformerBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<SharedIndexInformer<V1Endpoints>>() {
-				}))[0];
-		SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer = (SharedIndexInformer<V1Endpoints>) context
-			.getBean(endpointSharedIndexInformerBeanName);
-		assertThat(endpointsSharedIndexInformer).isNotNull();
-
-		String serviceListerBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<Lister<V1Service>>() {
-			}))[0];
-		Lister<V1Service> serviceLister = (Lister<V1Service>) context.getBean(serviceListerBeanName);
-		assertThat(serviceLister).isNotNull();
-
-		String endpointsListerBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<Lister<V1Endpoints>>() {
-			}))[0];
-		Lister<V1Endpoints> endpointsLister = (Lister<V1Endpoints>) context.getBean(endpointsListerBeanName);
-		assertThat(endpointsLister).isNotNull();
-	}
-
-	public static void assertNonSelectiveNamespacesBeansMissing(AssertableApplicationContext context) {
-		String[] serviceSharedIndexInformerBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<SharedIndexInformer<V1Service>>() {
-				}));
-		assertThat(serviceSharedIndexInformerBeanName).isEmpty();
-
-		String[] endpointSharedIndexInformerBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<SharedIndexInformer<V1Endpoints>>() {
-				}));
-		assertThat(endpointSharedIndexInformerBeanName).isEmpty();
-
-		String[] serviceListerBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<Lister<V1Service>>() {
+	static void assertInformerBeansMissing(AssertableApplicationContext context) {
+		String[] sharedInformerFactoriesBeanName = context
+			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<SharedInformerFactory>>() {
 			}));
-		assertThat(serviceListerBeanName).isEmpty();
+		assertThat(sharedInformerFactoriesBeanName).isEmpty();
 
-		String[] endpointsListerBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<Lister<V1Endpoints>>() {
+		String[] serviceSharedIndexInformersBeanName = context.getBeanNamesForType(
+				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Service>>>() {
+				}));
+		assertThat(serviceSharedIndexInformersBeanName).isEmpty();
+
+		String[] endpointsSharedIndexInformersBeanName = context.getBeanNamesForType(
+				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Endpoints>>>() {
+				}));
+		assertThat(endpointsSharedIndexInformersBeanName).isEmpty();
+
+		String[] serviceListersBeanName = context
+			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Service>>>() {
 			}));
-		assertThat(endpointsListerBeanName).isEmpty();
+		assertThat(serviceListersBeanName).isEmpty();
+
+		String[] endpointsListersBeanName = context
+			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Endpoints>>>() {
+			}));
+		assertThat(endpointsListersBeanName).isEmpty();
 	}
 
 }

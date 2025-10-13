@@ -25,6 +25,7 @@ import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -32,14 +33,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthConfiguration;
+import org.springframework.cloud.kubernetes.commons.PodUtils;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * @author wind57
@@ -48,35 +51,29 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-		KubernetesClientInformerAutoConfiguration.class,
-		KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
 		KubernetesClientDiscoveryClientSpelAutoConfiguration.class })
-@Import(KubernetesDiscoveryClientHealthConfiguration.class)
 final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 
-	@Bean
-	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
-	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
-			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties,
-			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		return new KubernetesClientInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
-				List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties, coreV1Api,
-				predicate);
-	}
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(KubernetesClientInformerDiscoveryClientAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesPresent.class)
-	KubernetesClientInformerDiscoveryClient selectiveNamespacesKubernetesInformerDiscoveryClient(
+	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
 			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
 			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		return new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
 				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
+	}
+
+	@Bean
+	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
+	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 }

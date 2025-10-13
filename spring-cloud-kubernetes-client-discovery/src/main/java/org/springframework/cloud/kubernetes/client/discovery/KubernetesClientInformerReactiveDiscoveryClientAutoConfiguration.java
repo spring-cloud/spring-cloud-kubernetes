@@ -43,7 +43,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.conditionals.Condi
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 
@@ -56,13 +55,32 @@ import org.springframework.core.log.LogAccessor;
 @AutoConfigureBefore({ SimpleReactiveDiscoveryClientAutoConfiguration.class,
 		ReactiveCommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
-		KubernetesDiscoveryPropertiesAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
-		KubernetesClientInformerSelectiveNamespacesAutoConfiguration.class,
+		KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		KubernetesClientDiscoveryClientSpelAutoConfiguration.class })
 final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class));
+
+	// in case blocking is disabled
+	@Bean
+	@ConditionalOnMissingBean
+	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClientForReactiveImplementation(
+			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
+			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+
+		return new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
+				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
+			KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
+		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
+	}
 
 	/**
 	 * Post an event so that health indicator is initialized.
@@ -84,38 +102,6 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 			KubernetesClientInformerReactiveDiscoveryClient client,
 			DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientReactiveDiscoveryClient(
-			KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
-		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesMissing.class)
-	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
-			SharedInformerFactory sharedInformerFactory, Lister<V1Service> serviceLister,
-			Lister<V1Endpoints> endpointsLister, SharedInformer<V1Service> serviceInformer,
-			SharedInformer<V1Endpoints> endpointsInformer, KubernetesDiscoveryProperties properties,
-			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		return new KubernetesClientInformerDiscoveryClient(List.of(sharedInformerFactory), List.of(serviceLister),
-				List.of(endpointsLister), List.of(serviceInformer), List.of(endpointsInformer), properties, coreV1Api,
-				predicate);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@Conditional(ConditionalOnSelectiveNamespacesPresent.class)
-	KubernetesClientInformerDiscoveryClient selectiveNamespacesKubernetesClientInformerDiscoveryClient(
-			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
-			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
-			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
-			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		return new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
-				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
 	}
 
 }
