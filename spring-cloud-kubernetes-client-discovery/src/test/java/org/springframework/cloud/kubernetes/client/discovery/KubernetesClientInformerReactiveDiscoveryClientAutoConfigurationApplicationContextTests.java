@@ -63,7 +63,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 	@Test
 	void discoveryEnabledDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.client.namespace=default");
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -166,7 +166,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 
-			assertInformerBeansPresent(context , 1);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -231,7 +231,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 
-			assertInformerBeansPresent(context , 1);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -296,7 +296,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertInformerBeansPresent(context , 1);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -365,7 +365,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 
-			assertInformerBeansPresent(context , 1);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 

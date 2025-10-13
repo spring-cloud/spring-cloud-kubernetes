@@ -85,13 +85,13 @@ final class TestUtils {
 		assertThat(sharedInformerFactoriesBeanName).isEmpty();
 
 		String[] serviceSharedIndexInformersBeanName = context.getBeanNamesForType(
-			ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Service>>>() {
-			}));
+				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Service>>>() {
+				}));
 		assertThat(serviceSharedIndexInformersBeanName).isEmpty();
 
 		String[] endpointsSharedIndexInformersBeanName = context.getBeanNamesForType(
-			ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Endpoints>>>() {
-			}));
+				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Endpoints>>>() {
+				}));
 		assertThat(endpointsSharedIndexInformersBeanName).isEmpty();
 
 		String[] serviceListersBeanName = context

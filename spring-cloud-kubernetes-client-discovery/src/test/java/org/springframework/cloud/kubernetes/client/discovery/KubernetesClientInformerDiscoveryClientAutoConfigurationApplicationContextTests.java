@@ -22,9 +22,6 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.commons.util.UtilAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -32,7 +29,10 @@ import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
+import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.commons.util.UtilAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -63,15 +63,20 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 	@Test
 	void discoveryEnabledDefault() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -81,10 +86,14 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.kubernetes.discovery.namespaces=a,b,c");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
 			// 3 namespaces
 			assertInformerBeansPresent(context, 3);
@@ -94,15 +103,19 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	@Test
 	void discoveryEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.enabled=true");
+				"spring.cloud.discovery.enabled=true", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -112,12 +125,16 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.discovery.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
-
-			assertInformerBeansPresent(context, 2);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			// reactive only present
+			assertThat(context).hasBean("reactiveIndicatorInitializer");
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 		});
 	}
 
@@ -132,7 +149,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertInformerBeansPresent(context, 2);
+			assertInformerBeansMissing(context);
 		});
 	}
 
@@ -147,7 +164,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansMissing(context);
 		});
 	}
 
@@ -173,10 +190,14 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
 			assertInformerBeansPresent(context, 4);
 		});
@@ -191,9 +212,11 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(ReactiveDiscoveryClientHealthIndicator.class);
+			// not ours, but form commons
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansMissing(context);
 		});
 	}
 
@@ -217,15 +240,19 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	@Test
 	void kubernetesDiscoveryBlockingEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=true");
+				"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -235,27 +262,35 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
 	@Test
 	void kubernetesDiscoveryBlockingDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=false");
+				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -265,10 +300,14 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
 			assertInformerBeansPresent(context, 2);
 		});
@@ -277,15 +316,20 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	@Test
 	void kubernetesDiscoveryHealthIndicatorEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.client.health-indicator.enabled=true");
+				"spring.cloud.discovery.client.health-indicator.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -296,27 +340,32 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.kubernetes.discovery.namespaces=b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
 	@Test
 	void kubernetesDiscoveryHealthIndicatorDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.client.health-indicator.enabled=false");
+				"spring.cloud.discovery.client.health-indicator.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -327,27 +376,34 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.kubernetes.discovery.namespaces=b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertInformerBeansPresent(context, 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
 	@Test
 	void kubernetesDiscoveryHealthIndicatorEnabledHealthIndicatorMissing() {
 		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true");
+				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
+			// reactive only present
+			assertThat(context).hasBean("reactiveIndicatorInitializer");
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -358,10 +414,15 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d,e");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
-			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
-			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
+			assertThat(context).hasBean("reactiveIndicatorInitializer");
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// ours
+			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
 			assertInformerBeansPresent(context, 5);
 		});
@@ -373,7 +434,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	@Test
 	void reactiveDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.reactive.enabled=false");
+				"spring.cloud.discovery.reactive.enabled=false", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -381,7 +442,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
-			assertInformerBeansPresent(context , 2);
+			assertInformerBeansPresent(context, 1);
 		});
 	}
 
@@ -407,26 +468,30 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(
-				KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class,
-				KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
-				UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-				KubernetesClientInformerAutoConfiguration.class,
-				KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
-				KubernetesCommonsAutoConfiguration.class,
-				KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
-			.withUserConfiguration(KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContextTests.ApiClientConfig.class)
+					KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class,
+					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
+					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
+					KubernetesCommonsAutoConfiguration.class,
+					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
+			.withUserConfiguration(
+					KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContextTests.ApiClientConfig.class)
 			.withPropertyValues(properties);
 	}
 
 	private void setupWithFilteredClassLoader(Class<?> cls, String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(
 					KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class,
-					KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientAutoConfiguration.class, SimpleReactiveDiscoveryClientAutoConfiguration.class,
+					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
+					KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
+					KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
 					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
+			.withUserConfiguration(
+					KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContextTests.ApiClientConfig.class)
 			.withClassLoader(new FilteredClassLoader(cls))
-			.withUserConfiguration(ApiClientConfig.class)
 			.withPropertyValues(properties);
 	}
 

@@ -69,9 +69,9 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
 			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
 			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient =
-			new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
-				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
+		KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient = new KubernetesClientInformerDiscoveryClient(
+				sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
+				properties, coreV1Api, predicate);
 		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
 	}
 
@@ -81,7 +81,7 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
 	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
-		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
@@ -92,8 +92,8 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
 	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-		KubernetesClientInformerReactiveDiscoveryClient client,
-		DiscoveryClientHealthIndicatorProperties properties) {
+			KubernetesClientInformerReactiveDiscoveryClient client,
+			DiscoveryClientHealthIndicatorProperties properties) {
 		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
 

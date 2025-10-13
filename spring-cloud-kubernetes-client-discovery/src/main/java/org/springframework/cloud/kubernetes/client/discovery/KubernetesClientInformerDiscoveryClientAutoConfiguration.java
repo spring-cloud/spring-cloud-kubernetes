@@ -25,8 +25,8 @@ import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
-
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -55,7 +55,7 @@ import org.springframework.core.log.LogAccessor;
 final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesClientInformerDiscoveryClientAutoConfiguration.class));
+			LogFactory.getLog(KubernetesClientInformerDiscoveryClientAutoConfiguration.class));
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -71,7 +71,7 @@ final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
 	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from blocking implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}

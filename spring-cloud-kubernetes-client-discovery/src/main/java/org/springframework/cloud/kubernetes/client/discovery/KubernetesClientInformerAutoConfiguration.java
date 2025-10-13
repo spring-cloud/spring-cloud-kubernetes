@@ -52,8 +52,9 @@ import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
- * This one uses: 'ConditionalOnBlockingOrReactiveDiscoveryEnabled' because beans it contains
- * are specific to both clients.
+ * This one uses: 'ConditionalOnBlockingOrReactiveDiscoveryEnabled' because beans it
+ * contains are specific to both clients.
+ *
  * @author wind57
  */
 @Configuration(proxyBeanMethods = false)
@@ -66,7 +67,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 final class KubernetesClientInformerAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesClientInformerAutoConfiguration.class));
+			LogFactory.getLog(KubernetesClientInformerAutoConfiguration.class));
 
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
@@ -104,16 +105,16 @@ final class KubernetesClientInformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class,
-		parameterizedContainer = { List.class, SharedIndexInformer.class })
+			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
-		List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-		ApiClient apiClient) {
+			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
+			ApiClient apiClient) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
-				V1ServiceList.class, "", "v1", "services", apiClient);
+					V1ServiceList.class, "", "v1", "services", apiClient);
 			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactories.get(i)
 				.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, selectiveNamespaces.get(i));
 			serviceSharedIndexedInformers.add(sharedIndexInformer);
@@ -124,7 +125,7 @@ final class KubernetesClientInformerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = { List.class, Lister.class })
 	List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
-		List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers) {
+			List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<Lister<V1Service>> serviceListers = new ArrayList<>(howManyNamespaces);
@@ -141,16 +142,16 @@ final class KubernetesClientInformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class,
-		parameterizedContainer = { List.class, SharedIndexInformer.class })
+			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
-		List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-		ApiClient apiClient) {
+			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
+			ApiClient apiClient) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
-				V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
+					V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactories.get(i)
 				.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, selectiveNamespaces.get(i));
 			endpointsSharedIndexedInformers.add(sharedIndexInformer);
@@ -161,7 +162,7 @@ final class KubernetesClientInformerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
 	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
-		List<SharedIndexInformer<V1Endpoints>> serviceSharedIndexInformers) {
+			List<SharedIndexInformer<V1Endpoints>> serviceSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<Lister<V1Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
