@@ -89,7 +89,7 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 		K3S.execInContainer("sh", "-c",
 				"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
 
-		assertLogStatement(output, "using selective namespaces : [default]");
+		assertLogStatement(output, "serviceSharedInformers will use selective namespaces : [default]");
 
 		List<String> services = discoveryClient.getServices();
 		List<ServiceInstance> instances = discoveryClient.getInstances("busybox-service");
