@@ -14,37 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.discovery;
-
-import java.util.Objects;
+package org.springframework.cloud.kubernetes.client.discovery;
 
 import reactor.core.publisher.Flux;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
 
-public class Fabric8CacheableReactiveDiscoveryClient extends Fabric8AbstractReactiveDiscoveryClient {
+class KubernetesClientCacheableInformerReactiveDiscoveryClient
+	extends KubernetesClientReactiveAbstractInformerDiscoveryClient{
 
-	Fabric8CacheableReactiveDiscoveryClient(Fabric8DiscoveryClient fabric8DiscoveryClient) {
-		super(fabric8DiscoveryClient);
+	KubernetesClientCacheableInformerReactiveDiscoveryClient(
+		KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
+		super(kubernetesDiscoveryClient);
 	}
 
 	@Override
-	@Cacheable("fabric8-reactive-discovery-services")
+	@Cacheable("k8s-native-reactive-discovery-services")
 	public Flux<String> getServices() {
 		return super.getServices();
 	}
 
 	@Override
-	@Cacheable("fabric8-reactive-discovery-instances")
+	@Cacheable("k8s-native-reactive-discovery-instances")
 	public Flux<ServiceInstance> getInstances(String serviceId) {
-		Objects.requireNonNull(serviceId, "serviceId must not be null");
 		return super.getInstances(serviceId);
 	}
 
 	@Override
 	public String description() {
-		return "Fabric8 Cacheable Reactive Discovery Client";
+		return "Kubernetes Native Cacheable Reactive Discovery Client";
 	}
-
 }

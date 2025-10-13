@@ -89,9 +89,9 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableReactiveEnabled
-	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientCacheableReactiveDiscoveryClient(
+	KubernetesClientCacheableInformerReactiveDiscoveryClient kubernetesClientCacheableReactiveDiscoveryClient(
 		KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
-		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
+		return new KubernetesClientCacheableInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
 	}
 
 	/**

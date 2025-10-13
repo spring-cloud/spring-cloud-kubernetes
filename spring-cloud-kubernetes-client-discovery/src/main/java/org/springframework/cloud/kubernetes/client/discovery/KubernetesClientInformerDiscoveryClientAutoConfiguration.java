@@ -74,13 +74,13 @@ final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableBlockingEnabled
-	KubernetesClientInformerDiscoveryClient kubernetesClientCacheableInformerDiscoveryClient(
+	KubernetesClientCacheableInformerDiscoveryClient kubernetesClientCacheableInformerDiscoveryClient(
 		List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 		List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
 		List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
 		CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		return new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
-			serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
+		return new KubernetesClientCacheableInformerDiscoveryClient(sharedInformerFactories, serviceListers,
+			endpointsListers, serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
 	}
 
 	@Bean

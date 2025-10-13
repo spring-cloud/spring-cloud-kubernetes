@@ -16,47 +16,20 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
-import java.util.Objects;
-
-import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
-
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
-
 /**
  * @author Ryan Baxter
  */
-public final class KubernetesClientInformerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
+final class KubernetesClientInformerReactiveDiscoveryClient
+		extends KubernetesClientReactiveAbstractInformerDiscoveryClient {
 
-	private final KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient;
-
-	public KubernetesClientInformerReactiveDiscoveryClient(
+	KubernetesClientInformerReactiveDiscoveryClient(
 			KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
-		this.kubernetesDiscoveryClient = kubernetesDiscoveryClient;
+		super(kubernetesDiscoveryClient);
 	}
 
 	@Override
 	public String description() {
 		return "Kubernetes Reactive Discovery Client";
-	}
-
-	@Override
-	public Flux<ServiceInstance> getInstances(String serviceId) {
-		Objects.requireNonNull(serviceId, "serviceId must be provided");
-		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getInstances(serviceId)))
-			.subscribeOn(Schedulers.boundedElastic());
-	}
-
-	@Override
-	public Flux<String> getServices() {
-		return Flux.defer(() -> Flux.fromIterable(kubernetesDiscoveryClient.getServices()))
-			.subscribeOn(Schedulers.boundedElastic());
-	}
-
-	@Override
-	public int getOrder() {
-		return kubernetesDiscoveryClient.getOrder();
 	}
 
 }
