@@ -29,7 +29,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.web.server.test.LocalManagementPort;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
-import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCompositeDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
@@ -80,11 +79,6 @@ class KubernetesClientReactiveIT extends KubernetesClientDiscoveryBase {
 	 */
 	@Test
 	void test(CapturedOutput output) {
-
-		ReactiveCompositeDiscoveryClient compositeDiscoveryClient = (ReactiveCompositeDiscoveryClient) discoveryClient;
-
-		compositeDiscoveryClient.getDiscoveryClients().get(0).getServices().blockFirst();
-
 		assertReactiveConfiguration(output, port);
 		assertPodMetadata(discoveryClient);
 	}
