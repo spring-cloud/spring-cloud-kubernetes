@@ -164,7 +164,7 @@ public final class DiscoveryClientUtils {
 
 		InstanceIdHostPodName data = instanceIdAndHost.get();
 
-		return new KubernetesExternalNameServiceInstance(serviceMetadata.name(), data.host(), data.instanceId(),
+		return new ExternalNameKubernetesServiceInstance(serviceMetadata.name(), data.host(), data.instanceId(),
 				serviceInstanceMetadata);
 
 	}

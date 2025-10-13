@@ -28,7 +28,7 @@ import org.springframework.cloud.client.ServiceInstance;
  *
  * @author wind57
  */
-public record KubernetesExternalNameServiceInstance(String serviceId, String host, String instanceId,
+public record ExternalNameKubernetesServiceInstance(String serviceId, String host, String instanceId,
 		Map<String, String> metadata) implements ServiceInstance, Serializable {
 
 	@Override
