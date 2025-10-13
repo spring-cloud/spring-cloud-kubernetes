@@ -16,21 +16,9 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.web.client.RestTemplate;
-
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-final class KubernetesDiscoveryClient extends KubernetesAbstractBlockingDiscoveryClient {
-
-	KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
-		super(rest, kubernetesDiscoveryProperties);
-	}
-
-	@Override
-	public String description() {
-		return "Kubernetes Discovery Client";
-	}
+abstract class KubernetesAbstractReactiveDiscoveryClient {
 
 }

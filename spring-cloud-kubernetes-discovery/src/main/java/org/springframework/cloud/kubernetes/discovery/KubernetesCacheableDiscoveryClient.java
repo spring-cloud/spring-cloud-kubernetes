@@ -16,21 +16,36 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import java.util.List;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-final class KubernetesDiscoveryClient extends KubernetesAbstractBlockingDiscoveryClient {
+class KubernetesCacheableDiscoveryClient extends KubernetesAbstractBlockingDiscoveryClient {
 
-	KubernetesDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+	KubernetesCacheableDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
 		super(rest, kubernetesDiscoveryProperties);
 	}
 
 	@Override
-	public String description() {
-		return "Kubernetes Discovery Client";
+	@Cacheable("k8s-blocking-discovery-services")
+	public List<String> getServices() {
+		return super.getServices();
 	}
 
+	@Override
+	@Cacheable("k8s-blocking-discovery-instances")
+	public List<ServiceInstance> getInstances(String serviceId) {
+		return super.getInstances(serviceId);
+	}
+
+	@Override
+	public String description() {
+		return "Kubernetes Cacheable Discovery Client";
+	}
 }
