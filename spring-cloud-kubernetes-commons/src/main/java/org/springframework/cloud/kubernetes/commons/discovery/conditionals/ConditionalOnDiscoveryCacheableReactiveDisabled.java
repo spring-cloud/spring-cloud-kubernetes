@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery.conditionals;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,19 +23,32 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
+import org.springframework.context.annotation.Conditional;
 
 /**
- * Provides a more succinct conditional
- * <code>spring.cloud.kubernetes.discovery.enabled</code>.
+ * Reverse of {@link ConditionalOnDiscoveryCacheableReactiveEnabled}.
  *
  * @author wind57
  */
-@Target(ElementType.TYPE)
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.discovery.enabled", matchIfMissing = true)
-public @interface ConditionalOnKubernetesDiscoveryEnabled {
+@Conditional(ConditionalOnDiscoveryCacheableReactiveDisabled.OnDiscoveryCacheableReactiveDisabled.class)
+public @interface ConditionalOnDiscoveryCacheableReactiveDisabled {
+
+	class OnDiscoveryCacheableReactiveDisabled extends NoneNestedConditions {
+
+		OnDiscoveryCacheableReactiveDisabled() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnDiscoveryCacheableReactiveEnabled
+		static class OnDisabled {
+
+		}
+
+	}
 
 }

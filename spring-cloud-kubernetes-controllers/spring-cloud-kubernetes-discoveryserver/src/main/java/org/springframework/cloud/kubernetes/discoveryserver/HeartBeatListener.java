@@ -22,9 +22,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnHttpDiscoveryCatalogWatcherEnabled;
-import org.springframework.cloud.kubernetes.commons.discovery.ConditionalOnKubernetesCatalogEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnHttpDiscoveryCatalogWatcherEnabled;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnKubernetesCatalogEnabled;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
+package org.springframework.cloud.kubernetes.commons.discovery.conditionals;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,41 +23,24 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
-import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.cloud.CloudPlatform;
+import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
-import org.springframework.context.annotation.Conditional;
 
 /**
- * Conditional that is resolved to active when either
- * {@link ConditionalOnBlockingDiscoveryEnabled} or
- * {@link ConditionalOnReactiveDiscoveryEnabled} matches.
+ * Provides common conditionals to be used for reactive discovery.
  *
  * @author wind57
  */
-@Target({ ElementType.TYPE, ElementType.METHOD })
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnBlockingOrReactiveDiscoveryEnabled.OnBlockingOrReactiveDiscoveryEnabled.class)
-public @interface ConditionalOnBlockingOrReactiveDiscoveryEnabled {
-
-	class OnBlockingOrReactiveDiscoveryEnabled extends AnyNestedCondition {
-
-		OnBlockingOrReactiveDiscoveryEnabled() {
-			super(ConfigurationPhase.REGISTER_BEAN);
-		}
-
-		@ConditionalOnBlockingDiscoveryEnabled
-		static class OnBlockingDiscoveryEnabled {
-
-		}
-
-		@ConditionalOnReactiveDiscoveryEnabled
-		static class OnReactiveDiscoveryEnabled {
-
-		}
-
-	}
+@ConditionalOnDiscoveryEnabled
+@ConditionalOnKubernetesDiscoveryEnabled
+@ConditionalOnReactiveDiscoveryEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+public @interface ConditionalOnSpringCloudKubernetesReactiveDiscovery {
 
 }
