@@ -16,13 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.List;
 import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -44,23 +42,8 @@ final class Fabric8DiscoveryClient extends Fabric8AbstractBlockingDiscoveryClien
 	}
 
 	@Override
-	public List<String> getServices() {
-		return super.getServices();
-	}
-
-	@Override
-	public List<ServiceInstance> getInstances(String serviceId) {
-		return super.getInstances(serviceId);
-	}
-
-	@Override
 	public String description() {
 		return "Fabric8 Blocking Discovery Client";
-	}
-
-	@Override
-	public int getOrder() {
-		return super.getOrder();
 	}
 
 }
