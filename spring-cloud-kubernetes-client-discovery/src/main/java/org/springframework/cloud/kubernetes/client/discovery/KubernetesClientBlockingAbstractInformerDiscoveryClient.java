@@ -60,7 +60,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implements DiscoveryClient {
 
 	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(KubernetesClientBlockingAbstractInformerDiscoveryClient.class));
+			LogFactory.getLog(KubernetesClientBlockingAbstractInformerDiscoveryClient.class));
 
 	private final List<SharedInformerFactory> sharedInformerFactories;
 
@@ -79,9 +79,9 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 	private final CoreV1Api coreV1Api;
 
 	KubernetesClientBlockingAbstractInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
-		List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
-		List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
-		KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
+			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
+			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		this.sharedInformerFactories = sharedInformerFactories;
 		this.serviceListers = serviceListers;
 		this.endpointsListers = endpointsListers;
@@ -143,11 +143,11 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 			for (V1Service service : externalNameServices) {
 				ServiceMetadata serviceMetadata = serviceMetadata(service);
 				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(Map.of(), serviceMetadata,
-					properties);
+						properties);
 
 				KubernetesClientInstanceIdHostPodNameSupplier supplierOne = externalName(service);
 				ServiceInstance externalNameServiceInstance = externalNameServiceInstance(serviceMetadata, supplierOne,
-					serviceInstanceMetadata);
+						serviceInstanceMetadata);
 				serviceInstances.add(externalNameServiceInstance);
 			}
 		}
@@ -185,7 +185,7 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 				ServiceMetadata serviceMetadata = serviceMetadata(service);
 				Map<String, Integer> portsData = endpointSubsetsPortData(subsets);
 				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(portsData, serviceMetadata,
-					properties);
+						properties);
 
 				for (V1EndpointSubset endpointSubset : subsets) {
 
@@ -196,12 +196,12 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 					for (V1EndpointAddress endpointAddress : addresses) {
 
 						KubernetesClientInstanceIdHostPodNameSupplier supplierOne = nonExternalName(endpointAddress,
-							service);
+								service);
 						KubernetesClientPodLabelsAndAnnotationsSupplier supplierTwo = nonExternalName(coreV1Api,
-							service.getMetadata().getNamespace());
+								service.getMetadata().getNamespace());
 
 						ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, serviceMetadata,
-							supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
+								supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
 						instances.add(serviceInstance);
 					}
 				}

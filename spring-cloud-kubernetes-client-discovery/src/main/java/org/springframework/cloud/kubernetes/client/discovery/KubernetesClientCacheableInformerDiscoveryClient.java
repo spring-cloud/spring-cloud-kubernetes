@@ -36,11 +36,11 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 class KubernetesClientCacheableInformerDiscoveryClient extends KubernetesClientBlockingAbstractInformerDiscoveryClient {
 
 	KubernetesClientCacheableInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
-		List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
-		List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
-		KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
+			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
+			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		super(sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
-			properties, coreV1Api, predicate);
+				properties, coreV1Api, predicate);
 	}
 
 	@Override

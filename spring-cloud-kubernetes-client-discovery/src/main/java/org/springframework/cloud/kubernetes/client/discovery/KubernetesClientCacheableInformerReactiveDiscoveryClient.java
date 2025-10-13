@@ -22,10 +22,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
 
 class KubernetesClientCacheableInformerReactiveDiscoveryClient
-	extends KubernetesClientReactiveAbstractInformerDiscoveryClient{
+		extends KubernetesClientReactiveAbstractInformerDiscoveryClient {
 
 	KubernetesClientCacheableInformerReactiveDiscoveryClient(
-		KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
+			KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
 		super(kubernetesDiscoveryClient);
 	}
 
@@ -45,4 +45,5 @@ class KubernetesClientCacheableInformerReactiveDiscoveryClient
 	public String description() {
 		return "Kubernetes Native Cacheable Reactive Discovery Client";
 	}
+
 }

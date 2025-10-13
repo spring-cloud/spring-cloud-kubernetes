@@ -28,7 +28,6 @@ import io.kubernetes.client.openapi.models.V1Service;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
-
 /**
  * @author Min Kim
  * @author Ryan Baxter
@@ -41,7 +40,7 @@ class KubernetesClientInformerDiscoveryClient extends KubernetesClientBlockingAb
 			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
 			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		super(sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
-			properties, coreV1Api, predicate);
+				properties, coreV1Api, predicate);
 
 	}
 

@@ -400,7 +400,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 	@Test
 	void reactiveCacheableDefault() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.client.namespace=default");
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientCacheableInformerReactiveDiscoveryClient.class);
@@ -417,8 +417,8 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 	@Test
 	void reactiveCacheableDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=false",
-			"spring.cloud.kubernetes.client.namespace=default");
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientCacheableInformerReactiveDiscoveryClient.class);
@@ -435,9 +435,9 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 	@Test
 	void reactiveCacheableEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
-			"spring.cloud.discovery.client.health-indicator.enabled=false",
-			"spring.cloud.kubernetes.client.namespace=default");
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
+				"spring.cloud.discovery.client.health-indicator.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientCacheableInformerReactiveDiscoveryClient.class);

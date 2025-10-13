@@ -31,8 +31,8 @@ abstract class KubernetesClientReactiveAbstractInformerDiscoveryClient implement
 
 	private final KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient;
 
-	public KubernetesClientReactiveAbstractInformerDiscoveryClient(
-		KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
+	KubernetesClientReactiveAbstractInformerDiscoveryClient(
+			KubernetesClientInformerDiscoveryClient kubernetesDiscoveryClient) {
 		this.kubernetesDiscoveryClient = kubernetesDiscoveryClient;
 	}
 

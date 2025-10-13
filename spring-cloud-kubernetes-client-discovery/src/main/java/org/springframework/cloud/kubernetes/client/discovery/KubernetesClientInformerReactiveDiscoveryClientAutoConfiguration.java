@@ -39,7 +39,6 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableBlockingDisabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableReactiveDisabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableReactiveEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesReactiveDiscovery;
@@ -90,7 +89,7 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableReactiveEnabled
 	KubernetesClientCacheableInformerReactiveDiscoveryClient kubernetesClientCacheableReactiveDiscoveryClient(
-		KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
+			KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient) {
 		return new KubernetesClientCacheableInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
 	}
 
