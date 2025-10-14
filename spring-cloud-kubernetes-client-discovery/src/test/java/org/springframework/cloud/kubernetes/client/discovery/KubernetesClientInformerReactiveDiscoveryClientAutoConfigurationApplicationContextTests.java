@@ -289,9 +289,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			// only the implementation for the reactive
-			assertThat(context).hasBean("kubernetesClientInformerDiscoveryClientForReactiveImplementation");
+			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
@@ -310,9 +308,7 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			// only the implementation for the reactive
-			assertThat(context).hasBean("kubernetesClientInformerDiscoveryClientForReactiveImplementation");
+			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			// simple from commons and ours
@@ -430,13 +426,34 @@ class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurationApplicatio
 	 *     - cacheable in the reactive implementation = true, as such:
 	 *     - KubernetesClientInformerReactiveDiscoveryClient is not present
 	 *     - KubernetesClientCacheableInformerReactiveDiscoveryClient is present
+	 *     - Health indicator is disabled
 	 * </pre>
 	 */
 	@Test
-	void reactiveCacheableEnabled() {
+	void reactiveCacheableEnabledWithoutHealthIndicator() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
 				"spring.cloud.discovery.client.health-indicator.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientCacheableInformerReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the reactive implementation = true, as such:
+	 *     - KubernetesClientInformerReactiveDiscoveryClient is not present
+	 *     - KubernetesClientCacheableInformerReactiveDiscoveryClient is present
+	 *     - Health indicator is enabled
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableEnabledWithHealthIndicator() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
+				"spring.cloud.discovery.client.health-indicator.enabled=true",
 				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);

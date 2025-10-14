@@ -82,8 +82,8 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnBean(Fabric8ReactiveDiscoveryClient.class)
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
 	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-		Fabric8ReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
-		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
+			Fabric8ReactiveDiscoveryClient reactiveClient, DiscoveryClientHealthIndicatorProperties properties) {
+		return new ReactiveDiscoveryClientHealthIndicator(reactiveClient, properties);
 	}
 
 	// Above two beans are created when cacheable is disabled
@@ -95,34 +95,36 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
 		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
 		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
-		Fabric8DiscoveryClient fabric8DiscoveryClient = new Fabric8DiscoveryClient(client, properties,
+		Fabric8DiscoveryClient blockingClient = new Fabric8DiscoveryClient(client, properties,
 				servicePortSecureResolver, namespaceProvider, predicate);
-		return new Fabric8CacheableReactiveDiscoveryClient(fabric8DiscoveryClient);
+		return new Fabric8CacheableReactiveDiscoveryClient(blockingClient);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(Fabric8ReactiveDiscoveryClient.class)
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
-	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveClientHealthIndicator(
-		KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-		Predicate<Service> predicate, DiscoveryClientHealthIndicatorProperties properties, Environment environment) {
+	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveClientHealthIndicator(KubernetesClient client,
+			KubernetesDiscoveryProperties kubernetesDiscoveryProperties, Predicate<Service> predicate,
+			DiscoveryClientHealthIndicatorProperties properties, Environment environment) {
 
 		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(kubernetesDiscoveryProperties);
-		Fabric8DiscoveryClient fabric8DiscoveryClient =
-			new Fabric8DiscoveryClient(client, kubernetesDiscoveryProperties,
-				servicePortSecureResolver, namespaceProvider, predicate);
+		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(
+				kubernetesDiscoveryProperties);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = new Fabric8DiscoveryClient(client,
+				kubernetesDiscoveryProperties, servicePortSecureResolver, namespaceProvider, predicate);
 
-		Fabric8ReactiveDiscoveryClient fabric8ReactiveDiscoveryClient =
-			new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
+		Fabric8ReactiveDiscoveryClient reactiveClient = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
 
-		return new ReactiveDiscoveryClientHealthIndicator(fabric8ReactiveDiscoveryClient, properties);
+		return new ReactiveDiscoveryClientHealthIndicator(reactiveClient, properties);
 	}
 
 	// Above two beans are created when cacheable is enabled. In this case, we can't make
-	// Fabric8DiscoveryClient a @Bean, since blocking discovery might be disabled and we do
-	// not want to allow wiring of it. Nevertheless, we still need an instance of Fabric8DiscoveryClient
-	// in order to create the ReactiveDiscoveryClientHealthIndicator and Fabric8CacheableReactiveDiscoveryClient
+	// Fabric8DiscoveryClient a @Bean, since blocking discovery might be disabled and we
+	// do
+	// not want to allow wiring of it. Nevertheless, we still need an instance of
+	// Fabric8DiscoveryClient
+	// in order to create the ReactiveDiscoveryClientHealthIndicator and
+	// Fabric8CacheableReactiveDiscoveryClient
 	// As such, we create two of such instances in each bean.
 
 	/**
@@ -132,7 +134,7 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnClass(name = "org.springframework.boot.health.contributor.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
-		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
