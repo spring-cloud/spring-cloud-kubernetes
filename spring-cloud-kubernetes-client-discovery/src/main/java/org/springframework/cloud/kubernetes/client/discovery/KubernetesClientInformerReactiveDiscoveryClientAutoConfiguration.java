@@ -77,6 +77,7 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 		KubernetesClientInformerDiscoveryClient blockingClient = new KubernetesClientInformerDiscoveryClient(
 				sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
 				properties, coreV1Api, predicate);
+		blockingClient.afterPropertiesSet();
 
 		return new KubernetesClientInformerReactiveDiscoveryClient(blockingClient);
 	}
@@ -104,6 +105,7 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 		KubernetesClientInformerDiscoveryClient blockingClient = new KubernetesClientInformerDiscoveryClient(
 				sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
 				properties, coreV1Api, predicate);
+		blockingClient.afterPropertiesSet();
 
 		return new KubernetesClientCacheableInformerReactiveDiscoveryClient(blockingClient);
 	}
@@ -121,6 +123,7 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 		KubernetesClientInformerDiscoveryClient blockingClient = new KubernetesClientInformerDiscoveryClient(
 				sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
 				kubernetesDiscoveryProperties, coreV1Api, predicate);
+		blockingClient.afterPropertiesSet();
 
 		KubernetesClientInformerReactiveDiscoveryClient reactiveClient = new KubernetesClientInformerReactiveDiscoveryClient(
 				blockingClient);
@@ -130,11 +133,10 @@ final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 
 	// Above two beans are created when cacheable is enabled. In this case, we can't make
 	// KubernetesClientInformerDiscoveryClient a @Bean, since blocking discovery might be
-	// disabled and we do
-	// not want to allow wiring of it. Nevertheless, we still need an instance of
-	// KubernetesClientInformerDiscoveryClient
+	// disabled and we do not want to allow wiring of it.
+	// Nevertheless, we still need an instance of KubernetesClientInformerDiscoveryClient
 	// in order to create the ReactiveDiscoveryClientHealthIndicator and
-	// KubernetesClientCacheableInformerReactiveDiscoveryClient
+	// KubernetesClientCacheableInformerReactiveDiscoveryClient.
 	// As such, we create two of such instances in each bean.
 
 	/**
