@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
@@ -78,6 +79,16 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnBean(Fabric8ReactiveDiscoveryClient.class)
+	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
+	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
+		Fabric8ReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
+		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
+	}
+
+	// Above two beans are created when cacheable is disabled
+
+	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableReactiveEnabled
 	Fabric8CacheableReactiveDiscoveryClient fabric8CacheableReactiveDiscoveryClient(KubernetesClient client,
@@ -89,6 +100,31 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 		return new Fabric8CacheableReactiveDiscoveryClient(fabric8DiscoveryClient);
 	}
 
+	@Bean
+	@ConditionalOnMissingBean(Fabric8ReactiveDiscoveryClient.class)
+	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
+	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveClientHealthIndicator(
+		KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
+		Predicate<Service> predicate, DiscoveryClientHealthIndicatorProperties properties, Environment environment) {
+
+		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(kubernetesDiscoveryProperties);
+		Fabric8DiscoveryClient fabric8DiscoveryClient =
+			new Fabric8DiscoveryClient(client, kubernetesDiscoveryProperties,
+				servicePortSecureResolver, namespaceProvider, predicate);
+
+		Fabric8ReactiveDiscoveryClient fabric8ReactiveDiscoveryClient =
+			new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
+
+		return new ReactiveDiscoveryClientHealthIndicator(fabric8ReactiveDiscoveryClient, properties);
+	}
+
+	// Above two beans are created when cacheable is enabled. In this case, we can't make
+	// Fabric8DiscoveryClient a @Bean, since blocking discovery might be disabled and we do
+	// not want to allow wiring of it. Nevertheless, we still need an instance of Fabric8DiscoveryClient
+	// in order to create the ReactiveDiscoveryClientHealthIndicator and Fabric8CacheableReactiveDiscoveryClient
+	// As such, we create two of such instances in each bean.
+
 	/**
 	 * Post an event so that health indicator is initialized.
 	 */
@@ -96,16 +132,9 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 	@ConditionalOnClass(name = "org.springframework.boot.health.contributor.ReactiveHealthIndicator")
 	@ConditionalOnDiscoveryHealthIndicatorEnabled
 	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
-			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
 		LOG.debug(() -> "Will publish InstanceRegisteredEvent from reactive implementation");
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
-	}
-
-	@Bean
-	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
-	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			Fabric8ReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
-		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
 
 }

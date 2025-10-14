@@ -180,13 +180,33 @@ class Fabric8ReactiveDiscoveryClientAutoConfigurationApplicationContextTests {
 	 *     - cacheable in the reactive implementation = true, as such:
 	 *     - Fabric8ReactiveDiscoveryClient is not present
 	 *     - Fabric8CacheableReactiveDiscoveryClient is present
+	 *     - Health indicator is disabled
 	 * </pre>
 	 */
 	@Test
-	void reactiveCacheableEnabled() {
+	void reactiveCacheableEnabledWithoutHealthIndicator() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
 				"spring.cloud.discovery.client.health-indicator.enabled=false");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(Fabric8ReactiveDiscoveryClient.class);
+			assertThat(context).hasSingleBean(Fabric8CacheableReactiveDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the reactive implementation = true, as such:
+	 *     - Fabric8ReactiveDiscoveryClient is not present
+	 *     - Fabric8CacheableReactiveDiscoveryClient is present
+	 *     - Health indicator is enabled
+	 * </pre>
+	 */
+	@Test
+	void reactiveCacheableEnabledWithHealthIndicator() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+			"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
+			"spring.cloud.discovery.client.health-indicator.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(Fabric8ReactiveDiscoveryClient.class);
 			assertThat(context).hasSingleBean(Fabric8CacheableReactiveDiscoveryClient.class);
