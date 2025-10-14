@@ -26,27 +26,38 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 /**
- * @author Min Kim
- * @author Ryan Baxter
- * @author Tim Yysewyn
+ * @author wind57
  */
-class KubernetesClientInformerDiscoveryClient extends KubernetesClientBlockingAbstractInformerDiscoveryClient {
+class KubernetesClientCacheableInformerDiscoveryClient extends KubernetesClientBlockingAbstractInformerDiscoveryClient {
 
-	KubernetesClientInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
+	KubernetesClientCacheableInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
 			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
 			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		super(sharedInformerFactories, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
 				properties, coreV1Api, predicate);
+	}
 
+	@Override
+	@Cacheable("k8s-native-blocking-discovery-services")
+	public List<String> getServices() {
+		return super.getServices();
+	}
+
+	@Override
+	@Cacheable("k8s-native-blocking-discovery-instances")
+	public List<ServiceInstance> getInstances(String serviceId) {
+		return super.getInstances(serviceId);
 	}
 
 	@Override
 	public String description() {
-		return "Kubernetes Native Discovery Client";
+		return "Kubernetes Native Cacheable Discovery Client";
 	}
 
 }

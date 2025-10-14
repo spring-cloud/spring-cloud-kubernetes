@@ -62,9 +62,4 @@ class Fabric8CacheableDiscoveryClient extends Fabric8AbstractBlockingDiscoveryCl
 		return "Fabric8 Cacheable Blocking Discovery Client";
 	}
 
-	@Override
-	public int getOrder() {
-		return super.getOrder();
-	}
-
 }
