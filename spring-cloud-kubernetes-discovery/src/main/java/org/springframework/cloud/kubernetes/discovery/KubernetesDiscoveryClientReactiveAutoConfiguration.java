@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
@@ -48,6 +49,49 @@ class KubernetesDiscoveryClientReactiveAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	PodUtils<?> kubernetesDiscoveryPodUtils() {
+		return new KubernetesDiscoveryPodUtils();
+	}
+
+	/**
+	 * Post an event so that health indicator is initialized.
+	 */
+	@Bean
+	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
+	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
+		ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+	}
+
+	/**
+	 * unlike the blocking implementation, we need to register the health indicator.
+	 */
+	@Bean
+	@ConditionalOnBean(KubernetesReactiveDiscoveryClient.class)
+	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
+	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
+		KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
+		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
+	}
+
+	/**
+	 * unlike the blocking implementation, we need to register the health indicator.
+	 */
+	@Bean
+	@ConditionalOnMissingBean(KubernetesReactiveDiscoveryClient.class)
+	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
+	ReactiveDiscoveryClientHealthIndicator reactiveDiscoveryClientHealthIndicator(
+		WebClient.Builder webClientBuilder,
+		KubernetesDiscoveryProperties kubernetesDiscoveryProperties, DiscoveryClientHealthIndicatorProperties properties) {
+
+		KubernetesReactiveDiscoveryClient reactiveClient =
+			new KubernetesReactiveDiscoveryClient(webClientBuilder, kubernetesDiscoveryProperties);
+
+		return new ReactiveDiscoveryClientHealthIndicator(reactiveClient, properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableReactiveDisabled
 	KubernetesReactiveDiscoveryClient kubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
 			KubernetesDiscoveryProperties properties) {
@@ -61,32 +105,6 @@ class KubernetesDiscoveryClientReactiveAutoConfiguration {
 			WebClient.Builder webClientBuilder,
 			KubernetesDiscoveryProperties properties) {
 		return new KubernetesCacheableReactiveDiscoveryClient(webClientBuilder, properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	PodUtils<?> kubernetesDiscoveryPodUtils() {
-		return new KubernetesDiscoveryPodUtils();
-	}
-
-	/**
-	 * Post an event so that health indicator is initialized.
-	 */
-	@Bean
-	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
-	KubernetesDiscoveryClientHealthIndicatorInitializer reactiveIndicatorInitializer(
-			ApplicationEventPublisher applicationEventPublisher, PodUtils<?> podUtils) {
-		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
-	}
-
-	/**
-	 * unlike the blocking implementation, we need to register the health indicator.
-	 */
-	@Bean
-	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
-	ReactiveDiscoveryClientHealthIndicator kubernetesReactiveDiscoveryClientHealthIndicator(
-			KubernetesReactiveDiscoveryClient client, DiscoveryClientHealthIndicatorProperties properties) {
-		return new ReactiveDiscoveryClientHealthIndicator(client, properties);
 	}
 
 }

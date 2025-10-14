@@ -48,6 +48,19 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	PodUtils<?> kubernetesDiscoveryPodUtils() {
+		return new KubernetesDiscoveryPodUtils();
+	}
+
+	@Bean
+	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
+	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(PodUtils<?> podUtils,
+		ApplicationEventPublisher applicationEventPublisher) {
+		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableBlockingDisabled
 	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
 			KubernetesDiscoveryProperties properties) {
@@ -60,19 +73,6 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	KubernetesCacheableDiscoveryClient kubernetesCacheableDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
 		KubernetesDiscoveryProperties properties) {
 		return new KubernetesCacheableDiscoveryClient(restTemplateBuilder.build(), properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	PodUtils<?> kubernetesDiscoveryPodUtils() {
-		return new KubernetesDiscoveryPodUtils();
-	}
-
-	@Bean
-	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
-	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(PodUtils<?> podUtils,
-			ApplicationEventPublisher applicationEventPublisher) {
-		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
 }
