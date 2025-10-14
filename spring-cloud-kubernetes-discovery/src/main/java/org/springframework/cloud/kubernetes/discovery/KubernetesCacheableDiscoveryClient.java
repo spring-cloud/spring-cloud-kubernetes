@@ -48,4 +48,5 @@ class KubernetesCacheableDiscoveryClient extends KubernetesAbstractBlockingDisco
 	public String description() {
 		return "Kubernetes Cacheable Discovery Client";
 	}
+
 }

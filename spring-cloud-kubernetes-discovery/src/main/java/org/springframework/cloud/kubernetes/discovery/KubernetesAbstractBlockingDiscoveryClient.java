@@ -39,7 +39,8 @@ abstract class KubernetesAbstractBlockingDiscoveryClient implements DiscoveryCli
 
 	private final String discoveryServerUrl;
 
-	KubernetesAbstractBlockingDiscoveryClient(RestTemplate rest, KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
+	KubernetesAbstractBlockingDiscoveryClient(RestTemplate rest,
+			KubernetesDiscoveryProperties kubernetesDiscoveryProperties) {
 		if (!StringUtils.hasText(kubernetesDiscoveryProperties.discoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}
@@ -78,7 +79,7 @@ abstract class KubernetesAbstractBlockingDiscoveryClient implements DiscoveryCli
 
 	private boolean matchNamespaces(Service service) {
 		return service.serviceInstances().isEmpty()
-			|| service.serviceInstances().stream().anyMatch(this::matchNamespaces);
+				|| service.serviceInstances().stream().anyMatch(this::matchNamespaces);
 	}
 
 }

@@ -2,3 +2,4 @@ org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8CatalogWatchAutoCo
 org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientAutoConfiguration
 org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8ReactiveDiscoveryClientAutoConfiguration
 org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientSpelAutoConfiguration
+org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8ReactiveDiscoveryClientAutoConfiguration

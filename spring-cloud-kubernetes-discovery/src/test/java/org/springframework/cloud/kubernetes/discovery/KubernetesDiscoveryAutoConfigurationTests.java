@@ -275,9 +275,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	 */
 	@Test
 	void blockingCacheableDefault() {
-		setupWithFilteredClassLoader(null,
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesCacheableDiscoveryClient.class);
@@ -293,10 +292,9 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	 */
 	@Test
 	void blockingCacheableDisabled() {
-		setupWithFilteredClassLoader(null,
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesCacheableDiscoveryClient.class);
@@ -312,10 +310,9 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	 */
 	@Test
 	void blockingCacheableEnabled() {
-		setupWithFilteredClassLoader(null,
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=true",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=true",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesCacheableDiscoveryClient.class);
@@ -331,9 +328,8 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	 */
 	@Test
 	void reactiveCacheableDefault() {
-		setupWithFilteredClassLoader(null,
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesCacheableReactiveDiscoveryClient.class);
@@ -349,10 +345,9 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	 */
 	@Test
 	void reactiveCacheableDisabled() {
-		setupWithFilteredClassLoader(null,
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=false",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=false",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesReactiveDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesCacheableReactiveDiscoveryClient.class);
@@ -368,10 +363,9 @@ class KubernetesDiscoveryAutoConfigurationTests {
 	 */
 	@Test
 	void reactiveCacheableEnabled() {
-		setupWithFilteredClassLoader(null,
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-			"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
-			"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
+		setupWithFilteredClassLoader(null, "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
+				"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesReactiveDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesCacheableReactiveDiscoveryClient.class);
@@ -385,14 +379,16 @@ class KubernetesDiscoveryAutoConfigurationTests {
 		if (cls != null) {
 			applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientBlockingAutoConfiguration.class,
-						KubernetesDiscoveryClientReactiveAutoConfiguration.class))
+						KubernetesDiscoveryClientReactiveAutoConfiguration.class,
+						KubernetesDiscoveryClientHealthAutoConfiguration.class))
 				.withClassLoader(new FilteredClassLoader(cls))
 				.withPropertyValues(properties);
 		}
 		else {
 			applicationContextRunner = new ApplicationContextRunner()
 				.withConfiguration(AutoConfigurations.of(KubernetesDiscoveryClientBlockingAutoConfiguration.class,
-						KubernetesDiscoveryClientReactiveAutoConfiguration.class))
+						KubernetesDiscoveryClientReactiveAutoConfiguration.class,
+						KubernetesDiscoveryClientHealthAutoConfiguration.class))
 				.withPropertyValues(properties);
 		}
 

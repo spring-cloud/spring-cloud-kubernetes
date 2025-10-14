@@ -55,7 +55,7 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	@Bean
 	@ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer
 	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(PodUtils<?> podUtils,
-		ApplicationEventPublisher applicationEventPublisher) {
+			ApplicationEventPublisher applicationEventPublisher) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
 	}
 
@@ -71,7 +71,7 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableBlockingEnabled
 	KubernetesCacheableDiscoveryClient kubernetesCacheableDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
-		KubernetesDiscoveryProperties properties) {
+			KubernetesDiscoveryProperties properties) {
 		return new KubernetesCacheableDiscoveryClient(restTemplateBuilder.build(), properties);
 	}
 

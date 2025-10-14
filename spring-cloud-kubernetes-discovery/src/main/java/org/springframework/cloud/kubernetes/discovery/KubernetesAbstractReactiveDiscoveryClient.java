@@ -33,7 +33,8 @@ abstract class KubernetesAbstractReactiveDiscoveryClient implements ReactiveDisc
 
 	private final WebClient webClient;
 
-	KubernetesAbstractReactiveDiscoveryClient(WebClient.Builder webClientBuilder, KubernetesDiscoveryProperties properties) {
+	KubernetesAbstractReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
+			KubernetesDiscoveryProperties properties) {
 		if (!StringUtils.hasText(properties.discoveryServerUrl())) {
 			throw new DiscoveryServerUrlInvalidException();
 		}

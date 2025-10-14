@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
-import org.springframework.cache.annotation.Cacheable;
 import reactor.core.publisher.Flux;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -29,7 +29,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 class KubernetesCacheableReactiveDiscoveryClient extends KubernetesAbstractReactiveDiscoveryClient {
 
 	KubernetesCacheableReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
-		KubernetesDiscoveryProperties properties) {
+			KubernetesDiscoveryProperties properties) {
 		super(webClientBuilder, properties);
 	}
 
@@ -49,4 +49,5 @@ class KubernetesCacheableReactiveDiscoveryClient extends KubernetesAbstractReact
 	public String description() {
 		return "Reactive Cacheable Kubernetes Discovery Client";
 	}
+
 }

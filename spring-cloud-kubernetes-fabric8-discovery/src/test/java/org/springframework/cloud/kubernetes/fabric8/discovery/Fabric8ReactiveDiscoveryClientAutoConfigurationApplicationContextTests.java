@@ -219,7 +219,8 @@ class Fabric8ReactiveDiscoveryClientAutoConfigurationApplicationContextTests {
 					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, Fabric8ReactiveDiscoveryClientAutoConfiguration.class,
 					KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					Fabric8DiscoveryClientSpelAutoConfiguration.class))
+					Fabric8DiscoveryClientSpelAutoConfiguration.class,
+					Fabric8ReactiveDiscoveryHealthAutoConfiguration.class))
 			.withPropertyValues(properties);
 	}
 
@@ -229,7 +230,8 @@ class Fabric8ReactiveDiscoveryClientAutoConfigurationApplicationContextTests {
 					ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 					Fabric8AutoConfiguration.class, Fabric8ReactiveDiscoveryClientAutoConfiguration.class,
 					KubernetesDiscoveryPropertiesAutoConfiguration.class,
-					Fabric8DiscoveryClientSpelAutoConfiguration.class))
+					Fabric8DiscoveryClientSpelAutoConfiguration.class,
+					Fabric8ReactiveDiscoveryHealthAutoConfiguration.class))
 			.withClassLoader(new FilteredClassLoader(name))
 			.withPropertyValues(properties);
 	}

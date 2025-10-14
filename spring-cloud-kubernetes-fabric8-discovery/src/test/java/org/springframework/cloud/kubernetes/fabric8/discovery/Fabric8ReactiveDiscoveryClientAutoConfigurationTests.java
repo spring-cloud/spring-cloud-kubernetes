@@ -41,8 +41,8 @@ class Fabric8ReactiveDiscoveryClientAutoConfigurationTests {
 				ReactiveCommonsClientAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
 				Fabric8AutoConfiguration.class, Fabric8DiscoveryClientAutoConfiguration.class,
 				Fabric8ReactiveDiscoveryClientAutoConfiguration.class,
-				KubernetesDiscoveryPropertiesAutoConfiguration.class,
-				Fabric8DiscoveryClientSpelAutoConfiguration.class));
+				KubernetesDiscoveryPropertiesAutoConfiguration.class, Fabric8DiscoveryClientSpelAutoConfiguration.class,
+				Fabric8ReactiveDiscoveryHealthAutoConfiguration.class));
 
 	@Test
 	void shouldWorkWithDefaults() {
