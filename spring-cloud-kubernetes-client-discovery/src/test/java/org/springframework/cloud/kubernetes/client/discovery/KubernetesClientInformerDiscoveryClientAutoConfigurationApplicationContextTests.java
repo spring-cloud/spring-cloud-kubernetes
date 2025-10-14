@@ -71,8 +71,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -90,8 +90,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -110,8 +110,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -131,8 +131,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			// reactive only present
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 		});
@@ -194,8 +194,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -245,10 +245,11 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
+			// one from reactive, one from ours
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -264,10 +265,11 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
+			// one from blocking, one from reactive
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -285,8 +287,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -304,8 +306,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -324,8 +326,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -344,8 +346,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -398,8 +400,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			// reactive only present
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
@@ -419,12 +421,39 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
 			assertThat(context).hasBean("reactiveIndicatorInitializer");
 			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
-			// ours
-			assertThat(context).hasBean("kubernetesReactiveDiscoveryClientHealthIndicator");
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
 			// from commons, not ours
 			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
 
 			assertInformerBeansPresent(context, 5);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     -
+	 * </pre>
+	 */
+	@Test
+	void kubernetesDiscoveryReactiveCacheableEnabledBlockingDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.discovery.blocking.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
+			// cacheable client is present
+			assertThat(context).hasSingleBean(KubernetesClientCacheableInformerReactiveDiscoveryClient.class);
+
+			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// reactive is enabled and cacheable is selected
+			assertThat(context).hasBean("cacheableReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
+
+			assertInformerBeansPresent(context, 2);
 		});
 	}
 
@@ -527,7 +556,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 					KubernetesClientInformerAutoConfiguration.class,
 					KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
 					KubernetesCommonsAutoConfiguration.class,
-					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
+					KubernetesClientDiscoveryClientSpelAutoConfiguration.class,
+					KubernetesClientInformerReactiveHealthAutoConfiguration.class))
 			.withUserConfiguration(
 					KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContextTests.ApiClientConfig.class)
 			.withPropertyValues(properties);
@@ -541,7 +571,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 					UtilAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 					KubernetesCommonsAutoConfiguration.class, KubernetesClientInformerAutoConfiguration.class,
 					KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
-					KubernetesClientDiscoveryClientSpelAutoConfiguration.class))
+					KubernetesClientDiscoveryClientSpelAutoConfiguration.class,
+					KubernetesClientInformerReactiveHealthAutoConfiguration.class))
 			.withUserConfiguration(
 					KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContextTests.ApiClientConfig.class)
 			.withClassLoader(new FilteredClassLoader(cls))

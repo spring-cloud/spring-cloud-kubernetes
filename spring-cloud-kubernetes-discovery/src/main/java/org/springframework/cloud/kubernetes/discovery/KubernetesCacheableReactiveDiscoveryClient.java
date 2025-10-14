@@ -16,21 +16,38 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import reactor.core.publisher.Flux;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
- * @author Ryan Baxter
+ * @author wind57
  */
-final class KubernetesReactiveDiscoveryClient extends KubernetesAbstractReactiveDiscoveryClient {
+class KubernetesCacheableReactiveDiscoveryClient extends KubernetesAbstractReactiveDiscoveryClient {
 
-	KubernetesReactiveDiscoveryClient(WebClient.Builder webClientBuilder, KubernetesDiscoveryProperties properties) {
+	KubernetesCacheableReactiveDiscoveryClient(WebClient.Builder webClientBuilder,
+			KubernetesDiscoveryProperties properties) {
 		super(webClientBuilder, properties);
 	}
 
 	@Override
+	@Cacheable("k8s-reactive-discovery-services")
+	public Flux<String> getServices() {
+		return super.getServices();
+	}
+
+	@Override
+	@Cacheable("k8s-reactive-discovery-instances")
+	public Flux<ServiceInstance> getInstances(String serviceId) {
+		return super.getInstances(serviceId);
+	}
+
+	@Override
 	public String description() {
-		return "Reactive Kubernetes Discovery Client";
+		return "Reactive Cacheable Kubernetes Discovery Client";
 	}
 
 }

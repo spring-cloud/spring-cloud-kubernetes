@@ -23,6 +23,8 @@ import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIn
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableBlockingDisabled;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableBlockingEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,13 +48,6 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
-			KubernetesDiscoveryProperties properties) {
-		return new KubernetesDiscoveryClient(restTemplateBuilder.build(), properties);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
 	PodUtils<?> kubernetesDiscoveryPodUtils() {
 		return new KubernetesDiscoveryPodUtils();
 	}
@@ -62,6 +57,22 @@ class KubernetesDiscoveryClientBlockingAutoConfiguration {
 	KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(PodUtils<?> podUtils,
 			ApplicationEventPublisher applicationEventPublisher) {
 		return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableBlockingDisabled
+	KubernetesDiscoveryClient kubernetesDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
+			KubernetesDiscoveryProperties properties) {
+		return new KubernetesDiscoveryClient(restTemplateBuilder.build(), properties);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableBlockingEnabled
+	KubernetesCacheableDiscoveryClient kubernetesCacheableDiscoveryClient(RestTemplateBuilder restTemplateBuilder,
+			KubernetesDiscoveryProperties properties) {
+		return new KubernetesCacheableDiscoveryClient(restTemplateBuilder.build(), properties);
 	}
 
 }
