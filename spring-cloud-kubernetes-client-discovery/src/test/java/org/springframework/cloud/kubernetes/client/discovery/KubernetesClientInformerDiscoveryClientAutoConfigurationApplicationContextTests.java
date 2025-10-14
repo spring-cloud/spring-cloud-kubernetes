@@ -280,9 +280,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			// only the implementation for the reactive
-			assertThat(context).hasBean("kubernetesClientInformerDiscoveryClientForReactiveImplementation");
+			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
@@ -301,9 +299,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
 				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
-			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
-			// only the implementation for the reactive
-			assertThat(context).hasBean("kubernetesClientInformerDiscoveryClientForReactiveImplementation");
+			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
 
 			assertThat(context).hasSingleBean(KubernetesDiscoveryClientHealthIndicatorInitializer.class);
@@ -466,6 +462,59 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 			assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);
 
 			assertInformerBeansPresent(context, 5);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - no property related to cacheable in the blocking implementation is set, as such:
+	 *     - KubernetesClientInformerDiscoveryClient is present
+	 *     - KubernetesClientCacheableInformerDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void blockingCacheableDefault() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesClientCacheableInformerDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the blocking implementation = false, as such:
+	 *     - KubernetesClientInformerDiscoveryClient is present
+	 *     - KubernetesClientCacheableInformerDiscoveryClient is not present
+	 * </pre>
+	 */
+	@Test
+	void blockingCacheableDisabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
+			assertThat(context).doesNotHaveBean(KubernetesClientCacheableInformerDiscoveryClient.class);
+		});
+	}
+
+	/**
+	 * <pre>
+	 *     - cacheable in the blocking implementation = true, as such:
+	 *     - KubernetesClientInformerDiscoveryClient is not present
+	 *     - KubernetesClientCacheableInformerDiscoveryClient is present
+	 * </pre>
+	 */
+	@Test
+	void blockingCacheableEnabled() {
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
+		applicationContextRunner.run(context -> {
+			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientCacheableInformerDiscoveryClient.class);
 		});
 	}
 

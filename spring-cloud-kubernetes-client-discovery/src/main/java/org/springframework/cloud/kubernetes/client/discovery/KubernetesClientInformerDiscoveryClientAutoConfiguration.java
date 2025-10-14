@@ -37,6 +37,8 @@ import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableBlockingDisabled;
+import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableBlockingEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesBlockingDiscoveryHealthInitializer;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,6 +61,7 @@ final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableBlockingDisabled
 	KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
 			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
@@ -66,6 +69,18 @@ final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		return new KubernetesClientInformerDiscoveryClient(sharedInformerFactories, serviceListers, endpointsListers,
 				serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnDiscoveryCacheableBlockingEnabled
+	KubernetesClientCacheableInformerDiscoveryClient kubernetesClientCacheableInformerDiscoveryClient(
+			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
+			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+		return new KubernetesClientCacheableInformerDiscoveryClient(sharedInformerFactories, serviceListers,
+				endpointsListers, serviceInformers, endpointsInformers, properties, coreV1Api, predicate);
 	}
 
 	@Bean
