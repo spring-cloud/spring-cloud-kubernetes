@@ -92,10 +92,10 @@ public class BootstrapKubernetesClientSanitizeEnvEndpointStub {
 		secretList.addItemsItem(secretTwo);
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/test/configmaps")
-			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMapList))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(JSON.serialize(configMapList))));
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/test/secrets")
-			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
 	}
 
 }

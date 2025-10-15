@@ -163,7 +163,7 @@ class EventReloadConfigMapTest {
 		// second call passes (change data so that reload is triggered)
 		V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
 		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
-		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList)))
 			.inScenario(SCENARIO_NAME)
 			.whenScenarioStateIs("go-to-ok")
 			.willSetStateTo("done"));
@@ -205,7 +205,7 @@ class EventReloadConfigMapTest {
 
 			// needed so that our environment is populated with 'something'
 			// this call is done in the method that returns the AbstractEnvironment
-			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(configMapList)))
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList)))
 				.inScenario(SCENARIO_NAME)
 				.whenScenarioStateIs(Scenario.STARTED)
 				.willSetStateTo("go-to-fail"));

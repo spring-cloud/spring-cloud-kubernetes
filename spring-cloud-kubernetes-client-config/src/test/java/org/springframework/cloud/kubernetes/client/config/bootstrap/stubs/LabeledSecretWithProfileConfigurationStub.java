@@ -174,7 +174,7 @@ public class LabeledSecretWithProfileConfigurationStub {
 		secrets.addItemsItem(greenPurpleSecretK8s);
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")
-			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(secrets))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(JSON.serialize(secrets))));
 	}
 
 }

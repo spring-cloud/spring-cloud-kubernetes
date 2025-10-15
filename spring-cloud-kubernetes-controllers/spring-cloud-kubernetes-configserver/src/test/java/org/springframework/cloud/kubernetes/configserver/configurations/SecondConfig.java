@@ -73,10 +73,10 @@ public class SecondConfig {
 		WireMock.configureFor(wireMockServer.port());
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(CONFIGMAP_DEFAULT_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_DEFAULT_LIST))));
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SECRET_DEFAULT_LIST))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(SECRET_DEFAULT_LIST))));
 
 		return wireMockServer;
 	}

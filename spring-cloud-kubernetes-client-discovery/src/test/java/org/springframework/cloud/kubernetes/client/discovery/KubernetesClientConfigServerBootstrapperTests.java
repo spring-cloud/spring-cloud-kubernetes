@@ -126,11 +126,11 @@ class KubernetesClientConfigServerBootstrapperTests {
 			.withHeader("content-type", "application/json")));
 		stubFor(get("/api/v1/namespaces/default/endpoints?resourceVersion=0&watch=false")
 			.willReturn(aResponse().withStatus(200)
-				.withBody(new JSON().serialize(ENDPOINTS_LIST))
+				.withBody(JSON.serialize(ENDPOINTS_LIST))
 				.withHeader("content-type", "application/json")));
 		stubFor(get("/api/v1/namespaces/default/services?resourceVersion=0&watch=false")
 			.willReturn(aResponse().withStatus(200)
-				.withBody(new JSON().serialize(SERVICE_LIST))
+				.withBody(JSON.serialize(SERVICE_LIST))
 				.withHeader("content-type", "application/json")));
 		stubFor(get(urlMatching("/api/v1/namespaces/default/services.*.watch=true"))
 			.willReturn(aResponse().withStatus(200)));

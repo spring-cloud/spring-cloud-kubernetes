@@ -85,9 +85,9 @@ public class ConfigMapEnableRetryWithoutFailFastTest {
 
 	private static void stubConfigMapAndSecretsDefaults() {
 		// return empty config map / secret list to not fail context creation
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1ConfigMapList()))));
+		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(new V1ConfigMapList()))));
 		stubFor(get(SECRETS_API)
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(new V1SecretList()))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(new V1SecretList()))));
 	}
 
 	@AfterAll

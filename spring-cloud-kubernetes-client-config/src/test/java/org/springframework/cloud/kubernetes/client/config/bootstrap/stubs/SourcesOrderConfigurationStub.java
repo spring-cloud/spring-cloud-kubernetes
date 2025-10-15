@@ -83,7 +83,7 @@ public class SourcesOrderConfigurationStub {
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(JSON.serialize(allConfigMaps))));
 	}
 
 	public static void stubSecretsData() {
@@ -105,7 +105,7 @@ public class SourcesOrderConfigurationStub {
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")
-			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allConfigMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(JSON.serialize(allConfigMaps))));
 	}
 
 }

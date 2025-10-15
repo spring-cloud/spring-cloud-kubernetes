@@ -92,12 +92,12 @@ class KubernetesClientDiscoveryClientAutoConfigurationTests {
 			WireMock.configureFor(wireMockServer.port());
 			stubFor(get("/api/v1/namespaces/test/endpoints?resourceVersion=0&watch=false")
 				.willReturn(aResponse().withStatus(200)
-					.withBody(new JSON().serialize(new V1EndpointsListBuilder()
+					.withBody(JSON.serialize(new V1EndpointsListBuilder()
 						.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
 						.build()))));
 			stubFor(get("/api/v1/namespaces/test/services?resourceVersion=0&watch=false")
 				.willReturn(aResponse().withStatus(200)
-					.withBody(new JSON().serialize(new V1ServiceListBuilder()
+					.withBody(JSON.serialize(new V1ServiceListBuilder()
 						.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
 						.build()))));
 			return new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
