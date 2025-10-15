@@ -173,7 +173,7 @@ public class LabeledConfigMapWithProfileConfigurationStub {
 		configMaps.addItemsItem(greenPurpleConfigMapK8s);
 
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/configmaps")
-			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(configMaps))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(JSON.serialize(configMaps))));
 	}
 
 }

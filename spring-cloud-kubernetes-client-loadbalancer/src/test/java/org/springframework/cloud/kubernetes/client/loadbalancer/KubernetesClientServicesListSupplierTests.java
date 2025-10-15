@@ -143,7 +143,7 @@ class KubernetesClientServicesListSupplierTests {
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/default/services?fieldSelector=metadata.name%3Dservice-a"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SINGLE_NAMESPACE_SERVICES))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(SINGLE_NAMESPACE_SERVICES))));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
@@ -211,7 +211,7 @@ class KubernetesClientServicesListSupplierTests {
 				discoveryProperties, coreV1Api, kubernetesNamespaceProvider);
 
 		stubFor(get(urlEqualTo("/api/v1/services?fieldSelector=metadata.name%3Dservice-a"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(SERVICE_LIST_ALL_NAMESPACE))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(SERVICE_LIST_ALL_NAMESPACE))));
 
 		Flux<List<ServiceInstance>> instances = listSupplier.get();
 
@@ -250,11 +250,11 @@ class KubernetesClientServicesListSupplierTests {
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/default/services?fieldSelector=metadata.name%3Dservice-a"))
 			.willReturn(aResponse().withStatus(200)
-				.withBody(new JSON().serialize(SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES))));
+				.withBody(JSON.serialize(SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES))));
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/test/services?fieldSelector=metadata.name%3Dservice-a"))
 			.willReturn(aResponse().withStatus(200)
-				.withBody(new JSON().serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
+				.withBody(JSON.serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/no-service/services?fieldSelector=metadata.name%3Dservice-a"))
 			.willReturn(aResponse().withStatus(404)));

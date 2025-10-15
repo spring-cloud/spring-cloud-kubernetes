@@ -117,7 +117,7 @@ public class KubernetesClientConfigReloadAutoConfigurationTest {
 			.build());
 
 		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(TEST_CONFIGMAP))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(TEST_CONFIGMAP))));
 	}
 
 	// 1. watchers

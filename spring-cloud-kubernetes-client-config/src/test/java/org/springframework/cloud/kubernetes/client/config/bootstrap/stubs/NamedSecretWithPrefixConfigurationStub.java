@@ -93,7 +93,7 @@ public class NamedSecretWithPrefixConfigurationStub {
 
 		// the actual stub for CoreV1Api calls
 		WireMock.stubFor(WireMock.get("/api/v1/namespaces/spring-k8s/secrets")
-			.willReturn(WireMock.aResponse().withStatus(200).withBody(new JSON().serialize(allSecrets))));
+			.willReturn(WireMock.aResponse().withStatus(200).withBody(JSON.serialize(allSecrets))));
 	}
 
 }

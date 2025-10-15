@@ -164,7 +164,7 @@ class EventReloadSecretTest {
 		// second call passes (change data so that reload is triggered)
 		V1Secret secret = secret(SECRET_NAME, Map.of("a", "b"));
 		V1SecretList secretList = new V1SecretList().addItemsItem(secret);
-		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList)))
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList)))
 			.inScenario(SCENARIO_NAME)
 			.whenScenarioStateIs("go-to-ok")
 			.willSetStateTo("done"));

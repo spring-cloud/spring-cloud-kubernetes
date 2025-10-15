@@ -139,7 +139,7 @@ class PollingReloadConfigMapTest {
 		// second reload call passes
 		V1ConfigMap configMapTwo = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
 		V1ConfigMapList listTwo = new V1ConfigMapList().addItemsItem(configMapTwo);
-		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listTwo)))
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(listTwo)))
 			.inScenario(SCENARIO_NAME)
 			.whenScenarioStateIs("go-to-ok")
 			.willSetStateTo("done"));
@@ -181,7 +181,7 @@ class PollingReloadConfigMapTest {
 
 			// needed so that our environment is populated with 'something'
 			// this call is done in the method that returns the AbstractEnvironment
-			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(listOne)))
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(listOne)))
 				.inScenario(SCENARIO_NAME)
 				.whenScenarioStateIs(Scenario.STARTED)
 				.willSetStateTo("go-to-fail"));

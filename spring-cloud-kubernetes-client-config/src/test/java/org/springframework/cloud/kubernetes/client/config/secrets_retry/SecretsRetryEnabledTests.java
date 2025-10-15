@@ -115,7 +115,7 @@ class SecretsRetryEnabledTests {
 		V1SecretList secretList = new V1SecretList()
 			.addItemsItem(new V1Secret().metadata(new V1ObjectMeta().name("my-secret")).data(data));
 
-		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
+		stubFor(get(API).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
 
 		final PropertySource<?>[] propertySource = new PropertySource<?>[1];
 		Assertions.assertThatCode(() -> propertySource[0] = propertySourceLocator.locate(new MockEnvironment()))
@@ -158,7 +158,7 @@ class SecretsRetryEnabledTests {
 		// then succeed
 		stubFor(get(API).inScenario("Retry and Recover")
 			.whenScenarioStateIs("Failed thrice")
-			.willReturn(aResponse().withStatus(200).withBody(new JSON().serialize(secretList))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
 
 		final PropertySource<?>[] propertySource = new PropertySource<?>[1];
 		Assertions.assertThatNoException()
