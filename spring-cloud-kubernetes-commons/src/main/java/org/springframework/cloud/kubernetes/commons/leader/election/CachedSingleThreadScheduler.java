@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons;
-
-import jakarta.annotation.Nonnull;
+package org.springframework.cloud.kubernetes.commons.leader.election;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
@@ -25,9 +23,13 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * This is taken from fabric8 with some minor changes (we need it, so it could be placed
- * in the common package).
+ * in the common package). A single thread scheduler that will shutdown itself when there
+ * are no more jobs running inside it. When all ScheduledFuture::cancel are called, the
+ * queue of tasks will be empty and there is an internal runnable that checks that.
  *
  * @author wind57
  */
@@ -70,7 +72,7 @@ public final class CachedSingleThreadScheduler {
 			this.executor = new ScheduledThreadPoolExecutor(1, threadFactory());
 			this.executor.setRemoveOnCancelPolicy(true);
 			this.executor.scheduleWithFixedDelay(this::shutdownCheck, this.ttlMillis, this.ttlMillis,
-				TimeUnit.MILLISECONDS);
+					TimeUnit.MILLISECONDS);
 		}
 
 	}
