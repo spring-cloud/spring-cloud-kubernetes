@@ -18,16 +18,26 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.List;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1ListMeta;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -103,6 +113,45 @@ final class TestUtils {
 			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Endpoints>>>() {
 			}));
 		assertThat(endpointsListersBeanName).isEmpty();
+	}
+
+	static void mockEndpointsAndServices(List<String> namespaces, WireMockExtension server) {
+		namespaces.forEach(namespace -> {
+			mockEndpointsCall(namespace, server);
+			mockServicesCall(namespace, server);
+		});
+	}
+
+	private static void mockEndpointsCall(String namespace, WireMockExtension server) {
+
+		// watch=false, first call to populate watcher cache
+		server.stubFor(WireMock.get(urlMatching("^/api/v1/namespaces/" + namespace + "/endpoints.*"))
+			.withQueryParam("watch", equalTo("false"))
+			.willReturn(WireMock.aResponse()
+				.withStatus(200)
+				.withBody(JSON.serialize(new V1EndpointsList().metadata(new V1ListMeta().resourceVersion("0"))
+					.addItemsItem(new V1Endpoints().metadata(new V1ObjectMeta().namespace(namespace)))))));
+
+		// watch=true, call to re-sync
+		server.stubFor(WireMock.get(urlMatching("^/api/v1/namespaces/" + namespace + "/endpoints.*"))
+			.withQueryParam("watch", WireMock.equalTo("true"))
+			.willReturn(aResponse().withStatus(200).withBody("")));
+	}
+
+	private static void mockServicesCall(String namespace, WireMockExtension server) {
+
+		// watch=false, first call to populate watcher cache
+		server.stubFor(WireMock.get(urlMatching("^/api/v1/namespaces/" + namespace + "/services.*"))
+			.withQueryParam("watch", equalTo("false"))
+			.willReturn(WireMock.aResponse()
+				.withStatus(200)
+				.withBody(JSON.serialize(new V1ServiceList().metadata(new V1ListMeta().resourceVersion("0"))
+					.addItemsItem(new V1Service().metadata(new V1ObjectMeta().namespace(namespace)))))));
+
+		// watch=true, call to re-sync
+		server.stubFor(WireMock.get(urlMatching("^/api/v1/namespaces/" + namespace + "/services.*"))
+			.withQueryParam("watch", equalTo("true"))
+			.willReturn(aResponse().withStatus(200).withBody("")));
 	}
 
 }
