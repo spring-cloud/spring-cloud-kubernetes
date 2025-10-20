@@ -162,14 +162,14 @@ final class KubernetesClientInformerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
 	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
-			List<SharedIndexInformer<V1Endpoints>> serviceSharedIndexInformers) {
+			List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<Lister<V1Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
 
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			String namespace = selectiveNamespaces.get(i);
-			Lister<V1Endpoints> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer());
+			Lister<V1Endpoints> lister = new Lister<>(endpointsSharedIndexInformers.get(i).getIndexer());
 			LOG.debug(() -> "registering lister (for endpoints) in namespace : " + namespace);
 			endpointsListers.add(lister);
 		}
