@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.discovery;
 
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
@@ -25,5 +26,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @EnableAutoConfiguration
 class App {
+
+	public static void main(String[] args) {
+		SpringApplication.run(App.class, args);
+	}
 
 }

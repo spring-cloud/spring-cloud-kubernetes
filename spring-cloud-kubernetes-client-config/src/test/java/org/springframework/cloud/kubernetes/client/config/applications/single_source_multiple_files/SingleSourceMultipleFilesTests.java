@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
@@ -34,6 +35,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * issue: https://github.com/spring-cloud/spring-cloud-kubernetes/issues/640
  *
  */
+@AutoConfigureWebTestClient
 abstract class SingleSourceMultipleFilesTests {
 
 	@Autowired
