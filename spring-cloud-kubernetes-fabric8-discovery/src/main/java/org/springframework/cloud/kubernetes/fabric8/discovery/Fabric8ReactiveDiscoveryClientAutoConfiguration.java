@@ -50,7 +50,7 @@ import org.springframework.core.env.Environment;
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
 		Fabric8DiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		Fabric8DiscoveryClientSpelAutoConfiguration.class })
-final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
+public final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -75,14 +75,5 @@ final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 				servicePortSecureResolver, namespaceProvider, predicate);
 		return new Fabric8CacheableReactiveDiscoveryClient(blockingClient);
 	}
-
-	// Above two beans are created when cacheable is enabled. In this case, we can't make
-	// Fabric8DiscoveryClient a @Bean, since blocking discovery might be disabled and we
-	// do
-	// not want to allow wiring of it. Nevertheless, we still need an instance of
-	// Fabric8DiscoveryClient
-	// in order to create the ReactiveDiscoveryClientHealthIndicator and
-	// Fabric8CacheableReactiveDiscoveryClient
-	// As such, we create two of such instances in each bean.
 
 }

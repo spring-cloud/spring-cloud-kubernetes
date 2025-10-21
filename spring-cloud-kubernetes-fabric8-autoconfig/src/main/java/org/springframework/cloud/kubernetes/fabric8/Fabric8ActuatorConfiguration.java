@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnKubernetesHealthIndicatorEnabled
-final class Fabric8ActuatorConfiguration {
+public final class Fabric8ActuatorConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledHealthIndicator("kubernetes")
