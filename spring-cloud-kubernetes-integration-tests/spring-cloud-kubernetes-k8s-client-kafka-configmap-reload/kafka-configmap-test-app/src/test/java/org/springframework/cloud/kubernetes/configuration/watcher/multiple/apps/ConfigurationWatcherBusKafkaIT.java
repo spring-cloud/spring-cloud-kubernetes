@@ -72,8 +72,6 @@ class ConfigurationWatcherBusKafkaIT {
 		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_APP_IMAGE, K3S);
 
 		Images.loadKafka(K3S);
-
-		util = new Util(K3S);
 		util.setUp(NAMESPACE);
 	}
 

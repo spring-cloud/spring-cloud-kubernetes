@@ -24,31 +24,40 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import jakarta.annotation.Nonnull;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.log.LogAccessor;
 
 /**
- * This is taken from fabric8 with some minor changes (we need it, so it could be placed
- * in the common package). A single thread scheduler that will shutdown itself when there
- * are no more jobs running inside it. When all ScheduledFuture::cancel are called, the
- * queue of tasks will be empty and there is an internal runnable that checks that.
+ * This is taken from fabric8 with some changes (we need it, so it could be placed in the
+ * common package). A single thread scheduler that will shutdown itself when there are no
+ * more jobs running inside it. When all ScheduledFuture::cancel are called, the queue of
+ * tasks will be empty and there is an internal runnable that checks that.
  *
  * @author wind57
  */
 public final class CachedSingleThreadScheduler {
 
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(CachedSingleThreadScheduler.class));
+
 	private final ReentrantLock lock = new ReentrantLock();
 
 	private final long ttlMillis;
 
+	private final String name;
+
 	private ScheduledThreadPoolExecutor executor;
 
-	public CachedSingleThreadScheduler(long ttlMillis) {
+	public CachedSingleThreadScheduler(String name, long ttlMillis) {
 		this.ttlMillis = ttlMillis;
+		this.name = name;
 	}
 
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
 		try {
 			lock.lock();
 			this.startExecutor();
+			LOG.debug(() -> "Scheduling command to run in : " + name);
 			return this.executor.scheduleWithFixedDelay(command, initialDelay, delay, unit);
 		}
 		finally {
@@ -60,6 +69,7 @@ public final class CachedSingleThreadScheduler {
 		try {
 			lock.lock();
 			this.startExecutor();
+			LOG.debug(() -> "Scheduling command to run in : " + name);
 			return this.executor.schedule(command, delay, unit);
 		}
 		finally {
@@ -81,6 +91,7 @@ public final class CachedSingleThreadScheduler {
 		try {
 			lock.lock();
 			if (this.executor.getQueue().isEmpty()) {
+				LOG.debug(() -> "Shutting down executor : " + name);
 				this.executor.shutdownNow();
 				this.executor = null;
 			}
