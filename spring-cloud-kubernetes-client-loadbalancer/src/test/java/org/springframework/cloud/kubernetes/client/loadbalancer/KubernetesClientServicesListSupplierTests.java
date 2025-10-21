@@ -252,9 +252,8 @@ class KubernetesClientServicesListSupplierTests {
 			.willReturn(aResponse().withStatus(200)
 				.withBody(JSON.serialize(SERVICE_A_DEFAULT_NAMESPACE_SELECTIVE_NAMESPACES))));
 
-		stubFor(get(urlEqualTo("/api/v1/namespaces/test/services?fieldSelector=metadata.name%3Dservice-a"))
-			.willReturn(aResponse().withStatus(200)
-				.withBody(JSON.serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
+		stubFor(get(urlEqualTo("/api/v1/namespaces/test/services?fieldSelector=metadata.name%3Dservice-a")).willReturn(
+				aResponse().withStatus(200).withBody(JSON.serialize(SERVICE_A_TEST_NAMESPACE_SELECTIVE_NAMESPACES))));
 
 		stubFor(get(urlEqualTo("/api/v1/namespaces/no-service/services?fieldSelector=metadata.name%3Dservice-a"))
 			.willReturn(aResponse().withStatus(404)));
