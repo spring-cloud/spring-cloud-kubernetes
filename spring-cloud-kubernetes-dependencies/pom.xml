@@ -62,6 +62,13 @@
 				<version>${kubernetes-native-client.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>k3s</artifactId>
+				<version>1.21.3</version>
+			</dependency>
+
+
 			<!-- Own dependencies -->
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
