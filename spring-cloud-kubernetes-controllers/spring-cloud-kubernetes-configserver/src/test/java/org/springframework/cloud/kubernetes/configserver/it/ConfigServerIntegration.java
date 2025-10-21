@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -47,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Ryan Baxter
  */
 @TestPropertySource(properties = "spring.cloud.kubernetes.secrets.enabled=true")
+@AutoConfigureTestRestTemplate
 abstract class ConfigServerIntegration {
 
 	private static final String SOURCE_NAME = "test-cm";
