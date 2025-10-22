@@ -24,6 +24,7 @@ import java.util.Set;
 
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
@@ -36,6 +37,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -51,13 +53,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesClientDiscoveryClientTests {
 
-	private static final SharedInformerFactoryStub STUB = new SharedInformerFactoryStub();
-
 	private static final SharedInformerStub<V1Service> SERVICE_SHARED_INFORMER_STUB = new SharedInformerStub<>();
 
 	private static final SharedInformerStub<V1Endpoints> ENDPOINTS_SHARED_INFORMER_STUB = new SharedInformerStub<>();
 
-	private static final CoreV1Api CORE_V1_API = Mockito.mock(CoreV1Api.class);
+	private static CoreV1Api coreV1Api;
+
+	private static SharedInformerFactoryStub sharedInformerFactoryStub;
 
 	private Cache<V1Service> servicesCache;
 
@@ -66,6 +68,15 @@ class KubernetesClientDiscoveryClientTests {
 	private Cache<V1Endpoints> endpointsCache;
 
 	private Lister<V1Endpoints> endpointsLister;
+
+	@BeforeAll
+	static void beforeAll() {
+		coreV1Api = Mockito.mock(CoreV1Api.class);
+		ApiClient apiClient = Mockito.mock(ApiClient.class);
+		Mockito.when(coreV1Api.getApiClient()).thenReturn(apiClient);
+
+		sharedInformerFactoryStub = new SharedInformerFactoryStub(apiClient);
+	}
 
 	@BeforeEach
 	void beforeEach() {
@@ -97,8 +108,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, null, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, null,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("id");
 
@@ -129,8 +141,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -164,8 +177,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null, Set.of(443, 8443), labels, null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -202,8 +216,9 @@ class KubernetesClientDiscoveryClientTests {
 				null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -243,8 +258,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false,
 				null);
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint1");
 
@@ -270,8 +286,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true,
 				false, null);
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint2");
 
@@ -303,8 +320,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null, Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true,
 				false, null);
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
@@ -335,8 +353,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null, Set.of(443, 8443), Map.of(), "oops", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true, false, null);
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
@@ -368,8 +387,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -398,8 +418,9 @@ class KubernetesClientDiscoveryClientTests {
 		setup(serviceId, serviceType, namespace, labels, ips, uuids, names, protocols, ports, appProtocols);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), KubernetesDiscoveryProperties.DEFAULT, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB),
+				KubernetesDiscoveryProperties.DEFAULT, coreV1Api, x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -432,8 +453,9 @@ class KubernetesClientDiscoveryClientTests {
 				false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -465,8 +487,9 @@ class KubernetesClientDiscoveryClientTests {
 		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 

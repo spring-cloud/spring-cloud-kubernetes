@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
@@ -34,6 +35,7 @@ import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.assertj.core.util.Strings;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -50,13 +52,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesClientDiscoveryClientFilterMetadataTest {
 
-	private static final CoreV1Api CORE_V1_API = Mockito.mock(CoreV1Api.class);
-
-	private static final SharedInformerFactoryStub STUB = new SharedInformerFactoryStub();
-
 	private static final SharedInformerStub<V1Service> SERVICE_SHARED_INFORMER_STUB = new SharedInformerStub<>();
 
 	private static final SharedInformerStub<V1Endpoints> ENDPOINTS_SHARED_INFORMER_STUB = new SharedInformerStub<>();
+
+	private static CoreV1Api coreV1Api;
+
+	private static SharedInformerFactoryStub sharedInformerFactoryStub;
 
 	private Cache<V1Service> servicesCache;
 
@@ -65,6 +67,15 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 	private Cache<V1Endpoints> endpointsCache;
 
 	private Lister<V1Endpoints> endpointsLister;
+
+	@BeforeAll
+	static void beforeAll() {
+		coreV1Api = Mockito.mock(CoreV1Api.class);
+		ApiClient apiClient = Mockito.mock(ApiClient.class);
+		Mockito.when(coreV1Api.getApiClient()).thenReturn(apiClient);
+
+		sharedInformerFactoryStub = new SharedInformerFactoryStub(apiClient);
+	}
 
 	@BeforeEach
 	void beforeEach() {
@@ -85,8 +96,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "ns", Map.of("l1", "lab"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
@@ -105,8 +117,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
@@ -126,8 +139,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "ns", Map.of("l1", "v1", "l2", "v2"), Map.of("l1", "lab"), Map.of(80, "http", 5555, ""));
 
@@ -147,8 +161,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -168,8 +183,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -189,8 +205,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "test", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -210,8 +227,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "ns", Map.of("l1", "v1"), Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
@@ -231,8 +249,9 @@ class KubernetesClientDiscoveryClientFilterMetadataTest {
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		setup(serviceId, "ns", Map.of("l1", "la1"), Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
 

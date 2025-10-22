@@ -22,6 +22,7 @@ import java.util.Set;
 
 import io.kubernetes.client.informer.cache.Cache;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
@@ -34,6 +35,7 @@ import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import io.kubernetes.client.openapi.models.V1ServicePortBuilder;
 import io.kubernetes.client.openapi.models.V1ServiceSpecBuilder;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -46,15 +48,15 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
  */
 class KubernetesClientDiscoveryClientServiceWithoutPortNameTests {
 
-	private static final CoreV1Api CORE_V1_API = Mockito.mock(CoreV1Api.class);
-
-	private static final String NAMESPACE = "spring-k8s";
-
-	private static final SharedInformerFactoryStub STUB = new SharedInformerFactoryStub();
-
 	private static final SharedInformerStub<V1Service> SERVICE_SHARED_INFORMER_STUB = new SharedInformerStub<>();
 
 	private static final SharedInformerStub<V1Endpoints> ENDPOINTS_SHARED_INFORMER_STUB = new SharedInformerStub<>();
+
+	private static CoreV1Api coreV1Api;
+
+	private static SharedInformerFactoryStub sharedInformerFactoryStub;
+
+	private static final String NAMESPACE = "spring-k8s";
 
 	private Cache<V1Service> servicesCache;
 
@@ -63,6 +65,15 @@ class KubernetesClientDiscoveryClientServiceWithoutPortNameTests {
 	private Cache<V1Endpoints> endpointsCache;
 
 	private Lister<V1Endpoints> endpointsLister;
+
+	@BeforeAll
+	static void beforeAll() {
+		coreV1Api = Mockito.mock(CoreV1Api.class);
+		ApiClient apiClient = Mockito.mock(ApiClient.class);
+		Mockito.when(coreV1Api.getApiClient()).thenReturn(apiClient);
+
+		sharedInformerFactoryStub = new SharedInformerFactoryStub(apiClient);
+	}
 
 	@BeforeEach
 	void beforeEach() {
@@ -95,8 +106,9 @@ class KubernetesClientDiscoveryClientServiceWithoutPortNameTests {
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true, false, null);
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(STUB), List.of(servicesLister), List.of(endpointsLister), List.of(SERVICE_SHARED_INFORMER_STUB),
-				List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, CORE_V1_API, x -> true);
+				List.of(sharedInformerFactoryStub), List.of(servicesLister), List.of(endpointsLister),
+				List.of(SERVICE_SHARED_INFORMER_STUB), List.of(ENDPOINTS_SHARED_INFORMER_STUB), properties, coreV1Api,
+				x -> true);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);

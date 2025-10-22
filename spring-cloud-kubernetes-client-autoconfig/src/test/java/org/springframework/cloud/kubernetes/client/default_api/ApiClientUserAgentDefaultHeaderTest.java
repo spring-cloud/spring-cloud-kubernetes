@@ -17,7 +17,7 @@
 package org.springframework.cloud.kubernetes.client.default_api;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Collections;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -53,7 +53,7 @@ class ApiClientUserAgentDefaultHeaderTest {
 		assertThat(apiClient).isNotNull();
 		Request.Builder builder = new Request.Builder();
 		apiClient.processHeaderParams(Collections.emptyMap(), builder);
-		assertThat(builder.url(new URL("http://example.com")).build().headers().get("User-Agent"))
+		assertThat(builder.url(URI.create("http://example.com").toURL()).build().headers().get("User-Agent"))
 			.isEqualTo("Spring-Cloud-Kubernetes-Application");
 	}
 

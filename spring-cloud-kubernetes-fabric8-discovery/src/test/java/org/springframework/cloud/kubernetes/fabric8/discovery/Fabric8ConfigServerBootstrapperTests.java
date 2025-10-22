@@ -96,7 +96,7 @@ class Fabric8ConfigServerBootstrapperTests {
 			.endSubset()
 			.build();
 
-		mockClient.endpoints().inNamespace("test").create(endPoint);
+		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
 		Service service = new ServiceBuilder().withNewMetadata()
 			.withName("spring-cloud-kubernetes-configserver")
@@ -106,7 +106,7 @@ class Fabric8ConfigServerBootstrapperTests {
 			.withSpec(new ServiceSpecBuilder().withType("NodePort").build())
 			.build();
 
-		mockClient.services().inNamespace("test").create(service);
+		mockClient.services().inNamespace("test").resource(service).create();
 
 		Environment environment = new Environment("test", "default");
 		Map<String, Object> properties = new HashMap<>();
