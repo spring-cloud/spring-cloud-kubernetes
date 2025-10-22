@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Blue;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Green;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.GreenK8s;
@@ -38,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author wind57
  */
+@AutoConfigureWebTestClient
 abstract class LabeledConfigMapWithProfileTests {
 
 	@Autowired

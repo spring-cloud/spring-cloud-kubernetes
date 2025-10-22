@@ -22,7 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -32,6 +33,7 @@ import static org.hamcrest.Matchers.containsString;
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.autoStartup=false",
 				"management.endpoints.web.exposure.include=info", "management.endpoint.info.show-details=always",
 				"management.info.kubernetes.enabled=true" })
+@AutoConfigureWebTestClient
 class Fabric8LeaderAutoConfigurationTests {
 
 	@LocalManagementPort

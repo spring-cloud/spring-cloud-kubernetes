@@ -38,6 +38,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.VisibleKubernetesClientInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -59,6 +60,7 @@ import static org.mockito.Mockito.when;
 				"management.endpoint.health.group.liveness.include=livenessState",
 				"management.health.readinessstate.enabled=true",
 				"management.endpoint.health.group.readiness.include=readinessState" })
+@AutoConfigureWebTestClient
 class DiscoveryServerIntegrationAppsNameEndpointTests {
 
 	private static final String NAMESPACE = "namespace";

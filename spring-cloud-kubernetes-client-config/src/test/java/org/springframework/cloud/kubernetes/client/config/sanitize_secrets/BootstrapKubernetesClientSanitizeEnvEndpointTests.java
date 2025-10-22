@@ -22,7 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -36,6 +37,7 @@ class BootstrapKubernetesClientSanitizeEnvEndpointTests {
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
 					"bootstrap.sanitize=true", "spring.cloud.kubernetes.client.namespace=test",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class DefaultSettingsTest {
 
@@ -98,6 +100,7 @@ class BootstrapKubernetesClientSanitizeEnvEndpointTests {
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
 					"management.endpoint.env.show-values=NEVER", "bootstrap.sanitize=true",
 					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class ExplicitNever {
 
@@ -170,6 +173,7 @@ class BootstrapKubernetesClientSanitizeEnvEndpointTests {
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=false",
 					"bootstrap.sanitize=true", "spring.cloud.kubernetes.client.namespace=test",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithoutSanitizingFunction {
 
@@ -242,6 +246,7 @@ class BootstrapKubernetesClientSanitizeEnvEndpointTests {
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=true",
 					"bootstrap.sanitize=true", "spring.cloud.kubernetes.client.namespace=test",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithSanitizingFunction {
 

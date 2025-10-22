@@ -46,7 +46,7 @@
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>k3s</artifactId>
+			<artifactId>testcontainers-k3s</artifactId>
 		</dependency>
 
 	</dependencies>
