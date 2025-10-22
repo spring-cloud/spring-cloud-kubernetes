@@ -119,7 +119,7 @@ class Fabric8ConfigMapConfigTreeIT {
 				"spring-cloud-kubernetes-fabric8-client-reload");
 		configMapConfigTree.getMetadata().setAnnotations(existingAnnotations);
 
-		util.client().configMaps().resource(configMapConfigTree).createOrReplace();
+		util.client().configMaps().resource(configMapConfigTree).update();
 
 		await().atMost(Duration.ofSeconds(180))
 			.pollInterval(Duration.ofSeconds(1))

@@ -750,7 +750,7 @@ class Fabric8DiscoveryClientOneTests {
 			.endSubset()
 			.build();
 
-		mockClient.endpoints().inNamespace("test").create(endPoint1);
+		mockClient.endpoints().inNamespace("test").resource(endPoint1).create();
 
 		Service service = new ServiceBuilder().withSpec(new ServiceSpecBuilder().withType("ClusterIP").build())
 			.withNewMetadata()
@@ -761,7 +761,7 @@ class Fabric8DiscoveryClientOneTests {
 			.endMetadata()
 			.build();
 
-		mockClient.services().inNamespace("test").create(service);
+		mockClient.services().inNamespace("test").resource(service).create();
 
 		final KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 

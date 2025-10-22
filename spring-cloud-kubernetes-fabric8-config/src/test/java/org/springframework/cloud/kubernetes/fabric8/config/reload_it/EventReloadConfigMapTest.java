@@ -128,7 +128,7 @@ class EventReloadConfigMapTest {
 		// is triggered
 		Mockito.reset(kubernetesClient);
 		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
-		operation.resource(configMapOne).replace();
+		operation.resource(configMapOne).update();
 
 		// it passes while reading 'configMapThatWillPass'
 		Awaitility.await()

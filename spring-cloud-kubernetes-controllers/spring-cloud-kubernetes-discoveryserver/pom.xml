@@ -67,7 +67,7 @@
 						<artifactId>dockerfile-maven-plugin</artifactId>
 						<version>1.4.13</version>
 						<configuration>
-							<repository>${docker.registry.organization}/${artifactId}</repository>
+							<repository>${docker.registry.organization}/${project.artifactId}</repository>
 							<tag>${project.version}</tag>
 							<username>${env.DOCKER_HUB_USERNAME}</username>
 							<password>${env.DOCKER_HUB_PASSWORD}</password>
