@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.test.context.ActiveProfiles;
@@ -40,6 +41,7 @@ import static org.springframework.cloud.kubernetes.fabric8.config.ConfigMapTestU
 		properties = { "spring.application.name=configmap-with-active-profile-name-example",
 				"spring.cloud.kubernetes.reload.enabled=false", "spring.main.cloud-platform=KUBERNETES" })
 @ActiveProfiles("development")
+@AutoConfigureWebTestClient
 abstract class ConfigMapsWithActiveProfilesName {
 
 	private static final String APPLICATION_NAME = "configmap-with-active-profile-name-example";

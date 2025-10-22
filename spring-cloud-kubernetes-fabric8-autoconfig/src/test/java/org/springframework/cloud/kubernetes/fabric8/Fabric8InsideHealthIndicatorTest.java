@@ -27,7 +27,8 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +45,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @Import(Fabric8InsideHealthIndicatorTest.KubernetesActuatorTestConfiguration.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApp.class,
 		properties = { "management.endpoint.health.show-details=always" })
+@AutoConfigureWebTestClient
 class Fabric8InsideHealthIndicatorTest {
 
 	@Autowired

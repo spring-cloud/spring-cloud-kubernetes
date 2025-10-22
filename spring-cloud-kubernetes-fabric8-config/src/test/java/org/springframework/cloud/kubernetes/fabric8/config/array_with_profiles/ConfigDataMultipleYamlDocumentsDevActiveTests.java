@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -35,6 +36,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @TestPropertySource(properties = { "spring.config.import=kubernetes:" })
 @EnableKubernetesMockClient(crud = true, https = false)
 @ActiveProfiles("dev")
+@AutoConfigureWebTestClient
 class ConfigDataMultipleYamlDocumentsDevActiveTests extends ArrayWithProfiles {
 
 	@Autowired

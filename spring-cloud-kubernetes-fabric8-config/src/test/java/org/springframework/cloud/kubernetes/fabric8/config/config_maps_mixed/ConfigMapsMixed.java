@@ -26,12 +26,14 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.fabric8.config.TestApplication;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = TestApplication.class,
 		properties = { "spring.application.name=" + ConfigMapsMixed.APPLICATION_NAME,
 				"spring.cloud.kubernetes.config.enabled=true", "spring.main.cloud-platform=KUBERNETES" })
+@AutoConfigureWebTestClient
 abstract class ConfigMapsMixed {
 
 	protected static final String APPLICATION_NAME = "configmap-mixed-example";

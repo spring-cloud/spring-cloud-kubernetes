@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 /**
@@ -31,6 +32,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  *
  * @author wind57
  */
+@AutoConfigureWebTestClient
 abstract class LabeledConfigMapWithPrefixTests {
 
 	@Autowired

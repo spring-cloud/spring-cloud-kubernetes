@@ -25,7 +25,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -39,6 +40,7 @@ class BootstrapFabric8SanitizeEnvEndpointTests {
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
+	@AutoConfigureWebTestClient
 	@Nested
 	class DefaultSettingsTest extends Fabric8SecretsSanitize {
 
@@ -108,6 +110,7 @@ class BootstrapFabric8SanitizeEnvEndpointTests {
 					"management.endpoints.web.exposure.include=*", "spring.cloud.bootstrap.name=sanitize",
 					"management.endpoint.env.show-values=NEVER", "spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
+	@AutoConfigureWebTestClient
 	@Nested
 	class ExplicitNever extends Fabric8SecretsSanitize {
 
@@ -187,6 +190,7 @@ class BootstrapFabric8SanitizeEnvEndpointTests {
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=false",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithoutSanitizingFunction extends Fabric8SecretsSanitize {
 
@@ -266,6 +270,7 @@ class BootstrapFabric8SanitizeEnvEndpointTests {
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=true",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
 	@EnableKubernetesMockClient(crud = true, https = false)
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithSanitizingFunction extends Fabric8SecretsSanitize {
 
