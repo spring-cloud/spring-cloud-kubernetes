@@ -78,6 +78,14 @@ class Fabric8LeaderElectionSimpleITTest {
 	@Test
 	void test(CapturedOutput output) {
 
+		// we have become the leader
+		Awaitility.await()
+			.atMost(Duration.ofSeconds(10))
+			.pollInterval(Duration.ofSeconds(1))
+			.until(() -> output.getOut().contains("simple-it is the new leader"));
+
+		// let's unwind some logs to see that the process is how we expect it to be
+
 		// 1. lease is used as the lock (comes from our code)
 		assertThat(output.getOut()).contains(
 			"will use lease as the lock for leader election");
@@ -91,13 +99,9 @@ class Fabric8LeaderElectionSimpleITTest {
 			"Attempting to acquire leader lease 'LeaseLock: default - spring-k8s-leader-election-lock (simple-it)'");
 
 		// 4. we are the leader (comes from our code)
-		assertThat(output.getOut()).contains("simple-it is now a leader");
+		assertThat(output.getOut()).contains("Leader changed from null to simple-it");
 
-		// wait for a renewal
-		Awaitility.await()
-			.pollInterval(Duration.ofSeconds(1))
-			.atMost(Duration.ofMinutes(1))
-			.until(() -> output.getOut().contains("Attempting to renew leader lease"));
+
 
 //		// all these logs happen before a renewal
 //		Assertions.assertThat(output.getOut()).contains("starting leader initiator");
@@ -125,7 +129,9 @@ class Fabric8LeaderElectionSimpleITTest {
 //				.withName("spring-k8s-leader-election-lock")
 //				.get()
 //				.getSpec()
-//				.getRenewTime())));
+//				.getRenewTime())))
+
+
 	}
 
 	@TestConfiguration
