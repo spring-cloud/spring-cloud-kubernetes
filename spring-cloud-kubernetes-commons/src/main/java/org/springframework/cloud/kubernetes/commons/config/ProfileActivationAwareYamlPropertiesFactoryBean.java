@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.reader.UnicodeReader;
@@ -36,7 +37,6 @@ import org.springframework.core.CollectionFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.log.LogAccessor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.beans.factory.config.YamlProcessor.DocumentMatcher;

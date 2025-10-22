@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.annotation.Nonnull;
-import reactor.util.annotation.NonNull;
 
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
@@ -68,7 +67,7 @@ public abstract class KubernetesConfigDataLocationResolver
 	}
 
 	@Override
-	public final List<KubernetesConfigDataResource> resolve(@NonNull ConfigDataLocationResolverContext context,
+	public final List<KubernetesConfigDataResource> resolve(@Nonnull ConfigDataLocationResolverContext context,
 			@Nonnull ConfigDataLocation location)
 			throws ConfigDataLocationNotFoundException, ConfigDataResourceNotFoundException {
 		return Collections.emptyList();
@@ -76,7 +75,7 @@ public abstract class KubernetesConfigDataLocationResolver
 
 	@Override
 	public final List<KubernetesConfigDataResource> resolveProfileSpecific(
-			@Nonnull ConfigDataLocationResolverContext resolverContext, @NonNull ConfigDataLocation location,
+			@Nonnull ConfigDataLocationResolverContext resolverContext, @Nonnull ConfigDataLocation location,
 			@Nonnull Profiles profiles) throws ConfigDataLocationNotFoundException {
 
 		ConfigDataPropertiesHolder properties = ConfigDataPropertiesHolder.of(resolverContext);

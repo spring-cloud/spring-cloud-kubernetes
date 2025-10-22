@@ -163,7 +163,7 @@ class PollingReloadConfigMapAndSecretTest {
 		mockClient.configMaps()
 			.inNamespace(NAMESPACE)
 			.resource(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
-			.createOrReplace();
+			.update();
 	}
 
 	@TestConfiguration

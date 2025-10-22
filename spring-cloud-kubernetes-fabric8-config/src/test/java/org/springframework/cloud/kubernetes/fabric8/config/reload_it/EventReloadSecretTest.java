@@ -130,7 +130,7 @@ class EventReloadSecretTest {
 		// is triggered
 		Mockito.reset(kubernetesClient);
 		Secret secretOne = secret(SECRET_NAME, Map.of("a", "b"));
-		operation.resource(secretOne).replace();
+		operation.resource(secretOne).update();
 
 		// it passes while reading 'secretOne'
 		Awaitility.await()

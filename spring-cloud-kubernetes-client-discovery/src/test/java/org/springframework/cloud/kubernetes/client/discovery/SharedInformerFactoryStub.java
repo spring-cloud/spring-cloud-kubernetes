@@ -17,11 +17,16 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.openapi.ApiClient;
 
 /**
  * @author wind57
  */
 final class SharedInformerFactoryStub extends SharedInformerFactory {
+
+	SharedInformerFactoryStub(ApiClient apiClient) {
+		super(apiClient);
+	}
 
 	@Override
 	public void startAllRegisteredInformers() {
