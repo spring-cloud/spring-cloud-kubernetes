@@ -22,7 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -36,6 +37,7 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
 					"management.endpoints.web.exposure.include=*", "spring.cloud.kubernetes.client.namespace=test",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class DefaultSettingsTest extends ConfigDataSanitize {
 
@@ -98,6 +100,7 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
 					"management.endpoint.env.show-values=NEVER", "spring.cloud.kubernetes.client.namespace=test",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class ExplicitNever extends ConfigDataSanitize {
 
@@ -169,6 +172,7 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=false",
 					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithoutSanitizingFunction extends ConfigDataSanitize {
 
@@ -240,6 +244,7 @@ class ConfigDataKubernetesClientSanitizeEnvEndpointTests {
 					"spring.config.import=kubernetes:,classpath:./sanitize-two.yaml",
 					"management.endpoint.env.show-values=ALWAYS", "spring.cloud.kubernetes.sanitize.secrets=true",
 					"spring.cloud.kubernetes.client.namespace=test", "spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithSanitizingFunction extends ConfigDataSanitize {
 

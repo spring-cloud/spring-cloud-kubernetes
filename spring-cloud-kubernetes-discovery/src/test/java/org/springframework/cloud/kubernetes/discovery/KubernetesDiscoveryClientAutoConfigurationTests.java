@@ -109,7 +109,7 @@ class KubernetesDiscoveryClientAutoConfigurationTests {
 		contextRunner
 			.withPropertyValues("spring.main.cloud-platform=KUBERNETES",
 					"spring.cloud.kubernetes.discovery.discovery-server-url=http://k8sdiscoveryserver")
-			.withClassLoader(new FilteredClassLoader("org.springframework.boot.actuate"))
+			.withClassLoader(new FilteredClassLoader("org.springframework.boot.health.actuate"))
 			.run(context -> {
 				assertThat(context).hasSingleBean(KubernetesReactiveDiscoveryClient.class);
 				assertThat(context).doesNotHaveBean(ReactiveDiscoveryClientHealthIndicator.class);

@@ -22,7 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.health.registry.HealthContributorRegistry;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -30,6 +31,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 		properties = { "management.health.kubernetes.enabled=true", "management.endpoint.health.show-details=always",
 				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
 				"spring.main.cloud-platform=KUBERNETES" })
+@AutoConfigureWebTestClient
 class ActuatorEnabledHealthTest {
 
 	@Autowired

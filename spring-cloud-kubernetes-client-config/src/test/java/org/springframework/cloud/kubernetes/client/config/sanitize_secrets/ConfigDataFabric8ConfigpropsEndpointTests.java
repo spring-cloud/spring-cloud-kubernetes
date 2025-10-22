@@ -22,7 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.SanitizableData;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.test.LocalManagementPort;
+import org.springframework.boot.test.web.server.LocalManagementPort;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -35,6 +36,7 @@ class ConfigDataFabric8ConfigpropsEndpointTests {
 			properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=*",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class DefaultSettingsTest extends ConfigDataSanitize {
 
@@ -93,6 +95,7 @@ class ConfigDataFabric8ConfigpropsEndpointTests {
 					"management.endpoint.configprops.show-values=NEVER",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class ExplicitNever extends ConfigDataSanitize {
 
@@ -165,6 +168,7 @@ class ConfigDataFabric8ConfigpropsEndpointTests {
 					"spring.cloud.kubernetes.sanitize.secrets=false",
 					"spring.config.import=kubernetes:,classpath:./sanitize.yaml",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithoutSanitizingFunction extends ConfigDataSanitize {
 
@@ -237,6 +241,7 @@ class ConfigDataFabric8ConfigpropsEndpointTests {
 					"spring.cloud.kubernetes.sanitize.secrets=true",
 					"spring.config.import=kubernetes:,classpath:./sanitize-two.yaml",
 					"spring.cloud.kubernetes.secrets.enabled=true" })
+	@AutoConfigureWebTestClient
 	@Nested
 	class AlwaysWithSanitizingFunction extends ConfigDataSanitize {
 

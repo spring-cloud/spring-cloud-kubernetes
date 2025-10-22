@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.fabric8.config.example2.ExampleApp;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -34,6 +35,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ExampleApp.class,
 		properties = { "spring.cloud.bootstrap.name=multiplecms", "spring.main.cloud-platform=KUBERNETES" })
+@AutoConfigureWebTestClient
 abstract class MultipleConfigMapsSources {
 
 	@Autowired
