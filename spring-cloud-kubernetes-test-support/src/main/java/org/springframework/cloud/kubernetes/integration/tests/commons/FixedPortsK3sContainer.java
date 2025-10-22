@@ -42,7 +42,7 @@ final class FixedPortsK3sContainer extends K3sContainer {
 	/**
 	 * Rancher version to use for test-containers.
 	 */
-	private static final String RANCHER_VERSION = "rancher/k3s:v1.28.8-k3s1";
+	private static final String RANCHER_VERSION = "rancher/k3s:v1.34.1-k3s1";
 
 	/**
 	 * Command to use when starting rancher. Without "server" option, traefik is not
