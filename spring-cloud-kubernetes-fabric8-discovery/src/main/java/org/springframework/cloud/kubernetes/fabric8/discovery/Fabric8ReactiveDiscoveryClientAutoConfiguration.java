@@ -50,7 +50,7 @@ import org.springframework.core.env.Environment;
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
 		Fabric8DiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		Fabric8DiscoveryClientSpelAutoConfiguration.class })
-final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
+public final class Fabric8ReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
