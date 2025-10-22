@@ -55,7 +55,7 @@ public class LeaderElectionCallbacks {
 	public final Runnable onStartLeadingCallback(ApplicationEventPublisher applicationEventPublisher,
 			String holderIdentity, LeaderElectionProperties properties) {
 		return () -> {
-			LOG.info(() -> "id : " + holderIdentity + " is now a leader");
+			LOG.info(() -> holderIdentity + " is now a leader");
 			if (properties.publishEvents()) {
 				applicationEventPublisher.publishEvent(new StartLeadingEvent(holderIdentity));
 			}

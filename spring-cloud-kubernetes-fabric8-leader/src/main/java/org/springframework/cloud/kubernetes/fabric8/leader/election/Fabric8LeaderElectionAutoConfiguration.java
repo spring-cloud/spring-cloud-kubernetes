@@ -68,15 +68,14 @@ class Fabric8LeaderElectionAutoConfiguration {
 		return new Fabric8LeaderElectionInfoContributor(holderIdentity, leaderElectionConfig, fabric8KubernetesClient);
 	}
 
-	//TODO
-//	@Bean
-//	@ConditionalOnMissingBean
-//	Fabric8LeaderElectionInitiator fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace,
-//		KubernetesClient fabric8KubernetesClient, LeaderElectionConfig fabric8LeaderElectionConfig,
-//		LeaderElectionProperties leaderElectionProperties) {
-//		return new Fabric8LeaderElectionInitiator(holderIdentity, podNamespace, fabric8KubernetesClient,
-//			fabric8LeaderElectionConfig, leaderElectionProperties);
-//	}
+	@Bean
+	@ConditionalOnMissingBean
+	Fabric8LeaderElectionInitiator fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace,
+		KubernetesClient fabric8KubernetesClient, LeaderElectionConfig fabric8LeaderElectionConfig,
+		LeaderElectionProperties leaderElectionProperties) {
+		return new Fabric8LeaderElectionInitiator(holderIdentity, podNamespace, fabric8KubernetesClient,
+			fabric8LeaderElectionConfig, leaderElectionProperties);
+	}
 
 	@Bean
 	@ConditionalOnMissingBean
