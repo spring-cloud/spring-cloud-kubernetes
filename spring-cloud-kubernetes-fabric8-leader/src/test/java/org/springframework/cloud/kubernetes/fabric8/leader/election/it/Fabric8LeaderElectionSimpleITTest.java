@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Primary;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * A very simple test where we are the sole participant in the leader
+ * A simple test where we are the sole participant in the leader
  * election and everything goes fine from start to end. It's a happy path
  * scenario test.
  *
@@ -99,10 +99,14 @@ class Fabric8LeaderElectionSimpleITTest {
 		assertThat(output.getOut()).contains(
 			"Attempting to acquire leader lease 'LeaseLock: default - spring-k8s-leader-election-lock (simple-it)'");
 
-		// 4. we are the leader (comes from our code)
+		// 4. lease has been acquired
+		assertThat(output.getOut()).contains(
+			"Acquired lease 'LeaseLock: default - spring-k8s-leader-election-lock (simple-it)'");
+
+		// 5. we are the leader (comes from our code)
 		assertThat(output.getOut()).contains("Leader changed from null to simple-it");
 
-		// 5. wait until a renewal happens (comes from fabric code)
+		// 6. wait until a renewal happens (comes from fabric code)
 		//    this one means that we have extended our leadership
 		Awaitility.await()
 			.atMost(Duration.ofSeconds(15))
@@ -112,11 +116,10 @@ class Fabric8LeaderElectionSimpleITTest {
 
 
 
+
+
 //
-//		Lease lockLease = kubernetesClient.leases()
-//			.inNamespace("default")
-//			.withName("spring-k8s-leader-election-lock")
-//			.get();
+
 //		ZonedDateTime currentAcquiredTime = lockLease.getSpec().getAcquireTime();
 //		Assertions.assertThat(currentAcquiredTime).isNotNull();
 //		Assertions.assertThat(lockLease.getSpec().getLeaseDurationSeconds()).isEqualTo(15);
