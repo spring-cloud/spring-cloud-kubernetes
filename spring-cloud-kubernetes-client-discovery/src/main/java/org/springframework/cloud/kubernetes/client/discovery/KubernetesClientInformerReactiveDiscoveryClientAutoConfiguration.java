@@ -51,7 +51,7 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
 		KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		KubernetesClientDiscoveryClientSpelAutoConfiguration.class })
-final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
+public final class KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
