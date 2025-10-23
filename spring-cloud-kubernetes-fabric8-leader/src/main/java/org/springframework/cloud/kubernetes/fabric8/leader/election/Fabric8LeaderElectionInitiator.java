@@ -135,7 +135,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 	@PreDestroy
 	void preDestroy() {
 		destroyCalled = true;
-		LOG.info(() -> "preDestroy called in the leader initiator : " + candidateIdentity);
+		LOG.info(() -> "preDestroy called on the leader initiator : " + candidateIdentity);
 
 		if (podReadyFuture != null && !podReadyFuture.isDone()) {
 			// if the task is not running, this has no effect.
@@ -145,7 +145,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 		}
 
 		if (leaderFuture != null) {
-			LOG.info(() -> "leader will be canceled : " + candidateIdentity);
+			LOG.info(() -> "leaderFuture will be canceled for : " + candidateIdentity);
 			// needed to release the lock, in case we are holding it.
 			// fabric8 internally expects this one to be called
 			leaderFuture.cancel(true);

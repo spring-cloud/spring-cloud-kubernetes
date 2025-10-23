@@ -29,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
+import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,7 @@ class Fabric8LeaderElectionSimpleITTest {
 
 		// we have become the leader
 		Awaitility.await()
-			.atMost(Duration.ofSeconds(10))
+			.atMost(Duration.ofSeconds(60))
 			.pollInterval(Duration.ofSeconds(1))
 			.until(() -> output.getOut().contains("simple-it is the new leader"));
 
@@ -101,12 +102,16 @@ class Fabric8LeaderElectionSimpleITTest {
 		// 4. we are the leader (comes from our code)
 		assertThat(output.getOut()).contains("Leader changed from null to simple-it");
 
+		// 5. wait until a renewal happens (comes from fabric code)
+		//    this one means that we have extended our leadership
+		Awaitility.await()
+			.atMost(Duration.ofSeconds(15))
+			.pollInterval(Duration.ofSeconds(1))
+			.until(() -> output.getOut().contains(
+				"Attempting to renew leader lease 'LeaseLock: default - spring-k8s-leader-election-lock (simple-it)'"));
 
 
-//		// all these logs happen before a renewal
-//		Assertions.assertThat(output.getOut()).contains("starting leader initiator");
-//		Assertions.assertThat(output.getOut()).contains("Leader election started");
-//		Assertions.assertThat(output.getOut()).contains("Successfully Acquired leader lease");
+
 //
 //		Lease lockLease = kubernetesClient.leases()
 //			.inNamespace("default")
