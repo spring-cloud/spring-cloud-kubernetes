@@ -39,7 +39,7 @@ import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesD
 @ConditionalOnKubernetesCatalogWatcherEnabled
 @ConditionalOnHttpDiscoveryCatalogWatcherEnabled
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
-class KubernetesCatalogWatchAutoConfiguration {
+public class KubernetesCatalogWatchAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesCatalogWatchAutoConfiguration.class));

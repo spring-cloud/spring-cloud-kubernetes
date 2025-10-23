@@ -58,7 +58,7 @@ import org.springframework.core.log.LogAccessor;
 		KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		KubernetesClientDiscoveryClientSpelAutoConfiguration.class,
 		KubernetesClientInformerReactiveDiscoveryClientAutoConfiguration.class })
-class KubernetesClientInformerReactiveHealthAutoConfiguration {
+public class KubernetesClientInformerReactiveHealthAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerReactiveHealthAutoConfiguration.class));

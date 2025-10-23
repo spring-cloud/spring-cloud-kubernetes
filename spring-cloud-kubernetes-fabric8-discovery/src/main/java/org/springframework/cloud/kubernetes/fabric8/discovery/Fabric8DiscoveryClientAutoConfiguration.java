@@ -55,7 +55,7 @@ import org.springframework.core.log.LogAccessor;
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		Fabric8DiscoveryClientSpelAutoConfiguration.class, Fabric8DiscoveryClientSpelAutoConfiguration.class })
-final class Fabric8DiscoveryClientAutoConfiguration {
+public final class Fabric8DiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(Fabric8DiscoveryClientAutoConfiguration.class));

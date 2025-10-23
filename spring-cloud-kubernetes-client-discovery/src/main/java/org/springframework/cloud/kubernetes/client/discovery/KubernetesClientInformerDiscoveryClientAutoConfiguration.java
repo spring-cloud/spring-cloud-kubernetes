@@ -54,7 +54,7 @@ import org.springframework.core.log.LogAccessor;
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ KubernetesClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		KubernetesClientDiscoveryClientSpelAutoConfiguration.class })
-final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
+public final class KubernetesClientInformerDiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientInformerDiscoveryClientAutoConfiguration.class));
