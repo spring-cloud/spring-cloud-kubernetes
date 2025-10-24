@@ -30,6 +30,7 @@ import org.springframework.cloud.kubernetes.commons.leader.LeaderInfoContributor
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
+import org.springframework.cloud.kubernetes.commons.leader.election.ConditionalOnLeaderElectionDisabled;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,6 +46,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
 @ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
+@ConditionalOnLeaderElectionDisabled
 public class Fabric8LeaderAutoConfiguration {
 
 	/*
