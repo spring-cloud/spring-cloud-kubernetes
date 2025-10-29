@@ -20,6 +20,7 @@ import java.net.UnknownHostException;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 
+import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -74,6 +75,7 @@ public class Fabric8LeaderAutoConfiguration {
 	 */
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
+	@ConditionalOnEnabledInfoContributor("leader")
 	public LeaderInfoContributor leaderInfoContributor(Fabric8LeadershipController fabric8LeadershipController,
 			Candidate candidate) {
 		return new LeaderInfoContributor(fabric8LeadershipController, candidate);
