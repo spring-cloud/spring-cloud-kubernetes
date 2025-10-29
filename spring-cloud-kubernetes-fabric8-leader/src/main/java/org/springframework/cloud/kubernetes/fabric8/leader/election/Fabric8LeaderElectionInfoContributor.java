@@ -31,15 +31,15 @@ import org.springframework.boot.actuate.info.InfoContributor;
  */
 final class Fabric8LeaderElectionInfoContributor implements InfoContributor {
 
-	private final String holderIdentity;
+	private final String candidateIdentity;
 
 	private final LeaderElectionConfig leaderElectionConfig;
 
 	private final KubernetesClient fabric8KubernetesClient;
 
-	Fabric8LeaderElectionInfoContributor(String holderIdentity, LeaderElectionConfig leaderElectionConfig,
-		KubernetesClient fabric8KubernetesClient) {
-		this.holderIdentity = holderIdentity;
+	Fabric8LeaderElectionInfoContributor(String candidateIdentity, LeaderElectionConfig leaderElectionConfig,
+			KubernetesClient fabric8KubernetesClient) {
+		this.candidateIdentity = candidateIdentity;
 		this.leaderElectionConfig = leaderElectionConfig;
 		this.fabric8KubernetesClient = fabric8KubernetesClient;
 	}
@@ -49,8 +49,8 @@ final class Fabric8LeaderElectionInfoContributor implements InfoContributor {
 		Map<String, Object> details = new HashMap<>();
 		Optional.ofNullable(leaderElectionConfig.getLock().get(fabric8KubernetesClient))
 			.ifPresentOrElse(leaderRecord -> {
-				boolean isLeader = holderIdentity.equals(leaderRecord.getHolderIdentity());
-				details.put("leaderId", holderIdentity);
+				boolean isLeader = candidateIdentity.equals(leaderRecord.getHolderIdentity());
+				details.put("leaderId", candidateIdentity);
 				details.put("isLeader", isLeader);
 			}, () -> details.put("leaderId", "Unknown"));
 

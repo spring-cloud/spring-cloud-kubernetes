@@ -38,7 +38,7 @@ public class LeaderElectionCallbacks {
 	private static final LogAccessor LOG = new LogAccessor(LeaderElectionCallbacks.class);
 
 	@Bean
-	public final String holderIdentity() throws UnknownHostException {
+	public final String candidateIdentity() throws UnknownHostException {
 		String podHostName = LeaderUtils.hostName();
 		LOG.debug(() -> "using pod hostname : " + podHostName);
 		return podHostName;
@@ -53,22 +53,22 @@ public class LeaderElectionCallbacks {
 
 	@Bean
 	public final Runnable onStartLeadingCallback(ApplicationEventPublisher applicationEventPublisher,
-			String holderIdentity, LeaderElectionProperties properties) {
+			String candidateIdentity, LeaderElectionProperties properties) {
 		return () -> {
-			LOG.info(() -> holderIdentity + " is now a leader");
+			LOG.info(() -> candidateIdentity + " is now a leader");
 			if (properties.publishEvents()) {
-				applicationEventPublisher.publishEvent(new StartLeadingEvent(holderIdentity));
+				applicationEventPublisher.publishEvent(new StartLeadingEvent(candidateIdentity));
 			}
 		};
 	}
 
 	@Bean
 	public final Runnable onStopLeadingCallback(ApplicationEventPublisher applicationEventPublisher,
-			String holderIdentity, LeaderElectionProperties properties) {
+			String candidateIdentity, LeaderElectionProperties properties) {
 		return () -> {
-			LOG.info(() -> "id : " + holderIdentity + " stopped being a leader");
+			LOG.info(() -> "id : " + candidateIdentity + " stopped being a leader");
 			if (properties.publishEvents()) {
-				applicationEventPublisher.publishEvent(new StopLeadingEvent(holderIdentity));
+				applicationEventPublisher.publishEvent(new StopLeadingEvent(candidateIdentity));
 			}
 		};
 	}
@@ -76,10 +76,10 @@ public class LeaderElectionCallbacks {
 	@Bean
 	public final Consumer<String> onNewLeaderCallback(ApplicationEventPublisher applicationEventPublisher,
 			LeaderElectionProperties properties) {
-		return holderIdentity -> {
-			LOG.info(() -> "id : " + holderIdentity + " is the new leader");
+		return candidateIdentity -> {
+			LOG.info(() -> "id : " + candidateIdentity + " is the new leader");
 			if (properties.publishEvents()) {
-				applicationEventPublisher.publishEvent(new NewLeaderEvent(holderIdentity));
+				applicationEventPublisher.publishEvent(new NewLeaderEvent(candidateIdentity));
 			}
 		};
 	}

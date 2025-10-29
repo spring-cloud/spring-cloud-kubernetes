@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,9 +51,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
-		"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true",
-		"spring.cloud.kubernetes.leader.election.enabled=true" })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
+				"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true",
+				"spring.cloud.kubernetes.leader.election.enabled=true" })
 @AutoConfigureWebTestClient
 class Fabric8LeaderElectionInfoContributorIsLeaderTest {
 
@@ -108,8 +108,8 @@ class Fabric8LeaderElectionInfoContributorIsLeaderTest {
 		private void mockForLeaseSupport(KubernetesClient client) {
 			Mockito.when(client.getApiResources("coordination.k8s.io/v1"))
 				.thenReturn(
-					new APIResourceListBuilder().withResources(new APIResourceBuilder().withKind("Lease").build())
-						.build());
+						new APIResourceListBuilder().withResources(new APIResourceBuilder().withKind("Lease").build())
+							.build());
 
 			APIGroupList apiGroupList = new APIGroupListBuilder().addNewGroup()
 				.withVersions(new GroupVersionForDiscoveryBuilder().withGroupVersion("coordination.k8s.io/v1").build())

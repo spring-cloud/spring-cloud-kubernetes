@@ -16,15 +16,19 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
+import java.util.function.BooleanSupplier;
+
 import io.fabric8.kubernetes.api.model.APIResource;
 import io.fabric8.kubernetes.api.model.APIResourceList;
 import io.fabric8.kubernetes.api.model.GroupVersionForDiscovery;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfigBuilder;
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.ConfigMapLock;
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.LeaseLock;
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.Lock;
+import io.fabric8.kubernetes.client.readiness.Readiness;
 
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -63,26 +67,35 @@ class Fabric8LeaderElectionAutoConfiguration {
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
 	@ConditionalOnEnabledHealthIndicator("leader.election")
-	Fabric8LeaderElectionInfoContributor leaderElectionInfoContributor(String holderIdentity,
-		LeaderElectionConfig leaderElectionConfig, KubernetesClient fabric8KubernetesClient) {
-		return new Fabric8LeaderElectionInfoContributor(holderIdentity, leaderElectionConfig, fabric8KubernetesClient);
+	Fabric8LeaderElectionInfoContributor leaderElectionInfoContributor(String candidateIdentity,
+			LeaderElectionConfig leaderElectionConfig, KubernetesClient fabric8KubernetesClient) {
+		return new Fabric8LeaderElectionInfoContributor(candidateIdentity, leaderElectionConfig,
+				fabric8KubernetesClient);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	Fabric8LeaderElectionInitiator fabric8LeaderElectionInitiator(String holderIdentity, String podNamespace,
-		KubernetesClient fabric8KubernetesClient, LeaderElectionConfig fabric8LeaderElectionConfig,
-		LeaderElectionProperties leaderElectionProperties) {
-		return new Fabric8LeaderElectionInitiator(holderIdentity, podNamespace, fabric8KubernetesClient,
-			fabric8LeaderElectionConfig, leaderElectionProperties);
+	Fabric8LeaderElectionInitiator fabric8LeaderElectionInitiator(String candidateIdentity, String podNamespace,
+			KubernetesClient fabric8KubernetesClient, LeaderElectionConfig fabric8LeaderElectionConfig,
+			LeaderElectionProperties leaderElectionProperties, BooleanSupplier podReadySupplier) {
+		return new Fabric8LeaderElectionInitiator(candidateIdentity, podNamespace, fabric8KubernetesClient,
+				fabric8LeaderElectionConfig, leaderElectionProperties, podReadySupplier);
+	}
+
+	@Bean
+	BooleanSupplier podReadySupplier(KubernetesClient fabric8KubernetesClient, String candidateIdentity,
+			String podNamespace) {
+		return () -> {
+			Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(candidateIdentity).get();
+			return Readiness.isPodReady(pod);
+		};
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	LeaderElectionConfig fabric8LeaderElectionConfig(LeaderElectionProperties properties, Lock lock,
-		Fabric8LeaderElectionCallbacks fabric8LeaderElectionCallbacks) {
-		return new LeaderElectionConfigBuilder()
-			.withReleaseOnCancel()
+			Fabric8LeaderElectionCallbacks fabric8LeaderElectionCallbacks) {
+		return new LeaderElectionConfigBuilder().withReleaseOnCancel()
 			.withName("Spring k8s leader election")
 			.withLeaseDuration(properties.leaseDuration())
 			.withLock(lock)
@@ -94,7 +107,7 @@ class Fabric8LeaderElectionAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	Lock lock(KubernetesClient fabric8KubernetesClient, LeaderElectionProperties properties, String holderIdentity) {
+	Lock lock(KubernetesClient fabric8KubernetesClient, LeaderElectionProperties properties, String candidateIdentity) {
 		boolean leaseSupported = fabric8KubernetesClient.getApiGroups()
 			.getGroups()
 			.stream()
@@ -111,17 +124,17 @@ class Fabric8LeaderElectionAutoConfiguration {
 		if (leaseSupported) {
 			if (properties.useConfigMapAsLock()) {
 				LOG.info(() -> "leases are supported on the cluster, but config map will be used "
-					+ "(because 'spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true')");
-				return new ConfigMapLock(properties.lockNamespace(), properties.lockName(), holderIdentity);
+						+ "(because 'spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true')");
+				return new ConfigMapLock(properties.lockNamespace(), properties.lockName(), candidateIdentity);
 			}
 			else {
 				LOG.info(() -> "will use lease as the lock for leader election");
-				return new LeaseLock(properties.lockNamespace(), properties.lockName(), holderIdentity);
+				return new LeaseLock(properties.lockNamespace(), properties.lockName(), candidateIdentity);
 			}
 		}
 		else {
 			LOG.info(() -> "will use configmap as the lock for leader election");
-			return new ConfigMapLock(properties.lockNamespace(), properties.lockName(), holderIdentity);
+			return new ConfigMapLock(properties.lockNamespace(), properties.lockName(), candidateIdentity);
 		}
 	}
 

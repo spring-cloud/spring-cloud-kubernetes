@@ -46,8 +46,8 @@ class Fabric8LeaderAutoConfigurationTests {
 	void leaderElectionAnnotationMissing() {
 		new ApplicationContextRunner().withUserConfiguration(Fabric8LeaderApp.class)
 			.withConfiguration(AutoConfigurations.of(Fabric8LeaderAutoConfiguration.class,
-				Fabric8LeaderElectionAutoConfiguration.class,
-				Fabric8LeaderElectionCallbacksAutoConfiguration.class))
+					Fabric8LeaderElectionAutoConfiguration.class,
+					Fabric8LeaderElectionCallbacksAutoConfiguration.class))
 			.run(context -> {
 
 				// this one comes from Fabric8LeaderElectionAutoConfiguration
@@ -72,8 +72,8 @@ class Fabric8LeaderAutoConfigurationTests {
 	void leaderElectionAnnotationPresentEqualToFalse() {
 		new ApplicationContextRunner().withUserConfiguration(Fabric8LeaderApp.class)
 			.withConfiguration(AutoConfigurations.of(Fabric8LeaderAutoConfiguration.class,
-				Fabric8LeaderElectionAutoConfiguration.class,
-				Fabric8LeaderElectionCallbacksAutoConfiguration.class))
+					Fabric8LeaderElectionAutoConfiguration.class,
+					Fabric8LeaderElectionCallbacksAutoConfiguration.class))
 			.withPropertyValues("spring.cloud.kubernetes.leader.election.enabled=false")
 			.run(context -> {
 
@@ -99,10 +99,10 @@ class Fabric8LeaderAutoConfigurationTests {
 	void leaderElectionAnnotationPresentEqualToTrue() {
 		new ApplicationContextRunner().withUserConfiguration(Fabric8LeaderApp.class)
 			.withConfiguration(AutoConfigurations.of(Fabric8LeaderAutoConfiguration.class,
-				Fabric8LeaderElectionAutoConfiguration.class,
-				Fabric8LeaderElectionCallbacksAutoConfiguration.class))
+					Fabric8LeaderElectionAutoConfiguration.class,
+					Fabric8LeaderElectionCallbacksAutoConfiguration.class))
 			.withPropertyValues("spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.main.cloud-platform=kubernetes")
+					"spring.main.cloud-platform=kubernetes")
 			.run(context -> {
 
 				// this one comes from Fabric8LeaderElectionAutoConfiguration

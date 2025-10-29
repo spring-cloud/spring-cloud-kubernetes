@@ -16,22 +16,13 @@
 
 package org.springframework.cloud.kubernetes.commons.leader.election.events;
 
-import org.springframework.context.ApplicationEvent;
-
 /**
  * @author wind57
  */
-public final class StartLeadingEvent extends ApplicationEvent {
-
-	private final String holderIdentity;
+public final class StartLeadingEvent extends LeaderElectionEvent {
 
 	public StartLeadingEvent(Object source) {
 		super(source);
-		holderIdentity = (String) source;
-	}
-
-	public String holderIdentity() {
-		return holderIdentity;
 	}
 
 }

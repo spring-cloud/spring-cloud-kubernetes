@@ -68,8 +68,8 @@ public final class PodReadyRunner {
 				}
 			}
 			catch (Exception e) {
-				LOG.error(() -> "exception waiting for pod : " + e.getMessage());
-				LOG.error(() -> "leader election for : " + candidateIdentity + " was not successful");
+				LOG.error(() -> "exception waiting for pod : " + candidateIdentity);
+				LOG.error(() -> "pod readiness for : " + candidateIdentity + " failed with : " + e.getMessage());
 				podReadyFuture.completeExceptionally(e);
 			}
 

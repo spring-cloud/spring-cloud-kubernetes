@@ -1,18 +1,19 @@
 /*
-* Copyright 2013-2024 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      https://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright 2013-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
 import java.util.concurrent.CancellationException;
@@ -21,11 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElector;
-import io.fabric8.kubernetes.client.readiness.Readiness;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -38,7 +37,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 /**
  * @author wind57
  */
-	final class Fabric8LeaderElectionInitiator {
+final class Fabric8LeaderElectionInitiator {
 
 	private static final LogAccessor LOG = new LogAccessor(Fabric8LeaderElectionInitiator.class);
 
@@ -66,20 +65,16 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 	Fabric8LeaderElectionInitiator(String candidateIdentity, String candidateNamespace,
 			KubernetesClient fabric8KubernetesClient, LeaderElectionConfig leaderElectionConfig,
-			LeaderElectionProperties leaderElectionProperties) {
+			LeaderElectionProperties leaderElectionProperties, BooleanSupplier podReadySupplier) {
 		this.candidateIdentity = candidateIdentity;
 		this.fabric8KubernetesClient = fabric8KubernetesClient;
 		this.leaderElectionConfig = leaderElectionConfig;
 		this.leaderElectionProperties = leaderElectionProperties;
 		this.waitForPodReady = leaderElectionProperties.waitForPodReady();
+		this.podReadySupplier = podReadySupplier;
 
-		this.podReadyWaitingExecutor = newSingleThreadExecutor(runnable ->
-			new Thread(runnable, "Fabric8LeaderElectionInitiator-" + candidateIdentity));
-
-		this.podReadySupplier = () -> {
-			Pod pod = fabric8KubernetesClient.pods().inNamespace(candidateNamespace).withName(candidateIdentity).get();
-			return Readiness.isPodReady(pod);
-		};
+		this.podReadyWaitingExecutor = newSingleThreadExecutor(
+				runnable -> new Thread(runnable, "Fabric8LeaderElectionInitiator-" + candidateIdentity));
 
 		this.podReadyRunner = new PodReadyRunner(candidateIdentity, candidateNamespace);
 	}
@@ -110,11 +105,12 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 			if (waitForPodReady) {
 
 				// if 'ready' is already completed at this point, thread will run this,
-				// otherwise it will attach the pipeline and move on to 'blockReadinessCheck'
+				// otherwise it will attach the pipeline and move on to
+				// 'blockReadinessCheck'
 				CompletableFuture<?> ready = podReadyFuture.whenComplete((ok, error) -> {
 					if (error != null) {
-						LOG.error(() -> "readiness failed for : " + candidateIdentity);
-						LOG.error(() -> "leader election for : " + candidateIdentity + " will not start");
+						LOG.error(() -> "readiness failed for : " + candidateIdentity +
+							", leader election will not start");
 					}
 					else {
 						LOG.info(() -> candidateIdentity + " is ready");
@@ -141,6 +137,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 			// if the task is not running, this has no effect.
 			// if the task is running, calling this will also make sure
 			// that the caching executor will shut down too.
+			LOG.debug(() -> "podReadyFuture will be canceled for : " + candidateIdentity);
 			podReadyFuture.cancel(true);
 		}
 
@@ -148,9 +145,13 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 			LOG.info(() -> "leaderFuture will be canceled for : " + candidateIdentity);
 			// needed to release the lock, in case we are holding it.
 			// fabric8 internally expects this one to be called
+			LOG.debug(() -> "leaderFuture will be canceled for : " + candidateIdentity);
 			leaderFuture.cancel(true);
 		}
-		podReadyWaitingExecutor.shutdownNow();
+		if (!podReadyWaitingExecutor.isShutdown()) {
+			LOG.debug(() -> "podReadyWaitingExecutor will be shutdown for : " + candidateIdentity);
+			podReadyWaitingExecutor.shutdownNow();
+		}
 	}
 
 	private void startLeaderElection() {
@@ -166,7 +167,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 			if (error instanceof CancellationException) {
 				if (!destroyCalled) {
 					LOG.warn(() -> "renewal failed for  : " + candidateIdentity + ", will re-start it after : "
-						+ leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
+							+ leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
 					sleep();
 					startLeaderElection();
 				}
@@ -177,7 +178,8 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 			try {
 				leaderFuture.get();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				LOG.warn(() -> "leader election failed for : " + candidateIdentity + ". Trying to recover...");
 			}
 		});

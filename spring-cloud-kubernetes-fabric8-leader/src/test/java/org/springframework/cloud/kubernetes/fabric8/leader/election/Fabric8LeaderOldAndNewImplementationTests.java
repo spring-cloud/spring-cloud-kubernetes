@@ -164,7 +164,7 @@ class Fabric8LeaderOldAndNewImplementationTests {
 	@Test
 	void bothDisabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.enabled=false",
-			"spring.cloud.kubernetes.leader.election.enabled=false");
+				"spring.cloud.kubernetes.leader.election.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(Fabric8LeaderAutoConfiguration.class);
 			assertThat(context).doesNotHaveBean(Fabric8LeaderElectionAutoConfiguration.class);
@@ -187,7 +187,7 @@ class Fabric8LeaderOldAndNewImplementationTests {
 	@Test
 	void bothEnabled() {
 		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.enabled=true",
-			"spring.cloud.kubernetes.leader.election.enabled=true");
+				"spring.cloud.kubernetes.leader.election.enabled=true");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(Fabric8LeaderAutoConfiguration.class);
 			assertThat(context).hasSingleBean(Fabric8LeaderElectionAutoConfiguration.class);
@@ -197,8 +197,8 @@ class Fabric8LeaderOldAndNewImplementationTests {
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(Fabric8LeaderElectionCallbacksAutoConfiguration.class,
-				Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
-				Fabric8LeaderElectionAutoConfiguration.class, Fabric8LeaderAutoConfiguration.class))
+					Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+					Fabric8LeaderElectionAutoConfiguration.class, Fabric8LeaderAutoConfiguration.class))
 			.withUserConfiguration(Fabric8LeaderOldAndNewImplementationTests.Configuration.class)
 			.withPropertyValues(properties);
 	}
@@ -227,8 +227,8 @@ class Fabric8LeaderOldAndNewImplementationTests {
 
 			Mockito.when(client.getApiResources("coordination.k8s.io/v1"))
 				.thenReturn(
-					new APIResourceListBuilder().withResources(new APIResourceBuilder().withKind("Lease").build())
-						.build());
+						new APIResourceListBuilder().withResources(new APIResourceBuilder().withKind("Lease").build())
+							.build());
 
 			APIGroupList apiGroupList = new APIGroupListBuilder().addNewGroup()
 				.withVersions(new GroupVersionForDiscoveryBuilder().withGroupVersion("coordination.k8s.io/v1").build())

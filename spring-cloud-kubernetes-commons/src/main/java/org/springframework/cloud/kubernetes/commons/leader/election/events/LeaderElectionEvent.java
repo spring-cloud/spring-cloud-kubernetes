@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.leader.election;
+package org.springframework.cloud.kubernetes.commons.leader.election.events;
 
-import java.util.function.Consumer;
-
-import io.fabric8.kubernetes.client.extended.leaderelection.LeaderCallbacks;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * @author wind57
  */
-final class Fabric8LeaderElectionCallbacks extends LeaderCallbacks {
+abstract class LeaderElectionEvent extends ApplicationEvent {
 
-	Fabric8LeaderElectionCallbacks(Runnable onStartLeading, Runnable onStopLeading, Consumer<String> onNewLeader) {
-		super(onStartLeading, onStopLeading, onNewLeader);
+	private final String candidateIdentity;
+
+	LeaderElectionEvent(Object source) {
+		super(source);
+		candidateIdentity = (String) source;
+	}
+
+	public String candidateIdentity() {
+		return candidateIdentity;
 	}
 
 }

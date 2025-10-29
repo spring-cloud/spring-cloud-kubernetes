@@ -16,17 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import java.util.function.Consumer;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import io.fabric8.kubernetes.client.extended.leaderelection.LeaderCallbacks;
+@SpringBootApplication
+public class App {
 
-/**
- * @author wind57
- */
-final class Fabric8LeaderElectionCallbacks extends LeaderCallbacks {
-
-	Fabric8LeaderElectionCallbacks(Runnable onStartLeading, Runnable onStopLeading, Consumer<String> onNewLeader) {
-		super(onStartLeading, onStopLeading, onNewLeader);
+	public static void main(String[] args) {
+		SpringApplication.run(App.class, args);
 	}
 
 }

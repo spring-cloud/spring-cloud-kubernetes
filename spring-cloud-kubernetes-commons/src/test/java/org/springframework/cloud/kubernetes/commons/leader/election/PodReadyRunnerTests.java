@@ -117,8 +117,8 @@ class PodReadyRunnerTests {
 			caught = true;
 			assertThat(output.getOut())
 				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second");
-			assertThat(output.getOut()).contains("exception waiting for pod : fail on the second cycle");
-			assertThat(output.getOut()).contains("leader election for : identity was not successful");
+			assertThat(output.getOut()).contains("exception waiting for pod : identity");
+			assertThat(output.getOut()).contains("pod readiness for : identity failed with : fail on the second cycle");
 			assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 
 			await().atMost(Duration.ofSeconds(3))
@@ -164,8 +164,8 @@ class PodReadyRunnerTests {
 			caught = true;
 			assertThat(output.getOut())
 				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second");
-			assertThat(output.getOut()).contains("exception waiting for pod : fail on the second cycle");
-			assertThat(output.getOut()).contains("leader election for : identity was not successful");
+			assertThat(output.getOut()).contains("exception waiting for pod : identity");
+			assertThat(output.getOut()).contains("pod readiness for : identity failed with : fail on the second cycle");
 			assertThat(output.getOut()).contains("readiness failed and we caught that");
 			assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 

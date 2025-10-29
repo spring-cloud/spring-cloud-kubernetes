@@ -45,7 +45,7 @@ final class Fabric8LeaderElectionCallbacksAutoConfiguration extends LeaderElecti
 	@Bean
 	@ConditionalOnMissingBean
 	Fabric8LeaderElectionCallbacks fabric8LeaderElectionCallbacks(Runnable onStartLeadingCallback,
-		Runnable onStopLeadingCallback, Consumer<String> onNewLeaderCallback) {
+			Runnable onStopLeadingCallback, Consumer<String> onNewLeaderCallback) {
 		return new Fabric8LeaderElectionCallbacks(onStartLeadingCallback, onStopLeadingCallback, onNewLeaderCallback);
 	}
 
