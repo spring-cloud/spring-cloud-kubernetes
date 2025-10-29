@@ -25,3 +25,29 @@ To specify the name of the configmap used for leader election use the following 
 ----
 spring.cloud.kubernetes.leader.config-map-name=leader
 ----
+
+== Leader Election Info Contributor
+
+Spring Cloud Kubernetes Leader includes an `InfoContributor` which adds leader election information to
+Spring Boot's `/actuator/info` endpoint. This contributor provides information about the current leader,
+including the leader ID, role, and whether the current application instance is the leader.
+
+Example output:
+[source,json]
+----
+{
+  "leaderElection": {
+    "leaderId": "my-app-pod-1",
+    "role": "my-role",
+    "isLeader": true
+  }
+}
+----
+
+You can disable this `InfoContributor` by setting `management.info.leade.enabled`
+to `false` in `application.[properties | yaml]`:
+
+[source,properties]
+----
+management.info.leader.enabled=false
+----
