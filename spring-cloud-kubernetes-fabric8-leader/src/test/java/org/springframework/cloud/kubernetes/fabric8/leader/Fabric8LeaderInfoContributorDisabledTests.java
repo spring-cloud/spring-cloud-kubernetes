@@ -18,47 +18,35 @@ package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalManagementPort;
-import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderInfoContributor;
+import org.springframework.context.ApplicationContext;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+/**
+ * Tests that verify LeaderInfoContributor can be disabled via configuration property.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.autoStartup=false",
-				"management.endpoints.web.exposure.include=info", "management.endpoint.info.show-details=always",
-				"management.info.kubernetes.enabled=true" })
-@AutoConfigureWebTestClient
-class Fabric8LeaderAutoConfigurationTests {
-
-	@LocalManagementPort
-	private int port;
+				"management.info.leader.enabled=false" })
+class Fabric8LeaderInfoContributorDisabledTests {
 
 	@Autowired
-	private WebTestClient webClient;
+	private ApplicationContext context;
 
+	/**
+	 * Test that the LeaderInfoContributor bean is NOT present when
+	 * management.info.leader.enabled=false
+	 */
 	@Test
-	void contextLoads() {
-	}
-
-	@Test
-	void infoEndpointShouldContainLeaderElection() {
-		webClient.get()
-			.uri("http://localhost:{port}/actuator/info", port)
-			.accept(MediaType.APPLICATION_JSON)
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody()
-			.jsonPath("kubernetes")
-			.exists()
-			.jsonPath("leaderElection")
-			.exists()
-			.jsonPath("leaderElection.leaderId")
-			.exists();
+	void leaderInfoContributorShouldNotBePresent() {
+		assertThatThrownBy(() -> context.getBean(LeaderInfoContributor.class))
+			.isInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 	@SpringBootConfiguration
