@@ -44,7 +44,7 @@ Example output:
 }
 ----
 
-You can disable this `InfoContributor` by setting `management.info.leade.enabled`
+You can disable this `InfoContributor` by setting `management.info.leader.enabled`
 to `false` in `application.[properties | yaml]`:
 
 [source,properties]
