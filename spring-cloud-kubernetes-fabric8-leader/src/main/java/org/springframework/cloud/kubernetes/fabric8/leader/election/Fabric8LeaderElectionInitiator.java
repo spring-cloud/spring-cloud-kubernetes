@@ -109,8 +109,8 @@ final class Fabric8LeaderElectionInitiator {
 				// 'blockReadinessCheck'
 				CompletableFuture<?> ready = podReadyFuture.whenComplete((ok, error) -> {
 					if (error != null) {
-						LOG.error(() -> "readiness failed for : " + candidateIdentity +
-							", leader election will not start");
+						LOG.error(() -> "readiness failed for : " + candidateIdentity
+								+ ", leader election will not start");
 					}
 					else {
 						LOG.info(() -> candidateIdentity + " is ready");

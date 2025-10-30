@@ -27,13 +27,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.context.annotation.Bean;
@@ -44,10 +44,10 @@ import org.springframework.context.annotation.Primary;
  */
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
-	"logging.level.org.springframework.cloud.kubernetes.commons.leader.election=debug",
-	"logging.level.org.springframework.cloud.kubernetes.fabric8.leader.election=debug" },
-	classes = { App.class, AbstractLeaderElection.LocalConfiguration.class })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
+				"logging.level.org.springframework.cloud.kubernetes.commons.leader.election=debug",
+				"logging.level.org.springframework.cloud.kubernetes.fabric8.leader.election=debug" },
+		classes = { App.class, AbstractLeaderElection.LocalConfiguration.class })
 abstract class AbstractLeaderElection {
 
 	private static K3sContainer container;

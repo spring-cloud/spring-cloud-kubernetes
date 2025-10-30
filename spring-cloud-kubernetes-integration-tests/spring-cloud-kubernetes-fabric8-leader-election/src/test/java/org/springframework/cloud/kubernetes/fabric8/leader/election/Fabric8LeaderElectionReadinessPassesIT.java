@@ -22,8 +22,8 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,9 +32,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author wind57
  */
-@TestPropertySource(properties = { "readiness.passes=true",
-	"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
-class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection  {
+@TestPropertySource(
+		properties = { "readiness.passes=true", "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
+class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 
 	@BeforeAll
 	static void beforeAll() {
@@ -80,7 +80,10 @@ class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection  {
 		assertThat(output.getOut()).contains("canceling scheduled future because readiness succeeded");
 
 		// 8. executor is shutdown
-		assertThat(output.getOut()).contains("Shutting down executor : podReadyExecutor");
+		Awaitility.await()
+			.atMost(Duration.ofSeconds(2))
+			.pollInterval(Duration.ofMillis(100))
+			.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
 		// 9. pod is now ready
 		assertThat(output.getOut()).contains("readiness-passes-simple-it is ready");
