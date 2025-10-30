@@ -1,1 +1,3 @@
 org.springframework.cloud.kubernetes.fabric8.leader.Fabric8LeaderAutoConfiguration
+org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionCallbacksAutoConfiguration
+org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionAutoConfiguration

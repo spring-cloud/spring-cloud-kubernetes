@@ -113,5 +113,8 @@
 		<!-- config watcher reload, using rabbitmq and secret -->
         <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload</module>
 
-	</modules>
+		<!-- leader election -->
+        <module>spring-cloud-kubernetes-fabric8-leader-election</module>
+
+    </modules>
 </project>
