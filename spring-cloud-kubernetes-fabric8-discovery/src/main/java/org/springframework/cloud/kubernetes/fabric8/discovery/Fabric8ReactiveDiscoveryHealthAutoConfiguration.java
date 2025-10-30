@@ -59,7 +59,7 @@ import org.springframework.core.log.LogAccessor;
 @AutoConfigureAfter({ ReactiveCompositeDiscoveryClientAutoConfiguration.class,
 		Fabric8DiscoveryClientAutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
 		Fabric8DiscoveryClientSpelAutoConfiguration.class, Fabric8ReactiveDiscoveryClientAutoConfiguration.class })
-final class Fabric8ReactiveDiscoveryHealthAutoConfiguration {
+public final class Fabric8ReactiveDiscoveryHealthAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(Fabric8ReactiveDiscoveryHealthAutoConfiguration.class));

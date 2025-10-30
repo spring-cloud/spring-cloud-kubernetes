@@ -38,7 +38,7 @@ import org.springframework.core.env.PropertySource;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnClass(name = "org.springframework.boot.actuate.endpoint.SanitizableData")
 @ConditionalOnSanitizeSecrets
-class KubernetesCommonsSanitizeAutoConfiguration {
+public class KubernetesCommonsSanitizeAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean

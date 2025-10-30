@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
 @EnableConfigurationProperties({ DiscoveryClientHealthIndicatorProperties.class, KubernetesDiscoveryProperties.class })
-class KubernetesDiscoveryClientBlockingAutoConfiguration {
+public class KubernetesDiscoveryClientBlockingAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean

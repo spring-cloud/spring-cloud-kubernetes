@@ -43,7 +43,7 @@ import org.springframework.expression.spel.support.SimpleEvaluationContext;
 @ConditionalOnBlockingOrReactiveDiscoveryEnabled
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesDiscoveryPropertiesAutoConfiguration.class)
-final class Fabric8DiscoveryClientSpelAutoConfiguration {
+public final class Fabric8DiscoveryClientSpelAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
