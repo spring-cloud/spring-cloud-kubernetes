@@ -42,16 +42,16 @@ public final class PodReadyRunner {
 
 	private static final LogAccessor LOG = new LogAccessor(PodReadyRunner.class);
 
-	private final CachedSingleThreadScheduler podReadyScheduler = new CachedSingleThreadScheduler("podReadyExecutor",
-			TTL_MILLIS);
+	private final CachedSingleThreadScheduler podReadySelfShutDownScheduler =
+			new CachedSingleThreadScheduler("podReadyExecutor", TTL_MILLIS);
 
 	public CompletableFuture<Void> podReady(BooleanSupplier podReadySupplier) {
 
-		CompletableFuture<Void> podReadyFuture = new CompletableFuture<>();
+		CompletableFuture<Void> podReadyCompletableFuture = new CompletableFuture<>();
 
-		ScheduledFuture<?> future = podReadyScheduler.scheduleWithFixedDelay(() -> {
+		ScheduledFuture<?> scheduledFuture = podReadySelfShutDownScheduler.scheduleWithFixedDelay(() -> {
 
-			if (podReadyFuture.isDone()) {
+			if (podReadyCompletableFuture.isDone()) {
 				LOG.info(() -> "pod readiness is known, not running another cycle");
 				return;
 			}
@@ -60,7 +60,7 @@ public final class PodReadyRunner {
 				if (podReadySupplier.getAsBoolean()) {
 					LOG.info(
 							() -> "Pod : " + candidateIdentity + " in namespace : " + candidateNamespace + " is ready");
-					podReadyFuture.complete(null);
+					podReadyCompletableFuture.complete(null);
 				}
 				else {
 					LOG.debug(() -> "Pod : " + candidateIdentity + " in namespace : " + candidateNamespace
@@ -70,15 +70,26 @@ public final class PodReadyRunner {
 			catch (Exception e) {
 				LOG.error(() -> "exception waiting for pod : " + candidateIdentity);
 				LOG.error(() -> "pod readiness for : " + candidateIdentity + " failed with : " + e.getMessage());
-				podReadyFuture.completeExceptionally(e);
+				podReadyCompletableFuture.completeExceptionally(e);
 			}
 
 		}, 1, 1, TimeUnit.SECONDS);
 
-		// cancel the future, thus shutting down the executor
-		podReadyFuture.whenComplete((ok, nok) -> {
+		attachShutDownHook(podReadyCompletableFuture, scheduledFuture);
+
+		return podReadyCompletableFuture;
+
+	}
+
+	/**
+	 * call scheduledFuture::cancel, thus the podReadySelfShutDownScheduler will shutdown
+	 */
+	private void attachShutDownHook(CompletableFuture<Void> podReadyCompletableFuture,
+			ScheduledFuture<?> scheduledFuture) {
+
+		podReadyCompletableFuture.whenComplete((ok, nok) -> {
 			if (nok != null) {
-				if (podReadyFuture.isCancelled()) {
+				if (podReadyCompletableFuture.isCancelled()) {
 					// something triggered us externally by calling
 					// CompletableFuture::cancel,
 					// need to shut down the readiness check
@@ -94,11 +105,8 @@ public final class PodReadyRunner {
 
 			// no matter the outcome, we cancel the future and thus shut down the
 			// executor that runs it.
-			future.cancel(true);
+			scheduledFuture.cancel(true);
 		});
-
-		return podReadyFuture;
-
 	}
 
 }
