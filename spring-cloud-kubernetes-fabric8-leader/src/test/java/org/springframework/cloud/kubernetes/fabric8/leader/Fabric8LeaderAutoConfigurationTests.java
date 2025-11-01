@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.leader;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
@@ -59,12 +57,6 @@ class Fabric8LeaderAutoConfigurationTests {
 			.exists()
 			.jsonPath("leaderElection.leaderId")
 			.exists();
-	}
-
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
-	protected static class TestConfig {
-
 	}
 
 }
