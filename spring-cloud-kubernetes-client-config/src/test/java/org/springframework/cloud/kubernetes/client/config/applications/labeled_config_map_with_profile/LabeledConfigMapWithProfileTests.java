@@ -22,7 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Blue;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.Green;
 import org.springframework.cloud.kubernetes.client.config.applications.labeled_config_map_with_profile.properties.GreenK8s;

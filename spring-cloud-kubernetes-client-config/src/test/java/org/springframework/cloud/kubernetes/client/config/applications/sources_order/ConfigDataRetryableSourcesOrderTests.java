@@ -26,7 +26,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webtestclient.AutoConfigureWebTestClient;
+import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
