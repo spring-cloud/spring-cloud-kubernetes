@@ -42,8 +42,8 @@ public final class PodReadyRunner {
 
 	private static final LogAccessor LOG = new LogAccessor(PodReadyRunner.class);
 
-	private final CachedSingleThreadScheduler podReadySelfShutDownScheduler =
-			new CachedSingleThreadScheduler("podReadyExecutor", TTL_MILLIS);
+	private final CachedSingleThreadScheduler podReadySelfShutDownScheduler = new CachedSingleThreadScheduler(
+			"podReadyExecutor", TTL_MILLIS);
 
 	public CompletableFuture<Void> podReady(BooleanSupplier podReadySupplier) {
 
@@ -82,7 +82,7 @@ public final class PodReadyRunner {
 	}
 
 	/**
-	 * call scheduledFuture::cancel, thus the podReadySelfShutDownScheduler will shutdown
+	 * call scheduledFuture::cancel, thus the podReadySelfShutDownScheduler will shutdown.
 	 */
 	private void attachShutDownHook(CompletableFuture<Void> podReadyCompletableFuture,
 			ScheduledFuture<?> scheduledFuture) {
