@@ -167,11 +167,11 @@ class PodReadyRunnerTests {
 			assertThat(output.getOut()).contains("exception waiting for pod : identity");
 			assertThat(output.getOut()).contains("pod readiness for : identity failed with : fail on the second cycle");
 			assertThat(output.getOut()).contains("readiness failed and we caught that");
-			assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 
 			await().atMost(Duration.ofSeconds(3))
 				.pollInterval(Duration.ofMillis(200))
 				.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+			assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 		}
 		assertThat(caught).isTrue();
 	}
@@ -222,12 +222,14 @@ class PodReadyRunnerTests {
 			assertThat(output.getOut()).doesNotContain("leader election for : identity was not successful");
 			assertThat(output.getOut()).contains("readiness failed and we caught that");
 
-			assertThat(output.getOut()).contains("canceling scheduled future because completable future was cancelled");
-			assertThat(output.getOut()).doesNotContain("canceling scheduled future because readiness failed");
-
 			await().atMost(Duration.ofSeconds(3))
 				.pollInterval(Duration.ofMillis(200))
 				.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+
+			assertThat(output.getOut()).contains("canceling scheduled future because completable future was cancelled");
+			assertThat(output.getOut()).doesNotContain("canceling scheduled future because readiness failed");
+
+
 		}
 		assertThat(caught).isTrue();
 		cancelScheduler.shutdownNow();

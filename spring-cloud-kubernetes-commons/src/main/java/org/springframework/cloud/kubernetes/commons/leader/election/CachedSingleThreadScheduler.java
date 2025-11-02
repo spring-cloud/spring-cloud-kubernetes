@@ -109,7 +109,7 @@ public final class CachedSingleThreadScheduler {
 			@Override
 			public Thread newThread(@Nonnull Runnable runnable) {
 				Thread thread = threadFactory.newThread(runnable);
-				thread.setName("fabric8-leader-election" + "-" + thread.getName());
+				thread.setName("cached-single-thread-scheduler" + "-" + thread.getName());
 				thread.setDaemon(true);
 				return thread;
 			}
