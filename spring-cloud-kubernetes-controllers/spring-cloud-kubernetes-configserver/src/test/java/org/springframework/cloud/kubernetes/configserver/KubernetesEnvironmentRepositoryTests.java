@@ -118,6 +118,7 @@ class KubernetesEnvironmentRepositoryTests {
 
 	@BeforeAll
 	static void before() {
+		KUBERNETES_PROPERTY_SOURCE_SUPPLIER.clear();
 		KUBERNETES_PROPERTY_SOURCE_SUPPLIER.add((coreApi, applicationName, namespace, springEnv) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
