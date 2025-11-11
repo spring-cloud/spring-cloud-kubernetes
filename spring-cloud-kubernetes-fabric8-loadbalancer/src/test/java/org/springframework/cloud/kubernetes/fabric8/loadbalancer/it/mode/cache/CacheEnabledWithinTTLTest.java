@@ -38,6 +38,7 @@ import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.util.TestSocketUtils;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DirtiesContext
 class CacheEnabledWithinTTLTest {
 
-	private static final int SERVICE_PORT = 8888;
+	private static final int SERVICE_PORT = TestSocketUtils.findAvailableTcpPort();
 
 	private static WireMockServer wireMockServer;
 
@@ -77,7 +78,7 @@ class CacheEnabledWithinTTLTest {
 		serviceAMockServer.start();
 		WireMock.configureFor("localhost", SERVICE_PORT);
 
-		// we mock host creation so that it becomes something like : localhost:8888
+		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
 			.thenReturn("localhost");
