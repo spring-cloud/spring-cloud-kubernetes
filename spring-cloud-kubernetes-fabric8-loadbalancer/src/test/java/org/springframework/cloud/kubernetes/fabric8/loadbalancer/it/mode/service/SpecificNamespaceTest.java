@@ -42,6 +42,7 @@ import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSup
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -59,9 +60,9 @@ class SpecificNamespaceTest {
 
 	private static final String MY_SERVICE_URL = "http://my-service";
 
-	private static final int SERVICE_A_PORT = 8888;
+	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
 
-	private static final int SERVICE_B_PORT = 8889;
+	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
 
 	private static WireMockServer wireMockServer;
 
@@ -94,7 +95,7 @@ class SpecificNamespaceTest {
 		serviceBMockServer.start();
 		WireMock.configureFor("localhost", SERVICE_B_PORT);
 
-		// we mock host creation so that it becomes something like : localhost:8888
+		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
 			.thenReturn("localhost");

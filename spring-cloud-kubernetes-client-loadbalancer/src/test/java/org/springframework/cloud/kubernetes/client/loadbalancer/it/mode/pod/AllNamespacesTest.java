@@ -46,6 +46,7 @@ import org.springframework.cloud.loadbalancer.core.DiscoveryClientServiceInstanc
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -64,9 +65,9 @@ class AllNamespacesTest {
 
 	private static final String SERVICE_B_URL = "http://service-b";
 
-	private static final int SERVICE_A_PORT = 8888;
+	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
 
-	private static final int SERVICE_B_PORT = 8889;
+	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
 
 	private static WireMockServer wireMockServer;
 
@@ -102,7 +103,7 @@ class AllNamespacesTest {
 		serviceBMockServer.start();
 		WireMock.configureFor("localhost", SERVICE_B_PORT);
 
-		// we mock host creation so that it becomes something like : localhost:8888
+		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("service-a", "a", "cluster.local"))
 			.thenReturn("localhost");
@@ -127,8 +128,8 @@ class AllNamespacesTest {
 
 	/**
 	 * <pre>
-	 *      - service-a is present in namespace a with exposed port 8888
-	 *      - service-b is present in namespace b with exposed port 8889
+	 *      - service-a is present in namespace a with exposed port
+	 *      - service-b is present in namespace b with exposed port
 	 *      - we make two calls to them via the load balancer
 	 * </pre>
 	 */
