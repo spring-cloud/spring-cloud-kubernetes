@@ -46,6 +46,7 @@ import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSup
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -63,9 +64,9 @@ class SpecificNamespaceTest {
 
 	private static final String SERVICE_A_URL = "http://my-service";
 
-	private static final int SERVICE_A_PORT = 8888;
+	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
 
-	private static final int SERVICE_B_PORT = 8889;
+	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
 
 	private static WireMockServer wireMockServer;
 
