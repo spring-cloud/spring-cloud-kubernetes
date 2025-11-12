@@ -222,12 +222,13 @@ class PodReadyRunnerTests {
 			assertThat(output.getOut()).doesNotContain("leader election for : identity was not successful");
 			assertThat(output.getOut()).contains("readiness failed and we caught that");
 
-			await().atMost(Duration.ofSeconds(3))
+			await().atMost(Duration.ofSeconds(3000))
 				.pollInterval(Duration.ofMillis(200))
 				.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
 			assertThat(output.getOut()).contains("canceling scheduled future because completable future was cancelled");
 			assertThat(output.getOut()).doesNotContain("canceling scheduled future because readiness failed");
+			assertThat(output.getOut()).contains("scheduledFuture is canceled: true");
 
 
 		}

@@ -52,7 +52,7 @@ public final class PodReadyRunner {
 		ScheduledFuture<?> scheduledFuture = podReadySelfShutDownScheduler.scheduleWithFixedDelay(() -> {
 
 			if (podReadyCompletableFuture.isDone()) {
-				LOG.info(() -> "pod readiness is known, not running another cycle");
+				LOG.info(() -> "podReadyCompletableFuture is done");
 				return;
 			}
 
@@ -82,7 +82,16 @@ public final class PodReadyRunner {
 	}
 
 	/**
-	 * call scheduledFuture::cancel, thus the podReadySelfShutDownScheduler will shutdown.
+	 * <pre>
+	 * This can be called from two sides:
+	 *  - when readiness ScheduledFuture is still running and CompletableFuture::cancel is called.
+	 *     1. in this case, the inner "whenComplete" is called, scheduledFuture is canceled and done
+	 *     2. podReadyCompletableFuture.isDone() from the above is hit, scheduledFuture is canceled and done
+	 *
+	 *  - when readiness ScheduledFuture is done already, CompletableFuture is completed also.
+	 *    in this case, we will call scheduledFuture.cancel(true) also, because the scheduledFuture
+	 *    still runs, although it will do nothing because we check against: podReadyCompletableFuture.isDone()
+	 * </pre>
 	 */
 	private void attachShutDownHook(CompletableFuture<Void> podReadyCompletableFuture,
 			ScheduledFuture<?> scheduledFuture) {
@@ -105,7 +114,8 @@ public final class PodReadyRunner {
 
 			// no matter the outcome, we cancel the future and thus shut down the
 			// executor that runs it.
-			scheduledFuture.cancel(true);
+			boolean canceled = scheduledFuture.cancel(true);
+			LOG.info(() -> "scheduledFuture is canceled: " + canceled);
 		});
 	}
 
