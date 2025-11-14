@@ -25,6 +25,7 @@ import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.util.Config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.cloud.kubernetes.commons.LazilyInstantiate;
@@ -75,7 +76,7 @@ final class KubernetesClientPodUtils implements PodUtils<V1Pod> {
 		return currentPod().get() != null;
 	}
 
-	private V1Pod internalGetPod() {
+	private @Nullable V1Pod internalGetPod() {
 		try {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
 				LOG.debug("reading pod in namespace : " + namespace);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.discovery;
-
-import org.jspecify.annotations.Nullable;
-
 /**
- * @author wind57
+ * Spring Cloud Kubernetes configuration abstractions.
  */
-public record ServicePortNameAndNumber(@Nullable Integer portNumber, @Nullable String portName) {
-}
+@org.jspecify.annotations.NullMarked
+package org.springframework.cloud.kubernetes.commons.config;

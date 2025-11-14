@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
@@ -71,7 +72,7 @@ public class Fabric8ServiceInstanceMapper implements KubernetesServiceInstanceMa
 	}
 
 	@Override
-	public KubernetesServiceInstance map(Service service) {
+	public @Nullable KubernetesServiceInstance map(Service service) {
 		ObjectMeta metadata = service.getMetadata();
 		List<ServicePort> ports = service.getSpec().getPorts();
 		ServicePort port;
