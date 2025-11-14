@@ -34,7 +34,7 @@
 	<properties>
 		<kubernetes-fabric8-client.version>7.4.0</kubernetes-fabric8-client.version>
 		<kubernetes-native-client.version>24.0.0</kubernetes-native-client.version>
-		<wiremock.version>3.13.1</wiremock.version>
+		<wiremock.version>3.13.2</wiremock.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
