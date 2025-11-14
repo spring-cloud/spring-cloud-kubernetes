@@ -23,8 +23,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.log.LogAccessor;
@@ -173,7 +173,7 @@ public final class DiscoveryClientUtils {
 	 * take primary-port-name from service label "PRIMARY_PORT_NAME_LABEL_KEY" if it
 	 * exists, otherwise from KubernetesDiscoveryProperties if it exists, otherwise null.
 	 */
-	static String primaryPortName(KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels,
+	static @Nullable String primaryPortName(KubernetesDiscoveryProperties properties, Map<String, String> serviceLabels,
 			String serviceId) {
 		String primaryPortNameFromProperties = properties.primaryPortName();
 
