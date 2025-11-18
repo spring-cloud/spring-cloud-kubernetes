@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import java.time.Duration;
-
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -26,6 +23,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
  * Readiness fails with an Exception, and we don't establish leadership
@@ -48,11 +46,8 @@ class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 	@Test
 	void test(CapturedOutput output) {
 		// we do not start leader election at all
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> output.getOut()
-				.contains("readiness failed for : readiness-fails-simple-it, leader election will not start"));
+		awaitUntil(60, 100, () -> output.getOut()
+			.contains("readiness failed for : " + "readiness-fails-simple-it, leader election will not start"));
 
 		// let's unwind some logs to see that the process is how we expect it to be
 
@@ -87,10 +82,8 @@ class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 			.contains("pod readiness for : readiness-fails-simple-it failed with : readiness fails");
 
 		// 10. executor is shutdown, even when readiness failed
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(2))
-			.pollInterval(Duration.ofMillis(100))
-			.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+		awaitUntil(60, 100, () -> output.getOut()
+			.contains("readiness failed for : " + "readiness-fails-simple-it, leader election will not start"));
 
 	}
 

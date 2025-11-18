@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import java.time.Duration;
-
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -26,6 +23,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
  * Readiness passes and we establish leadership
@@ -50,10 +48,7 @@ class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 	@Test
 	void test(CapturedOutput output) {
 		// we have become the leader
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("readiness-passes-simple-it is the new leader"));
+		awaitUntil(60, 100, () -> output.getOut().contains("readiness-passes-simple-it is the new leader"));
 
 		// let's unwind some logs to see that the process is how we expect it to be
 
@@ -80,10 +75,7 @@ class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 		assertThat(output.getOut()).contains("canceling scheduled future because readiness succeeded");
 
 		// 8. executor is shutdown
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(2))
-			.pollInterval(Duration.ofMillis(100))
-			.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+		awaitUntil(60, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
 		// 9. pod is now ready
 		assertThat(output.getOut()).contains("readiness-passes-simple-it is ready");

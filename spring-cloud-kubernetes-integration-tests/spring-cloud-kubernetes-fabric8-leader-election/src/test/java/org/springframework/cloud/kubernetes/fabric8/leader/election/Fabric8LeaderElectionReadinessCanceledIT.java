@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import java.time.Duration;
-
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +24,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
  * Readiness is canceled. This is the case when pod is shut down gracefully
@@ -49,11 +47,9 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 	void test(CapturedOutput output) {
 
 		// we are trying readiness at least once
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> output.getOut()
-				.contains("Pod : canceled-readiness-it in namespace : default is not ready, will retry in one second"));
+		awaitUntil(60, 500, () -> output.getOut()
+			.contains(
+					"Pod : canceled-readiness-it in namespace : " + "default is not ready, will retry in one second"));
 
 		initiator.preDestroy();
 
@@ -78,10 +74,7 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 		assertThat(output.getOut()).contains("podReadyWaitingExecutor will be shutdown for : canceled-readiness-it");
 
 		// 5. the scheduled executor where pod readiness is checked is shut down also
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(2))
-			.pollInterval(Duration.ofMillis(100))
-			.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+		awaitUntil(2, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
 		// 6. leader election is not started, since readiness does not finish
 		assertThat(output.getOut()).doesNotContain("leaderFuture will be canceled for");

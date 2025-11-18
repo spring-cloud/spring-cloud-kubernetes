@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
+import io.fabric8.kubernetes.api.model.coordination.v1.Lease;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
@@ -45,6 +46,8 @@ import org.springframework.context.annotation.Primary;
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
+				"spring.cloud.kubernetes.leader.election.lease-duration=6s",
+				"spring.cloud.kubernetes.leader.election.renew-deadline=5s",
 				"logging.level.org.springframework.cloud.kubernetes.commons.leader.election=debug",
 				"logging.level.org.springframework.cloud.kubernetes.fabric8.leader.election=debug" },
 		classes = { App.class, AbstractLeaderElection.LocalConfiguration.class })
@@ -71,6 +74,9 @@ abstract class AbstractLeaderElection {
 			.withName("spring-k8s-leader-election-lock")
 			.withTimeout(10, TimeUnit.SECONDS)
 			.delete();
+	}
+	Lease getLease() {
+		return kubernetesClient.leases().inNamespace("default").withName("spring-k8s-leader-election-lock").get();
 	}
 
 	@TestConfiguration
