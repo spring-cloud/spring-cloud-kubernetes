@@ -90,7 +90,7 @@ class Fabric8CatalogServicesWatchConfigurationTest {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	static class KubernetesClientTestConfiguration {
+	static final class KubernetesClientTestConfiguration {
 
 		@Bean
 		KubernetesClient kubernetesClient() {

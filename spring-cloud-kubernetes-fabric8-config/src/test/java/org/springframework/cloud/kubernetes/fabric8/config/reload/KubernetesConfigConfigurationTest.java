@@ -134,7 +134,7 @@ class KubernetesConfigConfigurationTest extends KubernetesConfigTestBase {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	private static class KubernetesClientTestConfiguration {
+	private static final class KubernetesClientTestConfiguration {
 
 		@ConditionalOnMissingBean(KubernetesClient.class)
 		@Bean

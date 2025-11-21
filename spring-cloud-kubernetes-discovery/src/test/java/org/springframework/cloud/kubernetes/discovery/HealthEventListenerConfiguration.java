@@ -38,7 +38,7 @@ class HealthEventListenerConfiguration {
 		return new HealthEventListener();
 	}
 
-	private static class HealthEventListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
+	private static final class HealthEventListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
 
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {
