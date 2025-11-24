@@ -27,7 +27,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -103,7 +103,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -147,7 +147,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -184,7 +184,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
@@ -196,7 +196,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
