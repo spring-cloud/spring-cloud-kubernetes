@@ -101,6 +101,7 @@
 		</maven-checkstyle-plugin.failsOnViolation>
 		<maven-checkstyle-plugin.includeTestSourceDirectory>true
 		</maven-checkstyle-plugin.includeTestSourceDirectory>
+		<jspecify.enabled>true</jspecify.enabled>
 	</properties>
 
 	<modules>
