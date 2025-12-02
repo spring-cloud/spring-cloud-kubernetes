@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.kubernetes.commons.leader.Leader;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
@@ -136,7 +137,7 @@ public class Fabric8LeadershipController extends LeadershipController {
 		return new Fabric8PodReadinessWatcher(localLeaderId, kubernetesClient, this);
 	}
 
-	private Leader extractLeader(ConfigMap configMap) {
+	private @Nullable Leader extractLeader(@Nullable ConfigMap configMap) {
 		if (configMap == null) {
 			return null;
 		}
