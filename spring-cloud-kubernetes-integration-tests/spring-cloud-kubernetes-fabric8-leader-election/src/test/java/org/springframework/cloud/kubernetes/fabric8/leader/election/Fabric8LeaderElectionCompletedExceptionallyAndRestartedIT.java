@@ -30,6 +30,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 /**
  * <pre>
  *     - we acquire the leadership
+ *     - leadership feature fails
+ *     - we retry and acquire it again
  * </pre>
  *
  * @author wind57

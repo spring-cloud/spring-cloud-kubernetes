@@ -42,7 +42,7 @@ class LeaderElectionPropertiesTests {
 			Assertions.assertThat(properties.lockName()).isEqualTo("spring-k8s-leader-election-lock");
 			Assertions.assertThat(properties.renewDeadline()).isEqualTo(Duration.ofSeconds(10));
 			Assertions.assertThat(properties.retryPeriod()).isEqualTo(Duration.ofSeconds(2));
-			Assertions.assertThat(properties.waitAfterRenewalFailure()).isEqualTo(Duration.ofSeconds(0));
+			Assertions.assertThat(properties.waitAfterRenewalFailure()).isEqualTo(Duration.ofSeconds(3));
 			Assertions.assertThat(properties.useConfigMapAsLock()).isFalse();
 			Assertions.assertThat(properties.restartOnFailure()).isTrue();
 		});
