@@ -41,6 +41,10 @@ import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LE
  *      the lock to become the leader. In our current code,
  *      this is what we use in LeaderInitiator::start,
  *      more exactly in the scheduleAtFixRate
+ * restartOnFailure: what to do when leader election future fails
+ *      with an Exception. Do we restart the leader election process
+ *      or let it fail and thus this instance never participates
+ *      in the leader election process.
  *
  *
  * First, we try to acquire the lock (lock is either a configmap or a lease)
@@ -84,7 +88,8 @@ public record LeaderElectionProperties(
 	@DefaultValue("spring-k8s-leader-election-lock") String lockName,
 	@DefaultValue("10s") Duration renewDeadline,
 	@DefaultValue("2s") Duration retryPeriod,
-	@DefaultValue("0s") Duration waitAfterRenewalFailure,
-	@DefaultValue("false") boolean useConfigMapAsLock) {
+	@DefaultValue("3s") Duration waitAfterRenewalFailure,
+	@DefaultValue("false") boolean useConfigMapAsLock,
+	@DefaultValue("true") boolean restartOnFailure) {
 // @formatter:on
 }

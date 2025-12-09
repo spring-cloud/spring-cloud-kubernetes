@@ -39,14 +39,16 @@ class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 		AbstractLeaderElection.beforeAll("readiness-fails-simple-it");
 	}
 
-	/*
-	 * <pre> - readiness fails after 2 seconds - leader election process is not started at
-	 * all </pre>
+	/**
+	 * <pre>
+	 *   - readiness fails after 2 seconds - leader election process is not started at all
+	 * </pre>
 	 */
 	@Test
 	void test(CapturedOutput output) {
+
 		// we do not start leader election at all
-		awaitUntil(60, 100, () -> output.getOut()
+		awaitUntil(60, 1000, () -> output.getOut()
 			.contains("readiness failed for : " + "readiness-fails-simple-it, leader election will not start"));
 
 		// let's unwind some logs to see that the process is how we expect it to be

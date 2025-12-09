@@ -40,9 +40,16 @@ class Fabric8LeaderElectionSimpleIT extends AbstractLeaderElection {
 		AbstractLeaderElection.beforeAll(NAME);
 	}
 
+	/**
+	 * <pre>
+	 *     - readiness is not checked
+	 *     - leader election process happens after that
+	 *     - we establish leadership and renew it
+	 * </pre>
+	 */
 	@Test
 	void test(CapturedOutput output) {
-		assertAcquireAndRenew(output, () -> getLease(), NAME);
+		assertAcquireAndRenew(output, this::getLease, NAME);
 	}
 
 }

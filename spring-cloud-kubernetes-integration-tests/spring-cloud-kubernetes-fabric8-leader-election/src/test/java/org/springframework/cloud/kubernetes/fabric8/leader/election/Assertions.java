@@ -32,9 +32,12 @@ final class Assertions {
 
 	}
 
-	static void assertAcquireAndRenew(CapturedOutput output, Supplier<Lease> leaseSupplier, String name) {
+	/**
+	 * lease was acquired and we renewed it, at least once.
+	 */
+	static void assertAcquireAndRenew(CapturedOutput output, Supplier<Lease> leaseSupplier, String candidateIdentity) {
 		// we have become the leader
-		awaitUntil(60, 100, () -> output.getOut().contains(name + " is the new leader"));
+		awaitUntil(60, 100, () -> output.getOut().contains(candidateIdentity + " is the new leader"));
 
 		// let's unwind some logs to see that the process is how we expect it to be
 
@@ -42,25 +45,27 @@ final class Assertions {
 		assertThat(output.getOut()).contains("will use lease as the lock for leader election");
 
 		// 2. we start leader initiator for our hostname (comes from our code)
-		assertThat(output.getOut()).contains("starting leader initiator : " + name);
+		assertThat(output.getOut()).contains("starting leader initiator : " + candidateIdentity);
 
 		// 3. we try to acquire the lease (comes from fabric8 code)
 		assertThat(output.getOut()).contains(
-			"Attempting to acquire leader lease 'LeaseLock: default - spring-k8s-leader-election-lock (" + name + ")'");
+			"Attempting to acquire leader lease 'LeaseLock: default - spring-k8s-leader-election-lock " +
+				"(" + candidateIdentity + ")'");
 
 		// 4. lease has been acquired
 		assertThat(output.getOut())
-			.contains("Acquired lease 'LeaseLock: default - spring-k8s-leader-election-lock (" + name + ")'");
+			.contains("Acquired lease 'LeaseLock: default - spring-k8s-leader-election-lock " +
+				"(" + candidateIdentity + ")'");
 
 		// 5. we are the leader (comes from fabric8 code)
-		assertThat(output.getOut()).contains("Leader changed from null to " + name);
+		assertThat(output.getOut()).contains("Leader changed from null to " + candidateIdentity);
 
 		// 6. wait until a renewal happens (comes from fabric code)
 		// this one means that we have extended our leadership
 		awaitUntil(30, 500,
 			() -> output.getOut()
 				.contains("Attempting to renew leader lease 'LeaseLock: "
-					+ "default - spring-k8s-leader-election-lock (" + name + ")'"));
+					+ "default - spring-k8s-leader-election-lock (" + candidateIdentity + ")'"));
 
 		Lease lease = leaseSupplier.get();
 
@@ -78,5 +83,6 @@ final class Assertions {
 			return newRenewalTime.isAfter(currentRenewalTime);
 		});
 	}
+
 
 }

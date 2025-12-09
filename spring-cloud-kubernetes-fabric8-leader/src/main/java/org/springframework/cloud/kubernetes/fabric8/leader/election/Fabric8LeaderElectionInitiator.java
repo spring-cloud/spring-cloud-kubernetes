@@ -19,12 +19,10 @@ package org.springframework.cloud.kubernetes.fabric8.leader.election;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
-import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElector;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -33,6 +31,10 @@ import org.springframework.cloud.kubernetes.commons.leader.election.PodReadyRunn
 import org.springframework.core.log.LogAccessor;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.attachStatusLoggerPipeline;
+import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.blockReadinessCheck;
+import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.leaderElector;
+import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.sleep;
 
 /**
  * @author wind57
@@ -104,7 +106,7 @@ final class Fabric8LeaderElectionInitiator {
 		// and don't block the main application from starting
 		podReadyWaitingExecutor.execute(() -> {
 			if (waitForPodReady) {
-				CompletableFuture<?> ready = attachStatusLoggerPipeline();
+				CompletableFuture<?> ready = attachStatusLoggerPipeline(podReadyFuture, candidateIdentity);
 				blockReadinessCheck(ready);
 				startLeaderElection();
 			}
@@ -157,20 +159,27 @@ final class Fabric8LeaderElectionInitiator {
 					if (!destroyCalled) {
 						LOG.warn(() -> "renewal failed for  : " + candidateIdentity + ", will re-start it after : "
 								+ leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
-						sleep();
-						startLeaderElection();
+						sleep(leaderElectionProperties);
+						podReadyWaitingExecutor.execute(this::startLeaderElection);
 					}
 				}
 				else {
 					LOG.warn(() -> "leader failed with : " + error.getMessage());
-					LOG.warn(() -> "leader election is over for : " + candidateIdentity);
+					if (leaderElectionProperties.restartOnFailure()) {
+						LOG.info(() -> "will restart leader election for : " + candidateIdentity);
+						sleep(leaderElectionProperties);
+						podReadyWaitingExecutor.execute(this::startLeaderElection);
+					}
+					else {
+						LOG.warn(() -> "leader election is over for : " + candidateIdentity);
+					}
 				}
 			}
 			else {
 				// ok is always null; since it does not represent anything, it just passes
 				// the state further
 				LOG.info(() -> "leaderFuture finished normally, will re-start it for : " + candidateIdentity);
-				startLeaderElection();
+				podReadyWaitingExecutor.execute(this::startLeaderElection);
 			}
 		});
 
@@ -178,48 +187,9 @@ final class Fabric8LeaderElectionInitiator {
 			leaderFuture.get();
 		}
 		catch (Exception e) {
-			LOG.warn(() -> "leader election failed for : " + candidateIdentity + ". Trying to recover...");
+			LOG.warn(() -> "leader election failed for : " + candidateIdentity);
 		}
 
-	}
-
-	private LeaderElector leaderElector(LeaderElectionConfig config, KubernetesClient fabric8KubernetesClient) {
-		return fabric8KubernetesClient.leaderElector().withConfig(config).build();
-	}
-
-	private void sleep() {
-		try {
-			TimeUnit.SECONDS.sleep(leaderElectionProperties.waitAfterRenewalFailure().toSeconds());
-		}
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private void blockReadinessCheck(CompletableFuture<?> ready) {
-		try {
-			ready.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * 	if 'ready' is already completed at this point, thread will run this,
-	 * 	otherwise it will attach the pipeline and move on to
-	 * 	'blockReadinessCheck'
-	 */
-	private CompletableFuture<?> attachStatusLoggerPipeline() {
-		return podReadyFuture.whenComplete((ok, error) -> {
-			if (error != null) {
-				LOG.error(() -> "readiness failed for : " + candidateIdentity
-					+ ", leader election will not start");
-			}
-			else {
-				LOG.info(() -> candidateIdentity + " is ready");
-			}
-		});
 	}
 
 }

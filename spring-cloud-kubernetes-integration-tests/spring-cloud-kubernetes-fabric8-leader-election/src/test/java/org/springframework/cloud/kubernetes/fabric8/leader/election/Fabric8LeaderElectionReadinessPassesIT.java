@@ -23,6 +23,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.fabric8.leader.election.Assertions.assertAcquireAndRenew;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
@@ -34,53 +35,35 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 		properties = { "readiness.passes=true", "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
 class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 
+	private static final String NAME = "readiness-passes-simple-it";
+
 	@BeforeAll
 	static void beforeAll() {
-		AbstractLeaderElection.beforeAll("readiness-passes-simple-it");
+		AbstractLeaderElection.beforeAll(NAME);
 	}
 
 	/**
 	 * <pre>
 	 *     - readiness passes after 2 seconds
 	 *     - leader election process happens after that
+	 *     - we establish leadership and renew it
 	 * </pre>
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		// we have become the leader
-		awaitUntil(60, 100, () -> output.getOut().contains("readiness-passes-simple-it is the new leader"));
 
-		// let's unwind some logs to see that the process is how we expect it to be
+		assertAcquireAndRenew(output, this::getLease, NAME);
 
-		// 1. lease is used as the lock (comes from our code)
-		assertThat(output.getOut()).contains("will use lease as the lock for leader election");
-
-		// 2. leader initiator is started
-		assertThat(output.getOut()).contains("starting leader initiator : readiness-passes-simple-it");
-
-		// 3. wait for when pod is ready (we mock this one)
-		assertThat(output.getOut()).contains("will wait until pod readiness-passes-simple-it is ready");
-
-		// 4. we run readiness check in podReadyExecutor
-		assertThat(output.getOut()).contains("Scheduling command to run in : podReadyExecutor");
-
-		// 5. pod fails on the first two attempts
-		assertThat(output.getOut())
-			.contains("Pod : readiness-passes-simple-it in namespace : default is not ready, will retry in one second");
-
-		// 6. readiness passes and pod is ready
-		assertThat(output.getOut()).contains("Pod : readiness-passes-simple-it in namespace : default is ready");
-
-		// 7. we cancel the scheduled future because we do not need it anymore
+		// 8. we cancel the scheduled future because we do not need it anymore
 		assertThat(output.getOut()).contains("canceling scheduled future because readiness succeeded");
 
-		// 8. executor is shutdown
+		// 9. executor is shutdown
 		awaitUntil(60, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
-		// 9. pod is now ready
+		// 10. pod is now ready
 		assertThat(output.getOut()).contains("readiness-passes-simple-it is ready");
 
-		// 10. we are the leader
+		// 11. we are the leader
 		assertThat(output.getOut()).contains("Leader changed from null to readiness-passes-simple-it");
 	}
 
