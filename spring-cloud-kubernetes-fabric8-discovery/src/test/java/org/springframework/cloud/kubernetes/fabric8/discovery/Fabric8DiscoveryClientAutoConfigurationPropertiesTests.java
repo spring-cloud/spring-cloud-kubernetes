@@ -90,7 +90,7 @@ class Fabric8DiscoveryClientAutoConfigurationPropertiesTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	static class KubernetesClientTestConfiguration {
+	static final class KubernetesClientTestConfiguration {
 
 		@Bean
 		KubernetesClient kubernetesClient() {
