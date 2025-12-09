@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
+import java.util.concurrent.CompletableFuture;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +51,12 @@ class Fabric8LeaderElectionCompletedExceptionallyAndRestartedIT extends Abstract
 	@BeforeAll
 	static void beforeAll() {
 		AbstractLeaderElection.beforeAll(NAME);
+	}
+
+	@AfterEach
+	void afterEach() {
+		CompletableFuture<?> future = initiator.leaderFeature();
+		stopFutureAndDeleteLease(future);
 	}
 
 	@Test

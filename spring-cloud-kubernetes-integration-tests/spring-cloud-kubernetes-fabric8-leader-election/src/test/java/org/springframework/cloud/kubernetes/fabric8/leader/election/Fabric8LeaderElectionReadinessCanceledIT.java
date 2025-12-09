@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -36,11 +37,16 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 
 	@Autowired
-	Fabric8LeaderElectionInitiator initiator;
+	private Fabric8LeaderElectionInitiator initiator;
 
 	@BeforeAll
 	static void beforeAll() {
 		AbstractLeaderElection.beforeAll("canceled-readiness-it");
+	}
+
+	@AfterEach
+	void afterEach() {
+		stopFutureAndDeleteLease(initiator.leaderFeature());
 	}
 
 	@Test

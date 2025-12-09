@@ -57,7 +57,7 @@ final class Assertions {
 				+ "(" + candidateIdentity + ")'");
 
 		// 5. we are the leader (comes from fabric8 code)
-		assertThat(output.getOut()).contains("Leader changed from null to " + candidateIdentity);
+		assertThat(output.getOut()).matches("(?s).*Leader changed from (|null) to " + candidateIdentity + ".*");
 
 		// 6. wait until a renewal happens (comes from fabric code)
 		// this one means that we have extended our leadership

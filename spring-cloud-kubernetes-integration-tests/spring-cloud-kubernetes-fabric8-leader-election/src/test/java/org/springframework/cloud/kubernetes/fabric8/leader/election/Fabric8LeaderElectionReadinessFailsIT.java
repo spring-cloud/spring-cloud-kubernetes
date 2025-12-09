@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
@@ -34,9 +36,17 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 		properties = { "readiness.fails=true", "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
 class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 
+	@Autowired
+	private Fabric8LeaderElectionInitiator initiator;
+
 	@BeforeAll
 	static void beforeAll() {
 		AbstractLeaderElection.beforeAll("readiness-fails-simple-it");
+	}
+
+	@AfterEach
+	void afterEach() {
+		stopFutureAndDeleteLease(initiator.leaderFeature());
 	}
 
 	/**

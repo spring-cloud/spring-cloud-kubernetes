@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
@@ -24,7 +25,6 @@ import io.fabric8.kubernetes.api.model.coordination.v1.Lease;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -67,8 +67,16 @@ abstract class AbstractLeaderElection {
 		LEADER_UTILS_MOCKED_STATIC.when(LeaderUtils::hostName).thenReturn(candidateIdentity);
 	}
 
-	@AfterEach
-	void afterEach() {
+	void stopFutureAndDeleteLease(CompletableFuture<?> leaderFuture) {
+
+		try {
+			leaderFuture.cancel(true);
+			leaderFuture.join();
+		}
+		catch (Exception e) {
+			// ignore
+		}
+
 		kubernetesClient.leases()
 			.inNamespace("default")
 			.withName("spring-k8s-leader-election-lock")

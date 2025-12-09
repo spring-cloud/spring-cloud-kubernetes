@@ -17,9 +17,11 @@
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
 import io.fabric8.kubernetes.api.model.coordination.v1.Lease;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
@@ -38,9 +40,17 @@ public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderEle
 
 	private static final String NAME = "drops-than-recovers";
 
+	@Autowired
+	private Fabric8LeaderElectionInitiator initiator;
+
 	@BeforeAll
 	static void beforeAll() {
 		AbstractLeaderElection.beforeAll(NAME);
+	}
+
+	@AfterEach
+	void afterEach() {
+		stopFutureAndDeleteLease(initiator.leaderFeature());
 	}
 
 	@Test
