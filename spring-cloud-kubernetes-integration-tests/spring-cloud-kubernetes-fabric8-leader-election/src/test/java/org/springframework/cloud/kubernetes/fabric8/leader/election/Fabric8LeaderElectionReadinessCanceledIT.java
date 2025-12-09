@@ -47,8 +47,9 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 	void test(CapturedOutput output) {
 
 		// we are trying readiness at least once
-		awaitUntil(60, 500, () -> output.getOut().contains("Pod : canceled-readiness-it in namespace : "
-			+ "default is not ready, will retry in one second"));
+		awaitUntil(60, 500, () -> output.getOut()
+			.contains(
+					"Pod : canceled-readiness-it in namespace : " + "default is not ready, will retry in one second"));
 
 		initiator.preDestroy();
 

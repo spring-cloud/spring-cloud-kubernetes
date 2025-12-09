@@ -27,13 +27,13 @@ import static org.springframework.cloud.kubernetes.fabric8.leader.election.Asser
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
- * We acquire leadership, then lose it, then acquire it back.
- * This tests the "leaderFuture finished normally, will re-start it for" branch
+ * We acquire leadership, then lose it, then acquire it back. This tests the "leaderFuture
+ * finished normally, will re-start it for" branch
  *
  * @author wind57
  */
-@TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
-		"readiness.passes=true" })
+@TestPropertySource(
+		properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true", "readiness.passes=true" })
 public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderElection {
 
 	private static final String NAME = "drops-than-recovers";

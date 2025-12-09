@@ -75,6 +75,7 @@ abstract class AbstractLeaderElection {
 			.withTimeout(10, TimeUnit.SECONDS)
 			.delete();
 	}
+
 	Lease getLease() {
 		return kubernetesClient.leases().inNamespace("default").withName("spring-k8s-leader-election-lock").get();
 	}

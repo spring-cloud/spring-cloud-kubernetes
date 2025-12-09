@@ -23,9 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.fabric8.leader.election.Assertions.assertAcquireAndRenew;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <pre>
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
-	"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
+		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
 class Fabric8LeaderElectionCompletedExceptionallyAndRestartedIT extends AbstractLeaderElection {
 
 	private static final String NAME = "acquired-then-fails";
@@ -68,8 +68,7 @@ class Fabric8LeaderElectionCompletedExceptionallyAndRestartedIT extends Abstract
 	}
 
 	private void afterLeaderFailure(int afterLeaderFailure, CapturedOutput output) {
-		awaitUntil(60, 100, () -> output.getOut().substring(afterLeaderFailure).
-			contains(NAME + " is the new leader"));
+		awaitUntil(60, 100, () -> output.getOut().substring(afterLeaderFailure).contains(NAME + " is the new leader"));
 
 		// lease has been re-acquired
 		assertThat(output.getOut().substring(afterLeaderFailure))
@@ -78,9 +77,10 @@ class Fabric8LeaderElectionCompletedExceptionallyAndRestartedIT extends Abstract
 		// renewal happens (comes from fabric code)
 		// this one means that we have extended our leadership
 		awaitUntil(30, 500,
-			() -> output.getOut().substring(afterLeaderFailure)
-				.contains("Attempting to renew leader lease 'LeaseLock: "
-					+ "default - spring-k8s-leader-election-lock (" + NAME + ")'"));
+				() -> output.getOut()
+					.substring(afterLeaderFailure)
+					.contains("Attempting to renew leader lease 'LeaseLock: "
+							+ "default - spring-k8s-leader-election-lock (" + NAME + ")'"));
 	}
 
 }
