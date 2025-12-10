@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import java.util.concurrent.CompletableFuture;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

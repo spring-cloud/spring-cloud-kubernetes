@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
