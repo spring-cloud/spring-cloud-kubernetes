@@ -38,6 +38,7 @@ import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.annotation.DirtiesContext;
 
 /**
  * @author wind57
@@ -50,6 +51,7 @@ import org.springframework.context.annotation.Primary;
 				"logging.level.org.springframework.cloud.kubernetes.commons.leader.election=debug",
 				"logging.level.org.springframework.cloud.kubernetes.fabric8.leader.election=debug" },
 		classes = { App.class, AbstractLeaderElection.LocalConfiguration.class })
+@DirtiesContext
 abstract class AbstractLeaderElection {
 
 	private static K3sContainer container;

@@ -61,8 +61,6 @@ final class Fabric8LeaderElectionInitiator {
 
 	private volatile CompletableFuture<Void> podReadyFuture;
 
-	private volatile boolean destroyCalled = false;
-
 	private volatile CompletableFuture<?> leaderFuture;
 
 	Fabric8LeaderElectionInitiator(String candidateIdentity, String candidateNamespace,
@@ -119,7 +117,6 @@ final class Fabric8LeaderElectionInitiator {
 
 	@PreDestroy
 	void preDestroy() {
-		destroyCalled = true;
 		LOG.info(() -> "preDestroy called on the leader initiator : " + candidateIdentity);
 
 		if (!podReadyWaitingExecutor.isShutdown()) {
@@ -136,7 +133,6 @@ final class Fabric8LeaderElectionInitiator {
 		}
 
 		if (leaderFuture != null) {
-			LOG.info(() -> "leaderFuture will be canceled for : " + candidateIdentity);
 			// needed to release the lock, in case we are holding it.
 			// fabric8 internally expects this one to be called
 			LOG.debug(() -> "leaderFuture will be canceled for : " + candidateIdentity);
@@ -156,13 +152,12 @@ final class Fabric8LeaderElectionInitiator {
 		leaderFuture.whenComplete((ok, error) -> {
 
 			if (error != null) {
+				// only we have a reference to leaderFuture; and if it is canceled, it is
+				// only possible
+				// from our own preDestroy
 				if (error instanceof CancellationException) {
-					if (!destroyCalled) {
-						LOG.warn(() -> "renewal failed for  : " + candidateIdentity + ", will re-start it after : "
-								+ leaderElectionProperties.waitAfterRenewalFailure().toSeconds() + " seconds");
-						sleep(leaderElectionProperties);
-						podReadyWaitingExecutor.execute(this::startLeaderElection);
-					}
+					LOG.info(() -> "cancel was called on the leader initiator : " + candidateIdentity);
+					LOG.info(() -> "terminating leadership for : " + candidateIdentity);
 				}
 				else {
 					LOG.warn(() -> "leader failed with : " + error.getMessage());
