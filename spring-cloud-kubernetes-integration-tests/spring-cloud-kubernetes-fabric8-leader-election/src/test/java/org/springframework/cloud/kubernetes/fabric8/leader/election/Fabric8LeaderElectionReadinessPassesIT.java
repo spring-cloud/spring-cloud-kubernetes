@@ -49,7 +49,7 @@ class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 
 	@AfterEach
 	void afterEach() {
-		stopFutureAndDeleteLease(initiator.leaderFeature());
+		stopFutureAndDeleteLease(initiator);
 	}
 
 	/**

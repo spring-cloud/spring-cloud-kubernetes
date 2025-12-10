@@ -67,15 +67,9 @@ abstract class AbstractLeaderElection {
 		LEADER_UTILS_MOCKED_STATIC.when(LeaderUtils::hostName).thenReturn(candidateIdentity);
 	}
 
-	void stopFutureAndDeleteLease(CompletableFuture<?> leaderFuture) {
+	void stopFutureAndDeleteLease(Fabric8LeaderElectionInitiator initiator) {
 
-		try {
-			leaderFuture.cancel(true);
-			leaderFuture.join();
-		}
-		catch (Exception e) {
-			// ignore
-		}
+		initiator.preDestroy();
 
 		kubernetesClient.leases()
 			.inNamespace("default")

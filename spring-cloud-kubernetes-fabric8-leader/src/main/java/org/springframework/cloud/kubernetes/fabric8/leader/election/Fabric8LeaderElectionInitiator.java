@@ -122,6 +122,11 @@ final class Fabric8LeaderElectionInitiator {
 		destroyCalled = true;
 		LOG.info(() -> "preDestroy called on the leader initiator : " + candidateIdentity);
 
+		if (!podReadyWaitingExecutor.isShutdown()) {
+			LOG.debug(() -> "podReadyWaitingExecutor will be shutdown for : " + candidateIdentity);
+			podReadyWaitingExecutor.shutdownNow();
+		}
+
 		if (podReadyFuture != null && !podReadyFuture.isDone()) {
 			// if the task is not running, this has no effect.
 			// if the task is running, calling this will also make sure
@@ -136,10 +141,6 @@ final class Fabric8LeaderElectionInitiator {
 			// fabric8 internally expects this one to be called
 			LOG.debug(() -> "leaderFuture will be canceled for : " + candidateIdentity);
 			leaderFuture.cancel(true);
-		}
-		if (!podReadyWaitingExecutor.isShutdown()) {
-			LOG.debug(() -> "podReadyWaitingExecutor will be shutdown for : " + candidateIdentity);
-			podReadyWaitingExecutor.shutdownNow();
 		}
 	}
 

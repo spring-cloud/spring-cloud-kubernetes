@@ -55,8 +55,7 @@ class Fabric8LeaderElectionCompletedExceptionallyAndRestartedIT extends Abstract
 
 	@AfterEach
 	void afterEach() {
-		CompletableFuture<?> future = initiator.leaderFeature();
-		stopFutureAndDeleteLease(future);
+		stopFutureAndDeleteLease(initiator);
 	}
 
 	@Test

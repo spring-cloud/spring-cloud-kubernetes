@@ -50,7 +50,7 @@ public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderEle
 
 	@AfterEach
 	void afterEach() {
-		stopFutureAndDeleteLease(initiator.leaderFeature());
+		stopFutureAndDeleteLease(initiator);
 	}
 
 	@Test
