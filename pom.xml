@@ -30,7 +30,7 @@
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>3.2.3-SNAPSHOT</version>
+	<version>3.2.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 	<description>Spring Cloud Kubernetes</description>
