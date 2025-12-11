@@ -42,22 +42,23 @@ final class Assertions {
 		// let's unwind some logs to see that the process is how we expect it to be
 
 		// 1. lease is used as the lock (comes from our code)
-		assertThat(output.getOut()).contains("will use lease as the lock for leader election");
+		awaitUntil(5, 100, () -> output.getOut().contains("will use lease as the lock for leader election"));
 
 		// 2. we start leader initiator for our hostname (comes from our code)
-		assertThat(output.getOut()).contains("starting leader initiator : " + candidateIdentity);
+		awaitUntil(5, 100, () -> output.getOut().contains("starting leader initiator : " + candidateIdentity));
 
 		// 3. we try to acquire the lease (comes from fabric8 code)
-		assertThat(output.getOut())
+		awaitUntil(5, 100, () -> output.getOut()
 			.contains("Attempting to acquire leader lease 'LeaseLock: default - spring-k8s-leader-election-lock " + "("
-					+ candidateIdentity + ")'");
+					+ candidateIdentity + ")'"));
 
 		// 4. lease has been acquired
-		assertThat(output.getOut()).contains("Acquired lease 'LeaseLock: default - spring-k8s-leader-election-lock "
-				+ "(" + candidateIdentity + ")'");
+		awaitUntil(5, 100, () -> output.getOut().contains("Acquired lease 'LeaseLock: default - spring-k8s-leader-election-lock "
+				+ "(" + candidateIdentity + ")'"));
 
 		// 5. we are the leader (comes from fabric8 code)
-		assertThat(output.getOut()).matches("(?s).*Leader changed from (|null) to " + candidateIdentity + ".*");
+		awaitUntil(5, 100, () -> output.getOut()
+			.matches("(?s).*Leader changed from (|null) to " + candidateIdentity + ".*"));
 
 		// 6. wait until a renewal happens (comes from fabric code)
 		// this one means that we have extended our leadership
