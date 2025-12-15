@@ -55,7 +55,7 @@ jobs:
 
       - name: restore test times cache if it exists
         id: restore_test_times_cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: /tmp/sorted.txt
           key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
