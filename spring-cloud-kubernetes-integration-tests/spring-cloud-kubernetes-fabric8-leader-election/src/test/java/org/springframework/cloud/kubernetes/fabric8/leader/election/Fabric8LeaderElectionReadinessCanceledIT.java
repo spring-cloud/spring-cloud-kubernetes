@@ -32,7 +32,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  *
  * @author wind57
  */
-@TestPropertySource(properties = { "readiness.cycle.false=true",
+@TestPropertySource(properties = { "readiness.never.finishes=true",
 		"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
 class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 
@@ -59,13 +59,6 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 
 		initiator.preDestroy();
 
-		try {
-			Thread.sleep(2_000);
-		}
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-
 		// 1. preDestroy method logs what it will do
 		assertThat(output.getOut()).contains("podReadyFuture will be canceled for : canceled-readiness-it");
 
@@ -81,6 +74,10 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 
 		// 5. the scheduled executor where pod readiness is checked is shut down also
 		awaitUntil(2, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+
+		// we need to call preDestroy again, to make sure that leaderFuture was not
+		// started
+		initiator.preDestroy();
 
 		// 6. leader election is not started, since readiness does not finish
 		assertThat(output.getOut()).doesNotContain("leaderFuture will be canceled for");

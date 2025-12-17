@@ -31,9 +31,10 @@ import org.springframework.cloud.kubernetes.commons.leader.election.PodReadyRunn
 import org.springframework.core.log.LogAccessor;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.attachStatusLoggerPipeline;
+import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.attachReadinessLoggerPipeline;
 import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.blockReadinessCheck;
 import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.leaderElector;
+import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.shutDownExecutor;
 import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.sleep;
 
 /**
@@ -103,13 +104,18 @@ final class Fabric8LeaderElectionInitiator {
 		// wait in a different thread until the pod is ready
 		// and don't block the main application from starting
 		podReadyWaitingExecutor.execute(() -> {
-			if (waitForPodReady) {
-				CompletableFuture<?> ready = attachStatusLoggerPipeline(podReadyFuture, candidateIdentity);
-				blockReadinessCheck(ready);
-				startLeaderElection();
+			try {
+				if (waitForPodReady) {
+					CompletableFuture<?> ready = attachReadinessLoggerPipeline(podReadyFuture, candidateIdentity);
+					blockReadinessCheck(ready);
+					startLeaderElection();
+				}
+				else {
+					startLeaderElection();
+				}
 			}
-			else {
-				startLeaderElection();
+			catch (Exception e) {
+				LOG.error(e, () -> "failure : " + e.getMessage());
 			}
 		});
 
@@ -119,17 +125,16 @@ final class Fabric8LeaderElectionInitiator {
 	void preDestroy() {
 		LOG.info(() -> "preDestroy called on the leader initiator : " + candidateIdentity);
 
-		if (!podReadyWaitingExecutor.isShutdown()) {
-			LOG.debug(() -> "podReadyWaitingExecutor will be shutdown for : " + candidateIdentity);
-			podReadyWaitingExecutor.shutdownNow();
-		}
-
 		if (podReadyFuture != null && !podReadyFuture.isDone()) {
 			// if the task is not running, this has no effect.
 			// if the task is running, calling this will also make sure
 			// that the caching executor will shut down too.
 			LOG.debug(() -> "podReadyFuture will be canceled for : " + candidateIdentity);
 			podReadyFuture.cancel(true);
+		}
+
+		if (!podReadyWaitingExecutor.isShutdown()) {
+			shutDownExecutor(podReadyWaitingExecutor, candidateIdentity);
 		}
 
 		if (leaderFuture != null) {
@@ -153,8 +158,7 @@ final class Fabric8LeaderElectionInitiator {
 
 			if (error != null) {
 				// only we have a reference to leaderFuture; and if it is canceled, it is
-				// only possible
-				// from our own preDestroy
+				// only possible from our own preDestroy
 				if (error instanceof CancellationException) {
 					LOG.info(() -> "cancel was called on the leader initiator : " + candidateIdentity);
 					LOG.info(() -> "terminating leadership for : " + candidateIdentity);

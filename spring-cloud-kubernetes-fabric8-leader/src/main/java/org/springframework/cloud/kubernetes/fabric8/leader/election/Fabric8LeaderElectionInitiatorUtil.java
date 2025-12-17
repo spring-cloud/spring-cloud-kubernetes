@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -38,7 +39,7 @@ final class Fabric8LeaderElectionInitiatorUtil {
 	 * if 'ready' is already completed at this point, thread will run this, otherwise it
 	 * will attach the pipeline and move on to 'blockReadinessCheck'.
 	 */
-	static CompletableFuture<?> attachStatusLoggerPipeline(CompletableFuture<?> innerPodReadyFuture,
+	static CompletableFuture<?> attachReadinessLoggerPipeline(CompletableFuture<?> innerPodReadyFuture,
 			String candidateIdentity) {
 		return innerPodReadyFuture.whenComplete((ok, error) -> {
 			if (error != null) {
@@ -69,6 +70,18 @@ final class Fabric8LeaderElectionInitiatorUtil {
 		}
 		catch (Exception e) {
 			LOG.error(e, () -> "block readiness check failed with : " + e.getMessage());
+			throw new RuntimeException(e);
+		}
+	}
+
+	static void shutDownExecutor(ExecutorService podReadyWaitingExecutor, String candidateIdentity) {
+		LOG.debug(() -> "podReadyWaitingExecutor will be shutdown for : " + candidateIdentity);
+		podReadyWaitingExecutor.shutdownNow();
+		try {
+			podReadyWaitingExecutor.awaitTermination(3, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 	}
 

@@ -53,12 +53,14 @@ final class Assertions {
 					+ candidateIdentity + ")'"));
 
 		// 4. lease has been acquired
-		awaitUntil(5, 100, () -> output.getOut().contains("Acquired lease 'LeaseLock: default - spring-k8s-leader-election-lock "
-				+ "(" + candidateIdentity + ")'"));
+		awaitUntil(5, 100,
+				() -> output.getOut()
+					.contains("Acquired lease 'LeaseLock: default - spring-k8s-leader-election-lock " + "("
+							+ candidateIdentity + ")'"));
 
 		// 5. we are the leader (comes from fabric8 code)
-		awaitUntil(5, 100, () -> output.getOut()
-			.matches("(?s).*Leader changed from (|null) to " + candidateIdentity + ".*"));
+		awaitUntil(5, 100,
+				() -> output.getOut().matches("(?s).*Leader changed from (|null) to " + candidateIdentity + ".*"));
 
 		// 6. wait until a renewal happens (comes from fabric code)
 		// this one means that we have extended our leadership

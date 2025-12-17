@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.coordination.v1.Lease;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -56,7 +57,7 @@ abstract class AbstractLeaderElection {
 
 	private static K3sContainer container;
 
-	private static final MockedStatic<LeaderUtils> LEADER_UTILS_MOCKED_STATIC = Mockito.mockStatic(LeaderUtils.class);
+	private static MockedStatic<LeaderUtils> LEADER_UTILS_MOCKED_STATIC;
 
 	@Autowired
 	KubernetesClient kubernetesClient;
@@ -65,7 +66,13 @@ abstract class AbstractLeaderElection {
 		container = Commons.container();
 		container.start();
 
+		LEADER_UTILS_MOCKED_STATIC = Mockito.mockStatic(LeaderUtils.class);
 		LEADER_UTILS_MOCKED_STATIC.when(LeaderUtils::hostName).thenReturn(candidateIdentity);
+	}
+
+	@AfterAll
+	static void afterAll() {
+		LEADER_UTILS_MOCKED_STATIC.close();
 	}
 
 	void stopFutureAndDeleteLease(Fabric8LeaderElectionInitiator initiator) {
@@ -124,11 +131,11 @@ abstract class AbstractLeaderElection {
 			};
 		}
 
-		// readiness fails after 2 retries
+		// readiness always fails
 		@Bean
 		@Primary
-		@ConditionalOnProperty(value = "readiness.cycle.false", havingValue = "true", matchIfMissing = false)
-		BooleanSupplier readinessCycleFalse() {
+		@ConditionalOnProperty(value = "readiness.never.finishes", havingValue = "true", matchIfMissing = false)
+		BooleanSupplier readinessNeverFinishes() {
 			return () -> false;
 		}
 
