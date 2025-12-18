@@ -53,7 +53,7 @@ management.info.leader.enabled=false
 
 '''
 
-There is another way you can configure leader election, and it comes with native support in the fabric8 library (k8s native client support is not yet implemented). In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDKs "preview" features.
+There is another way you can configure leader election, and it comes with native support in the fabric8 library (k8s native client support is not yet implemented). In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDK's "preview" features.
 
 To be able to use it, you need to set the property:
 
@@ -103,7 +103,7 @@ If the lock is not taken, current pod becomes the leader. It does so by insertin
 
 Once a certain pod establishes itself as the leader (by acquiring the lock), it will continuously (every `spring.cloud.kubernetes.leader.election.retryPeriod`) try to renew its lease, or in other words: it will try to extend its leadership. When a renewal happens, the "record" that is stored inside the lock, is updated. For example, `renewTime` is updated inside the record, to denote when the last renewal happened. (You can always peek inside these fields by using `kubectl describe lease...` for example).
 
-Renewal must happen within a certain interval, specified by `spring.cloud.kubernetes.leader.election.renewDeadline`. By default, it is equal to 10 seconds, and it means that the leader pod has a maximum of 10 seconds to renew its leadership. If that does not happen, this pod loses its leadership and leader election starts again. Because other pods try to become leaders every 2 seconds (by default), it could mean that the pod that just lost leadership, will become leader again. If you want other pods to have a higher chance of becoming leaders, you can set the property (specified in seconds, by default it is 0) :
+Renewal must happen within a certain interval, specified by `spring.cloud.kubernetes.leader.election.renewDeadline`. By default, it is equal to 10 seconds, and it means that the leader pod has a maximum of 10 seconds to renew its leadership. If that does not happen, this pod loses its leadership and leader election starts again. Because other pods try to become leaders every 2 seconds (by default), it could mean that the pod that just lost leadership, will become leader again. If you want other pods to have a higher chance of becoming leaders, you can set the property (specified in seconds, by default it is 3) :
 
 [source]
 ----
@@ -132,6 +132,11 @@ You might have to give proper RBAC to be able to use this functionality, for exa
 [source]
 ----
  - apiGroups: [ "coordination.k8s.io" ]
-   resources: [ "leases", "configmaps" ]
-   verbs: [ "get", "update", "create", "patch"]
+   resources: [ "leases" ]
+   resourceNames: [ "spring-k8s-leader-election-lock" ]
+   verbs: [ "get", "update", "create" ]
+ - apiGroups: [ "" ]
+   resources: [ "configmaps" ]
+   resourceNames: [ "spring-k8s-leader-election-lock" ]
+   verbs: [ "get", "update", "create" ]
 ----

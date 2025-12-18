@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.commons.leader;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -74,7 +73,7 @@ public final class LeaderUtils {
 	}
 
 	/**
-	 * ideally, should always be present. If not, downward api must enable this one.
+	 * Ideally, should always be present. If not, downward API must enable this one.
 	 */
 	public static Optional<String> podNamespace() {
 		Path serviceAccountPath = new File(SERVICE_ACCOUNT_NAMESPACE_PATH).toPath();
@@ -87,7 +86,8 @@ public final class LeaderUtils {
 				return Optional.of(namespace);
 			}
 			catch (IOException e) {
-				throw new UncheckedIOException(e);
+				LOG.error(e,
+						() -> "error reading service account, will default to reading env variable : " + POD_NAMESPACE);
 			}
 
 		}
