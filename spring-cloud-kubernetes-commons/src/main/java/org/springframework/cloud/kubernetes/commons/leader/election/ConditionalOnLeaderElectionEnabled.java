@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEADER_ELECTION_ENABLED_PROPERTY;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderUtils.LEADER_ELECTION_ENABLED_PROPERTY;
 
 /**
  * Provides a more succinct conditional for:
@@ -37,7 +37,7 @@ import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LE
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnProperty(value = LEADER_ELECTION_ENABLED_PROPERTY, havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = LEADER_ELECTION_ENABLED_PROPERTY, havingValue = "true", matchIfMissing = true)
 public @interface ConditionalOnLeaderElectionEnabled {
 
 }
