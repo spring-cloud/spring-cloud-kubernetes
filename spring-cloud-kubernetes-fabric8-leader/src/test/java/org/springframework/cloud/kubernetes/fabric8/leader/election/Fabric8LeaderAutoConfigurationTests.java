@@ -46,11 +46,11 @@ class Fabric8LeaderAutoConfigurationTests {
 	 */
 	@Test
 	void leaderElectionAnnotationMissing() {
-		new ApplicationContextRunner().withUserConfiguration(Fabric8LeaderApp.class)
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LeaderConfiguration.class)
 			.withAllowBeanDefinitionOverriding(true)
 			.withUserConfiguration(Fabric8LeaderElectionAutoConfiguration.class,
 					Fabric8LeaderElectionCallbacksAutoConfiguration.class, TestConfig.class)
-			.withPropertyValues("spring.main.cloud-platform=KUBERNETES")
+			.withPropertyValues("spring.main.cloud-platform=KUBERNETES", "use.mock.config=true")
 			.run(context -> {
 				// matchIfMissing = true in the annotation, so both are present
 				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionAutoConfiguration.class);
@@ -71,7 +71,7 @@ class Fabric8LeaderAutoConfigurationTests {
 	@Test
 	void leaderElectionAnnotationPresentEqualToFalse() {
 		new ApplicationContextRunner()
-			.withUserConfiguration(Fabric8LeaderApp.class, Fabric8LeaderElectionAutoConfiguration.class,
+			.withUserConfiguration(Fabric8LeaderConfiguration.class, Fabric8LeaderElectionAutoConfiguration.class,
 					Fabric8LeaderElectionCallbacksAutoConfiguration.class, TestConfig.class)
 			.withPropertyValues("spring.cloud.kubernetes.leader.election.enabled=false",
 					"spring.main.cloud-platform=KUBERNETES")
@@ -94,11 +94,11 @@ class Fabric8LeaderAutoConfigurationTests {
 	@Test
 	void leaderElectionAnnotationPresentEqualToTrue() {
 		new ApplicationContextRunner()
-			.withUserConfiguration(Fabric8LeaderApp.class, Fabric8LeaderElectionAutoConfiguration.class,
+			.withUserConfiguration(Fabric8LeaderConfiguration.class, Fabric8LeaderElectionAutoConfiguration.class,
 					Fabric8LeaderElectionCallbacksAutoConfiguration.class, TestConfig.class)
 			.withAllowBeanDefinitionOverriding(true)
 			.withPropertyValues("spring.cloud.kubernetes.leader.election.enabled=true",
-					"spring.main.cloud-platform=KUBERNETES")
+					"spring.main.cloud-platform=KUBERNETES", "use.mock.config=true")
 			.run(context -> {
 				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionAutoConfiguration.class);
 				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionCallbacksAutoConfiguration.class);

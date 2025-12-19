@@ -52,7 +52,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
-				"management.endpoint.info.show-details=always", "management.info.kubernetes.enabled=true",
+				"management.endpoint.info.show-details=always",
 				"spring.cloud.kubernetes.leader.election.enabled=true" })
 @AutoConfigureWebTestClient
 class Fabric8LeaderElectionInfoContributorIsLeaderTest {

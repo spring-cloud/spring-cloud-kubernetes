@@ -24,12 +24,14 @@ import io.fabric8.kubernetes.client.dsl.internal.BaseOperation;
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.Lock;
 import org.mockito.Mockito;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-public class Fabric8LeaderApp {
+@ConditionalOnProperty(value = "use.mock.config", havingValue = "true", matchIfMissing = false)
+public class Fabric8LeaderConfiguration {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Bean
