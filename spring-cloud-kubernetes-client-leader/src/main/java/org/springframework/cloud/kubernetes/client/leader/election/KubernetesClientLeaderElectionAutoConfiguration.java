@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.leader.election;
 
+import java.util.List;
+import java.util.function.BooleanSupplier;
+
+import io.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
 import io.kubernetes.client.extended.leaderelection.Lock;
 import io.kubernetes.client.extended.leaderelection.resourcelock.ConfigMapLock;
 import io.kubernetes.client.extended.leaderelection.resourcelock.LeaseLock;
@@ -25,6 +29,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
+
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -40,15 +45,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 
-import java.util.List;
-import java.util.function.BooleanSupplier;
-
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_GROUP;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.DISCOVERY_VERSION;
-import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.ENDPOINT_SLICE;
 import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.COORDINATION_GROUP;
 import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.COORDINATION_VERSION;
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEASE;
 
 /**
  * @author wind57
@@ -61,75 +59,67 @@ import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LE
 @AutoConfigureAfter(KubernetesClientLeaderElectionCallbacksAutoConfiguration.class)
 class KubernetesClientLeaderElectionAutoConfiguration {
 
-	private static final String COORDINATION_VERSION_GROUP = COORDINATION_GROUP + "/" + COORDINATION_VERSION;
-
 	private static final LogAccessor LOG = new LogAccessor(KubernetesClientLeaderElectionAutoConfiguration.class);
 
-//	@Bean
-//	@ConditionalOnClass(InfoContributor.class)
-//	@ConditionalOnEnabledHealthIndicator("leader.election")
-//	Fabric8LeaderElectionInfoContributor leaderElectionInfoContributor(String candidateIdentity,
-//		LeaderElectionConfig leaderElectionConfig, KubernetesClient fabric8KubernetesClient) {
-//		return new Fabric8LeaderElectionInfoContributor(candidateIdentity, leaderElectionConfig,
-//			fabric8KubernetesClient);
-//	}
-//
-//	@Bean
-//	@ConditionalOnMissingBean
-//	Fabric8LeaderElectionInitiator fabric8LeaderElectionInitiator(String candidateIdentity, String podNamespace,
-//		KubernetesClient fabric8KubernetesClient, LeaderElectionConfig fabric8LeaderElectionConfig,
-//		LeaderElectionProperties leaderElectionProperties, BooleanSupplier podReadySupplier) {
-//		return new Fabric8LeaderElectionInitiator(candidateIdentity, podNamespace, fabric8KubernetesClient,
-//			fabric8LeaderElectionConfig, leaderElectionProperties, podReadySupplier);
-//	}
-//
 	@Bean
-	BooleanSupplier podReadySupplier(CoreV1Api coreV1Api, String candidateIdentity,
-		String podNamespace) {
+	@ConditionalOnClass(InfoContributor.class)
+	@ConditionalOnEnabledHealthIndicator("leader.election")
+	KubernetesClientLeaderElectionInfoContributor leaderElectionInfoContributor(String candidateIdentity,
+			LeaderElectionConfig leaderElectionConfig) {
+		return new KubernetesClientLeaderElectionInfoContributor(candidateIdentity, leaderElectionConfig);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	KubernetesClientLeaderElectionInitiator kubernetesClientLeaderElectionInitiator(String candidateIdentity,
+			String podNamespace, LeaderElectionConfig leaderElectionConfig,
+			LeaderElectionProperties leaderElectionProperties, BooleanSupplier podReadySupplier,
+			KubernetesClientLeaderElectionCallbacks callbacks) {
+		return new KubernetesClientLeaderElectionInitiator(candidateIdentity, podNamespace, leaderElectionConfig,
+				leaderElectionProperties, podReadySupplier, callbacks);
+	}
+
+	@Bean
+	BooleanSupplier podReadySupplier(CoreV1Api coreV1Api, String candidateIdentity, String podNamespace) {
 		return () -> {
 			try {
 				V1Pod pod = coreV1Api.readNamespacedPod(candidateIdentity, podNamespace).execute();
 				return isPodReady(pod);
-			} catch (ApiException e) {
+			}
+			catch (ApiException e) {
 				throw new RuntimeException(e);
 			}
 		};
 	}
-//
-//	@Bean
-//	@ConditionalOnMissingBean
-//	LeaderElectionConfig fabric8LeaderElectionConfig(LeaderElectionProperties properties, Lock lock,
-//		Fabric8LeaderElectionCallbacks fabric8LeaderElectionCallbacks) {
-//		return new LeaderElectionConfigBuilder().withReleaseOnCancel()
-//			.withName("Spring k8s leader election")
-//			.withLeaseDuration(properties.leaseDuration())
-//			.withLock(lock)
-//			.withRenewDeadline(properties.renewDeadline())
-//			.withRetryPeriod(properties.retryPeriod())
-//			.withLeaderCallbacks(fabric8LeaderElectionCallbacks)
-//			.build();
-//	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	LeaderElectionConfig fabric8LeaderElectionConfig(LeaderElectionProperties properties, Lock lock) {
+		return new LeaderElectionConfig(lock, properties.leaseDuration(), properties.renewDeadline(),
+				properties.retryPeriod());
+	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	Lock lock(ApiClient apiClient, LeaderElectionProperties properties, String candidateIdentity) {
 
 		CustomObjectsApi customObjectsApi = new CustomObjectsApi(apiClient);
-		boolean leaseSupported = false;
+		boolean leaseSupported;
 		try {
 			List<V1APIResource> resources = customObjectsApi.getAPIResources(COORDINATION_GROUP, COORDINATION_VERSION)
 				.execute()
 				.getResources();
 
 			leaseSupported = resources.stream().map(V1APIResource::getKind).anyMatch("Lease"::equals);
-		} catch (ApiException e) {
+		}
+		catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
 
 		if (leaseSupported) {
 			if (properties.useConfigMapAsLock()) {
 				LOG.info(() -> "leases are supported on the cluster, but config map will be used "
-					+ "(because 'spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true')");
+						+ "(because 'spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true')");
 				return new ConfigMapLock(properties.lockNamespace(), properties.lockName(), candidateIdentity);
 			}
 			else {
@@ -144,13 +134,11 @@ class KubernetesClientLeaderElectionAutoConfiguration {
 	}
 
 	private boolean isPodReady(V1Pod pod) {
-		return pod != null
-			&& pod.getStatus() != null
-			&& pod.getStatus().getConditions() != null
-			&& pod.getStatus().getConditions().stream()
-			.anyMatch(c ->
-				"Ready".equals(c.getType()) && "True".equals(c.getStatus())
-			);
+		return pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null
+				&& pod.getStatus()
+					.getConditions()
+					.stream()
+					.anyMatch(c -> "Ready".equals(c.getType()) && "True".equals(c.getStatus()));
 	}
 
 }

@@ -22,5 +22,5 @@ import java.util.function.Consumer;
  * @author wind57
  */
 record KubernetesClientLeaderElectionCallbacks(Runnable onStartLeadingCallback, Runnable onStopLeadingCallback,
-	Consumer<String> onNewLeaderCallback) {
+		Consumer<String> onNewLeaderCallback) {
 }

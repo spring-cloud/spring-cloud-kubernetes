@@ -49,7 +49,7 @@ final class KubernetesClientLeaderElectionCallbacksAutoConfiguration extends Lea
 	KubernetesClientLeaderElectionCallbacks kubernetesClientLeaderElectionCallbacks(Runnable onStartLeadingCallback,
 			Runnable onStopLeadingCallback, Consumer<String> onNewLeaderCallback) {
 		return new KubernetesClientLeaderElectionCallbacks(onStartLeadingCallback, onStopLeadingCallback,
-			onNewLeaderCallback);
+				onNewLeaderCallback);
 	}
 
 }

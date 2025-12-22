@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.leader.election;
+package org.springframework.cloud.kubernetes.client.leader.election;
 
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BooleanSupplier;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
+import io.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
+import io.kubernetes.client.extended.leaderelection.LeaderElector;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
@@ -39,15 +38,13 @@ import static org.springframework.cloud.kubernetes.commons.leader.election.Leade
 /**
  * @author wind57
  */
-final class Fabric8LeaderElectionInitiator {
+final class KubernetesClientLeaderElectionInitiator {
 
-	private static final LogAccessor LOG = new LogAccessor(Fabric8LeaderElectionInitiator.class);
+	private static final LogAccessor LOG = new LogAccessor(KubernetesClientLeaderElectionInitiator.class);
 
 	private final PodReadyRunner podReadyRunner;
 
 	private final String candidateIdentity;
-
-	private final KubernetesClient fabric8KubernetesClient;
 
 	private final LeaderElectionConfig leaderElectionConfig;
 
@@ -59,19 +56,21 @@ final class Fabric8LeaderElectionInitiator {
 
 	private final BooleanSupplier podReadySupplier;
 
+	private final KubernetesClientLeaderElectionCallbacks callbacks;
+
+	private volatile LeaderElector leaderElector;
+
 	private volatile CompletableFuture<Void> podReadyFuture;
 
-	private volatile CompletableFuture<?> leaderFuture;
-
-	Fabric8LeaderElectionInitiator(String candidateIdentity, String candidateNamespace,
-			KubernetesClient fabric8KubernetesClient, LeaderElectionConfig leaderElectionConfig,
-			LeaderElectionProperties leaderElectionProperties, BooleanSupplier podReadySupplier) {
+	KubernetesClientLeaderElectionInitiator(String candidateIdentity, String candidateNamespace,
+			LeaderElectionConfig leaderElectionConfig, LeaderElectionProperties leaderElectionProperties,
+			BooleanSupplier podReadySupplier, KubernetesClientLeaderElectionCallbacks callbacks) {
 		this.candidateIdentity = candidateIdentity;
-		this.fabric8KubernetesClient = fabric8KubernetesClient;
 		this.leaderElectionConfig = leaderElectionConfig;
 		this.leaderElectionProperties = leaderElectionProperties;
 		this.waitForPodReady = leaderElectionProperties.waitForPodReady();
 		this.podReadySupplier = podReadySupplier;
+		this.callbacks = callbacks;
 
 		this.podReadyWaitingExecutor = newSingleThreadExecutor(
 				runnable -> new Thread(runnable, "Fabric8LeaderElectionInitiator-" + candidateIdentity));
@@ -136,57 +135,35 @@ final class Fabric8LeaderElectionInitiator {
 			shutDownExecutor(podReadyWaitingExecutor, candidateIdentity);
 		}
 
-		if (leaderFuture != null) {
-			// needed to release the lock, in case we are holding it.
-			// fabric8 internally expects this one to be called
-			LOG.debug(() -> "leaderFuture will be canceled for : " + candidateIdentity);
-			leaderFuture.cancel(true);
+		if (leaderElector != null) {
+			leaderElector.close();
 		}
-	}
-
-	// needed for testing only
-	CompletableFuture<?> leaderFeature() {
-		return leaderFuture;
 	}
 
 	private void startLeaderElection() {
 
-		leaderFuture = fabric8KubernetesClient.leaderElector().withConfig(leaderElectionConfig).build().start();
-
-		leaderFuture.whenComplete((ok, error) -> {
-
-			if (error != null) {
-				// only we have a reference to leaderFuture; and if it is canceled, it is
-				// only possible from our own preDestroy
-				if (error instanceof CancellationException) {
-					LOG.info(() -> "cancel was called on the leader initiator : " + candidateIdentity);
-					LOG.info(() -> "terminating leadership for : " + candidateIdentity);
-				}
-				else {
-					LOG.warn(() -> "leader failed with : " + error.getMessage());
-					if (leaderElectionProperties.restartOnFailure()) {
-						LOG.info(() -> "will restart leader election for : " + candidateIdentity);
-						sleep(leaderElectionProperties);
-						podReadyWaitingExecutor.execute(this::startLeaderElection);
-					}
-					else {
-						LOG.warn(() -> "leader election is over for : " + candidateIdentity);
-					}
-				}
-			}
-			else {
-				// ok is always null; since it does not represent anything, it just passes
-				// the state further
-				LOG.info(() -> "leaderFuture finished normally, will re-start it for : " + candidateIdentity);
-				podReadyWaitingExecutor.execute(this::startLeaderElection);
-			}
-		});
-
+		boolean failedDuringStartup = false;
+		leaderElector = new LeaderElector(leaderElectionConfig);
 		try {
-			leaderFuture.get();
+			// this runs in a while(true) loop and every throwable is just logged,
+			// it does not spill over to our code
+			leaderElector.run(callbacks.onStartLeadingCallback(), callbacks.onStopLeadingCallback(),
+					callbacks.onNewLeaderCallback());
 		}
 		catch (Exception e) {
-			LOG.warn(() -> "leader election failed for : " + candidateIdentity);
+			// this is only possible when we can't start leader election, not during
+			// its inner workings
+			LOG.error(e, () -> "failure starting leader election: " + e.getMessage());
+			failedDuringStartup = true;
+		}
+		finally {
+			leaderElector.close();
+		}
+
+		if (!failedDuringStartup) {
+			// as soon as leader election is over, re-start it
+			sleep(leaderElectionProperties);
+			podReadyWaitingExecutor.execute(this::startLeaderElection);
 		}
 
 	}
