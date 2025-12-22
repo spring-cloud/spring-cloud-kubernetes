@@ -20,10 +20,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FabricLeaderApp {
+public class Fabric8LeaderApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FabricLeaderApp.class, args);
+		SpringApplication.run(Fabric8LeaderApp.class, args);
 	}
 
 }

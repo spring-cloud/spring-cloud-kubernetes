@@ -30,6 +30,7 @@ import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.LeaseLo
 import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.Lock;
 import io.fabric8.kubernetes.client.readiness.Readiness;
 
+import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -38,7 +39,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.leader.election.ConditionalOnLeaderElectionEnabled;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
 import org.springframework.context.annotation.Bean;
@@ -66,7 +66,7 @@ class Fabric8LeaderElectionAutoConfiguration {
 
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
-	@ConditionalOnEnabledHealthIndicator("leader.election")
+	@ConditionalOnEnabledInfoContributor("leader.election")
 	Fabric8LeaderElectionInfoContributor leaderElectionInfoContributor(String candidateIdentity,
 			LeaderElectionConfig leaderElectionConfig, KubernetesClient fabric8KubernetesClient) {
 		return new Fabric8LeaderElectionInfoContributor(candidateIdentity, leaderElectionConfig,
