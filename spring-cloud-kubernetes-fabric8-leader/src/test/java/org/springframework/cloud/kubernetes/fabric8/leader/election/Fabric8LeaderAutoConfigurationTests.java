@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.fabric8.leader.Fabric8LeaderAutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.leader.Fabric8PodReadinessWatcher;
 
 /**
  * tests that ensure 'spring.cloud.kubernetes.leader.election' enabled correct
@@ -38,7 +37,7 @@ class Fabric8LeaderAutoConfigurationTests {
 	 *
 	 *     As such:
 	 *
-	 *     - Fabric8LeaderAutoConfiguration must be picked up
+	 *     - Fabric8LeaderAutoConfiguration         must be picked up
 	 *     - Fabric8LeaderElectionAutoConfiguration must not be picked up
 	 * </pre>
 	 */
@@ -49,12 +48,8 @@ class Fabric8LeaderAutoConfigurationTests {
 					Fabric8LeaderElectionAutoConfiguration.class,
 					Fabric8LeaderElectionCallbacksAutoConfiguration.class))
 			.run(context -> {
-
-				// this one comes from Fabric8LeaderElectionAutoConfiguration
-				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderElectionInitiator.class);
-
-				// this one comes from Fabric8LeaderAutoConfiguration
-				Assertions.assertThat(context).hasSingleBean(Fabric8PodReadinessWatcher.class);
+				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderAutoConfiguration.class);
+				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderElectionAutoConfiguration.class);
 			});
 	}
 
@@ -64,7 +59,7 @@ class Fabric8LeaderAutoConfigurationTests {
 	 *
 	 *     As such:
 	 *
-	 *     - Fabric8LeaderAutoConfiguration must be picked up
+	 *     - Fabric8LeaderAutoConfiguration         must be picked up
 	 *     - Fabric8LeaderElectionAutoConfiguration must not be picked up
 	 * </pre>
 	 */
@@ -76,22 +71,18 @@ class Fabric8LeaderAutoConfigurationTests {
 					Fabric8LeaderElectionCallbacksAutoConfiguration.class))
 			.withPropertyValues("spring.cloud.kubernetes.leader.election.enabled=false")
 			.run(context -> {
-
-				// this one comes from Fabric8LeaderElectionAutoConfiguration
-				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderElectionInitiator.class);
-
-				// this one comes from Fabric8LeaderAutoConfiguration
-				Assertions.assertThat(context).hasSingleBean(Fabric8PodReadinessWatcher.class);
+				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderAutoConfiguration.class);
+				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderElectionAutoConfiguration.class);
 			});
 	}
 
 	/**
 	 * <pre>
-	 *     - spring.cloud.kubernetes.leader.election = false
+	 *     - spring.cloud.kubernetes.leader.election = true
 	 *
 	 *     As such:
 	 *
-	 *     - Fabric8LeaderAutoConfiguration must not be picked up
+	 *     - Fabric8LeaderAutoConfiguration         must not be picked up
 	 *     - Fabric8LeaderElectionAutoConfiguration must be picked up
 	 * </pre>
 	 */
@@ -104,12 +95,63 @@ class Fabric8LeaderAutoConfigurationTests {
 			.withPropertyValues("spring.cloud.kubernetes.leader.election.enabled=true",
 					"spring.main.cloud-platform=kubernetes")
 			.run(context -> {
+				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderAutoConfiguration.class);
+				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionAutoConfiguration.class);
+			});
+	}
 
-				// this one comes from Fabric8LeaderElectionAutoConfiguration
-				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionInitiator.class);
+	/**
+	 * <pre>
+	 *     - spring.cloud.kubernetes.leader.election = true
+	 *     - management.info.leader.election.enabled = true
+	 *
+	 *     As such:
+	 *
+	 *     - Fabric8LeaderAutoConfiguration         must not be picked up
+	 *     - Fabric8LeaderElectionAutoConfiguration must be picked up
+	 *     - Fabric8LeaderElectionInfoContributor   must be picked up
+	 * </pre>
+	 */
+	@Test
+	void leaderInfoContributorPresent() {
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LeaderApp.class)
+			.withConfiguration(AutoConfigurations.of(Fabric8LeaderAutoConfiguration.class,
+					Fabric8LeaderElectionAutoConfiguration.class,
+					Fabric8LeaderElectionCallbacksAutoConfiguration.class))
+			.withPropertyValues("spring.main.cloud-platform=kubernetes", "management.info.leader.election.enabled=true",
+					"spring.cloud.kubernetes.leader.election.enabled=true")
+			.run(context -> {
+				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderAutoConfiguration.class);
+				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionAutoConfiguration.class);
+				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionInfoContributor.class);
+			});
+	}
 
-				// this one comes from Fabric8LeaderAutoConfiguration
-				Assertions.assertThat(context).doesNotHaveBean(Fabric8PodReadinessWatcher.class);
+	/**
+	 * <pre>
+	 *     - spring.cloud.kubernetes.leader.election = true
+	 *     - management.info.leader.election.enabled = false
+	 *
+	 *     As such:
+	 *
+	 *     - Fabric8LeaderAutoConfiguration         must not be picked up
+	 *     - Fabric8LeaderElectionAutoConfiguration must be picked up
+	 *     - Fabric8LeaderElectionInfoContributor   must not be picked up
+	 * </pre>
+	 */
+	@Test
+	void leaderInfoContributorMissing() {
+		new ApplicationContextRunner().withUserConfiguration(Fabric8LeaderApp.class)
+			.withConfiguration(AutoConfigurations.of(Fabric8LeaderAutoConfiguration.class,
+					Fabric8LeaderElectionAutoConfiguration.class,
+					Fabric8LeaderElectionCallbacksAutoConfiguration.class))
+			.withPropertyValues("spring.main.cloud-platform=kubernetes",
+					"management.info.leader.election.enabled=false",
+					"spring.cloud.kubernetes.leader.election.enabled=true")
+			.run(context -> {
+				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderAutoConfiguration.class);
+				Assertions.assertThat(context).hasSingleBean(Fabric8LeaderElectionAutoConfiguration.class);
+				Assertions.assertThat(context).doesNotHaveBean(Fabric8LeaderElectionInfoContributor.class);
 			});
 	}
 
