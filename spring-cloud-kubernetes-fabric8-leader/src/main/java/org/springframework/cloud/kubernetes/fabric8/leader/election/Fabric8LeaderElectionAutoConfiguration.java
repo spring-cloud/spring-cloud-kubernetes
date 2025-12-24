@@ -107,7 +107,8 @@ class Fabric8LeaderElectionAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	Lock fabric8LeaderElectionLock(KubernetesClient fabric8KubernetesClient, LeaderElectionProperties properties, String candidateIdentity) {
+	Lock fabric8LeaderElectionLock(KubernetesClient fabric8KubernetesClient, LeaderElectionProperties properties,
+			String candidateIdentity) {
 		boolean leaseSupported = fabric8KubernetesClient.getApiGroups()
 			.getGroups()
 			.stream()
