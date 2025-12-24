@@ -30,6 +30,7 @@ import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
 
+import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -38,7 +39,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.health.autoconfigure.contributor.ConditionalOnEnabledHealthIndicator;
 import org.springframework.cloud.kubernetes.commons.leader.election.ConditionalOnLeaderElectionEnabled;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
 import org.springframework.context.annotation.Bean;
@@ -63,9 +63,9 @@ class KubernetesClientLeaderElectionAutoConfiguration {
 
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
-	@ConditionalOnEnabledHealthIndicator("leader.election")
-	KubernetesClientLeaderElectionInfoContributor leaderElectionInfoContributor(String candidateIdentity,
-			LeaderElectionConfig leaderElectionConfig) {
+	@ConditionalOnEnabledInfoContributor("leader.election")
+	KubernetesClientLeaderElectionInfoContributor kubernetesClientLeaderElectionInfoContributor(
+			String candidateIdentity, LeaderElectionConfig leaderElectionConfig) {
 		return new KubernetesClientLeaderElectionInfoContributor(candidateIdentity, leaderElectionConfig);
 	}
 
@@ -80,7 +80,8 @@ class KubernetesClientLeaderElectionAutoConfiguration {
 	}
 
 	@Bean
-	BooleanSupplier podReadySupplier(CoreV1Api coreV1Api, String candidateIdentity, String podNamespace) {
+	BooleanSupplier kubernetesClientPodReadySupplier(CoreV1Api coreV1Api, String candidateIdentity,
+			String podNamespace) {
 		return () -> {
 			try {
 				V1Pod pod = coreV1Api.readNamespacedPod(candidateIdentity, podNamespace).execute();
@@ -94,14 +95,15 @@ class KubernetesClientLeaderElectionAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	LeaderElectionConfig fabric8LeaderElectionConfig(LeaderElectionProperties properties, Lock lock) {
+	LeaderElectionConfig kubernetesClientLeaderElectionConfig(LeaderElectionProperties properties, Lock lock) {
 		return new LeaderElectionConfig(lock, properties.leaseDuration(), properties.renewDeadline(),
 				properties.retryPeriod());
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	Lock lock(ApiClient apiClient, LeaderElectionProperties properties, String candidateIdentity) {
+	Lock kubernetesClientLeaderElectionLock(ApiClient apiClient, LeaderElectionProperties properties,
+			String candidateIdentity) {
 
 		CustomObjectsApi customObjectsApi = new CustomObjectsApi(apiClient);
 		boolean leaseSupported;

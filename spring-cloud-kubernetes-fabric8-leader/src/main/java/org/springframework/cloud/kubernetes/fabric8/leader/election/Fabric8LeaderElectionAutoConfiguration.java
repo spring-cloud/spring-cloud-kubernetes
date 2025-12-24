@@ -67,7 +67,7 @@ class Fabric8LeaderElectionAutoConfiguration {
 	@Bean
 	@ConditionalOnClass(InfoContributor.class)
 	@ConditionalOnEnabledInfoContributor("leader.election")
-	Fabric8LeaderElectionInfoContributor leaderElectionInfoContributor(String candidateIdentity,
+	Fabric8LeaderElectionInfoContributor fabric8LeaderElectionInfoContributor(String candidateIdentity,
 			LeaderElectionConfig leaderElectionConfig, KubernetesClient fabric8KubernetesClient) {
 		return new Fabric8LeaderElectionInfoContributor(candidateIdentity, leaderElectionConfig,
 				fabric8KubernetesClient);
@@ -83,7 +83,7 @@ class Fabric8LeaderElectionAutoConfiguration {
 	}
 
 	@Bean
-	BooleanSupplier podReadySupplier(KubernetesClient fabric8KubernetesClient, String candidateIdentity,
+	BooleanSupplier fabric8PodReadySupplier(KubernetesClient fabric8KubernetesClient, String candidateIdentity,
 			String podNamespace) {
 		return () -> {
 			Pod pod = fabric8KubernetesClient.pods().inNamespace(podNamespace).withName(candidateIdentity).get();
@@ -107,7 +107,7 @@ class Fabric8LeaderElectionAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	Lock lock(KubernetesClient fabric8KubernetesClient, LeaderElectionProperties properties, String candidateIdentity) {
+	Lock fabric8LeaderElectionLock(KubernetesClient fabric8KubernetesClient, LeaderElectionProperties properties, String candidateIdentity) {
 		boolean leaseSupported = fabric8KubernetesClient.getApiGroups()
 			.getGroups()
 			.stream()
