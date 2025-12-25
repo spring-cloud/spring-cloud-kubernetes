@@ -31,11 +31,10 @@ import org.springframework.cloud.kubernetes.commons.leader.election.PodReadyRunn
 import org.springframework.core.log.LogAccessor;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.attachReadinessLoggerPipeline;
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.blockReadinessCheck;
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.leaderElector;
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.shutDownExecutor;
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Fabric8LeaderElectionInitiatorUtil.sleep;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionInitiatorUtil.attachReadinessLoggerPipeline;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionInitiatorUtil.blockReadinessCheck;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionInitiatorUtil.shutDownExecutor;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionInitiatorUtil.sleep;
 
 /**
  * @author wind57
@@ -152,7 +151,7 @@ final class Fabric8LeaderElectionInitiator {
 
 	private void startLeaderElection() {
 
-		leaderFuture = leaderElector(leaderElectionConfig, fabric8KubernetesClient).start();
+		leaderFuture = fabric8KubernetesClient.leaderElector().withConfig(leaderElectionConfig).build().start();
 
 		leaderFuture.whenComplete((ok, error) -> {
 
