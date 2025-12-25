@@ -1,35 +1,19 @@
 [[leader-election]]
 = Leader Election
 
-The Spring Cloud Kubernetes leader election mechanism implements the leader election API of Spring Integration using a Kubernetes ConfigMap.
-
-Multiple application instances compete for leadership, but leadership will only be granted to one.
-When granted leadership, a leader application receives an `OnGrantedEvent` application event with leadership `Context`.
-Applications periodically attempt to gain leadership, with leadership granted to the first caller.
-A leader will remain a leader until either it is removed from the cluster, or it yields its leadership.
-When leadership removal occurs, the previous leader receives `OnRevokedEvent` application event.
-After removal, any instances in the cluster may become the new leader, including the old leader.
-
-To include it in your project, add the following dependency.
-Fabric8 Leader Implementation
+To include leader election in your project, add the following dependency.
 [source,xml]
 ----
 <dependency>
 	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
+	<artifactId>spring-cloud-kubernetes-fabric8-leader-election</artifactId>
 </dependency>
-----
-
-To specify the name of the configmap used for leader election use the following property.
-[source,properties]
-----
-spring.cloud.kubernetes.leader.config-map-name=leader
 ----
 
 == Leader Election Info Contributor
 
-Spring Cloud Kubernetes Leader includes an `InfoContributor` which adds leader election information to
-Spring Boot's `/actuator/info` endpoint. This contributor provides information about the current leader,
+Spring Cloud Kubernetes Leader Election includes an `InfoContributor` that adds leader election information to
+Spring Boot’s `/actuator/info` endpoint. This contributor provides information about the current leader,
 including the leader ID, role, and whether the current application instance is the leader.
 
 Example output:
@@ -44,90 +28,138 @@ Example output:
 }
 ----
 
-You can disable this `InfoContributor` by setting `management.info.leader.enabled`
+You can disable this `InfoContributor` by setting `management.info.leader.election.enabled`
 to `false` in `application.[properties | yaml]`:
 
 [source,properties]
 ----
-management.info.leader.enabled=false
+management.info.leader.election.enabled=false
+----
 
-'''
-
-There is another way you can configure leader election, and it comes with native support in the fabric8 library (k8s native client support is not yet implemented). In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDK's "preview" features.
-
-To be able to use it, you need to set the property:
+To enable or disable leader election globally, you can use the following property:
 
 [source]
 ----
 spring.cloud.kubernetes.leader.election.enabled=true
 ----
 
-Unlike the old implementation, this one will use either the `Lease` _or_ `ConfigMap` as the lock, depending on your cluster version. You can force using configMap still, even if leases are supported, via :
+The Spring Cloud Kubernetes leader election mechanism uses a Kubernetes `Lease` when the cluster supports it,
+and falls back to a `ConfigMap` otherwise. Even when `Lease` is supported, you can explicitly force the use of
+a `ConfigMap` via configuration:
 
 [source]
 ----
 spring.cloud.kubernetes.leader.election.use-config-map-as-lock=true
 ----
 
-The name of that `Lease` or `ConfigMap` can be defined using the property (default value is `spring-k8s-leader-election-lock`):
+The name of the `Lease` or `ConfigMap` can be configured using the following property
+(the default value is `spring-k8s-leader-election-lock`):
 
 [source]
 ----
 spring.cloud.kubernetes.leader.election.lockName=other-name
 ----
 
-The namespace where the lock is created (`default` being set if no explicit one exists) can be set also:
+The namespace where the lock is created (`default` is used if none is explicitly set)
+can also be configured:
 
 [source]
 ----
 spring.cloud.kubernetes.leader.election.lockNamespace=other-namespace
 ----
 
-Before the leader election process kicks in, you can wait until the pod is ready (via the readiness check). This is enabled by default, but you can disable it if needed:
+Before the leader election process starts, the application can wait until the pod is ready
+(via the readiness check). This behavior is enabled by default, but can be disabled if needed:
 
 [source]
 ----
 spring.cloud.kubernetes.leader.election.waitForPodReady=false
 ----
 
-Like with the old implementation, we will publish events by default, but this can be disabled:
+As with the previous implementation, leader election events are published by default,
+but this behavior can be disabled:
 
 [source]
 ----
 spring.cloud.kubernetes.leader.election.publishEvents=false
 ----
 
-There are a few parameters that control how the leader election process will happen. To explain them, we need to look at the high-level implementation of this process. All the candidate pods try to become the leader, or they try to _acquire_ the lock. If the lock is already taken, they will continue to retry to acquire it every `spring.cloud.kubernetes.leader.election.retryPeriod` (value is specified as `java.time.Duration`, and by default it is 2 seconds).
+Several parameters control how the leader election process operates. At a high level,
+all candidate pods attempt to become the leader by trying to _acquire_ the lock. If the lock
+is already held, they will retry acquisition every
+`spring.cloud.kubernetes.leader.election.retryPeriod`
+(specified as a `java.time.Duration`, with a default of 2 seconds).
 
-If the lock is not taken, current pod becomes the leader. It does so by inserting a so-called "record" into the lock (`Lease` or `ConfigMap`). Among the things that the "record" contains, is the `leaseDuration` (that you can specify via `spring.cloud.kubernetes.leader.election.leaseDuration`; by default it is 15 seconds and is of type `java.time.Duration`). This acts like a TTL on the lock: no other candidate can acquire the lock, unless this period has expired (from the last renewal time).
+If the lock is not held, the current pod becomes the leader by writing a "record" into the lock
+(`Lease` or `ConfigMap`). Among other fields, this record contains `leaseDuration`
+(configured via `spring.cloud.kubernetes.leader.election.leaseDuration`, defaulting to 15 seconds,
+type `java.time.Duration`). This value acts as a TTL for the lock: no other pod can acquire it
+until this duration has expired since the last renewal.
 
-Once a certain pod establishes itself as the leader (by acquiring the lock), it will continuously (every `spring.cloud.kubernetes.leader.election.retryPeriod`) try to renew its lease, or in other words: it will try to extend its leadership. When a renewal happens, the "record" that is stored inside the lock, is updated. For example, `renewTime` is updated inside the record, to denote when the last renewal happened. (You can always peek inside these fields by using `kubectl describe lease...` for example).
+Once a pod becomes the leader, it periodically (every `retryPeriod`) attempts to renew its
+leadership. On each successful renewal, the record stored in the lock is updated, including the
+`renewTime` field. These values can be inspected using tools such as
+`kubectl describe lease ...`.
 
-Renewal must happen within a certain interval, specified by `spring.cloud.kubernetes.leader.election.renewDeadline`. By default, it is equal to 10 seconds, and it means that the leader pod has a maximum of 10 seconds to renew its leadership. If that does not happen, this pod loses its leadership and leader election starts again. Because other pods try to become leaders every 2 seconds (by default), it could mean that the pod that just lost leadership, will become leader again. If you want other pods to have a higher chance of becoming leaders, you can set the property (specified in seconds, by default it is 3) :
+Renewal must occur within the interval specified by
+`spring.cloud.kubernetes.leader.election.renewDeadline`
+(default 10 seconds). If the leader fails to renew within this interval, it loses leadership
+and a new leader election cycle begins. Because follower pods attempt acquisition every
+`retryPeriod`, the same pod may immediately regain leadership.
+
+To give other pods a better chance of becoming leader after a renewal failure, you can configure
+the following property (specified as a `Duration`, defaulting to 3 seconds):
 
 [source]
 ----
-spring.cloud.kubernetes.leader.election.wait-after-renewal-failure=3
+spring.cloud.kubernetes.leader.election.wait-after-renewal-failure=3s
 ----
 
-This will mean that the pod (that could not renew its lease) and lost leadership, will wait this many seconds, before trying to become leader again.
+This setting causes a pod that lost leadership due to a renewal failure to wait before attempting
+to reacquire leadership.
 
-Let's try to explain these settings based on an example: there are two pods that participate in leader election. For simplicity let's call them `podA` and `podB`. They both start at the same time: `12:00:00`, but `podA` establishes itself as the leader. This means that every two seconds (`retryPeriod`), `podB` will try to become the new leader. So at `12:00:02`, then at `12:00:04` and so on, it will basically ask : "Can I become the leader?". In our simplified example, the answer to that question can be answered based on `podA` activity.
+A pod can lose leadership in three ways:
 
-After `podA` has become the leader, at every 2 seconds, it will try to "extend" or _renew_ its leadership. So at `12:00:02`, then at `12:00:04` and so on, `podA` goes to the lock and updates its record to reflect that it is still the leader. Between the last successful renewal and the next one, it has exactly 10 seconds (`renewalDeadline`). If it fails to renew its leadership (there is a connection problem or a big GC pause, etc.) within those 10 seconds, it stops leading and `podB` can acquire the leadership now. When `podA` stops being a leader in a graceful way, the lock record is "cleared", basically meaning that `podB` can acquire leadership immediately.
+- During a graceful application shutdown, in which case all leader election resources are cleaned up.
 
-A different story happens when `podA` dies with an OutOfMemory for example, without being able to gracefully update lock record and this is when `leaseDuration` argument matters. The easiest way to explain is via an example:
+- When leadership is voluntarily relinquished without an exception; in this case, the pod will attempt to acquire leadership again.
 
-`podA` has renewed its leadership at `12:00:04`, but at `12:00:05` it has been killed by the OOMKiller. At `12:00:06`, `podB` will try to become the leader. It will check if "now" (`12:00:06`) is _after_ last renewal + lease duration, essentially it will check:
+- When an exception occurs during leadership. If
 
 [source]
 ----
-12:00:06 > (12:00:04 + 00:00:10)
+spring.cloud.kubernetes.leader.election.restart-on-failure
 ----
 
-The condition is not fulfilled, so it can't become the leader. Same result will be at `12:00:08`, `12:00:10` and so on, until `12:00:16` and this is where the TTL (`leaseDuration`) of the lock will expire and `podB` can acquire it. As such, a lower value of `leaseDuration` will mean a faster acquiring of leadership by other pods.
+is set to `true`, the pod will attempt to rejoin the leader election process. Otherwise, the
+exception is logged and the pod will not participate in leader election again.
 
-You might have to give proper RBAC to be able to use this functionality, for example:
+To illustrate these settings, consider two pods participating in leader election: `podA` and
+`podB`. Both start at `12:00:00`, and `podA` becomes the leader. Every two seconds (`retryPeriod`),
+`podB` attempts to acquire leadership by checking the state of the lock.
+
+After `podA` becomes the leader, it renews its leadership every two seconds by updating the lock
+record. The time between the last successful renewal and the next must not exceed the
+`renewDeadline` (10 seconds by default). If `podA` fails to renew within this window (for example,
+due to a long GC pause or a connectivity issue), it loses leadership and `podB` can acquire it.
+If leadership is relinquished gracefully, the lock is cleared and `podB` can acquire leadership
+immediately.
+
+A different scenario occurs if `podA` terminates abruptly (for example, due to an OOM kill)
+without clearing the lock. Suppose `podA` renews leadership at `12:00:04` and is killed at
+`12:00:05`. At `12:00:06`, `podB` attempts to acquire leadership and checks whether the current
+time is after the last renewal plus the `leaseDuration`:
+
+[source]
+----
+12:00:06 > (12:00:04 + 00:00:15)
+----
+
+This condition is false, so leadership cannot be acquired. The same check will fail until the
+lease expires, at which point `podB` can acquire leadership. A lower `leaseDuration` therefore
+results in faster leadership takeover after abrupt failures.
+
+You may need to configure appropriate RBAC permissions to use leader election, for example:
 
 [source]
 ----
