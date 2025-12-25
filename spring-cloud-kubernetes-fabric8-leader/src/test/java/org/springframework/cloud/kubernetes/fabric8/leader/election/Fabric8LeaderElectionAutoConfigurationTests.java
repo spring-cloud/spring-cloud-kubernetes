@@ -29,7 +29,7 @@ import org.springframework.cloud.kubernetes.fabric8.leader.Fabric8LeaderAutoConf
  *
  * @author wind57
  */
-class Fabric8LeaderAutoConfigurationTests {
+class Fabric8LeaderElectionAutoConfigurationTests {
 
 	/**
 	 * <pre>

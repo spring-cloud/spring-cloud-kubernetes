@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
-	<name>Spring Cloud Kubernetes :: Leader</name>
+	<name>Fabric8 Spring Cloud Kubernetes :: Leader</name>
 
 	<dependencies>
 		<dependency>
