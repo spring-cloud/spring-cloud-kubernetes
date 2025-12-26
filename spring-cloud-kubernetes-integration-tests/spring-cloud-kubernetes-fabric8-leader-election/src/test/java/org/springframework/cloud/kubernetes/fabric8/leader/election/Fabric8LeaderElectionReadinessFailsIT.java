@@ -36,12 +36,14 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 		properties = { "readiness.fails=true", "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
 class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 
+	private static final String NAME = "readiness-fails-it";
+
 	@Autowired
 	private Fabric8LeaderElectionInitiator initiator;
 
 	@BeforeAll
 	static void beforeAll() {
-		AbstractLeaderElection.beforeAll("readiness-fails-simple-it");
+		AbstractLeaderElection.beforeAll(NAME);
 	}
 
 	@AfterEach
@@ -59,7 +61,7 @@ class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 
 		// we do not start leader election at all
 		awaitUntil(60, 1000, () -> output.getOut()
-			.contains("readiness failed for : " + "readiness-fails-simple-it, leader election will not start"));
+			.contains("readiness failed for : " + NAME + ", leader election will not start"));
 
 		// let's unwind some logs to see that the process is how we expect it to be
 
@@ -67,35 +69,35 @@ class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 		assertThat(output.getOut()).contains("will use lease as the lock for leader election");
 
 		// 2. leader initiator is started
-		assertThat(output.getOut()).contains("starting leader initiator : readiness-fails-simple-it");
+		assertThat(output.getOut()).contains("starting leader initiator : " + NAME);
 
 		// 3. wait for when pod is ready (we mock this one)
-		assertThat(output.getOut()).contains("will wait until pod readiness-fails-simple-it is ready");
+		assertThat(output.getOut()).contains("will wait until pod " + NAME + " is ready");
 
 		// 4. we run readiness check in podReadyExecutor
 		assertThat(output.getOut()).contains("Scheduling command to run in : podReadyExecutor");
 
 		// 5. pod fails on the first two attempts
 		assertThat(output.getOut())
-			.contains("Pod : readiness-fails-simple-it in namespace : default is not ready, will retry in one second");
+			.contains("Pod : " + NAME + " in namespace : default is not ready, will retry in one second");
 
 		// 6. readiness fails
-		assertThat(output.getOut()).contains("exception waiting for pod : readiness-fails-simple-it");
+		assertThat(output.getOut()).contains("exception waiting for pod : " + NAME);
 
 		// 7. readiness failed
 		assertThat(output.getOut())
-			.contains("pod readiness for : readiness-fails-simple-it failed with : readiness fails");
+			.contains("pod readiness for : " + NAME + " failed with : readiness fails");
 
 		// 8. we shut down the executor
 		assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 
 		// 9. leader election did not even start properly
 		assertThat(output.getOut())
-			.contains("pod readiness for : readiness-fails-simple-it failed with : readiness fails");
+			.contains("pod readiness for : " + NAME + " failed with : readiness fails");
 
 		// 10. executor is shutdown, even when readiness failed
 		awaitUntil(60, 100, () -> output.getOut()
-			.contains("readiness failed for : " + "readiness-fails-simple-it, leader election will not start"));
+			.contains("readiness failed for : " + NAME + ", leader election will not start"));
 
 	}
 
