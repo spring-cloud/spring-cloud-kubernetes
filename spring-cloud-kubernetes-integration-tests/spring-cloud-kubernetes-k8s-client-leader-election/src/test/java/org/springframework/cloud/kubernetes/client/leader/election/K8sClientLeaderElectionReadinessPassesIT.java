@@ -37,7 +37,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 
 @TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
 	"readiness.passes=true" })
-class K8sClientLeaderElectionSimpleIT extends AbstractLeaderElection {
+class K8sClientLeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 
 	@Autowired
 	private KubernetesClientLeaderElectionInitiator initiator;
