@@ -115,6 +115,7 @@
 
 		<!-- leader election -->
         <module>spring-cloud-kubernetes-fabric8-leader-election</module>
+		<module>spring-cloud-kubernetes-k8s-client-leader-election</module>
 
-    </modules>
+	</modules>
 </project>

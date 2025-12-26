@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.leader.election;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 import io.kubernetes.client.extended.leaderelection.LeaderElectionConfig;
@@ -30,6 +31,7 @@ import io.kubernetes.client.openapi.apis.CustomObjectsApi;
 import io.kubernetes.client.openapi.models.V1APIResource;
 import io.kubernetes.client.openapi.models.V1Pod;
 
+import io.kubernetes.client.openapi.models.V1PodCondition;
 import org.springframework.boot.actuate.autoconfigure.info.ConditionalOnEnabledInfoContributor;
 import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -135,12 +137,28 @@ class KubernetesClientLeaderElectionAutoConfiguration {
 		}
 	}
 
-	private boolean isPodReady(V1Pod pod) {
-		return pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null
-				&& pod.getStatus()
-					.getConditions()
-					.stream()
-					.anyMatch(c -> "Ready".equals(c.getType()) && "True".equals(c.getStatus()));
+	// above two methods are a verbatim copy of the fabric8 implementation
+	private static boolean isPodReady(V1Pod pod) {
+		Objects.requireNonNull(pod, "Pod can't be null.");
+		V1PodCondition condition = getPodReadyCondition(pod);
+
+		if (condition == null) {
+			return false;
+		}
+		return condition.getStatus().equalsIgnoreCase("True");
+	}
+
+	private static V1PodCondition getPodReadyCondition(V1Pod pod) {
+		if (pod.getStatus() == null || pod.getStatus().getConditions() == null) {
+			return null;
+		}
+
+		for (V1PodCondition condition : pod.getStatus().getConditions()) {
+			if ("Ready".equals(condition.getType())) {
+				return condition;
+			}
+		}
+		return null;
 	}
 
 }
