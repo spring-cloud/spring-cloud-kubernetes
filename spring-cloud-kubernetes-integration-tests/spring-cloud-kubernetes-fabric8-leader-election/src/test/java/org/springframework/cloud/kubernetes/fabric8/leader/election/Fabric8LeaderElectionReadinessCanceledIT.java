@@ -36,12 +36,14 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 		"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
 class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 
+	private static final String NAME = "readiness-canceled-it";
+
 	@Autowired
 	private Fabric8LeaderElectionInitiator initiator;
 
 	@BeforeAll
 	static void beforeAll() {
-		AbstractLeaderElection.beforeAll("canceled-readiness-it");
+		AbstractLeaderElection.beforeAll(NAME);
 	}
 
 	@AfterEach
@@ -55,22 +57,22 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 		// we are trying readiness at least once
 		awaitUntil(60, 500, () -> output.getOut()
 			.contains(
-					"Pod : canceled-readiness-it in namespace : " + "default is not ready, will retry in one second"));
+					"Pod : " + NAME + " in namespace : " + "default is not ready, will retry in one second"));
 
 		initiator.preDestroy();
 
 		// 1. preDestroy method logs what it will do
-		assertThat(output.getOut()).contains("podReadyFuture will be canceled for : canceled-readiness-it");
+		assertThat(output.getOut()).contains("podReadyFuture will be canceled for : " + NAME);
 
 		// 2. readiness failed
 		assertThat(output.getOut())
-			.contains("readiness failed for : canceled-readiness-it, leader election will not start");
+			.contains("readiness failed for : " + NAME + ", leader election will not start");
 
 		// 3. will cancel the future that is supposed to do the readiness
 		assertThat(output.getOut()).contains("canceling scheduled future because completable future was cancelled");
 
 		// 4. podReadyWaitingExecutor is shut down also
-		assertThat(output.getOut()).contains("podReadyWaitingExecutor will be shutdown for : canceled-readiness-it");
+		assertThat(output.getOut()).contains("podReadyWaitingExecutor will be shutdown for : " + NAME);
 
 		// 5. the scheduled executor where pod readiness is checked is shut down also
 		awaitUntil(2, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));

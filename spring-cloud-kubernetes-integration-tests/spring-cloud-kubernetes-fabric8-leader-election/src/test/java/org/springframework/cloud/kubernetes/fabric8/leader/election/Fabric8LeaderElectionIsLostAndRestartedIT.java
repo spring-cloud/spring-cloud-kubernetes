@@ -38,7 +38,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 		properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true", "readiness.passes=true" })
 public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderElection {
 
-	private static final String NAME = "drops-than-recovers";
+	private static final String NAME = "leader-lost-then-recovers-it";
 
 	@Autowired
 	private Fabric8LeaderElectionInitiator initiator;
@@ -60,26 +60,26 @@ public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderEle
 
 		// 8. simulate that leadership has changed
 		Lease lease = getLease();
-		lease.getSpec().setHolderIdentity("drops-than-recovers-is-not-the-leader-anymore");
+		lease.getSpec().setHolderIdentity("leader-lost-then-recovers-it-is-not-the-leader-anymore");
 		kubernetesClient.leases().inNamespace("default").resource(lease).update();
 
 		// 9. leader has changed
 		awaitUntil(10, 20, () -> output.getOut()
-			.contains("Leader changed from drops-than-recovers to drops-than-recovers-is-not-the-leader-anymore"));
+			.contains("Leader changed from " + NAME + " to leader-lost-then-recovers-it-is-not-the-leader-anymore"));
 
 		// 10. our onNewLeaderCallback is triggered
 		awaitUntil(10, 20,
-				() -> output.getOut().contains("drops-than-recovers-is-not-the-leader-anymore is the new leader"));
+				() -> output.getOut().contains("leader-lost-then-recovers-it-is-not-the-leader-anymore is the new leader"));
 
 		// 11. our onStopLeading callback is triggered
-		awaitUntil(10, 20, () -> output.getOut().contains("drops-than-recovers stopped being a leader"));
+		awaitUntil(10, 20, () -> output.getOut().contains(NAME + " stopped being a leader"));
 
 		// 12. we gave up on leadership, so we will re-start the process
 		awaitUntil(10, 20, () -> output.getOut()
-			.contains("leaderFuture finished normally, will re-start it for : drops-than-recovers"));
+			.contains("leaderFuture finished normally, will re-start it for : " + NAME));
 
 		int leadershipFinished = output.getOut()
-			.indexOf("leaderFuture finished normally, will re-start it for : drops-than-recovers");
+			.indexOf("leaderFuture finished normally, will re-start it for : " + NAME);
 
 		afterLeadershipRestart(output, leadershipFinished);
 
@@ -92,7 +92,7 @@ public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderEle
 				() -> output.getOut()
 					.substring(leadershipFinished)
 					.contains("Attempting to acquire leader lease 'LeaseLock: "
-							+ "default - spring-k8s-leader-election-lock (drops-than-recovers)"));
+							+ "default - spring-k8s-leader-election-lock (" + NAME + ")"));
 
 		// 14. we can not acquire the new lock, since it did not yet expire
 		// (the new leader is not going to renew it since it's an artificial leader)
@@ -100,22 +100,22 @@ public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderEle
 				() -> output.getOut()
 					.substring(leadershipFinished)
 					.contains("Failed to acquire lease 'LeaseLock: "
-							+ "default - spring-k8s-leader-election-lock (drops-than-recovers)' retrying..."));
+							+ "default - spring-k8s-leader-election-lock (" + NAME + ")' retrying..."));
 
 		// 15. leader is again us
 		awaitUntil(10, 500, () -> output.getOut()
 			.substring(leadershipFinished)
-			.contains("Leader changed from drops-than-recovers-is-not-the-leader-anymore to drops-than-recovers"));
+			.contains("Leader changed from leader-lost-then-recovers-it-is-not-the-leader-anymore to " + NAME));
 
 		// 16. callback is again triggered
 		awaitUntil(10, 500,
 				() -> output.getOut()
 					.substring(leadershipFinished)
-					.contains("id : drops-than-recovers is the new leader"));
+					.contains("id : " + NAME + " is the new leader"));
 
 		// 17. the other callback is triggered also
 		awaitUntil(10, 500,
-				() -> output.getOut().substring(leadershipFinished).contains("drops-than-recovers is now a leader"));
+				() -> output.getOut().substring(leadershipFinished).contains(NAME + " is now a leader"));
 	}
 
 }

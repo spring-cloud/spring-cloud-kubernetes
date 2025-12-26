@@ -39,7 +39,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
 class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElection {
 
-	private static final String NAME = "acquired-then-canceled";
+	private static final String NAME = "leader-acquired-then-canceled-it";
 
 	@Autowired
 	private Fabric8LeaderElectionInitiator initiator;

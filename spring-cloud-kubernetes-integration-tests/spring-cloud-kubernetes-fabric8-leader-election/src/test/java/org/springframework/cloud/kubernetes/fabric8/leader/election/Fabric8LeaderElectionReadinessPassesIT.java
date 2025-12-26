@@ -40,7 +40,7 @@ class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 	@Autowired
 	private Fabric8LeaderElectionInitiator initiator;
 
-	private static final String NAME = "readiness-passes-simple-it";
+	private static final String NAME = "readiness-passes-it";
 
 	@BeforeAll
 	static void beforeAll() {
@@ -71,10 +71,10 @@ class Fabric8LeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 		awaitUntil(60, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
 		// 10. pod is now ready
-		assertThat(output.getOut()).contains("readiness-passes-simple-it is ready");
+		assertThat(output.getOut()).contains(NAME + " is ready");
 
 		// 11. we are the leader
-		assertThat(output.getOut()).contains("Leader changed from null to readiness-passes-simple-it");
+		assertThat(output.getOut()).contains("Leader changed from null to " + NAME);
 	}
 
 }
