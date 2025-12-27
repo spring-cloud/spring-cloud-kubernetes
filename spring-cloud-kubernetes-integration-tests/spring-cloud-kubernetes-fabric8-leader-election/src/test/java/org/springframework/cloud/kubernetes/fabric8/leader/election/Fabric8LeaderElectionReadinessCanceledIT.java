@@ -56,8 +56,7 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 
 		// we are trying readiness at least once
 		awaitUntil(60, 500, () -> output.getOut()
-			.contains(
-					"Pod : " + NAME + " in namespace : " + "default is not ready, will retry in one second"));
+			.contains("Pod : " + NAME + " in namespace : " + "default is not ready, will retry in one second"));
 
 		initiator.preDestroy();
 
@@ -65,8 +64,7 @@ class Fabric8LeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 		assertThat(output.getOut()).contains("podReadyFuture will be canceled for : " + NAME);
 
 		// 2. readiness failed
-		assertThat(output.getOut())
-			.contains("readiness failed for : " + NAME + ", leader election will not start");
+		assertThat(output.getOut()).contains("readiness failed for : " + NAME + ", leader election will not start");
 
 		// 3. will cancel the future that is supposed to do the readiness
 		assertThat(output.getOut()).contains("canceling scheduled future because completable future was cancelled");

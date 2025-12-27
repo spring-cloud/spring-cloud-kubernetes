@@ -60,8 +60,8 @@ class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 	void test(CapturedOutput output) {
 
 		// we do not start leader election at all
-		awaitUntil(60, 1000, () -> output.getOut()
-			.contains("readiness failed for : " + NAME + ", leader election will not start"));
+		awaitUntil(60, 1000,
+				() -> output.getOut().contains("readiness failed for : " + NAME + ", leader election will not start"));
 
 		// let's unwind some logs to see that the process is how we expect it to be
 
@@ -85,19 +85,17 @@ class Fabric8LeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 		assertThat(output.getOut()).contains("exception waiting for pod : " + NAME);
 
 		// 7. readiness failed
-		assertThat(output.getOut())
-			.contains("pod readiness for : " + NAME + " failed with : readiness fails");
+		assertThat(output.getOut()).contains("pod readiness for : " + NAME + " failed with : readiness fails");
 
 		// 8. we shut down the executor
 		assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 
 		// 9. leader election did not even start properly
-		assertThat(output.getOut())
-			.contains("pod readiness for : " + NAME + " failed with : readiness fails");
+		assertThat(output.getOut()).contains("pod readiness for : " + NAME + " failed with : readiness fails");
 
 		// 10. executor is shutdown, even when readiness failed
-		awaitUntil(60, 100, () -> output.getOut()
-			.contains("readiness failed for : " + NAME + ", leader election will not start"));
+		awaitUntil(60, 100,
+				() -> output.getOut().contains("readiness failed for : " + NAME + ", leader election will not start"));
 
 	}
 

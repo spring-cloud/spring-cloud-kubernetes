@@ -53,13 +53,6 @@ final class KubernetesClientPodLabelsAndAnnotationsSupplier implements Function<
 		return new KubernetesClientPodLabelsAndAnnotationsSupplier(coreV1Api, namespace);
 	}
 
-	/**
-	 * to be used when .spec.type of the Service is == 'ExternalName'.
-	 */
-	static KubernetesClientPodLabelsAndAnnotationsSupplier externalName() {
-		return new KubernetesClientPodLabelsAndAnnotationsSupplier(null, null);
-	}
-
 	@Override
 	public PodLabelsAndAnnotations apply(String podName) {
 

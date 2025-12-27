@@ -68,15 +68,15 @@ public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderEle
 			.contains("Leader changed from " + NAME + " to leader-lost-then-recovers-it-is-not-the-leader-anymore"));
 
 		// 10. our onNewLeaderCallback is triggered
-		awaitUntil(10, 20,
-				() -> output.getOut().contains("leader-lost-then-recovers-it-is-not-the-leader-anymore is the new leader"));
+		awaitUntil(10, 20, () -> output.getOut()
+			.contains("leader-lost-then-recovers-it-is-not-the-leader-anymore is the new leader"));
 
 		// 11. our onStopLeading callback is triggered
 		awaitUntil(10, 20, () -> output.getOut().contains(NAME + " stopped being a leader"));
 
 		// 12. we gave up on leadership, so we will re-start the process
-		awaitUntil(10, 20, () -> output.getOut()
-			.contains("leaderFuture finished normally, will re-start it for : " + NAME));
+		awaitUntil(10, 20,
+				() -> output.getOut().contains("leaderFuture finished normally, will re-start it for : " + NAME));
 
 		int leadershipFinished = output.getOut()
 			.indexOf("leaderFuture finished normally, will re-start it for : " + NAME);
@@ -99,23 +99,21 @@ public class Fabric8LeaderElectionIsLostAndRestartedIT extends AbstractLeaderEle
 		awaitUntil(10, 20,
 				() -> output.getOut()
 					.substring(leadershipFinished)
-					.contains("Failed to acquire lease 'LeaseLock: "
-							+ "default - spring-k8s-leader-election-lock (" + NAME + ")' retrying..."));
+					.contains("Failed to acquire lease 'LeaseLock: " + "default - spring-k8s-leader-election-lock ("
+							+ NAME + ")' retrying..."));
 
 		// 15. leader is again us
-		awaitUntil(10, 500, () -> output.getOut()
-			.substring(leadershipFinished)
-			.contains("Leader changed from leader-lost-then-recovers-it-is-not-the-leader-anymore to " + NAME));
-
-		// 16. callback is again triggered
 		awaitUntil(10, 500,
 				() -> output.getOut()
 					.substring(leadershipFinished)
-					.contains("id : " + NAME + " is the new leader"));
+					.contains("Leader changed from leader-lost-then-recovers-it-is-not-the-leader-anymore to " + NAME));
+
+		// 16. callback is again triggered
+		awaitUntil(10, 500,
+				() -> output.getOut().substring(leadershipFinished).contains("id : " + NAME + " is the new leader"));
 
 		// 17. the other callback is triggered also
-		awaitUntil(10, 500,
-				() -> output.getOut().substring(leadershipFinished).contains(NAME + " is now a leader"));
+		awaitUntil(10, 500, () -> output.getOut().substring(leadershipFinished).contains(NAME + " is now a leader"));
 	}
 
 }
