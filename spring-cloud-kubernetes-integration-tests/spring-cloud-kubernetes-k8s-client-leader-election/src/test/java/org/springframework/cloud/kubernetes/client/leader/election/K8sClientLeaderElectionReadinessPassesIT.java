@@ -42,7 +42,7 @@ class K8sClientLeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 	@Autowired
 	private KubernetesClientLeaderElectionInitiator initiator;
 
-	private static final String NAME = "simple-it";
+	private static final String NAME = "readiness-passes-it";
 
 	@BeforeAll
 	static void beforeAll() {
@@ -51,7 +51,7 @@ class K8sClientLeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 
 	@AfterEach
 	void afterEach() {
-		stopLeaderAndDeleteLease(initiator);
+		stopLeaderAndDeleteLease(initiator, true);
 	}
 
 	/**
@@ -65,12 +65,17 @@ class K8sClientLeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 	void test(CapturedOutput output) {
 
 		awaitUntil(10, 100, () -> output.getOut()
-			.contains("Pod : simple-it in namespace : default is not ready, will retry in one second"));
-		awaitUntil(10, 100, () -> output.getOut().contains("Pod : simple-it in namespace : default is ready"));
-		awaitUntil(10, 100, () -> output.getOut().contains("simple-it is ready"));
+			.contains("Pod : " + NAME + " in namespace : default is not ready, will retry in one second"));
+		awaitUntil(10, 100, () -> output.getOut().contains("Pod : " + NAME + " in namespace : default is ready"));
+		awaitUntil(10, 100, () -> output.getOut().contains(NAME + " is ready"));
 		awaitUntil(10, 100, () -> output.getOut().contains("canceling scheduled future because readiness succeeded"));
 
 		assertAcquireAndRenew(output, this::getLease, NAME);
+
+		// comes from the callback, where we post the spring lifecycle event
+		awaitUntil(5, 100, () -> output.getOut().contains(NAME + " is the new leader"));
+
+		awaitUntil(60, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 	}
 
 }

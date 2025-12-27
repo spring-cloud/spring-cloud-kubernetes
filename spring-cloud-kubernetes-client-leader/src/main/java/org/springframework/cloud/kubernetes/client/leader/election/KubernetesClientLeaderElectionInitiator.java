@@ -142,6 +142,8 @@ final class KubernetesClientLeaderElectionInitiator {
 
 	private void startLeaderElection() {
 
+		LOG.info(() -> "starting leader initiator : " + candidateIdentity);
+
 		boolean failedDuringStartup = false;
 		leaderElector = new LeaderElector(leaderElectionConfig);
 		try {

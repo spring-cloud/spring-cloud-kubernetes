@@ -84,15 +84,17 @@ abstract class AbstractLeaderElection {
 		LEADER_UTILS_MOCKED_STATIC.close();
 	}
 
-	void stopLeaderAndDeleteLease(KubernetesClientLeaderElectionInitiator initiator) {
+	void stopLeaderAndDeleteLease(KubernetesClientLeaderElectionInitiator initiator, boolean deleteLease) {
 		initiator.preDestroy();
 
-		CoordinationV1Api api = new CoordinationV1Api(apiClient);
+		if (deleteLease) {
+			CoordinationV1Api api = new CoordinationV1Api(apiClient);
 
-		try {
-			api.deleteNamespacedLease("spring-k8s-leader-election-lock", "default").execute();
-		} catch (ApiException e) {
-			throw new RuntimeException(e);
+			try {
+				api.deleteNamespacedLease("spring-k8s-leader-election-lock", "default").execute();
+			} catch (ApiException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
@@ -100,6 +102,15 @@ abstract class AbstractLeaderElection {
 		CoordinationV1Api api = new CoordinationV1Api(apiClient);
 		try {
 			return api.readNamespacedLease("spring-k8s-leader-election-lock", "default").execute();
+		} catch (ApiException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	V1Lease updateLease(V1Lease lease) {
+		CoordinationV1Api api = new CoordinationV1Api(apiClient);
+		try {
+			return api.replaceNamespacedLease("spring-k8s-leader-election-lock", "default", lease).execute();
 		} catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
