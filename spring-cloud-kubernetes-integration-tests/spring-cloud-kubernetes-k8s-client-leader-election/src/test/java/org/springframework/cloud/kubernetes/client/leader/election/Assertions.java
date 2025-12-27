@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.kubernetes.client.leader.election;
 
-import io.kubernetes.client.openapi.models.V1Lease;
-import org.springframework.boot.test.system.CapturedOutput;
-
 import java.time.OffsetDateTime;
 import java.util.function.Supplier;
+
+import io.kubernetes.client.openapi.models.V1Lease;
+
+import org.springframework.boot.test.system.CapturedOutput;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
@@ -37,7 +38,8 @@ final class Assertions {
 	/**
 	 * lease was acquired and we renewed it, at least once.
 	 */
-	static void assertAcquireAndRenew(CapturedOutput output, Supplier<V1Lease> leaseSupplier, String candidateIdentity) {
+	static void assertAcquireAndRenew(CapturedOutput output, Supplier<V1Lease> leaseSupplier,
+			String candidateIdentity) {
 		// we have become the leader
 		awaitUntil(60, 100, () -> output.getOut().contains(candidateIdentity + " is the new leader"));
 
@@ -50,20 +52,15 @@ final class Assertions {
 		awaitUntil(5, 100, () -> output.getOut().contains("starting leader initiator : " + candidateIdentity));
 
 		// 3. start leader election with the configured lock
-		awaitUntil(10, 100, () -> output.getOut().contains(
-			"Start leader election with lock default/spring-k8s-leader-election-lock"));
+		awaitUntil(10, 100, () -> output.getOut()
+			.contains("Start leader election with lock default/spring-k8s-leader-election-lock"));
 
 		// 4. we try to acquire the lease
 		awaitUntil(5, 100, () -> output.getOut().contains("Attempting to acquire leader lease"));
 
 		// 5. lease has been acquired
-		awaitUntil(5, 100, () -> output.getOut().contains("LeaderElection lock is currently held by " + candidateIdentity));
-
-		try {
-			Thread.sleep(5_000);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+		awaitUntil(5, 100,
+				() -> output.getOut().contains("LeaderElection lock is currently held by " + candidateIdentity));
 
 		// 6. we are the leader
 		awaitUntil(10, 100, () -> output.getOut().contains("Successfully acquired lease, became leader"));

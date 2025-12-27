@@ -18,23 +18,19 @@ package org.springframework.cloud.kubernetes.client.leader.election;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
-import io.fabric8.kubernetes.api.model.coordination.v1.Lease;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoordinationV1Api;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1DeleteOptions;
 import io.kubernetes.client.openapi.models.V1Lease;
-import io.kubernetes.client.openapi.models.V1Status;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -46,21 +42,20 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
-import org.testcontainers.k3s.K3sContainer;
 
 /**
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
-		"spring.cloud.kubernetes.leader.election.lease-duration=6s",
-		"spring.cloud.kubernetes.leader.election.renew-deadline=5s",
-		"logging.level.org.springframework.cloud.kubernetes.commons.leader.election=debug",
-		"logging.level.org.springframework.cloud.kubernetes.client.leader.election=debug",
-		"logging.level.io.kubernetes.client.extended.leaderelection=debug" },
-	classes = { App.class, AbstractLeaderElection.TestConfig.class,
-		AbstractLeaderElection.PodReadyTestConfiguration.class })
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.leader.election.enabled=true",
+				"spring.cloud.kubernetes.leader.election.lease-duration=6s",
+				"spring.cloud.kubernetes.leader.election.renew-deadline=5s",
+				"logging.level.org.springframework.cloud.kubernetes.commons.leader.election=debug",
+				"logging.level.org.springframework.cloud.kubernetes.client.leader.election=debug",
+				"logging.level.io.kubernetes.client.extended.leaderelection=debug" },
+		classes = { App.class, AbstractLeaderElection.TestConfig.class,
+				AbstractLeaderElection.PodReadyTestConfiguration.class })
 @DirtiesContext
 abstract class AbstractLeaderElection {
 
@@ -92,7 +87,8 @@ abstract class AbstractLeaderElection {
 
 			try {
 				api.deleteNamespacedLease("spring-k8s-leader-election-lock", "default").execute();
-			} catch (ApiException e) {
+			}
+			catch (ApiException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -102,7 +98,8 @@ abstract class AbstractLeaderElection {
 		CoordinationV1Api api = new CoordinationV1Api(apiClient);
 		try {
 			return api.readNamespacedLease("spring-k8s-leader-election-lock", "default").execute();
-		} catch (ApiException e) {
+		}
+		catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -111,7 +108,8 @@ abstract class AbstractLeaderElection {
 		CoordinationV1Api api = new CoordinationV1Api(apiClient);
 		try {
 			return api.replaceNamespacedLease("spring-k8s-leader-election-lock", "default", lease).execute();
-		} catch (ApiException e) {
+		}
+		catch (ApiException e) {
 			throw new RuntimeException(e);
 		}
 	}

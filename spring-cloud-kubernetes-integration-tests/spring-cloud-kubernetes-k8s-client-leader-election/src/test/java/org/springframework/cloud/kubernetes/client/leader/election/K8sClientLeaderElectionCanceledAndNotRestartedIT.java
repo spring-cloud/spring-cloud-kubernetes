@@ -30,7 +30,7 @@ import org.springframework.test.context.TestPropertySource;
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
-	"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
+		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
 class K8sClientLeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElection {
 
 	private static final String NAME = "acquired-then-canceled";

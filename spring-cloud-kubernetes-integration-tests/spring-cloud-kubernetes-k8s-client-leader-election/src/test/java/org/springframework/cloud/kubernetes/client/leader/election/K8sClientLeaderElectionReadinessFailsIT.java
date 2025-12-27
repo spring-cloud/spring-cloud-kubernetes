@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.leader.election;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
@@ -32,7 +33,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  * @author wind57
  */
 @TestPropertySource(
-	properties = { "readiness.fails=true", "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
+		properties = { "readiness.fails=true", "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
 class K8sClientLeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 
 	private static final String NAME = "readiness-fails-it";
@@ -59,8 +60,8 @@ class K8sClientLeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 	void test(CapturedOutput output) {
 
 		// we do not start leader election at all
-		awaitUntil(60, 1000, () -> output.getOut()
-			.contains("readiness failed for : " + NAME + ", leader election will not start"));
+		awaitUntil(60, 1000,
+				() -> output.getOut().contains("readiness failed for : " + NAME + ", leader election will not start"));
 
 		// 1. lease is used as the lock (comes from our code)
 		assertThat(output.getOut()).contains("will use lease as the lock for leader election");
@@ -82,19 +83,17 @@ class K8sClientLeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 		assertThat(output.getOut()).contains("exception waiting for pod : " + NAME);
 
 		// 7. readiness failed
-		assertThat(output.getOut())
-			.contains("pod readiness for : " + NAME + " failed with : readiness fails");
+		assertThat(output.getOut()).contains("pod readiness for : " + NAME + " failed with : readiness fails");
 
 		// 8. we shut down the executor
 		assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 
 		// 9. leader election did not even start properly
-		assertThat(output.getOut())
-			.contains("pod readiness for : " + NAME + " failed with : readiness fails");
+		assertThat(output.getOut()).contains("pod readiness for : " + NAME + " failed with : readiness fails");
 
 		// 10. executor is shutdown, even when readiness failed
-		awaitUntil(60, 100, () -> output.getOut()
-			.contains("readiness failed for : " + NAME + ", leader election will not start"));
+		awaitUntil(60, 100,
+				() -> output.getOut().contains("readiness failed for : " + NAME + ", leader election will not start"));
 
 	}
 

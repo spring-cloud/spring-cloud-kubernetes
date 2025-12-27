@@ -27,7 +27,6 @@ import org.springframework.test.context.TestPropertySource;
 import static org.springframework.cloud.kubernetes.client.leader.election.Assertions.assertAcquireAndRenew;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
-
 /**
  * A simple test where we are the sole participant in the leader election and everything
  * goes fine from start to end. It's a happy path scenario test.
@@ -35,8 +34,8 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  * @author wind57
  */
 
-@TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
-	"readiness.passes=true" })
+@TestPropertySource(
+		properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true", "readiness.passes=true" })
 class K8sClientLeaderElectionReadinessPassesIT extends AbstractLeaderElection {
 
 	@Autowired

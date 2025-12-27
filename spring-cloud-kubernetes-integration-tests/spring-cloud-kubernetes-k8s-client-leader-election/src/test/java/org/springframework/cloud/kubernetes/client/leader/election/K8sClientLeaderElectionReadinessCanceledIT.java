@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.leader.election;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
@@ -32,7 +33,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  * @author wind57
  */
 @TestPropertySource(properties = { "readiness.never.finishes=true",
-	"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
+		"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true" })
 class K8sClientLeaderElectionReadinessCanceledIT extends AbstractLeaderElection {
 
 	private static final String NAME = "readiness-canceled-it";
@@ -55,8 +56,7 @@ class K8sClientLeaderElectionReadinessCanceledIT extends AbstractLeaderElection 
 
 		// we are trying readiness at least once
 		awaitUntil(60, 500, () -> output.getOut()
-			.contains(
-				"Pod : " + NAME + " in namespace : " + "default is not ready, will retry in one second"));
+			.contains("Pod : " + NAME + " in namespace : " + "default is not ready, will retry in one second"));
 
 		initiator.preDestroy();
 
@@ -64,8 +64,7 @@ class K8sClientLeaderElectionReadinessCanceledIT extends AbstractLeaderElection 
 		assertThat(output.getOut()).contains("podReadyFuture will be canceled for : " + NAME);
 
 		// 2. readiness failed
-		assertThat(output.getOut())
-			.contains("readiness failed for : " + NAME + ", leader election will not start");
+		assertThat(output.getOut()).contains("readiness failed for : " + NAME + ", leader election will not start");
 
 		// 3. will cancel the future that is supposed to do the readiness
 		assertThat(output.getOut()).contains("canceling scheduled future because completable future was cancelled");
