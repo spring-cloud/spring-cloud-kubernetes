@@ -121,7 +121,6 @@
 		<module>spring-cloud-starter-kubernetes-client-config</module>
 		<module>spring-cloud-starter-kubernetes-client-loadbalancer</module>
 		<module>spring-cloud-starter-kubernetes-client-all</module>
-		<module>spring-cloud-kubernetes-examples</module>
 		<module>spring-cloud-kubernetes-fabric8-leader</module>
 		<module>spring-cloud-kubernetes-fabric8-istio</module>
 		<module>spring-cloud-kubernetes-controllers</module>
@@ -254,7 +253,6 @@
 						<artifactId>central-publishing-maven-plugin</artifactId>
 						<configuration>
 							<excludeArtifacts>
-								<artifact>spring-cloud-kubernetes-examples</artifact>
 								<artifact>spring-cloud-kubernetes-integration-tests</artifact>
 							</excludeArtifacts>
 						</configuration>
