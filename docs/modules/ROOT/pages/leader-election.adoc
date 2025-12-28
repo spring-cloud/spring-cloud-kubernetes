@@ -53,7 +53,7 @@ management.info.leader.enabled=false
 
 '''
 
-There is another way you can configure leader election, and it comes with native support in the fabric8 library (k8s native client support is not yet implemented). In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDK's "preview" features.
+There is another way you can configure leader election, and it comes with native support in both fabric8 and kubernetes client. In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDK's "preview" features.
 
 To be able to use it, you need to set the property:
 
