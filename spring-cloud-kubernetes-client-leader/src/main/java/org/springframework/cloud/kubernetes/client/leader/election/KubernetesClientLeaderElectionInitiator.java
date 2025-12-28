@@ -62,6 +62,8 @@ final class KubernetesClientLeaderElectionInitiator {
 
 	private volatile CompletableFuture<Void> podReadyFuture;
 
+	private volatile boolean shutDownCalled = false;
+
 	KubernetesClientLeaderElectionInitiator(String candidateIdentity, String candidateNamespace,
 			LeaderElectionConfig leaderElectionConfig, LeaderElectionProperties leaderElectionProperties,
 			BooleanSupplier podReadySupplier, KubernetesClientLeaderElectionCallbacks callbacks) {
@@ -76,6 +78,11 @@ final class KubernetesClientLeaderElectionInitiator {
 				runnable -> new Thread(runnable, "Fabric8LeaderElectionInitiator-" + candidateIdentity));
 
 		this.podReadyRunner = new PodReadyRunner(candidateIdentity, candidateNamespace);
+	}
+
+	// visible for testing only
+	LeaderElector leaderElector() {
+		return leaderElector;
 	}
 
 	/**
@@ -122,6 +129,7 @@ final class KubernetesClientLeaderElectionInitiator {
 	@PreDestroy
 	void preDestroy() {
 		LOG.info(() -> "preDestroy called on the leader initiator : " + candidateIdentity);
+		shutDownCalled = true;
 
 		if (podReadyFuture != null && !podReadyFuture.isDone()) {
 			// if the task is not running, this has no effect.
@@ -148,7 +156,10 @@ final class KubernetesClientLeaderElectionInitiator {
 		leaderElector = new LeaderElector(leaderElectionConfig);
 		try {
 			// this runs in a while(true) loop and every throwable is just logged,
-			// it does not spill over to our code
+			// it does not spill over to our code. It means that 'failedDuringStartup'
+			// can only be true before we enter the while(true) loop. This can be some
+			// basic validations
+			// like not sufficient RBAC, for example.
 			leaderElector.run(callbacks.onStartLeadingCallback(), callbacks.onStopLeadingCallback(),
 					callbacks.onNewLeaderCallback());
 		}
@@ -162,11 +173,20 @@ final class KubernetesClientLeaderElectionInitiator {
 			leaderElector.close();
 		}
 
-		if (!failedDuringStartup) {
-			// as soon as leader election is over, re-start it
-			sleep(leaderElectionProperties);
-			podReadyWaitingExecutor.execute(this::startLeaderElection);
+		if (shutDownCalled) {
+			LOG.debug(() -> "leadership terminated for : " + candidateIdentity);
+			return;
 		}
+
+		if (failedDuringStartup) {
+			LOG.error(() -> "leadership failed during startup for : " + candidateIdentity);
+			return;
+		}
+
+		// as soon as leader election is over, re-start it
+		LOG.debug(() -> "will re-start leader election for : " + candidateIdentity);
+		sleep(leaderElectionProperties);
+		podReadyWaitingExecutor.execute(this::startLeaderElection);
 
 	}
 

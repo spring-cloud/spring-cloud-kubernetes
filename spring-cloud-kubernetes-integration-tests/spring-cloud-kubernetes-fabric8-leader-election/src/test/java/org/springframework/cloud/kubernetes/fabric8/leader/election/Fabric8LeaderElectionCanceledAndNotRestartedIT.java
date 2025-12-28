@@ -66,6 +66,8 @@ class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElect
 		// lease is going to reset
 		awaitUntil(10, 100, () -> getLease().getSpec().getHolderIdentity().isEmpty());
 
+		awaitUntil(10, 100, () -> output.getOut().contains("terminating leadership for : " + NAME));
+
 	}
 
 }

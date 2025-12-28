@@ -31,15 +31,16 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  * <pre>
  *     - we acquire the leadership
  *     - leadership feature fails
+ *     - we retry and acquire it again
  * </pre>
  *
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
 		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
-class K8sClientLeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElection {
+class K8sClientLeaderElectionCompletedExceptionallyAndRestartedIT extends AbstractLeaderElection {
 
-	private static final String NAME = "leader-acquired-then-canceled-it";
+	private static final String NAME = "leader-completed-and-restarted-it";
 
 	@Autowired
 	private KubernetesClientLeaderElectionInitiator initiator;
@@ -59,13 +60,26 @@ class K8sClientLeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderEle
 
 		assertAcquireAndRenew(output, this::getLease, NAME);
 
-		// this will kill leadership and it will not be re-started
-		initiator.preDestroy();
+		// simulate that the lock is released
+		initiator.leaderElector().close();
 
-		awaitUntil(10, 100, () -> output.getOut().contains("leadership terminated for : " + NAME));
+		// from the callback
+		awaitUntil(5, 50, () -> output.getOut().contains("id : " + NAME + " stopped being a leader"));
 
-		awaitUntil(10, 100, () -> output.getOut().contains("Giving up the lock"));
+		awaitUntil(5, 50, () -> output.getOut().contains("will re-start leader election for : " + NAME));
 
+		int afterLeaderFailure = output.getOut().indexOf("will re-start leader election for : " + NAME);
+
+		afterLeaderFailure(afterLeaderFailure, output);
+
+	}
+
+	private void afterLeaderFailure(int afterLeaderFailure, CapturedOutput output) {
+		awaitUntil(60, 100, () -> output.getOut().substring(afterLeaderFailure).contains(NAME + " is the new leader"));
+		awaitUntil(5, 100, () -> output.getOut().contains("Update lock to renew lease"));
+		awaitUntil(5, 100, () -> output.getOut().contains("TryAcquireOrRenew return success"));
+		awaitUntil(5, 100, () -> output.getOut().contains("Successfully renewed lease"));
+		awaitUntil(5, 100, () -> output.getOut().contains("Update lock to renew lease"));
 	}
 
 }

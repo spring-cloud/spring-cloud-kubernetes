@@ -63,61 +63,37 @@ class K8sClientLeaderElectionIsLostAndRestartedIT extends AbstractLeaderElection
 		lease.getSpec().setHolderIdentity("leader-lost-then-recovers-it-is-not-the-leader-anymore");
 		updateLease(lease);
 
-		// // 9. leader has changed
-		// awaitUntil(10, 20, () -> output.getOut()
-		// .contains("Leader changed from " + NAME + " to
-		// leader-lost-then-recovers-it-is-not-the-leader-anymore"));
-		//
-		// // 10. our onNewLeaderCallback is triggered
-		// awaitUntil(10, 20,
-		// () ->
-		// output.getOut().contains("leader-lost-then-recovers-it-is-not-the-leader-anymore
-		// is the new leader"));
-		//
-		// // 11. our onStopLeading callback is triggered
-		// awaitUntil(10, 20, () -> output.getOut().contains(NAME + " stopped being a
-		// leader"));
-		//
-		// // 12. we gave up on leadership, so we will re-start the process
-		// awaitUntil(10, 20, () -> output.getOut()
-		// .contains("leaderFuture finished normally, will re-start it for : " + NAME));
-		//
-		// int leadershipFinished = output.getOut()
-		// .indexOf("leaderFuture finished normally, will re-start it for : " + NAME);
-		//
-		// afterLeadershipRestart(output, leadershipFinished);
+		// 9. we lost leadership
+		awaitUntil(10, 100, () -> output.getOut().contains("Failed to renew lease, lose leadership"));
+
+		// 10. callback confirms we lost leadership
+		awaitUntil(10, 100, () -> output.getOut().contains("id : " + NAME + " stopped being a leader"));
+
+		// 11. leader has changed
+		awaitUntil(10, 20, () -> output.getOut()
+			.contains(
+					"LeaderElection lock is currently held by leader-lost-then-recovers-it-is-not-the-leader-anymore"));
+
+		// 12. from our callback
+		awaitUntil(10, 100, () -> output.getOut()
+			.contains("id : leader-lost-then-recovers-it-is-not-the-leader-anymore is the new leader"));
+
+		// 13. leadership is restarted for us
+		awaitUntil(10, 100, () -> output.getOut().contains("will re-start leader election for : " + NAME));
+
+		int leadershipFinished = output.getOut().indexOf("will re-start leader election for : " + NAME);
+		afterLeadershipRestart(output, leadershipFinished);
 
 	}
 
 	private void afterLeadershipRestart(CapturedOutput output, int leadershipFinished) {
 
-		// 13. once we start leadership again, we try to acquire the new lock
-		awaitUntil(10, 20,
-				() -> output.getOut()
-					.substring(leadershipFinished)
-					.contains("Attempting to acquire leader lease 'LeaseLock: "
-							+ "default - spring-k8s-leader-election-lock (" + NAME + ")"));
-
-		// 14. we can not acquire the new lock, since it did not yet expire
-		// (the new leader is not going to renew it since it's an artificial leader)
-		awaitUntil(10, 20,
-				() -> output.getOut()
-					.substring(leadershipFinished)
-					.contains("Failed to acquire lease 'LeaseLock: " + "default - spring-k8s-leader-election-lock ("
-							+ NAME + ")' retrying..."));
-
-		// 15. leader is again us
-		awaitUntil(10, 500,
-				() -> output.getOut()
-					.substring(leadershipFinished)
-					.contains("Leader changed from leader-lost-then-recovers-it-is-not-the-leader-anymore to " + NAME));
+		// 14. since the new leader is artificial, renew is not going to happen for it
+		awaitUntil(60, 100, () -> output.getOut().substring(leadershipFinished).contains(NAME + " is the new leader"));
 
 		// 16. callback is again triggered
-		awaitUntil(10, 500,
-				() -> output.getOut().substring(leadershipFinished).contains("id : " + NAME + " is the new leader"));
+		awaitUntil(10, 100, () -> output.getOut().substring(leadershipFinished).contains(NAME + " is now a leader"));
 
-		// 17. the other callback is triggered also
-		awaitUntil(10, 500, () -> output.getOut().substring(leadershipFinished).contains(NAME + " is now a leader"));
 	}
 
 }
