@@ -21,6 +21,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -29,6 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionUtil.HOLDER_IDENTITY;
@@ -40,7 +42,8 @@ import static org.springframework.cloud.kubernetes.client.leader.election.Kubern
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
 				"management.endpoint.info.show-details=always", "spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.main.allow-bean-definition-overriding=true" },
+				"spring.main.allow-bean-definition-overriding=true",
+				"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false" },
 		classes = { KubernetesClientLeaderElectionTestApp.class,
 				KubernetesClientLeaderElectionUtil.ApiClientConfiguration.class })
 @AutoConfigureWebTestClient
@@ -59,7 +62,7 @@ class KubernetesClientLeaderElectionInfoContributorIsNotLeaderTest {
 	@BeforeAll
 	static void beforeAll() {
 		leaderUtilsMockedStatic = Mockito.mockStatic(LeaderUtils.class);
-		leaderUtilsMockedStatic.when(LeaderUtils::hostName).thenReturn(HOLDER_IDENTITY);
+		leaderUtilsMockedStatic.when(LeaderUtils::hostName).thenReturn("non-" + HOLDER_IDENTITY);
 		wireMockServer = wireMockServer();
 	}
 
@@ -72,6 +75,21 @@ class KubernetesClientLeaderElectionInfoContributorIsNotLeaderTest {
 	@AfterEach
 	void afterEach() {
 		WireMock.reset();
+	}
+
+	@Test
+	void infoEndpointIsNotLeaderTest() {
+		webClient.get()
+			.uri("http://localhost:{port}/actuator/info", port)
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("leaderElection.isLeader")
+			.isEqualTo(false)
+			.jsonPath("leaderElection.leaderId")
+			.isEqualTo("non-" + HOLDER_IDENTITY);
 	}
 
 }

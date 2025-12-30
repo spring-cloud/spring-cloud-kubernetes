@@ -75,7 +75,7 @@ final class KubernetesClientLeaderElectionInitiator {
 		this.callbacks = callbacks;
 
 		this.podReadyWaitingExecutor = newSingleThreadExecutor(
-				runnable -> new Thread(runnable, "Fabric8LeaderElectionInitiator-" + candidateIdentity));
+				runnable -> new Thread(runnable, "KubernetesClientLeaderElectionInitiator-" + candidateIdentity));
 
 		this.podReadyRunner = new PodReadyRunner(candidateIdentity, candidateNamespace);
 	}
@@ -150,7 +150,7 @@ final class KubernetesClientLeaderElectionInitiator {
 
 	private void startLeaderElection() {
 
-		LOG.info(() -> "starting leader initiator : " + candidateIdentity);
+		LOG.info(() -> "starting leader election : " + candidateIdentity);
 
 		boolean failedDuringStartup = false;
 		leaderElector = new LeaderElector(leaderElectionConfig);

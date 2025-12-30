@@ -80,7 +80,7 @@ class K8sClientLeaderElectionReadinessCanceledIT extends AbstractLeaderElection 
 		initiator.preDestroy();
 
 		// 6. leader election is not started, since readiness does not finish
-		assertThat(output.getOut()).doesNotContain("starting leader initiator :" + NAME);
+		assertThat(output.getOut()).doesNotContain("starting leader initiator : " + NAME);
 
 	}
 

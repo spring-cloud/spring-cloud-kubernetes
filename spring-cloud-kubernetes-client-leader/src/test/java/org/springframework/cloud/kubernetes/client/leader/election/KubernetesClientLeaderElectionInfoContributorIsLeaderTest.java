@@ -42,7 +42,8 @@ import static org.springframework.cloud.kubernetes.client.leader.election.Kubern
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "management.endpoints.web.exposure.include=info",
 				"management.endpoint.info.show-details=always", "spring.cloud.kubernetes.leader.election.enabled=true",
-				"spring.main.allow-bean-definition-overriding=true" },
+				"spring.main.allow-bean-definition-overriding=true",
+				"spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false" },
 		classes = { KubernetesClientLeaderElectionTestApp.class,
 				KubernetesClientLeaderElectionUtil.ApiClientConfiguration.class })
 @AutoConfigureWebTestClient
@@ -61,7 +62,7 @@ class KubernetesClientLeaderElectionInfoContributorIsLeaderTest {
 	@BeforeAll
 	static void beforeAll() {
 		leaderUtilsMockedStatic = Mockito.mockStatic(LeaderUtils.class);
-		leaderUtilsMockedStatic.when(LeaderUtils::hostName).thenReturn("non-" + HOLDER_IDENTITY);
+		leaderUtilsMockedStatic.when(LeaderUtils::hostName).thenReturn(HOLDER_IDENTITY);
 		wireMockServer = wireMockServer();
 	}
 
@@ -77,7 +78,7 @@ class KubernetesClientLeaderElectionInfoContributorIsLeaderTest {
 	}
 
 	@Test
-	void infoEndpointIsNotLeaderTest() {
+	void infoEndpointIsLeaderTest() {
 		webClient.get()
 			.uri("http://localhost:{port}/actuator/info", port)
 			.accept(MediaType.APPLICATION_JSON)
@@ -86,9 +87,9 @@ class KubernetesClientLeaderElectionInfoContributorIsLeaderTest {
 			.isOk()
 			.expectBody()
 			.jsonPath("leaderElection.isLeader")
-			.isEqualTo(false)
+			.isEqualTo(true)
 			.jsonPath("leaderElection.leaderId")
-			.isEqualTo("non-" + HOLDER_IDENTITY);
+			.isEqualTo(HOLDER_IDENTITY);
 	}
 
 }

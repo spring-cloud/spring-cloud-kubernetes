@@ -82,16 +82,13 @@ class K8sClientLeaderElectionReadinessFailsIT extends AbstractLeaderElection {
 		// 6. readiness fails
 		assertThat(output.getOut()).contains("exception waiting for pod : " + NAME);
 
-		// 7. readiness failed
-		assertThat(output.getOut()).contains("pod readiness for : " + NAME + " failed with : readiness fails");
-
-		// 8. we shut down the executor
+		// 7. we shut down the executor
 		assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
 
-		// 9. leader election did not even start properly
+		// 8. leader election did not even start properly
 		assertThat(output.getOut()).contains("pod readiness for : " + NAME + " failed with : readiness fails");
 
-		// 10. executor is shutdown, even when readiness failed
+		// 9. executor is shutdown, even when readiness failed
 		awaitUntil(60, 100,
 				() -> output.getOut().contains("readiness failed for : " + NAME + ", leader election will not start"));
 
