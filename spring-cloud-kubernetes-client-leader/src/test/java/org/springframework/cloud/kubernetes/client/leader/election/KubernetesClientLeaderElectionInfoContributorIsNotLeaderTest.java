@@ -31,6 +31,7 @@ import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionUtil.HOLDER_IDENTITY;
@@ -47,6 +48,7 @@ import static org.springframework.cloud.kubernetes.client.leader.election.Kubern
 		classes = { KubernetesClientLeaderElectionTestApp.class,
 				KubernetesClientLeaderElectionUtil.ApiClientConfiguration.class })
 @AutoConfigureWebTestClient
+@DirtiesContext
 class KubernetesClientLeaderElectionInfoContributorIsNotLeaderTest {
 
 	@LocalManagementPort
