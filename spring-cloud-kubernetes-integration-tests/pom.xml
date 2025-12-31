@@ -108,13 +108,13 @@
 		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
 
 		<!-- config watcher reload, using kafka and configmap -->
-        <module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</module>
+		<module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</module>
 
 		<!-- config watcher reload, using rabbitmq and secret -->
-        <module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload</module>
+		<module>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload</module>
 
 		<!-- leader election -->
-        <module>spring-cloud-kubernetes-fabric8-leader-election</module>
+		<module>spring-cloud-kubernetes-fabric8-leader-election</module>
 		<module>spring-cloud-kubernetes-k8s-client-leader-election</module>
 
 	</modules>

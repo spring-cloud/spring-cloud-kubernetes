@@ -91,7 +91,7 @@ class K8sClientLeaderElectionIsLostAndRestartedIT extends AbstractLeaderElection
 		// 14. since the new leader is artificial, renew is not going to happen for it
 		awaitUntil(60, 100, () -> output.getOut().substring(leadershipFinished).contains(NAME + " is the new leader"));
 
-		// 16. callback is again triggered
+		// 15. callback is again triggered
 		awaitUntil(10, 100, () -> output.getOut().substring(leadershipFinished).contains(NAME + " is now a leader"));
 
 	}

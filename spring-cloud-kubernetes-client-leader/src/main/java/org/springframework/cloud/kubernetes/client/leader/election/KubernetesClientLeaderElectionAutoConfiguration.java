@@ -82,6 +82,7 @@ class KubernetesClientLeaderElectionAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	BooleanSupplier kubernetesClientPodReadySupplier(CoreV1Api coreV1Api, String candidateIdentity,
 			String podNamespace) {
 		return () -> {
@@ -137,7 +138,7 @@ class KubernetesClientLeaderElectionAutoConfiguration {
 		}
 	}
 
-	// above two methods are a verbatim copy of the fabric8 implementation
+	// following two methods are a verbatim copy of the fabric8 implementation
 	private static boolean isPodReady(V1Pod pod) {
 		Objects.requireNonNull(pod, "Pod can't be null.");
 		V1PodCondition condition = getPodReadyCondition(pod);
