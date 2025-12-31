@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.leader.election;
+package org.springframework.cloud.kubernetes.client.leader.election;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,25 +24,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Assertions.assertAcquireAndRenew;
+import static org.springframework.cloud.kubernetes.client.leader.election.Assertions.assertAcquireAndRenew;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
  * <pre>
  *     - we acquire the leadership
  *     - leadership feature fails
+ *     - we retry and acquire it again
  * </pre>
  *
  * @author wind57
  */
 @TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
 		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
-class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElection {
+class K8sClientLeaderElectionCompletedExceptionallyAndRestartedIT extends AbstractLeaderElection {
 
-	private static final String NAME = "leader-acquired-then-canceled-it";
+	private static final String NAME = "leader-completed-and-restarted-it";
 
 	@Autowired
-	private Fabric8LeaderElectionInitiator initiator;
+	private KubernetesClientLeaderElectionInitiator initiator;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -51,7 +52,7 @@ class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElect
 
 	@AfterEach
 	void afterEach() {
-		stopFutureAndDeleteLease(initiator);
+		stopLeaderAndDeleteLease(initiator, true);
 	}
 
 	@Test
@@ -59,15 +60,26 @@ class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElect
 
 		assertAcquireAndRenew(output, this::getLease, NAME);
 
-		initiator.leaderFeature().cancel(true);
+		// simulate that the lock is released
+		initiator.leaderElector().close();
 
-		awaitUntil(10, 100, () -> output.getOut().contains("cancel was called on the leader initiator : " + NAME));
+		// from the callback
+		awaitUntil(5, 50, () -> output.getOut().contains("id : " + NAME + " stopped being a leader"));
 
-		// lease is going to reset
-		awaitUntil(10, 100, () -> getLease().getSpec().getHolderIdentity().isEmpty());
+		awaitUntil(5, 50, () -> output.getOut().contains("will re-start leader election for : " + NAME));
 
-		awaitUntil(10, 100, () -> output.getOut().contains("terminating leadership for : " + NAME));
+		int afterLeaderFailure = output.getOut().indexOf("will re-start leader election for : " + NAME);
 
+		afterLeaderFailure(afterLeaderFailure, output);
+
+	}
+
+	private void afterLeaderFailure(int afterLeaderFailure, CapturedOutput output) {
+		awaitUntil(60, 100, () -> output.getOut().substring(afterLeaderFailure).contains(NAME + " is the new leader"));
+		awaitUntil(5, 100, () -> output.getOut().contains("Update lock to renew lease"));
+		awaitUntil(5, 100, () -> output.getOut().contains("TryAcquireOrRenew return success"));
+		awaitUntil(5, 100, () -> output.getOut().contains("Successfully renewed lease"));
+		awaitUntil(5, 100, () -> output.getOut().contains("Update lock to renew lease"));
 	}
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.leader.election;
+package org.springframework.cloud.kubernetes.client.leader.election;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Assertions.assertAcquireAndRenew;
+import static org.springframework.cloud.kubernetes.client.leader.election.Assertions.assertAcquireAndRenew;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
@@ -37,12 +37,12 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  */
 @TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
 		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
-class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElection {
+class K8sClientLeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElection {
 
 	private static final String NAME = "leader-acquired-then-canceled-it";
 
 	@Autowired
-	private Fabric8LeaderElectionInitiator initiator;
+	private KubernetesClientLeaderElectionInitiator initiator;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -51,7 +51,7 @@ class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElect
 
 	@AfterEach
 	void afterEach() {
-		stopFutureAndDeleteLease(initiator);
+		stopLeaderAndDeleteLease(initiator, true);
 	}
 
 	@Test
@@ -59,14 +59,12 @@ class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElect
 
 		assertAcquireAndRenew(output, this::getLease, NAME);
 
-		initiator.leaderFeature().cancel(true);
+		// this will kill leadership and it will not be re-started
+		initiator.preDestroy();
 
-		awaitUntil(10, 100, () -> output.getOut().contains("cancel was called on the leader initiator : " + NAME));
+		awaitUntil(10, 100, () -> output.getOut().contains("leadership terminated for : " + NAME));
 
-		// lease is going to reset
-		awaitUntil(10, 100, () -> getLease().getSpec().getHolderIdentity().isEmpty());
-
-		awaitUntil(10, 100, () -> output.getOut().contains("terminating leadership for : " + NAME));
+		awaitUntil(10, 100, () -> output.getOut().contains("Giving up the lock"));
 
 	}
 

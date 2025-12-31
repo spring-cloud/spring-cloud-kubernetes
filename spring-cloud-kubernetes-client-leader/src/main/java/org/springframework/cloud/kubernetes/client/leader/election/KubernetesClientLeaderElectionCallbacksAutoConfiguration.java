@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.leader.election;
+package org.springframework.cloud.kubernetes.client.leader.election;
 
 import java.util.function.Consumer;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.kubernetes.client.openapi.ApiClient;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -26,27 +26,30 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatfo
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.leader.election.ConditionalOnLeaderElectionEnabled;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionCallbacks;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * @author wind57
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(LeaderElectionProperties.class)
-@ConditionalOnBean(KubernetesClient.class)
+@ConditionalOnBean(ApiClient.class)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnLeaderElectionEnabled
-@AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class })
-public class Fabric8LeaderElectionCallbacksAutoConfiguration extends LeaderElectionCallbacks {
+@AutoConfigureAfter({ KubernetesClientAutoConfiguration.class })
+public class KubernetesClientLeaderElectionCallbacksAutoConfiguration extends LeaderElectionCallbacks {
 
 	@Bean
 	@ConditionalOnMissingBean
-	Fabric8LeaderElectionCallbacks fabric8LeaderElectionCallbacks(Runnable onStartLeadingCallback,
+	KubernetesClientLeaderElectionCallbacks kubernetesClientLeaderElectionCallbacks(Runnable onStartLeadingCallback,
 			Runnable onStopLeadingCallback, Consumer<String> onNewLeaderCallback) {
-		return new Fabric8LeaderElectionCallbacks(onStartLeadingCallback, onStopLeadingCallback, onNewLeaderCallback);
+		return new KubernetesClientLeaderElectionCallbacks(onStartLeadingCallback, onStopLeadingCallback,
+				onNewLeaderCallback);
 	}
 
 }
