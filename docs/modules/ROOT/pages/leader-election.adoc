@@ -51,7 +51,7 @@ to `false` in `application.[properties | yaml]`:
 ----
 management.info.leader.enabled=false
 
-'''
+----
 
 There is another way you can configure leader election, and it comes with native support in both fabric8 and kubernetes client. In the long run, this will be the default way to configure leader election, while the previous one will be dropped. You can treat this one much like the JDK's "preview" features.
 
