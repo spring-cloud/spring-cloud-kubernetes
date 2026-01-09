@@ -234,10 +234,10 @@ jobs:
           fi
 
   # Deploy job that runs after all tests pass
-  # Only runs on push to protected branches (not PRs)
+  # Runs on all events except pull requests (push, schedule, workflow_dispatch, etc.)
   # Calls the standard Spring Cloud deployment workflow
   deploy:
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/3.2.x' || github.ref == 'refs/heads/3.3.x')
+    if: github.event_name != 'pull_request'
     needs: [all-tests-passed]
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
