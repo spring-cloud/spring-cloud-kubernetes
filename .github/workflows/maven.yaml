@@ -237,7 +237,7 @@ jobs:
   # Runs on all events except pull requests (push, schedule, workflow_dispatch, etc.)
   # Calls the standard Spring Cloud deployment workflow
   deploy:
-    if: github.event_name != 'pull_request'
+    if: always() && github.event_name != 'pull_request' && needs.all-tests-passed.result == 'success'
     needs: [all-tests-passed]
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
