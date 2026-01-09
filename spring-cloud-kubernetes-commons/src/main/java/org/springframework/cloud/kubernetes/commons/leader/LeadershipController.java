@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.log.LogAccessor;
 import org.springframework.integration.leader.Candidate;
 import org.springframework.integration.leader.Context;
@@ -76,7 +78,7 @@ public abstract class LeadershipController {
 		return Collections.singletonMap(leaderKey, candidate.getId());
 	}
 
-	protected Leader extractLeader(Map<String, String> data) {
+	protected @Nullable Leader extractLeader(@Nullable Map<String, String> data) {
 		if (data == null) {
 			return null;
 		}

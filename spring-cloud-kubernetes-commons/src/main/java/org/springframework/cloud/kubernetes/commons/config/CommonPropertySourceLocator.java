@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.CompositePropertySource;
@@ -52,7 +53,7 @@ abstract class CommonPropertySourceLocator implements PropertySourceLocator {
 			NormalizedSource normalizedSource, ReadType readType);
 
 	@Override
-	public PropertySource<?> locate(Environment environment) {
+	public @Nullable PropertySource<?> locate(Environment environment) {
 
 		if (environment instanceof ConfigurableEnvironment env) {
 
