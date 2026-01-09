@@ -10,6 +10,15 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+  # Manual trigger with optional branch override
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Which branch should be built"
+        required: true
+        default: 'main'
+        type: string
+
 jobs:
   build:
     runs-on: ubuntu-latest
