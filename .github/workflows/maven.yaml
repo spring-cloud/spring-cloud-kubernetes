@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, 3.0.x, 3.1.x, 3.2.x ]
 
+  # Scheduled builds run daily at midnight UTC
+  schedule:
+    - cron: '0 0 * * *'
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -200,3 +204,39 @@ jobs:
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
+
+  # Gate job to handle mutually exclusive test jobs
+  # Either test_when_cache_present OR test_when_cache_missing runs (not both)
+  # This job succeeds only if the appropriate test jobs succeeded
+  all-tests-passed:
+    if: always()
+    needs: [test_when_cache_present, test_when_cache_missing, save_test_times_when_cache_missing, save_test_times_when_cache_present]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.test_when_cache_present.result }}" == "success" ] || \
+             [ "${{ needs.test_when_cache_missing.result }}" == "success" ]; then
+            echo "Tests passed"
+            exit 0
+          else
+            echo "Tests failed"
+            exit 1
+          fi
+
+  # Deploy job that runs after all tests pass
+  # Only runs on push to protected branches (not PRs)
+  # Calls the standard Spring Cloud deployment workflow
+  deploy:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/3.2.x' || github.ref == 'refs/heads/3.3.x')
+    needs: [all-tests-passed]
+    uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
+    with:
+      custom_build_command: './mvnw clean deploy -Pspring -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U'
+    secrets:
+      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      COMMERCIAL_ARTIFACTORY_USERNAME: ${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}
+      COMMERCIAL_ARTIFACTORY_PASSWORD: ${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
