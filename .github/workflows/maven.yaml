@@ -242,7 +242,13 @@ jobs:
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
       branch: ${{ inputs.branch }}
-      custom_build_command: './mvnw clean deploy -Pspring -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U'
+      custom_build_command: |
+        if [[ "$BUILD_WITH_DOCS" == "true" ]]; then
+          ./mvnw clean deploy -Pspring,docs -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U
+        else
+          echo "Will not add docs profile, docs will not be deployed"
+          ./mvnw clean deploy -Pspring -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U
+        fi
     secrets:
       ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
       ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
