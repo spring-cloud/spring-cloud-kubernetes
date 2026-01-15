@@ -243,11 +243,10 @@ jobs:
     with:
       branch: ${{ inputs.branch }}
       custom_build_command: |
-        if [[ "$BUILD_WITH_DOCS" == "true" ]]; then
+        if [[ "SHOULD_DEPLOY" == "true" ]]; then
           ./mvnw clean deploy -Pspring,docs -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U
         else
-          echo "Will not add docs profile, docs will not be deployed"
-          ./mvnw clean deploy -Pspring -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U
+          echo "Will not deploy artifacts"
         fi
     secrets:
       ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
