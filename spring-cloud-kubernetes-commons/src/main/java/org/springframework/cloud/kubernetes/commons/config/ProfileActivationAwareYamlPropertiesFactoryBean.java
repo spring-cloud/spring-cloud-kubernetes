@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Nullable;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.reader.UnicodeReader;
 

@@ -26,6 +26,7 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServicePort;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils;
@@ -71,7 +72,7 @@ public class KubernetesClientServiceInstanceMapper implements KubernetesServiceI
 	}
 
 	@Override
-	public KubernetesServiceInstance map(V1Service service) {
+	public @Nullable KubernetesServiceInstance map(V1Service service) {
 		V1ObjectMeta metadata = service.getMetadata();
 
 		List<V1ServicePort> ports = ofNullable(service.getSpec()).map(V1ServiceSpec::getPorts).orElse(List.of());

@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.cloud.kubernetes.commons.LazilyInstantiate;
@@ -68,7 +69,7 @@ final class Fabric8PodUtils implements PodUtils<Pod> {
 		return currentPod().get() != null;
 	}
 
-	private Pod internalGetPod() {
+	private @Nullable Pod internalGetPod() {
 		try {
 			if (isServiceHostEnvVarPresent() && isHostNameEnvVarPresent() && isServiceAccountFound()) {
 				return this.client.pods().withName(this.hostName).get();
