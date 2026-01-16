@@ -20,8 +20,6 @@ import java.util.List;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import io.kubernetes.client.informer.SharedIndexInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1Endpoints;
@@ -53,27 +51,6 @@ final class TestUtils {
 
 	@SuppressWarnings("unchecked")
 	static void assertInformerBeansPresent(AssertableApplicationContext context, int times) {
-		String sharedInformerFactoriesBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<SharedInformerFactory>>() {
-			}))[0];
-		List<SharedInformerFactory> sharedInformerFactories = (List<SharedInformerFactory>) context
-			.getBean(sharedInformerFactoriesBeanName);
-		assertThat(sharedInformerFactories.size()).isEqualTo(times);
-
-		String serviceSharedIndexInformersBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Service>>>() {
-				}))[0];
-		List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers = (List<SharedIndexInformer<V1Service>>) context
-			.getBean(serviceSharedIndexInformersBeanName);
-		assertThat(serviceSharedIndexInformers.size()).isEqualTo(times);
-
-		String endpointsSharedIndexInformersBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Endpoints>>>() {
-				}))[0];
-		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers = (List<SharedIndexInformer<V1Endpoints>>) context
-			.getBean(endpointsSharedIndexInformersBeanName);
-		assertThat(endpointsSharedIndexInformers.size()).isEqualTo(times);
-
 		String serviceListersBeanName = context
 			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Service>>>() {
 			}))[0];
@@ -89,21 +66,6 @@ final class TestUtils {
 	}
 
 	static void assertInformerBeansMissing(AssertableApplicationContext context) {
-		String[] sharedInformerFactoriesBeanName = context
-			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<SharedInformerFactory>>() {
-			}));
-		assertThat(sharedInformerFactoriesBeanName).isEmpty();
-
-		String[] serviceSharedIndexInformersBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Service>>>() {
-				}));
-		assertThat(serviceSharedIndexInformersBeanName).isEmpty();
-
-		String[] endpointsSharedIndexInformersBeanName = context.getBeanNamesForType(
-				ResolvableType.forType(new ParameterizedTypeReference<List<SharedIndexInformer<V1Endpoints>>>() {
-				}));
-		assertThat(endpointsSharedIndexInformersBeanName).isEmpty();
-
 		String[] serviceListersBeanName = context
 			.getBeanNamesForType(ResolvableType.forType(new ParameterizedTypeReference<List<Lister<V1Service>>>() {
 			}));

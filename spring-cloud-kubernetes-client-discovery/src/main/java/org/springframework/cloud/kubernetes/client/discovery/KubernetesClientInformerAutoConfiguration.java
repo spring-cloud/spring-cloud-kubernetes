@@ -98,24 +98,12 @@ public final class KubernetesClientInformerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = { V1Service.class, V1ServiceList.class },
-			parameterizedContainer = GenericKubernetesApi.class)
-	GenericKubernetesApi<V1Service, V1ServiceList> servicesGenericKubernetesApi(ApiClient apiClient) {
-		return new GenericKubernetesApi<>(V1Service.class, V1ServiceList.class, "", "v1", "services", apiClient);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean(value = { V1Endpoints.class, V1EndpointsList.class },
-			parameterizedContainer = GenericKubernetesApi.class)
-	GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsGenericKubernetesApi(ApiClient apiClient) {
-		return new GenericKubernetesApi<>(V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
-	}
-
-	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = { List.class, Lister.class })
 	List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
-			SharedInformerFactory sharedInformerFactory,
-			GenericKubernetesApi<V1Service, V1ServiceList> servicesGenericKubernetesApi) {
+			SharedInformerFactory sharedInformerFactory, ApiClient apiClient) {
+
+		GenericKubernetesApi<V1Service, V1ServiceList> servicesGenericKubernetesApi = new GenericKubernetesApi<>(
+				V1Service.class, V1ServiceList.class, "", "v1", "services", apiClient);
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<Lister<V1Service>> serviceListers = new ArrayList<>(howManyNamespaces);
@@ -136,8 +124,10 @@ public final class KubernetesClientInformerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
 	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
-			SharedInformerFactory sharedInformerFactory,
-			GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsGenericKubernetesApi) {
+			SharedInformerFactory sharedInformerFactory, ApiClient apiClient) {
+
+		GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsGenericKubernetesApi = new GenericKubernetesApi<>(
+				V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<Lister<V1Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
