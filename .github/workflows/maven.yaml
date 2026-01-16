@@ -1,4 +1,4 @@
-name: github-workflow / JDK ${{ inputs.jdk-version || '17' }}
+name: github-workflow
 
 on:
   pull_request:
@@ -25,6 +25,7 @@ on:
 
 jobs:
   build:
+    name: Build and prepare
     runs-on: ubuntu-latest
     env:
       # this might get set to true if there is an existing cache of test times
@@ -105,6 +106,7 @@ jobs:
           echo "average_time_per_instance=${{ env.AVERAGE_TIME_PER_INSTANCE }}" >> $GITHUB_OUTPUT
 
   test_when_cache_present:
+    name: Test with cache (runner ${{ matrix.current_index }})
     needs: [ build ]
     runs-on: ubuntu-latest
     env:
@@ -152,6 +154,7 @@ jobs:
           AVERAGE_TIME_PER_INSTANCE: ${{ matrix.average_time_per_instance }}
 
   test_when_cache_missing:
+    name: Test without cache (runner ${{ matrix.current_index }})
     needs: [ build ]
     runs-on: ubuntu-latest
     env:
