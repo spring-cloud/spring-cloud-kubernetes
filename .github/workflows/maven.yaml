@@ -1,14 +1,8 @@
 name: github-workflow
 
 on:
-  push:
-    branches: [ main, 3.0.x, 3.1.x, 3.2.x ]
   pull_request:
     branches: [ main, 3.0.x, 3.1.x, 3.2.x ]
-
-  # Scheduled builds run daily at midnight UTC
-  schedule:
-    - cron: '0 0 * * *'
 
   # Manual trigger with optional branch override
   workflow_dispatch:
@@ -17,6 +11,16 @@ on:
         description: "Which branch should be built"
         required: true
         default: 'main'
+        type: string
+      jdk-version:
+        description: "Java version to use for build"
+        required: false
+        default: '17'
+        type: string
+      should-deploy:
+        description: "Whether to run deployment after tests pass"
+        required: false
+        default: 'false'
         type: string
 
 jobs:
@@ -45,13 +49,16 @@ jobs:
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: setup project jdk-17
-        id: jdk_17
-        uses: ./.github/workflows/composites/setup-jdk17
+      - name: setup project jdk
+        uses: ./.github/workflows/composites/setup-jdk
+        with:
+          jdk-version: ${{ inputs.jdk-version || '17' }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
+        with:
+          jdk-version: ${{ inputs.jdk-version || '17' }}
 
       - name: Show caches
         uses: actions/github-script@v7
@@ -71,8 +78,8 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: /tmp/sorted.txt
-          key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
-          restore-keys: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-
+          key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ inputs.jdk-version || '17' }}-test-times-cache-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-spring-cloud-k8s-jdk${{ inputs.jdk-version || '17' }}-test-times-cache-
 
       - name: check test times cache exists
         id: check_files
@@ -124,8 +131,10 @@ jobs:
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: setup project jdk-17
-        uses: ./.github/workflows/composites/setup-jdk17
+      - name: setup project jdk
+        uses: ./.github/workflows/composites/setup-jdk
+        with:
+          jdk-version: ${{ inputs.jdk-version || '17' }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: pre-test-actions
@@ -168,8 +177,10 @@ jobs:
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: setup project jdk-17
-        uses: ./.github/workflows/composites/setup-jdk17
+      - name: setup project jdk
+        uses: ./.github/workflows/composites/setup-jdk
+        with:
+          jdk-version: ${{ inputs.jdk-version || '17' }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: pre-test-actions
@@ -201,6 +212,8 @@ jobs:
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
+        with:
+          jdk-version: ${{ inputs.jdk-version || '17' }}
 
   save_test_times_when_cache_present:
     runs-on: ubuntu-latest
@@ -213,6 +226,8 @@ jobs:
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
+        with:
+          jdk-version: ${{ inputs.jdk-version || '17' }}
 
   # Gate job to handle mutually exclusive test jobs
   # Either test_when_cache_present OR test_when_cache_missing runs (not both)
@@ -234,10 +249,9 @@ jobs:
           fi
 
   # Deploy job that runs after all tests pass
-  # Runs on all events except pull requests (push, schedule, workflow_dispatch, etc.)
-  # Calls the standard Spring Cloud deployment workflow
+  # Only runs when should-deploy input is 'true'
   deploy:
-    if: always() && github.event_name != 'pull_request' && needs.all-tests-passed.result == 'success'
+    if: always() && inputs.should-deploy == 'true' && needs.all-tests-passed.result == 'success'
     needs: [all-tests-passed]
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
