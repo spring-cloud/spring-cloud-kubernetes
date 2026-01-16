@@ -38,8 +38,9 @@ jobs:
     needs: [determine-matrix]
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(needs.determine-matrix.outputs.matrix) }}
       fail-fast: false  # Continue even if one JDK fails
+      matrix:
+        include: ${{ fromJSON(needs.determine-matrix.outputs.matrix) }}
     steps:
       - name: Trigger maven.yaml for JDK ${{ matrix.java-version }}
         env:
