@@ -116,8 +116,9 @@ public final class KubernetesClientInformerAutoConfiguration {
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
+			String namespace = selectiveNamespaces.get(i);
 			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, selectiveNamespaces.get(i));
+				.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, namespace);
 			serviceSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return serviceSharedIndexedInformers;
@@ -154,8 +155,9 @@ public final class KubernetesClientInformerAutoConfiguration {
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
+			String namespace = selectiveNamespaces.get(i);
 			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, selectiveNamespaces.get(i));
+				.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
 			endpointsSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return endpointsSharedIndexedInformers;
