@@ -16,15 +16,20 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.ResourceEventHandler;
-import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.TransformFunc;
+import io.kubernetes.client.informer.cache.Indexer;
 
 /**
  * @author wind57
  */
-final class SharedInformerStub<T extends KubernetesObject> implements SharedInformer<T> {
+final class SharedInformerStub<T extends KubernetesObject> implements SharedIndexInformer<T> {
 
 	@Override
 	public void addEventHandler(ResourceEventHandler<T> handler) {
@@ -60,6 +65,16 @@ final class SharedInformerStub<T extends KubernetesObject> implements SharedInfo
 	@Override
 	public void setTransform(TransformFunc transformFunc) {
 
+	}
+
+	@Override
+	public void addIndexers(Map<String, Function<T, List<String>>> map) {
+
+	}
+
+	@Override
+	public Indexer<T> getIndexer() {
+		return null;
 	}
 
 }

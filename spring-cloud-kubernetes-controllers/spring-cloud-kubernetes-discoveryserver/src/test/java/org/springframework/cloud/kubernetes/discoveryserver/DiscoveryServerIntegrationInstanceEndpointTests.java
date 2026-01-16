@@ -125,8 +125,8 @@ class DiscoveryServerIntegrationInstanceEndpointTests {
 			Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE);
 			Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS);
 
-			return new VisibleKubernetesClientInformerDiscoveryClient(List.of(SHARED_INFORMER_FACTORY),
-					List.of(serviceLister), List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT,
+			return new VisibleKubernetesClientInformerDiscoveryClient(SHARED_INFORMER_FACTORY, List.of(serviceLister),
+					List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT,
 					Mockito.mock(CoreV1Api.class), x -> true);
 		}
 

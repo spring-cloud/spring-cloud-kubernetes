@@ -101,7 +101,7 @@ final class KubernetesClientConfigServerBootstrapper extends KubernetesConfigSer
 				Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsSharedIndexInformer.getIndexer());
 				Predicate<V1Service> predicate = x -> true;
 				KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-						List.of(sharedInformerFactory), List.of(serviceLister), List.of(endpointsLister),
+						sharedInformerFactory, List.of(serviceLister), List.of(endpointsLister),
 						List.of(serviceSharedIndexInformer), List.of(endpointsSharedIndexInformer), discoveryProperties,
 						new CoreV1Api(apiClient), predicate);
 				try {

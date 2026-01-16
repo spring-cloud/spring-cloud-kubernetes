@@ -106,8 +106,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_UNSET_PORT_NAME);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				ALL_NAMESPACES, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, ALL_NAMESPACES,
+				CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1").toArray())
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "1.1.1.1", 80,
@@ -121,7 +121,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_UNSET_PORT_NAME);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				KubernetesDiscoveryProperties.DEFAULT, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_1.getMetadata().getName(),
@@ -138,7 +138,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = properties(true, labels);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				kubernetesDiscoveryProperties, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_3.getMetadata().getName());
@@ -154,7 +154,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = properties(true, labels);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				kubernetesDiscoveryProperties, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1").toArray()).isEmpty();
@@ -170,8 +170,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_4);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				ALL_NAMESPACES, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, ALL_NAMESPACES,
+				CORE_V1_API, x -> true);
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_4.getMetadata().getName());
 		ServiceInstance serviceInstance = discoveryClient.getInstances(SERVICE_4.getMetadata().getName()).get(0);
 		assertThat(serviceInstance.isSecure()).isTrue();
@@ -182,8 +182,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_4);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				ALL_NAMESPACES, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, ALL_NAMESPACES,
+				CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_4.getMetadata().getName());
 		ServiceInstance serviceInstance = discoveryClient.getInstances(SERVICE_4.getMetadata().getName()).get(0);
@@ -196,7 +196,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_UNSET_PORT_NAME);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				KubernetesDiscoveryProperties.DEFAULT, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_1.getMetadata().getName());
@@ -209,8 +209,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				ALL_NAMESPACES, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, ALL_NAMESPACES,
+				CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
 			.containsOnly(new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
@@ -224,7 +224,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -239,7 +239,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NOT_READY_ADDRESS);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				KubernetesDiscoveryProperties.DEFAULT, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
@@ -255,7 +255,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				kubernetesDiscoveryProperties, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -270,7 +270,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister();
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				KubernetesDiscoveryProperties.DEFAULT, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).isEmpty();
@@ -282,7 +282,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_PORTS);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				KubernetesDiscoveryProperties.DEFAULT, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -296,7 +296,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_WITH);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(null,
@@ -312,7 +312,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 				ENDPOINTS_MULTIPLE_PORTS_WITHOUT_SUPPORTED_PORT_NAMES);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(new DefaultKubernetesServiceInstance(
@@ -327,7 +327,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_WITH);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -343,7 +343,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 				ENDPOINTS_MULTIPLE_PORTS_WITHOUT_SUPPORTED_PORT_NAMES);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -358,7 +358,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_WITH);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -373,7 +373,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_WITH_MULTIPLE_PORTS_NO_HTTPS);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -389,7 +389,7 @@ class KubernetesClientInformerDiscoveryClientTests {
 				ENDPOINTS_MULTIPLE_PORTS_WITHOUT_SUPPORTED_PORT_NAMES);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null,
 				NOT_ALL_NAMESPACES, CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1"))
@@ -404,8 +404,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1, ENDPOINTS_2);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				ALL_NAMESPACES, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, ALL_NAMESPACES,
+				CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getInstances("test-svc-1")).containsOnly(
 				new DefaultKubernetesServiceInstance(null, "test-svc-1", "2.2.2.2", 8080,
@@ -429,8 +429,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 				false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, properties,
+				CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getServices()).contains("test-svc-1", "test-svc-3");
 
@@ -454,8 +454,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 				false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, properties,
+				CORE_V1_API, x -> true);
 
 		// only one here because of distinct
 		assertThat(discoveryClient.getServices()).contains("test-svc-1");
@@ -474,8 +474,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 				""";
 		properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L, false, spelFilter, Set.of(),
 				Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
-		discoveryClient = new KubernetesClientInformerDiscoveryClient(List.of(SHARED_INFORMER_FACTORY),
-				List.of(serviceLister), List.of(endpointsLister), null, null, properties, CORE_V1_API,
+		discoveryClient = new KubernetesClientInformerDiscoveryClient(SHARED_INFORMER_FACTORY, List.of(serviceLister),
+				List.of(endpointsLister), null, null, properties, CORE_V1_API,
 				new KubernetesClientDiscoveryClientSpelAutoConfiguration().predicate(properties));
 
 		// only one here because of distinct
@@ -506,8 +506,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 				0, false, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, properties,
+				CORE_V1_API, x -> true);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstances.size()).isEqualTo(1);
@@ -530,8 +530,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 				0, false, false, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, properties,
+				CORE_V1_API, x -> true);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX")
 			.stream()
@@ -566,8 +566,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 				60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, properties,
+				CORE_V1_API, x -> true);
 
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		assertThat(result.size()).isEqualTo(1);
@@ -625,8 +625,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 				true, 60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true, null);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, new CoreV1Api(apiClient), x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, properties,
+				new CoreV1Api(apiClient), x -> true);
 
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		assertThat(result.size()).isEqualTo(1);
@@ -653,8 +653,8 @@ class KubernetesClientInformerDiscoveryClientTests {
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
 
 		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
+				SHARED_INFORMER_FACTORY, List.of(serviceLister), List.of(endpointsLister), null, null, properties,
+				CORE_V1_API, x -> true);
 
 		assertThat(discoveryClient.getOrder()).isEqualTo(57);
 	}

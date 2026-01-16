@@ -80,11 +80,10 @@ final class KubernetesClientDiscoveryClientUtils {
 
 	}
 
-	static void postConstruct(List<SharedInformerFactory> sharedInformerFactories,
-			KubernetesDiscoveryProperties properties, Supplier<Boolean> informersReadyFunc,
-			List<Lister<V1Service>> serviceListers) {
+	static void postConstruct(SharedInformerFactory sharedInformerFactory, KubernetesDiscoveryProperties properties,
+			Supplier<Boolean> informersReadyFunc, List<Lister<V1Service>> serviceListers) {
 
-		sharedInformerFactories.forEach(SharedInformerFactory::startAllRegisteredInformers);
+		sharedInformerFactory.startAllRegisteredInformers();
 		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
 			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
 			return informersReadyFunc.get();

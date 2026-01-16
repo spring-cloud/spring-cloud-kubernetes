@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -62,7 +63,7 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientBlockingAbstractInformerDiscoveryClient.class));
 
-	private final List<SharedInformerFactory> sharedInformerFactories;
+	private final SharedInformerFactory sharedInformerFactory;
 
 	private final List<Lister<V1Service>> serviceListers;
 
@@ -78,11 +79,12 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 
 	private final CoreV1Api coreV1Api;
 
-	KubernetesClientBlockingAbstractInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
+	KubernetesClientBlockingAbstractInformerDiscoveryClient(SharedInformerFactory sharedInformerFactory,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
-			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
-			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
-		this.sharedInformerFactories = sharedInformerFactories;
+			List<SharedIndexInformer<V1Service>> serviceInformers,
+			List<SharedIndexInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+		this.sharedInformerFactory = sharedInformerFactory;
 		this.serviceListers = serviceListers;
 		this.endpointsListers = endpointsListers;
 		this.coreV1Api = coreV1Api;
@@ -164,7 +166,7 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 
 	@PostConstruct
 	void afterPropertiesSet() {
-		postConstruct(sharedInformerFactories, properties, informersReadyFunc, serviceListers);
+		postConstruct(sharedInformerFactory, properties, informersReadyFunc, serviceListers);
 	}
 
 	private List<ServiceInstance> serviceInstances(V1Service service, String serviceId) {
