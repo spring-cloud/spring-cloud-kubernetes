@@ -1,0 +1,14 @@
+name: setup project with specified jdk
+description: setup project with specified jdk
+inputs:
+  jdk-version:
+    description: 'Java version to use'
+    required: true
+    default: '17'
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ inputs.jdk-version }}

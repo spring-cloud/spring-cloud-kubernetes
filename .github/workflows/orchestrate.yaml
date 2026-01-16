@@ -1,0 +1,61 @@
+name: orchestrate-multi-jdk-builds
+
+on:
+  push:
+    branches: [ main, 3.2.x, 3.3.x ]
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Which branch should be built (empty for current branch)"
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  actions: write  # Required to trigger workflows
+  contents: read
+
+jobs:
+  determine-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.determine.outputs.matrix }}
+      branches: ${{ steps.determine.outputs.branches }}
+      branch-jdk-mapping: ${{ steps.determine.outputs.branch-jdk-mapping }}
+    steps:
+      - name: Determine build matrix
+        id: determine
+        uses: spring-cloud/spring-cloud-github-actions/.github/actions/determine-matrix@main
+        with:
+          repository: ${{ github.repository }}
+          event-name: ${{ github.event_name }}
+          ref-name: ${{ github.ref_name }}
+          branch: ${{ inputs.branch }}
+
+  trigger-builds:
+    needs: [determine-matrix]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.determine-matrix.outputs.matrix) }}
+      fail-fast: false  # Continue even if one JDK fails
+    steps:
+      - name: Trigger maven.yaml for JDK ${{ matrix.java-version }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Only JDK 17 should deploy
+          SHOULD_DEPLOY="false"
+          if [[ "${{ matrix.java-version }}" == "17" ]]; then
+            SHOULD_DEPLOY="true"
+          fi
+
+          gh workflow run maven.yaml \
+            -r ${{ matrix.branch }} \
+            -f branch=${{ matrix.branch }} \
+            -f jdk-version=${{ matrix.java-version }} \
+            -f should-deploy=$SHOULD_DEPLOY \
+            -R ${{ github.repository }}
+
+          echo "Triggered maven.yaml for branch=${{ matrix.branch }} jdk=${{ matrix.java-version }} should-deploy=$SHOULD_DEPLOY"

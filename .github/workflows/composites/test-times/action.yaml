@@ -8,6 +8,11 @@
 
 name: test-times
 description: test-times
+inputs:
+  jdk-version:
+    description: 'Java version to use in cache key'
+    required: true
+    default: '17'
 runs:
   using: "composite"
 
@@ -50,4 +55,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
+        key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ inputs.jdk-version }}-test-times-cache-${{ github.run_id }}
