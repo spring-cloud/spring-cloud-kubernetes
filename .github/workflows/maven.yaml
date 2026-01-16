@@ -1,4 +1,4 @@
-name: github-workflow
+name: github-workflow / JDK ${{ inputs.jdk-version || '17' }}
 
 on:
   pull_request:

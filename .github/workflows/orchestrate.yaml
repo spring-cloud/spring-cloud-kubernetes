@@ -35,6 +35,7 @@ jobs:
           branch: ${{ inputs.branch }}
 
   trigger-builds:
+    name: Trigger builds for JDK ${{ matrix.java-version }}
     needs: [determine-matrix]
     runs-on: ubuntu-latest
     strategy:
