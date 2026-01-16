@@ -92,48 +92,41 @@ public final class KubernetesClientInformerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = SharedInformerFactory.class, parameterizedContainer = List.class)
-	List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, List<String> selectiveNamespaces) {
-
-		int howManyNamespaces = selectiveNamespaces.size();
-		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howManyNamespaces);
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			sharedInformerFactories.add(new SharedInformerFactory(apiClient));
-		}
-		return sharedInformerFactories;
+	@ConditionalOnMissingBean
+	SharedInformerFactory sharedInformerFactory(ApiClient apiClient) {
+		return new SharedInformerFactory(apiClient);
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Service.class,
-			parameterizedContainer = { List.class, SharedIndexInformer.class })
-	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
-			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-			ApiClient apiClient) {
+	@ConditionalOnMissingBean(value = { V1Service.class, V1ServiceList.class },
+			parameterizedContainer = GenericKubernetesApi.class)
+	GenericKubernetesApi<V1Service, V1ServiceList> servicesGenericKubernetesApi(ApiClient apiClient) {
+		return new GenericKubernetesApi<>(V1Service.class, V1ServiceList.class, "", "v1", "services", apiClient);
+	}
 
-		int howManyNamespaces = selectiveNamespaces.size();
-		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
-					V1ServiceList.class, "", "v1", "services", apiClient);
-			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, selectiveNamespaces.get(i));
-			serviceSharedIndexedInformers.add(sharedIndexInformer);
-		}
-		return serviceSharedIndexedInformers;
+	@Bean
+	@ConditionalOnMissingBean(value = { V1Endpoints.class, V1EndpointsList.class },
+			parameterizedContainer = GenericKubernetesApi.class)
+	GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsGenericKubernetesApi(ApiClient apiClient) {
+		return new GenericKubernetesApi<>(V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = { List.class, Lister.class })
 	List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
-			List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers) {
+			SharedInformerFactory sharedInformerFactory,
+			GenericKubernetesApi<V1Service, V1ServiceList> servicesGenericKubernetesApi) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<Lister<V1Service>> serviceListers = new ArrayList<>(howManyNamespaces);
 
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			String namespace = selectiveNamespaces.get(i);
-			Lister<V1Service> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer(), namespace);
-			LOG.debug(() -> "registering lister (for services) in namespace : " + namespace);
+		for (String selectiveNamespace : selectiveNamespaces) {
+
+			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactory
+				.sharedIndexInformerFor(servicesGenericKubernetesApi, V1Service.class, 0L, selectiveNamespace);
+
+			Lister<V1Service> lister = new Lister<>(sharedIndexInformer.getIndexer(), selectiveNamespace);
+			LOG.debug(() -> "registering lister (for services) in namespace : " + selectiveNamespace);
 			serviceListers.add(lister);
 		}
 
@@ -141,36 +134,21 @@ public final class KubernetesClientInformerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Endpoints.class,
-			parameterizedContainer = { List.class, SharedIndexInformer.class })
-	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
-			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-			ApiClient apiClient) {
-
-		int howManyNamespaces = selectiveNamespaces.size();
-		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
-					V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
-			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, selectiveNamespaces.get(i));
-			endpointsSharedIndexedInformers.add(sharedIndexInformer);
-		}
-		return endpointsSharedIndexedInformers;
-	}
-
-	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
 	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
-			List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers) {
+			SharedInformerFactory sharedInformerFactory,
+			GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsGenericKubernetesApi) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<Lister<V1Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
 
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			String namespace = selectiveNamespaces.get(i);
-			Lister<V1Endpoints> lister = new Lister<>(endpointsSharedIndexInformers.get(i).getIndexer());
-			LOG.debug(() -> "registering lister (for endpoints) in namespace : " + namespace);
+		for (String selectiveNamespace : selectiveNamespaces) {
+
+			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactory
+				.sharedIndexInformerFor(endpointsGenericKubernetesApi, V1Endpoints.class, 0L, selectiveNamespace);
+
+			Lister<V1Endpoints> lister = new Lister<>(sharedIndexInformer.getIndexer());
+			LOG.debug(() -> "registering lister (for endpoints) in namespace : " + selectiveNamespace);
 			endpointsListers.add(lister);
 		}
 
