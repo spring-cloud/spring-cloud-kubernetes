@@ -111,7 +111,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 			ApiClient apiClient) {
 
 		GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
-			V1ServiceList.class, "", "v1", "services", apiClient);
+				V1ServiceList.class, "", "v1", "services", apiClient);
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
@@ -149,8 +149,8 @@ public final class KubernetesClientInformerAutoConfiguration {
 			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
 			ApiClient apiClient) {
 
-		GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
-			V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
+		GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(V1Endpoints.class,
+				V1EndpointsList.class, "", "v1", "endpoints", apiClient);
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
