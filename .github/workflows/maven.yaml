@@ -22,6 +22,13 @@ on:
         required: false
         default: 'false'
         type: string
+      triggered-by:
+        description: "Context about what triggered this build"
+        required: false
+        default: ''
+        type: string
+
+run-name: "JDK ${{ inputs.jdk-version || '17' }}${{ inputs.triggered-by && format(' - {0}', inputs.triggered-by) || '' }}"
 
 jobs:
   build:
