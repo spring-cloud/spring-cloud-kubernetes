@@ -54,7 +54,7 @@ jobs:
           fi
 
           gh workflow run maven.yaml \
-            -r ${{ matrix.branch }} \
+            -r main \
             -f branch=${{ matrix.branch }} \
             -f jdk-version=${{ matrix.java-version }} \
             -f should-deploy=$SHOULD_DEPLOY \
