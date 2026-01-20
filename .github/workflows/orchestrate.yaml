@@ -34,30 +34,16 @@ jobs:
           ref-name: ${{ github.ref_name }}
           branch: ${{ inputs.branch }}
 
-  trigger-builds:
-    name: Trigger builds for JDK ${{ matrix.java-version }}
-    needs: [determine-matrix]
-    runs-on: ubuntu-latest
+  build-and-test:
+    name: Build and test with JDK ${{ matrix.java-version }}
+    needs: determine-matrix
     strategy:
-      fail-fast: false  # Continue even if one JDK fails
+      fail-fast: false
       matrix:
         include: ${{ fromJSON(needs.determine-matrix.outputs.matrix) }}
-    steps:
-      - name: Trigger maven.yaml for JDK ${{ matrix.java-version }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Only JDK 17 should deploy
-          SHOULD_DEPLOY="false"
-          if [[ "${{ matrix.java-version }}" == "17" ]]; then
-            SHOULD_DEPLOY="true"
-          fi
-
-          gh workflow run maven.yaml \
-            -r main \
-            -f branch=${{ matrix.branch }} \
-            -f jdk-version=${{ matrix.java-version }} \
-            -f should-deploy=$SHOULD_DEPLOY \
-            -R ${{ github.repository }}
-
-          echo "Triggered maven.yaml for branch=${{ matrix.branch }} jdk=${{ matrix.java-version }} should-deploy=$SHOULD_DEPLOY"
+    uses: ./.github/workflows/maven.yaml
+    with:
+      branch: ${{ matrix.branch }}
+      jdk-version: ${{ matrix.java-version }}
+      should-deploy: ${{ matrix.java-version == '17' }}
+    secrets: inherit
