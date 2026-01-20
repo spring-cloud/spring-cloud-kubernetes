@@ -6,6 +6,11 @@
 
 name: run and save test times when cache missing
 description: run and save test times when cache missing
+inputs:
+  jdk-version:
+    description: 'Java version to use in artifact name'
+    required: false
+    default: '17'
 runs:
   using: "composite"
 
@@ -70,7 +75,7 @@ runs:
     - name: upload individual tests
       uses: actions/upload-artifact@v4
       with:
-        name: test_times_${{ env.CURRENT_INDEX }}.txt
+        name: test_times_jdk${{ inputs.jdk-version }}_${{ env.CURRENT_INDEX }}.txt
         path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
 
 
