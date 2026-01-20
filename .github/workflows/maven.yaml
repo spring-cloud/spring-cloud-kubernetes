@@ -47,6 +47,7 @@ jobs:
       # this happens in 'matrix-bounds-on-test-times-cache-hit'
       TEST_TIMES_CACHE_PRESENT: false
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
 
     # this job ('build') outputs a value from step 'test_times_cache_present_init', that has the name of:
     # 'test_times_cache_present'. This can later be used by other jobs. For example, we use this one
@@ -70,13 +71,13 @@ jobs:
       - name: setup project jdk
         uses: ./.github/workflows/composites/setup-jdk
         with:
-          jdk-version: ${{ inputs.jdk-version || '17' }}
+          jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
         with:
-          jdk-version: ${{ inputs.jdk-version || '17' }}
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: Show caches
         uses: actions/github-script@v8
@@ -90,14 +91,16 @@ jobs:
 
       - name: maven build with dry-run for tests
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: restore test times cache if it exists
         id: restore_test_times_cache
         uses: actions/cache/restore@v5
         with:
           path: /tmp/sorted.txt
-          key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ inputs.jdk-version || '17' }}-test-times-cache-${{ github.run_id }}
-          restore-keys: ${{ runner.os }}-spring-cloud-k8s-jdk${{ inputs.jdk-version || '17' }}-test-times-cache-
+          key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ env.JDK_VERSION }}-test-times-cache-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-spring-cloud-k8s-jdk${{ env.JDK_VERSION }}-test-times-cache-
 
       - name: check test times cache exists
         id: check_files
@@ -113,6 +116,8 @@ jobs:
       - name: compute matrix related fields when cache is present
         if: steps.check_files.outputs.files_exists == 'true'
         uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: matrix related variables when cache is present
         id: test_times_cache_present_init
@@ -128,6 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
     # only run this one if there is a previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'true'
     timeout-minutes: 120
@@ -155,7 +161,7 @@ jobs:
       - name: setup project jdk
         uses: ./.github/workflows/composites/setup-jdk
         with:
-          jdk-version: ${{ inputs.jdk-version || '17' }}
+          jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: pre-test-actions
@@ -167,6 +173,8 @@ jobs:
 
       - name: run and save test times when cache is present
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
@@ -178,6 +186,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
     timeout-minutes: 120
     # only run this one if there is no previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'false'
@@ -204,7 +213,7 @@ jobs:
       - name: setup project jdk
         uses: ./.github/workflows/composites/setup-jdk
         with:
-          jdk-version: ${{ inputs.jdk-version || '17' }}
+          jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: pre-test-actions
@@ -221,13 +230,17 @@ jobs:
         run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: run and save individual test times
+        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
-        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
 
   save_test_times_when_cache_missing:
     runs-on: ubuntu-latest
     needs: [build, test_when_cache_missing ]
+    env:
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
 
     steps:
 
@@ -239,11 +252,13 @@ jobs:
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
         with:
-          jdk-version: ${{ inputs.jdk-version || '17' }}
+          jdk-version: ${{ env.JDK_VERSION }}
 
   save_test_times_when_cache_present:
     runs-on: ubuntu-latest
     needs: [ build, test_when_cache_present ]
+    env:
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
 
     steps:
 
@@ -255,7 +270,7 @@ jobs:
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
         with:
-          jdk-version: ${{ inputs.jdk-version || '17' }}
+          jdk-version: ${{ env.JDK_VERSION }}
 
   # Gate job to handle mutually exclusive test jobs
   # Either test_when_cache_present OR test_when_cache_missing runs (not both)
