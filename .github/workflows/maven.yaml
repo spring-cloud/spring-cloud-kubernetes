@@ -166,6 +166,8 @@ jobs:
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: testcontainers reuse support
         shell: bash
@@ -218,6 +220,8 @@ jobs:
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: compute single step test bounds
         uses: ./.github/workflows/composites/test-bounds
