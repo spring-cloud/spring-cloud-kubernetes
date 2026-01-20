@@ -26,15 +26,19 @@ import java.util.stream.Collectors;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.util.CallGenerator;
+import io.kubernetes.client.util.CallGeneratorParams;
 import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.core.log.LogAccessor;
@@ -138,6 +142,40 @@ final class KubernetesClientDiscoveryClientUtils {
 		}
 
 		return addresses;
+	}
+
+	static @NotNull CallGenerator endpointsCallGenerator(CoreV1Api api, Map<String, String> serviceLabels,
+		String namespace) {
+
+		return (CallGeneratorParams params) -> api
+			.listNamespacedEndpoints(namespace)
+			.resourceVersion(params.resourceVersion)
+			.timeoutSeconds(params.timeoutSeconds)
+			.watch(params.watch)
+			.labelSelector(labelSelector(serviceLabels))
+			.buildCall(null);
+	}
+
+	static @NotNull CallGenerator servicesCallGenerator(CoreV1Api api, Map<String, String> serviceLabels,
+		String namespace) {
+
+		return (CallGeneratorParams params) -> api
+			.listNamespacedService(namespace)
+			.resourceVersion(params.resourceVersion)
+			.timeoutSeconds(params.timeoutSeconds)
+			.watch(params.watch)
+			.labelSelector(labelSelector(serviceLabels))
+			.buildCall(null);
+	}
+
+
+	private static String labelSelector(Map<String, String> labels) {
+		if (labels.isEmpty()) {
+			return null;
+		}
+		return labels.entrySet().stream()
+			.map(e -> e.getKey() + "=" + e.getValue())
+			.collect(Collectors.joining(","));
 	}
 
 }

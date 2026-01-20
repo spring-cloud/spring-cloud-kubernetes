@@ -18,16 +18,19 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.util.generic.GenericKubernetesApi;
+import io.kubernetes.client.util.CallGenerator;
+import io.kubernetes.client.util.CallGeneratorParams;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -50,6 +53,8 @@ import org.springframework.core.log.LogAccessor;
 
 import static io.kubernetes.client.util.Namespaces.NAMESPACE_ALL;
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.endpointsCallGenerator;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.servicesCallGenerator;
 
 /**
  * This one uses: 'ConditionalOnBlockingOrReactiveDiscoveryEnabled' because beans it
@@ -108,17 +113,21 @@ public final class KubernetesClientInformerAutoConfiguration {
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
 			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-			ApiClient apiClient) {
-
-		GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
-				V1ServiceList.class, "", "v1", "services", apiClient);
+			CoreV1Api api, KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			String namespace = selectiveNamespaces.get(i);
+
+			CallGenerator callGenerator = servicesCallGenerator(api, properties.serviceLabels(), namespace);
+
 			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, namespace);
+				.sharedIndexInformerFor(
+					callGenerator,
+					V1Service.class,
+					V1ServiceList.class
+			);
 			serviceSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return serviceSharedIndexedInformers;
@@ -147,17 +156,21 @@ public final class KubernetesClientInformerAutoConfiguration {
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
 			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-			ApiClient apiClient) {
-
-		GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(V1Endpoints.class,
-				V1EndpointsList.class, "", "v1", "endpoints", apiClient);
+			CoreV1Api api, KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			String namespace = selectiveNamespaces.get(i);
+
+			CallGenerator callGenerator = endpointsCallGenerator(api, properties.serviceLabels(), namespace);
+
 			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
+				.sharedIndexInformerFor(
+					callGenerator,
+					V1Endpoints.class,
+					V1EndpointsList.class
+				);
 			endpointsSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return endpointsSharedIndexedInformers;
