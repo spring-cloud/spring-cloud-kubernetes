@@ -22,6 +22,21 @@ on:
         required: false
         default: 'false'
         type: string
+  # Allow calls from orchestrate.yaml
+  workflow_call:
+    inputs:
+      branch:
+        description: "Which branch should be built"
+        required: true
+        type: string
+      jdk-version:
+        description: "Java version to use for build"
+        required: true
+        type: string
+      should-deploy:
+        description: "Whether to run deployment after tests pass"
+        required: true
+        type: boolean
 
 jobs:
   build:
@@ -45,7 +60,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -125,7 +142,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -172,7 +191,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -211,7 +232,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
@@ -225,7 +248,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
@@ -254,7 +279,7 @@ jobs:
   # Deploy job that runs after all tests pass
   # Only runs when should-deploy input is 'true'
   deploy:
-    if: always() && inputs.should-deploy == 'true' && needs.all-tests-passed.result == 'success'
+    if: always() && inputs.should-deploy && needs.all-tests-passed.result == 'success'
     needs: [all-tests-passed]
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
