@@ -33,6 +33,7 @@ import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -166,6 +167,11 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 	@PostConstruct
 	void afterPropertiesSet() {
 		postConstruct(sharedInformerFactories, properties, informersReadyFunc, serviceListers);
+	}
+
+	@PreDestroy
+	void preDestroy() {
+		sharedInformerFactories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
 	}
 
 	private List<ServiceInstance> serviceInstances(V1Service service, String serviceId) {
