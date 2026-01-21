@@ -1,19 +1,53 @@
 name: github-workflow
 
 on:
-  push:
-    branches: [ main, 3.2.x, 3.3.x ]
   pull_request:
     branches: [ main, 3.2.x, 3.3.x ]
 
+  # Manual trigger with optional branch override
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Which branch should be built"
+        required: true
+        default: 'main'
+        type: string
+      jdk-version:
+        description: "Java version to use for build"
+        required: false
+        default: '17'
+        type: string
+      should-deploy:
+        description: "Whether to run deployment after tests pass"
+        required: false
+        default: 'false'
+        type: string
+  # Allow calls from orchestrate.yaml
+  workflow_call:
+    inputs:
+      branch:
+        description: "Which branch should be built"
+        required: true
+        type: string
+      jdk-version:
+        description: "Java version to use for build"
+        required: true
+        type: string
+      should-deploy:
+        description: "Whether to run deployment after tests pass"
+        required: true
+        type: boolean
+
 jobs:
   build:
+    name: Build and prepare
     runs-on: ubuntu-latest
     env:
       # this might get set to true if there is an existing cache of test times
       # this happens in 'matrix-bounds-on-test-times-cache-hit'
       TEST_TIMES_CACHE_PRESENT: false
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
 
     # this job ('build') outputs a value from step 'test_times_cache_present_init', that has the name of:
     # 'test_times_cache_present'. This can later be used by other jobs. For example, we use this one
@@ -27,18 +61,23 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: setup project jdk-17
-        id: jdk_17
-        uses: ./.github/workflows/composites/setup-jdk17
+      - name: setup project jdk
+        uses: ./.github/workflows/composites/setup-jdk
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: Show caches
         uses: actions/github-script@v7
@@ -52,14 +91,16 @@ jobs:
 
       - name: maven build with dry-run for tests
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: restore test times cache if it exists
         id: restore_test_times_cache
         uses: actions/cache/restore@v4
         with:
           path: /tmp/sorted.txt
-          key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
-          restore-keys: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-
+          key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ env.JDK_VERSION }}-test-times-cache-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-spring-cloud-k8s-jdk${{ env.JDK_VERSION }}-test-times-cache-
 
       - name: check test times cache exists
         id: check_files
@@ -75,6 +116,8 @@ jobs:
       - name: compute matrix related fields when cache is present
         if: steps.check_files.outputs.files_exists == 'true'
         uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: matrix related variables when cache is present
         id: test_times_cache_present_init
@@ -85,10 +128,12 @@ jobs:
           echo "average_time_per_instance=${{ env.AVERAGE_TIME_PER_INSTANCE }}" >> $GITHUB_OUTPUT
 
   test_when_cache_present:
+    name: Test with cache (runner ${{ matrix.current_index }})
     needs: [ build ]
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
     # only run this one if there is a previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'true'
     timeout-minutes: 120
@@ -103,7 +148,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -111,12 +158,16 @@ jobs:
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: setup project jdk-17
-        uses: ./.github/workflows/composites/setup-jdk17
+      - name: setup project jdk
+        uses: ./.github/workflows/composites/setup-jdk
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: testcontainers reuse support
         shell: bash
@@ -124,16 +175,20 @@ jobs:
 
       - name: run and save test times when cache is present
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
           AVERAGE_TIME_PER_INSTANCE: ${{ matrix.average_time_per_instance }}
 
   test_when_cache_missing:
+    name: Test without cache (runner ${{ matrix.current_index }})
     needs: [ build ]
     runs-on: ubuntu-latest
     env:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
     timeout-minutes: 120
     # only run this one if there is no previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'false'
@@ -147,7 +202,9 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: clean space
         uses: ./.github/workflows/composites/clean-space
@@ -155,12 +212,16 @@ jobs:
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
 
-      - name: setup project jdk-17
-        uses: ./.github/workflows/composites/setup-jdk17
+      - name: setup project jdk
+        uses: ./.github/workflows/composites/setup-jdk
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
       - name: compute single step test bounds
         uses: ./.github/workflows/composites/test-bounds
@@ -173,30 +234,85 @@ jobs:
         run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: run and save individual test times
+        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
-        uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
 
   save_test_times_when_cache_missing:
     runs-on: ubuntu-latest
     needs: [build, test_when_cache_missing ]
+    env:
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
 
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
 
   save_test_times_when_cache_present:
     runs-on: ubuntu-latest
     needs: [ build, test_when_cache_present ]
+    env:
+      JDK_VERSION: ${{ inputs.jdk-version || '17' }}
 
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch || github.ref }}
 
       - name: compute and save running time of tests
         uses: ./.github/workflows/composites/test-times
+        with:
+          jdk-version: ${{ env.JDK_VERSION }}
+
+  # Gate job to handle mutually exclusive test jobs
+  # Either test_when_cache_present OR test_when_cache_missing runs (not both)
+  # This job succeeds only if the appropriate test jobs succeeded
+  all-tests-passed:
+    if: always()
+    needs: [test_when_cache_present, test_when_cache_missing, save_test_times_when_cache_missing, save_test_times_when_cache_present]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.test_when_cache_present.result }}" == "success" ] || \
+             [ "${{ needs.test_when_cache_missing.result }}" == "success" ]; then
+            echo "Tests passed"
+            exit 0
+          else
+            echo "Tests failed"
+            exit 1
+          fi
+
+  # Deploy job that runs after all tests pass
+  # Only runs when should-deploy input is 'true'
+  deploy:
+    if: always() && inputs.should-deploy && needs.all-tests-passed.result == 'success'
+    needs: [all-tests-passed]
+    uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
+    with:
+      branch: ${{ inputs.branch }}
+      custom_build_command: |
+        if [[ "$SHOULD_DEPLOY" == "true" ]]; then
+          ./mvnw clean deploy -Pspring,docs -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U
+        else
+          echo "Will not deploy artifacts"
+        fi
+    secrets:
+      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      COMMERCIAL_ARTIFACTORY_USERNAME: ${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}
+      COMMERCIAL_ARTIFACTORY_PASSWORD: ${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

@@ -8,6 +8,11 @@
 
 name: test-times
 description: test-times
+inputs:
+  jdk-version:
+    description: 'Java version to use in cache key'
+    required: true
+    default: '17'
 runs:
   using: "composite"
 
@@ -26,7 +31,12 @@ runs:
     - name: merge all artifacts into a single file and sort by time
       shell: bash
       run: |
-        arr=($(find /tmp/all-artifacts/ -type f -name "test_times*"))
+        # The artifact download creates directories named after the artifact
+        # e.g., /tmp/all-artifacts/test_times_jdk17_0.txt/test_times_0.txt
+        # So we need to find files inside directories matching the pattern
+        arr=($(find /tmp/all-artifacts/test_times_jdk${{ inputs.jdk-version }}_* -type f 2>/dev/null || true))
+
+        echo "Found ${#arr[@]} test time files"
 
         for i in "${arr[@]}"; do
           echo "parsing -> ${i}"
@@ -34,7 +44,7 @@ runs:
         done
 
         sort -t' '  -nk2 /tmp/times-of-all-tests.txt >> /tmp/sorted.txt
-        
+
         cat /tmp/sorted.txt
 
     - name: show all tests in a sorted manner
@@ -50,4 +60,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: /tmp/sorted.txt
-        key: ${{ runner.os }}-spring-cloud-k8s-existing-test-times-cache-${{ github.run_id }}
+        key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ inputs.jdk-version }}-test-times-cache-${{ github.run_id }}
