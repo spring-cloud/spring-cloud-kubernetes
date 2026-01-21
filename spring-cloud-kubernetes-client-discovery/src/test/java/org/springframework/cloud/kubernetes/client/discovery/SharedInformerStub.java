@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedInformer;
@@ -24,7 +25,7 @@ import io.kubernetes.client.informer.TransformFunc;
 /**
  * @author wind57
  */
-final class SharedInformerStub<T extends KubernetesObject> implements SharedInformer<T> {
+final class SharedInformerStub<T extends KubernetesObject> implements SharedIndexInformer<T> {
 
 	@Override
 	public void addEventHandler(ResourceEventHandler<T> handler) {

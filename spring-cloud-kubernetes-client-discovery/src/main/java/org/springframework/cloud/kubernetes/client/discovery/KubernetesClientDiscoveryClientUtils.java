@@ -59,31 +59,6 @@ final class KubernetesClientDiscoveryClientUtils {
 
 	}
 
-	static boolean matchesServiceLabels(V1Service service, KubernetesDiscoveryProperties properties) {
-
-		Map<String, String> propertiesServiceLabels = properties.serviceLabels();
-		Map<String, String> serviceLabels = Optional.ofNullable(service.getMetadata())
-			.map(V1ObjectMeta::getLabels)
-			.orElse(Map.of());
-
-		if (propertiesServiceLabels.isEmpty()) {
-			LOG.debug(() -> "service labels from properties are empty, service with name : '"
-					+ service.getMetadata().getName() + "' will match");
-			return true;
-		}
-
-		if (serviceLabels.isEmpty()) {
-			LOG.debug(() -> "service with name : '" + service.getMetadata().getName() + "' does not have labels");
-			return false;
-		}
-
-		LOG.debug(() -> "Service labels from properties : " + propertiesServiceLabels);
-		LOG.debug(() -> "Service labels from service : " + serviceLabels);
-
-		return serviceLabels.entrySet().containsAll(propertiesServiceLabels.entrySet());
-
-	}
-
 	static void postConstruct(List<SharedInformerFactory> sharedInformerFactories,
 			KubernetesDiscoveryProperties properties, Supplier<Boolean> informersReadyFunc,
 			List<Lister<V1Service>> serviceListers) {
@@ -167,7 +142,6 @@ final class KubernetesClientDiscoveryClientUtils {
 			.labelSelector(labelSelector(serviceLabels))
 			.buildCall(null);
 	}
-
 
 	private static String labelSelector(Map<String, String> labels) {
 		if (labels.isEmpty()) {

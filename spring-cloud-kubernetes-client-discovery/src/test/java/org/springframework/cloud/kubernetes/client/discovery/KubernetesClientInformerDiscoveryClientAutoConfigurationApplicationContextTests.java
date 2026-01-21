@@ -21,6 +21,7 @@ import java.util.List;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.ClientBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -60,6 +61,11 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	private static final WireMockExtension API_SERVER = WireMockExtension.newInstance()
 		.options(options().dynamicPort())
 		.build();
+
+	@AfterAll
+	static void afterAll() {
+		API_SERVER.shutdownServer();
+	}
 
 	@AfterEach
 	void afterEach() {

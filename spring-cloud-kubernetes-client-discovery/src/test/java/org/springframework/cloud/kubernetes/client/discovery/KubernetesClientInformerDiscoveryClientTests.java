@@ -491,30 +491,6 @@ class KubernetesClientInformerDiscoveryClientTests {
 	}
 
 	@Test
-	void testServicesWithDifferentMetadataLabels() {
-		V1Service serviceA = service("serviceX", "namespaceA", Map.of("shape", "round"));
-		V1Service serviceB = service("serviceX", "namespaceB", Map.of("shape", "triangle"));
-
-		V1Endpoints endpointsA = endpointsReadyAddress("serviceX", "namespaceA");
-		V1Endpoints endpointsB = endpointsReadyAddress("serviceX", "namespaceB");
-
-		Lister<V1Service> serviceLister = setupServiceLister(serviceA, serviceB);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpointsA, endpointsB);
-
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
-				false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
-				0, false, false, null);
-
-		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
-
-		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
-		assertThat(serviceInstances.size()).isEqualTo(1);
-		assertThat(serviceInstances.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
-	}
-
-	@Test
 	void testServicesWithSameMetadataLabels() {
 		V1Service serviceA = service("serviceX", "namespaceA", Map.of("shape", "round"));
 		V1Service serviceB = service("serviceX", "namespaceB", Map.of("shape", "round"));

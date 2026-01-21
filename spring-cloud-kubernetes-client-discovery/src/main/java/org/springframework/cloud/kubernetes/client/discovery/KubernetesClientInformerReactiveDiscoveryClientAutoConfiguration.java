@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 import java.util.List;
 import java.util.function.Predicate;
 
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
@@ -58,8 +59,8 @@ public final class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurat
 	@ConditionalOnDiscoveryCacheableReactiveDisabled
 	KubernetesClientInformerReactiveDiscoveryClient kubernetesClientInformerReactiveDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
-			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
-			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedIndexInformer<V1Service>> serviceInformers,
+			List<SharedIndexInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
 			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 
 		KubernetesClientInformerDiscoveryClient blockingClient = new KubernetesClientInformerDiscoveryClient(
@@ -75,8 +76,8 @@ public final class KubernetesClientInformerReactiveDiscoveryClientAutoConfigurat
 	@ConditionalOnDiscoveryCacheableReactiveEnabled
 	KubernetesClientCacheableInformerReactiveDiscoveryClient kubernetesClientCacheableInformerReactiveDiscoveryClient(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
-			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
-			List<SharedInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedIndexInformer<V1Service>> serviceInformers,
+			List<SharedIndexInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
 			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 
 		KubernetesClientInformerDiscoveryClient blockingClient = new KubernetesClientInformerDiscoveryClient(
