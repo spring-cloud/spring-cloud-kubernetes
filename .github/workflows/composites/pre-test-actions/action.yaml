@@ -3,6 +3,11 @@
 
 name: pre-test-actions
 description: pre-test-actions
+inputs:
+  jdk-version:
+    description: 'Java version to use in artifact name'
+    required: false
+    default: '17'
 runs:
   using: "composite"
 
@@ -17,6 +22,8 @@ runs:
 
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
+      with:
+        jdk-version: ${{ inputs.jdk-version }}
 
     - name: restore common images
       uses: ./.github/workflows/composites/restore-docker-images
@@ -35,7 +42,7 @@ runs:
     - name: download tests
       uses: actions/download-artifact@v4
       with:
-        name: tests.txt
+        name: tests-jdk${{ inputs.jdk-version }}.txt
         path: /tmp
 
 

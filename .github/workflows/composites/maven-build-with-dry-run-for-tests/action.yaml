@@ -1,5 +1,10 @@
 name: maven-build-with-dry-run-for-tests
 description: maven-build-with-dry-run-for-tests
+inputs:
+  jdk-version:
+    description: 'Java version to use in artifact name'
+    required: false
+    default: '17'
 runs:
   using: "composite"
   steps:
@@ -34,6 +39,6 @@ runs:
     - name: upload test
       uses: actions/upload-artifact@v4
       with:
-        name: tests.txt
+        name: tests-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/tests.txt
 
