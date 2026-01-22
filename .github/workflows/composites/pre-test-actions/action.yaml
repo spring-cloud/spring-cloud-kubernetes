@@ -8,6 +8,10 @@ inputs:
     description: 'Java version to use in artifact name'
     required: false
     default: '17'
+  branch:
+    description: 'Branch name to use in artifact name'
+    required: false
+    default: 'main'
 runs:
   using: "composite"
 
@@ -31,7 +35,7 @@ runs:
     - name: build project
       shell: bash
       run: |
-        ./mvnw clean install -P 'run-on-github-actions' -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q  
+        ./mvnw clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q  
 
     - name: build controllers project
       uses: ./.github/workflows/composites/build-controllers-project
@@ -42,7 +46,7 @@ runs:
     - name: download tests
       uses: actions/download-artifact@v4
       with:
-        name: tests-jdk${{ inputs.jdk-version }}.txt
+        name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp
 
 
