@@ -11,6 +11,10 @@ inputs:
     description: 'Java version to use in artifact name'
     required: false
     default: '17'
+  branch:
+    description: 'Branch name to use in artifact name'
+    required: false
+    default: 'main'
 runs:
   using: "composite"
 
@@ -75,7 +79,7 @@ runs:
     - name: upload individual tests
       uses: actions/upload-artifact@v4
       with:
-        name: test_times_jdk${{ inputs.jdk-version }}_${{ env.CURRENT_INDEX }}.txt
+        name: test_times_${{ inputs.branch }}_jdk${{ inputs.jdk-version }}_${{ env.CURRENT_INDEX }}.txt
         path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
 
 

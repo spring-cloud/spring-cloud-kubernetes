@@ -8,6 +8,10 @@ inputs:
     description: 'Java version to use in artifact name'
     required: false
     default: '17'
+  branch:
+    description: 'Branch name to use in artifact name'
+    required: false
+    default: 'main'
 runs:
   using: "composite"
 
@@ -42,7 +46,7 @@ runs:
     - name: download tests
       uses: actions/download-artifact@v4
       with:
-        name: tests-jdk${{ inputs.jdk-version }}.txt
+        name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp
 
 
