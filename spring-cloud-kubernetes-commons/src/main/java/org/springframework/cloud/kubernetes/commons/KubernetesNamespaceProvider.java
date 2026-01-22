@@ -21,6 +21,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.boot.context.properties.bind.BindHandler;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -71,7 +73,7 @@ public class KubernetesNamespaceProvider {
 		this.namespacePropertyValue = namespacePropertyValue;
 	}
 
-	public static String getNamespaceFromServiceAccountFile(String path) {
+	public static @Nullable String getNamespaceFromServiceAccountFile(String path) {
 		String namespace = null;
 		LOG.debug("Looking for service account namespace at: [" + path + "].");
 		Path serviceAccountNamespacePath = Paths.get(path);
@@ -91,7 +93,7 @@ public class KubernetesNamespaceProvider {
 		return namespace;
 	}
 
-	public String getNamespace() {
+	public @Nullable String getNamespace() {
 		// If they provided the namespace in the constructor just return that
 		if (!ObjectUtils.isEmpty(namespacePropertyValue)) {
 			return namespacePropertyValue;
@@ -107,7 +109,7 @@ public class KubernetesNamespaceProvider {
 		return namespace != null ? namespace : getServiceAccountNamespace();
 	}
 
-	private String getServiceAccountNamespace() {
+	private @Nullable String getServiceAccountNamespace() {
 		String serviceAccountNamespacePathString = null;
 		if (environment != null) {
 			serviceAccountNamespacePathString = environment.getProperty(NAMESPACE_PATH_PROPERTY,
