@@ -13,6 +13,10 @@ inputs:
     description: 'Java version to use in cache key'
     required: true
     default: '17'
+  branch:
+    description: 'Branch name to use in artifact download'
+    required: true
+    default: 'main'
 runs:
   using: "composite"
 
@@ -32,9 +36,9 @@ runs:
       shell: bash
       run: |
         # The artifact download creates directories named after the artifact
-        # e.g., /tmp/all-artifacts/test_times_jdk17_0.txt/test_times_0.txt
+        # e.g., /tmp/all-artifacts/test_times_main_jdk17_0.txt/test_times_0.txt
         # So we need to find files inside directories matching the pattern
-        arr=($(find /tmp/all-artifacts/test_times_jdk${{ inputs.jdk-version }}_* -type f 2>/dev/null || true))
+        arr=($(find /tmp/all-artifacts/test_times_${{ inputs.branch }}_jdk${{ inputs.jdk-version }}_* -type f 2>/dev/null || true))
 
         echo "Found ${#arr[@]} test time files"
 
