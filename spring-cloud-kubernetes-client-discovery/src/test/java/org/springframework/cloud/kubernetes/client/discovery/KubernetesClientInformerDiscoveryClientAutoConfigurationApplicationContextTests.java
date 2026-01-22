@@ -72,13 +72,17 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		API_SERVER.resetAll();
 	}
 
+	@AfterAll
+	static void afterAll() {
+		API_SERVER.shutdownServer();
+	}
+
 	@Test
 	void discoveryEnabledDefault() {
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.client.namespace=default");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -99,8 +103,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("a", "b", "c"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.namespaces=a,b,c");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.namespaces=a,b,c");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -122,8 +125,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.enabled=true", "spring.cloud.kubernetes.client.namespace=default");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -144,8 +147,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("a", "b"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a,b");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.enabled=true",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -163,8 +166,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 	@Test
 	void discoveryDisabled() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.enabled=false");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -179,8 +181,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 	@Test
 	void discoveryDisabledWithSelectiveNamespaces() {
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.enabled=false",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -194,8 +196,11 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 	@Test
 	void kubernetesDiscoveryEnabled() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.enabled=true", "spring.cloud.kubernetes.client.namespace=default");
+
+		mockEndpointsAndServices(List.of("default"), API_SERVER);
+
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -212,8 +217,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("a", "b", "c", "d"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.enabled=true",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.enabled=true",
 				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -232,8 +236,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 	@Test
 	void kubernetesDiscoveryDisabled() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.enabled=false");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.enabled=false");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -249,8 +252,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 	@Test
 	void kubernetesDiscoveryDisabledWithSelectiveNamespaces() {
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.enabled=false",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.enabled=false",
 				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
@@ -269,8 +271,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.kubernetes.client.namespace=default");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.blocking.enabled=true",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -292,8 +294,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("a"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=true", "spring.cloud.kubernetes.discovery.namespaces=a");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.blocking.enabled=true",
+				"spring.cloud.kubernetes.discovery.namespaces=a");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -315,8 +317,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.client.namespace=default");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.blocking.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -337,8 +339,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("a", "b"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=false", "spring.cloud.kubernetes.discovery.namespaces=a,b");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.blocking.enabled=false",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -359,8 +361,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.client.health-indicator.enabled=true",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.client.health-indicator.enabled=true",
 				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -382,8 +383,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("b"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.client.health-indicator.enabled=true",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.client.health-indicator.enabled=true",
 				"spring.cloud.kubernetes.discovery.namespaces=b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -405,8 +405,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.client.health-indicator.enabled=false",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.client.health-indicator.enabled=false",
 				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -424,8 +423,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("b"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.client.health-indicator.enabled=false",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.client.health-indicator.enabled=false",
 				"spring.cloud.kubernetes.discovery.namespaces=b");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -444,7 +442,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
 		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true",
+				"spring.cloud.discovery.client.health-indicator.enabled=true",
 				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -469,7 +467,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		mockEndpointsAndServices(List.of("a", "b", "c", "d", "e"), API_SERVER);
 
 		setupWithFilteredClassLoader(HealthIndicator.class, "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.config.enabled=false", "spring.cloud.discovery.client.health-indicator.enabled=true",
+				"spring.cloud.discovery.client.health-indicator.enabled=true",
 				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d,e");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -497,8 +495,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("a", "b"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.blocking.enabled=false",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.blocking.enabled=false",
 				"spring.cloud.kubernetes.discovery.cacheable.reactive.enabled=true",
 				"spring.cloud.kubernetes.discovery.namespaces=a,b");
 		applicationContextRunner.run(context -> {
@@ -525,8 +522,8 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.reactive.enabled=false", "spring.cloud.kubernetes.client.namespace=default");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.reactive.enabled=false",
+				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientInformerReactiveDiscoveryClient.class);
@@ -546,8 +543,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("a", "b", "c", "d", "e"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.discovery.reactive.enabled=false",
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.discovery.reactive.enabled=false",
 				"spring.cloud.kubernetes.discovery.namespaces=a,b,c,d,e");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
@@ -572,8 +568,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.client.namespace=default");
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
 			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
 			assertThat(context).doesNotHaveBean(KubernetesClientCacheableInformerDiscoveryClient.class);
@@ -592,7 +587,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+		setup("spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=false",
 				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
@@ -613,7 +608,7 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 
 		mockEndpointsAndServices(List.of("default"), API_SERVER);
 
-		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+		setup("spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.discovery.cacheable.blocking.enabled=true",
 				"spring.cloud.kubernetes.client.namespace=default");
 		applicationContextRunner.run(context -> {
