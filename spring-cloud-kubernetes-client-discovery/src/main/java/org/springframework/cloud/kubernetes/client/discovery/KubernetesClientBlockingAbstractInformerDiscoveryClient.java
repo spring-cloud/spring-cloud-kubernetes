@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -81,8 +81,9 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 
 	KubernetesClientBlockingAbstractInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
-			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
-			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+			List<SharedIndexInformer<V1Service>> serviceInformers,
+			List<SharedIndexInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		this.sharedInformerFactories = sharedInformerFactories;
 		this.serviceListers = serviceListers;
 		this.endpointsListers = endpointsListers;
@@ -94,11 +95,11 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 
 		this.informersReadyFunc = () -> {
 			boolean serviceInformersReady = serviceInformers.isEmpty() || serviceInformers.stream()
-				.map(SharedInformer::hasSynced)
+				.map(SharedIndexInformer::hasSynced)
 				.reduce(Boolean::logicalAnd)
 				.orElse(false);
 			boolean endpointsInformersReady = endpointsInformers.isEmpty() || endpointsInformers.stream()
-				.map(SharedInformer::hasSynced)
+				.map(SharedIndexInformer::hasSynced)
 				.reduce(Boolean::logicalAnd)
 				.orElse(false);
 			return serviceInformersReady && endpointsInformersReady;
