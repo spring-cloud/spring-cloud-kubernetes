@@ -317,7 +317,7 @@ jobs:
     needs: [all-tests-passed]
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
-      branch: ${{ inputs.branch }}
+      branches: ${{ inputs.branch }}
       custom_build_command: |
         if [[ "$SHOULD_DEPLOY" == "true" ]]; then
           ./mvnw clean deploy -Pspring,docs -DskipTests -DskipITs -Dspring-boot.build-image.skip=true -B -U
