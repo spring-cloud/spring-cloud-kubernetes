@@ -72,11 +72,6 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		API_SERVER.resetAll();
 	}
 
-	@AfterAll
-	static void afterAll() {
-		API_SERVER.shutdownServer();
-	}
-
 	@Test
 	void discoveryEnabledDefault() {
 
