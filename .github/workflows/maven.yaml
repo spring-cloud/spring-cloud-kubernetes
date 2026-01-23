@@ -40,7 +40,7 @@ on:
 
 jobs:
   build:
-    name: Build and prepare
+    name: Build (${{ inputs.branch || github.ref_name }} with JDK ${{ inputs.jdk-version || '17' }})
     runs-on: ubuntu-latest
     env:
       # this might get set to true if there is an existing cache of test times
