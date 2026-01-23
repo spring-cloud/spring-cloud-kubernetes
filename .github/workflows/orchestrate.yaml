@@ -7,8 +7,8 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
     inputs:
-      branch:
-        description: "Which branch should be built (empty for current branch)"
+      branches:
+        description: "Which branch should be built (single branch or comma-separated list)"
         required: false
         default: 'main'
         type: string
@@ -32,7 +32,7 @@ jobs:
           repository: ${{ github.repository }}
           event-name: ${{ github.event_name }}
           ref-name: ${{ github.ref_name }}
-          branch: ${{ inputs.branch }}
+          branches: ${{ inputs.branches }}
 
   build-and-test:
     name: Build and test with JDK ${{ matrix.java-version }}
