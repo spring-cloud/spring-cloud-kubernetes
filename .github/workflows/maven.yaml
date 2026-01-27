@@ -55,6 +55,7 @@ jobs:
     # to skip the job responsible for running the tests, if a previous cache that has the test times is not present.
     # Same for other two variables 'number_of_matrix_instances' and 'matrix_array'.
     outputs:
+      branch_safe: ${{ steps.sanitize_branch.outputs.branch_safe }} # this is the branch name with / removed so it can be used in cache names safely
       test_times_cache_present: ${{ steps.test_times_cache_present_init.outputs.test_times_cache_present }}
       number_of_matrix_instances: ${{ steps.test_times_cache_present_init.outputs.number_of_matrix_instances }}
       matrix_array: ${{ steps.test_times_cache_present_init.outputs.matrix_array }}
@@ -65,6 +66,14 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch || github.ref }}
+
+      - name: Sanitize branch name for artifacts
+        id: sanitize_branch
+        shell: bash
+        run: |
+          SANITIZED_BRANCH=$(echo "${{ env.BRANCH }}" | sed 's/\//-/g')
+          echo "BRANCH_SAFE=${SANITIZED_BRANCH}" >> $GITHUB_ENV
+          echo "branch_safe=${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: set env variables
         uses: ./.github/workflows/composites/env-variables
@@ -94,7 +103,7 @@ jobs:
         uses: ./.github/workflows/composites/maven-build-with-dry-run-for-tests
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
 
       - name: restore test times cache if it exists
         id: restore_test_times_cache
@@ -120,7 +129,7 @@ jobs:
         uses: ./.github/workflows/composites/matrix-bounds-on-test-times-cache-hit
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
 
       - name: matrix related variables when cache is present
         id: test_times_cache_present_init
@@ -138,6 +147,7 @@ jobs:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
       JDK_VERSION: ${{ inputs.jdk-version || '17' }}
       BRANCH: ${{ inputs.branch || github.ref_name }}
+      BRANCH_SAFE: ${{ needs.build.outputs.branch_safe }}
     # only run this one if there is a previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'true'
     timeout-minutes: 120
@@ -172,7 +182,7 @@ jobs:
         uses: ./.github/workflows/composites/pre-test-actions
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
 
       - name: testcontainers reuse support
         shell: bash
@@ -182,7 +192,7 @@ jobs:
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
           NUMBER_OF_JOBS: ${{ matrix.number_of_jobs }}
@@ -196,6 +206,7 @@ jobs:
       SEGMENT_DOWNLOAD_TIMEOUT_MINS: 30
       JDK_VERSION: ${{ inputs.jdk-version || '17' }}
       BRANCH: ${{ inputs.branch || github.ref_name }}
+      BRANCH_SAFE: ${{ needs.build.outputs.branch_safe }}
     timeout-minutes: 120
     # only run this one if there is no previous cache of test times
     if: needs.build.outputs.test_times_cache_present == 'false'
@@ -229,7 +240,7 @@ jobs:
         uses: ./.github/workflows/composites/pre-test-actions
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
 
       - name: compute single step test bounds
         uses: ./.github/workflows/composites/test-bounds
@@ -245,7 +256,7 @@ jobs:
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
         env:
           CURRENT_INDEX: ${{ matrix.current_index }}
 
@@ -256,6 +267,7 @@ jobs:
     env:
       JDK_VERSION: ${{ inputs.jdk-version || '17' }}
       BRANCH: ${{ inputs.branch || github.ref_name }}
+      BRANCH_SAFE: ${{ needs.build.outputs.branch_safe }}
 
     steps:
 
@@ -268,7 +280,7 @@ jobs:
         uses: ./.github/workflows/composites/test-times
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
 
   save_test_times_when_cache_present:
     name: Save test times
@@ -277,6 +289,7 @@ jobs:
     env:
       JDK_VERSION: ${{ inputs.jdk-version || '17' }}
       BRANCH: ${{ inputs.branch || github.ref_name }}
+      BRANCH_SAFE: ${{ needs.build.outputs.branch_safe }}
 
     steps:
 
@@ -289,7 +302,7 @@ jobs:
         uses: ./.github/workflows/composites/test-times
         with:
           jdk-version: ${{ env.JDK_VERSION }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.BRANCH_SAFE }}
 
   # Gate job to handle mutually exclusive test jobs
   # Either test_when_cache_present OR test_when_cache_missing runs (not both)
