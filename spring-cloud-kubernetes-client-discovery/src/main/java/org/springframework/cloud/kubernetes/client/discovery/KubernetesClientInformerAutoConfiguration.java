@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -111,8 +110,8 @@ public final class KubernetesClientInformerAutoConfiguration {
 	@ConditionalOnMissingBean(value = V1Service.class,
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
-			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-			CoreV1Api api, KubernetesDiscoveryProperties properties) {
+			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces, CoreV1Api api,
+			KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
@@ -122,11 +121,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 			CallGenerator callGenerator = servicesCallGenerator(api, properties.serviceLabels(), namespace);
 
 			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(
-					callGenerator,
-					V1Service.class,
-					V1ServiceList.class
-			);
+				.sharedIndexInformerFor(callGenerator, V1Service.class, V1ServiceList.class);
 			serviceSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return serviceSharedIndexedInformers;
@@ -154,8 +149,8 @@ public final class KubernetesClientInformerAutoConfiguration {
 	@ConditionalOnMissingBean(value = V1Endpoints.class,
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
-			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces,
-			CoreV1Api api, KubernetesDiscoveryProperties properties) {
+			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces, CoreV1Api api,
+			KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
@@ -165,11 +160,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 			CallGenerator callGenerator = endpointsCallGenerator(api, properties.serviceLabels(), namespace);
 
 			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(
-					callGenerator,
-					V1Endpoints.class,
-					V1EndpointsList.class
-				);
+				.sharedIndexInformerFor(callGenerator, V1Endpoints.class, V1EndpointsList.class);
 			endpointsSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return endpointsSharedIndexedInformers;

@@ -35,10 +35,10 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.util.CallGenerator;
 import io.kubernetes.client.util.CallGeneratorParams;
+import io.kubernetes.client.util.Namespaces;
 import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.core.log.LogAccessor;
@@ -119,11 +119,18 @@ final class KubernetesClientDiscoveryClientUtils {
 		return addresses;
 	}
 
-	static @NotNull CallGenerator endpointsCallGenerator(CoreV1Api api, Map<String, String> serviceLabels,
-		String namespace) {
+	static CallGenerator endpointsCallGenerator(CoreV1Api api, Map<String, String> serviceLabels, String namespace) {
 
-		return (CallGeneratorParams params) -> api
-			.listNamespacedEndpoints(namespace)
+		if (Namespaces.NAMESPACE_ALL.equals(namespace)) {
+			return (CallGeneratorParams params) -> api.listEndpointsForAllNamespaces()
+				.resourceVersion(params.resourceVersion)
+				.timeoutSeconds(params.timeoutSeconds)
+				.watch(params.watch)
+				.labelSelector(labelSelector(serviceLabels))
+				.buildCall(null);
+		}
+
+		return (CallGeneratorParams params) -> api.listNamespacedEndpoints(namespace)
 			.resourceVersion(params.resourceVersion)
 			.timeoutSeconds(params.timeoutSeconds)
 			.watch(params.watch)
@@ -131,11 +138,18 @@ final class KubernetesClientDiscoveryClientUtils {
 			.buildCall(null);
 	}
 
-	static @NotNull CallGenerator servicesCallGenerator(CoreV1Api api, Map<String, String> serviceLabels,
-		String namespace) {
+	static CallGenerator servicesCallGenerator(CoreV1Api api, Map<String, String> serviceLabels, String namespace) {
 
-		return (CallGeneratorParams params) -> api
-			.listNamespacedService(namespace)
+		if (Namespaces.NAMESPACE_ALL.equals(namespace)) {
+			return (CallGeneratorParams params) -> api.listServiceForAllNamespaces()
+				.resourceVersion(params.resourceVersion)
+				.timeoutSeconds(params.timeoutSeconds)
+				.watch(params.watch)
+				.labelSelector(labelSelector(serviceLabels))
+				.buildCall(null);
+		}
+
+		return (CallGeneratorParams params) -> api.listNamespacedService(namespace)
 			.resourceVersion(params.resourceVersion)
 			.timeoutSeconds(params.timeoutSeconds)
 			.watch(params.watch)
@@ -144,12 +158,10 @@ final class KubernetesClientDiscoveryClientUtils {
 	}
 
 	private static String labelSelector(Map<String, String> labels) {
-		if (labels.isEmpty()) {
+		if (labels == null || labels.isEmpty()) {
 			return null;
 		}
-		return labels.entrySet().stream()
-			.map(e -> e.getKey() + "=" + e.getValue())
-			.collect(Collectors.joining(","));
+		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 }
