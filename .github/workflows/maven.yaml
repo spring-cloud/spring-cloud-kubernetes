@@ -40,7 +40,7 @@ on:
 
 jobs:
   build:
-    name: Build and prepare
+    name: Build (${{ inputs.branch || github.ref_name }} with JDK ${{ inputs.jdk-version || '17' }})
     runs-on: ubuntu-latest
     env:
       # this might get set to true if there is an existing cache of test times
@@ -250,6 +250,7 @@ jobs:
           CURRENT_INDEX: ${{ matrix.current_index }}
 
   save_test_times_when_cache_missing:
+    name: Save test times
     runs-on: ubuntu-latest
     needs: [build, test_when_cache_missing ]
     env:
@@ -270,6 +271,7 @@ jobs:
           branch: ${{ env.BRANCH }}
 
   save_test_times_when_cache_present:
+    name: Save test times
     runs-on: ubuntu-latest
     needs: [ build, test_when_cache_present ]
     env:
