@@ -117,7 +117,7 @@ For example:
 
 Once namespaces have been configured, the next question to answer is what services to discover. Think about it as what filter to apply. By default, no filtering is applied at all and all services are discovered. If you need to narrow what discovery client can find, you have two options:
 
-- Only take services that match certain service labels. This property is specified with: `spring.cloud.kubernetes.discovery.service-labels`. It accepts a `Map` and only those services that have such labels (as seen in `metadata.labels` in the service definition) will be taken into account.
+- Only take services that match certain service labels. This property is specified with: `spring.cloud.kubernetes.discovery.service-labels`. It accepts a `Map` and only those services that have such labels (as seen in `metadata.labels` in the service definition) will be taken into account. Since we use listers to get the services ( basically a cache that is populated async ), these labels are particularly useful when your namespaces have a big number of services and using labels, you make the cache smaller.
 
 - The other option is to use https://docs.spring.io/spring-framework/reference/core/expressions.html[SpEL expression]. This is denoted by the `spring.cloud.kubernetes.discovery.filter` property, and its value depends on the client that you chose. If you use the fabric8 client, this SpEL expression must be created against `io.fabric8.kubernetes.api.model.Service` class. One such example could be:
 

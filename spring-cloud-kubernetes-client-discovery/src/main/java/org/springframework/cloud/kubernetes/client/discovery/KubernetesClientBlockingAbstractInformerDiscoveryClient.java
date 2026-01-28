@@ -46,7 +46,6 @@ import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.endpointSubsetsPortData;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.matchesServiceLabels;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.postConstruct;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInstanceIdHostPodNameSupplier.externalName;
@@ -111,7 +110,6 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 	public List<String> getServices() {
 		List<String> services = serviceListers.stream()
 			.flatMap(serviceLister -> serviceLister.list().stream())
-			.filter(service -> matchesServiceLabels(service, properties))
 			.filter(predicate)
 			.map(s -> s.getMetadata().getName())
 			.distinct()
@@ -128,7 +126,6 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 			.flatMap(x -> x.list().stream())
 			.filter(scv -> scv.getMetadata() != null)
 			.filter(svc -> serviceId.equals(svc.getMetadata().getName()))
-			.filter(scv -> matchesServiceLabels(scv, properties))
 			.toList();
 
 		List<ServiceInstance> serviceInstances = allServices.stream()

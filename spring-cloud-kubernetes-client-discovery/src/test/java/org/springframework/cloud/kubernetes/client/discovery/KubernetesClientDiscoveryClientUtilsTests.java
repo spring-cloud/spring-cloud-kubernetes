@@ -16,161 +16,29 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.models.CoreV1EndpointPortBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointAddressBuilder;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1EndpointSubsetBuilder;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.endpointSubsetsPortData;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.matchesServiceLabels;
 
 /**
  * @author wind57
  */
 @ExtendWith(OutputCaptureExtension.class)
 class KubernetesClientDiscoveryClientUtilsTests {
-
-	/**
-	 * properties service labels are empty
-	 */
-	@Test
-	void testEmptyServiceLabelsFromProperties(CapturedOutput output) {
-		KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
-		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().name("my-service")).build();
-
-		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertThat(result).isTrue();
-		Assertions.assertThat(output.getOut())
-			.contains("service labels from properties are empty, service with name : 'my-service' will match");
-	}
-
-	/**
-	 * labels from service are empty
-	 */
-	@Test
-	void testEmptyServiceLabelsFromService(CapturedOutput output) {
-		Map<String, String> propertiesLabels = Map.of("key", "value");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
-		V1Service service = new V1ServiceBuilder().withMetadata(new V1ObjectMeta().name("my-service")).build();
-
-		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertThat(result).isFalse();
-		Assertions.assertThat(output.getOut()).contains("service with name : 'my-service' does not have labels");
-	}
-
-	/**
-	 * <pre>
-	 *     properties = [a=b]
-	 *     service    = [a=b]
-	 *
-	 *     This means the service is picked-up.
-	 * </pre>
-	 */
-	@Test
-	void testOne(CapturedOutput output) {
-		Map<String, String> propertiesLabels = Map.of("a", "b");
-		Map<String, String> serviceLabels = Map.of("a", "b");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
-		V1Service service = new V1ServiceBuilder()
-			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
-			.build();
-
-		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertThat(result).isTrue();
-		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b}");
-		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b}");
-	}
-
-	/**
-	 * <pre>
-	 *     properties = [a=b, c=d]
-	 *     service    = [a=b]
-	 *
-	 *     This means the service is not picked-up.
-	 * </pre>
-	 */
-	@Test
-	void testTwo(CapturedOutput output) {
-		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
-		Map<String, String> serviceLabels = Map.of("a", "b");
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
-		V1Service service = new V1ServiceBuilder()
-			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
-			.build();
-
-		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertThat(result).isFalse();
-		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b, c=d}");
-		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b}");
-	}
-
-	/**
-	 * <pre>
-	 *     properties = [a=b, c=d]
-	 *     service    = [a=b, c=d]
-	 *
-	 *     This means the service is picked-up.
-	 * </pre>
-	 */
-	@Test
-	void testThree(CapturedOutput output) {
-		Map<String, String> propertiesLabels = ordered(Map.of("a", "b", "c", "d"));
-		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
-		V1Service service = new V1ServiceBuilder()
-			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
-			.build();
-
-		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertThat(result).isTrue();
-		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b, c=d}");
-		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b, c=d}");
-	}
-
-	/**
-	 * <pre>
-	 *     properties = [a=b]
-	 *     service    = [a=b, c=d]
-	 *
-	 *     This means the service is picked-up.
-	 * </pre>
-	 */
-	@Test
-	void testFour(CapturedOutput output) {
-		Map<String, String> propertiesLabels = Map.of("a", "b");
-		Map<String, String> serviceLabels = ordered(Map.of("a", "b", "c", "d"));
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
-				true, "", Set.of(), propertiesLabels, "", null, 0, false, false, null);
-		V1Service service = new V1ServiceBuilder()
-			.withMetadata(new V1ObjectMeta().labels(serviceLabels).name("my-service"))
-			.build();
-
-		boolean result = matchesServiceLabels(service, properties);
-		Assertions.assertThat(result).isTrue();
-		Assertions.assertThat(output.getOut()).contains("Service labels from properties : {a=b}");
-		Assertions.assertThat(output.getOut()).contains("Service labels from service : {a=b, c=d}");
-	}
 
 	@Test
 	void testPortsDataOne() {
@@ -309,15 +177,6 @@ class KubernetesClientDiscoveryClientUtilsTests {
 		List<V1EndpointAddress> addresses = KubernetesClientDiscoveryClientUtils.addresses(endpointSubset, properties);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
 		Assertions.assertThat(hostNames).containsExactly("one", "three", "two");
-	}
-
-	// preserve order for testing reasons
-	private Map<String, String> ordered(Map<String, String> input) {
-		return input.entrySet()
-			.stream()
-			.sorted(Map.Entry.comparingByKey())
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left,
-					LinkedHashMap::new));
 	}
 
 }

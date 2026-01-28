@@ -45,7 +45,9 @@ import org.springframework.test.context.TestPropertySource;
 @ExtendWith(OutputCaptureExtension.class)
 abstract class KubernetesClientDiscoveryBase {
 
-	protected static final String NAMESPACE = "default";
+	protected static final String DEFAULT_NAMESPACE = "default";
+
+	protected static final String NON_DEFAULT_NAMESPACE = "non-default";
 
 	protected static final K3sContainer K3S = Commons.container();
 
@@ -70,12 +72,12 @@ abstract class KubernetesClientDiscoveryBase {
 		return new CoreV1Api(client).getApiClient();
 	}
 
-	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices,
-			Set<String> namespaces, String filter) {
+	protected static KubernetesDiscoveryProperties discoveryProperties(boolean allNamespaces, Set<String> namespaces,
+			String filter, Map<String, String> labels) {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, null, true,
 				null, true, "port.", true, true);
-		return new KubernetesDiscoveryProperties(true, false, namespaces, true, 60, false, filter, Set.of(443, 8443),
-				Map.of(), null, metadata, 0, useEndpointSlices, true, null);
+		return new KubernetesDiscoveryProperties(true, allNamespaces, namespaces, true, 60, false, filter,
+				Set.of(443, 8443), labels, null, metadata, 0, false, true, null);
 	}
 
 }

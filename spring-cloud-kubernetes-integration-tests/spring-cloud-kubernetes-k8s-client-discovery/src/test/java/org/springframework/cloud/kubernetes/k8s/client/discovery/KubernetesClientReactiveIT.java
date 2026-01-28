@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.discovery;
 
+import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -60,12 +61,12 @@ class KubernetesClientReactiveIT extends KubernetesClientDiscoveryBase {
 	@BeforeEach
 	void beforeEach() {
 		Images.loadWiremock(K3S);
-		util.wiremock(NAMESPACE, Phase.CREATE, true);
+		util.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, true);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.wiremock(NAMESPACE, Phase.DELETE, true);
+		util.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, true);
 	}
 
 	/**
@@ -95,7 +96,7 @@ class KubernetesClientReactiveIT extends KubernetesClientDiscoveryBase {
 		@Bean
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false, Set.of(NAMESPACE), null);
+			return discoveryProperties(false, Set.of(DEFAULT_NAMESPACE), null, Map.of());
 		}
 
 	}

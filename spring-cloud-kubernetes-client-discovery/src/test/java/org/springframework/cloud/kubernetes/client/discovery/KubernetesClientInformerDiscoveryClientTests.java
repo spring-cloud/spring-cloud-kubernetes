@@ -130,42 +130,6 @@ class KubernetesClientInformerDiscoveryClientTests {
 	}
 
 	@Test
-	void testDiscoveryWithServiceLabels() {
-		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2, SERVICE_3);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_NO_UNSET_PORT_NAME);
-
-		Map<String, String> labels = Map.of("k8s", "true", "spring", "true");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = properties(true, labels);
-
-		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				kubernetesDiscoveryProperties, CORE_V1_API, x -> true);
-
-		assertThat(discoveryClient.getServices().toArray()).containsOnly(SERVICE_3.getMetadata().getName());
-
-	}
-
-	@Test
-	void testDiscoveryInstancesWithServiceLabels() {
-		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_1, SERVICE_2, SERVICE_3);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1, ENDPOINTS_3);
-
-		Map<String, String> labels = Map.of("k8s", "true", "spring", "true");
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties = properties(true, labels);
-
-		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				kubernetesDiscoveryProperties, CORE_V1_API, x -> true);
-
-		assertThat(discoveryClient.getInstances("test-svc-1").toArray()).isEmpty();
-		assertThat(discoveryClient.getInstances("test-svc-3").toArray()).containsOnly(
-				new DefaultKubernetesServiceInstance(
-						null, "test-svc-3", "2.2.2.2", 8080, Map.of("spring", "true", "port.<unset>", "8080", "k8s",
-								"true", "k8s_namespace", "namespace1", "type", "ClusterIP"),
-						false, "namespace1", null, Map.of()));
-	}
-
-	@Test
 	void testDiscoveryInstancesWithSecuredServiceByAnnotations() {
 		Lister<V1Service> serviceLister = setupServiceLister(SERVICE_4);
 		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(ENDPOINTS_1);
@@ -488,30 +452,6 @@ class KubernetesClientInformerDiscoveryClientTests {
 		assertThat(result.size()).isEqualTo(1);
 		assertThat(result.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespace1");
 
-	}
-
-	@Test
-	void testServicesWithDifferentMetadataLabels() {
-		V1Service serviceA = service("serviceX", "namespaceA", Map.of("shape", "round"));
-		V1Service serviceB = service("serviceX", "namespaceB", Map.of("shape", "triangle"));
-
-		V1Endpoints endpointsA = endpointsReadyAddress("serviceX", "namespaceA");
-		V1Endpoints endpointsB = endpointsReadyAddress("serviceX", "namespaceB");
-
-		Lister<V1Service> serviceLister = setupServiceLister(serviceA, serviceB);
-		Lister<V1Endpoints> endpointsLister = setupEndpointsLister(endpointsA, endpointsB);
-
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, true, Set.of(), true, 60L,
-				false, null, Set.of(), Map.of("shape", "round"), null, KubernetesDiscoveryProperties.Metadata.DEFAULT,
-				0, false, false, null);
-
-		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
-				properties, CORE_V1_API, x -> true);
-
-		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
-		assertThat(serviceInstances.size()).isEqualTo(1);
-		assertThat(serviceInstances.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
 	}
 
 	@Test
