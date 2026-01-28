@@ -130,7 +130,7 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
 			return discoveryProperties(false, Set.of(NAMESPACE_A_UAT, NAMESPACE_B_UAT),
-					"#root.metadata.namespace matches '^.*uat$'");
+					"#root.metadata.namespace matches '^.*uat$'", Map.of());
 		}
 
 	}

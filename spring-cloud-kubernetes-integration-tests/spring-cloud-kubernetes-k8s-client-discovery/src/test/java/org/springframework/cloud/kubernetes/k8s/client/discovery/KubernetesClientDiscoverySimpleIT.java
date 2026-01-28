@@ -62,16 +62,16 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 	@BeforeEach
 	void beforeEach() {
 		Images.loadBusybox(K3S);
-		util.busybox(NAMESPACE, Phase.CREATE);
+		util.busybox(DEFAULT_NAMESPACE, Phase.CREATE);
 
 		externalNameService = (V1Service) util.yaml("external-name-service.yaml");
-		util.createAndWait(NAMESPACE, null, null, externalNameService, true);
+		util.createAndWait(DEFAULT_NAMESPACE, null, null, externalNameService, true);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.busybox(NAMESPACE, Phase.DELETE);
-		util.deleteAndWait(NAMESPACE, null, externalNameService);
+		util.busybox(DEFAULT_NAMESPACE, Phase.DELETE);
+		util.deleteAndWait(DEFAULT_NAMESPACE, null, externalNameService);
 	}
 
 	@Test
@@ -166,7 +166,7 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 		@Bean
 		@Primary
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false, Set.of(NAMESPACE), null);
+			return discoveryProperties(false, Set.of(DEFAULT_NAMESPACE), null, Map.of());
 		}
 
 	}
