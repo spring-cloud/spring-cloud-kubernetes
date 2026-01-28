@@ -20,9 +20,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
