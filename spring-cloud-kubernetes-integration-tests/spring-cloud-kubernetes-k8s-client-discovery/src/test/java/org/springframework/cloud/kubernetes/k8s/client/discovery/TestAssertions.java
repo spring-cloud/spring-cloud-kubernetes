@@ -84,8 +84,7 @@ final class TestAssertions {
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathStringValue(BLOCKING_STATUS).isEqualTo("UP");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).extractingJsonPathArrayValue(BLOCKING_SERVICES)
-			.contains("kubernetes", "service-wiremock")
-			.doesNotContain("busybox-service");
+			.contains("kubernetes", "service-wiremock", "busybox-service");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
