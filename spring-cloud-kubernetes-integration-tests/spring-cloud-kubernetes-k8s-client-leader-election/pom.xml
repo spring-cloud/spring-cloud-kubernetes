@@ -15,6 +15,7 @@
 	</properties>
 
 	<artifactId>spring-cloud-kubernetes-k8s-client-leader-election</artifactId>
+	<name>Spruing Cloud Kubernetes K8S Client Leader Election Integration Tests</name>
 
 	<dependencies>
 		<dependency>
