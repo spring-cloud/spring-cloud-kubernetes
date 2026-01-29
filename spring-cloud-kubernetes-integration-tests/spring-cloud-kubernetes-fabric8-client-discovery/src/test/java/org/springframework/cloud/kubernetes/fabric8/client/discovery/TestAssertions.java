@@ -73,7 +73,8 @@ final class TestAssertions {
 		assertThat(withCustomLabel.getInstanceId()).isNotNull();
 		assertThat(withCustomLabel.getHost()).isNotNull();
 		assertThat(withCustomLabel.getMetadata())
-			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+			.isEqualTo(Map.of("app", "service-busybox", "k8s_namespace", "default", "type",
+				"ClusterIP", "port.busybox-port", "80"));
 		assertThat(podMetadataLabels).contains(new SimpleEntry<>("my-label", "my-value"));
 
 		// if annotation are present, we got the one with annotations here
@@ -92,7 +93,8 @@ final class TestAssertions {
 		assertThat(withCustomLabel.getInstanceId()).isNotNull();
 		assertThat(withCustomLabel.getHost()).isNotNull();
 		assertThat(withCustomLabel.getMetadata())
-			.isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP", "port.busybox-port", "80"));
+			.isEqualTo(Map.of("app", "service-busybox", "k8s_namespace", "default",
+				"type", "ClusterIP", "port.busybox-port", "80"));
 		assertThat(podMetadataAnnotations).contains(new SimpleEntry<>("my-annotation", "my-value"));
 	}
 
