@@ -76,7 +76,7 @@ class KubernetesClientCatalogWatchEndpointsTests extends KubernetesClientEndpoin
 	@Test
 	@Override
 	void testInAllNamespacesEmptyServiceLabels() {
-		stubFor(get("/api/v1/endpoints?labelSelector=")
+		stubFor(get("/api/v1/endpoints")
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(endpoints("a", "default")))));
 		KubernetesClientCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of(), Set.of(), coreV1Api, null,
 				USE_ENDPOINT_SLICES);
@@ -113,7 +113,7 @@ class KubernetesClientCatalogWatchEndpointsTests extends KubernetesClientEndpoin
 	@Test
 	@Override
 	void testInSpecificNamespacesEmptyServiceLabels() {
-		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=")
+		stubFor(get("/api/v1/namespaces/b/endpoints")
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(endpoints("a", "b")))));
 		KubernetesClientCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("b"), Map.of(),
 				coreV1Api, null, USE_ENDPOINT_SLICES);
@@ -159,7 +159,7 @@ class KubernetesClientCatalogWatchEndpointsTests extends KubernetesClientEndpoin
 	@Test
 	@Override
 	void testInOneNamespaceEmptyServiceLabels() {
-		stubFor(get("/api/v1/namespaces/b/endpoints?labelSelector=")
+		stubFor(get("/api/v1/namespaces/b/endpoints")
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(endpoints("a", "b")))));
 		KubernetesClientCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", Map.of(), coreV1Api, null,
 				USE_ENDPOINT_SLICES);

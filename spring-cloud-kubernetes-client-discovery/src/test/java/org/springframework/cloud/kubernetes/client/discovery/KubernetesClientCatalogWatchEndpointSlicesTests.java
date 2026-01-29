@@ -77,7 +77,7 @@ class KubernetesClientCatalogWatchEndpointSlicesTests extends KubernetesClientEn
 	@Test
 	@Override
 	void testInAllNamespacesEmptyServiceLabels() {
-		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices?labelSelector=")
+		stubFor(get("/apis/discovery.k8s.io/v1/endpointslices")
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(endpointSlices("a", "default")))));
 		KubernetesClientCatalogWatch watch = createWatcherInAllNamespacesWithLabels(Map.of(), Set.of(), null, apiClient,
 				USE_ENDPOINT_SLICES);
@@ -114,7 +114,7 @@ class KubernetesClientCatalogWatchEndpointSlicesTests extends KubernetesClientEn
 	@Test
 	@Override
 	void testInSpecificNamespacesEmptyServiceLabels() {
-		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=")
+		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices")
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(endpointSlices("a", "b")))));
 		KubernetesClientCatalogWatch watch = createWatcherInSpecificNamespacesWithLabels(Set.of("b"), Map.of(), null,
 				apiClient, USE_ENDPOINT_SLICES);
@@ -160,7 +160,7 @@ class KubernetesClientCatalogWatchEndpointSlicesTests extends KubernetesClientEn
 	@Test
 	@Override
 	void testInOneNamespaceEmptyServiceLabels() {
-		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices?labelSelector=")
+		stubFor(get("/apis/discovery.k8s.io/v1/namespaces/b/endpointslices")
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(endpointSlices("a", "b")))));
 		KubernetesClientCatalogWatch watch = createWatcherInSpecificNamespaceWithLabels("b", Map.of(), null, apiClient,
 				USE_ENDPOINT_SLICES);
