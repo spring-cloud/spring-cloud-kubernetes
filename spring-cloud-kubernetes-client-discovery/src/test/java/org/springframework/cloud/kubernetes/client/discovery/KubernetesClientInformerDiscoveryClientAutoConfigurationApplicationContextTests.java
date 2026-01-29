@@ -62,14 +62,14 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		.options(options().dynamicPort())
 		.build();
 
-	@AfterEach
-	void afterEach() {
-		API_SERVER.resetAll();
-	}
-
 	@AfterAll
 	static void afterAll() {
 		API_SERVER.shutdownServer();
+	}
+
+	@AfterEach
+	void afterEach() {
+		API_SERVER.resetAll();
 	}
 
 	@Test
