@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
-		<version>5.0.1-SNAPSHOT</version>
+		<version>5.0.2-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -15,6 +15,7 @@
 	</properties>
 
 	<artifactId>spring-cloud-kubernetes-fabric8-leader-election</artifactId>
+	<name>Spring Cloud Kubernetes Fabric8 Leader Election Integration Tests</name>
 
 	<dependencies>
 		<dependency>

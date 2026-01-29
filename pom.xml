@@ -25,12 +25,12 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>5.0.1-SNAPSHOT</version>
+		<version>5.0.2-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>5.0.1-SNAPSHOT</version>
+	<version>5.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 	<description>Spring Cloud Kubernetes</description>
@@ -92,9 +92,9 @@
 		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
 		<mockito-inline.version>4.8.1</mockito-inline.version>
-		<spring-cloud-commons.version>5.0.1-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-config.version>5.0.1-SNAPSHOT</spring-cloud-config.version>
-		<spring-cloud-bus.version>5.0.1-SNAPSHOT</spring-cloud-bus.version>
+		<spring-cloud-commons.version>5.0.2-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-config.version>5.0.2-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-bus.version>5.0.2-SNAPSHOT</spring-cloud-bus.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true

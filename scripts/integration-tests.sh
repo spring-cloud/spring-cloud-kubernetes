@@ -6,8 +6,11 @@ if [ -f "~/.testcontainers.properties" ]; then
 fi
 echo 'testcontainers.reuse.enable=true' > ~/.testcontainers.properties
 
-./mvnw clean install -B -Pdocs ${@}
-#./mvnw clean install -DskipITs -DskipTests -B -Pdocs ${@}
+#./mvnw clean install -B -Pdocs ${@}
+./mvnw clean install -DskipITs -DskipTests -Dspring-boot.build-image.skip=true -B -Pdocs ${@}
 
 rm ~/.testcontainers.properties
-docker kill $(docker ps -q)
+containers=$(docker ps -q)
+if [ -n "$containers" ]; then
+  docker kill $containers
+fi
