@@ -450,7 +450,7 @@ abstract class KubernetesClientDiscoveryClientServiceLabelsFiltering {
 		return labels.entrySet()
 			.stream()
 			.map(entry -> entry.getKey() + "=" + entry.getValue())
-			.collect(Collectors.joining("&"));
+			.collect(Collectors.joining(","));
 	}
 
 	private void startInformers(List<SharedInformerFactory> sharedInformerFactories,

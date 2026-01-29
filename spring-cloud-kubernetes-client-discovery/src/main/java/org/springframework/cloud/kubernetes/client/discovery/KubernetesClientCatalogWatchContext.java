@@ -18,9 +18,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -45,10 +43,6 @@ record KubernetesClientCatalogWatchContext(CoreV1Api coreV1Api, ApiClient apiCli
 			.map(x -> new EndpointNameAndNamespace(x.getName(), x.getNamespace()))
 			.sorted(Comparator.comparing(EndpointNameAndNamespace::endpointName, String::compareTo))
 			.toList();
-	}
-
-	static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
 	}
 
 }

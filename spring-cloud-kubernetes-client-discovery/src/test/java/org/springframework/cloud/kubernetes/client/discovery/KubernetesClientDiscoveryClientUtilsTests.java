@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -177,6 +178,27 @@ class KubernetesClientDiscoveryClientUtilsTests {
 		List<V1EndpointAddress> addresses = KubernetesClientDiscoveryClientUtils.addresses(endpointSubset, properties);
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
 		Assertions.assertThat(hostNames).containsExactly("one", "three", "two");
+	}
+
+	@Test
+	void emptyLabels() {
+		String result = KubernetesClientDiscoveryClientUtils.labelSelector(Map.of());
+		Assertions.assertThat(result).isNull();
+	}
+
+	@Test
+	void singleLabel() {
+		String result = KubernetesClientDiscoveryClientUtils.labelSelector(Map.of("a", "b"));
+		Assertions.assertThat(result).isEqualTo("a=b");
+	}
+
+	@Test
+	void multipleLabelsLabel() {
+		Map<String, String> labels = new LinkedHashMap<>();
+		labels.put("a", "b");
+		labels.put("c", "d");
+		String result = KubernetesClientDiscoveryClientUtils.labelSelector(labels);
+		Assertions.assertThat(result).isEqualTo("a=b,c=d");
 	}
 
 }

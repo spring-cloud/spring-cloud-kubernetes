@@ -157,7 +157,7 @@ final class KubernetesClientDiscoveryClientUtils {
 			.buildCall(null);
 	}
 
-	private static String labelSelector(Map<String, String> labels) {
+	static String labelSelector(Map<String, String> labels) {
 		if (labels == null || labels.isEmpty()) {
 			return null;
 		}
