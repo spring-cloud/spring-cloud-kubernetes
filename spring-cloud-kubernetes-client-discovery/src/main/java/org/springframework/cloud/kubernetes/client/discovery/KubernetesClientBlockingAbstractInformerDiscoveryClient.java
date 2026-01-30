@@ -124,13 +124,13 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 
 		List<V1Service> allServices = serviceListers.stream()
 			.flatMap(x -> x.list().stream())
-			.filter(scv -> scv.getMetadata() != null)
-			.filter(svc -> serviceId.equals(svc.getMetadata().getName()))
+			.filter(service -> service.getMetadata() != null)
+			.filter(service -> serviceId.equals(service.getMetadata().getName()))
 			.toList();
 
 		List<ServiceInstance> serviceInstances = allServices.stream()
 			.filter(predicate)
-			.flatMap(service -> serviceInstances(service, serviceId).stream())
+			.flatMap(service -> serviceInstances(service).stream())
 			.collect(Collectors.toCollection(ArrayList::new));
 
 		if (properties.includeExternalNameServices()) {
@@ -171,12 +171,15 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 		sharedInformerFactories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
 	}
 
-	private List<ServiceInstance> serviceInstances(V1Service service, String serviceId) {
+	private List<ServiceInstance> serviceInstances(V1Service service) {
+
+		String serviceId = service.getMetadata().getName();
+		String serviceNamespace = service.getMetadata().getNamespace();
 
 		List<ServiceInstance> instances = new ArrayList<>();
 
 		List<V1Endpoints> allEndpoints = endpointsListers.stream()
-			.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace()).get(serviceId))
+			.map(endpointsLister -> endpointsLister.namespace(serviceNamespace).get(serviceId))
 			.filter(Objects::nonNull)
 			.toList();
 
@@ -195,7 +198,8 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 				for (V1EndpointSubset endpointSubset : subsets) {
 
 					Map<String, Integer> endpointsPortData = endpointSubsetsPortData(List.of(endpointSubset));
-					ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, k8sServiceMetadata, properties);
+					ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, k8sServiceMetadata,
+							properties);
 
 					List<V1EndpointAddress> addresses = addresses(endpointSubset, properties);
 					for (V1EndpointAddress endpointAddress : addresses) {
