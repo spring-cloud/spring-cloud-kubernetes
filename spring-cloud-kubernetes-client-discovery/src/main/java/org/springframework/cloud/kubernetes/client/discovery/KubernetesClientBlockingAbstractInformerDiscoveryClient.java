@@ -180,21 +180,22 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 			.filter(Objects::nonNull)
 			.toList();
 
+		ServiceMetadata k8sServiceMetadata = serviceMetadata(service);
+
 		for (V1Endpoints endpoints : allEndpoints) {
 			List<V1EndpointSubset> subsets = endpoints.getSubsets();
 			if (subsets == null || subsets.isEmpty()) {
 				LOG.debug(() -> "serviceId : " + serviceId + " does not have any subsets");
 			}
 			else {
-				ServiceMetadata serviceMetadata = serviceMetadata(service);
 				Map<String, Integer> portsData = endpointSubsetsPortData(subsets);
-				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(portsData, serviceMetadata,
+				Map<String, String> serviceInstanceMetadata = serviceInstanceMetadata(portsData, k8sServiceMetadata,
 						properties);
 
 				for (V1EndpointSubset endpointSubset : subsets) {
 
 					Map<String, Integer> endpointsPortData = endpointSubsetsPortData(List.of(endpointSubset));
-					ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, serviceMetadata, properties);
+					ServicePortNameAndNumber portData = endpointsPort(endpointsPortData, k8sServiceMetadata, properties);
 
 					List<V1EndpointAddress> addresses = addresses(endpointSubset, properties);
 					for (V1EndpointAddress endpointAddress : addresses) {
@@ -204,7 +205,7 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 						KubernetesClientPodLabelsAndAnnotationsSupplier supplierTwo = nonExternalName(coreV1Api,
 								service.getMetadata().getNamespace());
 
-						ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, serviceMetadata,
+						ServiceInstance serviceInstance = serviceInstance(servicePortSecureResolver, k8sServiceMetadata,
 								supplierOne, supplierTwo, portData, serviceInstanceMetadata, properties);
 						instances.add(serviceInstance);
 					}
