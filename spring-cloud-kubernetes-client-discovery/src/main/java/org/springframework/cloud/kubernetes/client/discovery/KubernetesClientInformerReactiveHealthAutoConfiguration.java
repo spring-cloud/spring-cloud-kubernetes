@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 import java.util.List;
 import java.util.function.Predicate;
 
-import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -77,8 +77,8 @@ public class KubernetesClientInformerReactiveHealthAutoConfiguration {
 	@ConditionalOnSpringCloudKubernetesReactiveDiscoveryHealthInitializer
 	ReactiveDiscoveryClientHealthIndicator cacheableReactiveDiscoveryClientHealthIndicator(
 			List<SharedInformerFactory> sharedInformerFactories, List<Lister<V1Service>> serviceListers,
-			List<Lister<V1Endpoints>> endpointsListers, List<SharedInformer<V1Service>> serviceInformers,
-			List<SharedInformer<V1Endpoints>> endpointsInformers,
+			List<Lister<V1Endpoints>> endpointsListers, List<SharedIndexInformer<V1Service>> serviceInformers,
+			List<SharedIndexInformer<V1Endpoints>> endpointsInformers,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties, CoreV1Api coreV1Api,
 			Predicate<V1Service> predicate, DiscoveryClientHealthIndicatorProperties properties) {
 

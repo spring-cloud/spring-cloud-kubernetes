@@ -1,0 +1,2 @@
+org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionCallbacksAutoConfiguration
+org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionAutoConfiguration

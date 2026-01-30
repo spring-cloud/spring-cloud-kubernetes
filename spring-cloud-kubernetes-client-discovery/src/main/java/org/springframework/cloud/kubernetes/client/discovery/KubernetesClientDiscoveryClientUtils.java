@@ -26,12 +26,16 @@ import java.util.stream.Collectors;
 
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
+import io.kubernetes.client.util.CallGenerator;
+import io.kubernetes.client.util.CallGeneratorParams;
+import io.kubernetes.client.util.Namespaces;
 import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
@@ -52,31 +56,6 @@ final class KubernetesClientDiscoveryClientUtils {
 			LogFactory.getLog(KubernetesClientDiscoveryClientUtils.class));
 
 	private KubernetesClientDiscoveryClientUtils() {
-
-	}
-
-	static boolean matchesServiceLabels(V1Service service, KubernetesDiscoveryProperties properties) {
-
-		Map<String, String> propertiesServiceLabels = properties.serviceLabels();
-		Map<String, String> serviceLabels = Optional.ofNullable(service.getMetadata())
-			.map(V1ObjectMeta::getLabels)
-			.orElse(Map.of());
-
-		if (propertiesServiceLabels.isEmpty()) {
-			LOG.debug(() -> "service labels from properties are empty, service with name : '"
-					+ service.getMetadata().getName() + "' will match");
-			return true;
-		}
-
-		if (serviceLabels.isEmpty()) {
-			LOG.debug(() -> "service with name : '" + service.getMetadata().getName() + "' does not have labels");
-			return false;
-		}
-
-		LOG.debug(() -> "Service labels from properties : " + propertiesServiceLabels);
-		LOG.debug(() -> "Service labels from service : " + serviceLabels);
-
-		return serviceLabels.entrySet().containsAll(propertiesServiceLabels.entrySet());
 
 	}
 
@@ -138,6 +117,51 @@ final class KubernetesClientDiscoveryClientUtils {
 		}
 
 		return addresses;
+	}
+
+	static CallGenerator endpointsCallGenerator(CoreV1Api api, Map<String, String> serviceLabels, String namespace) {
+
+		if (Namespaces.NAMESPACE_ALL.equals(namespace)) {
+			return (CallGeneratorParams params) -> api.listEndpointsForAllNamespaces()
+				.resourceVersion(params.resourceVersion)
+				.timeoutSeconds(params.timeoutSeconds)
+				.watch(params.watch)
+				.labelSelector(labelSelector(serviceLabels))
+				.buildCall(null);
+		}
+
+		return (CallGeneratorParams params) -> api.listNamespacedEndpoints(namespace)
+			.resourceVersion(params.resourceVersion)
+			.timeoutSeconds(params.timeoutSeconds)
+			.watch(params.watch)
+			.labelSelector(labelSelector(serviceLabels))
+			.buildCall(null);
+	}
+
+	static CallGenerator servicesCallGenerator(CoreV1Api api, Map<String, String> serviceLabels, String namespace) {
+
+		if (Namespaces.NAMESPACE_ALL.equals(namespace)) {
+			return (CallGeneratorParams params) -> api.listServiceForAllNamespaces()
+				.resourceVersion(params.resourceVersion)
+				.timeoutSeconds(params.timeoutSeconds)
+				.watch(params.watch)
+				.labelSelector(labelSelector(serviceLabels))
+				.buildCall(null);
+		}
+
+		return (CallGeneratorParams params) -> api.listNamespacedService(namespace)
+			.resourceVersion(params.resourceVersion)
+			.timeoutSeconds(params.timeoutSeconds)
+			.watch(params.watch)
+			.labelSelector(labelSelector(serviceLabels))
+			.buildCall(null);
+	}
+
+	static String labelSelector(Map<String, String> labels) {
+		if (labels == null || labels.isEmpty()) {
+			return null;
+		}
+		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 }

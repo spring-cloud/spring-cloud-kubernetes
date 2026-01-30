@@ -41,7 +41,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
 		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
 class Fabric8LeaderElectionCompletedExceptionallyAndRestartedIT extends AbstractLeaderElection {
 
-	private static final String NAME = "acquired-then-fails";
+	private static final String NAME = "leader-completed-and-restarted-it";
 
 	@Autowired
 	private Fabric8LeaderElectionInitiator initiator;
@@ -64,13 +64,13 @@ class Fabric8LeaderElectionCompletedExceptionallyAndRestartedIT extends Abstract
 		initiator.leaderFeature().completeExceptionally(new RuntimeException("we kill the leadership future"));
 
 		// from the callback
-		awaitUntil(5, 50, () -> output.getOut().contains("id : acquired-then-fails stopped being a leader"));
+		awaitUntil(5, 50, () -> output.getOut().contains("id : " + NAME + " stopped being a leader"));
 
 		awaitUntil(5, 50, () -> output.getOut().contains("leader failed with : we kill the leadership future"));
 
-		awaitUntil(5, 50, () -> output.getOut().contains("leader election failed for : acquired-then-fails"));
+		awaitUntil(5, 50, () -> output.getOut().contains("leader election failed for : " + NAME));
 
-		int afterLeaderFailure = output.getOut().indexOf("leader election failed for : acquired-then-fails");
+		int afterLeaderFailure = output.getOut().indexOf("leader election failed for : " + NAME);
 
 		afterLeaderFailure(afterLeaderFailure, output);
 	}

@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnLeaderElectionEnabled
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesCommonsAutoConfiguration.class })
-final class Fabric8LeaderElectionCallbacksAutoConfiguration extends LeaderElectionCallbacks {
+public class Fabric8LeaderElectionCallbacksAutoConfiguration extends LeaderElectionCallbacks {
 
 	@Bean
 	@ConditionalOnMissingBean

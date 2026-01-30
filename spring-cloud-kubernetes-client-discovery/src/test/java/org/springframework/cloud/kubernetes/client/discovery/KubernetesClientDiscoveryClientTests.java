@@ -53,9 +53,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesClientDiscoveryClientTests {
 
-	private static final SharedInformerStub<V1Service> SERVICE_SHARED_INFORMER_STUB = new SharedInformerStub<>();
+	private static final SharedIndexedInformerStub<V1Service> SERVICE_SHARED_INFORMER_STUB = new SharedIndexedInformerStub<>();
 
-	private static final SharedInformerStub<V1Endpoints> ENDPOINTS_SHARED_INFORMER_STUB = new SharedInformerStub<>();
+	private static final SharedIndexedInformerStub<V1Endpoints> ENDPOINTS_SHARED_INFORMER_STUB = new SharedIndexedInformerStub<>();
 
 	private static CoreV1Api coreV1Api;
 

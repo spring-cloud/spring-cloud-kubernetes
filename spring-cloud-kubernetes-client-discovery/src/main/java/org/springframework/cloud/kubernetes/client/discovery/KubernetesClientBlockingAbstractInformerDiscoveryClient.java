@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import io.kubernetes.client.informer.SharedInformer;
+import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -33,6 +33,7 @@ import io.kubernetes.client.openapi.models.V1EndpointSubset;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -45,7 +46,6 @@ import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.addresses;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.endpointSubsetsPortData;
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.matchesServiceLabels;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.postConstruct;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.serviceMetadata;
 import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInstanceIdHostPodNameSupplier.externalName;
@@ -80,8 +80,9 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 
 	KubernetesClientBlockingAbstractInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
-			List<SharedInformer<V1Service>> serviceInformers, List<SharedInformer<V1Endpoints>> endpointsInformers,
-			KubernetesDiscoveryProperties properties, CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
+			List<SharedIndexInformer<V1Service>> serviceInformers,
+			List<SharedIndexInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			CoreV1Api coreV1Api, Predicate<V1Service> predicate) {
 		this.sharedInformerFactories = sharedInformerFactories;
 		this.serviceListers = serviceListers;
 		this.endpointsListers = endpointsListers;
@@ -93,11 +94,11 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 
 		this.informersReadyFunc = () -> {
 			boolean serviceInformersReady = serviceInformers.isEmpty() || serviceInformers.stream()
-				.map(SharedInformer::hasSynced)
+				.map(SharedIndexInformer::hasSynced)
 				.reduce(Boolean::logicalAnd)
 				.orElse(false);
 			boolean endpointsInformersReady = endpointsInformers.isEmpty() || endpointsInformers.stream()
-				.map(SharedInformer::hasSynced)
+				.map(SharedIndexInformer::hasSynced)
 				.reduce(Boolean::logicalAnd)
 				.orElse(false);
 			return serviceInformersReady && endpointsInformersReady;
@@ -109,7 +110,6 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 	public List<String> getServices() {
 		List<String> services = serviceListers.stream()
 			.flatMap(serviceLister -> serviceLister.list().stream())
-			.filter(service -> matchesServiceLabels(service, properties))
 			.filter(predicate)
 			.map(s -> s.getMetadata().getName())
 			.distinct()
@@ -126,7 +126,6 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 			.flatMap(x -> x.list().stream())
 			.filter(scv -> scv.getMetadata() != null)
 			.filter(svc -> serviceId.equals(svc.getMetadata().getName()))
-			.filter(scv -> matchesServiceLabels(scv, properties))
 			.toList();
 
 		List<ServiceInstance> serviceInstances = allServices.stream()
@@ -165,6 +164,11 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 	@PostConstruct
 	void afterPropertiesSet() {
 		postConstruct(sharedInformerFactories, properties, informersReadyFunc, serviceListers);
+	}
+
+	@PreDestroy
+	void preDestroy() {
+		sharedInformerFactories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
 	}
 
 	private List<ServiceInstance> serviceInstances(V1Service service, String serviceId) {

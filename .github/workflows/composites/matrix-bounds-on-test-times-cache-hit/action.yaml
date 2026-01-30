@@ -13,6 +13,15 @@
 
 name: matrix bounds on test times cache hit
 description: matrix bounds on test times cache hit
+inputs:
+  jdk-version:
+    description: 'Java version to use in artifact name'
+    required: false
+    default: '17'
+  branch:
+    description: 'Branch name to use in artifact name'
+    required: false
+    default: 'main'
 runs:
   using: "composite"
 
@@ -28,6 +37,12 @@ runs:
     - name: show cached test times
       shell: bash
       run: cat /tmp/sorted.txt
+
+    - name: download tests
+      uses: actions/download-artifact@v4
+      with:
+        name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
+        path: /tmp/
 
     - name: compute matrix steps
       shell: bash
@@ -119,11 +134,11 @@ runs:
     - name: upload test with times
       uses: actions/upload-artifact@v4
       with:
-        name: tests-with-times-sorted.txt
+        name: tests-with-times-sorted-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/tests-with-times-sorted.txt
 
     - name: upload test without times
       uses: actions/upload-artifact@v4
       with:
-        name: tests-without-times.txt
+        name: tests-without-times-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/tests-without-times.txt

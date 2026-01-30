@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Primary;
  *
  * @author wind57
  */
-class Fabric8LeaderAutoConfigurationTests {
+class Fabric8LeaderElectionAutoConfigurationTests {
 
 	/**
 	 * <pre>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.leader.election;
+package org.springframework.cloud.kubernetes.client.leader.election;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,21 +24,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.springframework.cloud.kubernetes.fabric8.leader.election.Assertions.assertAcquireAndRenew;
+import static org.springframework.cloud.kubernetes.client.leader.election.Assertions.assertAcquireAndRenew;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
 /**
- * A simple test where we are the sole participant in the leader election and everything
- * goes fine from start to end. It's a happy path scenario test.
+ * <pre>
+ *     - we acquire the leadership
+ *     - leadership feature fails
+ * </pre>
  *
  * @author wind57
  */
-@TestPropertySource(properties = "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=false")
-class Fabric8LeaderElectionSimpleIT extends AbstractLeaderElection {
+@TestPropertySource(properties = { "spring.cloud.kubernetes.leader.election.wait-for-pod-ready=true",
+		"spring.cloud.kubernetes.leader.election.restart-on-failure=true", "readiness.passes=true" })
+class K8sClientLeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElection {
+
+	private static final String NAME = "leader-acquired-then-canceled-it";
 
 	@Autowired
-	private Fabric8LeaderElectionInitiator initiator;
-
-	private static final String NAME = "simple-it";
+	private KubernetesClientLeaderElectionInitiator initiator;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -47,19 +51,21 @@ class Fabric8LeaderElectionSimpleIT extends AbstractLeaderElection {
 
 	@AfterEach
 	void afterEach() {
-		stopFutureAndDeleteLease(initiator);
+		stopLeaderAndDeleteLease(initiator, true);
 	}
 
-	/**
-	 * <pre>
-	 *     - readiness is not checked
-	 *     - leader election process happens after that
-	 *     - we establish leadership and renew it
-	 * </pre>
-	 */
 	@Test
 	void test(CapturedOutput output) {
+
 		assertAcquireAndRenew(output, this::getLease, NAME);
+
+		// this will kill leadership and it will not be re-started
+		initiator.preDestroy();
+
+		awaitUntil(10, 100, () -> output.getOut().contains("leadership terminated for : " + NAME));
+
+		awaitUntil(10, 100, () -> output.getOut().contains("Giving up the lock"));
+
 	}
 
 }

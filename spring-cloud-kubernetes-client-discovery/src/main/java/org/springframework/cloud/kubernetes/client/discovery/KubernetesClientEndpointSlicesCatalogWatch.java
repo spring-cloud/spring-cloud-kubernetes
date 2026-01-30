@@ -35,7 +35,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientCatalogWatchContext.labelSelector;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.labelSelector;
 
 /**
  * Implementation that is based on EndpointSlice V1.
