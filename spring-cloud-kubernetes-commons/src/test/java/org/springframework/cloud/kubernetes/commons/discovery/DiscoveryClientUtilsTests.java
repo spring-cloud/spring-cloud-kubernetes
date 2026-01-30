@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
@@ -950,6 +951,80 @@ class DiscoveryClientUtilsTests {
 
 		Assertions.assertThat(output.getOut())
 			.contains("adding podMetadata : {annotations={c=d}, labels={a=b}} from pod : my-pod");
+	}
+
+	@Test
+	void testServiceInstanceWithPodLabelsAndAnnotations() {
+
+		boolean addPodLabels = true;
+		boolean addPodAnnotations = true;
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, null, true,
+				null, true, "port.", addPodLabels, addPodAnnotations);
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
+
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(), Map.of());
+
+		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", "podName");
+		Supplier<InstanceIdHostPodName> instanceIdHostPodNameSupplier = () -> instanceIdHostPodName;
+
+		Map<String, String> podLabels = Map.of("labelA", "a");
+		Map<String, String> podAnnotations = Map.of("annotationB", "b");
+		PodLabelsAndAnnotations podLabelsAndAnnotations = new PodLabelsAndAnnotations(podLabels, podAnnotations);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndAnnotationsFunction = x -> podLabelsAndAnnotations;
+
+		Map<String, String> serviceMetadata = Map.of("a", "b");
+
+		ServiceInstance serviceInstance = serviceInstance(null, forServiceInstance, instanceIdHostPodNameSupplier,
+				podLabelsAndAnnotationsFunction, portData, serviceMetadata, properties);
+
+		Assertions.assertThat(serviceInstance).isInstanceOf(DefaultKubernetesServiceInstance.class);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Map<String, Map<String, String>> podMetadata = defaultInstance.podMetadata();
+
+		Assertions.assertThat(podMetadata).hasSize(2);
+		Assertions.assertThat(podMetadata.get("labels")).isEqualTo(Map.of("labelA", "a"));
+		Assertions.assertThat(podMetadata.get("annotations")).isEqualTo(Map.of("annotationB", "b"));
+	}
+
+	@Test
+	void testServiceInstanceWithPodLabelsAndAnnotationsWithZone() {
+
+		boolean addPodLabels = true;
+		boolean addPodAnnotations = true;
+		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, null, true,
+				null, true, "port.", addPodLabels, addPodAnnotations);
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", metadata, 0, false, false, null);
+
+		ServicePortNameAndNumber portData = new ServicePortNameAndNumber(-1, "http");
+		ServiceMetadata forServiceInstance = new ServiceMetadata("my-service", "k8s", "ClusterIP", Map.of(), Map.of());
+
+		InstanceIdHostPodName instanceIdHostPodName = new InstanceIdHostPodName("123", "spring.io", "podName");
+		Supplier<InstanceIdHostPodName> instanceIdHostPodNameSupplier = () -> instanceIdHostPodName;
+
+		Map<String, String> podLabels = Map.of("labelA", "a", "zone", "zone-a");
+		Map<String, String> podAnnotations = Map.of("annotationB", "b");
+		PodLabelsAndAnnotations podLabelsAndAnnotations = new PodLabelsAndAnnotations(podLabels, podAnnotations);
+		Function<String, PodLabelsAndAnnotations> podLabelsAndAnnotationsFunction = x -> podLabelsAndAnnotations;
+
+		Map<String, String> serviceMetadata = Map.of("a", "b");
+
+		ServiceInstance serviceInstance = serviceInstance(null, forServiceInstance, instanceIdHostPodNameSupplier,
+				podLabelsAndAnnotationsFunction, portData, serviceMetadata, properties);
+
+		Assertions.assertThat(serviceInstance).isInstanceOf(DefaultKubernetesServiceInstance.class);
+		DefaultKubernetesServiceInstance defaultInstance = (DefaultKubernetesServiceInstance) serviceInstance;
+		Map<String, Map<String, String>> podMetadata = defaultInstance.podMetadata();
+
+		Assertions.assertThat(podMetadata).hasSize(2);
+		Assertions.assertThat(podMetadata.get("labels")).isEqualTo(Map.of("labelA", "a", "zone", "zone-a"));
+		Assertions.assertThat(podMetadata.get("annotations")).isEqualTo(Map.of("annotationB", "b"));
+
+		Assertions.assertThat(defaultInstance.getMetadata().get("zone")).isEqualTo("zone-a");
 	}
 
 	private String filterOnK8sNamespaceAndType(Map<String, String> result) {
