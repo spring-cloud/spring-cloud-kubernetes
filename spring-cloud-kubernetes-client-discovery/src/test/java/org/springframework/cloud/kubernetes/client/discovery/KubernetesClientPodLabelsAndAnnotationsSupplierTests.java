@@ -55,7 +55,7 @@ class KubernetesClientPodLabelsAndAnnotationsSupplierTests {
 		when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE)).thenReturn(request);
 
 		PodLabelsAndAnnotations result = KubernetesClientPodLabelsAndAnnotationsSupplier
-			.nonExternalName(coreV1Api, NAMESPACE)
+			.podLabelsAndAnnotationsSupplier(coreV1Api, NAMESPACE)
 			.apply(POD_NAME);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.labels()).isEmpty();
@@ -75,7 +75,7 @@ class KubernetesClientPodLabelsAndAnnotationsSupplierTests {
 		when(coreV1Api.readNamespacedPod(POD_NAME, NAMESPACE)).thenReturn(request);
 
 		PodLabelsAndAnnotations result = KubernetesClientPodLabelsAndAnnotationsSupplier
-			.nonExternalName(coreV1Api, NAMESPACE)
+			.podLabelsAndAnnotationsSupplier(coreV1Api, NAMESPACE)
 			.apply(POD_NAME);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.labels()).isEqualTo(Map.of("a", "b"));

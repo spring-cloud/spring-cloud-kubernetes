@@ -41,7 +41,7 @@ class KubernetesClientInstanceIdHostPodNameSupplierTests {
 			.build();
 
 		KubernetesClientInstanceIdHostPodNameSupplier supplier = KubernetesClientInstanceIdHostPodNameSupplier
-			.externalName(service);
+			.instanceIdHostPodNameSupplier(service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -58,7 +58,7 @@ class KubernetesClientInstanceIdHostPodNameSupplierTests {
 			.build();
 
 		KubernetesClientInstanceIdHostPodNameSupplier supplier = KubernetesClientInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.instanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -73,7 +73,7 @@ class KubernetesClientInstanceIdHostPodNameSupplierTests {
 			.build();
 
 		KubernetesClientInstanceIdHostPodNameSupplier supplier = KubernetesClientInstanceIdHostPodNameSupplier
-			.externalName(service);
+			.instanceIdHostPodNameSupplier(service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -89,7 +89,7 @@ class KubernetesClientInstanceIdHostPodNameSupplierTests {
 			.build();
 
 		KubernetesClientInstanceIdHostPodNameSupplier supplier = KubernetesClientInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.instanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -102,7 +102,7 @@ class KubernetesClientInstanceIdHostPodNameSupplierTests {
 			.withSpec(new V1ServiceSpecBuilder().withExternalName("external-name").build())
 			.build();
 		KubernetesClientInstanceIdHostPodNameSupplier supplier = KubernetesClientInstanceIdHostPodNameSupplier
-			.externalName(service);
+			.instanceIdHostPodNameSupplier(service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -120,7 +120,7 @@ class KubernetesClientInstanceIdHostPodNameSupplierTests {
 			.build();
 
 		KubernetesClientInstanceIdHostPodNameSupplier supplier = KubernetesClientInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.instanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -138,7 +138,7 @@ class KubernetesClientInstanceIdHostPodNameSupplierTests {
 			.build();
 
 		KubernetesClientInstanceIdHostPodNameSupplier supplier = KubernetesClientInstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.instanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();

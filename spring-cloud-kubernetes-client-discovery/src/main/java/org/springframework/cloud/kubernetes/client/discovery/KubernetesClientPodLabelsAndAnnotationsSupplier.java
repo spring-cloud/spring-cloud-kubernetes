@@ -32,24 +32,17 @@ import org.springframework.core.log.LogAccessor;
 /**
  * @author wind57
  */
-final class KubernetesClientPodLabelsAndAnnotationsSupplier implements Function<String, PodLabelsAndAnnotations> {
+record KubernetesClientPodLabelsAndAnnotationsSupplier(CoreV1Api coreV1Api,
+		String namespace) implements Function<String, PodLabelsAndAnnotations> {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientPodLabelsAndAnnotationsSupplier.class));
 
-	private final CoreV1Api coreV1Api;
-
-	private final String namespace;
-
-	private KubernetesClientPodLabelsAndAnnotationsSupplier(CoreV1Api coreV1Api, String namespace) {
-		this.coreV1Api = coreV1Api;
-		this.namespace = namespace;
-	}
-
 	/**
 	 * to be used when .spec.type of the Service is != 'ExternalName'.
 	 */
-	static KubernetesClientPodLabelsAndAnnotationsSupplier nonExternalName(CoreV1Api coreV1Api, String namespace) {
+	static KubernetesClientPodLabelsAndAnnotationsSupplier podLabelsAndAnnotationsSupplier(CoreV1Api coreV1Api,
+			String namespace) {
 		return new KubernetesClientPodLabelsAndAnnotationsSupplier(coreV1Api, namespace);
 	}
 
