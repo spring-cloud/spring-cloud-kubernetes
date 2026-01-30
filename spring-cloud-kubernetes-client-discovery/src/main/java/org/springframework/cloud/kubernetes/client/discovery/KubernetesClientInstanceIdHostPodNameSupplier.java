@@ -28,16 +28,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.InstanceIdHostPodN
 /**
  * @author wind57
  */
-final class KubernetesClientInstanceIdHostPodNameSupplier implements Supplier<InstanceIdHostPodName> {
-
-	private final V1EndpointAddress endpointAddress;
-
-	private final V1Service service;
-
-	private KubernetesClientInstanceIdHostPodNameSupplier(V1EndpointAddress endpointAddress, V1Service service) {
-		this.endpointAddress = endpointAddress;
-		this.service = service;
-	}
+record KubernetesClientInstanceIdHostPodNameSupplier(V1EndpointAddress endpointAddress,
+		V1Service service) implements Supplier<InstanceIdHostPodName> {
 
 	@Override
 	public InstanceIdHostPodName get() {
@@ -47,15 +39,15 @@ final class KubernetesClientInstanceIdHostPodNameSupplier implements Supplier<In
 	/**
 	 * to be used when .spec.type of the Service is != 'ExternalName'.
 	 */
-	static KubernetesClientInstanceIdHostPodNameSupplier nonExternalName(V1EndpointAddress endpointAddress,
-			V1Service service) {
+	static KubernetesClientInstanceIdHostPodNameSupplier instanceIdHostPodNameSupplier(
+			V1EndpointAddress endpointAddress, V1Service service) {
 		return new KubernetesClientInstanceIdHostPodNameSupplier(endpointAddress, service);
 	}
 
 	/**
 	 * to be used when .spec.type of the Service is == 'ExternalName'.
 	 */
-	static KubernetesClientInstanceIdHostPodNameSupplier externalName(V1Service service) {
+	static KubernetesClientInstanceIdHostPodNameSupplier instanceIdHostPodNameSupplier(V1Service service) {
 		return new KubernetesClientInstanceIdHostPodNameSupplier(null, service);
 	}
 
