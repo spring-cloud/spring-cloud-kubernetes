@@ -174,11 +174,12 @@ abstract class KubernetesClientBlockingAbstractInformerDiscoveryClient implement
 	private List<ServiceInstance> serviceInstances(V1Service service) {
 
 		String serviceId = service.getMetadata().getName();
+		String serviceNamespace = service.getMetadata().getNamespace();
 
 		List<ServiceInstance> instances = new ArrayList<>();
 
 		List<V1Endpoints> allEndpoints = endpointsListers.stream()
-			.map(endpointsLister -> endpointsLister.namespace(service.getMetadata().getNamespace()).get(serviceId))
+			.map(endpointsLister -> endpointsLister.namespace(serviceNamespace).get(serviceId))
 			.filter(Objects::nonNull)
 			.toList();
 
