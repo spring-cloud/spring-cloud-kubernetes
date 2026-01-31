@@ -154,6 +154,8 @@ public final class DiscoveryClientUtils {
 		Map<String, Map<String, String>> podMetadata = podMetadata(data.podName(), serviceInstanceMetadata, properties,
 				podLabelsAndMetadata);
 
+		serviceInstanceMetadata = addPodMetadataToServiceInstanceMetadata(podMetadata, serviceInstanceMetadata);
+
 		return new DefaultKubernetesServiceInstance(data.instanceId(), serviceMetadata.name(), data.host(),
 				portData.portNumber(), serviceInstanceMetadata, secured, serviceMetadata.namespace(), null,
 				podMetadata);
@@ -243,6 +245,27 @@ public final class DiscoveryClientUtils {
 		else {
 			LOG.warn(() -> "Could not find a port named 'https' or 'http' for service '" + serviceName + "'.");
 		}
+	}
+
+	/**
+	 * there are cases when we need to add pod specific metadata to the service instance
+	 * metadata. For example, currently, we need to add "zone" label from the pod to the
+	 * serviceInstance. See:
+	 * <a href="https://github.com/spring-cloud/spring-cloud-kubernetes/issues/2072">this
+	 * issue</a>
+	 */
+	private static Map<String, String> addPodMetadataToServiceInstanceMetadata(
+			Map<String, Map<String, String>> podMetadata, Map<String, String> serviceInstanceMetadata) {
+
+		return Optional.ofNullable(podMetadata.get("labels"))
+			.flatMap(innerMap -> Optional.ofNullable(innerMap.get("zone")))
+			.map(zone -> {
+				Map<String, String> copyOfServiceInstanceMetadata = new HashMap<>(serviceInstanceMetadata);
+				copyOfServiceInstanceMetadata.put("zone", zone);
+				return copyOfServiceInstanceMetadata;
+			})
+			.orElse(serviceInstanceMetadata);
+
 	}
 
 	private static void logGenericWarning() {
