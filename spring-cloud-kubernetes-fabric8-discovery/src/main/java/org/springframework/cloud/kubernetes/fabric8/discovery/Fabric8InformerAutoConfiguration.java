@@ -22,7 +22,9 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import jakarta.annotation.Nullable;
 
@@ -67,7 +69,7 @@ final class Fabric8InformerAutoConfiguration {
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	List<String> fabric8InformerNamespaces(KubernetesDiscoveryProperties properties,
+	List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties,
 			KubernetesClient kubernetesClient, Environment environment) {
 
 		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
@@ -89,34 +91,33 @@ final class Fabric8InformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = SharedInformerFactory.class, parameterizedContainer = List.class)
-	List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, List<String> selectiveNamespaces) {
-
-		new SharedInformerFactory()
+	List<SharedInformerFactory> sharedInformerFactories(KubernetesClient kubernetesClient,
+			List<String> selectiveNamespaces) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
-			sharedInformerFactories.add(new SharedInformerFactory(apiClient));
+			sharedInformerFactories.add(kubernetesClient.informers());
 		}
 		return sharedInformerFactories;
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Service.class,
+	@ConditionalOnMissingBean(value = Service.class,
 		parameterizedContainer = { List.class, SharedIndexInformer.class })
-	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
+	List<SharedIndexInformer<Service>> serviceSharedIndexInformers(
 		List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces, CoreV1Api api,
 		KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
-		List<SharedIndexInformer<V1Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
+		List<SharedIndexInformer<Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			String namespace = selectiveNamespaces.get(i);
 
 			CallGenerator callGenerator = servicesCallGenerator(api, properties.serviceLabels(), namespace);
 
-			SharedIndexInformer<V1Service> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(callGenerator, V1Service.class, V1ServiceList.class);
+			SharedIndexInformer<Service> sharedIndexInformer = sharedInformerFactories.get(i)
+				.sharedIndexInformerFor(Service.class, ServiceList.class);
 			serviceSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return serviceSharedIndexedInformers;
