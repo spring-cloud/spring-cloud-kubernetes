@@ -259,7 +259,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
-			Mockito.doReturn(new Fabric8EndpointSliceV1CatalogWatch()).when(watch).stateGenerator();
+			Mockito.doReturn(new Fabric8EndpointSliceCatalogWatch()).when(watch).stateGenerator();
 		}
 
 		watch.postConstruct();
@@ -280,7 +280,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
-			Mockito.doReturn(new Fabric8EndpointSliceV1CatalogWatch()).when(watch).stateGenerator();
+			Mockito.doReturn(new Fabric8EndpointSliceCatalogWatch()).when(watch).stateGenerator();
 		}
 
 		watch.postConstruct();
@@ -299,7 +299,7 @@ abstract class Fabric8EndpointsAndEndpointSlicesTests {
 
 		if (endpointSlices) {
 			watch = Mockito.spy(watch);
-			Mockito.doReturn(new Fabric8EndpointSliceV1CatalogWatch()).when(watch).stateGenerator();
+			Mockito.doReturn(new Fabric8EndpointSliceCatalogWatch()).when(watch).stateGenerator();
 		}
 
 		watch.postConstruct();
