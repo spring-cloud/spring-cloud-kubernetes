@@ -75,8 +75,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	List<String> k8sClientDiscoveryNamespaces(KubernetesDiscoveryProperties properties,
-			KubernetesNamespaceProvider provider) {
+	List<String> selectiveNamespace(KubernetesDiscoveryProperties properties, KubernetesNamespaceProvider provider) {
 
 		if (properties.allNamespaces()) {
 			LOG.debug(() -> "serviceSharedInformer will use all-namespaces");
