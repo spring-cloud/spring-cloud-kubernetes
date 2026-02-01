@@ -79,7 +79,7 @@ class Fabric8CatalogWatchEndpointSlicesIT extends Fabric8CatalogWatchBase {
 	 */
 	@Test
 	void test(CapturedOutput output) {
-		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceV1CatalogWatch");
+		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceCatalogWatch");
 		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
