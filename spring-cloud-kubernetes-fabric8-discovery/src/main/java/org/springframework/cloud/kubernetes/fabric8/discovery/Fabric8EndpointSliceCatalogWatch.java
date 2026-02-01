@@ -34,7 +34,7 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
  *
  * @author wind57
  */
-final class Fabric8EndpointSliceV1CatalogWatch
+final class Fabric8EndpointSliceCatalogWatch
 		implements Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> {
 
 	@Override

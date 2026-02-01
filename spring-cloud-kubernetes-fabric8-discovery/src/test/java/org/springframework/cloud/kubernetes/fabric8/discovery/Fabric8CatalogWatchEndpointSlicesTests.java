@@ -195,7 +195,7 @@ class Fabric8CatalogWatchEndpointSlicesTests extends Fabric8EndpointsAndEndpoint
 	@Test
 	void generateStateEndpointsWithoutEndpoints() {
 
-		Fabric8EndpointSliceV1CatalogWatch catalogWatch = new Fabric8EndpointSliceV1CatalogWatch();
+		Fabric8EndpointSliceCatalogWatch catalogWatch = new Fabric8EndpointSliceCatalogWatch();
 		EndpointSlice sliceNoEndpoints = endpointSliceWithoutEndpoints("namespaceA", Map.of("color", "blue"), "podA");
 
 		// even if Endpoints are missing, we do not fail
