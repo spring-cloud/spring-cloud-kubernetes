@@ -146,7 +146,7 @@ class Fabric8CatalogWatchEndpointSlicesSupportTests {
 		APIResourceList apiResourceList = new APIResourceListBuilder().withResources(apiResource).build();
 		mockServer.expect().withPath("/apis/discovery.k8s.io/v1").andReturn(200, apiResourceList).always();
 
-		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(Fabric8EndpointSliceV1CatalogWatch.class);
+		Assertions.assertThat(watch.stateGenerator().getClass()).isEqualTo(Fabric8EndpointSliceCatalogWatch.class);
 	}
 
 }

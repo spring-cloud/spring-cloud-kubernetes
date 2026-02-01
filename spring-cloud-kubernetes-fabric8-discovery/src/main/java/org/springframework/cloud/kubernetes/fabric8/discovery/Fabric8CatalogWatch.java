@@ -110,7 +110,7 @@ final class Fabric8CatalogWatch {
 				throw new IllegalArgumentException("EndpointSlices are not supported on the cluster");
 			}
 			else {
-				localStateGenerator = new Fabric8EndpointSliceV1CatalogWatch();
+				localStateGenerator = new Fabric8EndpointSliceCatalogWatch();
 			}
 		}
 		else {
