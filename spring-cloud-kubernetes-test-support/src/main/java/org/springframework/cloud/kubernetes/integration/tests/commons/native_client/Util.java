@@ -53,6 +53,7 @@ import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
+import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
@@ -606,7 +607,7 @@ public final class Util {
 		V1Deployment deployment = deployments.getItems().get(0);
 		if (deployment.getStatus() != null) {
 			Integer availableReplicas = deployment.getStatus().getAvailableReplicas();
-			logDeploymentConditions(deployment.getStatus().getConditions());
+			logDeploymentConditions(deployment.getStatus().getConditions(), deployment.getMetadata().getNamespace());
 			LOG.info("Available replicas for " + deploymentName + ": "
 					+ (availableReplicas == null ? 0 : availableReplicas));
 			return availableReplicas != null && availableReplicas >= 1;
@@ -616,13 +617,24 @@ public final class Util {
 		}
 	}
 
-	private void logDeploymentConditions(List<V1DeploymentCondition> conditions) {
+	private void logDeploymentConditions(List<V1DeploymentCondition> conditions, String namespace) {
 		if (conditions != null) {
 			for (V1DeploymentCondition condition : conditions) {
 				LOG.info("Deployment Condition Type: " + condition.getType());
 				LOG.info("Deployment Condition Status: " + condition.getStatus());
 				LOG.info("Deployment Condition Message: " + condition.getMessage());
 				LOG.info("Deployment Condition Reason: " + condition.getReason());
+
+				if (condition.getReason() != null && condition.getReason().contains("ProgressDeadlineExceeded")) {
+					try {
+						Container.ExecResult result = container.execInContainer("sh", "-c",
+								"kubectl get events -n " + namespace);
+						LOG.info("events from namespace : " + result.getStdout());
+					}
+					catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
 			}
 		}
 	}
