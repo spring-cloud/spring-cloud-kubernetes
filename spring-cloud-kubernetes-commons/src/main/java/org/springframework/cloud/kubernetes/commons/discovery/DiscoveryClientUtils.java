@@ -16,9 +16,12 @@
 
 package org.springframework.cloud.kubernetes.commons.discovery;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -169,6 +172,26 @@ public final class DiscoveryClientUtils {
 		return new ExternalNameKubernetesServiceInstance(serviceMetadata.name(), data.host(), data.instanceId(),
 				serviceInstanceMetadata);
 
+	}
+
+	public static boolean poll(Duration interval, Duration timeout, BooleanSupplier condition) {
+		long deadline = System.nanoTime() + timeout.toNanos();
+
+		while (System.nanoTime() < deadline) {
+			try {
+				if (condition.getAsBoolean()) {
+					return true;
+				}
+				else {
+					TimeUnit.MILLISECONDS.sleep(interval.toMillis());
+				}
+			}
+			catch (Exception ex) {
+				throw new RuntimeException(ex);
+			}
+
+		}
+		return false;
 	}
 
 	/**
