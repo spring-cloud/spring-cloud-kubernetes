@@ -18,17 +18,14 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
-import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import jakarta.annotation.Nullable;
-
+import io.fabric8.kubernetes.client.informers.cache.Lister;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
@@ -39,11 +36,9 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -63,14 +58,13 @@ import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getAppli
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class })
 final class Fabric8InformerAutoConfiguration {
 
-	private static final LogAccessor LOG = new LogAccessor(
-		LogFactory.getLog(Fabric8InformerAutoConfiguration.class));
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8InformerAutoConfiguration.class));
 
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties,
-			KubernetesClient kubernetesClient, Environment environment) {
+	List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties, KubernetesClient kubernetesClient,
+			Environment environment) {
 
 		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
@@ -90,50 +84,45 @@ final class Fabric8InformerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = SharedInformerFactory.class, parameterizedContainer = List.class)
-	List<SharedInformerFactory> sharedInformerFactories(KubernetesClient kubernetesClient,
-			List<String> selectiveNamespaces) {
-
-		int howManyNamespaces = selectiveNamespaces.size();
-		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howManyNamespaces);
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			sharedInformerFactories.add(kubernetesClient.informers());
-		}
-		return sharedInformerFactories;
-	}
-
-	@Bean
-	@ConditionalOnMissingBean(value = Service.class,
-		parameterizedContainer = { List.class, SharedIndexInformer.class })
-	List<SharedIndexInformer<Service>> serviceSharedIndexInformers(
-		List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces, CoreV1Api api,
-		KubernetesDiscoveryProperties properties) {
+	@ConditionalOnMissingBean(value = Service.class, parameterizedContainer = { List.class, SharedIndexInformer.class })
+	List<SharedIndexInformer<Service>> serviceSharedIndexInformers(List<String> selectiveNamespaces,
+			KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			String namespace = selectiveNamespaces.get(i);
+		for (String namespace : selectiveNamespaces) {
+			SharedIndexInformer<Service> sharedIndexInformer = null;
 
-			CallGenerator callGenerator = servicesCallGenerator(api, properties.serviceLabels(), namespace);
+			// we treat this as all namespaces
+			if ("".equals(namespace)) {
+				sharedIndexInformer = kubernetesClient.services()
+					.inAnyNamespace()
+					.withLabels(properties.serviceLabels())
+					.inform();
+			}
+			else {
+				sharedIndexInformer = kubernetesClient.services()
+					.inNamespace(namespace)
+					.withLabels(properties.serviceLabels())
+					.inform();
+			}
 
-			SharedIndexInformer<Service> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(Service.class, ServiceList.class);
 			serviceSharedIndexedInformers.add(sharedIndexInformer);
 		}
 		return serviceSharedIndexedInformers;
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = { List.class, Lister.class })
-	List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
-		List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers) {
+	@ConditionalOnMissingBean(value = Service.class, parameterizedContainer = { List.class, Lister.class })
+	List<Lister<Service>> serviceListers(List<String> selectiveNamespaces,
+			List<SharedIndexInformer<Service>> serviceSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
-		List<Lister<V1Service>> serviceListers = new ArrayList<>(howManyNamespaces);
+		List<Lister<Service>> serviceListers = new ArrayList<>(howManyNamespaces);
 
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			String namespace = selectiveNamespaces.get(i);
-			Lister<V1Service> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer(), namespace);
+			Lister<Service> lister = new Lister<>(serviceSharedIndexInformers.get(i).getIndexer(), namespace);
 			LOG.debug(() -> "registering lister (for services) in namespace : " + namespace);
 			serviceListers.add(lister);
 		}
@@ -142,43 +131,53 @@ final class Fabric8InformerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Endpoints.class,
-		parameterizedContainer = { List.class, SharedIndexInformer.class })
-	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
-		List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces, CoreV1Api api,
-		KubernetesDiscoveryProperties properties) {
+	@ConditionalOnMissingBean(value = Endpoints.class,
+			parameterizedContainer = { List.class, SharedIndexInformer.class })
+	List<SharedIndexInformer<Endpoints>> endpointsSharedIndexInformers(List<String> selectiveNamespaces,
+			KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
-		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
-		for (int i = 0; i < howManyNamespaces; ++i) {
-			String namespace = selectiveNamespaces.get(i);
+		List<SharedIndexInformer<Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
+		for (String namespace : selectiveNamespaces) {
 
-			CallGenerator callGenerator = endpointsCallGenerator(api, properties.serviceLabels(), namespace);
+			SharedIndexInformer<Endpoints> sharedIndexInformer;
 
-			SharedIndexInformer<V1Endpoints> sharedIndexInformer = sharedInformerFactories.get(i)
-				.sharedIndexInformerFor(callGenerator, V1Endpoints.class, V1EndpointsList.class);
+			// we treat this as all namespaces
+			if ("".equals(namespace)) {
+				sharedIndexInformer = kubernetesClient.endpoints()
+					.inAnyNamespace()
+					.withLabels(properties.serviceLabels())
+					.inform();
+			}
+			else {
+				sharedIndexInformer = kubernetesClient.endpoints()
+					.inNamespace(namespace)
+					.withLabels(properties.serviceLabels())
+					.inform();
+			}
+
 			endpointsSharedIndexedInformers.add(sharedIndexInformer);
+
 		}
 		return endpointsSharedIndexedInformers;
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
-	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
-		List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers) {
+	@ConditionalOnMissingBean(value = Endpoints.class, parameterizedContainer = { List.class, Lister.class })
+	List<Lister<Endpoints>> endpointsListers(List<String> selectiveNamespaces,
+			List<SharedIndexInformer<Endpoints>> endpointsSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
-		List<Lister<V1Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
+		List<Lister<Endpoints>> endpointsListers = new ArrayList<>(howManyNamespaces);
 
 		for (int i = 0; i < howManyNamespaces; ++i) {
 			String namespace = selectiveNamespaces.get(i);
-			Lister<V1Endpoints> lister = new Lister<>(endpointsSharedIndexInformers.get(i).getIndexer(), namespace);
+			Lister<Endpoints> lister = new Lister<>(endpointsSharedIndexInformers.get(i).getIndexer(), namespace);
 			LOG.debug(() -> "registering lister (for endpoints) in namespace : " + namespace);
 			endpointsListers.add(lister);
 		}
 
 		return endpointsListers;
 	}
-
 
 }
