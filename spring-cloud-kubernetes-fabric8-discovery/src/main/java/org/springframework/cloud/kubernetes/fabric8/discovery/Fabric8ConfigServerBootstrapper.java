@@ -82,6 +82,8 @@ final class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootst
 
 
 				Fabric8InformerAutoConfiguration fabric8InformerAutoConfiguration = new Fabric8InformerAutoConfiguration();
+				List<String> selectiveNamespaces = fabric8InformerAutoConfiguration.selectiveNamespaces(
+					discoveryProperties, kubernetesClient, registry.ge)
 
 				List<Lister<Service>> serviceListers,
 				List<Lister<Endpoints>> endpointsListers, List<SharedIndexInformer<Service>> serviceInformers,

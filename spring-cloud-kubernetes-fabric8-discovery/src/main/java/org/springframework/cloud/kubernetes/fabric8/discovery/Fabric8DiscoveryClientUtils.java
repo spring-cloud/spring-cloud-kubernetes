@@ -28,7 +28,10 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.cache.Lister;
 import org.apache.commons.logging.LogFactory;
 
@@ -101,6 +104,50 @@ final class Fabric8DiscoveryClientUtils {
 			.collect(Collectors.toMap(
 					endpointPort -> hasText(endpointPort.getName()) ? endpointPort.getName() : UNSET_PORT_NAME,
 					EndpointPort::getPort));
+	}
+
+	static SharedIndexInformer<Service> serviceSharedIndexInformer(String namespace,
+		KubernetesClient kubernetesClient, Map<String, String> serviceLabels) {
+
+		SharedIndexInformer<Service> sharedIndexInformer;
+
+		// we treat this as all namespaces
+		if ("".equals(namespace)) {
+			sharedIndexInformer = kubernetesClient.services()
+				.inAnyNamespace()
+				.withLabels(serviceLabels)
+				.inform();
+		}
+		else {
+			sharedIndexInformer = kubernetesClient.services()
+				.inNamespace(namespace)
+				.withLabels(serviceLabels)
+				.inform();
+		}
+
+		return sharedIndexInformer;
+	}
+
+	static SharedIndexInformer<Endpoints> endpointsSharedIndexInformer(String namespace,
+		KubernetesClient kubernetesClient, Map<String, String> serviceLabels) {
+
+		SharedIndexInformer<Endpoints> sharedIndexInformer;
+
+		// we treat this as all namespaces
+		if ("".equals(namespace)) {
+			sharedIndexInformer = kubernetesClient.endpoints()
+				.inAnyNamespace()
+				.withLabels(serviceLabels)
+				.inform();
+		}
+		else {
+			sharedIndexInformer = kubernetesClient.endpoints()
+				.inNamespace(namespace)
+				.withLabels(serviceLabels)
+				.inform();
+		}
+
+		return sharedIndexInformer;
 	}
 
 }

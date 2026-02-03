@@ -45,6 +45,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.endpointsSharedIndexInformer;
+import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.serviceSharedIndexInformer;
 
 /**
  * @author wind57
@@ -91,23 +93,8 @@ final class Fabric8InformerAutoConfiguration {
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (String namespace : selectiveNamespaces) {
-			SharedIndexInformer<Service> sharedIndexInformer = null;
-
-			// we treat this as all namespaces
-			if ("".equals(namespace)) {
-				sharedIndexInformer = kubernetesClient.services()
-					.inAnyNamespace()
-					.withLabels(properties.serviceLabels())
-					.inform();
-			}
-			else {
-				sharedIndexInformer = kubernetesClient.services()
-					.inNamespace(namespace)
-					.withLabels(properties.serviceLabels())
-					.inform();
-			}
-
-			serviceSharedIndexedInformers.add(sharedIndexInformer);
+			serviceSharedIndexedInformers.add(serviceSharedIndexInformer(
+				namespace, kubernetesClient, properties.serviceLabels()));
 		}
 		return serviceSharedIndexedInformers;
 	}
@@ -139,25 +126,8 @@ final class Fabric8InformerAutoConfiguration {
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (String namespace : selectiveNamespaces) {
-
-			SharedIndexInformer<Endpoints> sharedIndexInformer;
-
-			// we treat this as all namespaces
-			if ("".equals(namespace)) {
-				sharedIndexInformer = kubernetesClient.endpoints()
-					.inAnyNamespace()
-					.withLabels(properties.serviceLabels())
-					.inform();
-			}
-			else {
-				sharedIndexInformer = kubernetesClient.endpoints()
-					.inNamespace(namespace)
-					.withLabels(properties.serviceLabels())
-					.inform();
-			}
-
-			endpointsSharedIndexedInformers.add(sharedIndexInformer);
-
+			endpointsSharedIndexedInformers.add(endpointsSharedIndexInformer(
+				namespace, kubernetesClient, properties.serviceLabels()));
 		}
 		return endpointsSharedIndexedInformers;
 	}
