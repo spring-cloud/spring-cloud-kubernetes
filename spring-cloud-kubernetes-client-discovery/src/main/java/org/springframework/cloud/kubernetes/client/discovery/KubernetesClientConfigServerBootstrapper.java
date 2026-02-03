@@ -29,8 +29,8 @@ import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
+import io.kubernetes.client.util.CallGenerator;
 import io.kubernetes.client.util.Namespaces;
-import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -47,6 +47,8 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.kubernetesApiClient;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.endpointsCallGenerator;
+import static org.springframework.cloud.kubernetes.client.discovery.KubernetesClientDiscoveryClientUtils.servicesCallGenerator;
 
 /**
  * @author Ryan Baxter
@@ -81,24 +83,30 @@ final class KubernetesClientConfigServerBootstrapper extends KubernetesConfigSer
 				ApiClient defaultApiClient = kubernetesApiClient();
 				defaultApiClient.setUserAgent(propertyResolver.get("spring.cloud.kubernetes.client.user-agent",
 						String.class, KubernetesClientProperties.DEFAULT_USER_AGENT));
+
 				KubernetesClientAutoConfiguration clientAutoConfiguration = new KubernetesClientAutoConfiguration();
 				ApiClient apiClient = context.getOrElseSupply(ApiClient.class, () -> defaultApiClient);
 
 				KubernetesNamespaceProvider kubernetesNamespaceProvider = clientAutoConfiguration
 					.kubernetesNamespaceProvider(getNamespaceEnvironment(propertyResolver));
+
 				KubernetesDiscoveryProperties discoveryProperties = context.get(KubernetesDiscoveryProperties.class);
 				String namespace = getInformerNamespace(kubernetesNamespaceProvider, discoveryProperties);
 				SharedInformerFactory sharedInformerFactory = new SharedInformerFactory(apiClient);
-				GenericKubernetesApi<V1Service, V1ServiceList> servicesApi = new GenericKubernetesApi<>(V1Service.class,
-						V1ServiceList.class, "", "v1", "services", apiClient);
+				CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+
+				CallGenerator serviceCallGenerator = servicesCallGenerator(coreV1Api,
+						discoveryProperties.serviceLabels(), namespace);
 				SharedIndexInformer<V1Service> serviceSharedIndexInformer = sharedInformerFactory
-					.sharedIndexInformerFor(servicesApi, V1Service.class, 0L, namespace);
+					.sharedIndexInformerFor(serviceCallGenerator, V1Service.class, V1ServiceList.class);
 				Lister<V1Service> serviceLister = new Lister<>(serviceSharedIndexInformer.getIndexer());
-				GenericKubernetesApi<V1Endpoints, V1EndpointsList> endpointsApi = new GenericKubernetesApi<>(
-						V1Endpoints.class, V1EndpointsList.class, "", "v1", "endpoints", apiClient);
+
+				CallGenerator endpointsCallGenerator = endpointsCallGenerator(coreV1Api,
+						discoveryProperties.serviceLabels(), namespace);
 				SharedIndexInformer<V1Endpoints> endpointsSharedIndexInformer = sharedInformerFactory
-					.sharedIndexInformerFor(endpointsApi, V1Endpoints.class, 0L, namespace);
+					.sharedIndexInformerFor(endpointsCallGenerator, V1Endpoints.class, V1EndpointsList.class);
 				Lister<V1Endpoints> endpointsLister = new Lister<>(endpointsSharedIndexInformer.getIndexer());
+
 				Predicate<V1Service> predicate = x -> true;
 				KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
 						List.of(sharedInformerFactory), List.of(serviceLister), List.of(endpointsLister),
