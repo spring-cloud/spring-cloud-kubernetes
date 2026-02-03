@@ -36,6 +36,9 @@ import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServe
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 
 /**
  * @author Ryan Baxter
@@ -79,6 +82,11 @@ final class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootst
 				KubernetesClient kubernetesClient = fabric8AutoConfiguration.kubernetesClient(config);
 				KubernetesDiscoveryProperties discoveryProperties = context.get(KubernetesDiscoveryProperties.class);
 
+				Environment environment = new StandardEnvironment();
+
+
+				propertyResolver
+					.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)
 
 
 				Fabric8InformerAutoConfiguration fabric8InformerAutoConfiguration = new Fabric8InformerAutoConfiguration();
