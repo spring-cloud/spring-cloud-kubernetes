@@ -85,26 +85,24 @@ final class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootst
 				Environment environment = new StandardEnvironment();
 
 
-				propertyResolver
-					.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)
+				KubernetesNamespaceProvider kubernetesNamespaceProvider = new KubernetesNamespaceProvider(propertyResolver
+					.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null));
 
 
 				Fabric8InformerAutoConfiguration fabric8InformerAutoConfiguration = new Fabric8InformerAutoConfiguration();
 				List<String> selectiveNamespaces = fabric8InformerAutoConfiguration.selectiveNamespaces(
-					discoveryProperties, kubernetesClient, registry.ge)
+					discoveryProperties, kubernetesClient, kubernetesNamespaceProvider);
+				List<SharedIndexInformer<Service>> serviceInformers = fabric8InformerAutoConfiguration.serviceSharedIndexInformers(
+					selectiveNamespaces, kubernetesClient, discoveryProperties);
+				List<SharedIndexInformer<Endpoints>> endpointsInformers = fabric8InformerAutoConfiguration.endpointsSharedIndexInformers(
+					selectiveNamespaces, kubernetesClient, discoveryProperties);
+				List<Lister<Service>> serviceListers = fabric8InformerAutoConfiguration.serviceListers(selectiveNamespaces, serviceInformers);
+				List<Lister<Endpoints>> endpointsListers = fabric8InformerAutoConfiguration.endpointsListers(selectiveNamespaces, endpointsInformers);
 
-				List<Lister<Service>> serviceListers,
-				List<Lister<Endpoints>> endpointsListers, List<SharedIndexInformer<Service>> serviceInformers,
-					List<SharedIndexInformer<Endpoints>> endpointsInformers
 
-				client, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
-					kubernetesDiscoveryProperties, predicat
-
-
-				Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(kubernetesClient,
-
-						discoveryProperties,
-						new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(discoveryProperties));
+				Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(
+						kubernetesClient, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
+						discoveryProperties, x -> true);
 				return discoveryClient::getInstances;
 			}
 		});

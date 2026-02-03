@@ -41,7 +41,6 @@ import org.springframework.cloud.kubernetes.commons.discovery.conditionals.Condi
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
@@ -66,9 +65,7 @@ final class Fabric8InformerAutoConfiguration {
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
 	List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties, KubernetesClient kubernetesClient,
-			Environment environment) {
-
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+			KubernetesNamespaceProvider namespaceProvider) {
 
 		if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in namespaces : " + properties.namespaces());
