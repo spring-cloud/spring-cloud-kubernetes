@@ -10,7 +10,7 @@ on:
       branches:
         description: "Which branch should be built (single branch or comma-separated list)"
         required: false
-        default: '3.3.x'
+        default: 'main'
         type: string
 
 permissions:
