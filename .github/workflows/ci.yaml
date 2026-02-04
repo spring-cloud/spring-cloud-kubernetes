@@ -10,7 +10,7 @@ on:
       branch:
         description: "Which branch should be built (empty for current branch)"
         required: false
-        default: '3.2.x'
+        default: '3.3.x'
         type: string
 
 permissions:
