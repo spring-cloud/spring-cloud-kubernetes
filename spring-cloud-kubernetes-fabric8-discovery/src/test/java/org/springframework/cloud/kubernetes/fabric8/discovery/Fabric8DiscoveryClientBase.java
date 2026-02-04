@@ -32,8 +32,8 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.cache.Lister;
-
 import org.assertj.core.util.Strings;
+
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
 import static java.util.stream.Collectors.toList;
@@ -47,22 +47,23 @@ abstract class Fabric8DiscoveryClientBase {
 
 	Fabric8DiscoveryClient fabric8DiscoveryClient(KubernetesDiscoveryProperties properties,
 			List<String> selectiveNamespaces, KubernetesClient kubernetesClient) {
-		List<SharedIndexInformer<Service>> serviceInformers =  configuration.serviceSharedIndexInformers(
-			selectiveNamespaces, kubernetesClient, properties);
-		List<SharedIndexInformer<Endpoints>> endpointsInformers =  configuration.endpointsSharedIndexInformers(
-			selectiveNamespaces, kubernetesClient, properties);
-		List<Lister<Service>> serviceListers =  configuration.serviceListers(selectiveNamespaces, serviceInformers);
-		List<Lister<Endpoints>> endpointsListers =  configuration.endpointsListers(selectiveNamespaces, endpointsInformers);
+		List<SharedIndexInformer<Service>> serviceInformers = configuration
+			.serviceSharedIndexInformers(selectiveNamespaces, kubernetesClient, properties);
+		List<SharedIndexInformer<Endpoints>> endpointsInformers = configuration
+			.endpointsSharedIndexInformers(selectiveNamespaces, kubernetesClient, properties);
+		List<Lister<Service>> serviceListers = configuration.serviceListers(selectiveNamespaces, serviceInformers);
+		List<Lister<Endpoints>> endpointsListers = configuration.endpointsListers(selectiveNamespaces,
+				endpointsInformers);
 
-		return new Fabric8DiscoveryClient(kubernetesClient, serviceListers,
-			endpointsListers, serviceInformers, endpointsInformers, properties,
-			new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
+		return new Fabric8DiscoveryClient(kubernetesClient, serviceListers, endpointsListers, serviceInformers,
+				endpointsInformers, properties,
+				new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 	}
 
-	void setupServiceWithLabelsAndAnnotationsAndPorts(KubernetesClient kubernetesClient, String serviceId, String namespace,
-		Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
+	void setupServiceWithLabelsAndAnnotationsAndPorts(KubernetesClient kubernetesClient, String serviceId,
+			String namespace, Map<String, String> labels, Map<String, String> annotations, Map<Integer, String> ports) {
 
-		Service service = service(serviceId, namespace, labels, annotations, ports);
+		Service service = service(namespace, serviceId, labels, annotations, ports);
 		kubernetesClient.services().inNamespace(namespace).resource(service).create();
 
 		Endpoints endpoints = endpoints(namespace, serviceId, labels, ports);
@@ -83,7 +84,8 @@ abstract class Fabric8DiscoveryClientBase {
 			.build();
 	}
 
-	static Endpoints endpoints(String namespace, String serviceId, Map<String, String> labels, Map<Integer, String> ports) {
+	static Endpoints endpoints(String namespace, String serviceId, Map<String, String> labels,
+			Map<Integer, String> ports) {
 
 		ObjectMeta objectMeta = new ObjectMeta();
 		objectMeta.setNamespace(namespace);

@@ -95,8 +95,8 @@ class Fabric8DiscoveryClientOneTests extends Fabric8DiscoveryClientBase {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(
-			KubernetesDiscoveryProperties.DEFAULT, List.of("test"), mockClient);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -237,8 +237,8 @@ class Fabric8DiscoveryClientOneTests extends Fabric8DiscoveryClientBase {
 		mockClient.services().inNamespace("test").resource(service2).create();
 		mockClient.services().inNamespace("test").resource(service3).create();
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT,
-			List.of("test"), mockClient);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -267,8 +267,8 @@ class Fabric8DiscoveryClientOneTests extends Fabric8DiscoveryClientBase {
 		mockClient.services().inNamespace("test").resource(service1).create();
 		mockClient.services().inNamespace("test").resource(service2).create();
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT,
-			List.of("test"), mockClient);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -308,7 +308,8 @@ class Fabric8DiscoveryClientOneTests extends Fabric8DiscoveryClientBase {
 				Set.of(namespace1, namespace2), true, 60, false, null, Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(namespace1, namespace2), mockClient);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(namespace1, namespace2),
+				mockClient);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -402,8 +403,8 @@ class Fabric8DiscoveryClientOneTests extends Fabric8DiscoveryClientBase {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT,
-			List.of("test"), mockClient);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint1");
 
@@ -647,7 +648,8 @@ class Fabric8DiscoveryClientOneTests extends Fabric8DiscoveryClientBase {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		DiscoveryClient discoveryClient =fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"), mockClient);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 

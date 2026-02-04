@@ -54,9 +54,10 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				false, null, Set.of(), Map.of("label1", "one"), null, metadata, 0, true, false, null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
-			Map.of("annotation1", "ann-one"), Map.of(80, "http", 5555, ""));
+				Map.of("annotation1", "ann-one"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE),
+				mockClient);
 
 		List<ServiceInstance> instances = fabric8DiscoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -72,9 +73,10 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
-			Map.of("annotation1", "ann-one"), Map.of(80, "http", 5555, ""));
+				Map.of("annotation1", "ann-one"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE),
+				mockClient);
 
 		List<ServiceInstance> instances = fabric8DiscoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -90,8 +92,9 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one", "label2", "two"),
-			Map.of("annotation1", "ann-one"), Map.of(80, "http", 5555, ""));
+		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE,
+				Map.of("label1", "one", "label2", "two"), Map.of("annotation1", "ann-one"),
+				Map.of(80, "http", 5555, ""));
 
 		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 
@@ -110,7 +113,7 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 
@@ -129,7 +132,7 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 
@@ -148,7 +151,7 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 
@@ -167,14 +170,14 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
-			Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
 		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
-		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"), entry("k8s_namespace", NAMESPACE),
-				entry("p_<unset>", "5555"), entry("type", "ClusterIP"));
+		assertThat(instances.get(0).getMetadata()).containsOnly(entry("p_http", "80"),
+				entry("k8s_namespace", NAMESPACE), entry("p_<unset>", "5555"), entry("type", "ClusterIP"));
 	}
 
 	@Test
@@ -186,15 +189,15 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
-			Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
+				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
 
 		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
 		assertThat(instances.get(0).getMetadata()).containsOnly(entry("a_a1", "an1"), entry("a_a2", "an2"),
-				entry("l_label1", "one"), entry("p_http", "80"), entry("k8s_namespace", NAMESPACE), entry("type", "ClusterIP"),
-				entry("p_<unset>", "5555"));
+				entry("l_label1", "one"), entry("p_http", "80"), entry("k8s_namespace", NAMESPACE),
+				entry("type", "ClusterIP"), entry("p_<unset>", "5555"));
 	}
 
 }

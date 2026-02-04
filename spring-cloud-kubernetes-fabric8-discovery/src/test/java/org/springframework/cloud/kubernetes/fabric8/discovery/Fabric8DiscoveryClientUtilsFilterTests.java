@@ -53,7 +53,7 @@ class Fabric8DiscoveryClientUtilsFilterTests extends Fabric8DiscoveryClientBase 
 	void emptyInput() {
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
-			60L, false, "", Set.of(), Map.of(), "", null, 0, false, true, null);
+				60L, false, "", Set.of(), Map.of(), "", null, 0, false, true, null);
 
 		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("a", "b"), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("a");
@@ -74,8 +74,8 @@ class Fabric8DiscoveryClientUtilsFilterTests extends Fabric8DiscoveryClientBase 
 		createEndpoints("a", "namespace-a");
 		createService("a", "namespace-not-a");
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("namespace-not-a"),
-			true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, true, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true,
+				Set.of("namespace-not-a"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, true, null);
 
 		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-not-a"), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("a");
@@ -96,8 +96,9 @@ class Fabric8DiscoveryClientUtilsFilterTests extends Fabric8DiscoveryClientBase 
 		createEndpoints("a", "namespace-a");
 		createService("a", "namespace-a");
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("namespace-a"), true,
-			60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("namespace-a"),
+				true, 60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+				true, null);
 
 		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-a"), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("a");
@@ -120,8 +121,9 @@ class Fabric8DiscoveryClientUtilsFilterTests extends Fabric8DiscoveryClientBase 
 
 		createService("a", "namespace-a");
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("namespace-a"), true,
-			60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("namespace-a"),
+				true, 60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+				true, null);
 		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-a"), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("a");
 
@@ -150,9 +152,10 @@ class Fabric8DiscoveryClientUtilsFilterTests extends Fabric8DiscoveryClientBase 
 		createService("c", "namespace-c");
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
-			Set.of("namespace-a", "namespace-b"), true, 60L, false, "", Set.of(), Map.of(), "",
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-a", "namespace-b"), client);
+				Set.of("namespace-a", "namespace-b"), true, 60L, false, "", Set.of(), Map.of(), "",
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-a", "namespace-b"),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("a");
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -181,9 +184,9 @@ class Fabric8DiscoveryClientUtilsFilterTests extends Fabric8DiscoveryClientBase 
 		createService("a-1", "namespace-a");
 		createService("a-1", "namespace-b");
 
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true,
-			Set.of(), true, 60L, false, "", Set.of(), Map.of(), "",
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60L,
+				false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true,
+				null);
 
 		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("a-1");

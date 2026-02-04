@@ -62,20 +62,19 @@ class Fabric8DiscoveryClientFilterTest extends Fabric8DiscoveryClientBase {
 		Endpoints endpoints = endpoints(NAMESPACE, "ServiceNonSpringBoot", Map.of(), Map.of());
 		mockClient.endpoints().inNamespace(NAMESPACE).resource(endpoints).create();
 
-
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.additionalProperties['spring-boot']", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE),
+				mockClient);
 
 		List<String> filteredServices = fabric8DiscoveryClient.getServices();
 		assertThat(filteredServices).containsExactlyInAnyOrder("serviceA", "serviceB");
 
 		// without filter
-		properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-			false, null, Set.of(), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
+		properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60, false, null, Set.of(), Map.of(),
+				null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 
 		fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 
@@ -106,9 +105,9 @@ class Fabric8DiscoveryClientFilterTest extends Fabric8DiscoveryClientBase {
 		List<String> filteredServices = client.getServices();
 		assertThat(filteredServices).containsExactlyInAnyOrder("serviceA", "serviceB", "serviceC");
 
-		properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-			false, "metadata.name.startsWith('another')", Set.of(), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
+		properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60, false,
+				"metadata.name.startsWith('another')", Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 		client = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
 		filteredServices = client.getServices();
 		assertThat(filteredServices).containsExactlyInAnyOrder("anotherService");
