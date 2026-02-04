@@ -90,8 +90,8 @@ final class Fabric8InformerAutoConfiguration {
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<Service>> serviceSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (String namespace : selectiveNamespaces) {
-			serviceSharedIndexedInformers.add(serviceSharedIndexInformer(
-				namespace, kubernetesClient, properties.serviceLabels()));
+			serviceSharedIndexedInformers
+				.add(serviceSharedIndexInformer(namespace, kubernetesClient, properties.serviceLabels()));
 		}
 		return serviceSharedIndexedInformers;
 	}
@@ -123,8 +123,8 @@ final class Fabric8InformerAutoConfiguration {
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedIndexInformer<Endpoints>> endpointsSharedIndexedInformers = new ArrayList<>(howManyNamespaces);
 		for (String namespace : selectiveNamespaces) {
-			endpointsSharedIndexedInformers.add(endpointsSharedIndexInformer(
-				namespace, kubernetesClient, properties.serviceLabels()));
+			endpointsSharedIndexedInformers
+				.add(endpointsSharedIndexInformer(namespace, kubernetesClient, properties.serviceLabels()));
 		}
 		return endpointsSharedIndexedInformers;
 	}

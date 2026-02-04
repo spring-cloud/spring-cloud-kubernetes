@@ -16,35 +16,29 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.ALWAYS_TRUE;
 
 /**
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8DiscoveryClientUtilsFilterTests {
+class Fabric8DiscoveryClientUtilsFilterTests extends Fabric8DiscoveryClientBase {
 
 	private static KubernetesClient client;
-
-	private static final KubernetesDiscoveryProperties PROPERTIES = new KubernetesDiscoveryProperties(true, true,
-			Set.of(), false, 60L, false, "some", Set.of(), Map.of(), "", null, 0, false, false, null);
 
 	@AfterEach
 	void afterEach() {
@@ -52,9 +46,18 @@ class Fabric8DiscoveryClientUtilsFilterTests {
 		client.services().inAnyNamespace().delete();
 	}
 
+	/**
+	 * no services, no endpoints.
+	 */
 	@Test
-	void withFilterEmptyInput() {
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(), PROPERTIES, client, ALWAYS_TRUE);
+	void emptyInput() {
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
+			60L, false, "", Set.of(), Map.of(), "", null, 0, false, true, null);
+
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("a", "b"), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("a");
+
 		Assertions.assertThat(result).isEmpty();
 	}
 
@@ -67,11 +70,16 @@ class Fabric8DiscoveryClientUtilsFilterTests {
 	 * </pre>
 	 */
 	@Test
-	void withFilterOneEndpointsNoMatchInService() {
-		Endpoints endpoints = createEndpoints("a", "namespace-a");
+	void endpointsNoMatchInService() {
+		createEndpoints("a", "namespace-a");
 		createService("a", "namespace-not-a");
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpoints), PROPERTIES, client,
-				x -> true);
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("namespace-not-a"),
+			true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, true, null);
+
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-not-a"), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("a");
+
 		Assertions.assertThat(result).isEmpty();
 	}
 
@@ -84,11 +92,15 @@ class Fabric8DiscoveryClientUtilsFilterTests {
 	 * </pre>
 	 */
 	@Test
-	void withFilterOneEndpointsMatchInService() {
-		Endpoints endpoints = createEndpoints("a", "namespace-a");
+	void endpointsMatchInService() {
+		createEndpoints("a", "namespace-a");
 		createService("a", "namespace-a");
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpoints), PROPERTIES, client,
-				ALWAYS_TRUE);
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("namespace-a"), true,
+			60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-a"), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("a");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 	}
 
@@ -102,96 +114,58 @@ class Fabric8DiscoveryClientUtilsFilterTests {
 	 * </pre>
 	 */
 	@Test
-	void withFilterTwoEndpointsOneMatchInService() {
-		Endpoints endpointsA = createEndpoints("a", "namespace-a");
-		Endpoints endpointsB = createEndpoints("b", "namespace-b");
+	void endpointsOneMatchInService() {
+		createEndpoints("a", "namespace-a");
+		createEndpoints("b", "namespace-b");
+
 		createService("a", "namespace-a");
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB), PROPERTIES,
-				client, x -> true);
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("namespace-a"), true,
+			60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-a"), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("a");
+
 		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a");
-		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespace-a");
+		Assertions.assertThat(result.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespace-a");
 	}
 
 	/**
 	 * <pre>
 	 *     - Endpoints with name : "a" and namespace "namespace-a", present
-	 *     - Endpoints with name : "b" and namespace "namespace-b", present
+	 *     - Endpoints with name : "a" and namespace "namespace-b", present
 	 *     - Service with name "a" and namespace "namespace-a" present
-	 *     - Predicate that we use is "ALWAYS_TRUE", so no service filter is applied
-	 *
-	 *     As such, there is a match, single endpoints as result.
-	 *     This test is the same as above with the difference in the predicate.
-	 *     It simulates Fabric8EndpointsCatalogWatch::apply
-	 * </pre>
-	 */
-	@Test
-	void withFilterTwoEndpointsOneMatchInServiceAlwaysTruePredicate() {
-		Endpoints endpointsA = createEndpoints("a", "namespace-a");
-		Endpoints endpointsB = createEndpoints("b", "namespace-b");
-		createService("a", "namespace-a");
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB), PROPERTIES,
-				client, ALWAYS_TRUE);
-		Assertions.assertThat(result.size()).isEqualTo(2);
-	}
-
-	/**
-	 * <pre>
-	 *     - Endpoints with name : "a" and namespace "namespace-a", present
-	 *     - Endpoints with name : "b" and namespace "namespace-b", present
-	 *     - Service with name "a" and namespace "namespace-a" present
-	 *     - Service with name "b" and namespace "namespace-b" present
+	 *     - Service with name "a" and namespace "namespace-b" present
 	 *     - Service with name "c" and namespace "namespace-c" present
 	 *
 	 *     As such, there are two matches.
 	 * </pre>
 	 */
 	@Test
-	void withFilterTwoEndpointsAndThreeServices() {
-		Endpoints endpointsA = createEndpoints("a", "namespace-a");
-		Endpoints endpointsB = createEndpoints("b", "namespace-b");
+	void endpointsAndThreeServices() {
+		createEndpoints("a", "namespace-a");
+		createEndpoints("a", "namespace-b");
+
 		createService("a", "namespace-a");
-		createService("b", "namespace-b");
+		createService("a", "namespace-b");
 		createService("c", "namespace-c");
 
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB), PROPERTIES,
-				client, ALWAYS_TRUE);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
+			Set.of("namespace-a", "namespace-b"), true, 60L, false, "", Set.of(), Map.of(), "",
+			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespace-a", "namespace-b"), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("a");
+
 		Assertions.assertThat(result.size()).isEqualTo(2);
-		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a");
-		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespace-a");
-		Assertions.assertThat(result.get(1).getMetadata().getName()).isEqualTo("b");
-		Assertions.assertThat(result.get(1).getMetadata().getNamespace()).isEqualTo("namespace-b");
+		Assertions.assertThat(result.stream().map(x -> x.getMetadata().get("k8s_namespace")).sorted().toList())
+			.isEqualTo(List.of("namespace-a", "namespace-b"));
+
 	}
 
 	/**
 	 * <pre>
-	 *     - Endpoints with name : "a" and namespace "namespace-a", present
-	 *     - Endpoints with name : "b" and namespace "namespace-b", present
-	 *     - Service with name "a" and namespace "namespace-a" present
-	 *     - Service with name "b" and namespace "namespace-b" present
-	 *     - Service with name "c" and namespace "namespace-c" present
-	 *
-	 *     As such, there are two matches.
-	 * </pre>
-	 */
-	@Test
-	void withFilterSingleEndpointsMatchesFilter() {
-		Endpoints endpointsA = createEndpoints("a", "namespace-a");
-		createService("a", "namespace-a");
-
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpointsA), PROPERTIES, client,
-				x -> x.getMetadata().getNamespace().equals("namespace-a"));
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a");
-		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("namespace-a");
-	}
-
-	/**
-	 * <pre>
-	 *     - Endpoints with name : "a-1" and namespace "default", present
-	 *     - Endpoints with name : "b-1" and namespace "default", present
-	 *     - Endpoints with name : "c-2" and namespace "default", present
+	 *     - Endpoints with name : "a-1" and namespace "namespace-a", present
+	 *     - Endpoints with name : "a-1" and namespace "namespace-b", present
+	 *     - Endpoints with name : "a-1" and namespace "namespace-c", present
 	 *     - Service with name "a-1" and namespace "default" present
 	 *     - Service with name "b-1" and namespace "default" present
 	 *
@@ -199,59 +173,33 @@ class Fabric8DiscoveryClientUtilsFilterTests {
 	 * </pre>
 	 */
 	@Test
-	void withFilterTwoEndpointsMatchesFilter() {
-		Endpoints endpointsA = createEndpoints("a-1", "default");
-		Endpoints endpointsB = createEndpoints("b-1", "default");
-		Endpoints endpointsC = createEndpoints("c-2", "default");
-		createService("a-1", "default");
-		createService("b-1", "default");
+	void endpointsMatchesFilterAllNamespaces() {
+		createEndpoints("a-1", "namespace-a");
+		createEndpoints("a-1", "namespace-b");
+		createEndpoints("a-1", "namespace-c");
 
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpointsA, endpointsB, endpointsC),
-				PROPERTIES, client, x -> x.getMetadata().getName().contains("1"));
+		createService("a-1", "namespace-a");
+		createService("a-1", "namespace-b");
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true,
+			Set.of(), true, 60L, false, "", Set.of(), Map.of(), "",
+			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, true, null);
+
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("a-1");
+
 		Assertions.assertThat(result.size()).isEqualTo(2);
-		result = result.stream().sorted(Comparator.comparing(x -> x.getMetadata().getName())).toList();
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("a-1");
-		Assertions.assertThat(result.get(0).getMetadata().getNamespace()).isEqualTo("default");
-		Assertions.assertThat(result.get(1).getMetadata().getName()).isEqualTo("b-1");
-		Assertions.assertThat(result.get(1).getMetadata().getNamespace()).isEqualTo("default");
+		Assertions.assertThat(result.stream().map(x -> x.getMetadata().get("k8s_namespace")).sorted().toList())
+			.isEqualTo(List.of("namespace-a", "namespace-b"));
 	}
 
-	/**
-	 * <pre>
-	 *     - Endpoints with name : "a" and namespace "default", present
-	 *     - Service with name "a-1" and namespace "default" present
-	 *     - Service with name "b-1" and namespace "default" present
-	 *
-	 *     As such, there are two matches.
-	 * </pre>
-	 */
-	@Test
-	void withFilterSingleEndpointsNoPredicateMatch() {
-		Endpoints endpointsA = createEndpoints("a", "default");
-		createService("a-1", "default");
-		createService("b-1", "default");
-
-		List<Endpoints> result = Fabric8DiscoveryClientUtils.withFilter(List.of(endpointsA), PROPERTIES, client,
-				x -> !x.getMetadata().getName().contains("1"));
-		Assertions.assertThat(result).isEmpty();
-	}
-
-	private Endpoints createEndpoints(String name, String namespace) {
-		Endpoints endpoints = new EndpointsBuilder().withNewMetadata()
-			.withName(name)
-			.withNamespace(namespace)
-			.endMetadata()
-			.build();
+	private void createEndpoints(String name, String namespace) {
+		Endpoints endpoints = endpoints(namespace, name, Map.of(), Map.of());
 		client.endpoints().inNamespace(namespace).resource(endpoints).create();
-		return endpoints;
 	}
 
 	private void createService(String name, String namespace) {
-		Service service = new ServiceBuilder().withNewMetadata()
-			.withName(name)
-			.withNamespace(namespace)
-			.endMetadata()
-			.build();
+		Service service = service(namespace, name, Map.of(), Map.of(), Map.of());
 		client.services().inNamespace(namespace).resource(service).create();
 	}
 

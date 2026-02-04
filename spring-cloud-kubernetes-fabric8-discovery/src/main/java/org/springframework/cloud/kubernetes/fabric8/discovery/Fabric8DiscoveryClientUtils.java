@@ -106,41 +106,34 @@ final class Fabric8DiscoveryClientUtils {
 					EndpointPort::getPort));
 	}
 
-	static SharedIndexInformer<Service> serviceSharedIndexInformer(String namespace,
-		KubernetesClient kubernetesClient, Map<String, String> serviceLabels) {
+	static SharedIndexInformer<Service> serviceSharedIndexInformer(String namespace, KubernetesClient kubernetesClient,
+			Map<String, String> serviceLabels) {
 
 		SharedIndexInformer<Service> sharedIndexInformer;
 
 		// we treat this as all namespaces
 		if ("".equals(namespace)) {
-			sharedIndexInformer = kubernetesClient.services()
-				.inAnyNamespace()
-				.withLabels(serviceLabels)
-				.inform();
+			sharedIndexInformer = kubernetesClient.services().inAnyNamespace().withLabels(serviceLabels).inform();
 		}
 		else {
-			sharedIndexInformer = kubernetesClient.services()
-				.inNamespace(namespace)
-				.withLabels(serviceLabels)
-				.inform();
+			sharedIndexInformer = kubernetesClient.services().inNamespace(namespace).withLabels(serviceLabels).inform();
 		}
 
 		return sharedIndexInformer;
 	}
 
 	static SharedIndexInformer<Endpoints> endpointsSharedIndexInformer(String namespace,
-		KubernetesClient kubernetesClient, Map<String, String> serviceLabels) {
+			KubernetesClient kubernetesClient, Map<String, String> serviceLabels) {
 
 		SharedIndexInformer<Endpoints> sharedIndexInformer;
 
 		// we treat this as all namespaces
 		if ("".equals(namespace)) {
-			sharedIndexInformer = kubernetesClient.endpoints()
-				.inAnyNamespace()
-				.withLabels(serviceLabels)
-				.inform();
+			LOG.debug(() -> "discovering endpoints in all namespaces");
+			sharedIndexInformer = kubernetesClient.endpoints().inAnyNamespace().withLabels(serviceLabels).inform();
 		}
 		else {
+			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
 			sharedIndexInformer = kubernetesClient.endpoints()
 				.inNamespace(namespace)
 				.withLabels(serviceLabels)
