@@ -22,7 +22,7 @@ on:
         required: false
         default: 'false'
         type: string
-  # Allow calls from orchestrate.yaml
+  # Allow calls from ci.yaml
   workflow_call:
     inputs:
       branch:
