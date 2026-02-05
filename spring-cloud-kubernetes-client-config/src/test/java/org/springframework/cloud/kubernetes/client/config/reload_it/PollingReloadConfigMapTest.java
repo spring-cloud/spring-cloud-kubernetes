@@ -33,7 +33,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.ClientBuilder;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -52,6 +51,7 @@ import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
@@ -125,7 +125,7 @@ class PollingReloadConfigMapTest {
 			.willSetStateTo("go-to-ok"));
 
 		// we fail while reading 'configMapOne'
-		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(10, 1000, () -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
@@ -147,10 +147,7 @@ class PollingReloadConfigMapTest {
 		System.out.println("first assertion passed");
 
 		// it passes while reading 'configMapTwo'
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(20))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(STRATEGY_CALLED::get);
+		Awaitilities.awaitUntil(20, 1000, STRATEGY_CALLED::get);
 	}
 
 	private static V1ConfigMap configMap(String name, Map<String, String> data) {

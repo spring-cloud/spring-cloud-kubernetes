@@ -29,9 +29,27 @@ public final class Awaitilities {
 
 	public static void awaitUntil(int atMostSeconds, int pollIntervalMillis, BooleanSupplier condition) {
 		Awaitility.await()
+			.pollDelay(Duration.ZERO)
 			.atMost(Duration.ofSeconds(atMostSeconds))
 			.pollInterval(Duration.ofMillis(pollIntervalMillis))
 			.until(condition::getAsBoolean);
+	}
+
+	public static void awaitUntil(int atMostSeconds, int pollIntervalMillis, Class<? extends Throwable> cls, BooleanSupplier condition) {
+		Awaitility.await()
+			.pollDelay(Duration.ZERO)
+			.atMost(Duration.ofSeconds(atMostSeconds))
+			.pollInterval(Duration.ofMillis(pollIntervalMillis))
+			.ignoreException(cls)
+			.until(condition::getAsBoolean);
+	}
+
+	public static void awaitUntilAsserted(int atMostSeconds, int pollIntervalMillis, Runnable runnable) {
+		Awaitility.await()
+			.pollDelay(Duration.ZERO)
+			.atMost(Duration.ofSeconds(atMostSeconds))
+			.pollInterval(Duration.ofMillis(pollIntervalMillis))
+			.untilAsserted(runnable::run);
 	}
 
 }

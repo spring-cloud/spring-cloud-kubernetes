@@ -35,7 +35,6 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -57,6 +56,7 @@ import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
@@ -152,7 +152,7 @@ class EventReloadSecretTest {
 		kubernetesClientEventBasedSecretsChangeDetector.onEvent(secretNotMine);
 
 		// we fail while reading 'configMapOne'
-		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(10, 1000, () -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
@@ -172,10 +172,7 @@ class EventReloadSecretTest {
 		// trigger the call again
 		V1Secret secretMine = secret(SECRET_NAME, Map.of());
 		kubernetesClientEventBasedSecretsChangeDetector.onEvent(secretMine);
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(10))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(STRATEGY_CALLED::get);
+		Awaitilities.awaitUntil(10, 1000, STRATEGY_CALLED::get);
 	}
 
 	private static V1Secret secret(String name, Map<String, String> data) {

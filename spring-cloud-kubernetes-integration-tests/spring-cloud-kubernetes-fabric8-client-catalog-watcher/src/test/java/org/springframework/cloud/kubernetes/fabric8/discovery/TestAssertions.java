@@ -21,11 +21,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.assertj.core.api.Assertions;
-import org.awaitility.Awaitility;
-
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
 import org.springframework.core.ParameterizedTypeReference;
@@ -48,10 +46,7 @@ final class TestAssertions {
 	}
 
 	static void assertLogStatement(CapturedOutput output, String textToAssert) {
-		Awaitility.await()
-			.during(Duration.ofSeconds(5))
-			.pollInterval(Duration.ofMillis(200))
-			.untilAsserted(() -> Assertions.assertThat(output.getOut()).contains(textToAssert));
+		Awaitilities.awaitUntil(5, 200, () -> output.getOut().contains(textToAssert));
 	}
 
 	/**

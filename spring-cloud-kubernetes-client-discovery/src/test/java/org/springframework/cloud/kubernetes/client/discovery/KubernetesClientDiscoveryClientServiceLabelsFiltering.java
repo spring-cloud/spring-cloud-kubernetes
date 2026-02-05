@@ -39,7 +39,6 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.util.ClientBuilder;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.absent;
@@ -458,17 +458,17 @@ abstract class KubernetesClientDiscoveryClientServiceLabelsFiltering {
 			List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers) {
 		sharedInformerFactories.forEach(SharedInformerFactory::startAllRegisteredInformers);
 
-		Awaitility.await()
-			.until(() -> serviceSharedIndexInformers.stream()
-				.map(SharedIndexInformer::hasSynced)
-				.reduce(Boolean::logicalAnd)
-				.orElse(false));
+		Awaitilities.awaitUntil(10, 100,
+				() -> serviceSharedIndexInformers.stream()
+					.map(SharedIndexInformer::hasSynced)
+					.reduce(Boolean::logicalAnd)
+					.orElse(false));
 
-		Awaitility.await()
-			.until(() -> endpointsSharedIndexInformers.stream()
-				.map(SharedIndexInformer::hasSynced)
-				.reduce(Boolean::logicalAnd)
-				.orElse(false));
+		Awaitilities.awaitUntil(10, 100,
+				() -> endpointsSharedIndexInformers.stream()
+					.map(SharedIndexInformer::hasSynced)
+					.reduce(Boolean::logicalAnd)
+					.orElse(false));
 	}
 
 }
