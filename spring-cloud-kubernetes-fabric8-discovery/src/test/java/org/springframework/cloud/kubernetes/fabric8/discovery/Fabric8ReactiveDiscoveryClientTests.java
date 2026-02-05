@@ -52,7 +52,7 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 	void beforeEach() {
 		// Configure the kubernetes master url to point to the mock server
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY,
-			kubernetesClient.getConfiguration().getMasterUrl());
+				kubernetesClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
 		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
@@ -70,7 +70,7 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-			false, null, Set.of(), Map.of("label1", "one"), null, metadata, 0, true, false, null);
+				false, null, Set.of(), Map.of("label1", "one"), null, metadata, 0, true, false, null);
 
 		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(), kubernetesClient);
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
@@ -82,8 +82,8 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 	void shouldReturnFluxOfServices() {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true, 60,
-			false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true,
+				60, false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		Service s1 = service("test", "s1", Map.of(), Map.of(), Map.of());
 		kubernetesClient.services().inNamespace("test").resource(s1).create();
@@ -94,15 +94,15 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 		Service s3 = service("test", "s3", Map.of(), Map.of(), Map.of());
 		kubernetesClient.services().inNamespace("test").resource(s3).create();
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"), kubernetesClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"),
+				kubernetesClient);
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
 
 		Flux<String> services = client.getServices();
 		StepVerifier.create(services)
 			.recordWith(ArrayList::new)
 			.expectNextCount(3)
-			.consumeRecordedWith(list ->
-				assertThat(list).containsExactlyInAnyOrder("s1", "s2", "s3"))
+			.consumeRecordedWith(list -> assertThat(list).containsExactlyInAnyOrder("s1", "s2", "s3"))
 			.expectComplete()
 			.verify();
 	}
@@ -111,10 +111,11 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 	void shouldReturnEmptyFluxOfServicesWhenNoInstancesFound() {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true, 60,
-			false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true,
+				60, false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"), kubernetesClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"),
+				kubernetesClient);
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
 
 		Flux<String> services = client.getServices();
@@ -125,10 +126,11 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 	void shouldReturnEmptyFluxForNonExistingService() {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true, 60,
-			false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true,
+				60, false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"), kubernetesClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"),
+				kubernetesClient);
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
 
 		Flux<ServiceInstance> instances = client.getInstances("nonexistent-service");
@@ -139,8 +141,8 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 	void shouldReturnEmptyFluxWhenServiceHasNoSubsets() {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true, 60,
-			false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true,
+				60, false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		Service s1 = service("test", "s1", Map.of(), Map.of(), Map.of());
 		kubernetesClient.services().inNamespace("test").resource(s1).create();
@@ -148,7 +150,8 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 		Endpoints e1 = new EndpointsBuilder().withNewMetadata().withName("s1").endMetadata().build();
 		kubernetesClient.endpoints().inNamespace("test").resource(e1).create();
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"), kubernetesClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"),
+				kubernetesClient);
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
 
 		Flux<ServiceInstance> instances = client.getInstances("s1");
@@ -159,8 +162,8 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 	void shouldReturnFlux() {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true, 60,
-			false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true,
+				60, false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		Service s1 = service("test", "s1", Map.of(), Map.of(), Map.of());
 		kubernetesClient.services().inNamespace("test").resource(s1).create();
@@ -168,7 +171,8 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 		Endpoints e1 = endpoints("test", "s1", Map.of(), Map.of());
 		kubernetesClient.endpoints().inNamespace("test").resource(e1).create();
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"), kubernetesClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of("test"),
+				kubernetesClient);
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8DiscoveryClient);
 
 		Flux<ServiceInstance> instances = client.getInstances("s1");
@@ -179,8 +183,8 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 	void shouldReturnFluxOfServicesAcrossAllNamespaces() {
 
 		Metadata metadata = new Metadata(false, null, false, null, false, null);
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true, 60,
-			false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of("test"), true,
+				60, false, null, Set.of(), Map.of(), null, metadata, 0, true, false, null);
 
 		Service s1 = service("test", "s1", Map.of(), Map.of(), Map.of());
 		kubernetesClient.services().inNamespace("test").resource(s1).create();
@@ -188,7 +192,8 @@ class Fabric8ReactiveDiscoveryClientTests extends Fabric8DiscoveryClientBase {
 		Endpoints e1 = endpoints("test", "s1", Map.of(), Map.of());
 		kubernetesClient.endpoints().inNamespace("test").resource(e1).create();
 
-		Fabric8DiscoveryClient fabric8KubernetesDiscoveryClient = fabric8DiscoveryClient(properties, List.of(""), kubernetesClient);
+		Fabric8DiscoveryClient fabric8KubernetesDiscoveryClient = fabric8DiscoveryClient(properties, List.of(""),
+				kubernetesClient);
 
 		ReactiveDiscoveryClient client = new Fabric8ReactiveDiscoveryClient(fabric8KubernetesDiscoveryClient);
 		Flux<ServiceInstance> instances = client.getInstances("s1");

@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.kubernetes.client.discovery;
 
-<<<<<<< Updated upstream
-=======
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -43,28 +46,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-
->>>>>>> Stashed changes
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-<<<<<<< Updated upstream
-import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 
-=======
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
->>>>>>> Stashed changes
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -73,8 +63,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 		extends KubernetesClientDiscoveryClientServiceLabelsFiltering {
 
-<<<<<<< Updated upstream
-=======
 	private static final String NAMESPACE_A = "namespaceA";
 
 	private static final String NAMESPACE_B = "namespaceB";
@@ -118,7 +106,6 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 	/**
 	 * //TODO
 	 */
->>>>>>> Stashed changes
 	@Test
 	void namespaceARedLabels() {
 
@@ -126,7 +113,6 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 		List<String> namespaces = List.of("namespaceA");
 		Set<String> namespacesAsSet = Set.of("namespaceA");
 		boolean discoveryInAllNamespaces = false;
-<<<<<<< Updated upstream
 
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(false,
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
@@ -473,7 +459,6 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 		assertThat(serviceInstancesXX.stream().map(x -> x.getMetadata().get("namespace")).toList())
 			.containsExactlyInAnyOrder("a", "b");
 
-=======
 		Set<String> selectiveNamespaces = Set.of(NAMESPACE_A, NAMESPACE_B);
 		List<String> selectiveNamespacesAsList = List.of(NAMESPACE_A, NAMESPACE_B);
 
@@ -503,10 +488,6 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 			endpointsSharedIndexInformers);
 
 		startInformers(sharedInformerFactories, serviceSharedIndexInformers, endpointsSharedIndexInformers);
-
-		KubernetesClientInformerDiscoveryClient discoveryClient = new KubernetesClientInformerDiscoveryClient(
-			sharedInformerFactories, serviceListers, endpointsListers, null, null,
-			properties, coreV1Api, x -> true);
 
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances(SERVICE_NAME);
 		assertThat(serviceInstances.size()).isEqualTo(1);
@@ -570,7 +551,6 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 			.withQueryParam("watch", equalTo("true"))
 			.withQueryParam("labelSelector", equalTo(labelSelector))
 			.willReturn(aResponse().withStatus(200).withBody("")));
->>>>>>> Stashed changes
 	}
 
 	private String labelSelector(Map<String, String> labels) {
