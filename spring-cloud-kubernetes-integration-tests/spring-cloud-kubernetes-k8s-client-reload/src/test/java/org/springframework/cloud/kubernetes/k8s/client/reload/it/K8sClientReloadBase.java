@@ -28,11 +28,11 @@ import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;

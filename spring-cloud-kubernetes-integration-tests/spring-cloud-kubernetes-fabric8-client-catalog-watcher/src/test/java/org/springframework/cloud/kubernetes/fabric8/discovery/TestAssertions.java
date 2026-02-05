@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -32,7 +31,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
@@ -60,7 +58,7 @@ final class TestAssertions {
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
 		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(List.class, EndpointNameAndNamespace.class);
 
-		await().pollInterval(Duration.ofMillis(200)).atMost(Duration.ofSeconds(30)).until(() -> {
+		Awaitilities.awaitUntil(30, 200, () -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))
@@ -93,7 +91,7 @@ final class TestAssertions {
 
 		namespaces.forEach(namespace -> util.busybox(namespace, Phase.DELETE));
 
-		await().pollInterval(Duration.ofSeconds(1)).atMost(Duration.ofSeconds(240)).until(() -> {
+		Awaitilities.awaitUntil(240, 1000, () -> {
 			List<EndpointNameAndNamespace> result = (List<EndpointNameAndNamespace>) client.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(ParameterizedTypeReference.forType(resolvableType.getType()))

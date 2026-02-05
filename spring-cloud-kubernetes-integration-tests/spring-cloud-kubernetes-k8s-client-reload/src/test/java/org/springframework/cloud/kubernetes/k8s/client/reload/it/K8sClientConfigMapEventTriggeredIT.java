@@ -112,7 +112,7 @@ class K8sClientConfigMapEventTriggeredIT extends K8sClientReloadBase {
 		replaceConfigMap(coreV1Api, rightConfigMapAfterChange);
 
 		Awaitilities.awaitUntil(60, 1000,
-			() -> output.getOut().contains("ConfigMap right-configmap was updated in namespace right"));
+				() -> output.getOut().contains("ConfigMap right-configmap was updated in namespace right"));
 		Awaitilities.awaitUntil(60, 1000, () -> rightProperties.getValue().equals("right-after-change"));
 	}
 

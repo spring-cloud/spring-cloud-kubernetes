@@ -97,7 +97,7 @@ public final class Commons {
 				Container.ExecResult result = null;
 				try {
 					result = container.execInContainer("ctr", "i", "import",
-						Constants.TEMP_FOLDER + "/" + tarName + ".tar");
+							Constants.TEMP_FOLDER + "/" + tarName + ".tar");
 				}
 				catch (Exception e) {
 					throw new RuntimeException(e);
@@ -211,16 +211,16 @@ public final class Commons {
 				try {
 					String appPodName = k3sContainer
 						.execInContainer("sh", "-c",
-							"kubectl get pods -l app=" + appLabelValue
-								+ " -o custom-columns=POD:metadata.name,STATUS:status.phase"
-								+ " | grep -i 'running' | awk '{print $1}' | tr -d '\n' ")
+								"kubectl get pods -l app=" + appLabelValue
+										+ " -o custom-columns=POD:metadata.name,STATUS:status.phase"
+										+ " | grep -i 'running' | awk '{print $1}' | tr -d '\n' ")
 						.getStdout();
 
 					String execResult = k3sContainer.execInContainer("sh", "-c", "kubectl logs " + appPodName.trim())
 						.getStdout();
 					return execResult.contains(message);
 				}
-				catch(Exception e) {
+				catch (Exception e) {
 					throw new RuntimeException(e);
 				}
 			});

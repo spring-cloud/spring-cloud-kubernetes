@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +28,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
@@ -36,7 +36,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.manifests;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
@@ -121,14 +120,13 @@ class Fabric8ConfigMapConfigTreeIT {
 
 		util.client().configMaps().resource(configMapConfigTree).update();
 
-		await().atMost(Duration.ofSeconds(180))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> webClient.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(String.class)
-				.retryWhen(retrySpec())
-				.block()
-				.equals("as-mount-changed"));
+		Awaitilities.awaitUntil(180, 1000,
+				() -> webClient.method(HttpMethod.GET)
+					.retrieve()
+					.bodyToMono(String.class)
+					.retryWhen(retrySpec())
+					.block()
+					.equals("as-mount-changed"));
 	}
 
 }

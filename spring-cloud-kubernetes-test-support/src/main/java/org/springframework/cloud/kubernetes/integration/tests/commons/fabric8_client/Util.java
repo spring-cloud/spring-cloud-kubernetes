@@ -38,9 +38,9 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
@@ -177,11 +177,12 @@ public final class Util {
 				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.create();
 
-			Awaitilities.awaitUntil(30, 1000, () -> client.namespaces()
-				.list()
-				.getItems()
-				.stream()
-				.anyMatch(x -> x.getMetadata().getName().equals(name)));
+			Awaitilities.awaitUntil(30, 1000,
+					() -> client.namespaces()
+						.list()
+						.getItems()
+						.stream()
+						.anyMatch(x -> x.getMetadata().getName().equals(name)));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -210,11 +211,12 @@ public final class Util {
 				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.delete();
 
-			Awaitilities.awaitUntil(30, 1000, () -> client.namespaces()
-				.list()
-				.getItems()
-				.stream()
-				.noneMatch(x -> x.getMetadata().getName().equals(name)));
+			Awaitilities.awaitUntil(30, 1000,
+					() -> client.namespaces()
+						.list()
+						.getItems()
+						.stream()
+						.noneMatch(x -> x.getMetadata().getName().equals(name)));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);

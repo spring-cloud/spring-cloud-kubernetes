@@ -120,8 +120,10 @@ class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 			.build();
 		replaceSecret(kubernetesClient, secret, NAMESPACE);
 
-		Awaitilities.awaitUntil(60, 1000, () -> output.getOut().contains("Secret event-reload was updated in namespace default"));
-		Awaitilities.awaitUntil(60, 1000, () -> output.getOut().contains("data in secret has not changed, will not reload"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("Secret event-reload was updated in namespace default"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("data in secret has not changed, will not reload"));
 
 		assertThat(secretProperties.getKey()).isEqualTo("secret-initial");
 

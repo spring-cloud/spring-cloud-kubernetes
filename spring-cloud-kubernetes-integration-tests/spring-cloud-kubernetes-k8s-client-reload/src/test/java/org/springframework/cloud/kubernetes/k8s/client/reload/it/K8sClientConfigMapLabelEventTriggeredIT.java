@@ -146,8 +146,10 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		replaceConfigMap(coreV1Api, rightWithLabelConfigMap);
 
-		Awaitilities.awaitUntil(60, 1000, () -> output.getOut().contains("data in configmap has not changed, will not reload"));
-		Awaitilities.awaitUntil(60, 1000, () -> rightWithLabelsProperties.getValue().equals("right-with-label-initial"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("data in configmap has not changed, will not reload"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> rightWithLabelsProperties.getValue().equals("right-with-label-initial"));
 
 		// then deploy a new version of right-configmap-with-label
 		// that changes data also
@@ -160,9 +162,10 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		replaceConfigMap(coreV1Api, rightWithLabelConfigMapAfterChange);
 
-		Awaitilities.awaitUntil(60, 1000, () -> output.getOut()
-			.contains("ConfigMap right-configmap-with-label was updated in namespace right"));
-		Awaitilities.awaitUntil(60, 1000, () -> rightWithLabelsProperties.getValue().equals("right-with-label-after-change"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("ConfigMap right-configmap-with-label was updated in namespace right"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> rightWithLabelsProperties.getValue().equals("right-with-label-after-change"));
 	}
 
 	@TestConfiguration

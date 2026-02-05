@@ -35,7 +35,8 @@ public final class Awaitilities {
 			.until(condition::getAsBoolean);
 	}
 
-	public static void awaitUntil(int atMostSeconds, int pollIntervalMillis, Class<? extends Throwable> cls, BooleanSupplier condition) {
+	public static void awaitUntil(int atMostSeconds, int pollIntervalMillis, Class<? extends Throwable> cls,
+			BooleanSupplier condition) {
 		Awaitility.await()
 			.pollDelay(Duration.ZERO)
 			.atMost(Duration.ofSeconds(atMostSeconds))

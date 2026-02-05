@@ -65,7 +65,8 @@ final class TestUtil {
 		StubMapping stubMapping = WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
 			.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
 
-		Awaitilities.awaitUntil(60, 1000, SocketTimeoutException.class, () -> stubMapping.getResponse().wasConfigured());
+		Awaitilities.awaitUntil(60, 1000, SocketTimeoutException.class,
+				() -> stubMapping.getResponse().wasConfigured());
 	}
 
 	static void verifyActuatorCalled(int timesCalled) {
