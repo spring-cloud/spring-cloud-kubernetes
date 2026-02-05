@@ -22,12 +22,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -48,6 +52,8 @@ final class TestAssertions {
 	private static final String BLOCKING_STATUS = "$.components.discoveryComposite.components.discoveryClient.status";
 
 	private static final BasicJsonTester BASIC_JSON_TESTER = new BasicJsonTester(TestAssertions.class);
+
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8DiscoveryAllServicesIT.class));
 
 	private TestAssertions() {
 
@@ -98,7 +104,17 @@ final class TestAssertions {
 
 	static void assertAllServices(DiscoveryClient discoveryClient) {
 
+		Awaitilities.awaitUntil(5, 100, () -> {
+			List<String> innerServices = discoveryClient.getServices();
+			if (innerServices.size() != 3) {
+				LOG.info(() -> "Not yet 3 services : " + innerServices);
+				return false;
+			}
+			return true;
+		});
+
 		List<String> services = discoveryClient.getServices();
+
 		assertThat(services).containsExactlyInAnyOrder("kubernetes", "busybox-service", "external-name-service");
 
 		ServiceInstance externalNameInstance = discoveryClient.getInstances("external-name-service").get(0);
