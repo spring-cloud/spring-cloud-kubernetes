@@ -32,7 +32,6 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,6 +50,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
@@ -117,7 +117,7 @@ class EventReloadSecretTest {
 		operation.resource(secretTwo).create();
 
 		// we fail while reading 'secretTwo'
-		Awaitility.await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(10, 1000, () -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
@@ -133,10 +133,7 @@ class EventReloadSecretTest {
 		operation.resource(secretOne).update();
 
 		// it passes while reading 'secretOne'
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(10))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(STRATEGY_CALLED::get);
+		Awaitilities.awaitUntil(10, 1000, STRATEGY_CALLED::get);
 	}
 
 	private static Secret secret(String name, Map<String, String> data) {

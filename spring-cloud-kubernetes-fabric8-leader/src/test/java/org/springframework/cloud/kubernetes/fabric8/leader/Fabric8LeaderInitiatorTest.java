@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.leader;
 
 import java.time.Duration;
 
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,7 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.kubernetes.commons.leader.LeaderInitiator;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderProperties;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -78,7 +78,7 @@ class Fabric8LeaderInitiatorTest {
 		verify(mockFabric8LeaderRecordWatcher).start();
 		verify(mockFabric8PodReadinessWatcher).start();
 
-		Awaitility.await().untilAsserted(() -> verify(mockFabric8LeadershipController, atLeastOnce()).update());
+		Awaitilities.awaitUntilAsserted(5, 100, () -> verify(mockFabric8LeadershipController, atLeastOnce()).update());
 
 	}
 

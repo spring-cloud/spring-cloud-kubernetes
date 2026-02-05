@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.discoveryclient.it;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +29,6 @@ import io.kubernetes.client.openapi.models.V1ClusterRoleBinding;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.util.Config;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.k3s.K3sContainer;
@@ -39,6 +37,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
@@ -133,10 +132,7 @@ abstract class DiscoveryServerClientBase {
 
 		// 3. heartbeat listener message
 		List<EndpointNameAndNamespace> result = heartbeatListener.state.get();
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> result.size() == 2);
+		Awaitilities.awaitUntil(60, 1000, () -> result.size() == 2);
 
 		List<String> namespaces = result.stream().map(EndpointNameAndNamespace::namespace).toList();
 		assertThat(namespaces).containsExactlyInAnyOrder(NAMESPACE_LEFT, NAMESPACE_RIGHT);

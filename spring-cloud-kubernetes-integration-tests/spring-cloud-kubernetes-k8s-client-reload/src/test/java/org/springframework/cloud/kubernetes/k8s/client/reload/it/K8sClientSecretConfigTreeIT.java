@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -28,13 +27,13 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
@@ -114,14 +113,13 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 
 		new CoreV1Api().replaceNamespacedSecret("secret-reload", NAMESPACE, secret).execute();
 
-		await().atMost(Duration.ofSeconds(180))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> webClient.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(String.class)
-				.retryWhen(retrySpec())
-				.block()
-				.equals("as-mount-changed"));
+		Awaitilities.awaitUntil(180, 1000,
+				() -> webClient.method(HttpMethod.GET)
+					.retrieve()
+					.bodyToMono(String.class)
+					.retryWhen(retrySpec())
+					.block()
+					.equals("as-mount-changed"));
 	}
 
 }

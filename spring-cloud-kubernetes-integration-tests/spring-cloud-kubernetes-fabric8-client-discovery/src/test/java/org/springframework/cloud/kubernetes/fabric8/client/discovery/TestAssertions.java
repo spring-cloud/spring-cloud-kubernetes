@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +27,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -36,7 +36,6 @@ import static java.util.Map.Entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -237,9 +236,7 @@ final class TestAssertions {
 	}
 
 	private static void waitForLogStatement(CapturedOutput output, String message) {
-		await().pollInterval(Duration.ofSeconds(1))
-			.atMost(Duration.ofSeconds(30))
-			.until(() -> output.getOut().contains(message));
+		Awaitilities.awaitUntil(30, 1000, () -> output.getOut().contains(message));
 	}
 
 }

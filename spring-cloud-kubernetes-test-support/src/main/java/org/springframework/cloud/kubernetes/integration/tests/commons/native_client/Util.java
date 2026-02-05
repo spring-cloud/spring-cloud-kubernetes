@@ -25,7 +25,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -56,10 +55,10 @@ import org.assertj.core.api.Assertions;
 import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
@@ -410,13 +409,18 @@ public final class Util {
 			throw new RuntimeException(e);
 		}
 
-		await().pollInterval(Duration.ofSeconds(1))
-			.atMost(30, TimeUnit.SECONDS)
-			.until(() -> coreV1Api.listNamespace()
-				.execute()
-				.getItems()
-				.stream()
-				.noneMatch(x -> x.getMetadata().getName().equals(name)));
+		Awaitilities.awaitUntil(30, 1000, () -> {
+			try {
+				return coreV1Api.listNamespace()
+					.execute()
+					.getItems()
+					.stream()
+					.noneMatch(x -> x.getMetadata().getName().equals(name));
+			}
+			catch (ApiException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	public void wiremock(String namespace, Phase phase, boolean withNodePort) {
@@ -472,15 +476,20 @@ public final class Util {
 
 	private void waitForDeployment(String namespace, V1Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		await().pollDelay(Duration.ofSeconds(5))
-			.pollInterval(Duration.ofSeconds(5))
-			.atMost(900, TimeUnit.SECONDS)
-			.until(() -> isDeploymentReady(deploymentName, namespace));
+		Awaitilities.awaitUntil(6000, 1000, () -> {
+			try {
+				return isDeploymentReady(deploymentName, namespace);
+			}
+			catch (ApiException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	private void waitForConfigMap(String namespace, V1ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
+
+		Awaitilities.awaitUntil(600, 1000, () -> {
 			if (phase == Phase.DELETE) {
 				try {
 					coreV1Api.readNamespacedConfigMap(configMapName, namespace).execute();
@@ -511,11 +520,13 @@ public final class Util {
 				return true;
 			}
 		});
+
 	}
 
 	private void waitForSecret(String namespace, V1Secret secret, Phase phase) {
 		String secretName = secretName(secret);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
+
+		Awaitilities.awaitUntil(600, 1000, () -> {
 			if (phase == Phase.DELETE) {
 				try {
 					coreV1Api.readNamespacedSecret(secretName, namespace).execute();
@@ -546,10 +557,12 @@ public final class Util {
 				return true;
 			}
 		});
+
 	}
 
 	private void waitForDeploymentToBeDeleted(String deploymentName, String namespace) {
-		await().timeout(Duration.ofSeconds(180)).until(() -> {
+
+		Awaitilities.awaitUntil(180, 1000, () -> {
 			try {
 				appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
 				return false;
@@ -561,10 +574,12 @@ public final class Util {
 				throw new RuntimeException(e);
 			}
 		});
+
 	}
 
 	private void waitForServiceToBeDeleted(String serviceName, String namespace) {
-		await().timeout(Duration.ofSeconds(180)).until(() -> {
+
+		Awaitilities.awaitUntil(180, 1000, () -> {
 			try {
 				coreV1Api.readNamespacedService(serviceName, namespace).execute();
 				return false;
@@ -576,10 +591,12 @@ public final class Util {
 				throw new RuntimeException(e);
 			}
 		});
+
 	}
 
 	private void waitForDeploymentPodsToBeDeleted(Map<String, String> labels, String namespace) {
-		await().timeout(Duration.ofSeconds(180)).until(() -> {
+
+		Awaitilities.awaitUntil(180, 1000, () -> {
 			try {
 				int currentNumberOfPods = coreV1Api.listNamespacedPod(namespace)
 					.labelSelector(labelSelector(labels))
@@ -595,6 +612,7 @@ public final class Util {
 				throw new RuntimeException(e);
 			}
 		});
+
 	}
 
 	private boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {

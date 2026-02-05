@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
@@ -39,14 +38,13 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightWithLabelsProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
-
-import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -148,13 +146,10 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		replaceConfigMap(coreV1Api, rightWithLabelConfigMap);
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("data in configmap has not changed, will not reload"));
-
-		await().atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> rightWithLabelsProperties.getValue().equals("right-with-label-initial"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("data in configmap has not changed, will not reload"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> rightWithLabelsProperties.getValue().equals("right-with-label-initial"));
 
 		// then deploy a new version of right-configmap-with-label
 		// that changes data also
@@ -167,14 +162,10 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		replaceConfigMap(coreV1Api, rightWithLabelConfigMapAfterChange);
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut()
-				.contains("ConfigMap right-configmap-with-label was updated in namespace right"));
-
-		await().atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> rightWithLabelsProperties.getValue().equals("right-with-label-after-change"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("ConfigMap right-configmap-with-label was updated in namespace right"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> rightWithLabelsProperties.getValue().equals("right-with-label-after-change"));
 	}
 
 	@TestConfiguration

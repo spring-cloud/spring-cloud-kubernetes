@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -31,12 +30,12 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.assertReloadLogStatements;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.configMap;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.replaceConfigMap;
@@ -121,13 +120,11 @@ class Fabric8EventReloadConfigMapBootstrapIT extends Fabric8EventReloadBase {
 
 		replaceConfigMap(kubernetesClient, configMap, RIGHT_NAMESPACE);
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("ConfigMap right-configmap was updated in namespace right"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("ConfigMap right-configmap was updated in namespace right"));
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("data in configmap has not changed, will not reload"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("data in configmap has not changed, will not reload"));
 
 		// then deploy a new version of right-configmap, that actually changes some data
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
@@ -137,7 +134,7 @@ class Fabric8EventReloadConfigMapBootstrapIT extends Fabric8EventReloadBase {
 
 		replaceConfigMap(kubernetesClient, rightConfigMapAfterChange, RIGHT_NAMESPACE);
 
-		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(60, 1000, () -> {
 			String afterUpdateRightValue = rightProperties.getValue();
 			return afterUpdateRightValue.equals("right-after-change");
 		});

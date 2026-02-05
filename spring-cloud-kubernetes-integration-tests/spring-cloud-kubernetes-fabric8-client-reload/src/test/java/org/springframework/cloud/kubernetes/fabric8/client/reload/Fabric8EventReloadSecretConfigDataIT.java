@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
 
@@ -35,12 +34,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.assertReloadLogStatements;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.replaceSecret;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.secret;
@@ -121,13 +120,11 @@ class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 			.build();
 		replaceSecret(kubernetesClient, secret, NAMESPACE);
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("Secret event-reload was updated in namespace default"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("Secret event-reload was updated in namespace default"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("data in secret has not changed, will not reload"));
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("data in secret has not changed, will not reload"));
 		assertThat(secretProperties.getKey()).isEqualTo("secret-initial");
 
 		// change data
@@ -138,9 +135,7 @@ class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 			.build();
 		replaceSecret(kubernetesClient, secret, NAMESPACE);
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> secretProperties.getKey().equals("secret-initial-changed"));
+		Awaitilities.awaitUntil(60, 1000, () -> secretProperties.getKey().equals("secret-initial-changed"));
 	}
 
 }

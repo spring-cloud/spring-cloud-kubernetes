@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
-import java.time.Duration;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -27,10 +26,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 
 import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
-
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -46,17 +44,15 @@ final class TestAssertions {
 	 */
 	static void assertReloadLogStatements(String left, String right, CapturedOutput output) {
 
-		await().pollDelay(Duration.ofSeconds(5))
-			.atMost(Duration.ofSeconds(15))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> {
-				boolean leftIsPresent = output.getOut().contains(left);
-				if (leftIsPresent) {
-					boolean rightIsPresent = output.getOut().contains(right);
-					return !rightIsPresent;
-				}
-				return false;
-			});
+		Awaitilities.awaitUntil(20, 1000, () -> {
+			boolean leftIsPresent = output.getOut().contains(left);
+			if (leftIsPresent) {
+				boolean rightIsPresent = output.getOut().contains(right);
+				return !rightIsPresent;
+			}
+			return false;
+		});
+
 	}
 
 	static void replaceConfigMap(KubernetesClient client, ConfigMap configMap, String namespace) {
