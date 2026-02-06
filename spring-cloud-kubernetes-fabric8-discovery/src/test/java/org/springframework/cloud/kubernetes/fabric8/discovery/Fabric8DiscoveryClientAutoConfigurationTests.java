@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +26,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = { "spring.main.cloud-platform=KUBERNETES",
-		"spring.cloud.config.enabled=false", "spring.cloud.kubernetes.discovery.use-endpoint-slices=false" })
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
+				"spring.cloud.kubernetes.discovery.use-endpoint-slices=false" })
+@EnableKubernetesMockClient(crud = true, https = false)
 class Fabric8DiscoveryClientAutoConfigurationTests {
+
+	private static KubernetesClient kubernetesClient;
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
@@ -45,6 +55,18 @@ class Fabric8DiscoveryClientAutoConfigurationTests {
 
 	@SpringBootApplication
 	protected static class TestConfig {
+
+		@Bean
+		KubernetesNamespaceProvider kubernetesNamespaceProvider() {
+			KubernetesNamespaceProvider provider = mock(KubernetesNamespaceProvider.class);
+			when(provider.getNamespace()).thenReturn("test");
+			return provider;
+		}
+
+		@Bean
+		KubernetesClient kubernetesClient() {
+			return kubernetesClient;
+		}
 
 	}
 

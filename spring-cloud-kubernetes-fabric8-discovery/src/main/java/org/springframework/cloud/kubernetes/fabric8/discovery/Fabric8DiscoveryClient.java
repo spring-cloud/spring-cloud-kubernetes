@@ -16,15 +16,17 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.List;
 import java.util.function.Predicate;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.fabric8.kubernetes.client.informers.cache.Lister;
 
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 
 /**
  * Fabric8 Kubernetes implementation of {@link DiscoveryClient}.
@@ -34,11 +36,13 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureR
  */
 final class Fabric8DiscoveryClient extends Fabric8AbstractBlockingDiscoveryClient {
 
-	Fabric8DiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties kubernetesDiscoveryProperties,
-			ServicePortSecureResolver servicePortSecureResolver, KubernetesNamespaceProvider namespaceProvider,
-			Predicate<Service> predicate) {
+	Fabric8DiscoveryClient(KubernetesClient client, List<Lister<Service>> serviceListers,
+			List<Lister<Endpoints>> endpointsListers, List<SharedIndexInformer<Service>> serviceInformers,
+			List<SharedIndexInformer<Endpoints>> endpointsInformers,
+			KubernetesDiscoveryProperties kubernetesDiscoveryProperties, Predicate<Service> predicate) {
 
-		super(client, kubernetesDiscoveryProperties, servicePortSecureResolver, namespaceProvider, predicate);
+		super(client, serviceListers, endpointsListers, serviceInformers, endpointsInformers,
+				kubernetesDiscoveryProperties, predicate);
 	}
 
 	@Override

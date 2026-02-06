@@ -18,6 +18,8 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.util.TestSocketUtils;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -45,7 +48,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES",
 				"spring.config.import=kubernetes:, optional:configserver:", "dummy.config.loader.enabled=true" })
+@EnableKubernetesMockClient(crud = true, https = false)
 class Fabric8ConfigServerTest {
+
+	private static KubernetesClient client;
 
 	private static WireMockServer wireMockServer;
 
@@ -73,6 +79,11 @@ class Fabric8ConfigServerTest {
 
 	@SpringBootApplication
 	protected static class TestConfig {
+
+		@Bean
+		KubernetesClient client() {
+			return client;
+		}
 
 	}
 

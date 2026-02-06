@@ -29,8 +29,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * Auto configuration for Kubernetes.
@@ -103,6 +105,12 @@ public final class Fabric8AutoConfiguration {
 	@ConditionalOnMissingBean
 	Fabric8PodUtils kubernetesPodUtils(KubernetesClient client) {
 		return new Fabric8PodUtils(client);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment environment) {
+		return new KubernetesNamespaceProvider(environment);
 	}
 
 	private static <D> D or(D left, D right) {

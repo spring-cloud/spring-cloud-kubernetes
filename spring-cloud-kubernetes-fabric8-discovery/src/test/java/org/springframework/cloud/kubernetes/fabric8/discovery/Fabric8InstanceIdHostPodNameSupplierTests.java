@@ -40,7 +40,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.withMetadata(new ObjectMetaBuilder().withUid("123").build())
 			.build();
 
-		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier.externalName(service);
+		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier
+			.fabric8InstanceIdHostPodNameSupplier(service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -57,7 +58,7 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.build();
 
 		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.fabric8InstanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -71,7 +72,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.withMetadata(new ObjectMeta())
 			.build();
 
-		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier.externalName(service);
+		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier
+			.fabric8InstanceIdHostPodNameSupplier(service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -87,7 +89,7 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.build();
 
 		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.fabric8InstanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -99,7 +101,8 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 		Service service = new ServiceBuilder().withMetadata(new ObjectMetaBuilder().withUid("123").build())
 			.withSpec(new ServiceSpecBuilder().withExternalName("external-name").build())
 			.build();
-		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier.externalName(service);
+		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier
+			.fabric8InstanceIdHostPodNameSupplier(service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -117,7 +120,7 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.build();
 
 		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.fabric8InstanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();
@@ -135,7 +138,7 @@ class Fabric8InstanceIdHostPodNameSupplierTests {
 			.build();
 
 		Fabric8InstanceIdHostPodNameSupplier supplier = Fabric8InstanceIdHostPodNameSupplier
-			.nonExternalName(endpointAddress, service);
+			.fabric8InstanceIdHostPodNameSupplier(endpointAddress, service);
 		InstanceIdHostPodName result = supplier.get();
 
 		Assertions.assertThat(result).isNotNull();

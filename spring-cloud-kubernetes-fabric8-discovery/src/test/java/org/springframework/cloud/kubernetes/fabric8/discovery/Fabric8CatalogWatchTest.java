@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.FilterNested;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -79,9 +78,6 @@ class Fabric8CatalogWatchTest {
 
 	private static final FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>> FILTER_WATCH_LIST_DELETABLE = Mockito
 		.mock(FilterWatchListDeletable.class);
-
-	private static final FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> FILTER_NESTED = Mockito
-		.mock(FilterNested.class);
 
 	private static final ArgumentCaptor<HeartbeatEvent> HEARTBEAT_EVENT_ARGUMENT_CAPTOR = ArgumentCaptor
 		.forClass(HeartbeatEvent.class);
@@ -411,10 +407,7 @@ class Fabric8CatalogWatchTest {
 
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(MIXED_OPERATION.inAnyNamespace()).thenReturn(MIXED_OPERATION);
-		when(MIXED_OPERATION.withLabels(Map.of())).thenReturn(MIXED_OPERATION);
-		when(MIXED_OPERATION.withNewFilter()).thenReturn(FILTER_NESTED);
-		when(FILTER_NESTED.withLabels(Map.of())).thenReturn(FILTER_NESTED);
-		when(FILTER_NESTED.endFilter()).thenReturn(FILTER_WATCH_LIST_DELETABLE);
+		when(MIXED_OPERATION.withLabels(Map.of())).thenReturn(FILTER_WATCH_LIST_DELETABLE);
 
 	}
 
@@ -431,9 +424,7 @@ class Fabric8CatalogWatchTest {
 		when(namespaceProvider.getNamespace()).thenReturn("catalog-watcher-namespace");
 		when(CLIENT.endpoints()).thenReturn(MIXED_OPERATION);
 		when(MIXED_OPERATION.inNamespace("catalog-watcher-namespace")).thenReturn(NON_NAMESPACE_OPERATION);
-		when(NON_NAMESPACE_OPERATION.withNewFilter()).thenReturn(FILTER_NESTED);
-		when(FILTER_NESTED.withLabels(Map.of())).thenReturn(FILTER_NESTED);
-		when(FILTER_NESTED.endFilter()).thenReturn(FILTER_WATCH_LIST_DELETABLE);
+		when(NON_NAMESPACE_OPERATION.withLabels(Map.of())).thenReturn(FILTER_WATCH_LIST_DELETABLE);
 	}
 
 	private void mockServicesCall(String name, String namespace) {

@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -24,10 +26,12 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.discovery.v1.Endpoint;
 import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
-
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.endpointSlices;
+import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
+import org.springframework.core.log.LogAccessor;
 
 /**
  * Implementation that is based on EndpointSlice V1.
@@ -37,10 +41,34 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8Disc
 final class Fabric8EndpointSliceCatalogWatch
 		implements Function<Fabric8CatalogWatchContext, List<EndpointNameAndNamespace>> {
 
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8EndpointSliceCatalogWatch.class));
+
 	@Override
 	public List<EndpointNameAndNamespace> apply(Fabric8CatalogWatchContext context) {
-		List<EndpointSlice> endpointSlices = endpointSlices(context.properties(), context.kubernetesClient(),
-				context.namespaceProvider(), "catalog-watcher");
+		List<EndpointSlice> endpointSlices;
+
+		KubernetesClient kubernetesClient = context.kubernetesClient();
+
+		if (context.properties().allNamespaces()) {
+			LOG.debug(() -> "discovering endpoint slices in all namespaces");
+			endpointSlices = endpointSlices(kubernetesClient, context.properties().serviceLabels());
+		}
+		else if (!context.properties().namespaces().isEmpty()) {
+			LOG.debug(() -> "discovering endpoint slices in " + context.properties().namespaces());
+			List<EndpointSlice> inner = new ArrayList<>(context.properties().namespaces().size());
+			context.properties()
+				.namespaces()
+				.forEach(namespace -> inner.addAll(
+						namespacedEndpointSlices(kubernetesClient, namespace, context.properties().serviceLabels())));
+			endpointSlices = inner;
+		}
+		else {
+			String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "fabric8 discovery",
+					context.namespaceProvider());
+			LOG.debug(() -> "discovering endpoint slices in namespace : " + namespace);
+			endpointSlices = namespacedEndpointSlices(kubernetesClient, namespace,
+					context.properties().serviceLabels());
+		}
 
 		return generateState(endpointSlices);
 	}
@@ -57,6 +85,21 @@ final class Fabric8EndpointSliceCatalogWatch
 			.map(Endpoint::getTargetRef);
 
 		return Fabric8CatalogWatchContext.state(references);
+	}
+
+	private List<EndpointSlice> endpointSlices(KubernetesClient client, Map<String, String> labels) {
+		return client.discovery().v1().endpointSlices().inAnyNamespace().withLabels(labels).list().getItems();
+	}
+
+	private List<EndpointSlice> namespacedEndpointSlices(KubernetesClient kubernetesClient, String namespace,
+			Map<String, String> labels) {
+		return kubernetesClient.discovery()
+			.v1()
+			.endpointSlices()
+			.inNamespace(namespace)
+			.withLabels(labels)
+			.list()
+			.getItems();
 	}
 
 }

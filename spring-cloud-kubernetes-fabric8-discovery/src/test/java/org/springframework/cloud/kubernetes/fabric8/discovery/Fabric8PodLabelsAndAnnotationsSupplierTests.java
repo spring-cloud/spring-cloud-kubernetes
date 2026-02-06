@@ -52,7 +52,8 @@ class Fabric8PodLabelsAndAnnotationsSupplierTests {
 			.resource(new PodBuilder().withMetadata(new ObjectMetaBuilder().withName(POD_NAME).build()).build())
 			.create();
 
-		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName(client, NAMESPACE)
+		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier
+			.fabric8PodLabelsAndAnnotationsSupplier(client, NAMESPACE)
 			.apply(POD_NAME);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.labels()).isEmpty();
@@ -71,7 +72,8 @@ class Fabric8PodLabelsAndAnnotationsSupplierTests {
 				.build())
 			.create();
 
-		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier.nonExternalName(client, NAMESPACE)
+		PodLabelsAndAnnotations result = Fabric8PodLabelsAndAnnotationsSupplier
+			.fabric8PodLabelsAndAnnotationsSupplier(client, NAMESPACE)
 			.apply(POD_NAME);
 		Assertions.assertThat(result).isNotNull();
 		Assertions.assertThat(result.labels()).containsExactlyInAnyOrderEntriesOf(Map.of("a", "b"));
