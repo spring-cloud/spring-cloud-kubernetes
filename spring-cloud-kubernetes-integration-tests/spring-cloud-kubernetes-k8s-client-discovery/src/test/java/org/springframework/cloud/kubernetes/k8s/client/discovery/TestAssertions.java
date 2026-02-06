@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.discovery;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -25,11 +24,11 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
@@ -54,9 +53,7 @@ final class TestAssertions {
 	}
 
 	static void assertLogStatement(CapturedOutput output, String textToAssert) {
-		await().atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofMillis(200))
-			.untilAsserted(() -> assertThat(output.getOut()).contains(textToAssert));
+		Awaitilities.awaitUntilAsserted(60, 200, () -> assertThat(output.getOut()).contains(textToAssert));
 	}
 
 	/**

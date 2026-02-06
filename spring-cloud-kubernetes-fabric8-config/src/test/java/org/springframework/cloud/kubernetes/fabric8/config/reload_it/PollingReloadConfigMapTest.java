@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +46,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigM
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8ConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
@@ -95,7 +95,7 @@ class PollingReloadConfigMapTest {
 	void test(CapturedOutput output) {
 		// we fail while reading 'configMapOne'
 		kubernetesMockServer.expect().withPath(PATH).andReturn(500, "Internal Server Error").once();
-		Awaitility.await().atMost(Duration.ofSeconds(20)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(20, 1000, () -> {
 			boolean one = output.getOut().contains("Failure in reading named sources");
 			boolean two = output.getOut().contains("Failed to load source");
 			boolean three = output.getOut()
@@ -111,10 +111,7 @@ class PollingReloadConfigMapTest {
 			.once();
 
 		// it passes while reading 'configMapTwo'
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(20))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(STRATEGY_CALLED::get);
+		Awaitilities.awaitUntil(20, 1000, STRATEGY_CALLED::get);
 	}
 
 	private static ConfigMap configMap(String name, Map<String, String> data) {

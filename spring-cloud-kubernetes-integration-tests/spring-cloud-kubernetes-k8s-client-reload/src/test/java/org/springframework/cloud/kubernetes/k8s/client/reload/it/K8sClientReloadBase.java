@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.time.Duration;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -33,11 +32,10 @@ import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
-
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -75,7 +73,7 @@ abstract class K8sClientReloadBase {
 	 */
 	static void assertReloadLogStatements(String left, String right, CapturedOutput output) {
 
-		await().atMost(Duration.ofSeconds(30)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(30, 1000, () -> {
 			boolean leftIsPresent = output.getOut().contains(left);
 			if (leftIsPresent) {
 				boolean rightIsPresent = output.getOut().contains(right);

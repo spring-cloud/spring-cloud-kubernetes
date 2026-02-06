@@ -33,6 +33,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
@@ -40,8 +41,6 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.native_cli
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -153,7 +152,7 @@ class ConfigurationWatcherBusKafkaIT {
 		WebClient serviceClient = builder.baseUrl("http://localhost:32321/app").build();
 
 		Boolean[] value = new Boolean[1];
-		await().pollInterval(Duration.ofSeconds(3)).atMost(Duration.ofSeconds(240)).until(() -> {
+		Awaitilities.awaitUntil(240, 3000, () -> {
 			value[0] = serviceClient.method(HttpMethod.GET)
 				.retrieve()
 				.bodyToMono(Boolean.class)

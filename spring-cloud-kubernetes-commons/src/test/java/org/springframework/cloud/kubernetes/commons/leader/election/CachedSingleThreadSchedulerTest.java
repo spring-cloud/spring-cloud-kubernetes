@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.commons.leader.election;
 
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,13 +23,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
 import org.assertj.core.api.Assertions;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 
 /**
  * @author wind57
@@ -72,15 +71,9 @@ class CachedSingleThreadSchedulerTest {
 		Assertions.assertThat(out).contains("Pod : my-pod in namespace : " + "my-namespace is ready");
 
 		// executor is shutting down
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(1))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
-
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(1))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut().contains("canceling scheduled future because readiness succeeded"));
+		Awaitilities.awaitUntil(10, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+		Awaitilities.awaitUntil(10, 100,
+				() -> output.getOut().contains("canceling scheduled future because readiness succeeded"));
 	}
 
 	/**
@@ -123,28 +116,18 @@ class CachedSingleThreadSchedulerTest {
 		});
 
 		// pod readiness is started
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(200))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut().contains("Scheduling command to run in : podReadyExecutor"));
+		Awaitilities.awaitUntil(10, 200,
+				() -> output.getOut().contains("Scheduling command to run in : podReadyExecutor"));
 
 		// pod readiness progresses
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(200))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut()
-				.contains("Pod : my-pod in namespace : " + "my-namespace is not ready, will retry in one second"));
+		Awaitilities.awaitUntil(10, 200, () -> output.getOut()
+			.contains("Pod : my-pod in namespace : " + "my-namespace is not ready, will retry in one second"));
 
 		// executor is shutting down
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(1))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+		Awaitilities.awaitUntil(10, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(1))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut().contains("canceling scheduled future because readiness failed"));
+		Awaitilities.awaitUntil(10, 100,
+				() -> output.getOut().contains("canceling scheduled future because readiness failed"));
 
 		Assertions.assertThat(caught[0]).isTrue();
 	}
@@ -171,29 +154,18 @@ class CachedSingleThreadSchedulerTest {
 		ready.cancel(true);
 
 		// pod readiness is started
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(200))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut().contains("Scheduling command to run in : podReadyExecutor"));
+		Awaitilities.awaitUntil(10, 200,
+				() -> output.getOut().contains("Scheduling command to run in : podReadyExecutor"));
 
 		// pod readiness progresses
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(200))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut()
-				.contains("Pod : my-pod in namespace : " + "my-namespace is not ready, will retry in one second"));
+		Awaitilities.awaitUntil(10, 200, () -> output.getOut()
+			.contains("Pod : my-pod in namespace : " + "my-namespace is not ready, will retry in one second"));
 
 		// executor is shutting down
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(1))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
+		Awaitilities.awaitUntil(10, 100, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
-		Awaitility.await()
-			.pollInterval(Duration.ofMillis(1))
-			.atMost(Duration.ofSeconds(10))
-			.until(() -> output.getOut()
-				.contains("canceling scheduled future because completable future was cancelled"));
+		Awaitilities.awaitUntil(10, 100,
+				() -> output.getOut().contains("canceling scheduled future because completable future was cancelled"));
 
 	}
 

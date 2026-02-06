@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.client.reload;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -31,12 +30,12 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.assertReloadLogStatements;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.configMap;
 import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAssertions.replaceConfigMap;
@@ -127,14 +126,14 @@ class Fabric8EventReloadInformWithLabelIT extends Fabric8EventReloadBase {
 
 		// since we have changed a labeled configmap, app will restart and pick up the new
 		// value
-		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(60, 1000, () -> {
 			String afterUpdateRightValue = rightWithLabelsProperties.getValue();
 			return afterUpdateRightValue.equals("right-with-label-after-change");
 		});
 
 		// right-configmap now will see the new value also, but only because the other
 		// configmap has triggered the restart
-		await().atMost(Duration.ofSeconds(60)).pollDelay(Duration.ofSeconds(1)).until(() -> {
+		Awaitilities.awaitUntil(60, 1000, () -> {
 			String afterUpdateRightValue = rightProperties.getValue();
 			return afterUpdateRightValue.equals("right-after-change");
 		});
