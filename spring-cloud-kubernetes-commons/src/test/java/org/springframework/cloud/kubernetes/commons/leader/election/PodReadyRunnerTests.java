@@ -112,7 +112,8 @@ class PodReadyRunnerTests {
 			awaitUntil(3, 100, () -> output.getOut()
 				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second"));
 			awaitUntil(3, 100, () -> output.getOut().contains("exception waiting for pod : identity"));
-			awaitUntil(3, 100, () -> output.getOut().contains("pod readiness for : identity failed with : fail on the second cycle"));
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("pod readiness for : identity failed with : fail on the second cycle"));
 			awaitUntil(3, 100, () -> output.getOut().contains("canceling scheduled future because readiness failed"));
 			awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 		}
@@ -156,7 +157,8 @@ class PodReadyRunnerTests {
 			awaitUntil(3, 100, () -> output.getOut()
 				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second"));
 			awaitUntil(3, 100, () -> output.getOut().contains("exception waiting for pod : identity"));
-			awaitUntil(3, 100, () -> output.getOut().contains("pod readiness for : identity failed with : fail on the second cycle"));
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("pod readiness for : identity failed with : fail on the second cycle"));
 			awaitUntil(3, 100, () -> output.getOut().contains("readiness failed and we caught that"));
 			awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 			awaitUntil(3, 100, () -> output.getOut().contains("canceling scheduled future because readiness failed"));
@@ -212,7 +214,8 @@ class PodReadyRunnerTests {
 
 			awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
-			awaitUntil(3, 100, () -> output.getOut().contains("canceling scheduled future because completable future was cancelled"));
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("canceling scheduled future because completable future was cancelled"));
 			awaitUntil(3, 100, () -> !output.getOut().contains("canceling scheduled future because readiness failed"));
 			awaitUntil(3, 100, () -> output.getOut().contains("scheduledFuture is canceled: true"));
 
