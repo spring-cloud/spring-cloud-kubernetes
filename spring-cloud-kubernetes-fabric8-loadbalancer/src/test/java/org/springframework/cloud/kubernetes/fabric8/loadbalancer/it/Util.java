@@ -16,16 +16,28 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it;
 
-import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
+import java.util.List;
+import java.util.Map;
+
+import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
-import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.EndpointsListBuilder;
+import io.fabric8.kubernetes.api.model.ListMetaBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.ServiceListBuilder;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.assertj.core.util.Strings;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author wind57
@@ -36,24 +48,198 @@ public final class Util {
 
 	}
 
-	public static Service service(String namespace, String name, int port) {
-		return new ServiceBuilder().withNewMetadata()
+	/**
+	 * mock indexer calls that are made when services are requested in a certain namespace.
+	 */
+	public static void mockIndexerServiceCalls(String namespace, String serviceId, KubernetesMockServer kubernetesMockServer) {
+		Service service = new ServiceBuilder()
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(8080, "a"))).build())
+			.withNewMetadata()
 			.withNamespace(namespace)
-			.withName(name)
+			.withName(serviceId)
+			.withLabels(Map.of())
+			.withAnnotations(Map.of())
 			.endMetadata()
-			.withSpec(
-					new ServiceSpecBuilder().withPorts(new ServicePortBuilder().withName("http").withPort(port).build())
-						.build())
 			.build();
+
+		ServiceList serviceList = new ServiceListBuilder()
+			.withItems(service)
+			.withMetadata(new ListMetaBuilder().withResourceVersion("1").build())
+			.build();
+
+		ServiceList emptyServiceList = new ServiceListBuilder()
+			.build();
+
+		// first call to populate shared index informer
+		kubernetesMockServer.expect()
+				.get()
+				.withPath("/api/v1/namespaces/" + namespace + "/services?resourceVersion=0")
+				.andReturn(200, serviceList)
+				.once();
+
+		// subsequent calls to watch
+		kubernetesMockServer.expect()
+				.get()
+				.withPath("/api/v1/namespaces/" + namespace +
+					"/services?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+				.andReturn(200, emptyServiceList)
+				.always();
 	}
 
-	public static Endpoints endpoints(int port, String host, String namespace) {
-		return new EndpointsBuilder()
-			.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(port).build())
-				.withAddresses(new EndpointAddressBuilder().withIp(host).build())
-				.build())
-			.withMetadata(new ObjectMetaBuilder().withName("random-name").withNamespace(namespace).build())
+	/**
+	 * mock indexer calls that are made when services are requested in a certain namespace.
+	 */
+	public static void mockIndexerServiceCallsInAllNamespaces(String namespace, String serviceId,
+			KubernetesMockServer kubernetesMockServer) {
+		Service service = new ServiceBuilder()
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(8080, "a"))).build())
+			.withNewMetadata()
+			.withNamespace(namespace)
+			.withName(serviceId)
+			.withLabels(Map.of())
+			.withAnnotations(Map.of())
+			.endMetadata()
 			.build();
+
+		ServiceList serviceList = new ServiceListBuilder()
+			.withItems(service)
+			.withMetadata(new ListMetaBuilder().withResourceVersion("1").build())
+			.build();
+
+		ServiceList emptyServiceList = new ServiceListBuilder()
+			.build();
+
+		// first call to populate shared index informer
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/api/v1/services?resourceVersion=0")
+			.andReturn(200, serviceList)
+			.once();
+
+		// subsequent calls to watch
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/api/v1/services?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.andReturn(200, emptyServiceList)
+			.always();
+	}
+
+	public static void mockLoadBalancerServiceCall(String namespace, String serviceId, KubernetesMockServer kubernetesMockServer,
+			int portNumber, String portName, int numberOfCalls) {
+
+		Service service = new ServiceBuilder()
+			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(portNumber, portName)))
+				.build())
+			.withNewMetadata()
+			.withNamespace(namespace)
+			.withName(serviceId)
+			.withLabels(Map.of())
+			.withAnnotations(Map.of())
+			.endMetadata()
+			.build();
+
+		// mock the list supplier
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/" + namespace + "/services/" + serviceId)
+			.andReturn(200, service)
+			.times(numberOfCalls);
+	}
+
+	/**
+	 * mock indexer calls that are made when endpoints are requested in a certain namespace.
+	 */
+	public static void mockIndexerEndpointsCall(String namespace, String serviceId, KubernetesMockServer kubernetesMockServer) {
+
+		Endpoints endpoints = new EndpointsBuilder().withMetadata(new ObjectMetaBuilder()
+				.withName(serviceId).withNamespace(namespace).build())
+			.addNewSubset()
+			.addAllToPorts(getEndpointPorts(Map.of()))
+			.addNewAddress()
+			.endAddress()
+			.endSubset()
+			.build();
+
+		EndpointsList endpointsList = new EndpointsListBuilder()
+			.withItems(endpoints)
+			.withMetadata(new ListMetaBuilder().withResourceVersion("1").build())
+			.build();
+
+		EndpointsList emptyEndpointsList = new EndpointsListBuilder().build();
+
+		// subsequent calls to watch
+		kubernetesMockServer.expect()
+				.get()
+				.withPath("/api/v1/namespaces/" + namespace + "/endpoints?resourceVersion=0")
+				.andReturn(200, endpointsList)
+				.once();
+
+		// subsequent calls to watch
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/api/v1/namespaces/" + namespace +
+				"/endpoints?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.andReturn(200, emptyEndpointsList)
+			.always();
+	}
+
+	/**
+	 * mock indexer calls that are made when endpoints are requested in a certain namespace.
+	 */
+	public static void mockIndexerEndpointsCallInAllNamespaces(String namespace, String serviceId,
+			KubernetesMockServer kubernetesMockServer) {
+
+		Endpoints endpoints = new EndpointsBuilder().withMetadata(new ObjectMetaBuilder()
+				.withName(serviceId).withNamespace(namespace).build())
+			.addNewSubset()
+			.addAllToPorts(getEndpointPorts(Map.of()))
+			.addNewAddress()
+			.endAddress()
+			.endSubset()
+			.build();
+
+		EndpointsList endpointsList = new EndpointsListBuilder()
+			.withItems(endpoints)
+			.withMetadata(new ListMetaBuilder().withResourceVersion("1").build())
+			.build();
+
+		EndpointsList emptyEndpointsList = new EndpointsListBuilder().build();
+
+		// subsequent calls to watch
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/api/v1/endpoints?resourceVersion=0")
+			.andReturn(200, endpointsList)
+			.once();
+
+		// subsequent calls to watch
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/api/v1/endpoints?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.andReturn(200, emptyEndpointsList)
+			.always();
+	}
+
+	private static List<ServicePort> getServicePorts(Map<Integer, String> ports) {
+		return ports.entrySet().stream().map(e -> {
+			ServicePortBuilder servicePortBuilder = new ServicePortBuilder();
+			servicePortBuilder.withPort(e.getKey());
+			if (!Strings.isNullOrEmpty(e.getValue())) {
+				servicePortBuilder.withName(e.getValue());
+			}
+			return servicePortBuilder.build();
+		}).collect(toList());
+	}
+
+	private static List<EndpointPort> getEndpointPorts(Map<Integer, String> ports) {
+		return ports.entrySet().stream().map(e -> {
+			EndpointPortBuilder endpointPortBuilder = new EndpointPortBuilder();
+			endpointPortBuilder.withPort(e.getKey());
+			if (!Strings.isNullOrEmpty(e.getValue())) {
+				endpointPortBuilder.withName(e.getValue());
+			}
+			return endpointPortBuilder.build();
+		}).collect(toList());
 	}
 
 }
