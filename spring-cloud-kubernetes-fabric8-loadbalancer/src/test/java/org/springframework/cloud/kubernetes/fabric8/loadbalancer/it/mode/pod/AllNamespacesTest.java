@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.pod;
 import java.util.Map;
 
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.assertj.core.api.Assertions;
@@ -45,16 +44,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 		properties = { "spring.cloud.kubernetes.loadbalancer.mode=POD", "spring.main.cloud-platform=KUBERNETES",
 				"spring.cloud.kubernetes.discovery.all-namespaces=true" },
 		classes = { LoadBalancerConfiguration.class, App.class })
-@EnableKubernetesMockClient
+@EnableKubernetesMockClient(https = false)
 class AllNamespacesTest {
 
 	private static KubernetesMockServer kubernetesMockServer;
 
-	private static KubernetesClient kubernetesClient;
+	private static final String SERVICE_A_URL = "http://service-a/a-path";
 
-	private static final String SERVICE_A_URL = "http://service-a";
-
-	private static final String SERVICE_B_URL = "http://service-b";
+	private static final String SERVICE_B_URL = "http://service-b/b-path";
 
 	@Autowired
 	private WebClient.Builder builder;
@@ -65,18 +62,38 @@ class AllNamespacesTest {
 	@BeforeAll
 	static void beforeAll() {
 
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
 		Util.mockIndexerServiceCallsInAllNamespaces(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
-		Util.mockIndexerEndpointsCallInAllNamespaces(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
+		Util.mockIndexerEndpointsCallInAllNamespaces(Map.of("a", "service-a", "b", "service-b"), "localhost",
+			kubernetesMockServer.getPort(), kubernetesMockServer);
+
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/a-path")
+			.andReturn(200, "service-a-reached")
+			.once();
+
+		kubernetesMockServer.expect()
+			.get()
+			.withPath("/b-path")
+			.andReturn(200, "service-b-reached")
+			.once();
 	}
 
 	/**
 	 * <pre>
-	 *      - service-a is present in namespace a with exposed port 8888
-	 *      - service-b is present in namespace b with exposed port 8889
+	 *      - service-a is present in namespace a
+	 *      - service-b is present in namespace b
 	 *      - we make two calls to them via the load balancer
+	 *
+	 *      - we first mock services call for the indexer via : mockIndexerServiceCallsInAllNamespaces
+	 *      - then we mock endpoints call for the indexer via : mockIndexerEndpointsCallInAllNamespaces
+	 *        The difference is that the second one also takes a 'host' and 'port' as argument.
+	 *        This is needed because when load balancer makes the call to : /service-a/a-path, it needs
+	 *        to know where to re-direct this call to. In order to do that, it looks at data stored in Endpoints
+	 *        and computes that path. By providing those two fields, we can mock this path and then assert for it.
 	 * </pre>
 	 */
 	@Test

@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
+import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.EndpointsList;
@@ -194,18 +196,16 @@ public final class Util {
 	 * mock indexer calls that are made when endpoints are requested in a certain namespace.
 	 */
 	public static void mockIndexerEndpointsCallInAllNamespaces(Map<String, String> namespaceToServiceId,
-			KubernetesMockServer kubernetesMockServer) {
+			String host, int port, KubernetesMockServer kubernetesMockServer) {
 
 		List<Endpoints> endpoints = new ArrayList<>();
 
 		for (Map.Entry<String, String> entry : namespaceToServiceId.entrySet()) {
 			Endpoints innerEndpoints = new EndpointsBuilder().withMetadata(new ObjectMetaBuilder()
-					.withName(entry.getValue()).withNamespace(entry.getKey()).build())
-				.addNewSubset()
-				.addAllToPorts(getEndpointPorts(Map.of()))
-				.addNewAddress()
-				.endAddress()
-				.endSubset()
+				.withName(entry.getValue()).withNamespace(entry.getKey()).build())
+				.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(port).build())
+				.withAddresses(new EndpointAddressBuilder().withIp(host).build())
+				.build())
 				.build();
 
 			endpoints.add(innerEndpoints);

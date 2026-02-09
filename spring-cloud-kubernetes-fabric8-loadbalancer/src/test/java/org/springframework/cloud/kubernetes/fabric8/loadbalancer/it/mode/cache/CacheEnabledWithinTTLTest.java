@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.cache;
 
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,14 +51,12 @@ class CacheEnabledWithinTTLTest {
 
 	private static KubernetesMockServer kubernetesMockServer;
 
-	private static KubernetesClient kubernetesClient;
-
 	@Autowired
 	private LoadBalancerClientFactory loadBalancerClientFactory;
 
 	@BeforeAll
 	static void beforeAll() {
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesClient.getConfiguration().getMasterUrl());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
 		Util.mockIndexerServiceCalls("a", "service-a", kubernetesMockServer);
