@@ -59,8 +59,8 @@ class CacheEnabledWithinTTLTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockIndexerServiceCalls("a", "service-a", kubernetesMockServer);
-		Util.mockIndexerEndpointsCall("a", "service-a", kubernetesMockServer);
+		Util.mockIndexerServiceCall("a", "service-a", kubernetesMockServer);
+		Util.mockIndexerEndpointsCall("a", "service-a", "localhost", 8080, kubernetesMockServer);
 		Util.mockLoadBalancerServiceCall("a", "service-a", kubernetesMockServer, 8080, "a", NUMBER_OF_CALLS);
 	}
 

@@ -54,7 +54,7 @@ public final class Util {
 	/**
 	 * mock indexer calls that are made when services are requested in a certain namespace.
 	 */
-	public static void mockIndexerServiceCalls(String namespace, String serviceId, KubernetesMockServer kubernetesMockServer) {
+	public static void mockIndexerServiceCall(String namespace, String serviceId, KubernetesMockServer kubernetesMockServer) {
 		Service service = new ServiceBuilder()
 			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(8080, "a"))).build())
 			.withNewMetadata()
@@ -158,15 +158,14 @@ public final class Util {
 	/**
 	 * mock indexer calls that are made when endpoints are requested in a certain namespace.
 	 */
-	public static void mockIndexerEndpointsCall(String namespace, String serviceId, KubernetesMockServer kubernetesMockServer) {
+	public static void mockIndexerEndpointsCall(String namespace, String serviceId, String host, int port,
+			KubernetesMockServer kubernetesMockServer) {
 
 		Endpoints endpoints = new EndpointsBuilder().withMetadata(new ObjectMetaBuilder()
 				.withName(serviceId).withNamespace(namespace).build())
-			.addNewSubset()
-			.addAllToPorts(getEndpointPorts(Map.of()))
-			.addNewAddress()
-			.endAddress()
-			.endSubset()
+			.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder().withPort(port).build())
+				.withAddresses(new EndpointAddressBuilder().withIp(host).build())
+				.build())
 			.build();
 
 		EndpointsList endpointsList = new EndpointsListBuilder()
