@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -89,20 +90,26 @@ public final class Util {
 	/**
 	 * mock indexer calls that are made when services are requested in a certain namespace.
 	 */
-	public static void mockIndexerServiceCallsInAllNamespaces(String namespace, String serviceId,
+	public static void mockIndexerServiceCallsInAllNamespaces(Map<String, String> namespaceToServiceId,
 			KubernetesMockServer kubernetesMockServer) {
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(8080, "a"))).build())
-			.withNewMetadata()
-			.withNamespace(namespace)
-			.withName(serviceId)
-			.withLabels(Map.of())
-			.withAnnotations(Map.of())
-			.endMetadata()
-			.build();
+
+		List<Service> services = new ArrayList<>();
+		for (Map.Entry<String, String> entry : namespaceToServiceId.entrySet()) {
+			Service service = new ServiceBuilder()
+				.withSpec(new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(8080, "a"))).build())
+				.withNewMetadata()
+				.withNamespace(entry.getKey())
+				.withName(entry.getValue())
+				.withLabels(Map.of())
+				.withAnnotations(Map.of())
+				.endMetadata()
+				.build();
+
+			services.add(service);
+		}
 
 		ServiceList serviceList = new ServiceListBuilder()
-			.withItems(service)
+			.withItems(services)
 			.withMetadata(new ListMetaBuilder().withResourceVersion("1").build())
 			.build();
 
@@ -186,17 +193,25 @@ public final class Util {
 	/**
 	 * mock indexer calls that are made when endpoints are requested in a certain namespace.
 	 */
-	public static void mockIndexerEndpointsCallInAllNamespaces(String namespace, String serviceId,
+	public static void mockIndexerEndpointsCallInAllNamespaces(Map<String, String> namespaceToServiceId,
 			KubernetesMockServer kubernetesMockServer) {
 
-		Endpoints endpoints = new EndpointsBuilder().withMetadata(new ObjectMetaBuilder()
-				.withName(serviceId).withNamespace(namespace).build())
-			.addNewSubset()
-			.addAllToPorts(getEndpointPorts(Map.of()))
-			.addNewAddress()
-			.endAddress()
-			.endSubset()
-			.build();
+		List<Endpoints> endpoints = new ArrayList<>();
+
+		for (Map.Entry<String, String> entry : namespaceToServiceId.entrySet()) {
+			Endpoints innerEndpoints = new EndpointsBuilder().withMetadata(new ObjectMetaBuilder()
+					.withName(entry.getValue()).withNamespace(entry.getKey()).build())
+				.addNewSubset()
+				.addAllToPorts(getEndpointPorts(Map.of()))
+				.addNewAddress()
+				.endAddress()
+				.endSubset()
+				.build();
+
+			endpoints.add(innerEndpoints);
+		}
+
+
 
 		EndpointsList endpointsList = new EndpointsListBuilder()
 			.withItems(endpoints)

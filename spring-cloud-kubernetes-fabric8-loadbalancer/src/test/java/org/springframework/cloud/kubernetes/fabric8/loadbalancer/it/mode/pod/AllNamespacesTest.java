@@ -16,20 +16,18 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.pod;
 
+import java.util.Map;
+
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.LoadBalancerConfiguration;
@@ -38,7 +36,6 @@ import org.springframework.cloud.loadbalancer.core.DiscoveryClientServiceInstanc
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
-import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -55,19 +52,9 @@ class AllNamespacesTest {
 
 	private static KubernetesClient kubernetesClient;
 
-	private static final int NUMBER_OF_CALLS = 1;
-
 	private static final String SERVICE_A_URL = "http://service-a";
 
 	private static final String SERVICE_B_URL = "http://service-b";
-
-	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
-
-	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
-
-	@SuppressWarnings("rawtypes")
-	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
-		.mockStatic(KubernetesServiceInstanceMapper.class);
 
 	@Autowired
 	private WebClient.Builder builder;
@@ -81,14 +68,8 @@ class AllNamespacesTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockIndexerServiceCallsInAllNamespaces("a", "service-a", kubernetesMockServer);
-		Util.mockIndexerEndpointsCallInAllNamespaces("a", "service-a", kubernetesMockServer);
-		Util.mockLoadBalancerServiceCall("a", "service-a", kubernetesMockServer, 8080, "a", NUMBER_OF_CALLS);
-	}
-
-	@AfterAll
-	static void afterAll() {
-		MOCKED_STATIC.close();
+		Util.mockIndexerServiceCallsInAllNamespaces(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
+		Util.mockIndexerEndpointsCallInAllNamespaces(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
 	}
 
 	/**
