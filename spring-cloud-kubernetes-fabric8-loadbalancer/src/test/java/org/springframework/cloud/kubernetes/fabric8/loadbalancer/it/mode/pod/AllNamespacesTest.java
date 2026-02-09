@@ -78,19 +78,8 @@ class AllNamespacesTest {
 	@BeforeAll
 	static void beforeAll() {
 
-		// we mock host creation so that it becomes something like : localhost:<port>
-		// then we can catch this request, and we can assert for the result
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("service-a", "a", "cluster.local"))
-			.thenReturn("localhost");
-
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("service-b", "b", "cluster.local"))
-			.thenReturn("localhost");
-
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesClient.getConfiguration().getMasterUrl());
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
 
 		Util.mockIndexerServiceCallsInAllNamespaces("a", "service-a", kubernetesMockServer);
 		Util.mockIndexerEndpointsCallInAllNamespaces("a", "service-a", kubernetesMockServer);
