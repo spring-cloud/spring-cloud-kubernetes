@@ -38,11 +38,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(
-		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.discovery.all-namespaces=false", "spring.cloud.kubernetes.discovery.namespaces[0]=a",
-				"spring.cloud.loadbalancer.cache.enabled=true", "spring.cloud.loadbalancer.cache.ttl=2s" },
-		classes = App.class)
+@SpringBootTest(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
+		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.all-namespaces=false",
+		"spring.cloud.kubernetes.discovery.namespaces[0]=a", "spring.cloud.loadbalancer.cache.enabled=true",
+		"spring.cloud.loadbalancer.cache.ttl=2s" }, classes = App.class)
 @DirtiesContext
 @EnableKubernetesMockClient
 class CacheEnabledWithinTTLTest {
@@ -59,8 +58,14 @@ class CacheEnabledWithinTTLTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockIndexerServiceCall("a", "service-a", kubernetesMockServer);
-		Util.mockIndexerEndpointsCall("a", "service-a", "localhost", 8080, kubernetesMockServer);
+		// these two are needed to populate the Listers and to silence the logs from
+		// errors
+		// since we are in the SERVICE mode, we don't use the DiscoveryClient, so these
+		// two mocks don't play a role in the testing itself.
+		Util.mockNamespacedIndexerServiceCall("a", "service-a", kubernetesMockServer);
+		Util.mockNamespacedIndexerEndpointsCall("a", "service-a", "localhost", 8080, kubernetesMockServer);
+
+		// mock fabric8 client calls that are made as part of the services list supplier
 		Util.mockLoadBalancerServiceCall("a", "service-a", kubernetesMockServer, 8080, "a", NUMBER_OF_CALLS);
 	}
 

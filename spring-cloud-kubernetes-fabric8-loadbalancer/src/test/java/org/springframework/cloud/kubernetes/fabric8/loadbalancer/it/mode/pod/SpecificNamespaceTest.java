@@ -80,13 +80,13 @@ class SpecificNamespaceTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockIndexerServiceCall("a", "my-service", kubernetesMockServer);
-		Util.mockIndexerServiceCall("b", "my-service", kubernetesMockServer);
-		Util.mockIndexerServiceCall("c", "my-service", kubernetesMockServer);
+		Util.mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
+		Util.mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
+		Util.mockNamespacedIndexerServiceCall("c", "my-service", kubernetesMockServer);
 
 		// actual pod URL will be : localhost:SERVICE_A_PORT and so on for the rest
-		Util.mockIndexerEndpointsCall("a", "my-service", "localhost", SERVICE_A_PORT, kubernetesMockServer);
-		Util.mockIndexerEndpointsCall("b", "my-service", "localhost", SERVICE_B_PORT, kubernetesMockServer);
+		Util.mockNamespacedIndexerEndpointsCall("a", "my-service", "localhost", SERVICE_A_PORT, kubernetesMockServer);
+		Util.mockNamespacedIndexerEndpointsCall("b", "my-service", "localhost", SERVICE_B_PORT, kubernetesMockServer);
 	}
 
 	@AfterAll

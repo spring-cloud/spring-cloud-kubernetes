@@ -65,21 +65,14 @@ class AllNamespacesTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockIndexerServiceCallsInAllNamespaces(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
-		Util.mockIndexerEndpointsCallInAllNamespaces(Map.of("a", "service-a", "b", "service-b"), "localhost",
-			kubernetesMockServer.getPort(), kubernetesMockServer);
+		Util.mockAllNamespacesIndexerServiceCalls(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
+		Util.mockAllNamespacesIndexerEndpointsCalls(Map.of("a", "service-a", "b", "service-b"), "localhost",
+				kubernetesMockServer.getPort(), kubernetesMockServer);
 
-		kubernetesMockServer.expect()
-			.get()
-			.withPath("/a-path")
-			.andReturn(200, "service-a-reached")
-			.once();
+		// this url is generated from Endpoints host and port
+		kubernetesMockServer.expect().get().withPath("/a-path").andReturn(200, "service-a-reached").once();
 
-		kubernetesMockServer.expect()
-			.get()
-			.withPath("/b-path")
-			.andReturn(200, "service-b-reached")
-			.once();
+		kubernetesMockServer.expect().get().withPath("/b-path").andReturn(200, "service-b-reached").once();
 	}
 
 	/**
