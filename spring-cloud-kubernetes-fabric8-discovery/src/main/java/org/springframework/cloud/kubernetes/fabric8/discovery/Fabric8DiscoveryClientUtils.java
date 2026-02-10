@@ -111,6 +111,10 @@ final class Fabric8DiscoveryClientUtils {
 
 		SharedIndexInformer<Service> sharedIndexInformer;
 
+		if (serviceLabels == null) {
+			serviceLabels = Map.of();
+		}
+
 		// we treat this as all namespaces
 		if ("".equals(namespace)) {
 			sharedIndexInformer = kubernetesClient.services().inAnyNamespace().withLabels(serviceLabels).inform();
@@ -126,6 +130,10 @@ final class Fabric8DiscoveryClientUtils {
 			KubernetesClient kubernetesClient, Map<String, String> serviceLabels) {
 
 		SharedIndexInformer<Endpoints> sharedIndexInformer;
+
+		if (serviceLabels == null) {
+			serviceLabels = Map.of();
+		}
 
 		// we treat this as all namespaces
 		if ("".equals(namespace)) {
