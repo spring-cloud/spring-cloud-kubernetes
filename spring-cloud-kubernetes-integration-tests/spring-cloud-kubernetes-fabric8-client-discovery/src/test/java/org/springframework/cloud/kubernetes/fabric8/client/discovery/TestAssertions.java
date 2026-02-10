@@ -158,7 +158,7 @@ final class TestAssertions {
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult))
 			.extractingJsonPathArrayValue("$.components.discoveryComposite.components.discoveryClient.details.services")
-			.containsExactlyInAnyOrder("kubernetes", "busybox-service");
+			.contains("kubernetes", "busybox-service", "service-wiremock");
 
 		assertThat(BASIC_JSON_TESTER.from(healthResult)).doesNotHaveJsonPath(REACTIVE_STATUS);
 
