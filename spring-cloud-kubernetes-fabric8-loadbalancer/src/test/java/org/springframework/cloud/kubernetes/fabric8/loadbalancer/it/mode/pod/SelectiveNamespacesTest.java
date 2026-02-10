@@ -151,12 +151,12 @@ class SelectiveNamespacesTest {
 			.bodyToMono(String.class)
 			.block();
 
-		boolean firstCallHappenedOnAPod = false;
+		boolean secondCallHappenedOnAPod = true;
 
 		// since selective namespaces is a Set, we need to be careful with assertion order
 		if (firstCallResult.equals("service-a-reached")) {
 			Assertions.assertThat(secondCallResult).isEqualTo("service-b-reached");
-			firstCallHappenedOnAPod = true;
+			secondCallHappenedOnAPod = false;
 		}
 		else {
 			Assertions.assertThat(firstCallResult).isEqualTo("service-b-reached");
@@ -165,11 +165,11 @@ class SelectiveNamespacesTest {
 
 		// 3-rd call does not happen on "c", because only "a" and "b" are the selective
 		// namespaces
-		if (firstCallHappenedOnAPod) {
-			Assertions.assertThat(secondCallResult).isEqualTo("service-b-reached");
+		if (secondCallHappenedOnAPod) {
+			Assertions.assertThat(thirdCallResult).isEqualTo("service-b-reached");
 		}
 		else {
-			Assertions.assertThat(secondCallResult).isEqualTo("service-a-reached");
+			Assertions.assertThat(thirdCallResult).isEqualTo("service-a-reached");
 		}
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory

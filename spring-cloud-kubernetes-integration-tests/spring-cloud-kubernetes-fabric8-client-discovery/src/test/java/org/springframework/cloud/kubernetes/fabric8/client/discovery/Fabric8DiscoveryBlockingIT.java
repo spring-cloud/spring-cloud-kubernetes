@@ -42,7 +42,7 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 	private DiscoveryClient discoveryClient;
 
 	@BeforeAll
-	static void beforeEach() {
+	static void beforeAllLocal() {
 		Images.loadBusybox(K3S);
 		Images.loadWiremock(K3S);
 
@@ -51,7 +51,7 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 	}
 
 	@AfterAll
-	static void afterEach() {
+	static void afterAll() {
 		util.busybox(NAMESPACE, Phase.DELETE);
 		util.wiremock(NAMESPACE, Phase.DELETE, false);
 	}
