@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +33,6 @@ import org.springframework.test.context.TestPropertySource;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertBlockingConfiguration;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertPodMetadata;
 
-/**
- * @author wind57
- */
-@TestPropertySource(properties = { "spring.cloud.discovery.reactive.enabled=false",
-		"logging.level.org.springframework.cloud.client.discovery.health=DEBUG",
-		"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG" })
 class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort
@@ -45,32 +41,65 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 	@Autowired
 	private DiscoveryClient discoveryClient;
 
-	@BeforeEach
-	void beforeEach() {
+	@BeforeAll
+	static void beforeAllLocal() {
 		Images.loadBusybox(K3S);
+		Images.loadWiremock(K3S);
+
 		util.busybox(NAMESPACE, Phase.CREATE);
+		util.wiremock(NAMESPACE, Phase.CREATE, false);
 	}
 
-	@AfterEach
-	void afterEach() {
+	@AfterAll
+	static void afterAll() {
 		util.busybox(NAMESPACE, Phase.DELETE);
+		util.wiremock(NAMESPACE, Phase.DELETE, false);
 	}
 
-	@Test
-	void test(CapturedOutput output) throws Exception {
+	@Nested
+	@TestPropertySource(properties = { "spring.cloud.discovery.reactive.enabled=false",
+			"logging.level.org.springframework.cloud.client.discovery.health=DEBUG",
+			"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG",
+			"all.namespaces.no.labels=true" })
+	class AllNamespacesNoLabels {
 
-		String[] busyboxPods = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
-			.getStdout()
-			.split("\n");
+		@Test
+		void test(CapturedOutput output) throws Exception {
 
-		String podOne = busyboxPods[0].split("/")[1];
-		String podTwo = busyboxPods[1].split("/")[1];
+			String[] busyboxPods = K3S
+				.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+				.getStdout()
+				.split("\n");
 
-		K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
-		K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
+			String podOne = busyboxPods[0].split("/")[1];
+			String podTwo = busyboxPods[1].split("/")[1];
 
-		assertBlockingConfiguration(output, port);
-		assertPodMetadata(discoveryClient);
+			K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
+			K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
+
+			assertBlockingConfiguration(output, port);
+			assertPodMetadata(discoveryClient);
+
+			Assertions.assertThat(discoveryClient.getServices())
+				.contains("kubernetes", "busybox-service", "service-wiremock");
+		}
+
+	}
+
+	@Nested
+	@TestPropertySource(properties = { "spring.cloud.discovery.reactive.enabled=false",
+			"logging.level.org.springframework.cloud.client.discovery.health=DEBUG",
+			"logging.level.org.springframework.cloud.kubernetes.commons.discovery=DEBUG",
+			"all.namespaces.wiremock.labels=true" })
+	class AllNamespacesWiremockLabels {
+
+		@Test
+		void test() {
+			Assertions.assertThat(discoveryClient.getServices())
+				.contains("service-wiremock")
+				.doesNotContain("busybox-service");
+		}
+
 	}
 
 }

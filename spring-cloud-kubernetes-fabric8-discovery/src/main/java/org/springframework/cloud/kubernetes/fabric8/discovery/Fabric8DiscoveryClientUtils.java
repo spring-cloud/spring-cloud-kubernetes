@@ -16,37 +16,30 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceList;
-import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSlice;
-import io.fabric8.kubernetes.api.model.discovery.v1.EndpointSliceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.FilterNested;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
-import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.ServiceResource;
-import jakarta.annotation.Nullable;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.fabric8.kubernetes.client.informers.cache.Lister;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.poll;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -63,119 +56,26 @@ final class Fabric8DiscoveryClientUtils {
 
 	}
 
-	static List<EndpointSlice> endpointSlices(KubernetesDiscoveryProperties properties, KubernetesClient client,
-			KubernetesNamespaceProvider namespaceProvider, String target) {
+	static void postConstruct(KubernetesDiscoveryProperties properties, Supplier<Boolean> informersReadyFunc,
+			List<Lister<Service>> serviceListers) {
 
-		List<EndpointSlice> endpointSlices;
-
-		if (properties.allNamespaces()) {
-			LOG.debug(() -> "discovering endpoint slices in all namespaces");
-			endpointSlices = filteredEndpointSlices(
-					client.discovery().v1().endpointSlices().inAnyNamespace().withNewFilter(), properties);
-		}
-		else if (!properties.namespaces().isEmpty()) {
-			LOG.debug(() -> "discovering endpoint slices in namespaces : " + properties.namespaces());
-			List<EndpointSlice> inner = new ArrayList<>(properties.namespaces().size());
-			properties.namespaces()
-				.forEach(namespace -> inner.addAll(filteredEndpointSlices(
-						client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties)));
-			endpointSlices = inner;
+		if (!poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
+			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
+			return informersReadyFunc.get();
+		})) {
+			if (properties.waitCacheReady()) {
+				throw new IllegalStateException(
+						"Timeout waiting for informers cache to be ready, is the kubernetes service up?");
+			}
+			else {
+				LOG.warn(() -> "Timeout waiting for informers cache to be ready, "
+						+ "ignoring the failure because waitForInformerCacheReady property is false");
+			}
 		}
 		else {
-			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
-			LOG.debug(() -> "discovering endpoint slices in namespace : " + namespace);
-			endpointSlices = filteredEndpointSlices(
-					client.discovery().v1().endpointSlices().inNamespace(namespace).withNewFilter(), properties);
+			LOG.info(() -> "Cache fully loaded (total " + serviceListers.stream().mapToLong(x -> x.list().size()).sum()
+					+ " services), discovery client is now available");
 		}
-
-		return endpointSlices;
-	}
-
-	static List<Endpoints> endpoints(KubernetesDiscoveryProperties properties, KubernetesClient client,
-			KubernetesNamespaceProvider namespaceProvider, String target, @Nullable String serviceName,
-			Predicate<Service> filter) {
-
-		List<Endpoints> endpoints;
-
-		if (!properties.namespaces().isEmpty()) {
-			LOG.debug(() -> "discovering endpoints in namespaces : " + properties.namespaces());
-			List<Endpoints> inner = new ArrayList<>(properties.namespaces().size());
-			properties.namespaces()
-				.forEach(namespace -> inner.addAll(filteredEndpoints(
-						client.endpoints().inNamespace(namespace).withNewFilter(), properties, serviceName)));
-			endpoints = inner;
-		}
-		else if (properties.allNamespaces()) {
-			LOG.debug(() -> "discovering endpoints in all namespaces");
-			endpoints = filteredEndpoints(client.endpoints().inAnyNamespace().withNewFilter(), properties, serviceName);
-		}
-		else {
-			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
-			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
-			endpoints = filteredEndpoints(client.endpoints().inNamespace(namespace).withNewFilter(), properties,
-					serviceName);
-		}
-
-		return withFilter(endpoints, properties, client, filter);
-	}
-
-	// see https://github.com/spring-cloud/spring-cloud-kubernetes/issues/1182 on why this
-	// is needed
-	static List<Endpoints> withFilter(List<Endpoints> endpoints, KubernetesDiscoveryProperties properties,
-			KubernetesClient client, Predicate<Service> filter) {
-
-		if (properties.filter() == null || properties.filter().isBlank() || filter == ALWAYS_TRUE) {
-			LOG.debug(() -> "filter not present");
-			return endpoints;
-		}
-
-		List<Endpoints> result = new ArrayList<>();
-		// group by namespace in order to make a single API call per namespace when
-		// retrieving services
-		Map<String, List<Endpoints>> endpointsByNamespace = endpoints.stream()
-			.collect(Collectors.groupingBy(x -> x.getMetadata().getNamespace()));
-
-		for (Map.Entry<String, List<Endpoints>> entry : endpointsByNamespace.entrySet()) {
-			// get all services in the namespace that match the filter
-			Set<String> filteredServiceNames = client.services()
-				.inNamespace(entry.getKey())
-				.list()
-				.getItems()
-				.stream()
-				.filter(filter)
-				.map(service -> service.getMetadata().getName())
-				.collect(Collectors.toSet());
-
-			// in the previous step we might have taken "too many" services, so in the
-			// next one take only those that have a matching endpoints, by name.
-			// This way we only get the endpoints that have a matching service with an
-			// applied filter, it's like we filtered endpoints by that filter.
-			result.addAll(entry.getValue()
-				.stream()
-				.filter(endpoint -> filteredServiceNames.contains(endpoint.getMetadata().getName()))
-				.toList());
-
-		}
-
-		return result;
-	}
-
-	/**
-	 * serviceName can be null, in which case the filter for "metadata.name" will not be
-	 * applied.
-	 */
-	static List<Endpoints> filteredEndpoints(
-			FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> filterNested,
-			KubernetesDiscoveryProperties properties, @Nullable String serviceName) {
-
-		FilterNested<FilterWatchListDeletable<Endpoints, EndpointsList, Resource<Endpoints>>> partial = filterNested
-			.withLabels(properties.serviceLabels());
-
-		if (serviceName != null) {
-			partial = partial.withField("metadata.name", serviceName);
-		}
-
-		return partial.endFilter().list().getItems();
 
 	}
 
@@ -195,36 +95,6 @@ final class Fabric8DiscoveryClientUtils {
 		return addresses;
 	}
 
-	static List<Service> services(KubernetesDiscoveryProperties properties, KubernetesClient client,
-			KubernetesNamespaceProvider namespaceProvider, Predicate<Service> predicate,
-			Map<String, String> fieldFilters, String target) {
-
-		List<Service> services;
-
-		if (properties.allNamespaces()) {
-			LOG.debug(() -> "discovering services in all namespaces");
-			services = filteredServices(client.services().inAnyNamespace().withNewFilter(), properties, predicate,
-					fieldFilters);
-		}
-		else if (!properties.namespaces().isEmpty()) {
-			LOG.debug(() -> "discovering services in namespaces : " + properties.namespaces());
-			List<Service> inner = new ArrayList<>(properties.namespaces().size());
-			properties.namespaces()
-				.forEach(namespace -> inner
-					.addAll(filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties,
-							predicate, fieldFilters)));
-			services = inner;
-		}
-		else {
-			String namespace = Fabric8Utils.getApplicationNamespace(client, null, target, namespaceProvider);
-			LOG.debug(() -> "discovering services in namespace : " + namespace);
-			services = filteredServices(client.services().inNamespace(namespace).withNewFilter(), properties, predicate,
-					fieldFilters);
-		}
-
-		return services;
-	}
-
 	/**
 	 * a service is allowed to have a single port defined without a name.
 	 */
@@ -236,34 +106,49 @@ final class Fabric8DiscoveryClientUtils {
 					EndpointPort::getPort));
 	}
 
-	/**
-	 * serviceName can be null, in which case, such a filter will not be applied.
-	 */
-	private static List<Service> filteredServices(
-			FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> filterNested,
-			KubernetesDiscoveryProperties properties, Predicate<Service> predicate,
-			@Nullable Map<String, String> fieldFilters) {
+	static SharedIndexInformer<Service> serviceSharedIndexInformer(String namespace, KubernetesClient kubernetesClient,
+			Map<String, String> serviceLabels) {
 
-		FilterNested<FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>>> partial = filterNested
-			.withLabels(properties.serviceLabels());
+		SharedIndexInformer<Service> sharedIndexInformer;
 
-		if (fieldFilters != null) {
-			partial = partial.withFields(fieldFilters);
+		if (serviceLabels == null) {
+			serviceLabels = Map.of();
 		}
 
-		return partial.endFilter().list().getItems().stream().filter(predicate).toList();
+		// we treat this as all namespaces
+		if ("".equals(namespace)) {
+			sharedIndexInformer = kubernetesClient.services().inAnyNamespace().withLabels(serviceLabels).inform();
+		}
+		else {
+			sharedIndexInformer = kubernetesClient.services().inNamespace(namespace).withLabels(serviceLabels).inform();
+		}
 
+		return sharedIndexInformer;
 	}
 
-	private static List<EndpointSlice> filteredEndpointSlices(
-			FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> filterNested,
-			KubernetesDiscoveryProperties properties) {
+	static SharedIndexInformer<Endpoints> endpointsSharedIndexInformer(String namespace,
+			KubernetesClient kubernetesClient, Map<String, String> serviceLabels) {
 
-		FilterNested<FilterWatchListDeletable<EndpointSlice, EndpointSliceList, Resource<EndpointSlice>>> partial = filterNested
-			.withLabels(properties.serviceLabels());
+		SharedIndexInformer<Endpoints> sharedIndexInformer;
 
-		return partial.endFilter().list().getItems();
+		if (serviceLabels == null) {
+			serviceLabels = Map.of();
+		}
 
+		// we treat this as all namespaces
+		if ("".equals(namespace)) {
+			LOG.debug(() -> "discovering endpoints in all namespaces");
+			sharedIndexInformer = kubernetesClient.endpoints().inAnyNamespace().withLabels(serviceLabels).inform();
+		}
+		else {
+			LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
+			sharedIndexInformer = kubernetesClient.endpoints()
+				.inNamespace(namespace)
+				.withLabels(serviceLabels)
+				.inform();
+		}
+
+		return sharedIndexInformer;
 	}
 
 }
