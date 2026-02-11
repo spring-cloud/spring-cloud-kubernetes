@@ -60,7 +60,10 @@
 |spring.cloud.kubernetes.discovery.cache-loading-timeout-seconds | `+++60+++` | timeout for initializing discovery cache, will abort the application if exceeded.
 |spring.cloud.kubernetes.discovery.discovery-server-url |  | 
 |spring.cloud.kubernetes.discovery.enabled | `+++true+++` | if kubernetes discovery is enabled
-|spring.cloud.kubernetes.discovery.filter |  | SpEL expression to filter services after they have been retrieved from the Kubernetes API server.
+|spring.cloud.kubernetes.discovery.filter |  | SpEL expression used to filter Services after they’re fetched from the Kubernetes API server.
+Example (matches namespaces ending with A):
+`#root.metadata.namespace matches '^.+A$'`
+This requires knowing the exact object structure of the Service type being evaluated (Fabric8 Service or Kubernetes Java client V1Service), because field/property names differ between implementations.
 |spring.cloud.kubernetes.discovery.include-external-name-services | `+++false+++` | should the discovery also search for services that have "type: ExternalName" in their spec.
 |spring.cloud.kubernetes.discovery.include-not-ready-addresses | `+++false+++` | include as discovered if endpoint addresses is not marked with 'ready' by kubernetes
 |spring.cloud.kubernetes.discovery.known-secure-ports | `+++[443, 8443]+++` | set of known secure ports
