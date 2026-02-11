@@ -44,7 +44,8 @@ final class Fabric8PodLabelsAndAnnotationsSupplier implements Function<String, P
 	/**
 	 * to be used when .spec.type of the Service is != 'ExternalName'.
 	 */
-	static Fabric8PodLabelsAndAnnotationsSupplier nonExternalName(KubernetesClient client, String namespace) {
+	static Fabric8PodLabelsAndAnnotationsSupplier fabric8PodLabelsAndAnnotationsSupplier(KubernetesClient client,
+			String namespace) {
 		return new Fabric8PodLabelsAndAnnotationsSupplier(client, namespace);
 	}
 

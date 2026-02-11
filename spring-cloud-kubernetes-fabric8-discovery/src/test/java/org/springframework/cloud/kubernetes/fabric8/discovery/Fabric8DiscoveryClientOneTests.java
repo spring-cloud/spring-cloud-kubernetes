@@ -36,24 +36,14 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesServiceInstance;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
-import org.springframework.core.env.Environment;
-import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties.Metadata;
 
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8DiscoveryClientOneTests {
-
-	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER = new ServicePortSecureResolver(
-			KubernetesDiscoveryProperties.DEFAULT);
-
-	private static final KubernetesNamespaceProvider NAMESPACE_PROVIDER = new KubernetesNamespaceProvider(
-			mockEnvironment());
+class Fabric8DiscoveryClientOneTests extends Fabric8DiscoveryClientBase {
 
 	private KubernetesClient mockClient;
 
@@ -105,8 +95,8 @@ class Fabric8DiscoveryClientOneTests {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -154,8 +144,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), labels, "http_tcp", Metadata.DEFAULT, 0, true, false, null);
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -210,8 +199,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(443, 8443), labels, null, metadata, 0, true, false, null);
 
-		Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				new ServicePortSecureResolver(properties), NAMESPACE_PROVIDER, x -> true);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -249,8 +237,8 @@ class Fabric8DiscoveryClientOneTests {
 		mockClient.services().inNamespace("test").resource(service2).create();
 		mockClient.services().inNamespace("test").resource(service3).create();
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -279,8 +267,8 @@ class Fabric8DiscoveryClientOneTests {
 		mockClient.services().inNamespace("test").resource(service1).create();
 		mockClient.services().inNamespace("test").resource(service2).create();
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -290,38 +278,38 @@ class Fabric8DiscoveryClientOneTests {
 	@Test
 	void getServicesShouldReturnServicesInNamespaces() {
 
-		String nameSpace1 = "ns1";
-		String nameSpace2 = "ns2";
-		String nameSpace3 = "ns3";
+		String namespace1 = "ns1";
+		String namespace2 = "ns2";
+		String namespace3 = "ns3";
 
 		Service service1 = new ServiceBuilder().withNewMetadata()
 			.withName("s1")
-			.withNamespace(nameSpace1)
+			.withNamespace(namespace1)
 			.endMetadata()
 			.build();
 
 		Service service2 = new ServiceBuilder().withNewMetadata()
 			.withName("s2")
-			.withNamespace(nameSpace2)
+			.withNamespace(namespace2)
 			.endMetadata()
 			.build();
 
 		Service service3 = new ServiceBuilder().withNewMetadata()
 			.withName("s3")
-			.withNamespace(nameSpace3)
+			.withNamespace(namespace3)
 			.endMetadata()
 			.build();
 
-		mockClient.services().inNamespace(nameSpace1).resource(service1).create();
-		mockClient.services().inNamespace(nameSpace2).resource(service2).create();
-		mockClient.services().inNamespace(nameSpace3).resource(service3).create();
+		mockClient.services().inNamespace(namespace1).resource(service1).create();
+		mockClient.services().inNamespace(namespace2).resource(service2).create();
+		mockClient.services().inNamespace(namespace3).resource(service3).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false,
-				Set.of(nameSpace1, nameSpace2), true, 60, false, null, Set.of(), Map.of(), null,
+				Set.of(namespace1, namespace2), true, 60, false, null, Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(namespace1, namespace2),
+				mockClient);
 
 		List<String> services = discoveryClient.getServices();
 
@@ -385,8 +373,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(), Map.of(), null, Metadata.DEFAULT, 0, true, false, null);
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test", "test2"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint");
 
@@ -416,8 +403,8 @@ class Fabric8DiscoveryClientOneTests {
 
 		mockClient.endpoints().inNamespace("test").resource(endPoint).create();
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint1");
 
@@ -461,8 +448,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false, null);
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint2");
 
@@ -514,8 +500,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false, null);
 
-		Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				new ServicePortSecureResolver(properties), NAMESPACE_PROVIDER, x -> true);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint3");
 
@@ -566,8 +551,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(443, 8443), Map.of(), "oops", Metadata.DEFAULT, 0, true, false, null);
 
-		Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				new ServicePortSecureResolver(properties), NAMESPACE_PROVIDER, x -> true);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint4");
 
@@ -616,8 +600,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false, null);
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -665,8 +648,8 @@ class Fabric8DiscoveryClientOneTests {
 
 		mockClient.services().inNamespace("test").resource(service).create();
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, KubernetesDiscoveryProperties.DEFAULT,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(KubernetesDiscoveryProperties.DEFAULT, List.of("test"),
+				mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -716,8 +699,7 @@ class Fabric8DiscoveryClientOneTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of(), true, 60,
 				true, null, Set.of(443, 8443), Map.of(), null, Metadata.DEFAULT, 0, true, false, null);
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -765,8 +747,7 @@ class Fabric8DiscoveryClientOneTests {
 
 		final KubernetesDiscoveryProperties properties = KubernetesDiscoveryProperties.DEFAULT;
 
-		DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(mockClient, properties,
-				SERVICE_PORT_SECURE_RESOLVER, NAMESPACE_PROVIDER, x -> true);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), mockClient);
 
 		final List<ServiceInstance> instances = discoveryClient.getInstances("endpoint5");
 
@@ -779,12 +760,6 @@ class Fabric8DiscoveryClientOneTests {
 			.hasSize(1)
 			.filteredOn(s -> 0 == s.getPort())
 			.hasSize(1);
-	}
-
-	private static Environment mockEnvironment() {
-		MockEnvironment environment = new MockEnvironment();
-		environment.setProperty("spring.cloud.kubernetes.client.namespace", "test");
-		return environment;
 	}
 
 }

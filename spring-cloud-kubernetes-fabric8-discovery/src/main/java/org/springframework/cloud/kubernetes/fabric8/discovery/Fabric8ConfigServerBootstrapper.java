@@ -17,9 +17,14 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
+import java.util.List;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.fabric8.kubernetes.client.informers.cache.Lister;
 import jakarta.annotation.Nonnull;
 
 import org.springframework.boot.bootstrap.BootstrapRegistry;
@@ -29,7 +34,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerBootstrapper;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 
 /**
@@ -73,10 +77,24 @@ final class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootst
 					.kubernetesClientConfig(context.get(KubernetesClientProperties.class));
 				KubernetesClient kubernetesClient = fabric8AutoConfiguration.kubernetesClient(config);
 				KubernetesDiscoveryProperties discoveryProperties = context.get(KubernetesDiscoveryProperties.class);
-				Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(kubernetesClient,
-						discoveryProperties, new ServicePortSecureResolver(discoveryProperties),
-						new KubernetesNamespaceProvider(propertyResolver
-							.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null)),
+
+				KubernetesNamespaceProvider kubernetesNamespaceProvider = new KubernetesNamespaceProvider(
+						propertyResolver.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null));
+
+				Fabric8InformerAutoConfiguration fabric8InformerAutoConfiguration = new Fabric8InformerAutoConfiguration();
+				List<String> selectiveNamespaces = fabric8InformerAutoConfiguration
+					.selectiveNamespaces(discoveryProperties, kubernetesClient, kubernetesNamespaceProvider);
+				List<SharedIndexInformer<Service>> serviceInformers = fabric8InformerAutoConfiguration
+					.serviceSharedIndexInformers(selectiveNamespaces, kubernetesClient, discoveryProperties);
+				List<SharedIndexInformer<Endpoints>> endpointsInformers = fabric8InformerAutoConfiguration
+					.endpointsSharedIndexInformers(selectiveNamespaces, kubernetesClient, discoveryProperties);
+				List<Lister<Service>> serviceListers = fabric8InformerAutoConfiguration
+					.serviceListers(selectiveNamespaces, serviceInformers);
+				List<Lister<Endpoints>> endpointsListers = fabric8InformerAutoConfiguration
+					.endpointsListers(selectiveNamespaces, endpointsInformers);
+
+				Fabric8DiscoveryClient discoveryClient = new Fabric8DiscoveryClient(kubernetesClient, serviceListers,
+						endpointsListers, serviceInformers, endpointsInformers, discoveryProperties,
 						new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(discoveryProperties));
 				return discoveryClient::getInstances;
 			}

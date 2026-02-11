@@ -18,9 +18,9 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.servic
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -45,8 +45,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-
 /**
  * @author wind57
  */
@@ -56,15 +54,16 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 				"spring.cloud.kubernetes.client.namespace=a" },
 		classes = { LoadBalancerConfiguration.class, App.class })
 @ExtendWith(OutputCaptureExtension.class)
+@EnableKubernetesMockClient(https = false)
 class SpecificNamespaceTest {
+
+	private static KubernetesMockServer kubernetesMockServer;
 
 	private static final String MY_SERVICE_URL = "http://my-service";
 
 	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
 
 	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
-
-	private static WireMockServer wireMockServer;
 
 	private static WireMockServer serviceAMockServer;
 
@@ -83,9 +82,25 @@ class SpecificNamespaceTest {
 	@BeforeAll
 	static void beforeAll() {
 
-		wireMockServer = new WireMockServer(options().dynamicPort());
-		wireMockServer.start();
-		WireMock.configureFor("localhost", wireMockServer.port());
+		// we mock host creation so that it becomes something like : localhost:<port>
+		// then wiremock can catch this request, and we can assert for the result
+		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
+			.thenReturn("localhost");
+
+		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "b", "cluster.local"))
+			.thenReturn("localhost");
+
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
+		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
+
+		Util.mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
+		Util.mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
+
+		Util.mockNamespacedIndexerEndpointsCall("a", "my-service", "localhost", SERVICE_A_PORT, kubernetesMockServer);
+		Util.mockNamespacedIndexerEndpointsCall("b", "my-service", "localhost", SERVICE_B_PORT, kubernetesMockServer);
+
+		Util.mockLoadBalancerServiceCall("a", "my-service", kubernetesMockServer, SERVICE_A_PORT, "http", 1);
+		Util.mockLoadBalancerServiceCall("b", "my-service", kubernetesMockServer, SERVICE_B_PORT, "http", 1);
 
 		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
 		serviceAMockServer.start();
@@ -95,21 +110,10 @@ class SpecificNamespaceTest {
 		serviceBMockServer.start();
 		WireMock.configureFor("localhost", SERVICE_B_PORT);
 
-		// we mock host creation so that it becomes something like : localhost:<port>
-		// then wiremock can catch this request, and we can assert for the result
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
-			.thenReturn("localhost");
-
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "b", "cluster.local"))
-			.thenReturn("localhost");
-
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, "http://localhost:" + wireMockServer.port());
 	}
 
 	@AfterAll
 	static void afterAll() {
-		wireMockServer.stop();
 		serviceAMockServer.stop();
 		serviceBMockServer.stop();
 		MOCKED_STATIC.close();
@@ -129,31 +133,28 @@ class SpecificNamespaceTest {
 	@Test
 	void test(CapturedOutput output) {
 
-		Service serviceA = Util.service("a", "my-service", SERVICE_A_PORT);
-		Service serviceB = Util.service("b", "my-service", SERVICE_B_PORT);
-
-		String serviceAJson = Serialization.asJson(serviceA);
-		String serviceBJson = Serialization.asJson(serviceB);
-
-		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/a/services/my-service"))
-			.willReturn(WireMock.aResponse().withBody(serviceAJson).withStatus(200)));
-
-		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/b/services/my-service"))
-			.willReturn(WireMock.aResponse().withBody(serviceBJson).withStatus(200)));
-
 		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
 			.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
 
 		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
 			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
 
-		String serviceAResult = builder.baseUrl(MY_SERVICE_URL)
+		String firstCallResult = builder.baseUrl(MY_SERVICE_URL)
 			.build()
 			.method(HttpMethod.GET)
 			.retrieve()
 			.bodyToMono(String.class)
 			.block();
-		Assertions.assertThat(serviceAResult).isEqualTo("service-a-reached");
+
+		String secondCallResult = builder.baseUrl(MY_SERVICE_URL)
+			.build()
+			.method(HttpMethod.GET)
+			.retrieve()
+			.bodyToMono(String.class)
+			.block();
+
+		Assertions.assertThat(firstCallResult).isEqualTo("service-a-reached");
+		Assertions.assertThat(secondCallResult).isEqualTo("service-a-reached");
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
 			.getProvider("my-service", ServiceInstanceListSupplier.class)
@@ -162,14 +163,6 @@ class SpecificNamespaceTest {
 
 		Assertions.assertThat(output.getOut()).contains("serviceID : my-service");
 		Assertions.assertThat(output.getOut()).contains("discovering services in namespace : a");
-
-		// was called in namespace 'a'
-		wireMockServer.verify(WireMock.exactly(1),
-				WireMock.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/a/services/my-service")));
-
-		// was not called in namespace 'b'
-		wireMockServer.verify(WireMock.exactly(0),
-				WireMock.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/b/services/my-service")));
 
 	}
 

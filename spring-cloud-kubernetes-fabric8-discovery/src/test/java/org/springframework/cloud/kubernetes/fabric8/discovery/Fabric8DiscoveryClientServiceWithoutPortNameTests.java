@@ -36,6 +36,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
@@ -46,7 +47,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8DiscoveryClientServiceWithoutPortNameTests {
+class Fabric8DiscoveryClientServiceWithoutPortNameTests extends Fabric8DiscoveryClientBase {
 
 	private static final ServicePortSecureResolver SERVICE_PORT_SECURE_RESOLVER = new ServicePortSecureResolver(
 			KubernetesDiscoveryProperties.DEFAULT);
@@ -79,10 +80,10 @@ class Fabric8DiscoveryClientServiceWithoutPortNameTests {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(NAMESPACE),
 				true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				true, false, null);
-		Fabric8DiscoveryClient client = new Fabric8DiscoveryClient(mockClient, properties, SERVICE_PORT_SECURE_RESOLVER,
-				NAMESPACE_PROVIDER, new Fabric8DiscoveryClientSpelAutoConfiguration().predicate(properties));
 
-		List<ServiceInstance> serviceInstances = client.getInstances("no-port-name-service");
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+
+		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("no-port-name-service");
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
 		Assertions.assertThat(serviceInstances.get(0).getMetadata())
 			.containsExactlyInAnyOrderEntriesOf(
