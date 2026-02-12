@@ -25,40 +25,39 @@ import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
 import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.EndpointSubsetBuilder;
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.mock.env.MockEnvironment;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.endpointSubsetsPortData;
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.services;
 
 /**
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class Fabric8DiscoveryClientUtilsTests {
+class Fabric8DiscoveryClientUtilsTests extends Fabric8DiscoveryClientBase {
 
 	private static KubernetesClient client;
 
 	@AfterEach
 	void afterEach() {
 		client.services().inAnyNamespace().delete();
+		client.endpoints().inAnyNamespace().delete();
 	}
 
 	/**
 	 * <pre>
 	 *     - all-namespaces = true
 	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "B"
+	 *     - serviceA present in namespace "B"
 	 *     - no filters are applied, so both are present
 	 * </pre>
 	 */
@@ -66,58 +65,21 @@ class Fabric8DiscoveryClientUtilsTests {
 	void testServicesAllNamespacesNoFilters() {
 		boolean allNamespaces = true;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of());
-		service("serviceB", "B", Map.of());
+				true, 60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+				false, null);
 
-		List<Service> result = services(properties, client, null, x -> true, null, "fabric8-discovery");
+		createService("serviceA", "A", Map.of());
+		createService("serviceA", "B", Map.of());
+
+		createEndpoints("serviceA", "A", Map.of());
+		createEndpoints("serviceA", "B", Map.of());
+
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
+
 		Assertions.assertThat(result.size()).isEqualTo(2);
-		Assertions.assertThat(result.stream().map(s -> s.getMetadata().getName()).sorted().toList())
-			.containsExactlyInAnyOrder("serviceA", "serviceB");
-	}
-
-	/**
-	 * <pre>
-	 *     - all-namespaces = true
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "B"
-	 *     - we search only for "serviceA" filter, so only one is returned
-	 * </pre>
-	 */
-	@Test
-	void testServicesAllNamespacesNameFilter() {
-		boolean allNamespaces = true;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of());
-		service("serviceB", "B", Map.of());
-
-		List<Service> result = services(properties, client, null, x -> true, Map.of("metadata.name", "serviceA"),
-				"fabric8-discovery");
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
-	}
-
-	/**
-	 * <pre>
-	 *     - all-namespaces = true
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "B"
-	 *     - we search with a filter where a label with name "letter" and value "b" is present
-	 * </pre>
-	 */
-	@Test
-	void testServicesAllNamespacesPredicateFilter() {
-		boolean allNamespaces = true;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of("letter", "a"));
-		service("serviceB", "B", Map.of("letter", "b"));
-
-		List<Service> result = services(properties, client, null,
-				x -> x.getMetadata().getLabels().equals(Map.of("letter", "b")), null, "fabric8-discovery");
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceB");
+		Assertions.assertThat(result.stream().map(s -> s.getMetadata().get("k8s_namespace")).sorted().toList())
+			.containsExactlyInAnyOrder("A", "B");
 	}
 
 	/**
@@ -134,65 +96,23 @@ class Fabric8DiscoveryClientUtilsTests {
 	void testServicesSelectiveNamespacesNoFilters() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of());
-		service("serviceB", "B", Map.of());
-		service("serviceC", "C", Map.of());
+				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "",
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		List<Service> result = services(properties, client, null, x -> true, null, "fabric8-discovery");
+		createService("serviceA", "A", Map.of());
+		createService("serviceA", "B", Map.of());
+		createService("serviceA", "C", Map.of());
+
+		createEndpoints("serviceA", "A", Map.of());
+		createEndpoints("serviceA", "B", Map.of());
+		createEndpoints("serviceA", "C", Map.of());
+
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("A", "B"), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
+
 		Assertions.assertThat(result.size()).isEqualTo(2);
-		Assertions.assertThat(result.stream().map(x -> x.getMetadata().getName()).sorted().toList())
-			.containsExactlyInAnyOrder("serviceA", "serviceB");
-	}
-
-	/**
-	 * <pre>
-	 *     - all-namespaces = false
-	 *     - selective namespaces : [A, B]
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "B"
-	 *     - serviceC present in namespace "C"
-	 *     - we search in namespaces [A, B] with name filter = "serviceA", so we get a single result
-	 * </pre>
-	 */
-	@Test
-	void testServicesSelectiveNamespacesNameFilter() {
-		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of());
-		service("serviceB", "B", Map.of());
-		service("serviceC", "C", Map.of());
-
-		List<Service> result = services(properties, client, null, x -> true, Map.of("metadata.name", "serviceA"),
-				"fabric8-discovery");
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
-	}
-
-	/**
-	 * <pre>
-	 *     - all-namespaces = false
-	 *     - selective namespaces : [A, B]
-	 *     - serviceA present in namespace "A" with labels [letter, a]
-	 *     - serviceB present in namespace "B" with labels [letter, b]
-	 *     - serviceC present in namespace "C" with labels [letter, c]
-	 *     - we search in namespaces [A, B] with predicate filter = [letter, b], so we get a single result
-	 * </pre>
-	 */
-	@Test
-	void testServicesSelectiveNamespacesPredicateFilter() {
-		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces,
-				Set.of("A", "B"), true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of("letter", "a"));
-		service("serviceB", "B", Map.of("letter", "b"));
-		service("serviceC", "C", Map.of("letter", "c"));
-
-		List<Service> result = services(properties, client, null,
-				x -> x.getMetadata().getLabels().equals(Map.of("letter", "b")), null, "fabric8-discovery");
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceB");
+		Assertions.assertThat(result.stream().map(x -> x.getMetadata().get("k8s_namespace")).sorted().toList())
+			.containsExactlyInAnyOrder("A", "B");
 	}
 
 	/**
@@ -210,83 +130,22 @@ class Fabric8DiscoveryClientUtilsTests {
 	void testServicesNamespaceProviderNoFilters() {
 		boolean allNamespaces = false;
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of());
-		service("serviceB", "B", Map.of());
-		service("serviceC", "C", Map.of());
+				true, 60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
+				false, null);
 
-		List<Service> result = services(properties, client, namespaceProvider("A"), x -> true, null,
-				"fabric8-discovery");
+		createService("serviceA", "A", Map.of());
+		createService("serviceA", "B", Map.of());
+		createService("serviceA", "C", Map.of());
+
+		createEndpoints("serviceA", "A", Map.of());
+		createEndpoints("serviceA", "B", Map.of());
+		createEndpoints("serviceA", "C", Map.of());
+
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("A"), client);
+		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
+
 		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
-	}
-
-	/**
-	 * <pre>
-	 *     - all-namespaces = false
-	 *     - selective namespaces : []
-	 *     - namespace from kubernetes namespace provider = [A]
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "A"
-	 *     - we search in namespaces [A] with name filter = "serviceA", so we get a single result
-	 * </pre>
-	 */
-	@Test
-	void testServicesNamespaceProviderNameFilter() {
-		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of());
-		service("serviceB", "A", Map.of());
-
-		List<Service> result = services(properties, client, namespaceProvider("A"), x -> true,
-				Map.of("metadata.name", "serviceA"), "fabric8-discovery");
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceA");
-	}
-
-	/**
-	 * <pre>
-	 *     - all-namespaces = false
-	 *     - selective namespaces : []
-	 *     - namespace from kubernetes namespace provider = [A]
-	 *     - serviceA present in namespace "A"
-	 *     - serviceB present in namespace "A"
-	 *     - we search in namespaces [A] with predicate filter = [letter, b], so we get a single result
-	 * </pre>
-	 */
-	@Test
-	void testServicesNamespaceProviderPredicateFilter() {
-		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-		service("serviceA", "A", Map.of("letter", "a"));
-		service("serviceB", "A", Map.of("letter", "b"));
-
-		List<Service> result = services(properties, client, namespaceProvider("A"),
-				x -> x.getMetadata().getLabels().equals(Map.of("letter", "b")), null, "fabric8-discovery");
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("serviceB");
-	}
-
-	@Test
-	void testExternalName() {
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withType("ExternalName").withExternalName("k8s-spring").build())
-			.withNewMetadata()
-			.withName("external-name-service")
-			.and()
-			.build();
-		client.services().inNamespace("test").resource(service).create();
-
-		boolean allNamespaces = false;
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, Set.of(),
-				true, 60L, false, "", Set.of(), Map.of(), "", null, 0, false, false, null);
-
-		List<Service> result = services(properties, client, namespaceProvider("test"),
-				x -> x.getSpec().getType().equals("ExternalName"), Map.of(), "fabric8-discovery");
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().getName()).isEqualTo("external-name-service");
+		Assertions.assertThat(result.get(0).getMetadata().get("k8s_namespace")).isEqualTo("A");
 	}
 
 	@Test
@@ -428,20 +287,14 @@ class Fabric8DiscoveryClientUtilsTests {
 		Assertions.assertThat(hostNames).containsExactlyInAnyOrder("one", "three", "two");
 	}
 
-	private void service(String name, String namespace, Map<String, String> labels) {
-		Service service = new ServiceBuilder().withNewMetadata()
-			.withName(name)
-			.withLabels(labels)
-			.withNamespace(namespace)
-			.and()
-			.build();
-		client.services().inNamespace(namespace).resource(service).create();
+	private void createEndpoints(String name, String namespace, Map<String, String> labels) {
+		Endpoints endpoints = endpoints(namespace, name, labels, Map.of());
+		client.endpoints().inNamespace(namespace).resource(endpoints).create();
 	}
 
-	private KubernetesNamespaceProvider namespaceProvider(String namespace) {
-		MockEnvironment mockEnvironment = new MockEnvironment();
-		mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", namespace);
-		return new KubernetesNamespaceProvider(mockEnvironment);
+	private void createService(String name, String namespace, Map<String, String> labels) {
+		Service service = service(namespace, name, labels, Map.of(), Map.of());
+		client.services().inNamespace(namespace).resource(service).create();
 	}
 
 }

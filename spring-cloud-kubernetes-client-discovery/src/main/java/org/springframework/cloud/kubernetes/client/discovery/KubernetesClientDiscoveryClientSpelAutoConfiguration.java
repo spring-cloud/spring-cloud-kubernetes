@@ -48,24 +48,22 @@ public final class KubernetesClientDiscoveryClientSpelAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	Predicate<V1Service> predicate(KubernetesDiscoveryProperties properties) {
+
+		String spelExpression = properties.filter();
+		if (spelExpression == null || spelExpression.isEmpty()) {
+			return service -> true;
+		}
+
 		SpelExpressionParser parser = new SpelExpressionParser();
 		SimpleEvaluationContext evaluationContext = SimpleEvaluationContext.forReadOnlyDataBinding()
 			.withInstanceMethods()
 			.build();
 
-		String spelExpression = properties.filter();
-		Predicate<V1Service> predicate;
-		if (spelExpression == null || spelExpression.isEmpty()) {
-			predicate = service -> true;
-		}
-		else {
-			Expression filterExpr = parser.parseExpression(spelExpression);
-			predicate = service -> {
-				Boolean include = filterExpr.getValue(evaluationContext, service, Boolean.class);
-				return Optional.ofNullable(include).orElse(false);
-			};
-		}
-		return predicate;
+		Expression filterExpr = parser.parseExpression(spelExpression);
+		return service -> {
+			Boolean include = filterExpr.getValue(evaluationContext, service, Boolean.class);
+			return Optional.ofNullable(include).orElse(false);
+		};
 	}
 
 }

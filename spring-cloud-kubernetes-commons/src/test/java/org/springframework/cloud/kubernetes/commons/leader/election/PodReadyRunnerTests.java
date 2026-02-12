@@ -56,9 +56,8 @@ class PodReadyRunnerTests {
 		CompletableFuture<Void> readinessFuture = podReadyRunner.podReady(readinessSupplier);
 		readinessFuture.get();
 
-		assertThat(output.getOut()).contains("Pod : identity in namespace : namespace is ready");
-		assertThat(output.getOut()).contains("canceling scheduled future because readiness succeeded");
-
+		awaitUntil(3, 100, () -> output.getOut().contains("Pod : identity in namespace : namespace is ready"));
+		awaitUntil(3, 100, () -> output.getOut().contains("canceling scheduled future because readiness succeeded"));
 		awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 	}
 
@@ -80,10 +79,10 @@ class PodReadyRunnerTests {
 		CompletableFuture<Void> readinessFuture = podReadyRunner.podReady(readinessSupplier);
 		readinessFuture.get();
 
-		assertThat(output.getOut())
-			.contains("Pod : identity in namespace : namespace is not ready, will retry in one second");
-		assertThat(output.getOut()).contains("Pod : identity in namespace : namespace is ready");
-		assertThat(output.getOut()).contains("canceling scheduled future because readiness succeeded");
+		awaitUntil(3, 100, () -> output.getOut()
+			.contains("Pod : identity in namespace : namespace is not ready, will retry in one second"));
+		awaitUntil(3, 100, () -> output.getOut().contains("Pod : identity in namespace : namespace is ready"));
+		awaitUntil(3, 100, () -> output.getOut().contains("canceling scheduled future because readiness succeeded"));
 
 		awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 	}
@@ -110,12 +109,12 @@ class PodReadyRunnerTests {
 		}
 		catch (Exception e) {
 			caught = true;
-			assertThat(output.getOut())
-				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second");
-			assertThat(output.getOut()).contains("exception waiting for pod : identity");
-			assertThat(output.getOut()).contains("pod readiness for : identity failed with : fail on the second cycle");
-			assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
-
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second"));
+			awaitUntil(3, 100, () -> output.getOut().contains("exception waiting for pod : identity"));
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("pod readiness for : identity failed with : fail on the second cycle"));
+			awaitUntil(3, 100, () -> output.getOut().contains("canceling scheduled future because readiness failed"));
 			awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 		}
 		assertThat(caught).isTrue();
@@ -155,14 +154,14 @@ class PodReadyRunnerTests {
 		}
 		catch (Exception e) {
 			caught = true;
-			assertThat(output.getOut())
-				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second");
-			assertThat(output.getOut()).contains("exception waiting for pod : identity");
-			assertThat(output.getOut()).contains("pod readiness for : identity failed with : fail on the second cycle");
-			assertThat(output.getOut()).contains("readiness failed and we caught that");
-
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second"));
+			awaitUntil(3, 100, () -> output.getOut().contains("exception waiting for pod : identity"));
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("pod readiness for : identity failed with : fail on the second cycle"));
+			awaitUntil(3, 100, () -> output.getOut().contains("readiness failed and we caught that"));
 			awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
-			assertThat(output.getOut()).contains("canceling scheduled future because readiness failed");
+			awaitUntil(3, 100, () -> output.getOut().contains("canceling scheduled future because readiness failed"));
 		}
 		assertThat(caught).isTrue();
 	}
@@ -210,14 +209,15 @@ class PodReadyRunnerTests {
 			assertThat(output.getOut())
 				.contains("Pod : identity in namespace : namespace is not ready, will retry in one second");
 			// this is a cancel of the future, not an exception per se
-			assertThat(output.getOut()).doesNotContain("leader election for : identity was not successful");
-			assertThat(output.getOut()).contains("readiness failed and we caught that");
+			awaitUntil(3, 100, () -> !output.getOut().contains("leader election for : identity was not successful"));
+			awaitUntil(3, 100, () -> output.getOut().contains("readiness failed and we caught that"));
 
 			awaitUntil(3, 200, () -> output.getOut().contains("Shutting down executor : podReadyExecutor"));
 
-			assertThat(output.getOut()).contains("canceling scheduled future because completable future was cancelled");
-			assertThat(output.getOut()).doesNotContain("canceling scheduled future because readiness failed");
-			assertThat(output.getOut()).contains("scheduledFuture is canceled: true");
+			awaitUntil(3, 100, () -> output.getOut()
+				.contains("canceling scheduled future because completable future was cancelled"));
+			awaitUntil(3, 100, () -> !output.getOut().contains("canceling scheduled future because readiness failed"));
+			awaitUntil(3, 100, () -> output.getOut().contains("scheduledFuture is canceled: true"));
 
 		}
 		assertThat(caught).isTrue();

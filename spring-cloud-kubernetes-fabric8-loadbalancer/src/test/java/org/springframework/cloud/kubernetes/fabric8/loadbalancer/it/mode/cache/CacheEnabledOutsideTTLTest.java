@@ -16,16 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.cache;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +29,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
-import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.util.TestSocketUtils;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -51,52 +43,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 				"spring.cloud.kubernetes.discovery.all-namespaces=false", "spring.cloud.kubernetes.client.namespace=a",
 				"spring.cloud.loadbalancer.cache.enabled=true", "spring.cloud.loadbalancer.cache.ttl=2s" },
 		classes = App.class)
-@DirtiesContext
+@EnableKubernetesMockClient
 class CacheEnabledOutsideTTLTest {
 
-	private static final int SERVICE_PORT = TestSocketUtils.findAvailableTcpPort();
+	private static final int NUMBER_OF_CALLS = 2;
 
-	private static WireMockServer wireMockServer;
-
-	private static WireMockServer serviceAMockServer;
-
-	@SuppressWarnings("rawtypes")
-	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
-		.mockStatic(KubernetesServiceInstanceMapper.class);
+	private static KubernetesMockServer kubernetesMockServer;
 
 	@Autowired
 	private LoadBalancerClientFactory loadBalancerClientFactory;
 
 	@BeforeAll
 	static void beforeAll() {
-
-		wireMockServer = new WireMockServer(options().dynamicPort());
-		wireMockServer.start();
-		WireMock.configureFor("localhost", wireMockServer.port());
-
-		serviceAMockServer = new WireMockServer(SERVICE_PORT);
-		serviceAMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_PORT);
-
-		// we mock host creation so that it becomes something like : localhost:<port>
-		// then wiremock can catch this request, and we can assert for the result
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
-			.thenReturn("localhost");
-
-		// Configure the kubernetes master url to point to the mock server
-		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, "http://localhost:" + wireMockServer.port());
+		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYKUBECONFIG_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_AUTH_TRYSERVICEACCOUNT_SYSTEM_PROPERTY, "false");
-		System.setProperty(Config.KUBERNETES_NAMESPACE_SYSTEM_PROPERTY, "test");
-		System.setProperty(Config.KUBERNETES_HTTP2_DISABLE, "true");
+
+		// these two are needed to populate the Listers and to silence the logs from
+		// errors
+		// since we are in the SERVICE mode, we don't use the DiscoveryClient, so these
+		// two mocks don't play a role in the testing itself.
+		Util.mockNamespacedIndexerServiceCall("a", "service-a", kubernetesMockServer);
+		Util.mockNamespacedIndexerEndpointsCall("a", "service-a", "localhost", 8080, kubernetesMockServer);
+
+		// mock fabric8 client calls that are made as part of the services list supplier
+		Util.mockLoadBalancerServiceCall("a", "service-a", kubernetesMockServer, 8080, "a", NUMBER_OF_CALLS);
 	}
 
 	@AfterAll
 	static void afterAll() {
-		wireMockServer.stop();
-		serviceAMockServer.stop();
-		MOCKED_STATIC.close();
 
 	}
 
@@ -107,17 +81,12 @@ class CacheEnabledOutsideTTLTest {
 	 *      - as such, first loadBalancer.choose() will execute on the delegate,
 	 *        it will be cached. And the second call, since it got TTL-ed, will happen
 	 *        on the delegate again.
-	 *
+	 *      - the assertion is done via NUMBER_OF_CALLS. It the value is set to 1,
+	 *        the test would fail.
 	 * </pre>
 	 */
 	@Test
 	void testCallsOutsideTTL() throws InterruptedException {
-
-		Service serviceA = Util.service("a", "my-service", SERVICE_PORT);
-		String serviceAJson = Serialization.asJson(serviceA);
-
-		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/api/v1/namespaces/a/services/service-a"))
-			.willReturn(WireMock.aResponse().withBody(serviceAJson).withStatus(200)));
 
 		ReactiveLoadBalancer<ServiceInstance> loadBalancer = loadBalancerClientFactory.getInstance("service-a");
 		Mono.from(loadBalancer.choose()).block();
@@ -125,10 +94,6 @@ class CacheEnabledOutsideTTLTest {
 		Thread.sleep(2500);
 		Response<ServiceInstance> response = Mono.from(loadBalancer.choose()).block();
 		assertThat(response.hasServer()).as("there should be one server").isTrue();
-
-		// called two times, since it got expired via the ttl
-		wireMockServer.verify(WireMock.exactly(2),
-				WireMock.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/a/services/service-a")));
 	}
 
 }

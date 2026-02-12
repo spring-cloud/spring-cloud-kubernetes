@@ -36,7 +36,6 @@ import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.util.CallGenerator;
 import io.kubernetes.client.util.CallGeneratorParams;
 import io.kubernetes.client.util.Namespaces;
-import io.kubernetes.client.util.wait.Wait;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -44,6 +43,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 
+import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.poll;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -64,7 +64,7 @@ final class KubernetesClientDiscoveryClientUtils {
 			List<Lister<V1Service>> serviceListers) {
 
 		sharedInformerFactories.forEach(SharedInformerFactory::startAllRegisteredInformers);
-		if (!Wait.poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
+		if (!poll(Duration.ofSeconds(1), Duration.ofSeconds(properties.cacheLoadingTimeoutSeconds()), () -> {
 			LOG.info(() -> "Waiting for the cache of informers to be fully loaded..");
 			return informersReadyFunc.get();
 		})) {

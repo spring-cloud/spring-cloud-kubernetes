@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
-import java.time.Duration;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -37,13 +36,12 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
-
-import static org.awaitility.Awaitility.await;
 
 /**
  * @author wind57
@@ -113,13 +111,9 @@ class K8sClientConfigMapEventTriggeredIT extends K8sClientReloadBase {
 
 		replaceConfigMap(coreV1Api, rightConfigMapAfterChange);
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollDelay(Duration.ofSeconds(1))
-			.until(() -> output.getOut().contains("ConfigMap right-configmap was updated in namespace right"));
-
-		await().atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> rightProperties.getValue().equals("right-after-change"));
+		Awaitilities.awaitUntil(60, 1000,
+				() -> output.getOut().contains("ConfigMap right-configmap was updated in namespace right"));
+		Awaitilities.awaitUntil(60, 1000, () -> rightProperties.getValue().equals("right-after-change"));
 	}
 
 	@TestConfiguration

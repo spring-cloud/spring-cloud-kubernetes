@@ -16,10 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.List;
 import java.util.function.Predicate;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.fabric8.kubernetes.client.informers.cache.Lister;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -27,12 +31,10 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.discovery.ServicePortSecureResolver;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableBlockingDisabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnDiscoveryCacheableBlockingEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnSpringCloudKubernetesBlockingDiscovery;
@@ -41,7 +43,6 @@ import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 /**
@@ -54,7 +55,7 @@ import org.springframework.core.log.LogAccessor;
 @ConditionalOnSpringCloudKubernetesBlockingDiscovery
 @AutoConfigureBefore({ SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class })
 @AutoConfigureAfter({ Fabric8AutoConfiguration.class, KubernetesDiscoveryPropertiesAutoConfiguration.class,
-		Fabric8DiscoveryClientSpelAutoConfiguration.class, Fabric8DiscoveryClientSpelAutoConfiguration.class })
+		Fabric8DiscoveryClientSpelAutoConfiguration.class })
 public final class Fabric8DiscoveryClientAutoConfiguration {
 
 	private static final LogAccessor LOG = new LogAccessor(
@@ -63,22 +64,24 @@ public final class Fabric8DiscoveryClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableBlockingDisabled
-	Fabric8DiscoveryClient fabric8DiscoveryClient(KubernetesClient client, KubernetesDiscoveryProperties properties,
-			Predicate<Service> predicate, Environment environment) {
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
-		return new Fabric8DiscoveryClient(client, properties, servicePortSecureResolver, namespaceProvider, predicate);
+	Fabric8DiscoveryClient fabric8DiscoveryClient(KubernetesClient client, List<Lister<Service>> serviceListers,
+			List<Lister<Endpoints>> endpointsListers, List<SharedIndexInformer<Service>> serviceInformers,
+			List<SharedIndexInformer<Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			Predicate<Service> predicate) {
+		return new Fabric8DiscoveryClient(client, serviceListers, endpointsListers, serviceInformers,
+				endpointsInformers, properties, predicate);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnDiscoveryCacheableBlockingEnabled
 	Fabric8CacheableDiscoveryClient fabric8CacheableDiscoveryClient(KubernetesClient client,
-			KubernetesDiscoveryProperties properties, Predicate<Service> predicate, Environment environment) {
-		ServicePortSecureResolver servicePortSecureResolver = new ServicePortSecureResolver(properties);
-		KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
-		return new Fabric8CacheableDiscoveryClient(client, properties, servicePortSecureResolver, namespaceProvider,
-				predicate);
+			List<Lister<Service>> serviceListers, List<Lister<Endpoints>> endpointsListers,
+			List<SharedIndexInformer<Service>> serviceInformers,
+			List<SharedIndexInformer<Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
+			Predicate<Service> predicate) {
+		return new Fabric8CacheableDiscoveryClient(client, serviceListers, endpointsListers, serviceInformers,
+				endpointsInformers, properties, predicate);
 	}
 
 	@Bean

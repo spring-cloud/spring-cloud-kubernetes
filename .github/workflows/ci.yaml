@@ -1,4 +1,4 @@
-name: orchestrate-multi-jdk-builds
+name: Spring Cloud Kubernetes CI Job
 
 on:
   push:

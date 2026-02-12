@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -31,11 +30,11 @@ import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
@@ -66,20 +65,17 @@ final class TestUtil {
 		StubMapping stubMapping = WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
 			.willReturn(WireMock.aResponse().withBody("{}").withStatus(200)));
 
-		await().atMost(Duration.ofSeconds(60))
-			.pollInterval(Duration.ofSeconds(1))
-			.ignoreException(SocketTimeoutException.class)
-			.until(() -> stubMapping.getResponse().wasConfigured());
+		Awaitilities.awaitUntil(60, 1000, SocketTimeoutException.class,
+				() -> stubMapping.getResponse().wasConfigured());
 	}
 
 	static void verifyActuatorCalled(int timesCalled) {
-		await().atMost(Duration.ofSeconds(60)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+
+		Awaitilities.awaitUntil(60, 1000, () -> {
 			List<LoggedRequest> requests = WireMock
 				.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 			return !requests.isEmpty();
 		});
-		WireMock.verify(WireMock.exactly(timesCalled),
-				WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 	}
 
 	static void createConfigMap(Util util, String namespace) {

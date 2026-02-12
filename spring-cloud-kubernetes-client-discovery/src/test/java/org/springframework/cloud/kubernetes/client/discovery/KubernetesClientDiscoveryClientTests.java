@@ -247,7 +247,8 @@ class KubernetesClientDiscoveryClientTests {
 			.build();
 		endpointsCache.add(endpoints);
 
-		V1Service service = new V1ServiceBuilder().withNewMetadata()
+		V1Service service = new V1ServiceBuilder().withSpec(new V1ServiceSpecBuilder().withType("ClusterIP").build())
+			.withNewMetadata()
 			.withName("endpoint1")
 			.withNamespace("test")
 			.and()

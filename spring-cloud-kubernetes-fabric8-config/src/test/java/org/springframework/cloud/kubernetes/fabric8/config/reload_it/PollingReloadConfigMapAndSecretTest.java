@@ -30,7 +30,6 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +45,7 @@ import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigM
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.example.App;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
@@ -126,11 +126,8 @@ class PollingReloadConfigMapAndSecretTest {
 				"bootstrapProperties-secret.secret-b.spring-k8s", "bootstrapProperties-secret.secret-a.spring-k8s");
 
 		// 1. first, wait for a cycle where we see the configmaps as being the same
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(10))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(() -> output.getOut()
-				.contains("Reloadable condition was not satisfied, reload will not be triggered"));
+		Awaitilities.awaitUntil(10, 1000,
+				() -> output.getOut().contains("Reloadable condition was not satisfied, reload will not be triggered"));
 
 		// 2. then change a configmap, so the cycle seems them as different and triggers a
 		// reload
@@ -138,10 +135,7 @@ class PollingReloadConfigMapAndSecretTest {
 		replaceConfigMap("configmap-a", configMapA);
 
 		// 3. reload is triggered
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(10))
-			.pollInterval(Duration.ofSeconds(1))
-			.until(STRATEGY_FOR_SECRET_CALLED::get);
+		Awaitilities.awaitUntil(10, 1000, STRATEGY_FOR_SECRET_CALLED::get);
 
 	}
 

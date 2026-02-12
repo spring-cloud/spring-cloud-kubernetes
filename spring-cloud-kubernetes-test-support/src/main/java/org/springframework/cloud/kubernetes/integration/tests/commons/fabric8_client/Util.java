@@ -17,10 +17,8 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.APIService;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -42,10 +40,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
-import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
@@ -179,13 +177,12 @@ public final class Util {
 				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.create();
 
-			await().pollInterval(Duration.ofSeconds(1))
-				.atMost(30, TimeUnit.SECONDS)
-				.until(() -> client.namespaces()
-					.list()
-					.getItems()
-					.stream()
-					.anyMatch(x -> x.getMetadata().getName().equals(name)));
+			Awaitilities.awaitUntil(30, 1000,
+					() -> client.namespaces()
+						.list()
+						.getItems()
+						.stream()
+						.anyMatch(x -> x.getMetadata().getName().equals(name)));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -214,13 +211,12 @@ public final class Util {
 				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.delete();
 
-			await().pollInterval(Duration.ofSeconds(1))
-				.atMost(30, TimeUnit.SECONDS)
-				.until(() -> client.namespaces()
-					.list()
-					.getItems()
-					.stream()
-					.noneMatch(x -> x.getMetadata().getName().equals(name)));
+			Awaitilities.awaitUntil(30, 1000,
+					() -> client.namespaces()
+						.list()
+						.getItems()
+						.stream()
+						.noneMatch(x -> x.getMetadata().getName().equals(name)));
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -283,7 +279,8 @@ public final class Util {
 
 	private void waitForConfigMap(String namespace, ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
+
+		Awaitilities.awaitUntil(600, 1000, () -> {
 			int size = (int) client.configMaps()
 				.inNamespace(namespace)
 				.list()
@@ -296,6 +293,7 @@ public final class Util {
 			}
 			return phase.equals(Phase.CREATE);
 		});
+
 	}
 
 	/**
@@ -348,7 +346,7 @@ public final class Util {
 
 	private void waitForSecret(String namespace, Secret secret, Phase phase) {
 		String secretName = secretName(secret);
-		await().pollInterval(Duration.ofSeconds(1)).atMost(600, TimeUnit.SECONDS).until(() -> {
+		Awaitilities.awaitUntil(600, 1000, () -> {
 			int size = (int) client.secrets()
 				.inNamespace(namespace)
 				.list()
@@ -361,6 +359,7 @@ public final class Util {
 			}
 			return phase.equals(Phase.CREATE);
 		});
+
 	}
 
 	private void waitForDeploymentToBeDeleted(String namespace, Deployment deployment) {
@@ -370,13 +369,13 @@ public final class Util {
 		Map<String, String> matchLabels = deployment.getSpec().getSelector().getMatchLabels();
 
 		long start = System.currentTimeMillis();
-		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+		Awaitilities.awaitUntil(30, 1000, () -> {
 			Deployment inner = client.apps().deployments().inNamespace(namespace).withName(deploymentName).get();
 			return inner == null;
 		});
 		System.out.println("Ended in " + (System.currentTimeMillis() - start) + "ms");
 
-		await().pollInterval(Duration.ofSeconds(1)).atMost(60, TimeUnit.SECONDS).until(() -> {
+		Awaitilities.awaitUntil(60, 1000, () -> {
 			List<Pod> podList = client.pods().inNamespace(namespace).withLabels(matchLabels).list().getItems();
 			return podList == null || podList.isEmpty();
 		});
@@ -386,7 +385,7 @@ public final class Util {
 
 		String serviceName = service.getMetadata().getName();
 
-		await().pollInterval(Duration.ofSeconds(1)).atMost(30, TimeUnit.SECONDS).until(() -> {
+		Awaitilities.awaitUntil(30, 1000, () -> {
 			Service inner = client.services().inNamespace(namespace).withName(serviceName).get();
 			return inner == null;
 		});
@@ -394,9 +393,7 @@ public final class Util {
 
 	private void waitForDeployment(String namespace, Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		await().pollInterval(Duration.ofSeconds(2))
-			.atMost(600, TimeUnit.SECONDS)
-			.until(() -> isDeploymentReady(namespace, deploymentName));
+		Awaitilities.awaitUntil(600, 2000, () -> isDeploymentReady(namespace, deploymentName));
 	}
 
 	private boolean isDeploymentReady(String namespace, String deploymentName) {
