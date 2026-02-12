@@ -35,7 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
+import org.springframework.cloud.kubernetes.commons.leader.election.LeaderUtils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
