@@ -46,6 +46,9 @@
 							<env>
 								<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
 							</env>
+							<buildpacks>
+								<buildpack>docker://paketobuildpacks/java:latest</buildpack>
+							</buildpacks>
 							<name>${env.IMAGE}</name>
 							<pullPolicy>IF_NOT_PRESENT</pullPolicy>
 						</image>
