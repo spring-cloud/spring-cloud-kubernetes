@@ -42,6 +42,9 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
 					<configuration>
+						<buildpacks>
+							<buildpack>docker://paketobuildpacks/java:latest</buildpack>
+						</buildpacks>
 						<image>
 							<name>${env.IMAGE}</name>
 							<pullPolicy>IF_NOT_PRESENT</pullPolicy>
