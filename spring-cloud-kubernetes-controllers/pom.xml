@@ -42,6 +42,9 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
 					<configuration>
+						<buildpacks>
+							<buildpack>docker://paketobuildpacks/java:latest</buildpack>
+						</buildpacks>
 						<image>
 							<env>
 								<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
