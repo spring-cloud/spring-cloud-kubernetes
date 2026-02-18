@@ -19,7 +19,7 @@ package org.springframework.cloud.kubernetes.client.discovery;
 /**
  * @author Ryan Baxter
  */
-public final class KubernetesClientInformerReactiveDiscoveryClient
+public class KubernetesClientInformerReactiveDiscoveryClient
 		extends KubernetesClientReactiveAbstractInformerDiscoveryClient {
 
 	public KubernetesClientInformerReactiveDiscoveryClient(

@@ -34,9 +34,9 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
  * @author Ioannis Canellos
  * @author Tim Ysewyn
  */
-final class Fabric8DiscoveryClient extends Fabric8AbstractBlockingDiscoveryClient {
+public class Fabric8DiscoveryClient extends Fabric8AbstractBlockingDiscoveryClient {
 
-	Fabric8DiscoveryClient(KubernetesClient client, List<Lister<Service>> serviceListers,
+	public Fabric8DiscoveryClient(KubernetesClient client, List<Lister<Service>> serviceListers,
 			List<Lister<Endpoints>> endpointsListers, List<SharedIndexInformer<Service>> serviceInformers,
 			List<SharedIndexInformer<Endpoints>> endpointsInformers,
 			KubernetesDiscoveryProperties kubernetesDiscoveryProperties, Predicate<Service> predicate) {
