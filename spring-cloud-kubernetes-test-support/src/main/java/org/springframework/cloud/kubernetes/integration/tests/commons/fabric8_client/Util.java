@@ -248,35 +248,6 @@ public final class Util {
 		}
 	}
 
-	public void setUpIstio(String namespace) {
-		InputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
-		InputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
-		InputStream roleAsStream = inputStream("istio/role.yaml");
-
-		innerSetup(namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
-	}
-
-	public void setUpIstioctl(String namespace, Phase phase) {
-		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
-		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
-
-		String imageWithoutVersion = istioctlDeployment.getSpec()
-			.getTemplate()
-			.getSpec()
-			.getContainers()
-			.get(0)
-			.getImage();
-		String imageWithVersion = imageWithoutVersion + ":" + Images.istioVersion();
-		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
-
-		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, null, istioctlDeployment, null, false);
-		}
-		else {
-			deleteAndWait(namespace, istioctlDeployment, null);
-		}
-	}
-
 	private void waitForConfigMap(String namespace, ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
 
