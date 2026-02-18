@@ -27,9 +27,9 @@ import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
  *
  * @author Tim Ysewyn
  */
-final class Fabric8ReactiveDiscoveryClient extends Fabric8AbstractReactiveDiscoveryClient {
+public class Fabric8ReactiveDiscoveryClient extends Fabric8AbstractReactiveDiscoveryClient {
 
-	Fabric8ReactiveDiscoveryClient(Fabric8DiscoveryClient fabric8DiscoveryClient) {
+	public Fabric8ReactiveDiscoveryClient(Fabric8DiscoveryClient fabric8DiscoveryClient) {
 		super(fabric8DiscoveryClient);
 	}
 

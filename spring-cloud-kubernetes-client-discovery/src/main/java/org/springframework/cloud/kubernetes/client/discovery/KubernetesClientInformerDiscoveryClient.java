@@ -33,9 +33,9 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
  * @author Ryan Baxter
  * @author Tim Yysewyn
  */
-class KubernetesClientInformerDiscoveryClient extends KubernetesClientBlockingAbstractInformerDiscoveryClient {
+public class KubernetesClientInformerDiscoveryClient extends KubernetesClientBlockingAbstractInformerDiscoveryClient {
 
-	KubernetesClientInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
+	public KubernetesClientInformerDiscoveryClient(List<SharedInformerFactory> sharedInformerFactories,
 			List<Lister<V1Service>> serviceListers, List<Lister<V1Endpoints>> endpointsListers,
 			List<SharedIndexInformer<V1Service>> serviceInformers,
 			List<SharedIndexInformer<V1Endpoints>> endpointsInformers, KubernetesDiscoveryProperties properties,
