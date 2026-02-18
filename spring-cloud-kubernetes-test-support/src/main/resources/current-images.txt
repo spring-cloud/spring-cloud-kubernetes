@@ -1,7 +1,4 @@
 busybox:1.37.0
-istio/istioctl:1.27.3
-istio/proxyv2:1.27.3
-istio/pilot:1.27.3
 confluentinc/confluent-local:8.1.0
 rabbitmq:4.1.4-management
 wiremock/wiremock:3.13.1
