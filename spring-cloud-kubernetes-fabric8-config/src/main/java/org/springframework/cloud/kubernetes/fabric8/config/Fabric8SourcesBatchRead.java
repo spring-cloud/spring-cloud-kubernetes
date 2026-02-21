@@ -17,11 +17,16 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
+import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.stripConfigMaps;
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.stripSecrets;
@@ -33,6 +38,8 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author wind57
  */
 final class Fabric8SourcesBatchRead {
+
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8SourcesBatchRead.class));
 
 	private Fabric8SourcesBatchRead() {
 
@@ -62,6 +69,44 @@ final class Fabric8SourcesBatchRead {
 	static List<StrippedSourceContainer> strippedSecrets(KubernetesClient client, String namespace) {
 		return SECRETS_CACHE.computeIfAbsent(namespace,
 				x -> stripSecrets(client.secrets().inNamespace(namespace).list().getItems()));
+	}
+
+	/**
+	 * read configmaps by labels, without caching them.
+	 */
+	static List<StrippedSourceContainer> strippedConfigMaps(KubernetesClient client, String namespace,
+			Map<String, String> labels) {
+
+		List<ConfigMap> configMaps = client.configMaps().inNamespace(namespace).withLabels(labels).list().getItems();
+		for (ConfigMap configMap : configMaps) {
+			LOG.debug(() -> "Loaded config map '" + configMap.getMetadata().getName() + "'");
+		}
+
+		List<StrippedSourceContainer> strippedConfigMaps = stripConfigMaps(configMaps);
+		if (strippedConfigMaps.isEmpty()) {
+			LOG.debug(() -> "No configmaps in namespace '" + namespace + "'");
+		}
+
+		return strippedConfigMaps;
+	}
+
+	/**
+	 * read secrets by labels, without caching them.
+	 */
+	static List<StrippedSourceContainer> strippedSecrets(KubernetesClient client, String namespace,
+			Map<String, String> labels) {
+
+		List<Secret> secrets = client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
+		for (Secret secret : secrets) {
+			LOG.debug(() -> "Loaded secret '" + secret.getMetadata().getName() + "'");
+		}
+
+		List<StrippedSourceContainer> strippedSecrets = stripSecrets(secrets);
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug(() -> "No secrets in namespace '" + namespace + "'");
+		}
+
+		return strippedSecrets;
 	}
 
 }

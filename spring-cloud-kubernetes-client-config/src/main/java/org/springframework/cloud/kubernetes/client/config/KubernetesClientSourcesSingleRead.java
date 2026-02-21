@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -103,63 +101,6 @@ final class KubernetesClientSourcesSingleRead {
 		}
 
 		return strippedSecrets;
-	}
-
-	/**
-	 * read configmaps by labels, without caching them.
-	 */
-	static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api client, String namespace,
-			Map<String, String> labels) {
-
-		List<V1ConfigMap> configMaps;
-		try {
-			configMaps = client.listNamespacedConfigMap(namespace)
-				.labelSelector(labelSelector(labels))
-				.execute()
-				.getItems();
-		}
-		catch (ApiException e) {
-			throw new RuntimeException(e.getResponseBody(), e);
-		}
-		for (V1ConfigMap configMap : configMaps) {
-			LOG.debug(() -> "Loaded config map '" + configMap.getMetadata().getName() + "'");
-		}
-
-		List<StrippedSourceContainer> strippedConfigMaps = stripConfigMaps(configMaps);
-		if (strippedConfigMaps.isEmpty()) {
-			LOG.debug(() -> "No configmaps in namespace '" + namespace + "'");
-		}
-
-		return strippedConfigMaps;
-	}
-
-	/**
-	 * read secrets by labels, without caching them.
-	 */
-	static List<StrippedSourceContainer> strippedSecrets(CoreV1Api client, String namespace,
-			Map<String, String> labels) {
-
-		List<V1Secret> secrets;
-		try {
-			secrets = client.listNamespacedSecret(namespace).labelSelector(labelSelector(labels)).execute().getItems();
-		}
-		catch (ApiException e) {
-			throw new RuntimeException(e.getResponseBody(), e);
-		}
-		for (V1Secret secret : secrets) {
-			LOG.debug(() -> "Loaded secret '" + secret.getMetadata().getName() + "'");
-		}
-
-		List<StrippedSourceContainer> strippedSecrets = stripSecrets(secrets);
-		if (strippedSecrets.isEmpty()) {
-			LOG.debug(() -> "No secrets in namespace '" + namespace + "'");
-		}
-
-		return strippedSecrets;
-	}
-
-	private static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
 	}
 
 }

@@ -17,12 +17,18 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
+import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.stripConfigMaps;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.stripSecrets;
@@ -34,6 +40,8 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  * @author wind57
  */
 public final class KubernetesClientSourcesBatchRead {
+
+	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(KubernetesClientSourcesBatchRead.class));
 
 	private KubernetesClientSourcesBatchRead() {
 
@@ -75,6 +83,63 @@ public final class KubernetesClientSourcesBatchRead {
 				throw new RuntimeException(apiException.getResponseBody(), apiException);
 			}
 		});
+	}
+
+	/**
+	 * read secrets by labels, without caching them.
+	 */
+	static List<StrippedSourceContainer> strippedSecrets(CoreV1Api client, String namespace,
+			Map<String, String> labels) {
+
+		List<V1Secret> secrets;
+		try {
+			secrets = client.listNamespacedSecret(namespace).labelSelector(labelSelector(labels)).execute().getItems();
+		}
+		catch (ApiException e) {
+			throw new RuntimeException(e.getResponseBody(), e);
+		}
+		for (V1Secret secret : secrets) {
+			LOG.debug(() -> "Loaded secret '" + secret.getMetadata().getName() + "'");
+		}
+
+		List<StrippedSourceContainer> strippedSecrets = stripSecrets(secrets);
+		if (strippedSecrets.isEmpty()) {
+			LOG.debug(() -> "No secrets in namespace '" + namespace + "'");
+		}
+
+		return strippedSecrets;
+	}
+
+	/**
+	 * read configmaps by labels, without caching them.
+	 */
+	static List<StrippedSourceContainer> strippedConfigMaps(CoreV1Api client, String namespace,
+			Map<String, String> labels) {
+
+		List<V1ConfigMap> configMaps;
+		try {
+			configMaps = client.listNamespacedConfigMap(namespace)
+				.labelSelector(labelSelector(labels))
+				.execute()
+				.getItems();
+		}
+		catch (ApiException e) {
+			throw new RuntimeException(e.getResponseBody(), e);
+		}
+		for (V1ConfigMap configMap : configMaps) {
+			LOG.debug(() -> "Loaded config map '" + configMap.getMetadata().getName() + "'");
+		}
+
+		List<StrippedSourceContainer> strippedConfigMaps = stripConfigMaps(configMaps);
+		if (strippedConfigMaps.isEmpty()) {
+			LOG.debug(() -> "No configmaps in namespace '" + namespace + "'");
+		}
+
+		return strippedConfigMaps;
+	}
+
+	private static String labelSelector(Map<String, String> labels) {
+		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
 	}
 
 }
