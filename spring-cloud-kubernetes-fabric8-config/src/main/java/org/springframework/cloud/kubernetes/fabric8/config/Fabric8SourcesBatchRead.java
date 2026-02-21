@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
@@ -75,7 +75,7 @@ final class Fabric8SourcesBatchRead {
 	 * read configmaps by labels, without caching them.
 	 */
 	static List<StrippedSourceContainer> strippedConfigMaps(KubernetesClient client, String namespace,
-		Map<String, String> labels) {
+			Map<String, String> labels) {
 
 		List<ConfigMap> configMaps = client.configMaps().inNamespace(namespace).withLabels(labels).list().getItems();
 		for (ConfigMap configMap : configMaps) {
@@ -94,7 +94,7 @@ final class Fabric8SourcesBatchRead {
 	 * read secrets by labels, without caching them.
 	 */
 	static List<StrippedSourceContainer> strippedSecrets(KubernetesClient client, String namespace,
-		Map<String, String> labels) {
+			Map<String, String> labels) {
 
 		List<Secret> secrets = client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
 		for (Secret secret : secrets) {
