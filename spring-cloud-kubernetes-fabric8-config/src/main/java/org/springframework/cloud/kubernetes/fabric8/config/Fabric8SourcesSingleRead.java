@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.config;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -88,44 +87,6 @@ final class Fabric8SourcesSingleRead {
 
 		List<StrippedSourceContainer> strippedSecrets = stripSecrets(secrets);
 
-		if (strippedSecrets.isEmpty()) {
-			LOG.debug(() -> "No secrets in namespace '" + namespace + "'");
-		}
-
-		return strippedSecrets;
-	}
-
-	/**
-	 * read configmaps by labels, without caching them.
-	 */
-	static List<StrippedSourceContainer> strippedConfigMaps(KubernetesClient client, String namespace,
-			Map<String, String> labels) {
-
-		List<ConfigMap> configMaps = client.configMaps().inNamespace(namespace).withLabels(labels).list().getItems();
-		for (ConfigMap configMap : configMaps) {
-			LOG.debug(() -> "Loaded config map '" + configMap.getMetadata().getName() + "'");
-		}
-
-		List<StrippedSourceContainer> strippedConfigMaps = stripConfigMaps(configMaps);
-		if (strippedConfigMaps.isEmpty()) {
-			LOG.debug(() -> "No configmaps in namespace '" + namespace + "'");
-		}
-
-		return strippedConfigMaps;
-	}
-
-	/**
-	 * read secrets by labels, without caching them.
-	 */
-	static List<StrippedSourceContainer> strippedSecrets(KubernetesClient client, String namespace,
-			Map<String, String> labels) {
-
-		List<Secret> secrets = client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
-		for (Secret secret : secrets) {
-			LOG.debug(() -> "Loaded secret '" + secret.getMetadata().getName() + "'");
-		}
-
-		List<StrippedSourceContainer> strippedSecrets = stripSecrets(secrets);
 		if (strippedSecrets.isEmpty()) {
 			LOG.debug(() -> "No secrets in namespace '" + namespace + "'");
 		}
