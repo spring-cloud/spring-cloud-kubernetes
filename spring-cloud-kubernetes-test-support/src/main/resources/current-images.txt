@@ -1,4 +1,4 @@
 busybox:1.37.0
-confluentinc/confluent-local:8.1.0
-rabbitmq:4.1.4-management
-wiremock/wiremock:3.13.1
+confluentinc/confluent-local:8.1.1
+rabbitmq:4.2.4-management
+wiremock/wiremock:3.13.2

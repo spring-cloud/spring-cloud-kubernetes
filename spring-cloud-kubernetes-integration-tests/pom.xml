@@ -37,11 +37,8 @@
 						<env>
 							<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
 						</env>
+						<name>docker.io/springcloud/${project.artifactId}:${project.version}</name>
 					</image>
-					<buildpacks>
-						<buildpack>docker://paketobuildpacks/java:latest</buildpack>
-					</buildpacks>
-					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
 				</configuration>
 				<executions>
 					<execution>
