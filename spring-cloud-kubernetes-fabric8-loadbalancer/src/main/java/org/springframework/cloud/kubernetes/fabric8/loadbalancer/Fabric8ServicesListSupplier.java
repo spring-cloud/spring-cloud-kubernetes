@@ -48,9 +48,7 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 		return Flux.defer(() -> {
 			String serviceName = getServiceId();
 			LOG.debug(() -> "loadbalancer serviceID : " + serviceName);
-
 			List<ServiceInstance> serviceInstances = serviceInstances("metadata.name", serviceName);
-
 			return Flux.just(serviceInstances);
 		});
 	}
