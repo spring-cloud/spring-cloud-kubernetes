@@ -149,11 +149,15 @@ public final class Util {
 			.endMetadata()
 			.build();
 
+		ServiceList serviceList = new ServiceListBuilder().withItems(service).build();
+
+		String urlPath = "/api/v1/namespaces/" + namespace + "/services?fieldSelector=metadata.name%3D" + serviceId;
+
 		// mock the list supplier
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/namespaces/" + namespace + "/services/" + serviceId)
-			.andReturn(200, service)
+			.withPath(urlPath)
+			.andReturn(200, serviceList)
 			.times(numberOfCalls);
 	}
 
