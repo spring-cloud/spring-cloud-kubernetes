@@ -20,10 +20,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.ConditionalOnKubernetesLoadBalancerServiceModeEnabled;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.ConditionalOnServiceMatchingStrategyCondition;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+
+import static org.springframework.cloud.kubernetes.commons.loadbalancer.ServiceMatchingStrategy.LABELS;
+import static org.springframework.cloud.kubernetes.commons.loadbalancer.ServiceMatchingStrategy.NAME;
 
 /**
  * Kubernetes load balancer client configuration.
@@ -34,11 +38,25 @@ public class Fabric8LoadBalancerClientConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesLoadBalancerServiceModeEnabled
-	ServiceInstanceListSupplier kubernetesServicesListSupplier(Environment environment,
+	@ConditionalOnServiceMatchingStrategyCondition(NAME)
+	ServiceInstanceListSupplier kubernetesNameBasedServicesListSupplier(Environment environment,
 			KubernetesClient kubernetesClient, Fabric8ServiceInstanceMapper mapper,
 			KubernetesDiscoveryProperties discoveryProperties, ConfigurableApplicationContext context) {
 		return ServiceInstanceListSupplier.builder()
 			.withBase(new Fabric8ServicesListSupplier(environment, kubernetesClient, mapper, discoveryProperties))
+			.withCaching()
+			.build(context);
+	}
+
+	@Bean
+	@ConditionalOnKubernetesLoadBalancerServiceModeEnabled
+	@ConditionalOnServiceMatchingStrategyCondition(LABELS)
+	ServiceInstanceListSupplier kubernetesLabelsBasedServicesListSupplier(Environment environment,
+			KubernetesClient kubernetesClient, Fabric8ServiceInstanceMapper mapper,
+			KubernetesDiscoveryProperties discoveryProperties, ConfigurableApplicationContext context) {
+		return ServiceInstanceListSupplier.builder()
+			.withBase(new Fabric8LabelBasedServicesListSupplier(environment, kubernetesClient, mapper,
+					discoveryProperties))
 			.withCaching()
 			.build(context);
 	}

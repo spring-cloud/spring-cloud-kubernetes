@@ -16,13 +16,19 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -73,6 +79,71 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 			.run(this::assertInstanceMapperPresent);
 	}
 
+	/**
+	 * <pre>
+	 *     - spring.cloud.kubernetes.loadbalancer.service-matching-strategy is not set
+	 *
+	 *     - we must default to the named strategy
+	 * </pre>
+	 */
+	@Test
+	void testNoExplicitServiceMatchingStrategy() {
+		new ApplicationContextRunner()
+			.withUserConfiguration(Config.class, Fabric8LoadBalancerClientConfiguration.class, TestConfig.class)
+			.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+			.withPropertyValues("spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.loadbalancer.mode=SERVICE")
+			.run(context -> {
+				assertThat(context).hasSingleBean(ServiceInstanceListSupplier.class);
+				assertThat(context).hasBean("kubernetesNameBasedServicesListSupplier");
+				assertThat(context).doesNotHaveBean("kubernetesLabelsBasedServicesListSupplier");
+			});
+	}
+
+	/**
+	 * <pre>
+	 *     - spring.cloud.kubernetes.loadbalancer.service-matching-strategy=NAME
+	 *
+	 *     - we must use the named strategy
+	 * </pre>
+	 */
+	@Test
+	void testNameExplicitServiceMatchingStrategy() {
+		new ApplicationContextRunner()
+			.withUserConfiguration(Config.class, Fabric8LoadBalancerClientConfiguration.class, TestConfig.class)
+			.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+			.withPropertyValues("spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
+					"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=NAME")
+			.run(context -> {
+				assertThat(context).hasSingleBean(ServiceInstanceListSupplier.class);
+				assertThat(context).hasBean("kubernetesNameBasedServicesListSupplier");
+				assertThat(context).doesNotHaveBean("kubernetesLabelsBasedServicesListSupplier");
+			});
+	}
+
+	/**
+	 * <pre>
+	 *     - spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS
+	 *
+	 *     - we must use the labels strategy
+	 * </pre>
+	 */
+	@Test
+	void testLabelsExplicitServiceMatchingStrategy() {
+		new ApplicationContextRunner()
+			.withUserConfiguration(Config.class, Fabric8LoadBalancerClientConfiguration.class, TestConfig.class)
+			.withConfiguration(AutoConfigurations.of(Fabric8LoadBalancerAutoConfiguration.class))
+			.withPropertyValues("spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
+					"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS")
+			.run(context -> {
+				assertThat(context).hasSingleBean(ServiceInstanceListSupplier.class);
+				assertThat(context).doesNotHaveBean("kubernetesNameBasedServicesListSupplier");
+				assertThat(context).hasBean("kubernetesLabelsBasedServicesListSupplier");
+			});
+	}
+
 	private void assertInstanceMapperMissing(AssertableApplicationContext context) {
 		assertThat(context.getBeanNamesForType(Fabric8ServiceInstanceMapper.class)).isEmpty();
 	}
@@ -83,6 +154,17 @@ class Fabric8LoadBalancerAutoConfigurationTests {
 
 	@EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 	static class Config {
+
+	}
+
+	@TestConfiguration
+	static class TestConfig {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return Mockito.mock(KubernetesClient.class);
+		}
 
 	}
 
