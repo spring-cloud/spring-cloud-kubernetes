@@ -29,10 +29,11 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
+
+import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
 
 /**
  * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE
@@ -69,7 +70,7 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 					.withField("metadata.name", serviceName)
 					.list()
 					.getItems();
-				services.forEach(service -> addMappedService(mapper, result, service));
+				services.forEach(service -> addMappedService(mapper, result, services));
 			}
 			else if (!discoveryProperties.namespaces().isEmpty()) {
 				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
@@ -82,7 +83,7 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 						.getItems();
 
 					if (!services.isEmpty()) {
-						addMappedService(mapper, result, services.get(0)); // there is only one for sure
+						addMappedService(mapper, result, services);
 					}
 					else {
 						LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
@@ -91,7 +92,7 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 				});
 			}
 			else {
-				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
+				String namespace = getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
 						namespaceProvider);
 				LOG.debug(() -> "discovering services in namespace : " + namespace);
 				List<Service> services = kubernetesClient.services().inNamespace(namespace)
@@ -100,7 +101,7 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 					.getItems();
 
 				if (!services.isEmpty()) {
-					addMappedService(mapper, result, services.get(0));
+					addMappedService(mapper, result, services);
 				}
 				else {
 					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : " + namespace);
@@ -112,9 +113,9 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 		});
 	}
 
-	private void addMappedService(KubernetesServiceInstanceMapper<Service> mapper, List<ServiceInstance> services,
-			Service service) {
-		services.add(mapper.map(service));
+	private void addMappedService(KubernetesServiceInstanceMapper<Service> mapper,
+		List<ServiceInstance> serviceInstances, List<Service> services) {
+		services.forEach(service -> serviceInstances.add(mapper.map(service)));
 	}
 
 }
