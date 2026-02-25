@@ -154,11 +154,7 @@ public final class Util {
 		String urlPath = "/api/v1/namespaces/" + namespace + "/services?fieldSelector=metadata.name%3D" + serviceId;
 
 		// mock the list supplier
-		kubernetesMockServer.expect()
-			.get()
-			.withPath(urlPath)
-			.andReturn(200, serviceList)
-			.times(numberOfCalls);
+		kubernetesMockServer.expect().get().withPath(urlPath).andReturn(200, serviceList).times(numberOfCalls);
 	}
 
 	/**

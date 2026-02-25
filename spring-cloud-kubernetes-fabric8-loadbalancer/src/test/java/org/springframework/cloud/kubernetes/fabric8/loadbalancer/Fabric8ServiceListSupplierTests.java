@@ -69,8 +69,8 @@ class Fabric8ServiceListSupplierTests {
 		.mock(AnyNamespaceOperation.class);
 
 	@SuppressWarnings("unchecked")
-	private final FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>> filtered =
-		Mockito.mock(FilterWatchListDeletable.class);
+	private final FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>> filtered = Mockito
+		.mock(FilterWatchListDeletable.class);
 
 	@Test
 	void testPositiveMatch() {
@@ -80,8 +80,8 @@ class Fabric8ServiceListSupplierTests {
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
 		when(this.namespaceOperation.withField("metadata.name", "test-service")).thenReturn(filtered);
-		when(this.filtered.list()).thenReturn(
-			new ServiceListBuilder().withItems(buildService("test-service", 8080)).build());
+		when(this.filtered.list())
+			.thenReturn(new ServiceListBuilder().withItems(buildService("test-service", 8080)).build());
 		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				KubernetesDiscoveryProperties.DEFAULT);
 		List<ServiceInstance> instances = supplier.get().blockFirst();

@@ -33,7 +33,8 @@ import org.springframework.core.log.LogAccessor;
  */
 abstract class AbstractFabric8ServicesListSupplier extends KubernetesServicesListSupplier<Service> {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(AbstractFabric8ServicesListSupplier.class));
+	private static final LogAccessor LOG = new LogAccessor(
+			LogFactory.getLog(AbstractFabric8ServicesListSupplier.class));
 
 	AbstractFabric8ServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper<Service> mapper,
 			KubernetesDiscoveryProperties discoveryProperties) {
@@ -45,12 +46,12 @@ abstract class AbstractFabric8ServicesListSupplier extends KubernetesServicesLis
 
 		if (services.isEmpty()) {
 			if (namespace == null) {
-				LOG.debug(() -> "did not find any services in any namespace with "
-					+ field + " equal to : " + fieldValue);
+				LOG.debug(
+						() -> "did not find any services in any namespace with " + field + " equal to : " + fieldValue);
 			}
 			else {
-				LOG.debug(() -> "did not find any services in namespace " + namespace + " with "
-					+ field + " equal to : " + fieldValue);
+				LOG.debug(() -> "did not find any services in namespace " + namespace + " with " + field
+						+ " equal to : " + fieldValue);
 			}
 		}
 		else {
@@ -58,4 +59,5 @@ abstract class AbstractFabric8ServicesListSupplier extends KubernetesServicesLis
 		}
 
 	}
+
 }

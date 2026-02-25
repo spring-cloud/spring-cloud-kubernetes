@@ -34,8 +34,8 @@ import org.springframework.core.log.LogAccessor;
 import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
 
 /**
- * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE
- * mode based on metadata.name filtering.
+ * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE mode
+ * based on metadata.name filtering.
  *
  * @author Piotr Minkowski
  */
@@ -90,8 +90,11 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 				String namespace = getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
 						namespaceProvider);
 				LOG.debug(() -> "discovering services in namespace : " + namespace);
-				List<Service> services = kubernetesClient.services().inNamespace(namespace)
-					.withField(FIELD_NAME, serviceName).list().getItems();
+				List<Service> services = kubernetesClient.services()
+					.inNamespace(namespace)
+					.withField(FIELD_NAME, serviceName)
+					.list()
+					.getItems();
 
 				addMappedServices(serviceInstances, services, namespace, FIELD_NAME, serviceName);
 			}
