@@ -60,7 +60,7 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 		return Flux.defer(() -> {
 			List<ServiceInstance> result = new ArrayList<>();
 			String serviceName = getServiceId();
-			LOG.debug(() -> "serviceID : " + serviceName);
+			LOG.debug(() -> "loadbalancer serviceID : " + serviceName);
 
 			if (discoveryProperties.allNamespaces()) {
 				LOG.debug(() -> "discovering services in all namespaces");
@@ -75,12 +75,14 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
 				LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
 				selectiveNamespaces.forEach(selectiveNamespace -> {
-					Service service = kubernetesClient.services()
+					List<Service> services = kubernetesClient.services()
 						.inNamespace(selectiveNamespace)
-						.withName(serviceName)
-						.get();
-					if (service != null) {
-						addMappedService(mapper, result, service);
+						.withField("metadata.name", serviceName)
+						.list()
+						.getItems();
+
+					if (!services.isEmpty()) {
+						addMappedService(mapper, result, services.get(0)); // there is only one for sure
 					}
 					else {
 						LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
@@ -92,9 +94,13 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
 						namespaceProvider);
 				LOG.debug(() -> "discovering services in namespace : " + namespace);
-				Service service = kubernetesClient.services().inNamespace(namespace).withName(serviceName).get();
-				if (service != null) {
-					addMappedService(mapper, result, service);
+				List<Service> services = kubernetesClient.services().inNamespace(namespace)
+					.withField("metadata.name", serviceName)
+					.list()
+					.getItems();
+
+				if (!services.isEmpty()) {
+					addMappedService(mapper, result, services.get(0));
 				}
 				else {
 					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : " + namespace);
