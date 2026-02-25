@@ -16,8 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
+
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -25,8 +29,6 @@ import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServi
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
-
-import java.util.List;
 
 import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
 
@@ -42,21 +44,33 @@ abstract class AbstractFabric8ServicesListSupplier extends KubernetesServicesLis
 	private final KubernetesNamespaceProvider namespaceProvider;
 
 	AbstractFabric8ServicesListSupplier(Environment environment, KubernetesClient kubernetesClient,
-		KubernetesServiceInstanceMapper<Service> mapper, KubernetesDiscoveryProperties discoveryProperties) {
+			KubernetesServiceInstanceMapper<Service> mapper, KubernetesDiscoveryProperties discoveryProperties) {
 		super(environment, mapper, discoveryProperties);
 		this.kubernetesClient = kubernetesClient;
 		namespaceProvider = new KubernetesNamespaceProvider(environment);
 	}
 
-	List<ServiceInstance> serviceInstances() {
+	/**
+	 * <pre>
+	 *     - accepts a field that we will filter for ( 'metadata.name' or 'metadata.labels' )
+	 *       and a value for that field.
+	 * </pre>
+	 */
+	List<ServiceInstance> serviceInstances(String field, String fieldValue) {
+
+		List<ServiceInstance> serviceInstances = new ArrayList<>();
+
+		LOG.debug(() -> "using field :" + field + " with value :" + fieldValue);
+
 		if (discoveryProperties.allNamespaces()) {
 			LOG.debug(() -> "discovering services in all namespaces");
 			List<Service> services = kubernetesClient.services()
 				.inAnyNamespace()
-				.withField("metadata.name", serviceName)
+				.withField(field, fieldValue)
 				.list()
 				.getItems();
-			services.forEach(service -> addMappedService(mapper, result, services));
+
+			addMappedServices(serviceInstances, services, null, field, fieldValue);
 		}
 		else if (!discoveryProperties.namespaces().isEmpty()) {
 			List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
@@ -64,39 +78,46 @@ abstract class AbstractFabric8ServicesListSupplier extends KubernetesServicesLis
 			selectiveNamespaces.forEach(selectiveNamespace -> {
 				List<Service> services = kubernetesClient.services()
 					.inNamespace(selectiveNamespace)
-					.withField("metadata.name", serviceName)
+					.withField(field, fieldValue)
 					.list()
 					.getItems();
 
-				if (!services.isEmpty()) {
-					addMappedService(mapper, result, services);
-				}
-				else {
-					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
-						+ selectiveNamespace);
-				}
+				addMappedServices(serviceInstances, services, selectiveNamespace, field, fieldValue);
 			});
 		}
 		else {
 			String namespace = getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
-				namespaceProvider);
+					namespaceProvider);
 			LOG.debug(() -> "discovering services in namespace : " + namespace);
-			List<Service> services = kubernetesClient.services().inNamespace(namespace)
-				.withField("metadata.name", serviceName)
+			List<Service> services = kubernetesClient.services()
+				.inNamespace(namespace)
+				.withField(field, fieldValue)
 				.list()
 				.getItems();
 
-			if (!services.isEmpty()) {
-				addMappedService(mapper, result, services);
+			addMappedServices(serviceInstances, services, namespace, field, fieldValue);
+		}
+
+		return serviceInstances;
+	}
+
+	private void addMappedServices(List<ServiceInstance> serviceInstances, List<Service> services, String namespace,
+			String field, String fieldValue) {
+
+		if (services.isEmpty()) {
+			// meaning all-namespaces
+			if (namespace == null) {
+				LOG.debug(() -> "Did not find services with field : " + field + " " + "and fieldValue : " + fieldValue
+						+ " in any namespace");
 			}
 			else {
-				LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : " + namespace);
+				LOG.debug(() -> "Did not find services with field : " + field + " " + "and fieldValue : " + fieldValue
+						+ " in namespace : " + namespace);
 			}
+		}
+		else {
+			services.forEach(service -> serviceInstances.add(mapper.map(service)));
 		}
 	}
 
-	private void addMappedService(KubernetesServiceInstanceMapper<Service> mapper,
-		List<ServiceInstance> serviceInstances, List<Service> services) {
-		services.forEach(service -> serviceInstances.add(mapper.map(service)));
-	}
 }

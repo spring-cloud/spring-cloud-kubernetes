@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -47,14 +46,12 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		return Flux.defer(() -> {
-			List<ServiceInstance> result = new ArrayList<>();
 			String serviceName = getServiceId();
 			LOG.debug(() -> "loadbalancer serviceID : " + serviceName);
 
-			dsaedsa
+			List<ServiceInstance> serviceInstances = serviceInstances("metadata.name", serviceName);
 
-			LOG.debug(() -> "found services : " + result);
-			return Flux.just(result);
+			return Flux.just(serviceInstances);
 		});
 	}
 
