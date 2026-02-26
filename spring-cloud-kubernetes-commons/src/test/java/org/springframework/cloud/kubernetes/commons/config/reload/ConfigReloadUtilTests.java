@@ -124,6 +124,11 @@ class ConfigReloadUtilTests {
 		assertThat(changed).isTrue();
 	}
 
+	/**
+	 * Mounted property sources are excluded from reload.
+	 * As such, the fact that MountSecretPropertySource is present, does not mean
+	 * that we take into consideration : it is skipped.
+	 */
 	@Test
 	void testFindPropertySources() {
 		MockEnvironment environment = new MockEnvironment();
@@ -146,25 +151,17 @@ class ConfigReloadUtilTests {
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
 
-		Assertions.assertThat(result.size()).isEqualTo(3);
-		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("b");
-		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("plain");
-		Assertions.assertThat(result.get(2).getProperty("")).isEqualTo("from-inner-two-composite");
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("plain");
+		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("from-inner-two-composite");
 
 	}
 
-	@Test
-	void testSecretsPropertySource() {
-		MockEnvironment environment = new MockEnvironment();
-		MutablePropertySources propertySources = environment.getPropertySources();
-		propertySources.addFirst(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b"))));
-
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
-				environment);
-		assertThat(result.size()).isEqualTo(1);
-		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
-	}
-
+	/**
+	 * Mounted property sources are excluded from reload.
+	 * As such, the fact that MountSecretPropertySource is present, does not mean
+	 * that we take into consideration : it is skipped.
+	 */
 	@Test
 	void testBootstrapSecretsPropertySource() {
 		MockEnvironment environment = new MockEnvironment();
@@ -174,8 +171,7 @@ class ConfigReloadUtilTests {
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);
-		assertThat(result.size()).isEqualTo(1);
-		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
+		assertThat(result.size()).isEqualTo(0);
 	}
 
 	private static final class OneComposite extends CompositePropertySource {

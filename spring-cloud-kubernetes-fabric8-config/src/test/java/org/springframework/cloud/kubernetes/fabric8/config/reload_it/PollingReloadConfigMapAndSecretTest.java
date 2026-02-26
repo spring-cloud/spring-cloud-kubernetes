@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
@@ -131,8 +132,8 @@ class PollingReloadConfigMapAndSecretTest {
 			.until(() -> output.getOut()
 				.contains("Reloadable condition was not satisfied, reload will not be triggered"));
 
-		// 2. then change a configmap, so the cycle seems them as different and triggers a
-		// reload
+		// 2. then change a configmap, so the cycle sees them as different,
+		// thus triggering a reload
 		Map<String, String> configMapA = Collections.singletonMap("one", "aa");
 		replaceConfigMap("configmap-a", configMapA);
 
@@ -162,7 +163,7 @@ class PollingReloadConfigMapAndSecretTest {
 		mockClient.configMaps()
 			.inNamespace(NAMESPACE)
 			.resource(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData(data).build())
-			.createOrReplace();
+			.createOr(NonDeletingOperation::update);
 	}
 
 	@TestConfiguration

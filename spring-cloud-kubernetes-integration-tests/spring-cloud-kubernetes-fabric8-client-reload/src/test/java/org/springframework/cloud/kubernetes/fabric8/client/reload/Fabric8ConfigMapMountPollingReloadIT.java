@@ -22,6 +22,7 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -111,7 +112,7 @@ class Fabric8ConfigMapMountPollingReloadIT {
 		InputStream configMapStream = util.inputStream("manifests/configmap.yaml");
 		ConfigMap configMap = Serialization.unmarshal(configMapStream, ConfigMap.class);
 		configMap.setData(Map.of(Constants.APPLICATION_PROPERTIES, "from.properties.key=as-mount-changed"));
-		client.configMaps().inNamespace("default").resource(configMap).createOrReplace();
+		client.configMaps().inNamespace("default").resource(configMap).createOr(NonDeletingOperation::update);
 
 		Commons.waitForLogStatement("Detected change in config maps/secrets, reload will be triggered", K3S,
 				IMAGE_NAME);
