@@ -87,7 +87,6 @@ public final class ConfigReloadUtil {
 	 * @deprecated this method will not be public in the next major release.
 	 */
 	@Deprecated(forRemoval = false)
-	@SuppressWarnings("unchecked")
 	public static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
 			ConfigurableEnvironment environment) {
 		List<S> managedSources = new ArrayList<>();
@@ -100,8 +99,8 @@ public final class ConfigReloadUtil {
 
 		while (!sources.isEmpty()) {
 			PropertySource<?> source = sources.remove(0);
-			if (source instanceof CompositePropertySource comp) {
-				sources.addAll(comp.getPropertySources());
+			if (source instanceof CompositePropertySource compositeSource) {
+				sources.addAll(compositeSource.getPropertySources());
 			}
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
