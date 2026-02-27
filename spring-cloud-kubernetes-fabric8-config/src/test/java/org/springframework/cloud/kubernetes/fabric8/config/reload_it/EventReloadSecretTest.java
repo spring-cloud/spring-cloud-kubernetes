@@ -61,11 +61,10 @@ import org.springframework.mock.env.MockEnvironment;
  */
 @SpringBootTest(
 		properties = { "spring.main.allow-bean-definition-overriding=true",
-				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug", "spring.cloud.kubernetes.reload.monitoring-secrets=true" },
+			"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { EventReloadSecretTest.TestConfig.class })
 @EnableKubernetesMockClient(crud = true)
 @ExtendWith(OutputCaptureExtension.class)
-
 class EventReloadSecretTest {
 
 	private static final boolean FAIL_FAST = false;
@@ -182,7 +181,7 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
-			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
+			return new ConfigReloadProperties(true, true, true, ConfigReloadProperties.ReloadStrategy.REFRESH,
 					ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE), false,
 					Duration.ofSeconds(2));
 		}
@@ -191,7 +190,7 @@ class EventReloadSecretTest {
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
 			return new SecretsConfigProperties(true, Map.of(), List.of(), List.of(), true, SECRET_NAME, NAMESPACE,
-					false, true, FAIL_FAST, RetryProperties.DEFAULT);
+					true, true, FAIL_FAST, RetryProperties.DEFAULT);
 		}
 
 		@Bean
