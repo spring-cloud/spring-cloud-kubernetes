@@ -65,6 +65,8 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	private final boolean enableReloadFiltering;
 
+	private final boolean monitorSecrets;
+
 	public Fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
@@ -73,6 +75,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
 		this.enableReloadFiltering = properties.enableReloadFiltering();
+		this.monitorSecrets = properties.monitoringSecrets();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
 	}
 
@@ -108,13 +111,17 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 	}
 
 	protected void onEvent(Secret secret) {
-
-		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
+		if (monitorSecrets) {
+			boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
 				environment, Fabric8SecretsPropertySource.class);
-		if (reload) {
-			reloadProperties();
+			if (reload) {
+				reloadProperties();
+			}
 		}
-
+		else {
+			LOG.debug(() -> "there was a change in : " + secret.getMetadata().getName()
+				+ ", but monitoring secrets is disabled");
+		}
 	}
 
 	private final class SecretInformerAwareEventHandler implements ResourceEventHandler<Secret> {

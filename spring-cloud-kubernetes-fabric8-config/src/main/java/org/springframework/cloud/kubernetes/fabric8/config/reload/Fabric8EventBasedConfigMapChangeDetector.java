@@ -65,6 +65,8 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final boolean enableReloadFiltering;
 
+	private final boolean monitorConfigMaps;
+
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
@@ -73,6 +75,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
 		this.enableReloadFiltering = properties.enableReloadFiltering();
+		this.monitorConfigMaps = properties.monitoringConfigMaps();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "configmap");
 	}
 
@@ -108,10 +111,16 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 	}
 
 	protected void onEvent(ConfigMap configMap) {
-		boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(),
+		if (monitorConfigMaps) {
+			boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(),
 				fabric8ConfigMapPropertySourceLocator, environment, Fabric8ConfigMapPropertySource.class);
-		if (reload) {
-			reloadProperties();
+			if (reload) {
+				reloadProperties();
+			}
+		}
+		else {
+			LOG.debug(() -> "there was a change in : " + configMap.getMetadata().getName()
+				+ ", but monitoring configmaps is disabled");
 		}
 	}
 
