@@ -66,7 +66,6 @@ import org.springframework.mock.env.MockEnvironment;
 		classes = { EventReloadSecretTest.TestConfig.class })
 @EnableKubernetesMockClient(crud = true)
 @ExtendWith(OutputCaptureExtension.class)
-
 class EventReloadSecretTest {
 
 	private static final boolean FAIL_FAST = false;
@@ -100,7 +99,7 @@ class EventReloadSecretTest {
 			.inNamespace(NAMESPACE);
 
 		// makes sure that when 'onEvent' is triggered (because we added a config map)
-		// the call to /api/v1/namespaces/spring-k8s/secrets will fail with an
+		// the call to /api/v1/namespaces/spring-k8s/secrets will not fail with an
 		// Exception
 		MixedOperation<Secret, SecretList, Resource<Secret>> mixedOperation = Mockito.mock(MixedOperation.class);
 		NonNamespaceOperation<Secret, SecretList, Resource<Secret>> mockedOperation = Mockito
@@ -181,7 +180,7 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
-			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
+			return new ConfigReloadProperties(true, true, true, ConfigReloadProperties.ReloadStrategy.REFRESH,
 					ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE), false,
 					Duration.ofSeconds(2));
 		}
@@ -189,7 +188,7 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
-			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, false, true,
+			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, true, true,
 					FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
 		}
 

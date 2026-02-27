@@ -71,6 +71,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private final boolean enableReloadFiltering;
 
+	private final boolean monitoringConfigMaps;
+
 	private final ResourceEventHandler<V1ConfigMap> handler = new ResourceEventHandler<>() {
 
 		@Override
@@ -110,35 +112,40 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
+		this.monitoringConfigMaps = properties.monitoringConfigMaps();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 
 	@PostConstruct
 	void inform() {
 		LOG.info(() -> "Kubernetes event-based configMap change detector activated");
+		if (monitoringConfigMaps) {
+			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
-		namespaces.forEach(namespace -> {
-			SharedIndexInformer<V1ConfigMap> informer;
-			String[] filter = new String[1];
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<V1ConfigMap> informer;
+				String[] filter = new String[1];
 
-			if (enableReloadFiltering) {
-				filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-			}
-			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
-			factories.add(factory);
-			informer = factory
-				.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
-					.timeoutSeconds(params.timeoutSeconds)
-					.resourceVersion(params.resourceVersion)
-					.watch(params.watch)
-					.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
+				if (enableReloadFiltering) {
+					filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+				}
+				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
+				factories.add(factory);
+				informer = factory
+					.sharedIndexInformerFor(
+						(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
+							.timeoutSeconds(params.timeoutSeconds)
+							.resourceVersion(params.resourceVersion)
+							.watch(params.watch)
+							.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
-			LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter[0]);
+				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter[0]);
 
-			informer.addEventHandler(handler);
-			informers.add(informer);
-			factory.startAllRegisteredInformers();
-		});
+				informer.addEventHandler(handler);
+				informers.add(informer);
+				factory.startAllRegisteredInformers();
+			});
+		}
 
 	}
 
