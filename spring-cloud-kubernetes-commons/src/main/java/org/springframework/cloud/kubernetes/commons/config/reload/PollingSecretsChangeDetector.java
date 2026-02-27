@@ -47,6 +47,8 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	private final long period;
 
+	// this beans has already a Conditional on this property, we only have it here
+	// in case it is created manually.
 	private final boolean monitorSecrets;
 
 	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
