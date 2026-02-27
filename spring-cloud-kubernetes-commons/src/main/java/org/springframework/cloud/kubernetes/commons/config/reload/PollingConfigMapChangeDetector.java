@@ -19,13 +19,12 @@ package org.springframework.cloud.kubernetes.commons.config.reload;
 import java.time.Duration;
 
 import jakarta.annotation.PostConstruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
@@ -39,7 +38,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  */
 public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector {
 
-	protected Log log = LogFactory.getLog(getClass());
+	private static final LogAccessor LOG = new LogAccessor(PollingConfigMapChangeDetector.class);
 
 	private final PropertySourceLocator propertySourceLocator;
 
@@ -51,6 +50,8 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 
 	private final long period;
 
+	// this beans has already a Conditional on this property, we only have it here
+	// in case it is created manually.
 	private final boolean monitorConfigMaps;
 
 	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
@@ -67,19 +68,22 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 
 	@PostConstruct
 	private void init() {
-		log.info("Kubernetes polling configMap change detector activated");
-		PeriodicTrigger trigger = new PeriodicTrigger(Duration.ofMillis(period));
-		trigger.setInitialDelay(Duration.ofMillis(period));
-		taskExecutor.schedule(this::executeCycle, trigger);
+		if (monitorConfigMaps) {
+			LOG.info(() -> "Kubernetes polling configMap change detector activated");
+			PeriodicTrigger trigger = new PeriodicTrigger(Duration.ofMillis(period));
+			trigger.setInitialDelay(Duration.ofMillis(period));
+			taskExecutor.schedule(this::executeCycle, trigger);
+		}
+		else {
+			LOG.debug(() -> "Kubernetes polling configMap change detector disabled");
+		}
 	}
 
 	private void executeCycle() {
-		if (monitorConfigMaps) {
-			boolean changedConfigMap = ConfigReloadUtil.reload(propertySourceLocator, environment, propertySourceClass);
-			if (changedConfigMap) {
-				log.info("Detected change in config maps");
-				reloadProperties();
-			}
+		boolean changedConfigMap = ConfigReloadUtil.reload(propertySourceLocator, environment, propertySourceClass);
+		if (changedConfigMap) {
+			LOG.info(() -> "Detected change in config maps");
+			reloadProperties();
 		}
 	}
 

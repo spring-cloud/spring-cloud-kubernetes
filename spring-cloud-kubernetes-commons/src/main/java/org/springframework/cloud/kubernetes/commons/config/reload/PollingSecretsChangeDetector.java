@@ -19,13 +19,12 @@ package org.springframework.cloud.kubernetes.commons.config.reload;
 import java.time.Duration;
 
 import jakarta.annotation.PostConstruct;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
@@ -39,7 +38,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  */
 public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
-	protected Log log = LogFactory.getLog(getClass());
+	private static final LogAccessor LOG = new LogAccessor(PollingSecretsChangeDetector.class);
 
 	private final PropertySourceLocator propertySourceLocator;
 
@@ -51,6 +50,8 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	private final long period;
 
+	// this beans has already a Conditional on this property, we only have it here
+	// in case it is created manually.
 	private final boolean monitorSecrets;
 
 	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
@@ -67,19 +68,22 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 
 	@PostConstruct
 	private void init() {
-		log.info("Kubernetes polling secrets change detector activated");
-		PeriodicTrigger trigger = new PeriodicTrigger(Duration.ofMillis(period));
-		trigger.setInitialDelay(Duration.ofMillis(period));
-		taskExecutor.schedule(this::executeCycle, trigger);
+		if (monitorSecrets) {
+			LOG.info(() -> "Kubernetes polling secrets change detector activated");
+			PeriodicTrigger trigger = new PeriodicTrigger(Duration.ofMillis(period));
+			trigger.setInitialDelay(Duration.ofMillis(period));
+			taskExecutor.schedule(this::executeCycle, trigger);
+		}
+		else {
+			LOG.info(() -> "Kubernetes polling secrets change detector disabled");
+		}
 	}
 
 	private void executeCycle() {
-		if (monitorSecrets) {
-			boolean changedSecrets = ConfigReloadUtil.reload(propertySourceLocator, environment, propertySourceClass);
-			if (changedSecrets) {
-				log.info("Detected change in secrets");
-				reloadProperties();
-			}
+		boolean changedSecrets = ConfigReloadUtil.reload(propertySourceLocator, environment, propertySourceClass);
+		if (changedSecrets) {
+			LOG.info(() -> "Detected change in secrets");
+			reloadProperties();
 		}
 	}
 
