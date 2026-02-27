@@ -89,38 +89,38 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	@PostConstruct
 	private void inform() {
-		LOG.info("Kubernetes event-based secrets change detector activated");
-
-		namespaces.forEach(namespace -> {
-			SharedIndexInformer<Secret> informer;
-			if (enableReloadFiltering) {
-				informer = kubernetesClient.secrets()
-					.inNamespace(namespace)
-					.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
-					.inform();
-				LOG.debug("added secret informer for namespace : " + namespace + " with enabled filter");
-			}
-			else {
-				informer = kubernetesClient.secrets().inNamespace(namespace).inform();
-				LOG.debug("added secret informer for namespace : " + namespace);
-			}
-
-			informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
-			informers.add(informer);
-		});
-	}
-
-	protected void onEvent(Secret secret) {
 		if (monitorSecrets) {
-			boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
-				environment, Fabric8SecretsPropertySource.class);
-			if (reload) {
-				reloadProperties();
-			}
+
+			LOG.info("Kubernetes event-based secrets change detector activated");
+
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<Secret> informer;
+				if (enableReloadFiltering) {
+					informer = kubernetesClient.secrets()
+						.inNamespace(namespace)
+						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
+						.inform();
+					LOG.debug("added secret informer for namespace : " + namespace + " with enabled filter");
+				}
+				else {
+					informer = kubernetesClient.secrets().inNamespace(namespace).inform();
+					LOG.debug("added secret informer for namespace : " + namespace);
+				}
+
+				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
+				informers.add(informer);
+			});
 		}
 		else {
-			LOG.debug(() -> "there was a change in : " + secret.getMetadata().getName()
-				+ ", but monitoring secrets is disabled");
+			LOG.debug("Kubernetes event-based secrets change detector deactivated");
+		}
+	}
+
+	private void onEvent(Secret secret) {
+		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
+			environment, Fabric8SecretsPropertySource.class);
+		if (reload) {
+			reloadProperties();
 		}
 	}
 

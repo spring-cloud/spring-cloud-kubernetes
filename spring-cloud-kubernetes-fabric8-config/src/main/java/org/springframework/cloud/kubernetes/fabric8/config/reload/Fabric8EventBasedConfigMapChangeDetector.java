@@ -81,25 +81,32 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	@PostConstruct
 	private void inform() {
-		LOG.info("Kubernetes event-based configMap change detector activated");
+		if (monitorConfigMaps) {
 
-		namespaces.forEach(namespace -> {
-			SharedIndexInformer<ConfigMap> informer;
-			if (enableReloadFiltering) {
-				informer = kubernetesClient.configMaps()
-					.inNamespace(namespace)
-					.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
-					.inform();
-				LOG.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
-			}
-			else {
-				informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
-				LOG.debug("added configmap informer for namespace : " + namespace);
-			}
+			LOG.info("Kubernetes event-based configMap change detector activated");
 
-			informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
-			informers.add(informer);
-		});
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<ConfigMap> informer;
+				if (enableReloadFiltering) {
+					informer = kubernetesClient.configMaps()
+						.inNamespace(namespace)
+						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
+						.inform();
+					LOG.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
+				}
+				else {
+					informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
+					LOG.debug("added configmap informer for namespace : " + namespace);
+				}
+
+				informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
+				informers.add(informer);
+			});
+		}
+		else {
+			LOG.info("Kubernetes event-based configMap change detector disabled");
+		}
+
 	}
 
 	@PreDestroy
@@ -110,17 +117,11 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		kubernetesClient.close();
 	}
 
-	protected void onEvent(ConfigMap configMap) {
-		if (monitorConfigMaps) {
-			boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(),
-				fabric8ConfigMapPropertySourceLocator, environment, Fabric8ConfigMapPropertySource.class);
-			if (reload) {
-				reloadProperties();
-			}
-		}
-		else {
-			LOG.debug(() -> "there was a change in : " + configMap.getMetadata().getName()
-				+ ", but monitoring configmaps is disabled");
+	private void onEvent(ConfigMap configMap) {
+		boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(),
+			fabric8ConfigMapPropertySourceLocator, environment, Fabric8ConfigMapPropertySource.class);
+		if (reload) {
+			reloadProperties();
 		}
 	}
 
