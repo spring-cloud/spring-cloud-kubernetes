@@ -118,7 +118,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	private void onEvent(Secret secret) {
 		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
-			environment, Fabric8SecretsPropertySource.class);
+				environment, Fabric8SecretsPropertySource.class);
 		if (reload) {
 			reloadProperties();
 		}

@@ -61,7 +61,7 @@ import org.springframework.mock.env.MockEnvironment;
  */
 @SpringBootTest(
 		properties = { "spring.main.allow-bean-definition-overriding=true",
-			"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
+				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { EventReloadSecretTest.TestConfig.class })
 @EnableKubernetesMockClient(crud = true)
 @ExtendWith(OutputCaptureExtension.class)
@@ -98,7 +98,8 @@ class EventReloadSecretTest {
 			.inNamespace(NAMESPACE);
 
 		// makes sure that when 'onEvent' is triggered (because we added a config map)
-		// the call to /api/v1/namespaces/spring-k8s/secrets will not fail with an Exception
+		// the call to /api/v1/namespaces/spring-k8s/secrets will not fail with an
+		// Exception
 		MixedOperation<Secret, SecretList, Resource<Secret>> mixedOperation = Mockito.mock(MixedOperation.class);
 		NonNamespaceOperation<Secret, SecretList, Resource<Secret>> mockedOperation = Mockito
 			.mock(NonNamespaceOperation.class);
@@ -189,8 +190,8 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
-			return new SecretsConfigProperties(true, Map.of(), List.of(), List.of(), true, SECRET_NAME, NAMESPACE,
-					true, true, FAIL_FAST, RetryProperties.DEFAULT);
+			return new SecretsConfigProperties(true, Map.of(), List.of(), List.of(), true, SECRET_NAME, NAMESPACE, true,
+					true, FAIL_FAST, RetryProperties.DEFAULT);
 		}
 
 		@Bean

@@ -71,6 +71,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private final boolean enableReloadFiltering;
 
+	private final boolean monitoringSecrets;
+
 	private final ResourceEventHandler<V1Secret> handler = new ResourceEventHandler<>() {
 
 		@Override
@@ -110,6 +112,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
+		this.monitoringSecrets = properties.monitoringSecrets();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 
@@ -117,27 +120,29 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	void inform() {
 		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
-		namespaces.forEach(namespace -> {
-			SharedIndexInformer<V1Secret> informer;
-			String[] filter = new String[1];
+		if (monitoringSecrets) {
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<V1Secret> informer;
+				String[] filter = new String[1];
 
-			if (enableReloadFiltering) {
-				filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-			}
-			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
-			factories.add(factory);
-			informer = factory
-				.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace,
-						null, null, null, null, filter[0], null, params.resourceVersion, null, null,
-						params.timeoutSeconds, params.watch, null), V1Secret.class, V1SecretList.class);
+				if (enableReloadFiltering) {
+					filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+				}
+				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
+				factories.add(factory);
+				informer = factory.sharedIndexInformerFor(
+						(CallGeneratorParams params) -> coreV1Api.listNamespacedSecretCall(namespace, null, null, null,
+								null, filter[0], null, params.resourceVersion, null, null, params.timeoutSeconds,
+								params.watch, null),
+						V1Secret.class, V1SecretList.class);
 
-			LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);
+				LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);
 
-			informer.addEventHandler(handler);
-			informers.add(informer);
-			factory.startAllRegisteredInformers();
-		});
-
+				informer.addEventHandler(handler);
+				informers.add(informer);
+				factory.startAllRegisteredInformers();
+			});
+		}
 	}
 
 	@PreDestroy

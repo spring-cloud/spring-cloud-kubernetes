@@ -119,7 +119,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private void onEvent(ConfigMap configMap) {
 		boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(),
-			fabric8ConfigMapPropertySourceLocator, environment, Fabric8ConfigMapPropertySource.class);
+				fabric8ConfigMapPropertySourceLocator, environment, Fabric8ConfigMapPropertySource.class);
 		if (reload) {
 			reloadProperties();
 		}
