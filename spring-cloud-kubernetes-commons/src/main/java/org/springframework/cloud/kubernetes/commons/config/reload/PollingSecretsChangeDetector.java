@@ -54,7 +54,7 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 	// in case it is created manually.
 	private final boolean monitorSecrets;
 
-	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+	public PollingSecretsChangeDetector(AbstractEnvironment environment, ConfigReloadProperties configReloadProperties,
 			ConfigurationUpdateStrategy strategy, Class<? extends MapPropertySource> propertySourceClass,
 			PropertySourceLocator propertySourceLocator, TaskScheduler taskExecutor) {
 		super(strategy);
@@ -62,8 +62,8 @@ public class PollingSecretsChangeDetector extends ConfigurationChangeDetector {
 		this.propertySourceLocator = propertySourceLocator;
 		this.propertySourceClass = propertySourceClass;
 		this.taskExecutor = taskExecutor;
-		this.period = properties.period().toMillis();
-		this.monitorSecrets = properties.monitoringSecrets();
+		this.period = configReloadProperties.period().toMillis();
+		this.monitorSecrets = configReloadProperties.monitoringSecrets();
 	}
 
 	@PostConstruct

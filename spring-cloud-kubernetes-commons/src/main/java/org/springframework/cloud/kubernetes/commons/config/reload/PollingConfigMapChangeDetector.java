@@ -50,11 +50,11 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 
 	private final long period;
 
-	// this beans has already a Conditional on this property, we only have it here
+	// this bean already has a Conditional on this property, we only have it here
 	// in case it is created manually.
 	private final boolean monitorConfigMaps;
 
-	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
+	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties configReloadProperties,
 			ConfigurationUpdateStrategy strategy, Class<? extends MapPropertySource> propertySourceClass,
 			PropertySourceLocator propertySourceLocator, TaskScheduler taskExecutor) {
 		super(strategy);
@@ -62,8 +62,8 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 		this.propertySourceLocator = propertySourceLocator;
 		this.propertySourceClass = propertySourceClass;
 		this.taskExecutor = taskExecutor;
-		this.period = properties.period().toMillis();
-		this.monitorConfigMaps = properties.monitoringConfigMaps();
+		this.period = configReloadProperties.period().toMillis();
+		this.monitorConfigMaps = configReloadProperties.monitoringConfigMaps();
 	}
 
 	@PostConstruct
