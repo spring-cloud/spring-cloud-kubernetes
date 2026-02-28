@@ -178,7 +178,7 @@ public final class ConfigReloadUtil {
 				LOG.debug("k8s property sources size: " + k8sSources.size());
 				k8sSources.forEach(item -> LOG.debug(item.toString()));
 
-				LOG.debug("app property sources size size: " + appSources.size());
+				LOG.debug("app property sources size: " + appSources.size());
 				appSources.forEach(item -> LOG.debug(item.toString()));
 			}
 			LOG.warn(() -> "The current number of PropertySources does not match "
