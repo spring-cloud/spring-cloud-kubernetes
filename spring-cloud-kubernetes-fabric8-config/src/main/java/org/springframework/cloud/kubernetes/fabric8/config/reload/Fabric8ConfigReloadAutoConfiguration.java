@@ -71,7 +71,7 @@ public class Fabric8ConfigReloadAutoConfiguration {
 
 	/**
 	 * Polling configMap ConfigurationChangeDetector.
-	 * @param properties config reload properties
+	 * @param configReloadProperties config reload properties
 	 * @param strategy configuration update strategy
 	 * @param fabric8ConfigMapPropertySourceLocator configMap property source locator
 	 * @return a bean that listen to configuration changes and fire a reload.
@@ -80,19 +80,19 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	@ConditionalOnConfigMapsReloadEnabled
 	@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
 	@Conditional(PollingReloadDetectionMode.class)
-	public ConfigurationChangeDetector configMapPropertyChangePollingWatcher(ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy,
+	public ConfigurationChangeDetector configMapPropertyChangePollingWatcher(
+			ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			TaskSchedulerWrapper<TaskScheduler> taskSchedulerWrapper, AbstractEnvironment environment) {
 
-		return new PollingConfigMapChangeDetector(environment, properties, strategy,
+		return new PollingConfigMapChangeDetector(environment, configReloadProperties, strategy,
 				Fabric8ConfigMapPropertySource.class, fabric8ConfigMapPropertySourceLocator,
 				taskSchedulerWrapper.getTaskScheduler());
 	}
 
 	/**
 	 * Polling secrets ConfigurationChangeDetector.
-	 * @param properties config reload properties
+	 * @param configReloadProperties config reload properties
 	 * @param strategy configuration update strategy
 	 * @param fabric8SecretsPropertySourceLocator secrets property source locator
 	 * @return a bean that listen to configuration changes and fire a reload.
@@ -101,18 +101,19 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	@ConditionalOnSecretsReloadEnabled
 	@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
 	@Conditional(PollingReloadDetectionMode.class)
-	public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy,
+	public ConfigurationChangeDetector secretsPropertyChangePollingWatcher(
+			ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy strategy,
 			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
 			TaskSchedulerWrapper<TaskScheduler> taskScheduler, AbstractEnvironment environment) {
 
-		return new PollingSecretsChangeDetector(environment, properties, strategy, Fabric8SecretsPropertySource.class,
-				fabric8SecretsPropertySourceLocator, taskScheduler.getTaskScheduler());
+		return new PollingSecretsChangeDetector(environment, configReloadProperties, strategy,
+				Fabric8SecretsPropertySource.class, fabric8SecretsPropertySourceLocator,
+				taskScheduler.getTaskScheduler());
 	}
 
 	/**
 	 * Event Based configMap ConfigurationChangeDetector.
-	 * @param properties config reload properties
+	 * @param configReloadProperties config reload properties
 	 * @param strategy configuration update strategy
 	 * @param fabric8ConfigMapPropertySourceLocator configMap property source locator
 	 * @return a bean that listen to configMap change events and fire a reload.
@@ -121,18 +122,18 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	@ConditionalOnConfigMapsReloadEnabled
 	@ConditionalOnBean(Fabric8ConfigMapPropertySourceLocator.class)
 	@Conditional(EventReloadDetectionMode.class)
-	public ConfigurationChangeDetector configMapPropertyChangeEventWatcher(ConfigReloadProperties properties,
-			ConfigurationUpdateStrategy strategy,
+	public ConfigurationChangeDetector configMapPropertyChangeEventWatcher(
+			ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			AbstractEnvironment environment, KubernetesClient kubernetesClient) {
 
-		return new Fabric8EventBasedConfigMapChangeDetector(environment, properties, kubernetesClient, strategy,
-				fabric8ConfigMapPropertySourceLocator, new KubernetesNamespaceProvider(environment));
+		return new Fabric8EventBasedConfigMapChangeDetector(environment, configReloadProperties, kubernetesClient,
+				strategy, fabric8ConfigMapPropertySourceLocator, new KubernetesNamespaceProvider(environment));
 	}
 
 	/**
 	 * Event Based secrets ConfigurationChangeDetector.
-	 * @param properties config reload properties
+	 * @param configReloadProperties config reload properties
 	 * @param strategy configuration update strategy
 	 * @param fabric8SecretsPropertySourceLocator secrets property source locator
 	 * @return a bean that listen to secrets change events and fire a reload.
@@ -141,13 +142,13 @@ public class Fabric8ConfigReloadAutoConfiguration {
 	@ConditionalOnSecretsReloadEnabled
 	@ConditionalOnBean(Fabric8SecretsPropertySourceLocator.class)
 	@Conditional(EventReloadDetectionMode.class)
-	public ConfigurationChangeDetector secretsPropertyChangeEventWatcher(ConfigReloadProperties properties,
+	public ConfigurationChangeDetector secretsPropertyChangeEventWatcher(ConfigReloadProperties configReloadProperties,
 			ConfigurationUpdateStrategy strategy,
 			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator, AbstractEnvironment environment,
 			KubernetesClient kubernetesClient) {
 
-		return new Fabric8EventBasedSecretsChangeDetector(environment, properties, kubernetesClient, strategy,
-				fabric8SecretsPropertySourceLocator, new KubernetesNamespaceProvider(environment));
+		return new Fabric8EventBasedSecretsChangeDetector(environment, configReloadProperties, kubernetesClient,
+				strategy, fabric8SecretsPropertySourceLocator, new KubernetesNamespaceProvider(environment));
 	}
 
 }
