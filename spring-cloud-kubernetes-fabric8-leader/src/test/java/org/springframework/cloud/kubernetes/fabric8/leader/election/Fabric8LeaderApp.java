@@ -16,49 +16,14 @@
 
 package org.springframework.cloud.kubernetes.fabric8.leader.election;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.internal.BaseOperation;
-import io.fabric8.kubernetes.client.extended.leaderelection.resourcelock.Lock;
-import org.mockito.Mockito;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-
-@Configuration
+@SpringBootApplication
 public class Fabric8LeaderApp {
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Bean
-	KubernetesClient kubernetesClient() {
-		KubernetesClient client = Mockito.mock(KubernetesClient.class);
-		Mockito.when(client.getNamespace()).thenReturn("a");
-
-		MixedOperation mixedOperation = Mockito.mock(MixedOperation.class);
-		Mockito.when(client.configMaps()).thenReturn(mixedOperation);
-
-		PodResource podResource = Mockito.mock(PodResource.class);
-		Mockito.when(podResource.isReady()).thenReturn(true);
-
-		Mockito.when(client.pods()).thenReturn(mixedOperation);
-		Mockito.when(mixedOperation.withName(Mockito.anyString())).thenReturn(podResource);
-
-		Resource resource = Mockito.mock(Resource.class);
-
-		BaseOperation baseOperation = Mockito.mock(BaseOperation.class);
-		Mockito.when(baseOperation.withName("leaders")).thenReturn(resource);
-
-		Mockito.when(mixedOperation.inNamespace("a")).thenReturn(baseOperation);
-		return client;
-	}
-
-	@Bean
-	@Primary
-	Lock lock() {
-		return Mockito.mock(Lock.class);
+	public static void main(String[] args) {
+		SpringApplication.run(Fabric8LeaderApp.class, args);
 	}
 
 }

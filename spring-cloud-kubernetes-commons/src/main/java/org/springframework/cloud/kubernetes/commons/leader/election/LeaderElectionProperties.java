@@ -21,7 +21,7 @@ import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEADER_ELECTION_PROPERTY_PREFIX;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderUtils.LEADER_ELECTION_PROPERTY_PREFIX;
 
 /**
  * <pre>
