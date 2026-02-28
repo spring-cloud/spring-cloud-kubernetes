@@ -132,14 +132,14 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 				factories.add(factory);
 				informer = factory
-					.sharedIndexInformerFor(
-						(CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
-							.timeoutSeconds(params.timeoutSeconds)
-							.resourceVersion(params.resourceVersion)
-							.watch(params.watch)
-							.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
+					.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
+						.timeoutSeconds(params.timeoutSeconds)
+						.resourceVersion(params.resourceVersion)
+						.watch(params.watch)
+						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
-				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter[0]);
+				LOG.debug(
+						() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter[0]);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);

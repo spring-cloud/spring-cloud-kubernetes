@@ -188,8 +188,8 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
-			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, true, true,
-					FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
+			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, true, true, FAIL_FAST,
+					RetryProperties.DEFAULT, ReadType.SINGLE);
 		}
 
 		@Bean
