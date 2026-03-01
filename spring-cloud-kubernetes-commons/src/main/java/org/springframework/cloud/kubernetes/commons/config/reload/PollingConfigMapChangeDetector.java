@@ -54,9 +54,10 @@ public class PollingConfigMapChangeDetector extends ConfigurationChangeDetector 
 	// in case it is created manually.
 	private final boolean monitorConfigMaps;
 
-	public PollingConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties configReloadProperties,
-			ConfigurationUpdateStrategy strategy, Class<? extends MapPropertySource> propertySourceClass,
-			PropertySourceLocator propertySourceLocator, TaskScheduler taskExecutor) {
+	public PollingConfigMapChangeDetector(AbstractEnvironment environment,
+			ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy strategy,
+			Class<? extends MapPropertySource> propertySourceClass, PropertySourceLocator propertySourceLocator,
+			TaskScheduler taskExecutor) {
 		super(strategy);
 		this.environment = environment;
 		this.propertySourceLocator = propertySourceLocator;
