@@ -18,12 +18,11 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Map;
 
-/**
- * @author wind57
- */
-public final class MountConfigMapPropertySource extends ConfigMapPropertySource {
+import org.springframework.core.env.MapPropertySource;
 
-	public MountConfigMapPropertySource(String name, Map<String, Object> source) {
+public class ConfigMapPropertySource extends MapPropertySource {
+
+	public ConfigMapPropertySource(String name, Map<String, Object> source) {
 		super(name, source);
 	}
 

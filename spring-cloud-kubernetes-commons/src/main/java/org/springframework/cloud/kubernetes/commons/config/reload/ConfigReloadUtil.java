@@ -26,8 +26,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountSecretPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -108,11 +110,13 @@ public final class ConfigReloadUtil {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
-			else if (source instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
+			else if (source instanceof MountConfigMapPropertySource mountConfigMapPropertySource
+					&& ConfigMapPropertySource.class.isAssignableFrom(sourceClass)) {
 				// we know that the type is correct here
 				managedSources.add((S) mountConfigMapPropertySource);
 			}
-			else if (source instanceof MountSecretPropertySource mountSecretPropertySource) {
+			else if (source instanceof MountSecretPropertySource mountSecretPropertySource
+					&& SecretsPropertySource.class.isAssignableFrom(sourceClass)) {
 				// we know that the type is correct here
 				managedSources.add((S) mountSecretPropertySource);
 			}
