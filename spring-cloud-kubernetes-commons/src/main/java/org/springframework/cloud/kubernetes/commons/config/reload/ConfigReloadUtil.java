@@ -91,10 +91,9 @@ public final class ConfigReloadUtil {
 	 * @deprecated this method will not be public in the next major release.
 	 */
 	@Deprecated(forRemoval = false)
-	@SuppressWarnings("unchecked")
-	public static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
+	public static <S extends MapPropertySource> List<MapPropertySource> findPropertySources(Class<S> sourceClass,
 			ConfigurableEnvironment environment) {
-		List<S> managedSources = new ArrayList<>();
+		List<MapPropertySource> managedSources = new ArrayList<>();
 
 		List<PropertySource<?>> sources = environment.getPropertySources()
 			.stream()
@@ -112,13 +111,11 @@ public final class ConfigReloadUtil {
 			}
 			else if (source instanceof MountConfigMapPropertySource mountConfigMapPropertySource
 					&& ConfigMapPropertySource.class.isAssignableFrom(sourceClass)) {
-				// we know that the type is correct here
-				managedSources.add((S) mountConfigMapPropertySource);
+				managedSources.add(mountConfigMapPropertySource);
 			}
 			else if (source instanceof MountSecretPropertySource mountSecretPropertySource
 					&& SecretsPropertySource.class.isAssignableFrom(sourceClass)) {
-				// we know that the type is correct here
-				managedSources.add((S) mountSecretPropertySource);
+				managedSources.add(mountSecretPropertySource);
 			}
 			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
@@ -128,13 +125,11 @@ public final class ConfigReloadUtil {
 				}
 				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource
 						&& ConfigMapPropertySource.class.isAssignableFrom(sourceClass)) {
-					// we know that the type is correct here
-					managedSources.add((S) mountConfigMapPropertySource);
+					managedSources.add(mountConfigMapPropertySource);
 				}
 				else if (propertySource instanceof MountSecretPropertySource mountSecretPropertySource
 						&& SecretsPropertySource.class.isAssignableFrom(sourceClass)) {
-					// we know that the type is correct here
-					managedSources.add((S) mountSecretPropertySource);
+					managedSources.add(mountSecretPropertySource);
 				}
 			}
 		}

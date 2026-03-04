@@ -34,6 +34,7 @@ import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.NamedConfigMapNormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.when;
  */
 class EventBasedConfigurationChangeDetectorTests {
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "deprecation" })
 	@Test
 	void verifyConfigChangesAccountsForBootstrapPropertySources() {
 		MockEnvironment env = new MockEnvironment();
@@ -71,8 +72,8 @@ class EventBasedConfigurationChangeDetectorTests {
 		Fabric8ConfigMapPropertySource fabric8ConfigMapPropertySource = new Fabric8ConfigMapPropertySource(context);
 		env.getPropertySources().addFirst(new BootstrapPropertySource<>(fabric8ConfigMapPropertySource));
 
-		List<Fabric8ConfigMapPropertySource> sources = ConfigReloadUtil
-			.findPropertySources(Fabric8ConfigMapPropertySource.class, env);
+		List<MapPropertySource> sources = ConfigReloadUtil.findPropertySources(Fabric8ConfigMapPropertySource.class,
+				env);
 		assertThat(sources.size()).isEqualTo(1);
 		assertThat(sources.get(0).getProperty("foo")).isEqualTo("bar");
 	}

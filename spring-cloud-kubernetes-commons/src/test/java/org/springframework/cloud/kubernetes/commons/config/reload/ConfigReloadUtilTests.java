@@ -127,12 +127,12 @@ class ConfigReloadUtilTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "rawtypes", "deprecation" })
+	@SuppressWarnings({ "deprecation" })
 	void testFindPropertySources() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new OneComposite());
-		propertySources.addFirst(new PlainPropertySource<>("plain"));
+		propertySources.addFirst(new PlainMapPropertySource<>("plain", Map.of()));
 		propertySources.addFirst(new OneBootstrap<>(new EnumerablePropertySource<>("enumerable") {
 			@Override
 			public String[] getPropertyNames() {
@@ -146,7 +146,7 @@ class ConfigReloadUtilTests {
 		}));
 		propertySources.addFirst(new MountConfigMapPropertySource("mounted", Map.of("aa", "bb")));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(PlainMapPropertySource.class,
 				environment);
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -163,13 +163,13 @@ class ConfigReloadUtilTests {
 	 * </pre>
 	 */
 	@Test
-	@SuppressWarnings({ "rawtypes", "deprecation" })
+	@SuppressWarnings({ "deprecation" })
 	void testSecretsPropertySource() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b"))));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(SecretsTypePropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(SecretsTypePropertySource.class,
 				environment);
 		assertThat(result.size()).isEqualTo(1);
 		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
@@ -184,13 +184,13 @@ class ConfigReloadUtilTests {
 	 * </pre>
 	 */
 	@Test
-	@SuppressWarnings({ "rawtypes", "deprecation" })
+	@SuppressWarnings({ "deprecation" })
 	void testSecretsPropertySourceNotTaken() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b"))));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(PlainMapPropertySource.class,
 				environment);
 		assertThat(result.size()).isEqualTo(0);
 	}
@@ -204,13 +204,13 @@ class ConfigReloadUtilTests {
 	 * </pre>
 	 */
 	@Test
-	@SuppressWarnings({ "rawtypes", "deprecation" })
+	@SuppressWarnings({ "deprecation" })
 	void testConfigMapPropertySource() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new MountConfigMapPropertySource("secret", Map.of("a", "b")));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(ConfigMapTypePropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(ConfigMapTypePropertySource.class,
 				environment);
 		assertThat(result.size()).isEqualTo(1);
 		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
@@ -225,26 +225,26 @@ class ConfigReloadUtilTests {
 	 * </pre>
 	 */
 	@Test
-	@SuppressWarnings({ "rawtypes", "deprecation" })
+	@SuppressWarnings({ "deprecation" })
 	void testConfigMapPropertySourceNotTaken() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new MountConfigMapPropertySource("secret", Map.of("a", "b")));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(PlainMapPropertySource.class,
 				environment);
 		assertThat(result.size()).isEqualTo(0);
 	}
 
 	@Test
-	@SuppressWarnings({ "rawtypes", "deprecation" })
+	@SuppressWarnings({ "deprecation" })
 	void testBootstrapSecretsPropertySource() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources
 			.addFirst(new OneBootstrap<>(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b")))));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(SecretsTypePropertySource.class,
 				environment);
 		assertThat(result.size()).isEqualTo(1);
 		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
@@ -271,15 +271,15 @@ class ConfigReloadUtilTests {
 
 		@Override
 		public Collection<PropertySource<?>> getPropertySources() {
-			return List.of(new PlainPropertySource<>("from-inner-two-composite"));
+			return List.of(new PlainMapPropertySource<>("from-inner-two-composite", Map.of()));
 		}
 
 	}
 
-	private static final class PlainPropertySource<T> extends PropertySource<T> {
+	private static final class PlainMapPropertySource<T> extends MapPropertySource {
 
-		private PlainPropertySource(String name) {
-			super(name);
+		PlainMapPropertySource(String name, Map<String, Object> source) {
+			super(name, source);
 		}
 
 		@Override
@@ -292,7 +292,7 @@ class ConfigReloadUtilTests {
 	/**
 	 * simulates Fabric8SecretsPropertySource or KubernetesClientSecretsPropertySource.
 	 */
-	private static final class SecretsTypePropertySource<T> extends SecretsPropertySource {
+	private static final class SecretsTypePropertySource extends SecretsPropertySource {
 
 		SecretsTypePropertySource(SourceData sourceData) {
 			super(sourceData);
@@ -304,7 +304,7 @@ class ConfigReloadUtilTests {
 	 * simulates Fabric8ConfigMapPropertySource or
 	 * KubernetesClientConfigMapPropertySource.
 	 */
-	private static final class ConfigMapTypePropertySource<T> extends ConfigMapPropertySource {
+	private static final class ConfigMapTypePropertySource extends ConfigMapPropertySource {
 
 		ConfigMapTypePropertySource(String name, Map<String, Object> source) {
 			super(name, source);
