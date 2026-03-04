@@ -157,7 +157,7 @@ class ConfigReloadUtilTests {
 	/**
 	 * <pre>
 	 *     - in environment we have one MountSecretPropertySource
-	 *     - we search for a type that extends SecretPropertySource (SecretsTypePropertySource)
+	 *     - we search for a type that extends SecretsPropertySource (SecretsTypePropertySource)
 	 *
 	 *     - we pick up MountSecretPropertySource
 	 * </pre>
@@ -178,7 +178,7 @@ class ConfigReloadUtilTests {
 	/**
 	 * <pre>
 	 *     - in environment we have one MountSecretPropertySource
-	 *     - we search for a type that does not extend SecretPropertySource (PlainPropertySource)
+	 *     - we search for a type that does not extend SecretsPropertySource (PlainPropertySource)
 	 *
 	 *     - we don't pick up MountSecretPropertySource
 	 * </pre>
@@ -198,7 +198,7 @@ class ConfigReloadUtilTests {
 	/**
 	 * <pre>
 	 *     - in environment we have one MountConfigMapPropertySource
-	 *     - we search for a type that extends SecretPropertySource (ConfigMapTypePropertySource)
+	 *     - we search for a type that extends ConfigMapPropertySource (ConfigMapTypePropertySource)
 	 *
 	 *     - we pick up MountConfigMapPropertySource
 	 * </pre>
@@ -229,7 +229,7 @@ class ConfigReloadUtilTests {
 	void testConfigMapPropertySourceNotTaken() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
-		propertySources.addFirst(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b"))));
+		propertySources.addFirst(new MountConfigMapPropertySource("secret", Map.of("a", "b")));
 
 		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
 				environment);

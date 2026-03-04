@@ -126,11 +126,13 @@ public final class ConfigReloadUtil {
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
 				}
-				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
+				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource
+						&& ConfigMapPropertySource.class.isAssignableFrom(sourceClass)) {
 					// we know that the type is correct here
 					managedSources.add((S) mountConfigMapPropertySource);
 				}
-				else if (propertySource instanceof MountSecretPropertySource mountSecretPropertySource) {
+				else if (propertySource instanceof MountSecretPropertySource mountSecretPropertySource
+						&& SecretsPropertySource.class.isAssignableFrom(sourceClass)) {
 					// we know that the type is correct here
 					managedSources.add((S) mountSecretPropertySource);
 				}
