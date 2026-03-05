@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-class ConfigReloadUtilTests {
+class KubernetesClientConfigReloadUtilTests {
 
 	private static final V1ConfigMapList CONFIGMAP_LIST = new V1ConfigMapListBuilder().build();
 

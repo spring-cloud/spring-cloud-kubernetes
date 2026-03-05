@@ -38,7 +38,7 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigM
  * @author wind57
  */
 @EnableKubernetesMockClient(crud = true, https = false)
-class ConfigReloadUtilTests {
+class Fabric8ConfigReloadUtilTests {
 
 	private static KubernetesClient kubernetesClient;
 
