@@ -23,8 +23,10 @@ import java.util.Set;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceList;
+import io.fabric8.kubernetes.api.model.ServiceListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.AnyNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
@@ -66,6 +68,10 @@ class Fabric8ServiceListSupplierTests {
 	private final AnyNamespaceOperation<Service, ServiceList, ServiceResource<Service>> multiDeletable = Mockito
 		.mock(AnyNamespaceOperation.class);
 
+	@SuppressWarnings("unchecked")
+	private final FilterWatchListDeletable<Service, ServiceList, ServiceResource<Service>> filtered = Mockito
+		.mock(FilterWatchListDeletable.class);
+
 	@Test
 	void testPositiveMatch() {
 		when(mapper.map(any(Service.class)))
@@ -73,8 +79,9 @@ class Fabric8ServiceListSupplierTests {
 		when(this.client.getNamespace()).thenReturn("test");
 		when(this.client.services()).thenReturn(this.serviceOperation);
 		when(this.serviceOperation.inNamespace("test")).thenReturn(namespaceOperation);
-		when(this.namespaceOperation.withName("test-service")).thenReturn(this.serviceResource);
-		when(this.serviceResource.get()).thenReturn(buildService("test-service", 8080));
+		when(this.namespaceOperation.withField("metadata.name", "test-service")).thenReturn(filtered);
+		when(this.filtered.list())
+			.thenReturn(new ServiceListBuilder().withItems(buildService("test-service", 8080)).build());
 		KubernetesServicesListSupplier<Service> supplier = new Fabric8ServicesListSupplier(environment, client, mapper,
 				KubernetesDiscoveryProperties.DEFAULT);
 		List<ServiceInstance> instances = supplier.get().blockFirst();
