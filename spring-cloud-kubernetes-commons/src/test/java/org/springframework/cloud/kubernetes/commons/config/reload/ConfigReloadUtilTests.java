@@ -26,8 +26,10 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountSecretPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.SourceData;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -125,11 +127,12 @@ class ConfigReloadUtilTests {
 	}
 
 	@Test
+	@SuppressWarnings({ "deprecation" })
 	void testFindPropertySources() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new OneComposite());
-		propertySources.addFirst(new PlainPropertySource<>("plain"));
+		propertySources.addFirst(new PlainMapPropertySource<>("plain", Map.of()));
 		propertySources.addFirst(new OneBootstrap<>(new EnumerablePropertySource<>("enumerable") {
 			@Override
 			public String[] getPropertyNames() {
@@ -141,38 +144,107 @@ class ConfigReloadUtilTests {
 				return null;
 			}
 		}));
-		propertySources.addFirst(new MountConfigMapPropertySource("mounted", Map.of("a", "b")));
+		propertySources.addFirst(new MountConfigMapPropertySource("mounted", Map.of("aa", "bb")));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(PlainMapPropertySource.class,
 				environment);
 
-		Assertions.assertThat(result.size()).isEqualTo(3);
-		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("b");
-		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("plain");
-		Assertions.assertThat(result.get(2).getProperty("")).isEqualTo("from-inner-two-composite");
-
+		Assertions.assertThat(result.size()).isEqualTo(2);
+		Assertions.assertThat(result.get(0).getProperty("a")).isEqualTo("plain");
+		Assertions.assertThat(result.get(1).getProperty("")).isEqualTo("from-inner-two-composite");
 	}
 
+	/**
+	 * <pre>
+	 *     - in environment we have one MountSecretPropertySource
+	 *     - we search for a type that extends SecretsPropertySource (SecretsTypePropertySource)
+	 *
+	 *     - we pick up MountSecretPropertySource
+	 * </pre>
+	 */
 	@Test
+	@SuppressWarnings({ "deprecation" })
 	void testSecretsPropertySource() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b"))));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(SecretsTypePropertySource.class,
 				environment);
 		assertThat(result.size()).isEqualTo(1);
 		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
 	}
 
+	/**
+	 * <pre>
+	 *     - in environment we have one MountSecretPropertySource
+	 *     - we search for a type that does not extend SecretsPropertySource (PlainMapPropertySource)
+	 *
+	 *     - we don't pick up MountSecretPropertySource
+	 * </pre>
+	 */
 	@Test
+	@SuppressWarnings({ "deprecation" })
+	void testSecretsPropertySourceNotTaken() {
+		MockEnvironment environment = new MockEnvironment();
+		MutablePropertySources propertySources = environment.getPropertySources();
+		propertySources.addFirst(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b"))));
+
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(PlainMapPropertySource.class,
+				environment);
+		assertThat(result.size()).isEqualTo(0);
+	}
+
+	/**
+	 * <pre>
+	 *     - in environment we have one MountConfigMapPropertySource
+	 *     - we search for a type that extends ConfigMapPropertySource (ConfigMapTypePropertySource)
+	 *
+	 *     - we pick up MountConfigMapPropertySource
+	 * </pre>
+	 */
+	@Test
+	@SuppressWarnings({ "deprecation" })
+	void testConfigMapPropertySource() {
+		MockEnvironment environment = new MockEnvironment();
+		MutablePropertySources propertySources = environment.getPropertySources();
+		propertySources.addFirst(new MountConfigMapPropertySource("secret", Map.of("a", "b")));
+
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(ConfigMapTypePropertySource.class,
+				environment);
+		assertThat(result.size()).isEqualTo(1);
+		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
+	}
+
+	/**
+	 * <pre>
+	 *     - in environment we have one MountConfigMapPropertySource
+	 *     - we search for a type that does not extend ConfigMapPropertySource (PlainMapPropertySource)
+	 *
+	 *     - we don't pick up MountConfigMapPropertySource
+	 * </pre>
+	 */
+	@Test
+	@SuppressWarnings({ "deprecation" })
+	void testConfigMapPropertySourceNotTaken() {
+		MockEnvironment environment = new MockEnvironment();
+		MutablePropertySources propertySources = environment.getPropertySources();
+		propertySources.addFirst(new MountConfigMapPropertySource("secret", Map.of("a", "b")));
+
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(PlainMapPropertySource.class,
+				environment);
+		assertThat(result.size()).isEqualTo(0);
+	}
+
+	@Test
+	@SuppressWarnings({ "deprecation" })
 	void testBootstrapSecretsPropertySource() {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources
 			.addFirst(new OneBootstrap<>(new MountSecretPropertySource(new SourceData("secret", Map.of("a", "b")))));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(SecretsTypePropertySource.class,
 				environment);
 		assertThat(result.size()).isEqualTo(1);
 		assertThat(result.get(0).getProperty("a")).isEqualTo("b");
@@ -199,20 +271,43 @@ class ConfigReloadUtilTests {
 
 		@Override
 		public Collection<PropertySource<?>> getPropertySources() {
-			return List.of(new PlainPropertySource<>("from-inner-two-composite"));
+			return List.of(new PlainMapPropertySource<>("from-inner-two-composite", Map.of()));
 		}
 
 	}
 
-	private static final class PlainPropertySource<T> extends PropertySource<T> {
+	private static final class PlainMapPropertySource<T> extends MapPropertySource {
 
-		private PlainPropertySource(String name) {
-			super(name);
+		PlainMapPropertySource(String name, Map<String, Object> source) {
+			super(name, source);
 		}
 
 		@Override
 		public Object getProperty(String name) {
 			return this.name;
+		}
+
+	}
+
+	/**
+	 * simulates Fabric8SecretsPropertySource or KubernetesClientSecretsPropertySource.
+	 */
+	private static final class SecretsTypePropertySource extends SecretsPropertySource {
+
+		SecretsTypePropertySource(SourceData sourceData) {
+			super(sourceData);
+		}
+
+	}
+
+	/**
+	 * simulates Fabric8ConfigMapPropertySource or
+	 * KubernetesClientConfigMapPropertySource.
+	 */
+	private static final class ConfigMapTypePropertySource extends ConfigMapPropertySource {
+
+		ConfigMapTypePropertySource(String name, Map<String, Object> source) {
+			super(name, source);
 		}
 
 	}

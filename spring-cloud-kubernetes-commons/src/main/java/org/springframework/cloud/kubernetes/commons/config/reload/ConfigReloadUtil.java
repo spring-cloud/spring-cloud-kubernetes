@@ -26,8 +26,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.commons.config.MountSecretPropertySource;
+import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySource;
 import org.springframework.core.env.CompositePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -89,10 +91,9 @@ public final class ConfigReloadUtil {
 	 * @deprecated this method will not be public in the next major release.
 	 */
 	@Deprecated(forRemoval = false)
-	@SuppressWarnings("unchecked")
-	public static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
+	public static <S extends MapPropertySource> List<MapPropertySource> findPropertySources(Class<S> sourceClass,
 			ConfigurableEnvironment environment) {
-		List<S> managedSources = new ArrayList<>();
+		List<MapPropertySource> managedSources = new ArrayList<>();
 
 		List<PropertySource<?>> sources = environment.getPropertySources()
 			.stream()
@@ -108,13 +109,13 @@ public final class ConfigReloadUtil {
 			else if (sourceClass.isInstance(source)) {
 				managedSources.add(sourceClass.cast(source));
 			}
-			else if (source instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
-				// we know that the type is correct here
-				managedSources.add((S) mountConfigMapPropertySource);
+			else if (source instanceof MountConfigMapPropertySource mountConfigMapPropertySource
+					&& ConfigMapPropertySource.class.isAssignableFrom(sourceClass)) {
+				managedSources.add(mountConfigMapPropertySource);
 			}
-			else if (source instanceof MountSecretPropertySource mountSecretPropertySource) {
-				// we know that the type is correct here
-				managedSources.add((S) mountSecretPropertySource);
+			else if (source instanceof MountSecretPropertySource mountSecretPropertySource
+					&& SecretsPropertySource.class.isAssignableFrom(sourceClass)) {
+				managedSources.add(mountSecretPropertySource);
 			}
 			else if (source instanceof BootstrapPropertySource<?> bootstrapPropertySource) {
 				PropertySource<?> propertySource = bootstrapPropertySource.getDelegate();
@@ -122,13 +123,13 @@ public final class ConfigReloadUtil {
 				if (sourceClass.isInstance(propertySource)) {
 					sources.add(propertySource);
 				}
-				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource) {
-					// we know that the type is correct here
-					managedSources.add((S) mountConfigMapPropertySource);
+				else if (propertySource instanceof MountConfigMapPropertySource mountConfigMapPropertySource
+						&& ConfigMapPropertySource.class.isAssignableFrom(sourceClass)) {
+					managedSources.add(mountConfigMapPropertySource);
 				}
-				else if (propertySource instanceof MountSecretPropertySource mountSecretPropertySource) {
-					// we know that the type is correct here
-					managedSources.add((S) mountSecretPropertySource);
+				else if (propertySource instanceof MountSecretPropertySource mountSecretPropertySource
+						&& SecretsPropertySource.class.isAssignableFrom(sourceClass)) {
+					managedSources.add(mountSecretPropertySource);
 				}
 			}
 		}

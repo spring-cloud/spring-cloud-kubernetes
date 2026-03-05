@@ -30,7 +30,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.MapPropertySource;
 
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.KEY_VALUE_TO_PROPERTIES;
 import static org.springframework.cloud.kubernetes.commons.config.PropertySourceUtils.PROPERTIES_TO_MAP;
@@ -44,7 +43,7 @@ import static org.springframework.cloud.kubernetes.commons.config.PropertySource
  * @author Ali Shahbour
  * @author Michael Moudatsos
  */
-public class SourceDataEntriesProcessor extends MapPropertySource {
+public class SourceDataEntriesProcessor extends ConfigMapPropertySource {
 
 	private static final Log LOG = LogFactory.getLog(SourceDataEntriesProcessor.class);
 
