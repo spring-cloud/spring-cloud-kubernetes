@@ -23,7 +23,10 @@ import org.springframework.cloud.kubernetes.commons.config.NamedSecretNormalized
 import org.springframework.mock.env.MockEnvironment;
 
 /**
- * Only needed to get a hold of {@link Fabric8ConfigMapPropertySource}.
+ * Only needed to get a hold of {@link Fabric8ConfigMapPropertySource}. Since the
+ * constructor of that class is not public, we create this provider ( in the same package
+ * as Fabric8ConfigMapPropertySource ), so that we could access it. It is only needed for
+ * tests, so that we don't have to change the visibility of the constructor.
  *
  * @author wind57
  */
@@ -44,8 +47,8 @@ public final class Fabric8ConfigMapPropertySourceProvider {
 
 	public static Fabric8SecretsPropertySource secretPropertySource(KubernetesClient kubernetesClient) {
 
-		NamedSecretNormalizedSource namedSecretNormalizedSource = new NamedSecretNormalizedSource("secret",
-				"default", true, true);
+		NamedSecretNormalizedSource namedSecretNormalizedSource = new NamedSecretNormalizedSource("secret", "default",
+				true, true);
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(kubernetesClient, namedSecretNormalizedSource,
 				"default", new MockEnvironment());
