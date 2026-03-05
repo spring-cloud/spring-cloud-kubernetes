@@ -126,7 +126,7 @@ class ConfigReloadUtilTests {
 		MockEnvironment environment = new MockEnvironment();
 		MutablePropertySources propertySources = environment.getPropertySources();
 		propertySources.addFirst(new OneComposite());
-		propertySources.addFirst(new PlainPropertySource<>("plain"));
+		propertySources.addFirst(new PlainMapPropertySource<>("plain", Map.of()));
 		propertySources.addFirst(new OneBootstrap<>(new EnumerablePropertySource<>("enumerable") {
 			@Override
 			public String[] getPropertyNames() {
@@ -139,7 +139,7 @@ class ConfigReloadUtilTests {
 			}
 		}));
 
-		List<? extends PropertySource> result = ConfigReloadUtil.findPropertySources(PlainPropertySource.class,
+		List<MapPropertySource> result = ConfigReloadUtil.findPropertySources(PlainMapPropertySource.class,
 				environment);
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -169,15 +169,15 @@ class ConfigReloadUtilTests {
 
 		@Override
 		public Collection<PropertySource<?>> getPropertySources() {
-			return List.of(new PlainPropertySource<>("from-inner-two-composite"));
+			return List.of(new PlainMapPropertySource<>("from-inner-two-composite", Map.of()));
 		}
 
 	}
 
-	private static final class PlainPropertySource<T> extends PropertySource<T> {
+	private static final class PlainMapPropertySource<T> extends MapPropertySource {
 
-		private PlainPropertySource(String name) {
-			super(name);
+		PlainMapPropertySource(String name, Map<String, Object> source) {
+			super(name, source);
 		}
 
 		@Override

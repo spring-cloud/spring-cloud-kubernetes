@@ -27,22 +27,23 @@ import reactor.core.publisher.Flux;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
-import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
-import org.springframework.cloud.kubernetes.fabric8.Fabric8Utils;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getApplicationNamespace;
+
 /**
- * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE
- * mode.
+ * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE mode
+ * based on metadata.name filtering.
  *
  * @author Piotr Minkowski
  */
-public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<Service> {
+public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupplier {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ServicesListSupplier.class));
+
+	private static final String FIELD_NAME = "metadata.name";
 
 	private final KubernetesClient kubernetesClient;
 
@@ -58,57 +59,49 @@ public class Fabric8ServicesListSupplier extends KubernetesServicesListSupplier<
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		return Flux.defer(() -> {
-			List<ServiceInstance> result = new ArrayList<>();
+			List<ServiceInstance> serviceInstances = new ArrayList<>();
 			String serviceName = getServiceId();
-			LOG.debug(() -> "serviceID : " + serviceName);
+			LOG.debug(() -> "loadbalancer serviceID : " + serviceName);
 
 			if (discoveryProperties.allNamespaces()) {
 				LOG.debug(() -> "discovering services in all namespaces");
 				List<Service> services = kubernetesClient.services()
 					.inAnyNamespace()
-					.withField("metadata.name", serviceName)
+					.withField(FIELD_NAME, serviceName)
 					.list()
 					.getItems();
-				services.forEach(service -> addMappedService(mapper, result, service));
+
+				addMappedServices(serviceInstances, services, null, FIELD_NAME, serviceName);
 			}
 			else if (!discoveryProperties.namespaces().isEmpty()) {
 				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
 				LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
 				selectiveNamespaces.forEach(selectiveNamespace -> {
-					Service service = kubernetesClient.services()
+					List<Service> services = kubernetesClient.services()
 						.inNamespace(selectiveNamespace)
-						.withName(serviceName)
-						.get();
-					if (service != null) {
-						addMappedService(mapper, result, service);
-					}
-					else {
-						LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : "
-								+ selectiveNamespace);
-					}
+						.withField(FIELD_NAME, serviceName)
+						.list()
+						.getItems();
+
+					addMappedServices(serviceInstances, services, selectiveNamespace, FIELD_NAME, serviceName);
 				});
 			}
 			else {
-				String namespace = Fabric8Utils.getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
+				String namespace = getApplicationNamespace(kubernetesClient, null, "loadbalancer-service",
 						namespaceProvider);
 				LOG.debug(() -> "discovering services in namespace : " + namespace);
-				Service service = kubernetesClient.services().inNamespace(namespace).withName(serviceName).get();
-				if (service != null) {
-					addMappedService(mapper, result, service);
-				}
-				else {
-					LOG.debug(() -> "did not find service with name : " + serviceName + " in namespace : " + namespace);
-				}
+				List<Service> services = kubernetesClient.services()
+					.inNamespace(namespace)
+					.withField(FIELD_NAME, serviceName)
+					.list()
+					.getItems();
+
+				addMappedServices(serviceInstances, services, namespace, FIELD_NAME, serviceName);
 			}
 
-			LOG.debug(() -> "found services : " + result);
-			return Flux.just(result);
+			LOG.debug(() -> "found services : " + serviceInstances);
+			return Flux.just(serviceInstances);
 		});
-	}
-
-	private void addMappedService(KubernetesServiceInstanceMapper<Service> mapper, List<ServiceInstance> services,
-			Service service) {
-		services.add(mapper.map(service));
 	}
 
 }

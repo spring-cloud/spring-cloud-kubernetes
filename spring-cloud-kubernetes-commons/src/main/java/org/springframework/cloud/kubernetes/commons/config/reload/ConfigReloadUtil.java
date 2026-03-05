@@ -85,9 +85,10 @@ public final class ConfigReloadUtil {
 	 * @param sourceClass class for which property sources will be found
 	 * @return finds all registered property sources of the given type
 	 */
-	static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
+	static <S extends MapPropertySource> List<MapPropertySource> findPropertySources(Class<S> sourceClass,
+
 			ConfigurableEnvironment environment) {
-		List<S> managedSources = new ArrayList<>();
+		List<MapPropertySource> managedSources = new ArrayList<>();
 
 		List<PropertySource<?>> sources = environment.getPropertySources()
 			.stream()
@@ -157,7 +158,7 @@ public final class ConfigReloadUtil {
 				LOG.debug("k8s property sources size: " + k8sSources.size());
 				k8sSources.forEach(item -> LOG.debug(item.toString()));
 
-				LOG.debug("app property sources size size: " + appSources.size());
+				LOG.debug("app property sources size: " + appSources.size());
 				appSources.forEach(item -> LOG.debug(item.toString()));
 			}
 			LOG.warn(() -> "The current number of PropertySources does not match "
