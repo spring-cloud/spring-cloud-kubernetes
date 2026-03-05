@@ -85,9 +85,10 @@ public final class ConfigReloadUtil {
 	 * @param sourceClass class for which property sources will be found
 	 * @return finds all registered property sources of the given type
 	 */
-	static <S extends PropertySource<?>> List<S> findPropertySources(Class<S> sourceClass,
+	static <S extends MapPropertySource> List<MapPropertySource> findPropertySources(Class<S> sourceClass,
+
 			ConfigurableEnvironment environment) {
-		List<S> managedSources = new ArrayList<>();
+		List<MapPropertySource> managedSources = new ArrayList<>();
 
 		List<PropertySource<?>> sources = environment.getPropertySources()
 			.stream()
