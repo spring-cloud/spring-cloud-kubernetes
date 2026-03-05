@@ -118,11 +118,11 @@ class ConfigReloadUtilTests {
 
 	/**
 	 * <pre>
-	 *     - environment contains Fabric8ConfigMapPropertySource
+	 *     - environment contains KubernetesClientConfigMapPropertySource
 	 *     - environment contains MountSecretPropertySource
-	 *     - we search for Fabric8ConfigMapPropertySource
+	 *     - we search for KubernetesClientConfigMapPropertySource
 	 *
-	 *     - the result is a single PropertySource of type Fabric8ConfigMapPropertySource,
+	 *     - the result is a single PropertySource of type KubernetesClientConfigMapPropertySource,
 	 *       the MountSecretPropertySource is not taken.
 	 * </pre>
 	 */
@@ -148,11 +148,11 @@ class ConfigReloadUtilTests {
 
 	/**
 	 * <pre>
-	 *     - environment contains Fabric8SecretsPropertySource
+	 *     - environment contains KubernetesClientSecretsPropertySource
 	 *     - environment contains MountConfigMapPropertySource
-	 *     - we search for Fabric8SecretsPropertySource
+	 *     - we search for KubernetesClientSecretsPropertySource
 	 *
-	 *     - the result is a single PropertySource of type Fabric8SecretsPropertySource,
+	 *     - the result is a single PropertySource of type KubernetesClientSecretsPropertySource,
 	 *       the MountConfigMapPropertySource is not taken.
 	 * </pre>
 	 */
@@ -178,11 +178,11 @@ class ConfigReloadUtilTests {
 
 	/**
 	 * <pre>
-	 *     - environment contains Fabric8ConfigMapPropertySource
+	 *     - environment contains KubernetesClientConfigMapPropertySource
 	 *     - environment contains MountConfigMapPropertySource
-	 *     - we search for Fabric8ConfigMapPropertySource
+	 *     - we search for KubernetesClientConfigMapPropertySource
 	 *
-	 *     - the result is two PropertySources: Fabric8ConfigMapPropertySource
+	 *     - the result is two PropertySources: KubernetesClientConfigMapPropertySource
 	 *       and MountConfigMapPropertySource.
 	 * </pre>
 	 */
@@ -208,11 +208,11 @@ class ConfigReloadUtilTests {
 
 	/**
 	 * <pre>
-	 *     - environment contains Fabric8SecretsPropertySource
+	 *     - environment contains KubernetesClientSecretsPropertySource
 	 *     - environment contains MountSecretPropertySource
-	 *     - we search for Fabric8SecretsPropertySource
+	 *     - we search for KubernetesClientSecretsPropertySource
 	 *
-	 *     - the result is two PropertySources: Fabric8SecretsPropertySource
+	 *     - the result is two PropertySources: KubernetesClientSecretsPropertySource
 	 *       and MountSecretPropertySource.
 	 * </pre>
 	 */

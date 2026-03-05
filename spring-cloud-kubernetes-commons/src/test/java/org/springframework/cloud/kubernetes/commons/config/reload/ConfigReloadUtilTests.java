@@ -178,7 +178,7 @@ class ConfigReloadUtilTests {
 	/**
 	 * <pre>
 	 *     - in environment we have one MountSecretPropertySource
-	 *     - we search for a type that does not extend SecretsPropertySource (PlainPropertySource)
+	 *     - we search for a type that does not extend SecretsPropertySource (PlainMapPropertySource)
 	 *
 	 *     - we don't pick up MountSecretPropertySource
 	 * </pre>
@@ -219,7 +219,7 @@ class ConfigReloadUtilTests {
 	/**
 	 * <pre>
 	 *     - in environment we have one MountConfigMapPropertySource
-	 *     - we search for a type that does not extend ConfigMapPropertySource (PlainPropertySource)
+	 *     - we search for a type that does not extend ConfigMapPropertySource (PlainMapPropertySource)
 	 *
 	 *     - we don't pick up MountConfigMapPropertySource
 	 * </pre>

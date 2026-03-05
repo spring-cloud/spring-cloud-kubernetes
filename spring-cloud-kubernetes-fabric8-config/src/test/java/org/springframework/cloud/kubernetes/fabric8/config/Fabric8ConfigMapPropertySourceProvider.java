@@ -44,7 +44,7 @@ public final class Fabric8ConfigMapPropertySourceProvider {
 
 	public static Fabric8SecretsPropertySource secretPropertySource(KubernetesClient kubernetesClient) {
 
-		NamedSecretNormalizedSource namedSecretNormalizedSource = new NamedSecretNormalizedSource("configmap",
+		NamedSecretNormalizedSource namedSecretNormalizedSource = new NamedSecretNormalizedSource("secret",
 				"default", true, true);
 
 		Fabric8ConfigContext context = new Fabric8ConfigContext(kubernetesClient, namedSecretNormalizedSource,

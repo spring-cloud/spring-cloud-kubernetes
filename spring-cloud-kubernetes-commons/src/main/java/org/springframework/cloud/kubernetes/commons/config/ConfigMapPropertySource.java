@@ -20,6 +20,11 @@ import java.util.Map;
 
 import org.springframework.core.env.MapPropertySource;
 
+/**
+ * Kubernetes property source for configmaps.
+ *
+ * @author wind57
+ */
 public class ConfigMapPropertySource extends MapPropertySource {
 
 	public ConfigMapPropertySource(String name, Map<String, Object> source) {
