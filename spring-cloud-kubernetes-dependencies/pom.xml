@@ -95,12 +95,6 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-kubernetes-fabric8-istio</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
 				<version>${project.version}</version>
 			</dependency>
