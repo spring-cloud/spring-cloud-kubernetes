@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -62,12 +63,14 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 			List<ServiceInstance> serviceInstances = new ArrayList<>();
 			String serviceName = getServiceId();
 			LOG.debug(() -> "loadbalancer serviceID : " + serviceName);
+			Map<String, String> serviceLabels = serviceLabels();
 
 			if (discoveryProperties.allNamespaces()) {
 				LOG.debug(() -> "discovering services in all namespaces");
 				List<Service> services = kubernetesClient.services()
 					.inAnyNamespace()
 					.withField(FIELD_NAME, serviceName)
+					.withLabels(serviceLabels)
 					.list()
 					.getItems();
 
@@ -80,6 +83,7 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 					List<Service> services = kubernetesClient.services()
 						.inNamespace(selectiveNamespace)
 						.withField(FIELD_NAME, serviceName)
+						.withLabels(serviceLabels)
 						.list()
 						.getItems();
 
@@ -93,6 +97,7 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 				List<Service> services = kubernetesClient.services()
 					.inNamespace(namespace)
 					.withField(FIELD_NAME, serviceName)
+					.withLabels(serviceLabels)
 					.list()
 					.getItems();
 
@@ -102,6 +107,11 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 			LOG.debug(() -> "found services : " + serviceInstances);
 			return Flux.just(serviceInstances);
 		});
+	}
+
+	private Map<String, String> serviceLabels() {
+		Map<String, String> serviceLabels = discoveryProperties.serviceLabels();
+		return serviceLabels == null ? Map.of() : serviceLabels;
 	}
 
 }

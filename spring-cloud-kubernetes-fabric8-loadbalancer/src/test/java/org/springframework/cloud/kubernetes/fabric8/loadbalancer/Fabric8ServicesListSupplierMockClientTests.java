@@ -180,10 +180,55 @@ class Fabric8ServicesListSupplierMockClientTests {
 		Assertions.assertThat(output.getOut()).contains("discovering services in selective namespaces : [a, b]");
 	}
 
+	@Test
+	void testAllNamespacesWithServiceLabels(CapturedOutput output) {
+
+		createService("a", "service-a", 8887, Map.of("team", "dev"));
+		createService("b", "service-a", 8888, Map.of("team", "ops"));
+		createService("c", "service-a", 8889, Map.of("team", "dev"));
+
+		Environment environment = new MockEnvironment().withProperty("loadbalancer.client.name", "service-a");
+		boolean allNamespaces = true;
+		Set<String> selectiveNamespaces = Set.of();
+		Map<String, String> serviceLabels = Map.of("team", "dev");
+
+		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
+		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
+				selectiveNamespaces, true, 60, false, null, Set.of(), serviceLabels, null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+
+		Fabric8ServicesListSupplier supplier = new Fabric8ServicesListSupplier(environment, mockClient,
+				new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
+
+		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
+		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
+
+		List<ServiceInstance> serviceInstancesSorted = serviceInstances.get(0)
+			.stream()
+			.sorted(Comparator.comparing(ServiceInstance::getPort))
+			.toList();
+		Assertions.assertThat(serviceInstancesSorted.size()).isEqualTo(2);
+
+		Assertions.assertThat(serviceInstancesSorted.get(0).getServiceId()).isEqualTo("service-a");
+		Assertions.assertThat(serviceInstancesSorted.get(0).getHost()).isEqualTo("service-a.a.svc.cluster.local");
+		Assertions.assertThat(serviceInstancesSorted.get(0).getPort()).isEqualTo(8887);
+
+		Assertions.assertThat(serviceInstancesSorted.get(1).getServiceId()).isEqualTo("service-a");
+		Assertions.assertThat(serviceInstancesSorted.get(1).getHost()).isEqualTo("service-a.c.svc.cluster.local");
+		Assertions.assertThat(serviceInstancesSorted.get(1).getPort()).isEqualTo(8889);
+
+		Assertions.assertThat(output.getOut()).contains("discovering services in all namespaces");
+	}
+
 	private void createService(String namespace, String name, int port) {
+		createService(namespace, name, port, Map.of());
+	}
+
+	private void createService(String namespace, String name, int port, Map<String, String> labels) {
 		Service service = new ServiceBuilder().withNewMetadata()
 			.withNamespace(namespace)
 			.withName(name)
+			.withLabels(labels)
 			.endMetadata()
 			.withSpec(
 					new ServiceSpecBuilder().withPorts(new ServicePortBuilder().withName("http").withPort(port).build())
