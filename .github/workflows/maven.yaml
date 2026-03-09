@@ -90,7 +90,7 @@ jobs:
           jdk-version: ${{ env.JDK_VERSION }}
 
       - name: Show caches
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const caches = await github.rest.actions.getActionsCacheList({
