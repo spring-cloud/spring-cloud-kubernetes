@@ -47,6 +47,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.awaitility.Awaitility.await;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.KUBERNETES_VERSION_FILE;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.TEMP_FOLDER;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.TMP_IMAGES;
@@ -147,14 +148,38 @@ public final class Commons {
 		}
 
 		try {
-			LOG.info("no tars found, will resort to pulling the image");
+			LOG.info("pulling image inside k3s to avoid Docker save/ctr import compatibility issues");
 			LOG.info("using : " + imageVersion + " for : " + imageNameForDownload);
-			pullImage(imageNameForDownload, imageVersion, tarName, container);
-			loadImage(imageNameForDownload, imageVersion, tarName, container);
+			pullImageInsideK3s(container, imageNameForDownload, imageVersion);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Pull image directly inside the K3s container via ctr (containerd). This avoids
+	 * Docker save + ctr import, which can fail with "content digest not found" for
+	 * multi-platform or OCI images.
+	 */
+	private static void pullImageInsideK3s(K3sContainer container, String imageNameForDownload, String imageVersion) {
+		String fullImageRef = fullImageReference(imageNameForDownload, imageVersion);
+		LOG.info("pulling inside k3s: " + fullImageRef);
+		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
+			Container.ExecResult result = container.execInContainer("ctr", "-n", "k8s.io", "images", "pull",
+					fullImageRef);
+			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
+			if (!noErrors) {
+				LOG.info("ctr pull stderr: " + result.getStderr());
+			}
+			return noErrors;
+		});
+	}
+
+	private static String fullImageReference(String imageNameForDownload, String imageVersion) {
+		String ref = imageNameForDownload.contains("/") ? "docker.io/" + imageNameForDownload + ":" + imageVersion
+				: "docker.io/library/" + imageNameForDownload + ":" + imageVersion;
+		return ref;
 	}
 
 	/**
