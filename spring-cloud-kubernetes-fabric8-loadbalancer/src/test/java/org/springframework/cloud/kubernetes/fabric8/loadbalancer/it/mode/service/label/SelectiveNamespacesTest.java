@@ -48,7 +48,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCallByLabels;
 import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCallByLabels;
-import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadbalancerMocks.mockLoadBalancerServiceCallByLabels;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerMocks.mockLoadBalancerServiceCallByLabels;
 
 /**
  * @author wind57
@@ -144,14 +144,6 @@ class SelectiveNamespacesTest {
 
 		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
 			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
-
-		serviceAMockServer.addMockServiceRequestListener((request, response) -> {
-			System.out.println("SERVER A RECEIVED: " + request.getMethod() + " " + request.getUrl());
-		});
-
-		serviceBMockServer.addMockServiceRequestListener((request, response) -> {
-			System.out.println("SERVER B RECEIVED: " + request.getMethod() + " " + request.getUrl());
-		});
 
 		String firstCallResult = builder.baseUrl(MY_SERVICE)
 			.build()

@@ -120,7 +120,7 @@ class Fabric8LabeledServicesListSupplierMockClientTests {
 	 * <pre>
 	 *     - there are 3 services across 3 namespaces.
 	 *     - the one in namespace "a" and namespace "c" share the same labels.
-	 *     - theo one in namespace "b" has different labels.
+	 *     - the one in namespace "b" has different labels.
 	 *     - we search in only one namespace : "c" and find a single service.
 	 * </pre>
 	 */

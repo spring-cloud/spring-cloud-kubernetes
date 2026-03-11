@@ -33,13 +33,13 @@ import org.assertj.core.util.Strings;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Mock methods that are part of the discovery client indexers initialization.
+ * Mock methods that are part of the load balancer service lookup calls.
  *
  * @author wind57
  */
-public final class LoadbalancerMocks {
+public final class LoadBalancerMocks {
 
-	private LoadbalancerMocks() {
+	private LoadBalancerMocks() {
 
 	}
 
