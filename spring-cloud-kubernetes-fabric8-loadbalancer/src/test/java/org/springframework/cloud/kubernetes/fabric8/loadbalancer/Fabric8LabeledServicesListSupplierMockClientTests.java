@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +76,7 @@ class Fabric8LabeledServicesListSupplierMockClientTests {
 		boolean allNamespaces = true;
 		Map<String, String> serviceLabels = Map.of("a", "a");
 
-		createService("a", "service-a", serviceLabels , 8887);
+		createService("a", "service-a", serviceLabels, 8887);
 		createService("b", "service-b", serviceLabels, 8888);
 		createService("c", "service-c", serviceLabels, 8889);
 
@@ -86,11 +85,12 @@ class Fabric8LabeledServicesListSupplierMockClientTests {
 
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			selectiveNamespaces, true, 60, false, null, Set.of(), serviceLabels, null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+				selectiveNamespaces, true, 60, false, null, Set.of(), serviceLabels, null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		Fabric8LabelBasedServicesListSupplier supplier = new Fabric8LabelBasedServicesListSupplier(environment, mockClient,
-			new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
+		Fabric8LabelBasedServicesListSupplier supplier = new Fabric8LabelBasedServicesListSupplier(environment,
+				mockClient, new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties),
+				discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
@@ -140,11 +140,12 @@ class Fabric8LabeledServicesListSupplierMockClientTests {
 
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			selectiveNamespaces, true, 60, false, null, Set.of(), serviceLabels, null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+				selectiveNamespaces, true, 60, false, null, Set.of(), serviceLabels, null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		Fabric8LabelBasedServicesListSupplier supplier = new Fabric8LabelBasedServicesListSupplier(environment, mockClient,
-			new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
+		Fabric8LabelBasedServicesListSupplier supplier = new Fabric8LabelBasedServicesListSupplier(environment,
+				mockClient, new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties),
+				discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
@@ -177,11 +178,12 @@ class Fabric8LabeledServicesListSupplierMockClientTests {
 
 		KubernetesLoadBalancerProperties loadBalancerProperties = new KubernetesLoadBalancerProperties();
 		KubernetesDiscoveryProperties discoveryProperties = new KubernetesDiscoveryProperties(true, allNamespaces,
-			selectiveNamespaces, true, 60, false, null, Set.of(), Map.of(), null,
-			KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
+				selectiveNamespaces, true, 60, false, null, Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		Fabric8LabelBasedServicesListSupplier supplier = new Fabric8LabelBasedServicesListSupplier(environment, mockClient,
-			new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties), discoveryProperties);
+		Fabric8LabelBasedServicesListSupplier supplier = new Fabric8LabelBasedServicesListSupplier(environment,
+				mockClient, new Fabric8ServiceInstanceMapper(loadBalancerProperties, discoveryProperties),
+				discoveryProperties);
 
 		List<List<ServiceInstance>> serviceInstances = supplier.get().collectList().block();
 		Assertions.assertThat(serviceInstances.size()).isEqualTo(1);
@@ -209,8 +211,8 @@ class Fabric8LabeledServicesListSupplierMockClientTests {
 			.withLabels(labels)
 			.endMetadata()
 			.withSpec(
-				new ServiceSpecBuilder().withPorts(new ServicePortBuilder().withName("http").withPort(port).build())
-					.build())
+					new ServiceSpecBuilder().withPorts(new ServicePortBuilder().withName("http").withPort(port).build())
+						.build())
 			.build();
 		mockClient.services().resource(service).create();
 	}

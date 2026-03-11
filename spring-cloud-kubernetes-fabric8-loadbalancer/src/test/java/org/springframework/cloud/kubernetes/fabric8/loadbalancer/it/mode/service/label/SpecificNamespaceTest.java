@@ -55,10 +55,9 @@ import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Loadb
  */
 @SpringBootTest(
 		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.discovery.all-namespaces=false",
-				"spring.cloud.kubernetes.client.namespace=a",
+				"spring.cloud.kubernetes.discovery.all-namespaces=false", "spring.cloud.kubernetes.client.namespace=a",
 				"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS",
-				"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value"},
+				"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" },
 		classes = { LoadBalancerConfiguration.class, App.class })
 @ExtendWith(OutputCaptureExtension.class)
 @EnableKubernetesMockClient(https = false)

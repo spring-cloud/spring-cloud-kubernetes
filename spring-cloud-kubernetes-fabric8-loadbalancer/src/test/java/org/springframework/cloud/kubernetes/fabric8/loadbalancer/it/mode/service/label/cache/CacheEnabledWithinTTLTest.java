@@ -35,10 +35,9 @@ import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCallByLabels;
 import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCallByLabels;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCallByLabels;
 import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadbalancerMocks.mockLoadBalancerServiceCallByLabels;
-
 
 /**
  * @author wind57
@@ -48,8 +47,7 @@ import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Loadb
 		"spring.cloud.kubernetes.discovery.namespaces[0]=a", "spring.cloud.loadbalancer.cache.enabled=true",
 		"spring.cloud.loadbalancer.cache.ttl=2s",
 		"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS",
-		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" },
-	classes = App.class)
+		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" }, classes = App.class)
 @DirtiesContext
 @EnableKubernetesMockClient
 class CacheEnabledWithinTTLTest {
@@ -77,7 +75,7 @@ class CacheEnabledWithinTTLTest {
 
 		// mock fabric8 client calls that are made as part of the services list supplier
 		mockLoadBalancerServiceCallByLabels("a", "service-a", SERVICE_LABELS, kubernetesMockServer,
-			kubernetesMockServer.getPort(), NUMBER_OF_CALLS);
+				kubernetesMockServer.getPort(), NUMBER_OF_CALLS);
 	}
 
 	/**

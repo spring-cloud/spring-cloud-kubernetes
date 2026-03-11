@@ -84,7 +84,8 @@ public class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8Servic
 						.list()
 						.getItems();
 
-					addMappedServices(serviceInstances, services, selectiveNamespace, FIELD_NAME, serviceLabels.toString());
+					addMappedServices(serviceInstances, services, selectiveNamespace, FIELD_NAME,
+							serviceLabels.toString());
 				});
 			}
 			else {

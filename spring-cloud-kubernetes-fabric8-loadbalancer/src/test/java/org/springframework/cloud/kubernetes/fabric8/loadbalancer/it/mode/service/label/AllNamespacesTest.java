@@ -97,10 +97,10 @@ class AllNamespacesTest {
 		mockAllNamespacesIndexerServiceCallsWithLabels(kubernetesMockServer);
 		mockAllNamespacesIndexerEndpointsCallsWithLabels(kubernetesMockServer);
 
-		mockLoadBalancerServiceCallInAllNamespacesByLabels("a", "service-a", SERVICE_LABELS,
-			kubernetesMockServer, NUMBER_OF_CALLS);
-		mockLoadBalancerServiceCallInAllNamespacesByLabels("b", "service-b", SERVICE_LABELS,
-			kubernetesMockServer, NUMBER_OF_CALLS);
+		mockLoadBalancerServiceCallInAllNamespacesByLabels("a", "service-a", SERVICE_LABELS, kubernetesMockServer,
+				NUMBER_OF_CALLS);
+		mockLoadBalancerServiceCallInAllNamespacesByLabels("b", "service-b", SERVICE_LABELS, kubernetesMockServer,
+				NUMBER_OF_CALLS);
 
 		kubernetesMockServer.expect().get().withPath("/a-path").andReturn(200, "service-a-reached").once();
 		kubernetesMockServer.expect().get().withPath("/b-path").andReturn(200, "service-b-reached").once();

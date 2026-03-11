@@ -48,12 +48,10 @@ public final class LoadbalancerMocks {
 	 * namespace and the call happens by name ( "metadata.name" ).
 	 */
 	public static void mockLoadBalancerServiceCallWithFieldMetadataName(String namespace, String serviceId,
-		KubernetesMockServer kubernetesMockServer, int port,  int numberOfCalls) {
+			KubernetesMockServer kubernetesMockServer, int port, int numberOfCalls) {
 
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withType("ClusterIP")
-				.withPorts(getServicePorts(Map.of(port, "http")))
-				.build())
+		Service service = new ServiceBuilder().withSpec(
+				new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(port, "http"))).build())
 			.withNewMetadata()
 			.withNamespace(namespace)
 			.withName(serviceId)
@@ -74,7 +72,7 @@ public final class LoadbalancerMocks {
 	 * when "metadata.name" is requested for all namespaces.
 	 */
 	public static void mockLoadBalancerServiceCallInAllNamespacesByName(String namespace, String serviceId,
-		KubernetesMockServer kubernetesMockServer, int numberOfCalls) {
+			KubernetesMockServer kubernetesMockServer, int numberOfCalls) {
 
 		Service service = new ServiceBuilder()
 			.withSpec(new ServiceSpecBuilder().withType("ClusterIP")
@@ -102,7 +100,7 @@ public final class LoadbalancerMocks {
 	 * when "metadata.labels" is requested for all namespaces.
 	 */
 	public static void mockLoadBalancerServiceCallInAllNamespacesByLabels(String namespace, String serviceId,
-		Map<String, String> serviceLabels, KubernetesMockServer kubernetesMockServer, int numberOfCalls) {
+			Map<String, String> serviceLabels, KubernetesMockServer kubernetesMockServer, int numberOfCalls) {
 
 		Service service = new ServiceBuilder()
 			.withSpec(new ServiceSpecBuilder().withType("ClusterIP")
@@ -120,20 +118,14 @@ public final class LoadbalancerMocks {
 		String url = "/api/v1/services?labelSelector=" + labelSelector(serviceLabels);
 
 		// mock the list supplier
-		kubernetesMockServer.expect()
-			.get()
-			.withPath(url)
-			.andReturn(200, serviceList)
-			.times(numberOfCalls);
+		kubernetesMockServer.expect().get().withPath(url).andReturn(200, serviceList).times(numberOfCalls);
 	}
 
-	public static void mockLoadBalancerServiceCallByLabels(String namespace, String serviceId, Map<String, String> labels,
-		KubernetesMockServer kubernetesMockServer, int port, int numberOfCalls) {
+	public static void mockLoadBalancerServiceCallByLabels(String namespace, String serviceId,
+			Map<String, String> labels, KubernetesMockServer kubernetesMockServer, int port, int numberOfCalls) {
 
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withType("ClusterIP")
-				.withPorts(getServicePorts(Map.of(port, "http")))
-				.build())
+		Service service = new ServiceBuilder().withSpec(
+				new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(port, "http"))).build())
 			.withNewMetadata()
 			.withNamespace(namespace)
 			.withName(serviceId)
@@ -144,7 +136,7 @@ public final class LoadbalancerMocks {
 
 		ServiceList serviceList = new ServiceListBuilder().withItems(service).build();
 
-		String urlPath = "/api/v1/namespaces/" + namespace + "/services?labelSelector="  + labelSelector(labels);
+		String urlPath = "/api/v1/namespaces/" + namespace + "/services?labelSelector=" + labelSelector(labels);
 
 		// mock the list supplier
 		kubernetesMockServer.expect().get().withPath(urlPath).andReturn(200, serviceList).times(numberOfCalls);
@@ -162,7 +154,10 @@ public final class LoadbalancerMocks {
 	}
 
 	private static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(en -> en.getKey() + "%3D" + en.getValue()).collect(Collectors.joining(","));
+		return labels.entrySet()
+			.stream()
+			.map(en -> en.getKey() + "%3D" + en.getValue())
+			.collect(Collectors.joining(","));
 	}
 
 }

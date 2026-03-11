@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,11 +32,10 @@ import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.App;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
-import reactor.core.publisher.Mono;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCallByLabels;
 import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCallByLabels;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCallByLabels;
 import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadbalancerMocks.mockLoadBalancerServiceCallByLabels;
 
 /**
@@ -45,8 +45,7 @@ import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Loadb
 		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.all-namespaces=false",
 		"spring.cloud.kubernetes.client.namespace=a", "spring.cloud.loadbalancer.cache.enabled=false",
 		"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS",
-		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" },
-		classes = App.class)
+		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" }, classes = App.class)
 @EnableKubernetesMockClient
 class CacheDisabledTest {
 
@@ -64,7 +63,8 @@ class CacheDisabledTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		// these two are needed to populate the Listers and to silence the logs from errors
+		// these two are needed to populate the Listers and to silence the logs from
+		// errors
 		// since we are in the SERVICE mode, we don't use the DiscoveryClient, so these
 		// two mocks don't play a role in the testing itself.
 		mockNamespacedIndexerServiceCallByLabels(kubernetesMockServer);
@@ -72,7 +72,7 @@ class CacheDisabledTest {
 
 		// mock fabric8 client calls that are made as part of the services list supplier
 		mockLoadBalancerServiceCallByLabels("a", "service-a", SERVICE_LABELS, kubernetesMockServer,
-			kubernetesMockServer.getPort(), NUMBER_OF_CALLS);
+				kubernetesMockServer.getPort(), NUMBER_OF_CALLS);
 	}
 
 	/**

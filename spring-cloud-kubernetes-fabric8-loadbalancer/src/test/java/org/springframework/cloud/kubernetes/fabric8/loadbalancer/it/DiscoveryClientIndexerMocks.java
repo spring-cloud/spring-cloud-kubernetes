@@ -75,7 +75,7 @@ public final class DiscoveryClientIndexerMocks {
 		kubernetesMockServer.expect()
 			.get()
 			.withPath("/api/v1/namespaces/" + namespace
-				+ "/services?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+					+ "/services?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyServiceList)
 			.always();
 	}
@@ -85,12 +85,10 @@ public final class DiscoveryClientIndexerMocks {
 	 * namespace and the type we search by is 'SERVICE'.
 	 */
 	public static void mockNamespacedIndexerServiceCall(String namespace, String serviceId,
-		KubernetesMockServer kubernetesMockServer) {
+			KubernetesMockServer kubernetesMockServer) {
 
-		Service service = new ServiceBuilder()
-			.withSpec(new ServiceSpecBuilder().withType("ClusterIP")
-				.withPorts(getServicePorts(Map.of(8080, "a")))
-				.build())
+		Service service = new ServiceBuilder().withSpec(
+				new ServiceSpecBuilder().withType("ClusterIP").withPorts(getServicePorts(Map.of(8080, "a"))).build())
 			.withNewMetadata()
 			.withNamespace(namespace)
 			.withName(serviceId)
@@ -114,14 +112,14 @@ public final class DiscoveryClientIndexerMocks {
 		kubernetesMockServer.expect()
 			.get()
 			.withPath("/api/v1/namespaces/" + namespace
-				+ "/services?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+					+ "/services?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyServiceList)
 			.always();
 	}
 
 	/**
 	 * mock endpoints indexer calls that are made when services are requested in a certain
-	 * namespace  and the type we search by is 'SERVICE'.
+	 * namespace and the type we search by is 'SERVICE'.
 	 */
 	public static void mockNamespacedIndexerEndpointsCall(KubernetesMockServer kubernetesMockServer) {
 
@@ -142,14 +140,14 @@ public final class DiscoveryClientIndexerMocks {
 		kubernetesMockServer.expect()
 			.get()
 			.withPath("/api/v1/namespaces/" + namespace
-				+ "/endpoints?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+					+ "/endpoints?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyEndpointsList)
 			.always();
 	}
 
 	/**
 	 * mock endpoints indexer calls that are made when services are requested in a certain
-	 * namespace  and the type we search by is 'SERVICE'.
+	 * namespace and the type we search by is 'SERVICE'.
 	 */
 	public static void mockNamespacedIndexerEndpointsCall(String namespace, String serviceId,
 			KubernetesMockServer kubernetesMockServer, int port) {
@@ -162,8 +160,7 @@ public final class DiscoveryClientIndexerMocks {
 			.build();
 
 		// subsequent calls to watch
-		EndpointsList endpointsList = new EndpointsListBuilder()
-			.withItems(endpoints)
+		EndpointsList endpointsList = new EndpointsListBuilder().withItems(endpoints)
 			.withMetadata(new ListMetaBuilder().withResourceVersion("1").build())
 			.build();
 		kubernetesMockServer.expect()
@@ -177,7 +174,7 @@ public final class DiscoveryClientIndexerMocks {
 		kubernetesMockServer.expect()
 			.get()
 			.withPath("/api/v1/namespaces/" + namespace
-				+ "/endpoints?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
+					+ "/endpoints?allowWatchBookmarks=true&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyEndpointsList)
 			.always();
 	}
@@ -186,8 +183,8 @@ public final class DiscoveryClientIndexerMocks {
 	 * mock indexer calls that are made when services are requested in all namespaces.
 	 * there is a labelSelector as a filter {a=service-a}.
 	 */
-	public static void mockAllNamespacesIndexerEndpointsCallsWithLabels(String namespace, String serviceId,
-			int port, KubernetesMockServer kubernetesMockServer) {
+	public static void mockAllNamespacesIndexerEndpointsCallsWithLabels(String namespace, String serviceId, int port,
+			KubernetesMockServer kubernetesMockServer) {
 
 		Endpoints endpoints = new EndpointsBuilder()
 			.withMetadata(new ObjectMetaBuilder().withName(serviceId).withNamespace(namespace).build())
@@ -212,16 +209,18 @@ public final class DiscoveryClientIndexerMocks {
 		// subsequent calls to watch
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.withPath(
+					"/api/v1/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyEndpointsList)
 			.always();
 	}
 
 	/**
-	 * mock service indexer calls that are made when services are requested in all namespaces.
+	 * mock service indexer calls that are made when services are requested in all
+	 * namespaces.
 	 */
 	public static void mockAllNamespacesIndexerServiceCalls(Map<String, String> namespaceToServiceId,
-		KubernetesMockServer kubernetesMockServer) {
+			KubernetesMockServer kubernetesMockServer) {
 
 		List<Service> services = new ArrayList<>();
 		for (Map.Entry<String, String> entry : namespaceToServiceId.entrySet()) {
@@ -283,24 +282,26 @@ public final class DiscoveryClientIndexerMocks {
 		// subsequent calls to watch
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/services?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.withPath(
+					"/api/v1/services?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyServiceList)
 			.always();
 	}
 
 	/**
-	 * mock endpoints indexer calls that are made when services are requested in all namespaces.
+	 * mock endpoints indexer calls that are made when services are requested in all
+	 * namespaces.
 	 */
 	public static void mockAllNamespacesIndexerEndpointsCalls(Map<String, String> namespaceToServiceId,
-		KubernetesMockServer kubernetesMockServer) {
+			KubernetesMockServer kubernetesMockServer) {
 
 		List<Endpoints> endpoints = new ArrayList<>();
 
 		for (Map.Entry<String, String> entry : namespaceToServiceId.entrySet()) {
 			Endpoints innerEndpoints = new EndpointsBuilder()
 				.withMetadata(new ObjectMetaBuilder().withName(entry.getValue()).withNamespace(entry.getKey()).build())
-				.withSubsets(new EndpointSubsetBuilder().withPorts(new EndpointPortBuilder()
-						.withPort(kubernetesMockServer.getPort()).build())
+				.withSubsets(new EndpointSubsetBuilder()
+					.withPorts(new EndpointPortBuilder().withPort(kubernetesMockServer.getPort()).build())
 					.withAddresses(new EndpointAddressBuilder().withIp("localhost").build())
 					.build())
 				.build();
@@ -351,14 +352,15 @@ public final class DiscoveryClientIndexerMocks {
 		// subsequent calls to watch
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.withPath(
+					"/api/v1/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyEndpointsList)
 			.always();
 	}
 
 	/**
-	 * mock indexer calls that are made when services are requested in a certain
-	 * namespace and the call happens by labels ( "metadata.labels" )
+	 * mock indexer calls that are made when services are requested in a certain namespace
+	 * and the call happens by labels ( "metadata.labels" )
 	 */
 	public static void mockNamespacedIndexerServiceCallByLabels(KubernetesMockServer kubernetesMockServer) {
 
@@ -376,15 +378,16 @@ public final class DiscoveryClientIndexerMocks {
 		ServiceList emptyServiceList = new ServiceListBuilder().build();
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/namespaces/a/services?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.withPath(
+					"/api/v1/namespaces/a/services?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyServiceList)
 			.always();
 	}
 
 	/**
-	 * mock indexer calls that are made when services are requested in a certain
-	 * namespace and the call happens by labels ( "metadata.labels" ) and the type
-	 * we search by is 'SERVICE'.
+	 * mock indexer calls that are made when services are requested in a certain namespace
+	 * and the call happens by labels ( "metadata.labels" ) and the type we search by is
+	 * 'SERVICE'.
 	 */
 	public static void mockNamespacedIndexerServiceCallByLabels(String namespace,
 			KubernetesMockServer kubernetesMockServer) {
@@ -395,7 +398,8 @@ public final class DiscoveryClientIndexerMocks {
 			.build();
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/namespaces/" + namespace + "/services?labelSelector=same-key%3Dsame-value&resourceVersion=0")
+			.withPath("/api/v1/namespaces/" + namespace
+					+ "/services?labelSelector=same-key%3Dsame-value&resourceVersion=0")
 			.andReturn(200, serviceList)
 			.once();
 
@@ -403,7 +407,8 @@ public final class DiscoveryClientIndexerMocks {
 		ServiceList emptyServiceList = new ServiceListBuilder().build();
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/namespaces/" + namespace + "/services?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.withPath("/api/v1/namespaces/" + namespace
+					+ "/services?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyServiceList)
 			.always();
 	}
@@ -428,7 +433,8 @@ public final class DiscoveryClientIndexerMocks {
 		EndpointsList emptyEndpointsList = new EndpointsListBuilder().build();
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/namespaces/a/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.withPath(
+					"/api/v1/namespaces/a/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyEndpointsList)
 			.always();
 	}
@@ -446,7 +452,8 @@ public final class DiscoveryClientIndexerMocks {
 			.build();
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/namespaces/" + namespace + "/endpoints?labelSelector=same-key%3Dsame-value&resourceVersion=0")
+			.withPath("/api/v1/namespaces/" + namespace
+					+ "/endpoints?labelSelector=same-key%3Dsame-value&resourceVersion=0")
 			.andReturn(200, endpointsList)
 			.once();
 
@@ -454,7 +461,8 @@ public final class DiscoveryClientIndexerMocks {
 		EndpointsList emptyEndpointsList = new EndpointsListBuilder().build();
 		kubernetesMockServer.expect()
 			.get()
-			.withPath("/api/v1/namespaces/" + namespace + "/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
+			.withPath("/api/v1/namespaces/" + namespace
+					+ "/endpoints?allowWatchBookmarks=true&labelSelector=same-key%3Dsame-value&resourceVersion=1&timeoutSeconds=600&watch=true")
 			.andReturn(200, emptyEndpointsList)
 			.always();
 	}
