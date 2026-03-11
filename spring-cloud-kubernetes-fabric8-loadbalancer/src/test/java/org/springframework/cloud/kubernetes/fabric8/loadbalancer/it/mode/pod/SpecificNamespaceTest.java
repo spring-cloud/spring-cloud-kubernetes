@@ -28,9 +28,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.LoadBalancerConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.App;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerConfiguration;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.DiscoveryClientServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
@@ -38,6 +37,9 @@ import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCall;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCall;
 
 /**
  * @author wind57
@@ -48,13 +50,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableKubernetesMockClient(https = false)
 class SpecificNamespaceTest {
 
-	private static KubernetesMockServer kubernetesMockServer;
-
 	private static final String SERVICE_URL = "http://my-service";
 
 	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
 
 	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
+
+	private static KubernetesMockServer kubernetesMockServer;
 
 	private static WireMockServer serviceAMockServer;
 
@@ -71,22 +73,20 @@ class SpecificNamespaceTest {
 
 		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
 		serviceAMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_A_PORT);
 
 		serviceBMockServer = new WireMockServer(SERVICE_B_PORT);
 		serviceBMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_B_PORT);
 
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
-		Util.mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
-		Util.mockNamespacedIndexerServiceCall("c", "my-service", kubernetesMockServer);
+		mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
+		mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
+		mockNamespacedIndexerServiceCall("c", "my-service", kubernetesMockServer);
 
 		// actual pod URL will be : localhost:SERVICE_A_PORT and so on for the rest
-		Util.mockNamespacedIndexerEndpointsCall("a", "my-service", "localhost", SERVICE_A_PORT, kubernetesMockServer);
-		Util.mockNamespacedIndexerEndpointsCall("b", "my-service", "localhost", SERVICE_B_PORT, kubernetesMockServer);
+		mockNamespacedIndexerEndpointsCall("a", "my-service", kubernetesMockServer, SERVICE_A_PORT);
+		mockNamespacedIndexerEndpointsCall("b", "my-service", kubernetesMockServer, SERVICE_B_PORT);
 	}
 
 	@AfterAll

@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -34,43 +35,44 @@ import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getAppli
 
 /**
  * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE mode
- * based on metadata.name filtering.
+ * based on labels filtering.
  *
- * @author Piotr Minkowski
+ * @author wind57
  */
-public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupplier {
+public class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8ServicesListSupplier {
 
-	private static final LogAccessor LOG = new LogAccessor(Fabric8ServicesListSupplier.class);
+	private static final LogAccessor LOG = new LogAccessor(Fabric8LabelBasedServicesListSupplier.class);
 
-	private static final String FIELD_NAME = "metadata.name";
+	private static final String FIELD_NAME = "metadata.labels";
+
+	private final Map<String, String> serviceLabels;
 
 	private final KubernetesClient kubernetesClient;
 
 	private final KubernetesNamespaceProvider namespaceProvider;
 
-	Fabric8ServicesListSupplier(Environment environment, KubernetesClient kubernetesClient,
+	Fabric8LabelBasedServicesListSupplier(Environment environment, KubernetesClient kubernetesClient,
 			Fabric8ServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties) {
 		super(environment, mapper, discoveryProperties);
 		this.kubernetesClient = kubernetesClient;
 		namespaceProvider = new KubernetesNamespaceProvider(environment);
+		this.serviceLabels = discoveryProperties.serviceLabels();
 	}
 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		return Flux.defer(() -> {
 			List<ServiceInstance> serviceInstances = new ArrayList<>();
-			String serviceName = getServiceId();
-			LOG.debug(() -> "loadbalancer serviceID : " + serviceName);
 
 			if (discoveryProperties.allNamespaces()) {
 				LOG.debug(() -> "discovering services in all namespaces");
 				List<Service> services = kubernetesClient.services()
 					.inAnyNamespace()
-					.withField(FIELD_NAME, serviceName)
+					.withLabels(serviceLabels)
 					.list()
 					.getItems();
 
-				addMappedServices(serviceInstances, services, null, FIELD_NAME, serviceName);
+				addMappedServices(serviceInstances, services, null, FIELD_NAME, serviceLabels.toString());
 			}
 			else if (!discoveryProperties.namespaces().isEmpty()) {
 				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
@@ -78,11 +80,12 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 				selectiveNamespaces.forEach(selectiveNamespace -> {
 					List<Service> services = kubernetesClient.services()
 						.inNamespace(selectiveNamespace)
-						.withField(FIELD_NAME, serviceName)
+						.withLabels(serviceLabels)
 						.list()
 						.getItems();
 
-					addMappedServices(serviceInstances, services, selectiveNamespace, FIELD_NAME, serviceName);
+					addMappedServices(serviceInstances, services, selectiveNamespace, FIELD_NAME,
+							serviceLabels.toString());
 				});
 			}
 			else {
@@ -91,11 +94,11 @@ public class Fabric8ServicesListSupplier extends AbstractFabric8ServicesListSupp
 				LOG.debug(() -> "discovering services in namespace : " + namespace);
 				List<Service> services = kubernetesClient.services()
 					.inNamespace(namespace)
-					.withField(FIELD_NAME, serviceName)
+					.withLabels(serviceLabels)
 					.list()
 					.getItems();
 
-				addMappedServices(serviceInstances, services, namespace, FIELD_NAME, serviceName);
+				addMappedServices(serviceInstances, services, namespace, FIELD_NAME, serviceLabels.toString());
 			}
 
 			LOG.debug(() -> "found services : " + serviceInstances);
