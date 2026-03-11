@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service;
+package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service.label;
+
+import java.util.Map;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -34,10 +36,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.Fabric8ServicesListSupplier;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.LoadBalancerConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.Fabric8LabelBasedServicesListSupplier;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.App;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerConfiguration;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
@@ -45,17 +46,24 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCallByLabels;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCallByLabels;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerMocks.mockLoadBalancerServiceCallByLabels;
+
 /**
  * @author wind57
  */
 @SpringBootTest(
 		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.discovery.all-namespaces=false",
-				"spring.cloud.kubernetes.client.namespace=a" },
+				"spring.cloud.kubernetes.discovery.all-namespaces=false", "spring.cloud.kubernetes.client.namespace=a",
+				"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS",
+				"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" },
 		classes = { LoadBalancerConfiguration.class, App.class })
 @ExtendWith(OutputCaptureExtension.class)
 @EnableKubernetesMockClient(https = false)
 class SpecificNamespaceTest {
+
+	private static final Map<String, String> SERVICE_LABELS = Map.of("same-key", "same-value");
 
 	private static KubernetesMockServer kubernetesMockServer;
 
@@ -93,22 +101,20 @@ class SpecificNamespaceTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
-		Util.mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
+		mockNamespacedIndexerServiceCallByLabels("a", kubernetesMockServer);
+		mockNamespacedIndexerServiceCallByLabels("b", kubernetesMockServer);
 
-		Util.mockNamespacedIndexerEndpointsCall("a", "my-service", "localhost", SERVICE_A_PORT, kubernetesMockServer);
-		Util.mockNamespacedIndexerEndpointsCall("b", "my-service", "localhost", SERVICE_B_PORT, kubernetesMockServer);
+		mockNamespacedIndexerEndpointsCallByLabels("a", kubernetesMockServer);
+		mockNamespacedIndexerEndpointsCallByLabels("b", kubernetesMockServer);
 
-		Util.mockLoadBalancerServiceCall("a", "my-service", kubernetesMockServer, SERVICE_A_PORT, "http", 1);
-		Util.mockLoadBalancerServiceCall("b", "my-service", kubernetesMockServer, SERVICE_B_PORT, "http", 1);
+		mockLoadBalancerServiceCallByLabels("a", "my-service", SERVICE_LABELS, kubernetesMockServer, SERVICE_A_PORT, 1);
+		mockLoadBalancerServiceCallByLabels("b", "my-service", SERVICE_LABELS, kubernetesMockServer, SERVICE_B_PORT, 1);
 
 		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
 		serviceAMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_A_PORT);
 
 		serviceBMockServer = new WireMockServer(SERVICE_B_PORT);
 		serviceBMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_B_PORT);
 
 	}
 
@@ -127,7 +133,6 @@ class SpecificNamespaceTest {
 	 *      - load balancer mode is 'SERVICE'
 	 *
 	 *      - as such, only my-service in namespace a is load balanced
-	 *      - we also assert the type of ServiceInstanceListSupplier corresponding to the SERVICE mode.
 	 * </pre>
 	 */
 	@Test
@@ -159,9 +164,8 @@ class SpecificNamespaceTest {
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
 			.getProvider("my-service", ServiceInstanceListSupplier.class)
 			.getIfAvailable();
-		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(Fabric8ServicesListSupplier.class);
+		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(Fabric8LabelBasedServicesListSupplier.class);
 
-		Assertions.assertThat(output.getOut()).contains("serviceID : my-service");
 		Assertions.assertThat(output.getOut()).contains("discovering services in namespace : a");
 
 	}

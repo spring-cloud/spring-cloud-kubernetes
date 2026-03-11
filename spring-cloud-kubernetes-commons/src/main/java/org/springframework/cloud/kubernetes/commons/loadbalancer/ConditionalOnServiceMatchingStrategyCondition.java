@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode;
+package org.springframework.cloud.kubernetes.commons.loadbalancer;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.springframework.context.annotation.Conditional;
 
 /**
  * @author wind57
  */
-@SpringBootApplication
-public class App {
+@Conditional(OnServiceMatchingStrategyCondition.class)
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD })
+public @interface ConditionalOnServiceMatchingStrategyCondition {
 
-	static void main(String[] args) {
-		SpringApplication.run(App.class, args);
-	}
+	LoadBalancerServiceMatchingStrategy value();
 
 }

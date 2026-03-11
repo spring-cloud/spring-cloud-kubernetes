@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.cache;
+package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service.name.cache;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -28,23 +28,27 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.App;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCall;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCall;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerMocks.mockLoadBalancerServiceCallWithFieldMetadataName;
 
 /**
  * @author wind57
  */
 @SpringBootTest(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
 		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.all-namespaces=false",
-		"spring.cloud.kubernetes.client.namespace=a", "spring.cloud.loadbalancer.cache.enabled=false" },
-		classes = App.class)
+		"spring.cloud.kubernetes.discovery.namespaces[0]=a", "spring.cloud.loadbalancer.cache.enabled=true",
+		"spring.cloud.loadbalancer.cache.ttl=2s" }, classes = App.class)
+@DirtiesContext
 @EnableKubernetesMockClient
-class CacheDisabledTest {
+class CacheEnabledWithinTTLTest {
 
-	private static final int NUMBER_OF_CALLS = 2;
+	private static final int NUMBER_OF_CALLS = 1;
 
 	private static KubernetesMockServer kubernetesMockServer;
 
@@ -56,32 +60,33 @@ class CacheDisabledTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		// these two are needed to populate the Listers and to silence the logs from
-		// errors
-		// since we are in the SERVICE mode, we don't use the DiscoveryClient, so these
+		// These two are needed to populate the Listers and to silence the errors from the
+		// logs.
+		// Since we are in the SERVICE mode, we don't use DiscoveryClient, so these
 		// two mocks don't play a role in the testing itself.
-		Util.mockNamespacedIndexerServiceCall("a", "service-a", kubernetesMockServer);
-		Util.mockNamespacedIndexerEndpointsCall("a", "service-a", "localhost", 8080, kubernetesMockServer);
+		mockNamespacedIndexerServiceCall(kubernetesMockServer);
+		mockNamespacedIndexerEndpointsCall(kubernetesMockServer);
 
 		// mock fabric8 client calls that are made as part of the services list supplier
-		Util.mockLoadBalancerServiceCall("a", "service-a", kubernetesMockServer, 8080, "a", NUMBER_OF_CALLS);
+		mockLoadBalancerServiceCallWithFieldMetadataName("a", "service-a", kubernetesMockServer,
+				kubernetesMockServer.getPort(), NUMBER_OF_CALLS);
 	}
 
 	/**
 	 * <pre>
-	 *      - we disable caching via 'spring.cloud.loadbalancer.cache.enabled=false'
-	 *      - as such, two calls to : loadBalancer.choose() will both execute
-	 *        on the delegate itself, which we assert via NUMBER_OF_CALLS = 2
-	 *        ( if we set it to 1, the test fails )
+	 *      - caching is enabled and : 'spring.cloud.loadbalancer.cache.ttl=2s'
+	 *      - we make two calls within those two seconds
+	 *      - as such, first loadBalancer.choose() will execute on the delegate,
+	 *        while the second one will be cached.
+	 *
 	 * </pre>
 	 */
 	@Test
-	void test() {
+	void testCallsWithinTTL() {
 
 		ReactiveLoadBalancer<ServiceInstance> loadBalancer = loadBalancerClientFactory.getInstance("service-a");
 		Response<ServiceInstance> firstResponse = Mono.from(loadBalancer.choose()).block();
 		assertThat(firstResponse.hasServer()).isTrue();
-
 		Response<ServiceInstance> secondResponse = Mono.from(loadBalancer.choose()).block();
 		assertThat(secondResponse.hasServer()).isTrue();
 
