@@ -39,7 +39,7 @@ import static org.springframework.cloud.kubernetes.fabric8.Fabric8Utils.getAppli
  *
  * @author wind57
  */
-class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8ServicesListSupplier {
+public class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8ServicesListSupplier {
 
 	private static final LogAccessor LOG = new LogAccessor(Fabric8LabelBasedServicesListSupplier.class);
 
@@ -63,8 +63,6 @@ class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8ServicesListS
 	public Flux<List<ServiceInstance>> get() {
 		return Flux.defer(() -> {
 			List<ServiceInstance> serviceInstances = new ArrayList<>();
-			String serviceName = getServiceId();
-			LOG.debug(() -> "loadbalancer serviceID : " + serviceName);
 
 			if (discoveryProperties.allNamespaces()) {
 				LOG.debug(() -> "discovering services in all namespaces");
@@ -74,7 +72,7 @@ class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8ServicesListS
 					.list()
 					.getItems();
 
-				addMappedServices(serviceInstances, services, null, FIELD_NAME, serviceName);
+				addMappedServices(serviceInstances, services, null, FIELD_NAME, serviceLabels.toString());
 			}
 			else if (!discoveryProperties.namespaces().isEmpty()) {
 				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
@@ -86,7 +84,7 @@ class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8ServicesListS
 						.list()
 						.getItems();
 
-					addMappedServices(serviceInstances, services, selectiveNamespace, FIELD_NAME, serviceName);
+					addMappedServices(serviceInstances, services, selectiveNamespace, FIELD_NAME, serviceLabels.toString());
 				});
 			}
 			else {
@@ -99,7 +97,7 @@ class Fabric8LabelBasedServicesListSupplier extends AbstractFabric8ServicesListS
 					.list()
 					.getItems();
 
-				addMappedServices(serviceInstances, services, namespace, FIELD_NAME, serviceName);
+				addMappedServices(serviceInstances, services, namespace, FIELD_NAME, serviceLabels.toString());
 			}
 
 			LOG.debug(() -> "found services : " + serviceInstances);

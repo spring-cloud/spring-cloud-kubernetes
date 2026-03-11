@@ -27,15 +27,18 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.LoadBalancerConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.App;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerConfiguration;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.DiscoveryClientServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockAllNamespacesIndexerServiceCalls;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockAllNamespacesIndexerEndpointsCalls;
 
 /**
  * @author wind57
@@ -47,11 +50,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableKubernetesMockClient(https = false)
 class AllNamespacesTest {
 
-	private static KubernetesMockServer kubernetesMockServer;
-
 	private static final String SERVICE_A_URL = "http://service-a/a-path";
 
 	private static final String SERVICE_B_URL = "http://service-b/b-path";
+
+	private static final Map<String, String> NAMESPACE_TO_SERVICE_ID = Map.of("a", "service-a", "b", "service-b");
+
+	private static KubernetesMockServer kubernetesMockServer;
 
 	@Autowired
 	private WebClient.Builder builder;
@@ -65,13 +70,11 @@ class AllNamespacesTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockAllNamespacesIndexerServiceCalls(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
-		Util.mockAllNamespacesIndexerEndpointsCalls(Map.of("a", "service-a", "b", "service-b"), "localhost",
-				kubernetesMockServer.getPort(), kubernetesMockServer);
+		mockAllNamespacesIndexerServiceCalls(NAMESPACE_TO_SERVICE_ID, kubernetesMockServer);
+		mockAllNamespacesIndexerEndpointsCalls(NAMESPACE_TO_SERVICE_ID, kubernetesMockServer);
 
 		// this url is generated from Endpoints host and port
 		kubernetesMockServer.expect().get().withPath("/a-path").andReturn(200, "service-a-reached").once();
-
 		kubernetesMockServer.expect().get().withPath("/b-path").andReturn(200, "service-b-reached").once();
 	}
 
@@ -106,13 +109,12 @@ class AllNamespacesTest {
 			.retrieve()
 			.bodyToMono(String.class)
 			.block();
-		Assertions.assertThat(serviceBResult).isEqualTo("service-b-reached");
+		assertThat(serviceBResult).isEqualTo("service-b-reached");
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
 			.getProvider("service-a", ServiceInstanceListSupplier.class)
 			.getIfAvailable();
-		Assertions.assertThat(supplier.getDelegate().getClass())
-			.isSameAs(DiscoveryClientServiceInstanceListSupplier.class);
+		assertThat(supplier.getDelegate().getClass()).isSameAs(DiscoveryClientServiceInstanceListSupplier.class);
 
 	}
 

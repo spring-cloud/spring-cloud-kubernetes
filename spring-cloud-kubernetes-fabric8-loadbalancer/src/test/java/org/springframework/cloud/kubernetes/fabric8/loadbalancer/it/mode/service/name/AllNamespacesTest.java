@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service;
+package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service.name;
 
 import java.util.Map;
 
@@ -35,14 +35,18 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.Fabric8ServicesListSupplier;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.LoadBalancerConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.App;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerConfiguration;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockAllNamespacesIndexerServiceCalls;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockAllNamespacesIndexerEndpointsCalls;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadbalancerMocks.mockLoadBalancerServiceCallInAllNamespacesByName;
+
 
 /**
  * @author wind57
@@ -55,11 +59,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EnableKubernetesMockClient(https = false)
 class AllNamespacesTest {
 
-	private static KubernetesMockServer kubernetesMockServer;
-
 	private static final String SERVICE_A_URL = "http://service-a/a-path";
 
 	private static final String SERVICE_B_URL = "http://service-b/b-path";
+
+	private static final int NUMBER_OF_CALLS = 1;
+
+	private static KubernetesMockServer kubernetesMockServer;
 
 	@Autowired
 	private WebClient.Builder builder;
@@ -85,16 +91,13 @@ class AllNamespacesTest {
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockAllNamespacesIndexerServiceCalls(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
-		Util.mockAllNamespacesIndexerEndpointsCalls(Map.of("a", "service-a", "b", "service-b"), "localhost",
-				kubernetesMockServer.getPort(), kubernetesMockServer);
-		Util.mockLoadBalancerMetadataNameServiceCallInAllNamespaces("a", "service-a", kubernetesMockServer,
-				kubernetesMockServer.getPort(), "http", 1);
-		Util.mockLoadBalancerMetadataNameServiceCallInAllNamespaces("b", "service-b", kubernetesMockServer,
-				kubernetesMockServer.getPort(), "http", 1);
+		mockAllNamespacesIndexerServiceCalls(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
+		mockAllNamespacesIndexerEndpointsCalls(Map.of("a", "service-a", "b", "service-b"), kubernetesMockServer);
+
+		mockLoadBalancerServiceCallInAllNamespacesByName("a", "service-a", kubernetesMockServer, NUMBER_OF_CALLS);
+		mockLoadBalancerServiceCallInAllNamespacesByName("b", "service-b", kubernetesMockServer, NUMBER_OF_CALLS);
 
 		kubernetesMockServer.expect().get().withPath("/a-path").andReturn(200, "service-a-reached").once();
-
 		kubernetesMockServer.expect().get().withPath("/b-path").andReturn(200, "service-b-reached").once();
 
 	}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service;
+package org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.service.name;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -35,9 +35,8 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.kubernetes.fabric8.loadbalancer.Fabric8ServicesListSupplier;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.Util;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.App;
-import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.mode.LoadBalancerConfiguration;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.App;
+import org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadBalancerConfiguration;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
@@ -45,18 +44,21 @@ import org.springframework.http.HttpMethod;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCall;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCall;
+import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadbalancerMocks.mockLoadBalancerServiceCallWithFieldMetadataName;
+
 /**
  * @author wind57
  */
-@SpringBootTest(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
-		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.all-namespaces=false",
-		"spring.cloud.kubernetes.discovery.namespaces.[0]=a", "spring.cloud.kubernetes.discovery.namespaces.[1]=b" },
+@SpringBootTest(
+		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.kubernetes.discovery.all-namespaces=false",
+				"spring.cloud.kubernetes.client.namespace=a" },
 		classes = { LoadBalancerConfiguration.class, App.class })
 @ExtendWith(OutputCaptureExtension.class)
 @EnableKubernetesMockClient(https = false)
-class SelectiveNamespacesTest {
-
-	private static KubernetesMockServer kubernetesMockServer;
+class SpecificNamespaceTest {
 
 	private static final String MY_SERVICE_URL = "http://my-service";
 
@@ -64,13 +66,11 @@ class SelectiveNamespacesTest {
 
 	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
 
-	private static final int SERVICE_C_PORT = TestSocketUtils.findAvailableTcpPort();
+	private static KubernetesMockServer kubernetesMockServer;
 
 	private static WireMockServer serviceAMockServer;
 
 	private static WireMockServer serviceBMockServer;
-
-	private static WireMockServer serviceCMockServer;
 
 	@SuppressWarnings("rawtypes")
 	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
@@ -93,23 +93,17 @@ class SelectiveNamespacesTest {
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "b", "cluster.local"))
 			.thenReturn("localhost");
 
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "c", "cluster.local"))
-			.thenReturn("localhost");
-
 		System.setProperty(Config.KUBERNETES_MASTER_SYSTEM_PROPERTY, kubernetesMockServer.url("/"));
 		System.setProperty(Config.KUBERNETES_TRUST_CERT_SYSTEM_PROPERTY, "true");
 
-		Util.mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
-		Util.mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
-		Util.mockNamespacedIndexerServiceCall("c", "my-service", kubernetesMockServer);
+		mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
+		mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
 
-		Util.mockNamespacedIndexerEndpointsCall("a", "my-service", "localhost", SERVICE_A_PORT, kubernetesMockServer);
-		Util.mockNamespacedIndexerEndpointsCall("b", "my-service", "localhost", SERVICE_B_PORT, kubernetesMockServer);
-		Util.mockNamespacedIndexerEndpointsCall("c", "my-service", "localhost", SERVICE_C_PORT, kubernetesMockServer);
+		mockNamespacedIndexerEndpointsCall("a", "my-service", kubernetesMockServer, SERVICE_A_PORT);
+		mockNamespacedIndexerEndpointsCall("b", "my-service", kubernetesMockServer, SERVICE_B_PORT);
 
-		Util.mockLoadBalancerServiceCall("a", "my-service", kubernetesMockServer, SERVICE_A_PORT, "http", 1);
-		Util.mockLoadBalancerServiceCall("b", "my-service", kubernetesMockServer, SERVICE_B_PORT, "http", 1);
-		Util.mockLoadBalancerServiceCall("c", "my-service", kubernetesMockServer, SERVICE_C_PORT, "http", 1);
+		mockLoadBalancerServiceCallWithFieldMetadataName("a", "my-service", kubernetesMockServer, SERVICE_A_PORT, 1);
+		mockLoadBalancerServiceCallWithFieldMetadataName("b", "my-service", kubernetesMockServer, SERVICE_B_PORT, 1);
 
 		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
 		serviceAMockServer.start();
@@ -119,17 +113,12 @@ class SelectiveNamespacesTest {
 		serviceBMockServer.start();
 		WireMock.configureFor("localhost", SERVICE_B_PORT);
 
-		serviceCMockServer = new WireMockServer(SERVICE_C_PORT);
-		serviceCMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_C_PORT);
-
 	}
 
 	@AfterAll
 	static void afterAll() {
 		serviceAMockServer.stop();
 		serviceBMockServer.stop();
-		serviceCMockServer.stop();
 		MOCKED_STATIC.close();
 	}
 
@@ -137,11 +126,10 @@ class SelectiveNamespacesTest {
 	 * <pre>
 	 *      - my-service is present in 'a' namespace
 	 *      - my-service is present in 'b' namespace
-	 *      - my-service is present in 'c' namespace
-	 *      - we enable search in selective namespaces [a, b]
+	 *      - we enable search in namespace 'a'
 	 *      - load balancer mode is 'SERVICE'
 	 *
-	 *      - as such, only service in namespace a and b are load balanced
+	 *      - as such, only my-service in namespace a is load balanced
 	 *      - we also assert the type of ServiceInstanceListSupplier corresponding to the SERVICE mode.
 	 * </pre>
 	 */
@@ -153,9 +141,6 @@ class SelectiveNamespacesTest {
 
 		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
 			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
-
-		serviceCMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-			.willReturn(WireMock.aResponse().withBody("service-c-reached").withStatus(200)));
 
 		String firstCallResult = builder.baseUrl(MY_SERVICE_URL)
 			.build()
@@ -171,33 +156,8 @@ class SelectiveNamespacesTest {
 			.bodyToMono(String.class)
 			.block();
 
-		String thirdCallResult = builder.baseUrl(MY_SERVICE_URL)
-			.build()
-			.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(String.class)
-			.block();
-
-		boolean secondCallWasInANamespace = false;
-
-		// since selective namespaces is a Set, we need to be careful with assertion order
-		if (firstCallResult.equals("service-a-reached")) {
-			Assertions.assertThat(secondCallResult).isEqualTo("service-b-reached");
-			secondCallWasInANamespace = false;
-		}
-		else {
-			Assertions.assertThat(firstCallResult).isEqualTo("service-b-reached");
-			Assertions.assertThat(secondCallResult).isEqualTo("service-a-reached");
-			secondCallWasInANamespace = true;
-		}
-
-		// first call is either a or b, not c.
-		if (secondCallWasInANamespace) {
-			Assertions.assertThat(thirdCallResult).isEqualTo("service-b-reached");
-		}
-		else {
-			Assertions.assertThat(thirdCallResult).isEqualTo("service-a-reached");
-		}
+		Assertions.assertThat(firstCallResult).isEqualTo("service-a-reached");
+		Assertions.assertThat(secondCallResult).isEqualTo("service-a-reached");
 
 		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
 			.getProvider("my-service", ServiceInstanceListSupplier.class)
@@ -205,7 +165,8 @@ class SelectiveNamespacesTest {
 		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(Fabric8ServicesListSupplier.class);
 
 		Assertions.assertThat(output.getOut()).contains("serviceID : my-service");
-		Assertions.assertThat(output.getOut()).contains("discovering services in selective namespaces : [a, b]");
+		Assertions.assertThat(output.getOut()).contains("discovering services in namespace : a");
+
 	}
 
 }
