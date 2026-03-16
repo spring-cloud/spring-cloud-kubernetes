@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
