@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -170,14 +171,19 @@ public final class Commons {
 		String fullImageRef = fullImageReference(imageNameForDownload, imageVersion);
 
 		final String[] ctrArgs = buildCtrPullArgs(fullImageRef);
-
-		await().atMost(Duration.ofMinutes(2)).pollInterval(Duration.ofSeconds(1)).until(() -> {
-			Container.ExecResult result = container.execInContainer(ctrArgs);
-			boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
-			if (!noErrors) {
-				LOG.info("ctr pull stderr: " + result.getStderr());
+		Awaitilities.awaitUntil(120, 1, () -> {
+			try {
+				Container.ExecResult result = container.execInContainer(ctrArgs);
+				boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
+				if (!noErrors) {
+					LOG.info("ctr pull stderr: " + result.getStderr());
+				}
+				return noErrors;
 			}
-			return noErrors;
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+
 		});
 	}
 
