@@ -33,6 +33,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.loadbalancer.KubernetesClientServicesListSupplier;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.App;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.LoadBalancerConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
@@ -125,6 +126,10 @@ class SelectiveNamespacesTest {
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		clientUtils = mockStatic(KubernetesClientUtils.class);
 		clientUtils.when(KubernetesClientUtils::kubernetesApiClient).thenReturn(client);
+		clientUtils
+			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.nullable(String.class),
+					Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
+			.thenCallRealMethod();
 	}
 
 	@AfterAll

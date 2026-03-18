@@ -36,6 +36,7 @@ import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.App;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.test.annotation.DirtiesContext;
@@ -98,8 +99,12 @@ class CacheEnabledWithinTTLTest {
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		// we need to not mock 'getApplicationNamespace'
-		clientUtils = mockStatic(KubernetesClientUtils.class, Mockito.CALLS_REAL_METHODS);
+		clientUtils = mockStatic(KubernetesClientUtils.class);
 		clientUtils.when(KubernetesClientUtils::kubernetesApiClient).thenReturn(client);
+		clientUtils
+			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.nullable(String.class),
+					Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
+			.thenCallRealMethod();
 	}
 
 	@AfterAll
