@@ -133,7 +133,6 @@ class CacheEnabledWithinTTLTest {
 		Response<ServiceInstance> secondResponse = Mono.from(loadBalancer.choose()).block();
 		assertThat(secondResponse.hasServer()).isTrue();
 
-		// called two times
 		wireMockServer.verify(WireMock.exactly(1), WireMock
 			.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/a/services?labelSelector=same-key%3Dsame-value")));
 

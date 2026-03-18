@@ -148,10 +148,10 @@ class SelectiveNamespacesTest {
 	 *      - my-service is present in 'b' namespace
 	 *      - my-service is present in 'c' namespace
 	 *      - we enable search in selective namespaces [a, b]
-	 *      - load balancer mode is 'POD'
+	 *      - load balancer mode is 'SERVICE'
 	 *
 	 *      - as such, only service in namespace a and b are load balanced
-	 *      - we also assert the type of ServiceInstanceListSupplier corresponding to the POD mode.
+	 *      - we also assert the type of ServiceInstanceListSupplier corresponding to the SERVICE mode.
 	 * </pre>
 	 */
 	@Test

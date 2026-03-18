@@ -62,8 +62,6 @@ class CacheEnabledWithinTTLTest {
 
 	private static WireMockServer wireMockServer;
 
-	private static WireMockServer serviceAMockServer;
-
 	private static MockedStatic<KubernetesClientUtils> clientUtils;
 
 	@SuppressWarnings("rawtypes")
@@ -84,9 +82,6 @@ class CacheEnabledWithinTTLTest {
 
 		mockLoadBalancerServiceCallWithFieldMetadataName("a", "service-a", wireMockServer, wireMockServer.port());
 
-		serviceAMockServer = new WireMockServer(SERVICE_PORT);
-		serviceAMockServer.start();
-
 		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
@@ -105,7 +100,6 @@ class CacheEnabledWithinTTLTest {
 	@AfterAll
 	static void afterAll() {
 		wireMockServer.stop();
-		serviceAMockServer.stop();
 		MOCKED_STATIC.close();
 		clientUtils.close();
 	}

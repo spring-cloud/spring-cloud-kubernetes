@@ -40,7 +40,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.util.TestSocketUtils;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,11 +63,7 @@ class CacheEnabledOutsideTTLTest {
 
 	private static final Map<String, String> SERVICE_LABELS = Map.of("same-key", "same-value");
 
-	private static final int SERVICE_PORT = TestSocketUtils.findAvailableTcpPort();
-
 	private static WireMockServer wireMockServer;
-
-	private static WireMockServer serviceAMockServer;
 
 	private static MockedStatic<KubernetesClientUtils> clientUtils;
 
@@ -90,9 +85,6 @@ class CacheEnabledOutsideTTLTest {
 
 		mockLoadBalancerServiceCallByLabels("a", "service-a", SERVICE_LABELS, wireMockServer, wireMockServer.port());
 
-		serviceAMockServer = new WireMockServer(SERVICE_PORT);
-		serviceAMockServer.start();
-
 		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
@@ -111,7 +103,6 @@ class CacheEnabledOutsideTTLTest {
 	@AfterAll
 	static void afterAll() {
 		wireMockServer.stop();
-		serviceAMockServer.stop();
 		MOCKED_STATIC.close();
 		clientUtils.close();
 	}
