@@ -28,7 +28,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
-import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServicesListSupplier;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
@@ -37,9 +36,11 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientServicesListSupplier extends KubernetesServicesListSupplier<V1Service> {
+public class KubernetesClientServicesListSupplier extends AbstractKubernetesClientServicesListSupplier {
 
 	private static final LogAccessor LOG = new LogAccessor(KubernetesClientServicesListSupplier.class);
+
+	private static final String FIELD_NAME = "metadata.name";
 
 	private final CoreV1Api coreV1Api;
 
@@ -63,31 +64,26 @@ public class KubernetesClientServicesListSupplier extends KubernetesServicesList
 			if (discoveryProperties.allNamespaces()) {
 				LOG.debug(() -> "discovering services in all namespaces");
 				List<V1Service> services = services(null, serviceName);
-				services.forEach(service -> addMappedService(mapper, result, service));
+				addMappedServices(result, services, null, FIELD_NAME, serviceName);
 			}
 			else if (!discoveryProperties.namespaces().isEmpty()) {
 				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
 				LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
 				selectiveNamespaces.forEach(selectiveNamespace -> {
 					List<V1Service> services = services(selectiveNamespace, serviceName);
-					services.forEach(service -> addMappedService(mapper, result, service));
+					addMappedServices(result, services, selectiveNamespace, FIELD_NAME, serviceName);
 				});
 			}
 			else {
 				String namespace = getApplicationNamespace(null, "loadbalancer-service", kubernetesNamespaceProvider);
 				LOG.debug(() -> "discovering services in namespace : " + namespace);
 				List<V1Service> services = services(namespace, serviceName);
-				services.forEach(service -> addMappedService(mapper, result, service));
+				addMappedServices(result, services, namespace, FIELD_NAME, serviceName);
 			}
 
 			LOG.debug(() -> "found services : " + result);
 			return Flux.just(result);
 		});
-	}
-
-	private void addMappedService(KubernetesServiceInstanceMapper<V1Service> mapper, List<ServiceInstance> services,
-			V1Service service) {
-		services.add(mapper.map(service));
 	}
 
 	private List<V1Service> services(String namespace, String serviceName) {
