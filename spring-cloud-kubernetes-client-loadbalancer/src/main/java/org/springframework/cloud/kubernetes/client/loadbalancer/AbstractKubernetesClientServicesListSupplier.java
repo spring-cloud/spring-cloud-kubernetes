@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
+package org.springframework.cloud.kubernetes.client.loadbalancer;
 
 import java.util.List;
 
-import io.fabric8.kubernetes.api.model.Service;
+import io.kubernetes.client.openapi.models.V1Service;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -30,16 +30,16 @@ import org.springframework.core.log.LogAccessor;
 /**
  * @author wind57
  */
-abstract class AbstractFabric8ServicesListSupplier extends KubernetesServicesListSupplier<Service> {
+abstract class AbstractKubernetesClientServicesListSupplier extends KubernetesServicesListSupplier<V1Service> {
 
-	private static final LogAccessor LOG = new LogAccessor(AbstractFabric8ServicesListSupplier.class);
+	private static final LogAccessor LOG = new LogAccessor(AbstractKubernetesClientServicesListSupplier.class);
 
-	AbstractFabric8ServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper<Service> mapper,
-			KubernetesDiscoveryProperties discoveryProperties) {
+	AbstractKubernetesClientServicesListSupplier(Environment environment,
+			KubernetesServiceInstanceMapper<V1Service> mapper, KubernetesDiscoveryProperties discoveryProperties) {
 		super(environment, mapper, discoveryProperties);
 	}
 
-	void addMappedServices(List<ServiceInstance> serviceInstances, List<Service> services, String namespace,
+	void addMappedServices(List<ServiceInstance> serviceInstances, List<V1Service> services, String namespace,
 			String field, String fieldValue) {
 
 		if (services.isEmpty()) {

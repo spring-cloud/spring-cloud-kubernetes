@@ -16,16 +16,11 @@
 
 package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.pod;
 
+import java.util.Map;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
-import io.kubernetes.client.openapi.models.V1EndpointsListBuilder;
-import io.kubernetes.client.openapi.models.V1ListMetaBuilder;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.openapi.models.V1ServiceListBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -37,7 +32,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.App;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.LoadBalancerConfiguration;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
@@ -46,11 +40,12 @@ import org.springframework.cloud.loadbalancer.core.DiscoveryClientServiceInstanc
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpMethod;
-import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockAllNamespacesIndexerEndpointsCalls;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockAllNamespacesIndexerServiceCalls;
 
 /**
  * @author wind57
@@ -61,19 +56,13 @@ import static org.mockito.Mockito.mockStatic;
 		classes = { LoadBalancerConfiguration.class, App.class })
 class AllNamespacesTest {
 
-	private static final String SERVICE_A_URL = "http://service-a";
+	private static final Map<String, String> NAMESPACE_TO_SERVICE_ID = Map.of("a", "service-a", "b", "service-b");
 
-	private static final String SERVICE_B_URL = "http://service-b";
+	private static final String SERVICE_A_URL = "http://service-a/a-path";
 
-	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
-
-	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
+	private static final String SERVICE_B_URL = "http://service-b/b-path";
 
 	private static WireMockServer wireMockServer;
-
-	private static WireMockServer serviceAMockServer;
-
-	private static WireMockServer serviceBMockServer;
 
 	private static MockedStatic<KubernetesClientUtils> clientUtils;
 
@@ -92,16 +81,9 @@ class AllNamespacesTest {
 
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
-		WireMock.configureFor("localhost", wireMockServer.port());
-		mockWatchers();
 
-		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
-		serviceAMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_A_PORT);
-
-		serviceBMockServer = new WireMockServer(SERVICE_B_PORT);
-		serviceBMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_B_PORT);
+		mockAllNamespacesIndexerServiceCalls(NAMESPACE_TO_SERVICE_ID, wireMockServer);
+		mockAllNamespacesIndexerEndpointsCalls(NAMESPACE_TO_SERVICE_ID, wireMockServer);
 
 		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
@@ -120,8 +102,6 @@ class AllNamespacesTest {
 	@AfterAll
 	static void afterAll() {
 		wireMockServer.stop();
-		serviceAMockServer.stop();
-		serviceBMockServer.stop();
 		MOCKED_STATIC.close();
 		clientUtils.close();
 	}
@@ -136,10 +116,10 @@ class AllNamespacesTest {
 	@Test
 	void test() {
 
-		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
+		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/a-path"))
 			.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
 
-		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
+		wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/b-path"))
 			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
 
 		String serviceAResult = builder.baseUrl(SERVICE_A_URL)
@@ -164,27 +144,6 @@ class AllNamespacesTest {
 		Assertions.assertThat(supplier.getDelegate().getClass())
 			.isSameAs(DiscoveryClientServiceInstanceListSupplier.class);
 
-	}
-
-	private static void mockWatchers() {
-		V1Service serviceA = Util.service("a", "service-a", SERVICE_A_PORT);
-		V1Service serviceB = Util.service("b", "service-b", SERVICE_B_PORT);
-		V1ServiceList serviceList = new V1ServiceListBuilder().withKind("V1ServiceList")
-			.withMetadata(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(serviceA, serviceB)
-			.build();
-		Util.servicesPodMode(wireMockServer, serviceList);
-
-		V1Endpoints endpointsA = Util.endpoints("a", "service-a", SERVICE_A_PORT, "127.0.0.1");
-		V1Endpoints endpointsB = Util.endpoints("b", "service-b", SERVICE_B_PORT, "127.0.0.1");
-		V1EndpointsList endpointsList = new V1EndpointsListBuilder().withKind("V1EndpointsList")
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(endpointsA, endpointsB)
-			.build();
-		Util.endpointsPodMode(wireMockServer, endpointsList);
 	}
 
 }
