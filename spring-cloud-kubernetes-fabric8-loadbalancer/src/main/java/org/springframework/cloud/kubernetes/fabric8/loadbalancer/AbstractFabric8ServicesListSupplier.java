@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.loadbalancer;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Service;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -33,8 +32,7 @@ import org.springframework.core.log.LogAccessor;
  */
 abstract class AbstractFabric8ServicesListSupplier extends KubernetesServicesListSupplier<Service> {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(AbstractFabric8ServicesListSupplier.class));
+	private static final LogAccessor LOG = new LogAccessor(AbstractFabric8ServicesListSupplier.class);
 
 	AbstractFabric8ServicesListSupplier(Environment environment, KubernetesServiceInstanceMapper<Service> mapper,
 			KubernetesDiscoveryProperties discoveryProperties) {

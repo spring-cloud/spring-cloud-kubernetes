@@ -14,66 +14,60 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.pod;
+package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.service.name.cache;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.ClientBuilder;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.Response;
+import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.App;
-import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.LoadBalancerConfiguration;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
-import org.springframework.cloud.loadbalancer.core.CachingServiceInstanceListSupplier;
-import org.springframework.cloud.loadbalancer.core.DiscoveryClientServiceInstanceListSupplier;
-import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
-import org.springframework.http.HttpMethod;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.TestSocketUtils;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCall;
 import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCall;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.LoadBalancerMocks.mockLoadBalancerServiceCallWithFieldMetadataName;
 
 /**
  * @author wind57
  */
-@SpringBootTest(properties = { "spring.cloud.kubernetes.loadbalancer.mode=POD", "spring.main.cloud-platform=KUBERNETES",
-		"spring.cloud.kubernetes.discovery.all-namespaces=false", "spring.cloud.kubernetes.client.namespace=a" },
-		classes = { LoadBalancerConfiguration.class, App.class })
-class SpecificNamespaceTest {
+@SpringBootTest(
+		properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE", "spring.main.cloud-platform=KUBERNETES",
+				"spring.cloud.kubernetes.discovery.all-namespaces=false", "spring.cloud.kubernetes.client.namespace=a",
+				"spring.cloud.loadbalancer.cache.enabled=true", "spring.cloud.loadbalancer.cache.ttl=2s" },
+		classes = App.class)
+@DirtiesContext
+class CacheEnabledWithinTTLTest {
 
-	private static final String SERVICE_A_URL = "http://my-service";
-
-	private static final int SERVICE_A_PORT = TestSocketUtils.findAvailableTcpPort();
-
-	private static final int SERVICE_B_PORT = TestSocketUtils.findAvailableTcpPort();
+	private static final int SERVICE_PORT = TestSocketUtils.findAvailableTcpPort();
 
 	private static WireMockServer wireMockServer;
 
 	private static WireMockServer serviceAMockServer;
 
-	private static WireMockServer serviceBMockServer;
+	private static MockedStatic<KubernetesClientUtils> clientUtils;
 
 	@SuppressWarnings("rawtypes")
 	private static final MockedStatic<KubernetesServiceInstanceMapper> MOCKED_STATIC = Mockito
 		.mockStatic(KubernetesServiceInstanceMapper.class);
-
-	private static MockedStatic<KubernetesClientUtils> clientUtils;
-
-	@Autowired
-	private WebClient.Builder builder;
 
 	@Autowired
 	private LoadBalancerClientFactory loadBalancerClientFactory;
@@ -84,25 +78,17 @@ class SpecificNamespaceTest {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 
-		mockNamespacedIndexerServiceCall("a", "my-service", wireMockServer);
-		mockNamespacedIndexerServiceCall("b", "my-service", wireMockServer);
+		mockNamespacedIndexerServiceCall("a", "service-a", wireMockServer);
+		mockNamespacedIndexerEndpointsCall("a", "service-a", wireMockServer, wireMockServer.port());
 
-		// actual pod URL will be : localhost:SERVICE_A_PORT and so on for the rest
-		mockNamespacedIndexerEndpointsCall("a", "my-service", wireMockServer, SERVICE_A_PORT);
-		mockNamespacedIndexerEndpointsCall("b", "my-service", wireMockServer, SERVICE_B_PORT);
+		mockLoadBalancerServiceCallWithFieldMetadataName("a", "service-a", wireMockServer, wireMockServer.port());
 
-		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
+		serviceAMockServer = new WireMockServer(SERVICE_PORT);
 		serviceAMockServer.start();
-
-		serviceBMockServer = new WireMockServer(SERVICE_B_PORT);
-		serviceBMockServer.start();
 
 		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
 		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "a", "cluster.local"))
-			.thenReturn("localhost");
-
-		MOCKED_STATIC.when(() -> KubernetesServiceInstanceMapper.createHost("my-service", "b", "cluster.local"))
 			.thenReturn("localhost");
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
@@ -115,44 +101,32 @@ class SpecificNamespaceTest {
 	static void afterAll() {
 		wireMockServer.stop();
 		serviceAMockServer.stop();
-		serviceBMockServer.stop();
 		MOCKED_STATIC.close();
 		clientUtils.close();
 	}
 
 	/**
 	 * <pre>
-	 *      - my-service is present in 'a' namespace
-	 *      - my-service is present in 'b' namespace
-	 *      - we enable search in namespace 'a'
-	 *      - load balancer mode is 'POD'
+	 *      - caching is enabled and : 'spring.cloud.loadbalancer.cache.ttl=2s'
+	 *      - we make two calls within those two seconds
+	 *      - as such, first loadBalancer.choose() will execute on the delegate,
+	 *        while the second one will be cached.
 	 *
-	 *      - as such, only my-service in namespace a is load balanced
-	 *      - we also assert the type of ServiceInstanceListSupplier corresponding to the POD mode.
 	 * </pre>
 	 */
 	@Test
 	void test() {
 
-		serviceAMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-			.willReturn(WireMock.aResponse().withBody("service-a-reached").withStatus(200)));
+		ReactiveLoadBalancer<ServiceInstance> loadBalancer = loadBalancerClientFactory.getInstance("service-a");
+		Response<ServiceInstance> firstResponse = Mono.from(loadBalancer.choose()).block();
+		assertThat(firstResponse.hasServer()).isTrue();
+		Response<ServiceInstance> secondResponse = Mono.from(loadBalancer.choose()).block();
+		assertThat(secondResponse.hasServer()).isTrue();
 
-		serviceBMockServer.stubFor(WireMock.get(WireMock.urlEqualTo("/"))
-			.willReturn(WireMock.aResponse().withBody("service-b-reached").withStatus(200)));
+		// called two times
+		wireMockServer.verify(WireMock.exactly(1), WireMock.getRequestedFor(
+				WireMock.urlEqualTo("/api/v1/namespaces/a/services?fieldSelector=metadata.name%3D" + "service-a")));
 
-		String serviceAResult = builder.baseUrl(SERVICE_A_URL)
-			.build()
-			.method(HttpMethod.GET)
-			.retrieve()
-			.bodyToMono(String.class)
-			.block();
-		Assertions.assertThat(serviceAResult).isEqualTo("service-a-reached");
-
-		CachingServiceInstanceListSupplier supplier = (CachingServiceInstanceListSupplier) loadBalancerClientFactory
-			.getProvider("my-service", ServiceInstanceListSupplier.class)
-			.getIfAvailable();
-		Assertions.assertThat(supplier.getDelegate().getClass())
-			.isSameAs(DiscoveryClientServiceInstanceListSupplier.class);
 	}
 
 }

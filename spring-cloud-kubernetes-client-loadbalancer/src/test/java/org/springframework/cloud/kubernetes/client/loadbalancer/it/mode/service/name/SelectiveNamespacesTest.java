@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.service;
+package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.service.name;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
-import io.kubernetes.client.openapi.models.V1EndpointsListBuilder;
-import io.kubernetes.client.openapi.models.V1ListMetaBuilder;
-import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.openapi.models.V1ServiceListBuilder;
 import io.kubernetes.client.util.ClientBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -38,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.loadbalancer.KubernetesClientServicesListSupplier;
-import org.springframework.cloud.kubernetes.client.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.App;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.LoadBalancerConfiguration;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
@@ -51,6 +43,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.mockito.Mockito.mockStatic;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCall;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCall;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.LoadBalancerMocks.mockLoadBalancerServiceCallWithFieldMetadataName;
 
 /**
  * @author wind57
@@ -94,20 +89,27 @@ class SelectiveNamespacesTest {
 
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
-		WireMock.configureFor("localhost", wireMockServer.port());
-		mockWatchers();
+
+		mockNamespacedIndexerServiceCall("a", "my-service", wireMockServer);
+		mockNamespacedIndexerServiceCall("b", "my-service", wireMockServer);
+		mockNamespacedIndexerServiceCall("c", "my-service", wireMockServer);
+
+		mockNamespacedIndexerEndpointsCall("a", "my-service", wireMockServer, SERVICE_A_PORT);
+		mockNamespacedIndexerEndpointsCall("b", "my-service", wireMockServer, SERVICE_B_PORT);
+		mockNamespacedIndexerEndpointsCall("c", "my-service", wireMockServer, SERVICE_C_PORT);
+
+		mockLoadBalancerServiceCallWithFieldMetadataName("a", "my-service", wireMockServer, SERVICE_A_PORT);
+		mockLoadBalancerServiceCallWithFieldMetadataName("b", "my-service", wireMockServer, SERVICE_B_PORT);
+		mockLoadBalancerServiceCallWithFieldMetadataName("c", "my-service", wireMockServer, SERVICE_C_PORT);
 
 		serviceAMockServer = new WireMockServer(SERVICE_A_PORT);
 		serviceAMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_A_PORT);
 
 		serviceBMockServer = new WireMockServer(SERVICE_B_PORT);
 		serviceBMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_B_PORT);
 
 		serviceCMockServer = new WireMockServer(SERVICE_C_PORT);
 		serviceCMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_C_PORT);
 
 		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
@@ -186,56 +188,6 @@ class SelectiveNamespacesTest {
 			.getProvider("my-service", ServiceInstanceListSupplier.class)
 			.getIfAvailable();
 		Assertions.assertThat(supplier.getDelegate().getClass()).isSameAs(KubernetesClientServicesListSupplier.class);
-	}
-
-	private static void mockWatchers() {
-		V1Service serviceA = Util.service("a", "my-service", SERVICE_A_PORT);
-		V1Service serviceB = Util.service("b", "my-service", SERVICE_B_PORT);
-		V1Service serviceC = Util.service("c", "my-service", SERVICE_C_PORT);
-
-		V1ServiceList serviceListA = new V1ServiceListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(serviceA)
-			.build();
-		V1ServiceList serviceListB = new V1ServiceListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(serviceB)
-			.build();
-		V1ServiceList serviceListC = new V1ServiceListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(serviceC)
-			.build();
-
-		Util.servicesInNamespaceServiceMode(wireMockServer, serviceListA, "a", "my-service");
-		Util.servicesInNamespaceServiceMode(wireMockServer, serviceListB, "b", "my-service");
-		Util.servicesInNamespaceServiceMode(wireMockServer, serviceListC, "c", "my-service");
-
-		V1Endpoints endpointsA = Util.endpoints("a", "my-service", SERVICE_A_PORT, "127.0.0.1");
-		V1Endpoints endpointsB = Util.endpoints("b", "my-service", SERVICE_B_PORT, "127.0.0.1");
-		V1Endpoints endpointsC = Util.endpoints("c", "my-service", SERVICE_C_PORT, "127.0.0.1");
-
-		V1EndpointsList endpointsListA = new V1EndpointsListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(endpointsA)
-			.build();
-		V1EndpointsList endpointsListB = new V1EndpointsListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(endpointsB)
-			.build();
-		V1EndpointsList endpointsListC = new V1EndpointsListBuilder()
-			.withNewMetadataLike(new V1ListMetaBuilder().withResourceVersion("0").build())
-			.endMetadata()
-			.withItems(endpointsC)
-			.build();
-
-		Util.endpointsInNamespaceServiceMode(wireMockServer, endpointsListA, "a", "my-service");
-		Util.endpointsInNamespaceServiceMode(wireMockServer, endpointsListB, "b", "my-service");
-		Util.endpointsInNamespaceServiceMode(wireMockServer, endpointsListC, "c", "my-service");
 	}
 
 }

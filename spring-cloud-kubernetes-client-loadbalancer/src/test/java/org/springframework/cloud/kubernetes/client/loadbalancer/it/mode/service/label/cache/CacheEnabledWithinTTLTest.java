@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.cache;
+package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.service.label.cache;
+
+import java.util.Map;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -33,7 +35,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.App;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
@@ -43,16 +44,23 @@ import org.springframework.test.util.TestSocketUtils;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCallByLabels;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCallByLabels;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.LoadBalancerMocks.mockLoadBalancerServiceCallByLabels;
 
 /**
  * @author wind57
  */
 @SpringBootTest(properties = { "spring.cloud.kubernetes.loadbalancer.mode=SERVICE",
 		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.all-namespaces=false",
-		"spring.cloud.kubernetes.client.namespace=a", "spring.cloud.loadbalancer.cache.enabled=false" },
-		classes = App.class)
+		"spring.cloud.kubernetes.discovery.namespaces[0]=a", "spring.cloud.loadbalancer.cache.enabled=true",
+		"spring.cloud.loadbalancer.cache.ttl=2s",
+		"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS",
+		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" }, classes = App.class)
 @DirtiesContext
-class CacheDisabledTest {
+class CacheEnabledWithinTTLTest {
+
+	private static final Map<String, String> SERVICE_LABELS = Map.of("same-key", "same-value");
 
 	private static final int SERVICE_PORT = TestSocketUtils.findAvailableTcpPort();
 
@@ -74,13 +82,14 @@ class CacheDisabledTest {
 
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
-		WireMock.configureFor("localhost", wireMockServer.port());
 
-		Util.mockWatchers(wireMockServer);
+		mockNamespacedIndexerServiceCallByLabels(wireMockServer);
+		mockNamespacedIndexerEndpointsCallByLabels(wireMockServer);
+
+		mockLoadBalancerServiceCallByLabels("a", "service-a", SERVICE_LABELS, wireMockServer, wireMockServer.port());
 
 		serviceAMockServer = new WireMockServer(SERVICE_PORT);
 		serviceAMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_PORT);
 
 		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
@@ -103,9 +112,11 @@ class CacheDisabledTest {
 
 	/**
 	 * <pre>
-	 *      - we disable caching via 'spring.cloud.loadbalancer.cache.enabled=false'
-	 *      - as such, two calls to : loadBalancer.choose() will both execute
-	 *        on the delegate itself, which we assert via 'wireMockServer.verify'
+	 *      - caching is enabled and : 'spring.cloud.loadbalancer.cache.ttl=2s'
+	 *      - we make two calls within those two seconds
+	 *      - as such, first loadBalancer.choose() will execute on the delegate,
+	 *        while the second one will be cached.
+	 *
 	 * </pre>
 	 */
 	@Test
@@ -114,13 +125,12 @@ class CacheDisabledTest {
 		ReactiveLoadBalancer<ServiceInstance> loadBalancer = loadBalancerClientFactory.getInstance("service-a");
 		Response<ServiceInstance> firstResponse = Mono.from(loadBalancer.choose()).block();
 		assertThat(firstResponse.hasServer()).isTrue();
-
 		Response<ServiceInstance> secondResponse = Mono.from(loadBalancer.choose()).block();
 		assertThat(secondResponse.hasServer()).isTrue();
 
 		// called two times
-		wireMockServer.verify(WireMock.exactly(2), WireMock.getRequestedFor(
-				WireMock.urlEqualTo("/api/v1/namespaces/a/services?fieldSelector=metadata.name%3D" + "service-a")));
+		wireMockServer.verify(WireMock.exactly(1), WireMock
+			.getRequestedFor(WireMock.urlEqualTo("/api/v1/namespaces/a/services?labelSelector=same-key%3Dsame-value")));
 
 	}
 
