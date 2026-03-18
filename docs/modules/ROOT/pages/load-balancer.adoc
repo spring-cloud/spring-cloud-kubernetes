@@ -48,7 +48,16 @@ WebClient.Builder client() {
 
 and issue a request to `http://service-a` using that `WebClient`, we will use `service-a` to call `DiscoveryClient::getInstances` with this value. Since this is using `DiscoveryClient`, all the configuration specific to it apply, which are explained in the relevant part of the documentation.
 
-On the other hand, if you use `SERVICE` mode, things are a bit different, but closely resemble discovery client settings. For example, to answer the question in which namespace(s) to look for service(s) with name `service-a`, we will use one of the settings:
+On the other hand, if you use `SERVICE` mode, things are a bit different, but closely resemble discovery client settings.
+In `SERVICE` mode, the Load Balancer finds target services using one of two strategies defined by `spring.cloud.kubernet.loadbalancer.service-matching-strategy`:
+
+`NAME` (Default): Matches the service based on its `metadata.name`. For example, a request to `http://service-a` targets the Kubernetes Service(s) named `service-a`.
+
+`LABELS`: Ignores the request hostname and instead finds all services matching the labels defined in `spring.cloud.kubernetes.discovery.serviceLabels`
+
+The rest of the documentation is based on service name filtering, but it stands the same for labels filtering.
+
+For example, to answer the question in which namespace(s) to look for service(s) with name `service-a`, we will use one of the settings:
 
 [source]
 ----
