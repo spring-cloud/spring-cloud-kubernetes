@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.cache;
+package org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.service.name.cache;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -33,8 +33,8 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.loadbalancer.it.Util;
 import org.springframework.cloud.kubernetes.client.loadbalancer.it.mode.App;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.test.annotation.DirtiesContext;
@@ -43,6 +43,9 @@ import org.springframework.test.util.TestSocketUtils;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerEndpointsCall;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.DiscoveryClientIndexerMocks.mockNamespacedIndexerServiceCall;
+import static org.springframework.cloud.kubernetes.client.loadbalancer.it.LoadBalancerMocks.mockLoadBalancerServiceCallWithFieldMetadataName;
 
 /**
  * @author wind57
@@ -75,13 +78,14 @@ class CacheEnabledOutsideTTLTest {
 
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
-		WireMock.configureFor("localhost", wireMockServer.port());
 
-		Util.mockWatchers(wireMockServer);
+		mockNamespacedIndexerServiceCall("a", "service-a", wireMockServer);
+		mockNamespacedIndexerEndpointsCall("a", "service-a", wireMockServer, wireMockServer.port());
+
+		mockLoadBalancerServiceCallWithFieldMetadataName("a", "service-a", wireMockServer, wireMockServer.port());
 
 		serviceAMockServer = new WireMockServer(SERVICE_PORT);
 		serviceAMockServer.start();
-		WireMock.configureFor("localhost", SERVICE_PORT);
 
 		// we mock host creation so that it becomes something like : localhost:<port>
 		// then wiremock can catch this request, and we can assert for the result
@@ -90,8 +94,12 @@ class CacheEnabledOutsideTTLTest {
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		// we need to not mock 'getApplicationNamespace'
-		clientUtils = mockStatic(KubernetesClientUtils.class, Mockito.CALLS_REAL_METHODS);
+		clientUtils = mockStatic(KubernetesClientUtils.class);
 		clientUtils.when(KubernetesClientUtils::kubernetesApiClient).thenReturn(client);
+		clientUtils
+			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.nullable(String.class),
+					Mockito.anyString(), Mockito.any(KubernetesNamespaceProvider.class)))
+			.thenCallRealMethod();
 	}
 
 	@AfterAll

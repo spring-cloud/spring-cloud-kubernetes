@@ -82,7 +82,6 @@ class SpecificNamespaceTest {
 
 		mockNamespacedIndexerServiceCall("a", "my-service", kubernetesMockServer);
 		mockNamespacedIndexerServiceCall("b", "my-service", kubernetesMockServer);
-		mockNamespacedIndexerServiceCall("c", "my-service", kubernetesMockServer);
 
 		// actual pod URL will be : localhost:SERVICE_A_PORT and so on for the rest
 		mockNamespacedIndexerEndpointsCall("a", "my-service", kubernetesMockServer, SERVICE_A_PORT);
