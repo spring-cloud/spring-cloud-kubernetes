@@ -21,10 +21,14 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.ConditionalOnKubernetesLoadBalancerServiceModeEnabled;
+import org.springframework.cloud.kubernetes.commons.loadbalancer.ConditionalOnServiceMatchingStrategyCondition;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+
+import static org.springframework.cloud.kubernetes.commons.loadbalancer.LoadBalancerServiceMatchingStrategy.LABELS;
+import static org.springframework.cloud.kubernetes.commons.loadbalancer.LoadBalancerServiceMatchingStrategy.NAME;
 
 /**
  * @author Ryan Baxter
@@ -33,12 +37,26 @@ public class KubernetesClientLoadBalancerClientConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesLoadBalancerServiceModeEnabled
+	@ConditionalOnServiceMatchingStrategyCondition(NAME)
 	ServiceInstanceListSupplier kubernetesServicesListSupplier(Environment environment, CoreV1Api coreV1Api,
 			KubernetesClientServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigurableApplicationContext context) {
 		return ServiceInstanceListSupplier.builder()
 			.withBase(new KubernetesClientServicesListSupplier(environment, mapper, discoveryProperties, coreV1Api,
 					kubernetesNamespaceProvider))
+			.withCaching()
+			.build(context);
+	}
+
+	@Bean
+	@ConditionalOnKubernetesLoadBalancerServiceModeEnabled
+	@ConditionalOnServiceMatchingStrategyCondition(LABELS)
+	ServiceInstanceListSupplier kubernetesLabelsBasedServicesListSupplier(Environment environment, CoreV1Api coreV1Api,
+			KubernetesClientServiceInstanceMapper mapper, KubernetesDiscoveryProperties discoveryProperties,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, ConfigurableApplicationContext context) {
+		return ServiceInstanceListSupplier.builder()
+			.withBase(new KubernetesClientLabelBasedServicesListSupplier(environment, mapper, discoveryProperties,
+					coreV1Api, kubernetesNamespaceProvider))
 			.withCaching()
 			.build(context);
 	}

@@ -64,6 +64,10 @@ public final class Commons {
 
 	private static final Log LOG = LogFactory.getLog(Commons.class);
 
+	private static final String DOCKER_IO = "docker.io/";
+
+	private static final String DOCKER_IO_LIBRARY = DOCKER_IO + "library/";
+
 	private Commons() {
 		throw new AssertionError("No instance provided");
 	}
@@ -147,14 +151,59 @@ public final class Commons {
 		}
 
 		try {
-			LOG.info("no tars found, will resort to pulling the image");
+			LOG.info("pulling image inside k3s to avoid Docker save/ctr import compatibility issues");
 			LOG.info("using : " + imageVersion + " for : " + imageNameForDownload);
-			pullImage(imageNameForDownload, imageVersion, tarName, container);
-			loadImage(imageNameForDownload, imageVersion, tarName, container);
+			pullImageInsideK3s(container, imageNameForDownload, imageVersion);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	/**
+	 * Pull image directly inside the K3s container via ctr (containerd). This avoids
+	 * Docker save + ctr import, which can fail with "content digest not found" for
+	 * multi-platform or OCI images. If DOCKER_HUB_USERNAME and DOCKER_HUB_PASSWORD are
+	 * set, they are passed as {@code --user username:password} for registry auth.
+	 */
+	private static void pullImageInsideK3s(K3sContainer container, String imageNameForDownload, String imageVersion) {
+		String fullImageRef = fullImageReference(imageNameForDownload, imageVersion);
+
+		final String[] ctrArgs = buildCtrPullArgs(fullImageRef);
+		Awaitilities.awaitUntil(120, 1, () -> {
+			try {
+				Container.ExecResult result = container.execInContainer(ctrArgs);
+				boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
+				if (!noErrors) {
+					LOG.info("ctr pull stderr: " + result.getStderr());
+				}
+				return noErrors;
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+
+		});
+	}
+
+	private static String[] buildCtrPullArgs(String fullImageRef) {
+		String username = System.getenv("DOCKER_HUB_USERNAME");
+		String password = System.getenv("DOCKER_HUB_PASSWORD");
+		if (username != null && !username.isBlank() && password != null && !password.isBlank()) {
+			LOG.info("pulling inside k3s with Docker Hub credentials: " + fullImageRef);
+			return new String[] { "ctr", "-n", "k8s.io", "images", "pull", "--user", username + ":" + password,
+					fullImageRef };
+		}
+		LOG.info("pulling inside k3s: " + fullImageRef);
+		return new String[] { "ctr", "-n", "k8s.io", "images", "pull", fullImageRef };
+	}
+
+	private static String fullImageReference(String imageName, String imageVersion) {
+		String imageNameAndVersion = imageName + ":" + imageVersion;
+		if (imageName.contains("/")) {
+			return DOCKER_IO + imageNameAndVersion;
+		}
+		return DOCKER_IO_LIBRARY + imageNameAndVersion;
 	}
 
 	/**

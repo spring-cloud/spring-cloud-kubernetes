@@ -18,6 +18,8 @@ package org.springframework.cloud.kubernetes.client.loadbalancer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -28,57 +30,68 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.loadbalancer.KubernetesServiceInstanceMapper;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
- * @author Ryan Baxter
+ * Implementation of {@link ServiceInstanceListSupplier} for load balancer in SERVICE mode
+ * based on labels filtering.
+ *
+ * @author wind57
  */
-public class KubernetesClientServicesListSupplier extends AbstractKubernetesClientServicesListSupplier {
+public class KubernetesClientLabelBasedServicesListSupplier extends AbstractKubernetesClientServicesListSupplier {
 
-	private static final LogAccessor LOG = new LogAccessor(KubernetesClientServicesListSupplier.class);
+	private static final LogAccessor LOG = new LogAccessor(KubernetesClientLabelBasedServicesListSupplier.class);
 
-	private static final String FIELD_NAME = "metadata.name";
+	private static final String FIELD_NAME = "metadata.labels";
 
 	private final CoreV1Api coreV1Api;
 
 	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
-	public KubernetesClientServicesListSupplier(Environment environment,
+	private final Map<String, String> serviceLabels;
+
+	private final String labelSelector;
+
+	KubernetesClientLabelBasedServicesListSupplier(Environment environment,
 			KubernetesServiceInstanceMapper<V1Service> mapper, KubernetesDiscoveryProperties discoveryProperties,
 			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(environment, mapper, discoveryProperties);
 		this.coreV1Api = coreV1Api;
 		this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
+		this.serviceLabels = discoveryProperties.serviceLabels();
+		this.labelSelector = serviceLabels.entrySet()
+			.stream()
+			.map(e -> e.getKey() + "=" + e.getValue())
+			.collect(Collectors.joining(","));
 	}
 
 	@Override
 	public Flux<List<ServiceInstance>> get() {
 		return Flux.defer(() -> {
 			List<ServiceInstance> result = new ArrayList<>();
-			String serviceName = getServiceId();
-			LOG.debug(() -> "serviceID : " + serviceName);
 
 			if (discoveryProperties.allNamespaces()) {
 				LOG.debug(() -> "discovering services in all namespaces");
-				List<V1Service> services = services(null, serviceName);
-				addMappedServices(result, services, null, FIELD_NAME, serviceName);
+				List<V1Service> services = services(null);
+				addMappedServices(result, services, null, FIELD_NAME, serviceLabels.toString());
 			}
 			else if (!discoveryProperties.namespaces().isEmpty()) {
 				List<String> selectiveNamespaces = discoveryProperties.namespaces().stream().sorted().toList();
 				LOG.debug(() -> "discovering services in selective namespaces : " + selectiveNamespaces);
 				selectiveNamespaces.forEach(selectiveNamespace -> {
-					List<V1Service> services = services(selectiveNamespace, serviceName);
-					addMappedServices(result, services, selectiveNamespace, FIELD_NAME, serviceName);
+					List<V1Service> services = services(selectiveNamespace);
+					addMappedServices(result, services, selectiveNamespace, FIELD_NAME, serviceLabels.toString());
 				});
 			}
 			else {
 				String namespace = getApplicationNamespace(null, "loadbalancer-service", kubernetesNamespaceProvider);
 				LOG.debug(() -> "discovering services in namespace : " + namespace);
-				List<V1Service> services = services(namespace, serviceName);
-				addMappedServices(result, services, namespace, FIELD_NAME, serviceName);
+				List<V1Service> services = services(namespace);
+				addMappedServices(result, services, namespace, FIELD_NAME, serviceLabels.toString());
 			}
 
 			LOG.debug(() -> "found services : " + result);
@@ -86,30 +99,23 @@ public class KubernetesClientServicesListSupplier extends AbstractKubernetesClie
 		});
 	}
 
-	private List<V1Service> services(String namespace, String serviceName) {
+	private List<V1Service> services(String namespace) {
 		if (namespace == null) {
 			try {
-				return coreV1Api.listServiceForAllNamespaces()
-					.fieldSelector("metadata.name=" + serviceName)
-					.execute()
-					.getItems();
+				return coreV1Api.listServiceForAllNamespaces().labelSelector(labelSelector).execute().getItems();
 			}
 			catch (ApiException apiException) {
-				LOG.warn(apiException, "Error retrieving services (in all namespaces) with name " + serviceName);
+				LOG.warn(apiException, "Error retrieving services (in all namespaces) with labels " + serviceLabels);
 				return List.of();
 			}
 		}
 		else {
 			try {
-				// there is going to be a single service here, if found
-				return coreV1Api.listNamespacedService(namespace)
-					.fieldSelector("metadata.name=" + serviceName)
-					.execute()
-					.getItems();
+				return coreV1Api.listNamespacedService(namespace).labelSelector(labelSelector).execute().getItems();
 			}
 			catch (ApiException apiException) {
 				LOG.warn(apiException,
-						"Error retrieving service with name " + serviceName + " in namespace : " + namespace);
+						"Error retrieving service with labels " + serviceLabels + " in namespace : " + namespace);
 				return List.of();
 			}
 		}
