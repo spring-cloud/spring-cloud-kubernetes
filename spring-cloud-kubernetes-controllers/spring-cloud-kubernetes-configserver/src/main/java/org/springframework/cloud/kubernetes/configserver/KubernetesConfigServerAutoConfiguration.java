@@ -26,7 +26,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.config.server.config.ConfigServerAutoConfiguration;
@@ -80,7 +79,6 @@ public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesConfigEnabled
-	@ConditionalOnProperty(value = "spring.cloud.kubernetes.config.enabled", matchIfMissing = true)
 	public KubernetesPropertySourceSupplier configMapPropertySourceSupplier(
 			KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
@@ -102,7 +100,6 @@ public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnKubernetesSecretsEnabled
-	@ConditionalOnProperty("spring.cloud.kubernetes.secrets.enabled")
 	public KubernetesPropertySourceSupplier secretsPropertySourceSupplier(KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);
