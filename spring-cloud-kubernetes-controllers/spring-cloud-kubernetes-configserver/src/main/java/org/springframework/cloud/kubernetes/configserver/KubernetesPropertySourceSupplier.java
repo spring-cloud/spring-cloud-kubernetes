@@ -22,7 +22,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Ryan Baxter
@@ -31,20 +30,25 @@ public interface KubernetesPropertySourceSupplier {
 
 	List<MapPropertySource> get(CoreV1Api coreV1Api, String name, String namespace, Environment environment);
 
-	/*
-	 * return either a List containing 'currentNamespace' (if 'namespacesString' is empty
-	 * or null), or a List of comma delimited tokens (namespaces) from 'namespacesString'.
-	 *
-	 * 'currentNamespace' can be treated logically as the "default namespace" to use, if
-	 * the other argument is not provided.
+	/**
+	 * Splits the namespace string from config server properties into a list of
+	 * namespaces. If the configured string contains comma-separated values, those values
+	 * are returned. Otherwise, the namespace provided by the namespace provider is
+	 * returned as a fallback.
+	 * @param namespacesStringFromConfigServerProperties the namespace string from config
+	 * server properties
+	 * @param namespaceFromNamespaceProvider the fallback namespace from the namespace
+	 * provider
+	 * @return a list of namespaces from the config server properties, or the fallback
+	 * namespace if none are available
 	 */
-	static List<String> namespaceSplitter(String namespacesString, String currentNamespace) {
-		List<String> namespaces = List.of(currentNamespace);
-		String[] namespacesArray = StringUtils.commaDelimitedListToStringArray(namespacesString);
-		if (namespacesArray.length > 0) {
-			namespaces = List.of(namespacesArray);
+	static List<String> namespaceSplitter(String namespacesStringFromConfigServerProperties,
+			String namespaceFromNamespaceProvider) {
+		String[] namespacesFromConfigServerProperties = namespacesStringFromConfigServerProperties.split(",");
+		if (namespacesFromConfigServerProperties.length > 0) {
+			return List.of(namespacesFromConfigServerProperties);
 		}
-		return namespaces;
+		return List.of(namespaceFromNamespaceProvider);
 	}
 
 }
