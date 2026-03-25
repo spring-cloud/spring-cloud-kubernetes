@@ -23,7 +23,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
@@ -43,7 +42,6 @@ import org.springframework.cloud.kubernetes.commons.config.NormalizedSource;
 import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.MapPropertySource;
 
 import static org.springframework.cloud.kubernetes.configserver.KubernetesPropertySourceSupplier.namespaceSplitter;
@@ -59,7 +57,6 @@ import static org.springframework.cloud.kubernetes.configserver.KubernetesProper
 public class KubernetesConfigServerAutoConfiguration {
 
 	@Bean
-	@Profile("kubernetes")
 	@ConditionalOnMissingBean
 	public KubernetesEnvironmentRepository kubernetesEnvironmentRepository(CoreV1Api coreV1Api,
 			List<KubernetesPropertySourceSupplier> kubernetesPropertySourceSuppliers,
@@ -70,7 +67,6 @@ public class KubernetesConfigServerAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnBean(KubernetesEnvironmentRepository.class)
 	@ConditionalOnMissingBean
 	public KubernetesEnvironmentRepositoryFactory kubernetesEnvironmentRepositoryFactory(
 			KubernetesEnvironmentRepository kubernetesEnvironmentRepository) {
@@ -83,7 +79,7 @@ public class KubernetesConfigServerAutoConfiguration {
 			KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getConfigMapNamespaces(), namespace);
-			List<MapPropertySource> propertySources = new ArrayList<>();
+			List<MapPropertySource> propertySources = new ArrayList<>(namespaces.size());
 
 			namespaces.forEach(space -> {
 
@@ -103,7 +99,7 @@ public class KubernetesConfigServerAutoConfiguration {
 	public KubernetesPropertySourceSupplier secretsPropertySourceSupplier(KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);
-			List<MapPropertySource> propertySources = new ArrayList<>();
+			List<MapPropertySource> propertySources = new ArrayList<>(namespaces.size());
 
 			namespaces.forEach(space -> {
 				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false,
