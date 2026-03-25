@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Collections;
+import java.util.function.Predicate;
 
+import io.fabric8.kubernetes.api.model.Service;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfigu
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.ResolvableType;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeast;
@@ -67,6 +70,31 @@ class Fabric8DiscoveryClientConfigClientBootstrapConfigurationTests {
 		verify(client, atLeast(2)).getInstances("configserver");
 		ConfigClientProperties locator = context.getBean(ConfigClientProperties.class);
 		Assertions.assertThat(locator.getUri()[0]).isEqualTo("http://fake:8888/");
+	}
+
+	/**
+	 * When using config-first bootstrap with Fabric8 Kubernetes discovery, the bootstrap context
+	 * must include {@link Fabric8DiscoveryClientSpelAutoConfiguration} so that the
+	 * required {@code Predicate<Service>} bean is available for
+	 * {@link Fabric8DiscoveryClientAutoConfiguration}.
+	 */
+	@Test
+	void spelPredicateBeanAvailableInBootstrapContext() {
+		AnnotationConfigApplicationContext parent = new AnnotationConfigApplicationContext();
+		TestPropertyValues
+			.of("spring.cloud.config.discovery.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.discovery.enabled=true")
+			.applyTo(parent);
+		parent.register(PropertyPlaceholderAutoConfiguration.class, KubernetesCommonsAutoConfiguration.class,
+				Fabric8DiscoveryClientConfigClientBootstrapConfiguration.class);
+		parent.refresh();
+
+		context = new AnnotationConfigApplicationContext();
+		context.setParent(parent);
+		context.refresh();
+
+		ResolvableType predicateType = ResolvableType.forClassWithGenerics(Predicate.class, Service.class);
+		Assertions.assertThat(parent.getBeanNamesForType(predicateType)).isNotEmpty();
 	}
 
 	private void setup(String... env) {
