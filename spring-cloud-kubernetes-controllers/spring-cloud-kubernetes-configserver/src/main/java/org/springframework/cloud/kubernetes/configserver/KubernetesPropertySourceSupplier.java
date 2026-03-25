@@ -44,9 +44,11 @@ public interface KubernetesPropertySourceSupplier {
 	 */
 	static List<String> namespaceSplitter(String namespacesStringFromConfigServerProperties,
 			String namespaceFromNamespaceProvider) {
-		String[] namespacesFromConfigServerProperties = namespacesStringFromConfigServerProperties.split(",");
-		if (namespacesFromConfigServerProperties.length > 0) {
-			return List.of(namespacesFromConfigServerProperties);
+		if (!namespacesStringFromConfigServerProperties.isBlank()) {
+			String[] namespacesFromConfigServerProperties = namespacesStringFromConfigServerProperties.split(",");
+			if (namespacesFromConfigServerProperties.length > 0) {
+				return List.of(namespacesFromConfigServerProperties);
+			}
 		}
 		return List.of(namespaceFromNamespaceProvider);
 	}
