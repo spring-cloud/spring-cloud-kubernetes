@@ -21,8 +21,8 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Service;
 import org.junit.jupiter.api.Test;
-
 import org.mockito.Mockito;
+
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.client.DefaultServiceInstance;
@@ -48,13 +48,11 @@ class Fabric8DiscoveryClientConfigClientBootstrapConfigurationTests {
 	void onWhenRequested() {
 
 		new ApplicationContextRunner()
-			.withUserConfiguration(TestConfig.class,
-				DiscoveryClientConfigServiceBootstrapConfiguration.class, ConfigClientProperties.class)
-			.withPropertyValues(
-				"spring.cloud.config.discovery.enabled=true",
-				"spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.discovery.enabled=true",
-				"spring.cloud.config.discovery.service-id=configserver")
+			.withUserConfiguration(TestConfig.class, DiscoveryClientConfigServiceBootstrapConfiguration.class,
+					ConfigClientProperties.class)
+			.withPropertyValues("spring.cloud.config.discovery.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.discovery.enabled=true",
+					"spring.cloud.config.discovery.service-id=configserver")
 			.run(context -> {
 				DiscoveryClient discoveryClient = context.getBean(DiscoveryClient.class);
 				ConfigClientProperties locator = context.getBean(ConfigClientProperties.class);
@@ -65,9 +63,9 @@ class Fabric8DiscoveryClientConfigClientBootstrapConfigurationTests {
 	}
 
 	/**
-	 * When using config-first bootstrap with Fabric8 Kubernetes discovery, the bootstrap context
-	 * must include {@link Fabric8DiscoveryClientSpelAutoConfiguration} so that the
-	 * required {@code Predicate<Service>} bean is available for
+	 * When using config-first bootstrap with Fabric8 Kubernetes discovery, the bootstrap
+	 * context must include {@link Fabric8DiscoveryClientSpelAutoConfiguration} so that
+	 * the required {@code Predicate<Service>} bean is available for
 	 * {@link Fabric8DiscoveryClientAutoConfiguration}.
 	 */
 	@Test
@@ -75,10 +73,8 @@ class Fabric8DiscoveryClientConfigClientBootstrapConfigurationTests {
 
 		new ApplicationContextRunner()
 			.withUserConfiguration(Fabric8DiscoveryClientConfigClientBootstrapConfiguration.class)
-			.withPropertyValues(
-				"spring.cloud.config.discovery.enabled=true",
-				"spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.discovery.enabled=true")
+			.withPropertyValues("spring.cloud.config.discovery.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.discovery.enabled=true")
 			.run(context -> {
 				ResolvableType servicesPredicate = ResolvableType.forClassWithGenerics(Predicate.class, Service.class);
 				assertThat(context.getBeanNamesForType(servicesPredicate)).hasSize(1);
