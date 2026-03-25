@@ -79,7 +79,7 @@ public class KubernetesConfigServerAutoConfiguration {
 			KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getConfigMapNamespaces(), namespace);
-			List<MapPropertySource> propertySources = new ArrayList<>();
+			List<MapPropertySource> propertySources = new ArrayList<>(namespaces.size());
 
 			namespaces.forEach(space -> {
 
@@ -99,7 +99,7 @@ public class KubernetesConfigServerAutoConfiguration {
 	public KubernetesPropertySourceSupplier secretsPropertySourceSupplier(KubernetesConfigServerProperties properties) {
 		return (coreApi, applicationName, namespace, springEnv) -> {
 			List<String> namespaces = namespaceSplitter(properties.getSecretsNamespaces(), namespace);
-			List<MapPropertySource> propertySources = new ArrayList<>();
+			List<MapPropertySource> propertySources = new ArrayList<>(namespaces.size());
 
 			namespaces.forEach(space -> {
 				NormalizedSource source = new NamedSecretNormalizedSource(applicationName, space, false,
