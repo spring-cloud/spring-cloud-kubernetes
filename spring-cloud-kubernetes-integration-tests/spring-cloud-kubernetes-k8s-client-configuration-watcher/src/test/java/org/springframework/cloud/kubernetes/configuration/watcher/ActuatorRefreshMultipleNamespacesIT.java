@@ -112,8 +112,8 @@ class ActuatorRefreshMultipleNamespacesIT {
 	}
 
 	private static void configWatcher(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util
-			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
+		V1Deployment deployment = Util
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml", V1Deployment.class);
 
 		List<V1EnvVar> envVars = List.of(
 				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0").value(LEFT_NAMESPACE),
@@ -125,8 +125,8 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		V1Service service = (V1Service) util
-			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		V1Service service = Util.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml",
+				V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, true);
