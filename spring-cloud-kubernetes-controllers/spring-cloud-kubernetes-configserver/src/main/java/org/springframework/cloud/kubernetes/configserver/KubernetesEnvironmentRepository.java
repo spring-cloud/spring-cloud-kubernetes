@@ -72,7 +72,7 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 	public Environment findOne(String application, String profile, String label, boolean includeOrigin) {
 		String[] profiles = profiles(profile);
 		Environment environment = new Environment(application, profiles, label, null, null);
-		LOG.info(() -> "Profiles: " + profile + ", application: " + application + ", label: " + label);
+		LOG.debug(() -> "Profiles: " + profile + ", application: " + application + ", label: " + label);
 
 		if (!"application".equalsIgnoreCase(application)) {
 			addConfigurationsFromActiveProfiles(environment, application, profiles);
