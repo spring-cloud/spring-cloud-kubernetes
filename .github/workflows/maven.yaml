@@ -334,6 +334,7 @@ jobs:
     needs: [all-tests-passed]
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@run-workflow-for-other-branch-when-schedule
     with:
+      trigger_ci_on_non_default_branches: false
       branches: ${{ inputs.branch }}
       custom_build_command: |
         if [[ "$SHOULD_DEPLOY" == "true" ]]; then
