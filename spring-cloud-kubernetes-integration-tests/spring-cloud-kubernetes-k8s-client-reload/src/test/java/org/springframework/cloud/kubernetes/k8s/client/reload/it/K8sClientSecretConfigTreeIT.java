@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -95,7 +96,7 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 
 		// replace data in secret and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
+		V1Secret secret = Util.yaml("mount/secret.yaml", V1Secret.class);
 		secret.setData(Map.of("application.properties",
 				"from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8)));
 
