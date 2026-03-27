@@ -27,12 +27,25 @@ jobs:
     steps:
       - name: Determine build matrix
         id: determine
-        uses: spring-cloud/spring-cloud-github-actions/.github/actions/determine-matrix@main
+        uses: spring-cloud/spring-cloud-github-actions/.github/actions/determine-matrix@run-workflow-for-other-branch-when-schedule
         with:
           repository: ${{ github.repository }}
           event-name: ${{ github.event_name }}
           ref-name: ${{ github.ref_name }}
           branch: ${{ inputs.branch }}
+
+  trigger-branch-ci:
+    name: Trigger CI for non-default branches
+    needs: determine-matrix
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch CI for non-default branches
+        uses: spring-cloud/spring-cloud-github-actions/.github/actions/trigger-branch-ci@run-workflow-for-other-branch-when-schedule
+        with:
+          non-default-branches: ${{ needs.determine-matrix.outputs.non-default-branches }}
+          repository: ${{ github.repository }}
+          token: ${{ github.token }}
 
   build-and-test:
     name: ${{ matrix.branch }} / JDK ${{ matrix.java-version }}
