@@ -56,17 +56,16 @@ class KubernetesEnvironmentRepositoryTests {
 
 	private static final List<KubernetesPropertySourceSupplier> KUBERNETES_PROPERTY_SOURCE_SUPPLIER = new ArrayList<>();
 
-	private static final V1ConfigMapList CONFIGMAP_ONE_LIST =
-		Util.yaml("configmap-one-list.yaml", V1ConfigMapList.class);
+	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = Util.yaml("configmap-one-list.yaml",
+			V1ConfigMapList.class);
 
-	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST =
-		Util.yaml("configmap-default-list.yaml", V1ConfigMapList.class);
+	private static final V1ConfigMapList CONFIGMAP_DEFAULT_LIST = Util.yaml("configmap-default-list.yaml",
+			V1ConfigMapList.class);
 
-	private static final V1ConfigMapList CONFIGMAP_DEV_LIST =
-		Util.yaml("configmap-dev-list.yaml", V1ConfigMapList.class);
+	private static final V1ConfigMapList CONFIGMAP_DEV_LIST = Util.yaml("configmap-dev-list.yaml",
+			V1ConfigMapList.class);
 
-	private static final V1SecretList SECRET_LIST =
-		Util.yaml("secret-one-list.yaml", V1SecretList.class);
+	private static final V1SecretList SECRET_LIST = Util.yaml("secret-one-list.yaml", V1SecretList.class);
 
 	private static final KubernetesConfigServerProperties PROPERTIES = properties();
 
@@ -78,15 +77,15 @@ class KubernetesEnvironmentRepositoryTests {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 
 			NormalizedSource defaultSource = new NamedConfigMapNormalizedSource(applicationName, "default", false,
-				true);
+					true);
 			KubernetesClientConfigContext defaultContext = new KubernetesClientConfigContext(coreApi, defaultSource,
-				"default", springEnv, true, ReadType.BATCH);
+					"default", springEnv, true, ReadType.BATCH);
 			propertySources.add(new KubernetesClientConfigMapPropertySource(defaultContext));
 
 			if ("stores".equals(applicationName) && "dev".equals(namespace)) {
 				NormalizedSource devSource = new NamedConfigMapNormalizedSource(applicationName, "dev", false, true);
 				KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "dev",
-					springEnv, true, ReadType.BATCH);
+						springEnv, true, ReadType.BATCH);
 				propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
 			}
 			return propertySources;
@@ -97,7 +96,7 @@ class KubernetesEnvironmentRepositoryTests {
 
 			NormalizedSource source = new NamedSecretNormalizedSource(applicationName, "default", false, true);
 			KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, "default",
-				springEnv, true, ReadType.BATCH);
+					springEnv, true, ReadType.BATCH);
 
 			propertySources.add(new KubernetesClientSecretsPropertySource(context));
 			return propertySources;
@@ -116,35 +115,41 @@ class KubernetesEnvironmentRepositoryTests {
 		KubernetesClientSourcesBatchRead.discardSecrets();
 	}
 
+	/**
+	 * Given application=application and an empty profile, the repository loads: - the
+	 * application ConfigMap - the application Secret
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	void testApplicationCase() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-			KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 
 		Environment environment = environmentRepository.findOne("application", "", "");
 
-		Map<String, Map<String, Object>> result = environment.getPropertySources().stream().collect(Collectors.toMap(
-			PropertySource::getName,
-			propertySource -> (Map<String, Object>) propertySource.getSource()
-		));
+		Map<String, Map<String, Object>> result = environment.getPropertySources()
+			.stream()
+			.collect(Collectors.toMap(PropertySource::getName,
+					propertySource -> (Map<String, Object>) propertySource.getSource()));
 
-		assertThat(result.keySet()).containsExactlyInAnyOrder(
-			"configmap.application.default", "secret.application.default"
-		);
+		assertThat(result.keySet()).containsExactly("secret.application.default", "configmap.application.default");
 
 		Map<String, Object> fromConfigMap = result.get("configmap.application.default");
 		Map<String, Object> fromSecret = result.get("secret.application.default");
 
-		assertThat(fromConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(fromConfigMap).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-		assertThat(fromSecret).containsAllEntriesOf(
-			Map.of("username", "user", "password", "p455w0rd"));
+		assertThat(fromSecret).containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
 	}
 
+	/**
+	 * Given application=application and an empty profile, the repository loads: - the
+	 * application ConfigMap - the application Secret and preserves the configured
+	 * repository order.
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	void testApplicationCaseWithNewConstructor() throws ApiException {
@@ -154,94 +159,92 @@ class KubernetesEnvironmentRepositoryTests {
 		mockRequests(coreApi);
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-			KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", properties);
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", properties);
 
 		Environment environment = environmentRepository.findOne("application", "", "");
 
-		Map<String, Map<String, Object>> result = environment.getPropertySources().stream().collect(Collectors.toMap(
-			PropertySource::getName,
-			propertySource -> (Map<String, Object>) propertySource.getSource()
-		));
+		Map<String, Map<String, Object>> result = environment.getPropertySources()
+			.stream()
+			.collect(Collectors.toMap(PropertySource::getName,
+					propertySource -> (Map<String, Object>) propertySource.getSource()));
 
-		assertThat(result.keySet()).containsExactlyInAnyOrder(
-			"configmap.application.default", "secret.application.default"
-		);
+		assertThat(result.keySet()).containsExactly("secret.application.default", "configmap.application.default");
 
 		Map<String, Object> fromConfigMap = result.get("configmap.application.default");
 		Map<String, Object> fromSecret = result.get("secret.application.default");
 
-		assertThat(fromConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(fromConfigMap).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-		assertThat(fromSecret).containsAllEntriesOf(
-			Map.of("username", "user", "password", "p455w0rd"));
+		assertThat(fromSecret).containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
 
 		assertThat(environmentRepository.getOrder()).isEqualTo(0);
 	}
 
+	/**
+	 * Given application=stores and an empty profile, the repository loads: - the stores
+	 * ConfigMap and Secret - the application ConfigMap and Secret as additional fallback
+	 * sources
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	void testStoresCase() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-			KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 
 		Environment environment = environmentRepository.findOne("stores", "", "");
 
-		Map<String, Map<String, Object>> result = environment.getPropertySources().stream().collect(Collectors.toMap(
-			PropertySource::getName,
-			propertySource -> (Map<String, Object>) propertySource.getSource()
-		));
+		Map<String, Map<String, Object>> result = environment.getPropertySources()
+			.stream()
+			.collect(Collectors.toMap(PropertySource::getName,
+					propertySource -> (Map<String, Object>) propertySource.getSource()));
 
-		assertThat(result.keySet()).containsExactlyInAnyOrder(
-			"configmap.application.default",
-			"secret.application.default",
-			"configmap.stores.default",
-			"secret.stores.default"
-		);
+		assertThat(result.keySet()).containsExactly("configmap.stores.default", "secret.application.default",
+				"configmap.application.default", "secret.stores.default");
 
 		Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
 		Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
 		Map<String, Object> fromStoresConfigMap = result.get("configmap.stores.default");
 		Map<String, Object> fromStoresSecret = result.get("secret.stores.default");
 
-		assertThat(fromApplicationConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(fromApplicationConfigMap).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-		assertThat(fromApplicationSecret).containsAllEntriesOf(
-			Map.of("username", "user", "password", "p455w0rd"));
+		assertThat(fromApplicationSecret)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
 
-		assertThat(fromStoresConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(fromStoresConfigMap).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-		assertThat(fromStoresSecret).containsAllEntriesOf(
-			Map.of("username", "stores", "password", "password-from-stores"));
+		assertThat(fromStoresSecret)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("username", "stores", "password", "password-from-stores"));
 	}
 
+	/**
+	 * Given application=stores and profile=dev, the repository loads: - the stores-dev
+	 * ConfigMap and Secret - the stores ConfigMap and Secret - the application ConfigMap
+	 * and Secret as fallbacks
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	void testStoresProfileCase() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-			KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 
 		Environment environment = environmentRepository.findOne("stores", "dev", "");
 
-		Map<String, Map<String, Object>> result = environment.getPropertySources().stream().collect(Collectors.toMap(
-			PropertySource::getName,
-			propertySource -> (Map<String, Object>) propertySource.getSource()
-		));
+		Map<String, Map<String, Object>> result = environment.getPropertySources()
+			.stream()
+			.collect(Collectors.toMap(PropertySource::getName,
+					propertySource -> (Map<String, Object>) propertySource.getSource()));
 
-		assertThat(result.keySet()).containsExactlyInAnyOrder(
-			"configmap.application.default",
-			"secret.application.default",
-			"configmap.stores.stores-dev.default",
-			"secret.stores.default",
-			"secret.stores.stores-dev.default",
-			"configmap.stores.default"
-		);
+		assertThat(result.keySet()).containsExactly("configmap.stores.stores-dev.default", "configmap.stores.default",
+				"secret.application.default", "secret.stores.stores-dev.default", "configmap.application.default",
+				"secret.stores.default");
 
 		Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
 		Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
@@ -250,77 +253,75 @@ class KubernetesEnvironmentRepositoryTests {
 		Map<String, Object> fromStoresProfileSecret = result.get("secret.stores.stores-dev.default");
 		Map<String, Object> fromStoresConfigMap = result.get("configmap.stores.default");
 
-		assertThat(fromApplicationConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(fromApplicationConfigMap).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-		assertThat(fromApplicationSecret).containsAllEntriesOf(
-			Map.of("username", "user", "password", "p455w0rd"));
+		assertThat(fromApplicationSecret)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
 
-		assertThat(fromStoresProfileSecret).containsAllEntriesOf(
-			Map.of("username", "stores-dev", "password", "password-from-stores-dev"));
+		assertThat(fromStoresProfileSecret).containsExactlyInAnyOrderEntriesOf(
+				Map.of("username", "stores-dev", "password", "password-from-stores-dev"));
 
-		assertThat(fromStoresProfileConfigMap).containsAllEntriesOf(
-			Map.of(
-				"dummy.property.int2", 2,
-				"dummy.property.bool2", false,
-				"dummy.property.string1", "a",
-				"dummy.property.string2", "b"
-			));
+		assertThat(fromStoresProfileConfigMap).containsExactlyInAnyOrderEntriesOf(Map.of("dummy.property.int2", 2,
+				"dummy.property.bool2", false, "dummy.property.string1", "a", "dummy.property.string2", "b"));
 
-		assertThat(fromStoresConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(fromStoresConfigMap).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-		assertThat(fromStoresSecret).containsAllEntriesOf(
-			Map.of("username", "stores", "password", "password-from-stores"));
+		assertThat(fromStoresSecret)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("username", "stores", "password", "password-from-stores"));
 	}
 
+	/**
+	 * Given application=stores-dev and an empty profile, the repository loads: - the
+	 * stores-dev ConfigMap and Secret - the application ConfigMap and Secret as fallbacks
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	void testApplicationPropertiesAnSecretsOverride() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		mockRequests(coreApi);
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-			KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
+				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 
 		Environment environment = environmentRepository.findOne("stores-dev", "", "");
 
-		Map<String, Map<String, Object>> result = environment.getPropertySources().stream().collect(Collectors.toMap(
-			PropertySource::getName,
-			propertySource -> (Map<String, Object>) propertySource.getSource()
-		));
+		Map<String, Map<String, Object>> result = environment.getPropertySources()
+			.stream()
+			.collect(Collectors.toMap(PropertySource::getName,
+					propertySource -> (Map<String, Object>) propertySource.getSource()));
 
-		assertThat(result.keySet()).containsExactlyInAnyOrder(
-			"configmap.application.default",
-			"secret.application.default",
-			"configmap.stores-dev.default",
-			"secret.stores-dev.default"
-		);
+		assertThat(result.keySet()).containsExactly("secret.application.default", "configmap.application.default",
+				"configmap.stores-dev.default", "secret.stores-dev.default");
 
 		Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
 		Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
 		Map<String, Object> fromStoresDevConfigMap = result.get("configmap.stores-dev.default");
 		Map<String, Object> fromStoresDevSecret = result.get("secret.stores-dev.default");
 
-		assertThat(fromApplicationConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(fromApplicationConfigMap).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-		assertThat(fromStoresDevConfigMap).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 2, "dummy.property.bool2", false, "dummy.property.string1", "a",
-				"dummy.property.string2", "b"));
+		assertThat(fromStoresDevConfigMap).containsExactlyInAnyOrderEntriesOf(Map.of("dummy.property.int2", 2,
+				"dummy.property.bool2", false, "dummy.property.string1", "a", "dummy.property.string2", "b"));
 
-		assertThat(fromApplicationSecret).containsAllEntriesOf(
-			Map.of("username", "user", "password", "p455w0rd"));
+		assertThat(fromApplicationSecret)
+			.containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
 
-		assertThat(fromStoresDevSecret).containsAllEntriesOf(
-			Map.of("username", "stores-dev", "password", "password-from-stores-dev"));
+		assertThat(fromStoresDevSecret).containsExactlyInAnyOrderEntriesOf(
+				Map.of("username", "stores-dev", "password", "password-from-stores-dev"));
 	}
 
+	/**
+	 * Verifies ConfigMap resolution across: - the default lookup - a single active
+	 * profile - multiple active profiles in precedence order
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
 	void testSingleConfigMapMultipleSources() throws ApiException {
 		CoreV1Api coreApi = mock(CoreV1Api.class);
 		CoreV1Api.APIlistNamespacedConfigMapRequest configMapRequest = mock(
-			CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
 		when(configMapRequest.execute()).thenReturn(CONFIGMAP_ONE_LIST);
 		when(coreApi.listNamespacedConfigMap(eq("default"))).thenReturn(configMapRequest);
 
@@ -332,20 +333,20 @@ class KubernetesEnvironmentRepositoryTests {
 		suppliers.add((coreV1Api, name, namespace, environment) -> {
 			List<MapPropertySource> propertySources = new ArrayList<>();
 			NormalizedSource devSource = new NamedConfigMapNormalizedSource(name, namespace, false,
-				ConfigUtils.Prefix.DEFAULT, true, true);
+					ConfigUtils.Prefix.DEFAULT, true, true);
 			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "default",
-				environment, true, ReadType.BATCH);
+					environment, true, ReadType.BATCH);
 			propertySources.add(new KubernetesClientConfigMapPropertySource(devContext));
 			return propertySources;
 		});
 
 		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi, suppliers,
-			"default", PROPERTIES);
+				"default", PROPERTIES);
 
 		Environment environment = environmentRepository.findOne("stores", "", "");
-		assertThat(environment.getPropertySources())
-			.singleElement()
-			.satisfies(propertySource -> assertThat(propertySource.getName()).isEqualTo("configmap.stores.default.default"));
+		assertThat(environment.getPropertySources()).singleElement()
+			.satisfies(propertySource -> assertThat(propertySource.getName())
+				.isEqualTo("configmap.stores.default.default"));
 
 		environment = environmentRepository.findOne("stores", "dev", "");
 		assertThat(environment.getPropertySources()).hasSize(2);
@@ -358,22 +359,21 @@ class KubernetesEnvironmentRepositoryTests {
 		PropertySource first = environment.getPropertySources().get(0);
 		assertThat(first.getName()).isEqualTo("configmap.stores.default.prod");
 		Map<String, Object> firstSource = (Map<String, Object>) first.getSource();
-		assertThat(firstSource).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 3, "dummy.property.bool2", true, "dummy.property.string2", "prod"));
+		assertThat(firstSource).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 3, "dummy.property.bool2", true, "dummy.property.string2", "prod"));
 
 		PropertySource second = environment.getPropertySources().get(1);
 		assertThat(second.getName()).isEqualTo("configmap.stores.default.dev");
 		Map<String, Object> secondSource = (Map<String, Object>) second.getSource();
-		assertThat(secondSource).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", false, "dummy.property.string2", "dev"));
+		assertThat(secondSource).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", false, "dummy.property.string2", "dev"));
 
 		PropertySource third = environment.getPropertySources().get(2);
 		assertThat(third.getName()).isEqualTo("configmap.stores.default.default");
 		Map<String, Object> thirdSource = (Map<String, Object>) third.getSource();
-		assertThat(thirdSource).containsAllEntriesOf(
-			Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		assertThat(thirdSource).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 	}
-
 
 	private static KubernetesConfigServerProperties properties() {
 		KubernetesConfigServerProperties properties = new KubernetesConfigServerProperties();
@@ -383,7 +383,7 @@ class KubernetesEnvironmentRepositoryTests {
 
 	private void mockRequests(CoreV1Api coreApi) throws ApiException {
 		CoreV1Api.APIlistNamespacedConfigMapRequest defaultConfigRequest = mock(
-			CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
 		when(coreApi.listNamespacedConfigMap(eq("default"))).thenReturn(defaultConfigRequest);
 		when(defaultConfigRequest.execute()).thenReturn(CONFIGMAP_DEFAULT_LIST);
 
@@ -392,7 +392,7 @@ class KubernetesEnvironmentRepositoryTests {
 		when(secretRequest.execute()).thenReturn(SECRET_LIST);
 
 		CoreV1Api.APIlistNamespacedConfigMapRequest devConfigRequest = mock(
-			CoreV1Api.APIlistNamespacedConfigMapRequest.class);
+				CoreV1Api.APIlistNamespacedConfigMapRequest.class);
 		when(coreApi.listNamespacedConfigMap(eq("dev"))).thenReturn(devConfigRequest);
 		when(devConfigRequest.execute()).thenReturn(CONFIGMAP_DEV_LIST);
 	}
