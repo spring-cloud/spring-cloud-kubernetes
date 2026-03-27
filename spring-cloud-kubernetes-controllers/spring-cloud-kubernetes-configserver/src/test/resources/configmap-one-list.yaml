@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMapList
+items:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: stores
+      namespace: default
+    data:
+      stores.yaml: |-
+        dummy:
+          property:
+            string2: "a"
+            int2: 1
+            bool2: true
+      stores-dev.yaml: |-
+        dummy:
+          property:
+            string2: "dev"
+            int2: 1
+            bool2: false
+      stores-qa.yaml: |-
+        dummy:
+          property:
+            string2: "qa"
+            int2: 2
+            bool2: true
+      stores-prod.yaml: |-
+        dummy:
+          property:
+            string2: "prod"
+            int2: 3
+            bool2: true
