@@ -88,8 +88,8 @@ abstract class DiscoveryServerClientBase {
 	}
 
 	protected static void discoveryServer(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("manifests/discoveryserver-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("manifests/discoveryserver-service.yaml");
+		V1Deployment deployment = Util.yaml("manifests/discoveryserver-deployment.yaml", V1Deployment.class);
+		V1Service service = Util.yaml("manifests/discoveryserver-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, true);
@@ -102,7 +102,8 @@ abstract class DiscoveryServerClientBase {
 	protected static void serviceAccount(Phase phase) {
 
 		try {
-			V1ClusterRoleBinding clusterRoleBinding = (V1ClusterRoleBinding) util.yaml("manifests/cluster-role.yaml");
+			V1ClusterRoleBinding clusterRoleBinding = Util.yaml("manifests/cluster-role.yaml",
+					V1ClusterRoleBinding.class);
 			RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
 
 			if (phase == Phase.CREATE) {
