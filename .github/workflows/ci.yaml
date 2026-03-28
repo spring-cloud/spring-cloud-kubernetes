@@ -23,7 +23,7 @@ jobs:
     outputs:
       matrix: ${{ steps.determine.outputs.matrix }}
       branches: ${{ steps.determine.outputs.branches }}
-      branch-jdk-mapping: ${{ steps.determine.outputs.branch-jdk-mapping }}
+      non-default-branches: ${{ steps.determine.outputs.non-default-branches }}
     steps:
       - name: Determine build matrix
         id: determine
