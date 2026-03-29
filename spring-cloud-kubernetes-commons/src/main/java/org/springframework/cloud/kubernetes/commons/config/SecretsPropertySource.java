@@ -30,9 +30,4 @@ public class SecretsPropertySource extends MapPropertySource {
 		super(sourceData.sourceName(), sourceData.sourceData());
 	}
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " {name='" + this.name + "'}";
-	}
-
 }
