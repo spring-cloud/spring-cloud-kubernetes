@@ -332,7 +332,7 @@ jobs:
   deploy:
     if: always() && inputs.should-deploy && needs.all-tests-passed.result == 'success'
     needs: [all-tests-passed]
-    uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@run-workflow-for-other-branch-when-schedule
+    uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
       trigger_ci_on_non_default_branches: false
       branches: ${{ inputs.branch }}
