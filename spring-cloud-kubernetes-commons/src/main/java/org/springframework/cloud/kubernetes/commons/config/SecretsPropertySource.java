@@ -16,15 +16,13 @@
 
 package org.springframework.cloud.kubernetes.commons.config;
 
-import org.springframework.core.env.MapPropertySource;
-
 /**
  * Kubernetes property source for secrets.
  *
  * @author l burgazzoli
  * @author Haytham Mohamed
  */
-public class SecretsPropertySource extends MapPropertySource {
+public class SecretsPropertySource extends KubernetesMapPropertySource {
 
 	public SecretsPropertySource(SourceData sourceData) {
 		super(sourceData.sourceName(), sourceData.sourceData());
