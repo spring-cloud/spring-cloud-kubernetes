@@ -18,15 +18,21 @@ package org.springframework.cloud.kubernetes.commons.config;
 
 import java.util.Map;
 
+import org.springframework.core.env.MapPropertySource;
+
 /**
- * Kubernetes property source for configmaps.
- *
  * @author wind57
  */
-public class ConfigMapPropertySource extends KubernetesMapPropertySource {
+abstract class KubernetesMapPropertySource extends MapPropertySource {
 
-	public ConfigMapPropertySource(String name, Map<String, Object> source) {
+	private final boolean empty;
+
+	public KubernetesMapPropertySource(String name, Map<String, Object> source) {
 		super(name, source);
+		this.empty = source.isEmpty();
 	}
 
+	public final boolean isEmpty() {
+		return empty;
+	}
 }
