@@ -30,9 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 		classes = { KubernetesConfigServerApplication.class },
-		properties = { "spring.main.cloud-platform=KUBERNETES",
-				"spring.cloud.kubernetes.client.namespace=default", "spring.profiles.active=composite",
-				"spring.cloud.config.server.composite[0].type=git",
+		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
+				"spring.profiles.active=composite", "spring.cloud.config.server.composite[0].type=git",
 				"spring.cloud.config.server.composite[0].uri=https://github.com/spring-cloud-samples/config-repo",
 				"spring.cloud.config.server.composite[1].type=kubernetes",
 				"spring.cloud.config.server.composite[1].config-map-namespace=default",

@@ -88,7 +88,11 @@ public class KubernetesConfigServerAutoConfiguration {
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
 						springEnv, false, ReadType.BATCH);
 
-				propertySources.add(new KubernetesClientConfigMapPropertySource(context));
+				KubernetesClientConfigMapPropertySource configMapPropertySource = new KubernetesClientConfigMapPropertySource(
+						context);
+				if (!configMapPropertySource.isEmpty()) {
+					propertySources.add(configMapPropertySource);
+				}
 			});
 			return propertySources;
 		};
@@ -106,7 +110,11 @@ public class KubernetesConfigServerAutoConfiguration {
 						ConfigUtils.Prefix.DEFAULT, true, true);
 				KubernetesClientConfigContext context = new KubernetesClientConfigContext(coreApi, source, space,
 						springEnv, false, ReadType.BATCH);
-				propertySources.add(new KubernetesClientSecretsPropertySource(context));
+				KubernetesClientSecretsPropertySource secretsPropertySource = new KubernetesClientSecretsPropertySource(
+						context);
+				if (!secretsPropertySource.isEmpty()) {
+					propertySources.add(secretsPropertySource);
+				}
 			});
 
 			return propertySources;

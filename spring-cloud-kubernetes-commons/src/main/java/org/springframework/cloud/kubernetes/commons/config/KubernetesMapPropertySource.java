@@ -27,7 +27,7 @@ abstract class KubernetesMapPropertySource extends MapPropertySource {
 
 	private final boolean empty;
 
-	public KubernetesMapPropertySource(String name, Map<String, Object> source) {
+	KubernetesMapPropertySource(String name, Map<String, Object> source) {
 		super(name, source);
 		this.empty = source.isEmpty();
 	}
@@ -35,4 +35,5 @@ abstract class KubernetesMapPropertySource extends MapPropertySource {
 	public final boolean isEmpty() {
 		return empty;
 	}
+
 }
