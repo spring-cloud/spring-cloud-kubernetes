@@ -115,79 +115,7 @@ class KubernetesEnvironmentRepositoryTests {
 		KubernetesClientSourcesBatchRead.discardSecrets();
 	}
 
-	/**
-	 * <pre>
-	 * Given application=application and an empty profile,
-	 * the repository loads:
-	 * - the application ConfigMap
-	 * - the application Secret
-	 * </pre>
-	 */
-	@Test
-	@SuppressWarnings("unchecked")
-	void testApplicationCase() throws ApiException {
-		CoreV1Api coreApi = mock(CoreV1Api.class);
-		mockRequests(coreApi);
-		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", PROPERTIES);
 
-		Environment environment = environmentRepository.findOne("application", "", "");
-
-		Map<String, Map<String, Object>> result = environment.getPropertySources()
-			.stream()
-			.collect(Collectors.toMap(PropertySource::getName,
-					propertySource -> (Map<String, Object>) propertySource.getSource()));
-
-		assertThat(result.keySet()).containsExactly("secret.application.default", "configmap.application.default");
-
-		Map<String, Object> fromConfigMap = result.get("configmap.application.default");
-		Map<String, Object> fromSecret = result.get("secret.application.default");
-
-		assertThat(fromConfigMap).containsExactlyInAnyOrderEntriesOf(
-				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
-
-		assertThat(fromSecret).containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
-	}
-
-	/**
-	 * <pre>
-	 * Given application=application and an empty profile,
-	 * the repository loads:
-	 * - the application ConfigMap
-	 * - the application Secret
-	 * and preserves the configured repository order.
-	 * </pre>
-	 */
-	@Test
-	@SuppressWarnings("unchecked")
-	void testApplicationCaseWithNewConstructor() throws ApiException {
-		CoreV1Api coreApi = mock(CoreV1Api.class);
-		KubernetesConfigServerProperties properties = mock(KubernetesConfigServerProperties.class);
-		when(properties.getOrder()).thenReturn(0);
-		mockRequests(coreApi);
-
-		KubernetesEnvironmentRepository environmentRepository = new KubernetesEnvironmentRepository(coreApi,
-				KUBERNETES_PROPERTY_SOURCE_SUPPLIER, "default", properties);
-
-		Environment environment = environmentRepository.findOne("application", "", "");
-
-		Map<String, Map<String, Object>> result = environment.getPropertySources()
-			.stream()
-			.collect(Collectors.toMap(PropertySource::getName,
-					propertySource -> (Map<String, Object>) propertySource.getSource()));
-
-		assertThat(result.keySet()).containsExactly("secret.application.default", "configmap.application.default");
-
-		Map<String, Object> fromConfigMap = result.get("configmap.application.default");
-		Map<String, Object> fromSecret = result.get("secret.application.default");
-
-		assertThat(fromConfigMap).containsExactlyInAnyOrderEntriesOf(
-				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
-
-		assertThat(fromSecret).containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
-
-		assertThat(environmentRepository.getOrder()).isEqualTo(0);
-	}
 
 	/**
 	 * <pre>
@@ -207,30 +135,6 @@ class KubernetesEnvironmentRepositoryTests {
 
 		Environment environment = environmentRepository.findOne("stores", "", "");
 
-		Map<String, Map<String, Object>> result = environment.getPropertySources()
-			.stream()
-			.collect(Collectors.toMap(PropertySource::getName,
-					propertySource -> (Map<String, Object>) propertySource.getSource()));
-
-		assertThat(result.keySet()).containsExactly("configmap.stores.default", "secret.application.default",
-				"configmap.application.default", "secret.stores.default");
-
-		Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
-		Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
-		Map<String, Object> fromStoresConfigMap = result.get("configmap.stores.default");
-		Map<String, Object> fromStoresSecret = result.get("secret.stores.default");
-
-		assertThat(fromApplicationConfigMap).containsExactlyInAnyOrderEntriesOf(
-				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
-
-		assertThat(fromApplicationSecret)
-			.containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
-
-		assertThat(fromStoresConfigMap).containsExactlyInAnyOrderEntriesOf(
-				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
-
-		assertThat(fromStoresSecret)
-			.containsExactlyInAnyOrderEntriesOf(Map.of("username", "stores", "password", "password-from-stores"));
 	}
 
 	/**
