@@ -120,11 +120,9 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 		kubernetesPropertySourceSuppliers.forEach(supplier -> {
 			List<MapPropertySource> propertySources = supplier.get(coreApi, applicationName, namespace, springEnv);
 			propertySources.forEach(propertySource -> {
-				if (propertySource.getPropertyNames().length > 0) {
-					LOG.debug(() -> "Adding PropertySource " + propertySource.getName());
-					LOG.debug(() -> "PropertySource Names: " + Arrays.toString(propertySource.getPropertyNames()));
-					environment.add(new PropertySource(propertySource.getName(), propertySource.getSource()));
-				}
+				LOG.debug(() -> "Adding PropertySource " + propertySource.getName());
+				LOG.debug(() -> "PropertySource Names: " + Arrays.toString(propertySource.getPropertyNames()));
+				environment.add(new PropertySource(propertySource.getName(), propertySource.getSource()));
 			});
 		});
 	}
