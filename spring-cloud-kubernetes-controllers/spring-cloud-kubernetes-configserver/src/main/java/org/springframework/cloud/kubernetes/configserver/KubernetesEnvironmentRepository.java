@@ -78,7 +78,7 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 			addConfigurationsFromActiveProfiles(environment, application, profiles);
 		}
 
-		addConfigurationFromApplication(environment);
+		addConfigurationsFromActiveProfiles(environment, "application", profiles);
 		return environment;
 	}
 
@@ -93,11 +93,6 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 		MutablePropertySources mutablePropertySources = new MutablePropertySources();
 		mutablePropertySources.addFirst(propertySource);
 		return mutablePropertySources;
-	}
-
-	private void addConfigurationFromApplication(Environment environment) {
-		StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(propertySources("application"));
-		addApplicationConfiguration(environment, springEnv, "application");
 	}
 
 	private void addConfigurationsFromActiveProfiles(Environment environment, String applicationName,

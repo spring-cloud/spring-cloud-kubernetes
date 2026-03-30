@@ -359,8 +359,8 @@ class KubernetesEnvironmentRepositoryTests {
 					ConfigUtils.Prefix.DEFAULT, true, true);
 			KubernetesClientConfigContext devContext = new KubernetesClientConfigContext(coreApi, devSource, "default",
 					environment, true, ReadType.BATCH);
-			KubernetesClientConfigMapPropertySource configMapPropertySource =
-				new KubernetesClientConfigMapPropertySource(devContext);
+			KubernetesClientConfigMapPropertySource configMapPropertySource = new KubernetesClientConfigMapPropertySource(
+					devContext);
 			if (!configMapPropertySource.isEmpty()) {
 				propertySources.add(configMapPropertySource);
 			}
