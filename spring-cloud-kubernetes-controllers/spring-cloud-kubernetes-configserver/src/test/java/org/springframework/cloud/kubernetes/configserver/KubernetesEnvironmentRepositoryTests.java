@@ -375,31 +375,31 @@ class KubernetesEnvironmentRepositoryTests {
 			.satisfies(propertySource -> assertThat(propertySource.getName())
 				.isEqualTo("configmap.stores.default.default"));
 
-//		environment = environmentRepository.findOne("stores", "dev", "");
-//		assertThat(environment.getPropertySources()).hasSize(2);
-//		assertThat(environment.getPropertySources().get(0).getName()).isEqualTo("configmap.stores.default.dev");
-//		assertThat(environment.getPropertySources().get(1).getName()).isEqualTo("configmap.stores.default.default");
-//
-//		environment = environmentRepository.findOne("stores", "dev,prod", "");
-//		assertThat(environment.getPropertySources()).hasSize(3);
-//
-//		PropertySource first = environment.getPropertySources().get(0);
-//		assertThat(first.getName()).isEqualTo("configmap.stores.default.prod");
-//		Map<String, Object> firstSource = (Map<String, Object>) first.getSource();
-//		assertThat(firstSource).containsExactlyInAnyOrderEntriesOf(
-//				Map.of("dummy.property.int2", 3, "dummy.property.bool2", true, "dummy.property.string2", "prod"));
-//
-//		PropertySource second = environment.getPropertySources().get(1);
-//		assertThat(second.getName()).isEqualTo("configmap.stores.default.dev");
-//		Map<String, Object> secondSource = (Map<String, Object>) second.getSource();
-//		assertThat(secondSource).containsExactlyInAnyOrderEntriesOf(
-//				Map.of("dummy.property.int2", 1, "dummy.property.bool2", false, "dummy.property.string2", "dev"));
-//
-//		PropertySource third = environment.getPropertySources().get(2);
-//		assertThat(third.getName()).isEqualTo("configmap.stores.default.default");
-//		Map<String, Object> thirdSource = (Map<String, Object>) third.getSource();
-//		assertThat(thirdSource).containsExactlyInAnyOrderEntriesOf(
-//				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		environment = environmentRepository.findOne("stores", "dev", "");
+		assertThat(environment.getPropertySources()).hasSize(2);
+		assertThat(environment.getPropertySources().get(0).getName()).isEqualTo("configmap.stores.default.dev");
+		assertThat(environment.getPropertySources().get(1).getName()).isEqualTo("configmap.stores.default.default");
+
+		environment = environmentRepository.findOne("stores", "dev,prod", "");
+		assertThat(environment.getPropertySources()).hasSize(3);
+
+		PropertySource first = environment.getPropertySources().get(0);
+		assertThat(first.getName()).isEqualTo("configmap.stores.default.prod");
+		Map<String, Object> firstSource = (Map<String, Object>) first.getSource();
+		assertThat(firstSource).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 3, "dummy.property.bool2", true, "dummy.property.string2", "prod"));
+
+		PropertySource second = environment.getPropertySources().get(1);
+		assertThat(second.getName()).isEqualTo("configmap.stores.default.dev");
+		Map<String, Object> secondSource = (Map<String, Object>) second.getSource();
+		assertThat(secondSource).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", false, "dummy.property.string2", "dev"));
+
+		PropertySource third = environment.getPropertySources().get(2);
+		assertThat(third.getName()).isEqualTo("configmap.stores.default.default");
+		Map<String, Object> thirdSource = (Map<String, Object>) third.getSource();
+		assertThat(thirdSource).containsExactlyInAnyOrderEntriesOf(
+				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 	}
 
 	private static KubernetesConfigServerProperties properties() {
