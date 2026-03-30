@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configserver.it;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -28,14 +29,21 @@ import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.openapi.models.V1SecretListBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.config.environment.Environment;
+import org.springframework.cloud.config.environment.PropertySource;
+import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
+import org.springframework.cloud.kubernetes.configserver.configurations.FirstConfig;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.kubernetes.client.openapi.JSON.serialize;
 
 /**
@@ -44,45 +52,60 @@ import static io.kubernetes.client.openapi.JSON.serialize;
 @AutoConfigureTestRestTemplate
 @SpringBootTest(properties = { "spring.cloud.kubernetes.secrets.enabled=true",
 	"spring.cloud.kubernetes.config.enabled=true", "spring.main.cloud-platform=KUBERNETES",
-	"spring.cloud.kubernetes.client.namespace=default" })
+	"spring.cloud.kubernetes.client.namespace=default", "test.first.config.enabled=true" },
+	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+	classes = { KubernetesConfigServerApplication.class, FirstConfig.class })
 class DuplicatedPropertySourcesTest {
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
+
+	@Autowired
+	private WireMockServer wireMockServer;
 
 	private static final V1SecretList SECRETS = new V1SecretListBuilder().build();
 
 	// fruit = apple
 	// color = generic
 	private static final V1ConfigMap MY_CONFIGMAP = new V1ConfigMapBuilder()
+		.withMetadata(new V1ObjectMetaBuilder().withName("my-configmap").build())
 		.addToData("fruit", "apple").addToData("color", "generic").build();
 
 	// shape=round
 	private static final V1ConfigMap MY_CONFIGMAP_SHAPE = new V1ConfigMapBuilder()
+		.withMetadata(new V1ObjectMetaBuilder().withName("my-configmap-shape").build())
 		.addToData("shape", "round").build();
 
 	// color=green
 	private static final V1ConfigMap MY_CONFIGMAP_COLOR = new V1ConfigMapBuilder()
+		.withMetadata(new V1ObjectMetaBuilder().withName("my-configmap-color").build())
 		.addToData("color", "green").build();
 
 	private static final V1ConfigMapList CONFIGMAPS = new V1ConfigMapList().addItemsItem(MY_CONFIGMAP)
 		.addItemsItem(MY_CONFIGMAP_SHAPE).addItemsItem(MY_CONFIGMAP_COLOR);
 
-	@BeforeAll
-	static void beforeAll() {
-		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
+	@BeforeEach
+	void beforeEach() {
+
+		wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAPS))));
 
-		WireMock.stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*"))
+		wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*"))
 			.willReturn(aResponse().withStatus(200).withBody(serialize(SECRETS))));
 	}
 
-//	@AfterEach
-//	void afterEach() {
-//		WireMock.reset();
-//		WireMock.shutdownServer();
-//		wireMockServer.stop();
-//		wireMockServer.shutdownServer();
-//	}
+	@AfterEach
+	void afterEach() {
+		WireMock.reset();
+		WireMock.shutdownServer();
+		wireMockServer.stop();
+		wireMockServer.shutdownServer();
+	}
+
+	@Test
+	void test() {
+		Environment defaultEnv = testRestTemplate.getForObject("/my-configmap/color", Environment.class);
+		System.out.println(defaultEnv.getPropertySources().stream().map(PropertySource::getName).toList());
+	}
 
 }
