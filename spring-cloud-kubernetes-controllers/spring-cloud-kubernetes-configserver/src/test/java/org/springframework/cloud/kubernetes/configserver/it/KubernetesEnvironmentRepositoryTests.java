@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configserver.it;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -54,14 +55,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesEnvironmentRepositoryTests {
 
-	private static final V1ConfigMapList CONFIGMAP_LIST_DEFAULT_NAMESPACE =
-		Util.yaml("configmap-default-list.yaml", V1ConfigMapList.class);
+	private static final V1ConfigMapList CONFIGMAP_LIST_DEFAULT_NAMESPACE = Util.yaml("configmap-default-list.yaml",
+			V1ConfigMapList.class);
 
-	private static final V1ConfigMapList CONFIGMAP_LIST_DEV_NAMESPACE =
-		Util.yaml("configmap-dev-list.yaml", V1ConfigMapList.class);
+	private static final V1ConfigMapList CONFIGMAP_LIST_DEV_NAMESPACE = Util.yaml("configmap-dev-list.yaml",
+			V1ConfigMapList.class);
 
-	private static final V1SecretList SECRET_LIST_DEFAULT_NAMESPACE =
-		Util.yaml("secret-one-list.yaml", V1SecretList.class);
+	private static final V1SecretList SECRET_LIST_DEFAULT_NAMESPACE = Util.yaml("secret-one-list.yaml",
+			V1SecretList.class);
+
+	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = Util.yaml("configmap-one-list.yaml",
+			V1ConfigMapList.class);
 
 	private static WireMockServer wireMockServer;
 
@@ -70,9 +74,6 @@ class KubernetesEnvironmentRepositoryTests {
 
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
-
-		wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
-			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEFAULT_NAMESPACE))));
 
 		wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/dev/configmaps.*"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEV_NAMESPACE))));
@@ -108,12 +109,13 @@ class KubernetesEnvironmentRepositoryTests {
 	@Nested
 	@AutoConfigureTestRestTemplate
 	@SpringBootTest(
-		properties = { "spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default" },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = { KubernetesConfigServerApplication.class, TestConfig.class })
+			properties = { "spring.cloud.kubernetes.secrets.enabled=true",
+					"spring.cloud.kubernetes.config.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.client.namespace=default" },
+			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+			classes = { KubernetesConfigServerApplication.class, TestConfig.class })
 	@DirtiesContext
-	class ApplicationCaseTest {
+	class ApplicationTest {
 
 		@Autowired
 		private TestRestTemplate testRestTemplate;
@@ -121,23 +123,30 @@ class KubernetesEnvironmentRepositoryTests {
 		@Test
 		@SuppressWarnings("unchecked")
 		void test() {
+
+			wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
+				.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEFAULT_NAMESPACE))));
+
 			Environment environment = testRestTemplate.getForObject("/application/default ", Environment.class);
 
 			Map<String, Map<String, Object>> result = environment.getPropertySources()
 				.stream()
 				.collect(Collectors.toMap(PropertySource::getName,
-					propertySource -> (Map<String, Object>) propertySource.getSource()));
+						propertySource -> (Map<String, Object>) propertySource.getSource(), (left, right) -> left,
+						LinkedHashMap::new));
 
-			assertThat(result.keySet()).containsExactly("secret.application.default", "configmap.application.default");
+			assertThat(result.keySet()).containsExactly("configmap.application.default", "secret.application.default");
 
 			Map<String, Object> fromConfigMap = result.get("configmap.application.default");
 			Map<String, Object> fromSecret = result.get("secret.application.default");
 
 			assertThat(fromConfigMap).containsExactlyInAnyOrderEntriesOf(
-				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+					Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
-			assertThat(fromSecret).containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
+			assertThat(fromSecret)
+				.containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
 		}
+
 	}
 
 	/**
@@ -152,12 +161,13 @@ class KubernetesEnvironmentRepositoryTests {
 	@Nested
 	@AutoConfigureTestRestTemplate
 	@SpringBootTest(
-		properties = { "spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-			"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default" },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = { KubernetesConfigServerApplication.class, TestConfig.class })
+			properties = { "spring.cloud.kubernetes.secrets.enabled=true",
+					"spring.cloud.kubernetes.config.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.client.namespace=default" },
+			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+			classes = { KubernetesConfigServerApplication.class, TestConfig.class })
 	@DirtiesContext
-	class StoresCaseTest {
+	class StoresTest {
 
 		@Autowired
 		private TestRestTemplate testRestTemplate;
@@ -166,34 +176,187 @@ class KubernetesEnvironmentRepositoryTests {
 		@SuppressWarnings("unchecked")
 		void test() {
 
+			wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
+				.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEFAULT_NAMESPACE))));
+
 			Environment environment = testRestTemplate.getForObject("/stores/default ", Environment.class);
 
 			Map<String, Map<String, Object>> result = environment.getPropertySources()
 				.stream()
 				.collect(Collectors.toMap(PropertySource::getName,
-					propertySource -> (Map<String, Object>) propertySource.getSource()));
+						propertySource -> (Map<String, Object>) propertySource.getSource(), (left, right) -> left,
+						LinkedHashMap::new));
 
-			assertThat(result.keySet()).containsExactly("configmap.stores.default", "secret.application.default",
-				"configmap.application.default", "secret.stores.default");
+			assertThat(result.keySet()).containsExactly("configmap.stores.default.default",
+					"secret.stores.default.default", "configmap.application.default", "secret.application.default");
 
 			Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
 			Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
-			Map<String, Object> fromStoresConfigMap = result.get("configmap.stores.default");
-			Map<String, Object> fromStoresSecret = result.get("secret.stores.default");
+			Map<String, Object> fromStoresConfigMap = result.get("configmap.stores.default.default");
+			Map<String, Object> fromStoresSecret = result.get("secret.stores.default.default");
 
 			assertThat(fromApplicationConfigMap).containsExactlyInAnyOrderEntriesOf(
-				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+					Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
 			assertThat(fromApplicationSecret)
 				.containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
 
 			assertThat(fromStoresConfigMap).containsExactlyInAnyOrderEntriesOf(
-				Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+					Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
 
 			assertThat(fromStoresSecret)
 				.containsExactlyInAnyOrderEntriesOf(Map.of("username", "stores", "password", "password-from-stores"));
 
 		}
+
+	}
+
+	/**
+	 * <pre>
+	 * Given application=stores and profile=dev,
+	 * the repository loads:
+	 * - the stores-dev ConfigMap and Secret
+	 * - the stores ConfigMap and Secret
+	 * - the application ConfigMap and Secret as fallbacks
+	 * </pre>
+	 */
+	@Nested
+	@AutoConfigureTestRestTemplate
+	@SpringBootTest(
+			properties = { "spring.cloud.kubernetes.secrets.enabled=true",
+					"spring.cloud.kubernetes.config.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.client.namespace=default" },
+			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+			classes = { KubernetesConfigServerApplication.class, TestConfig.class })
+	@DirtiesContext
+	class StoresProfileTest {
+
+		@Autowired
+		private TestRestTemplate testRestTemplate;
+
+		@Test
+		@SuppressWarnings("unchecked")
+		void test() {
+
+			wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
+				.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEFAULT_NAMESPACE))));
+
+			Environment environment = testRestTemplate.getForObject("/stores/dev", Environment.class);
+
+			Map<String, Map<String, Object>> result = environment.getPropertySources()
+				.stream()
+				.collect(Collectors.toMap(PropertySource::getName,
+						propertySource -> (Map<String, Object>) propertySource.getSource(), (left, right) -> left,
+						LinkedHashMap::new));
+
+			assertThat(result.keySet()).containsExactly("configmap.stores-dev.default.dev",
+					"secret.stores-dev.default.dev", "configmap.stores.default.default",
+					"secret.stores.default.default", "configmap.application.default", "secret.application.default");
+
+			Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
+			Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
+			Map<String, Object> fromStoresProfileConfigMap = result.get("configmap.stores-dev.default.dev");
+			Map<String, Object> fromStoresSecret = result.get("secret.stores.default.default");
+			Map<String, Object> fromStoresProfileSecret = result.get("secret.stores-dev.default.dev");
+			Map<String, Object> fromStoresConfigMap = result.get("configmap.stores.default.default");
+
+			assertThat(fromApplicationConfigMap).containsExactlyInAnyOrderEntriesOf(
+					Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+
+			assertThat(fromApplicationSecret)
+				.containsExactlyInAnyOrderEntriesOf(Map.of("username", "user", "password", "p455w0rd"));
+
+			assertThat(fromStoresProfileSecret).containsExactlyInAnyOrderEntriesOf(
+					Map.of("username", "stores-dev", "password", "password-from-stores-dev"));
+
+			assertThat(fromStoresProfileConfigMap).containsExactlyInAnyOrderEntriesOf(Map.of("dummy.property.int2", 2,
+					"dummy.property.bool2", false, "dummy.property.string1", "a", "dummy.property.string2", "b"));
+
+			assertThat(fromStoresConfigMap).containsExactlyInAnyOrderEntriesOf(
+					Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+
+			assertThat(fromStoresSecret)
+				.containsExactlyInAnyOrderEntriesOf(Map.of("username", "stores", "password", "password-from-stores"));
+
+		}
+
+	}
+
+	/**
+	 * <pre>
+	 * Verifies ConfigMap resolution across:
+	 * - the default lookup
+	 * - a single active profile
+	 * - multiple active profiles in precedence order
+	 * </pre>
+	 */
+	@Nested
+	@AutoConfigureTestRestTemplate
+	@SpringBootTest(
+			properties = { "spring.cloud.kubernetes.secrets.enabled=true",
+					"spring.cloud.kubernetes.config.enabled=true", "spring.main.cloud-platform=KUBERNETES",
+					"spring.cloud.kubernetes.client.namespace=default" },
+			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+			classes = { KubernetesConfigServerApplication.class, TestConfig.class })
+	@DirtiesContext
+	class SingleConfigMultipleSourcesTest {
+
+		@Autowired
+		private TestRestTemplate testRestTemplate;
+
+		@Test
+		@SuppressWarnings("unchecked")
+		void testSingleConfigMapMultipleSources() {
+
+			wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
+				.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_ONE_LIST))));
+
+			Environment environment = testRestTemplate.getForObject("/stores/default", Environment.class);
+
+			Map<String, Map<String, Object>> result = environment.getPropertySources()
+				.stream()
+				.collect(Collectors.toMap(PropertySource::getName,
+						propertySource -> (Map<String, Object>) propertySource.getSource(), (left, right) -> left,
+						LinkedHashMap::new));
+
+			assertThat(result.keySet()).containsExactly("configmap.stores.default.default",
+					"secret.stores.default.default", "secret.application.default");
+
+			environment = testRestTemplate.getForObject("/stores/dev", Environment.class);
+			result = environment.getPropertySources()
+				.stream()
+				.collect(Collectors.toMap(PropertySource::getName,
+						propertySource -> (Map<String, Object>) propertySource.getSource(), (left, right) -> left,
+						LinkedHashMap::new));
+
+			assertThat(result.keySet()).containsExactly("configmap.stores.default.dev", "secret.stores-dev.default.dev",
+					"configmap.stores.default.default", "secret.stores.default.default", "secret.application.default");
+
+			environment = testRestTemplate.getForObject("/stores/dev,prod", Environment.class);
+
+			result = environment.getPropertySources()
+				.stream()
+				.collect(Collectors.toMap(PropertySource::getName,
+						propertySource -> (Map<String, Object>) propertySource.getSource(), (left, right) -> left,
+						LinkedHashMap::new));
+
+			assertThat(result.keySet()).containsExactly("configmap.stores.default.prod", "configmap.stores.default.dev",
+					"secret.stores-dev.default.dev", "configmap.stores.default.default",
+					"secret.stores.default.default", "secret.application.default");
+
+			Map<String, Object> firstSource = result.get("configmap.stores.default.prod");
+			assertThat(firstSource).containsExactlyInAnyOrderEntriesOf(
+					Map.of("dummy.property.int2", 3, "dummy.property.bool2", true, "dummy.property.string2", "prod"));
+
+			Map<String, Object> secondSource = result.get("configmap.stores.default.dev");
+			assertThat(secondSource).containsExactlyInAnyOrderEntriesOf(
+					Map.of("dummy.property.int2", 1, "dummy.property.bool2", false, "dummy.property.string2", "dev"));
+
+			Map<String, Object> thirdSource = result.get("configmap.stores.default.default");
+			assertThat(thirdSource).containsExactlyInAnyOrderEntriesOf(
+					Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
+		}
+
 	}
 
 }
