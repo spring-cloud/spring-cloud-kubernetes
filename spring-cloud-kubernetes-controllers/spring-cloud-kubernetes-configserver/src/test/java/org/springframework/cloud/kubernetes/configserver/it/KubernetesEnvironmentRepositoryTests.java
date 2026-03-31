@@ -135,10 +135,11 @@ class KubernetesEnvironmentRepositoryTests {
 						propertySource -> (Map<String, Object>) propertySource.getSource(), (left, right) -> left,
 						LinkedHashMap::new));
 
-			assertThat(result.keySet()).containsExactly("configmap.application.default", "secret.application.default");
+			assertThat(result.keySet()).containsExactly("configmap.application.default.default",
+					"secret.application.default.default");
 
-			Map<String, Object> fromConfigMap = result.get("configmap.application.default");
-			Map<String, Object> fromSecret = result.get("secret.application.default");
+			Map<String, Object> fromConfigMap = result.get("configmap.application.default.default");
+			Map<String, Object> fromSecret = result.get("secret.application.default.default");
 
 			assertThat(fromConfigMap).containsExactlyInAnyOrderEntriesOf(
 					Map.of("dummy.property.int2", 1, "dummy.property.bool2", true, "dummy.property.string2", "a"));
@@ -188,10 +189,11 @@ class KubernetesEnvironmentRepositoryTests {
 						LinkedHashMap::new));
 
 			assertThat(result.keySet()).containsExactly("configmap.stores.default.default",
-					"secret.stores.default.default", "configmap.application.default", "secret.application.default");
+					"secret.stores.default.default", "configmap.application.default.default",
+					"secret.application.default.default");
 
-			Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
-			Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
+			Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default.default");
+			Map<String, Object> fromApplicationSecret = result.get("secret.application.default.default");
 			Map<String, Object> fromStoresConfigMap = result.get("configmap.stores.default.default");
 			Map<String, Object> fromStoresSecret = result.get("secret.stores.default.default");
 
@@ -251,10 +253,11 @@ class KubernetesEnvironmentRepositoryTests {
 
 			assertThat(result.keySet()).containsExactly("configmap.stores-dev.default.dev",
 					"secret.stores-dev.default.dev", "configmap.stores.default.default",
-					"secret.stores.default.default", "configmap.application.default", "secret.application.default");
+					"secret.stores.default.default", "configmap.application.default.default",
+					"secret.application.default.default");
 
-			Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default");
-			Map<String, Object> fromApplicationSecret = result.get("secret.application.default");
+			Map<String, Object> fromApplicationConfigMap = result.get("configmap.application.default.default");
+			Map<String, Object> fromApplicationSecret = result.get("secret.application.default.default");
 			Map<String, Object> fromStoresProfileConfigMap = result.get("configmap.stores-dev.default.dev");
 			Map<String, Object> fromStoresSecret = result.get("secret.stores.default.default");
 			Map<String, Object> fromStoresProfileSecret = result.get("secret.stores-dev.default.dev");
@@ -320,7 +323,7 @@ class KubernetesEnvironmentRepositoryTests {
 						LinkedHashMap::new));
 
 			assertThat(result.keySet()).containsExactly("configmap.stores.default.default",
-					"secret.stores.default.default", "secret.application.default");
+					"secret.stores.default.default", "secret.application.default.default");
 
 			environment = testRestTemplate.getForObject("/stores/dev", Environment.class);
 			result = environment.getPropertySources()
@@ -330,7 +333,8 @@ class KubernetesEnvironmentRepositoryTests {
 						LinkedHashMap::new));
 
 			assertThat(result.keySet()).containsExactly("configmap.stores.default.dev", "secret.stores-dev.default.dev",
-					"configmap.stores.default.default", "secret.stores.default.default", "secret.application.default");
+					"configmap.stores.default.default", "secret.stores.default.default",
+					"secret.application.default.default");
 
 			environment = testRestTemplate.getForObject("/stores/dev,prod", Environment.class);
 
@@ -342,7 +346,7 @@ class KubernetesEnvironmentRepositoryTests {
 
 			assertThat(result.keySet()).containsExactly("configmap.stores.default.prod", "configmap.stores.default.dev",
 					"secret.stores-dev.default.dev", "configmap.stores.default.default",
-					"secret.stores.default.default", "secret.application.default");
+					"secret.stores.default.default", "secret.application.default.default");
 
 			Map<String, Object> firstSource = result.get("configmap.stores.default.prod");
 			assertThat(firstSource).containsExactlyInAnyOrderEntriesOf(
