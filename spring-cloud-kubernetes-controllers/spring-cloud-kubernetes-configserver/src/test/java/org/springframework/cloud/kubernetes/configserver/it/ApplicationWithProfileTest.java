@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configserver.it;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
@@ -50,11 +49,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @AutoConfigureTestRestTemplate
 @SpringBootTest(
-	properties = { "spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
-		"test.first.config.enabled=true" },
-	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-	classes = { KubernetesConfigServerApplication.class, FirstConfig.class })
+		properties = { "spring.cloud.kubernetes.secrets.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
+				"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.client.namespace=default",
+				"test.first.config.enabled=true" },
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		classes = { KubernetesConfigServerApplication.class, FirstConfig.class })
 @DirtiesContext
 class ApplicationWithProfileTest {
 
@@ -119,17 +118,19 @@ class ApplicationWithProfileTest {
 	}
 
 	/**
-	 * proves that we read configmaps in order, also taking care of reading "application-shape".
-	 * proves that 1795 is fixed.
+	 * proves that we read configmaps in order, also taking care of reading
+	 * "application-shape". proves that 1795 is fixed.
 	 */
 	@Test
 	void test() {
 		Environment environment = testRestTemplate.getForObject("/my-configmap/color,shape", Environment.class);
 
-		// we read in order : "shape" -> "color" -> "default" -> "application-shape" -> "application"
+		// we read in order : "shape" -> "color" -> "default" -> "application-shape" ->
+		// "application"
 		assertThat(environment.getPropertySources().stream().map(PropertySource::getName).toList()).containsExactly(
-			"configmap.my-configmap-shape.default.shape", "configmap.my-configmap-color.default.color",
-			"configmap.my-configmap.default.default", "configmap.application-shape.default.shape",
-			"configmap.application.default.default");
+				"configmap.my-configmap-shape.default.shape", "configmap.my-configmap-color.default.color",
+				"configmap.my-configmap.default.default", "configmap.application-shape.default.shape",
+				"configmap.application.default.default");
 	}
+
 }
