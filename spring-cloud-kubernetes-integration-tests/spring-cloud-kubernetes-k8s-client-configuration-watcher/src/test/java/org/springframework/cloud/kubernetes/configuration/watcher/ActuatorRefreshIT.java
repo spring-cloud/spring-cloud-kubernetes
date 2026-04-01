@@ -98,10 +98,10 @@ class ActuatorRefreshIT {
 	}
 
 	private static void configWatcher(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util
-			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml");
-		V1Service service = (V1Service) util
-			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml");
+		V1Deployment deployment = Util
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml", V1Deployment.class);
+		V1Service service = Util.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml",
+				V1Service.class);
 
 		List<V1EnvVar> envVars = List.of(
 				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY").value("0"),

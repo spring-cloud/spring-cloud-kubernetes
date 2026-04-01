@@ -96,9 +96,9 @@ abstract class K8sClientReloadBase {
 
 	protected static void manifests(Phase phase, Util util, String namespace, String imageName) {
 
-		V1Deployment deployment = (V1Deployment) util.yaml("mount/deployment.yaml");
-		V1Service service = (V1Service) util.yaml("mount/service.yaml");
-		V1ConfigMap configMap = (V1ConfigMap) util.yaml("mount/configmap.yaml");
+		V1Deployment deployment = Util.yaml("mount/deployment.yaml", V1Deployment.class);
+		V1Service service = Util.yaml("mount/service.yaml", V1Service.class);
+		V1ConfigMap configMap = Util.yaml("mount/configmap.yaml", V1ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(namespace, configMap, null);
@@ -113,9 +113,9 @@ abstract class K8sClientReloadBase {
 
 	protected static void manifestsSecret(Phase phase, Util util, String namespace, String imageName) {
 
-		V1Secret secret = (V1Secret) util.yaml("mount/secret.yaml");
-		V1Deployment deployment = (V1Deployment) util.yaml("mount/deployment-with-secret.yaml");
-		V1Service service = (V1Service) util.yaml("mount/service-with-secret.yaml");
+		V1Secret secret = Util.yaml("mount/secret.yaml", V1Secret.class);
+		V1Deployment deployment = Util.yaml("mount/deployment-with-secret.yaml", V1Deployment.class);
+		V1Service service = Util.yaml("mount/service-with-secret.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(namespace, null, secret);

@@ -39,6 +39,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightWithLabelsProperties;
@@ -84,8 +85,8 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 			.thenReturn(NAMESPACE_RIGHT);
 
 		util.createNamespace(NAMESPACE_RIGHT);
-		rightConfigMap = (V1ConfigMap) util.yaml("right-configmap.yaml");
-		rightConfigMapWithLabel = (V1ConfigMap) util.yaml("right-configmap-with-label.yaml");
+		rightConfigMap = Util.yaml("right-configmap.yaml", V1ConfigMap.class);
+		rightConfigMapWithLabel = Util.yaml("right-configmap-with-label.yaml", V1ConfigMap.class);
 		util.createAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
 		util.createAndWait(NAMESPACE_RIGHT, rightConfigMapWithLabel, null);
 	}

@@ -17,13 +17,12 @@
 package org.springframework.cloud.kubernetes.configserver;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
@@ -32,14 +31,20 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.log.LogAccessor;
 import org.springframework.util.StringUtils;
+
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * @author Ryan Baxter
  */
 public class KubernetesEnvironmentRepository implements EnvironmentRepository, Ordered {
 
-	private static final Log LOG = LogFactory.getLog(KubernetesEnvironmentRepository.class);
+	private static final String DEFAULT_PROFILE = "default";
+
+	private static final LogAccessor LOG = new LogAccessor(KubernetesEnvironmentRepository.class);
 
 	private final CoreV1Api coreApi;
 
@@ -65,42 +70,24 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 
 	@Override
 	public Environment findOne(String application, String profile, String label, boolean includeOrigin) {
-		if (!StringUtils.hasText(profile)) {
-			profile = "default";
-		}
-		List<String> profiles = new ArrayList<>(List.of(StringUtils.commaDelimitedListToStringArray(profile)));
+		String[] profiles = profiles(profile);
+		Environment environment = new Environment(application, profiles, label, null, null);
+		LOG.debug(() -> "Profiles: " + profile + ", application: " + application + ", label: " + label);
 
-		Collections.reverse(profiles);
-		if (!profiles.contains("default")) {
-			profiles.add("default");
+		if (!"application".equalsIgnoreCase(application)) {
+			addConfigurationsFromActiveProfiles(environment, application, profiles);
 		}
-		Environment environment = new Environment(application, profiles.toArray(profiles.toArray(new String[0])), label,
-				null, null);
-		LOG.info("Profiles: " + profile);
-		LOG.info("Application: " + application);
-		LOG.info("Label: " + label);
-		for (String activeProfile : profiles) {
-			try {
-				// This is needed so that when we get the application name in
-				// SourceDataProcessor.sorted that it actually
-				// exists in the Environment
-				StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(
-						createPropertySources(application));
-				springEnv.setActiveProfiles(activeProfile);
-				if (!"application".equalsIgnoreCase(application)) {
-					addApplicationConfiguration(environment, springEnv, application);
-				}
-			}
-			catch (Exception e) {
-				LOG.warn(e);
-			}
-		}
-		StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(createPropertySources("application"));
-		addApplicationConfiguration(environment, springEnv, "application");
+
+		addConfigurationsFromActiveProfiles(environment, "application", profiles);
 		return environment;
 	}
 
-	private MutablePropertySources createPropertySources(String application) {
+	@Override
+	public int getOrder() {
+		return this.order;
+	}
+
+	private MutablePropertySources propertySources(String application) {
 		Map<String, Object> applicationProperties = Map.of("spring.application.name", application);
 		MapPropertySource propertySource = new MapPropertySource("kubernetes-config-server", applicationProperties);
 		MutablePropertySources mutablePropertySources = new MutablePropertySources();
@@ -108,24 +95,73 @@ public class KubernetesEnvironmentRepository implements EnvironmentRepository, O
 		return mutablePropertySources;
 	}
 
+	private void addConfigurationsFromActiveProfiles(Environment environment, String applicationName,
+			String[] profiles) {
+		for (String activeProfile : profiles) {
+			try {
+				StandardEnvironment springEnv = new KubernetesConfigServerEnvironment(propertySources(applicationName));
+				springEnv.setActiveProfiles(activeProfile);
+				addApplicationConfiguration(environment, springEnv, applicationName);
+			}
+			catch (Exception e) {
+				LOG.warn(e, () -> "Error while trying to find environment for application: " + applicationName
+						+ " and profile : " + activeProfile);
+			}
+		}
+	}
+
 	private void addApplicationConfiguration(Environment environment, StandardEnvironment springEnv,
 			String applicationName) {
 		kubernetesPropertySourceSuppliers.forEach(supplier -> {
 			List<MapPropertySource> propertySources = supplier.get(coreApi, applicationName, namespace, springEnv);
 			propertySources.forEach(propertySource -> {
-				if (propertySource.getPropertyNames().length > 0) {
-					LOG.debug("Adding PropertySource " + propertySource.getName());
-					LOG.debug("PropertySource Names: "
-							+ StringUtils.arrayToCommaDelimitedString(propertySource.getPropertyNames()));
-					environment.add(new PropertySource(propertySource.getName(), propertySource.getSource()));
-				}
+				LOG.debug(() -> "Adding PropertySource " + propertySource.getName());
+				LOG.debug(() -> "PropertySource Names: " + Arrays.toString(propertySource.getPropertyNames()));
+				environment.add(new PropertySource(propertySource.getName(), propertySource.getSource()));
 			});
 		});
 	}
 
-	@Override
-	public int getOrder() {
-		return this.order;
+	/**
+	 * Parses the requested profile string into the ordered array of profiles used when
+	 * resolving configuration property sources.
+	 * <ul>
+	 * <li>Blank input falls back to {@value #DEFAULT_PROFILE}.</li>
+	 * <li>Profile names are trimmed.</li>
+	 * <li>Empty entries are ignored.</li>
+	 * <li>Duplicates are removed while preserving request order.</li>
+	 * <li>The resulting array is reversed so that profiles declared later in the request
+	 * have higher precedence.</li>
+	 * <li>{@value #DEFAULT_PROFILE} is always appended as the final fallback when not
+	 * already present.</li>
+	 * </ul>
+	 * <p>
+	 * Examples:
+	 * <ul>
+	 * <li>{@code "dev,prod"} becomes {@code ["prod", "dev", "default"]}</li>
+	 * <li>{@code "dev, prod, dev"} becomes {@code ["prod", "dev", "default"]}</li>
+	 * <li>blank input becomes {@code ["default"]}</li>
+	 * </ul>
+	 * @param profile a comma-delimited profile string from the incoming request
+	 * @return the ordered profiles to use when building property sources
+	 */
+	private String[] profiles(String profile) {
+
+		if (!StringUtils.hasText(profile)) {
+			profile = DEFAULT_PROFILE;
+		}
+
+		List<String> profiles = stream(profile.split(",")).map(String::trim)
+			.filter(StringUtils::hasText)
+			.distinct()
+			.collect(toCollection(ArrayList::new));
+
+		Collections.reverse(profiles);
+		if (!profiles.contains(DEFAULT_PROFILE)) {
+			profiles.add(DEFAULT_PROFILE);
+		}
+
+		return profiles.toArray(String[]::new);
 	}
 
 }

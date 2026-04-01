@@ -1,5 +1,9 @@
 name: github-workflow
 
+permissions:
+  actions: write
+  contents: read
+
 on:
   pull_request:
     branches: [ main, 3.2.x, 3.3.x ]
@@ -330,6 +334,7 @@ jobs:
     needs: [all-tests-passed]
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/deploy.yml@main
     with:
+      trigger_ci_on_non_default_branches: false
       branches: ${{ inputs.branch }}
       custom_build_command: |
         if [[ "$SHOULD_DEPLOY" == "true" ]]; then

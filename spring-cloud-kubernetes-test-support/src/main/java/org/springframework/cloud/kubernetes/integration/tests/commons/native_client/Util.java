@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.integration.tests.commons.native_cl
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
@@ -224,13 +225,13 @@ public final class Util {
 	}
 
 	public void busybox(String namespace, Phase phase) {
-		V1Deployment deployment = (V1Deployment) yaml("busybox/deployment.yaml");
+		V1Deployment deployment = yaml("busybox/deployment.yaml", V1Deployment.class);
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		String imageWithVersion = imageWithoutVersion + ":" + Images.busyboxVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
-		V1Service service = (V1Service) yaml("busybox/service.yaml");
+		V1Service service = yaml("busybox/service.yaml", V1Service.class);
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "busybox", deployment, service, false);
 		}
@@ -240,13 +241,13 @@ public final class Util {
 	}
 
 	public void kafka(String namespace, Phase phase) {
-		V1Deployment deployment = (V1Deployment) yaml("kafka/kafka-deployment.yaml");
+		V1Deployment deployment = yaml("kafka/kafka-deployment.yaml", V1Deployment.class);
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		String imageWithVersion = imageWithoutVersion + ":" + Images.kafkaVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
-		V1Service service = (V1Service) yaml("kafka/kafka-service.yaml");
+		V1Service service = yaml("kafka/kafka-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "kafka", deployment, service, false);
@@ -257,13 +258,13 @@ public final class Util {
 	}
 
 	public void rabbitMq(String namespace, Phase phase) {
-		V1Deployment deployment = (V1Deployment) yaml("rabbitmq/rabbitmq-deployment.yaml");
+		V1Deployment deployment = yaml("rabbitmq/rabbitmq-deployment.yaml", V1Deployment.class);
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		String imageWithVersion = imageWithoutVersion + ":" + Images.rabbitMqVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
-		V1Service service = (V1Service) yaml("rabbitmq/rabbitmq-service.yaml");
+		V1Service service = yaml("rabbitmq/rabbitmq-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait(namespace, "rabbitmq", deployment, service, false);
@@ -276,22 +277,28 @@ public final class Util {
 	/**
 	 * reads a yaml from classpath, fails if not found.
 	 */
-	public Object yaml(String fileName) {
+	public static <T> T yaml(String fileName, Class<T> type) {
 		ClassLoader classLoader = Util.class.getClassLoader();
-		String file = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream(fileName))).lines()
-			.collect(Collectors.joining("\n"));
-		try {
-			return Yaml.load(file);
+
+		try (InputStream inputStream = classLoader.getResourceAsStream(fileName)) {
+			if (inputStream == null) {
+				throw new IllegalArgumentException("Resource not found: " + fileName);
+			}
+
+			String file = new BufferedReader(new InputStreamReader(inputStream)).lines()
+				.collect(Collectors.joining("\n"));
+
+			return Yaml.loadAs(file, type);
 		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Failed to load yaml resource: " + fileName, e);
 		}
 	}
 
 	public void setUp(String namespace) {
 
 		try {
-			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("setup/service-account.yaml");
+			V1ServiceAccount serviceAccount = yaml("setup/service-account.yaml", V1ServiceAccount.class);
 			CheckedSupplier<V1ServiceAccount> accountSupplier = () -> coreV1Api
 				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), namespace)
 				.execute();
@@ -300,12 +307,12 @@ public final class Util {
 				.execute();
 			notExistsHandler(accountSupplier, accountDefaulter);
 
-			V1RoleBinding roleBinding = (V1RoleBinding) yaml("setup/role-binding.yaml");
+			V1RoleBinding roleBinding = yaml("setup/role-binding.yaml", V1RoleBinding.class);
 			notExistsHandler(
 					() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace).execute(),
 					() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding).execute());
 
-			V1Role role = (V1Role) yaml("setup/role.yaml");
+			V1Role role = yaml("setup/role.yaml", V1Role.class);
 			notExistsHandler(() -> rbacApi.readNamespacedRole(role.getMetadata().getName(), namespace).execute(),
 					() -> rbacApi.createNamespacedRole(namespace, role).execute());
 		}
@@ -318,7 +325,7 @@ public final class Util {
 	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) {
 
 		try {
-			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
+			V1ServiceAccount serviceAccount = yaml("cluster/service-account.yaml", V1ServiceAccount.class);
 			CheckedSupplier<V1ServiceAccount> accountSupplier = () -> coreV1Api
 				.readNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
 				.execute();
@@ -327,11 +334,11 @@ public final class Util {
 				.execute();
 			notExistsHandler(accountSupplier, accountDefaulter);
 
-			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
+			V1ClusterRole clusterRole = yaml("cluster/cluster-role.yaml", V1ClusterRole.class);
 			notExistsHandler(() -> rbacApi.readClusterRole(clusterRole.getMetadata().getName()).execute(),
 					() -> rbacApi.createClusterRole(clusterRole).execute());
 
-			V1RoleBinding roleBinding = (V1RoleBinding) yaml("cluster/role-binding.yaml");
+			V1RoleBinding roleBinding = yaml("cluster/role-binding.yaml", V1RoleBinding.class);
 			namespaces.forEach(namespace -> {
 				roleBinding.getMetadata().setNamespace(namespace);
 				try {
@@ -353,9 +360,9 @@ public final class Util {
 
 	public void deleteClusterWide(String serviceAccountNamespace, Set<String> namespaces) {
 		try {
-			V1ServiceAccount serviceAccount = (V1ServiceAccount) yaml("cluster/service-account.yaml");
-			V1ClusterRole clusterRole = (V1ClusterRole) yaml("cluster/cluster-role.yaml");
-			V1RoleBinding roleBinding = (V1RoleBinding) yaml("cluster/role-binding.yaml");
+			V1ServiceAccount serviceAccount = yaml("cluster/service-account.yaml", V1ServiceAccount.class);
+			V1ClusterRole clusterRole = yaml("cluster/cluster-role.yaml", V1ClusterRole.class);
+			V1RoleBinding roleBinding = yaml("cluster/role-binding.yaml", V1RoleBinding.class);
 
 			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
 				.execute();
@@ -424,13 +431,13 @@ public final class Util {
 	}
 
 	public void wiremock(String namespace, Phase phase, boolean withNodePort) {
-		V1Deployment deployment = (V1Deployment) yaml("wiremock/wiremock-deployment.yaml");
+		V1Deployment deployment = yaml("wiremock/wiremock-deployment.yaml", V1Deployment.class);
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
 		String imageWithVersion = imageWithoutVersion + ":" + Images.wiremockVersion();
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
-		V1Service service = (V1Service) yaml("wiremock/wiremock-service.yaml");
+		V1Service service = yaml("wiremock/wiremock-service.yaml", V1Service.class);
 		service.getMetadata().setNamespace(namespace);
 		if (!withNodePort) {
 			// we assume we only have one 'http' port
@@ -451,8 +458,8 @@ public final class Util {
 
 	public void configWatcher(Phase phase) {
 
-		V1Deployment deployment = (V1Deployment) yaml("config-watcher/deployment.yaml");
-		V1Service service = (V1Service) yaml("config-watcher/service.yaml");
+		V1Deployment deployment = yaml("config-watcher/deployment.yaml", V1Deployment.class);
+		V1Service service = yaml("config-watcher/service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait("default", deployment.getMetadata().getName(), deployment, service, true);
