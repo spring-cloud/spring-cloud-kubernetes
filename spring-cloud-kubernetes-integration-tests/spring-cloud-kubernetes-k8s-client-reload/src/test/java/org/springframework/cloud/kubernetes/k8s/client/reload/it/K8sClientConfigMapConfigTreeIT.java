@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -94,7 +95,7 @@ class K8sClientConfigMapConfigTreeIT extends K8sClientReloadBase {
 		assertThat(result).isEqualTo("as-mount-initial");
 
 		// replace data in configmap and wait for configuration watcher to pick it up.
-		V1ConfigMap configMapConfigTree = (V1ConfigMap) util.yaml("mount/configmap.yaml");
+		V1ConfigMap configMapConfigTree = Util.yaml("mount/configmap.yaml", V1ConfigMap.class);
 		configMapConfigTree.setData(Map.of("from.properties.configmap.key", "as-mount-changed"));
 		// add label so that configuration-watcher picks this up
 		Map<String, String> existingLabels = new HashMap<>(

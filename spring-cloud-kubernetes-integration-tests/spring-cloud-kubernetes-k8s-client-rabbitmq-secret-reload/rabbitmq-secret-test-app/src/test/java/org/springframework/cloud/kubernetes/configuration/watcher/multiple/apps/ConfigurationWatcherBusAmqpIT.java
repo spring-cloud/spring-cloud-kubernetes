@@ -118,8 +118,8 @@ class ConfigurationWatcherBusAmqpIT {
 	}
 
 	private void appA(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("app/app-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("app/app-service.yaml");
+		V1Deployment deployment = Util.yaml("app/app-deployment.yaml", V1Deployment.class);
+		V1Service service = Util.yaml("app/app-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, true);
@@ -130,8 +130,8 @@ class ConfigurationWatcherBusAmqpIT {
 	}
 
 	private void configWatcher(Phase phase) {
-		V1Deployment deployment = (V1Deployment) util.yaml("config-watcher/watcher-deployment.yaml");
-		V1Service service = (V1Service) util.yaml("config-watcher/watcher-service.yaml");
+		V1Deployment deployment = Util.yaml("config-watcher/watcher-deployment.yaml", V1Deployment.class);
+		V1Service service = Util.yaml("config-watcher/watcher-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			util.createAndWait(NAMESPACE, null, deployment, service, true);

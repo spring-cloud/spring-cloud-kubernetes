@@ -38,6 +38,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameKubern
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
@@ -64,7 +65,7 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 		Images.loadBusybox(K3S);
 		util.busybox(DEFAULT_NAMESPACE, Phase.CREATE);
 
-		externalNameService = (V1Service) util.yaml("external-name-service.yaml");
+		externalNameService = Util.yaml("external-name-service.yaml", V1Service.class);
 		util.createAndWait(DEFAULT_NAMESPACE, null, null, externalNameService, true);
 	}
 
