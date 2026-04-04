@@ -127,7 +127,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 		if (enableReloadFiltering) {
 			filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-		} else {
+		}
+		else {
 			filter = null;
 		}
 

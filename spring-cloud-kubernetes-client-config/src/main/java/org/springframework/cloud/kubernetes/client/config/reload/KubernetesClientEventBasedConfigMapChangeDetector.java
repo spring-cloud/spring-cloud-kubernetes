@@ -126,7 +126,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 			if (enableReloadFiltering) {
 				filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-			} else {
+			}
+			else {
 				filter = null;
 			}
 
