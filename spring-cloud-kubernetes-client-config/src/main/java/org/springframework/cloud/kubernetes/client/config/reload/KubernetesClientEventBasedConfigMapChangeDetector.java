@@ -122,13 +122,17 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		if (monitoringConfigMaps) {
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
+			String filter;
+
+			if (enableReloadFiltering) {
+				filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+			} else {
+				filter = null;
+			}
+
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
-				String[] filter = new String[1];
 
-				if (enableReloadFiltering) {
-					filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-				}
 				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 				factories.add(factory);
 				informer = factory
@@ -136,11 +140,11 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
-						.labelSelector(filter[0])
+						.labelSelector(filter)
 						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
 				LOG.debug(
-						() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter[0]);
+						() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);

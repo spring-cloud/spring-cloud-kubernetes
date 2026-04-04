@@ -123,14 +123,18 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	void inform() {
 		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
+		String filter;
+
+		if (enableReloadFiltering) {
+			filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+		} else {
+			filter = null;
+		}
+
 		if (monitoringSecrets) {
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1Secret> informer;
-				String[] filter = new String[1];
 
-				if (enableReloadFiltering) {
-					filter[0] = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-				}
 				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 				factories.add(factory);
 				informer = factory
@@ -138,10 +142,10 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
-						.labelSelector(filter[0])
+						.labelSelector(filter)
 						.buildCall(null), V1Secret.class, V1SecretList.class);
 
-				LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);
+				LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
