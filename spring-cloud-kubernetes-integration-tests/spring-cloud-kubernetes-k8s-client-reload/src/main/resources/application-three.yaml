@@ -10,4 +10,4 @@ spring:
         namespaces:
           - right
         monitoring-config-maps: true
-        enable-reload-filtering: true
+        enable-reload-filtering: false
