@@ -138,6 +138,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
+						.labelSelector(filter[0])
 						.buildCall(null), V1Secret.class, V1SecretList.class);
 
 				LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter[0]);

@@ -136,6 +136,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
+						.labelSelector(filter[0])
 						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
 				LOG.debug(
