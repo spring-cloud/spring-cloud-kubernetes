@@ -125,7 +125,9 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT).name("right-configmap"))
+			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT)
+				.name("right-configmap")
+				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true")))
 			.withData(Map.of("right.value", "right-after-change"))
 			.build();
 
