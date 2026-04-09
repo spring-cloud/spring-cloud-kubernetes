@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.config;
 import java.time.Duration;
 import java.util.Map;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -37,13 +36,7 @@ class ConfigReloadPropertiesTests {
 	@Test
 	void testDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class).run(context -> {
-			ConfigReloadProperties properties = null;
-			try {
-				properties = context.getBean(ConfigReloadProperties.class);
-			} catch(Exception e) {
-				e.printStackTrace();
-				context.getStartupFailure().printStackTrace();
-			}
+			ConfigReloadProperties properties = context.getBean(ConfigReloadProperties.class);
 			assertThat(properties).isNotNull();
 			assertThat(properties.enabled()).isFalse();
 			assertThat(properties.monitoringConfigMaps()).isTrue();

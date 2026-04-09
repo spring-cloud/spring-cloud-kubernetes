@@ -49,45 +49,40 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.reload")
 public record ConfigReloadProperties(boolean enabled, boolean monitoringConfigMaps,
-		Map<String, String> configMapsLabels,
-		boolean monitoringSecrets, Map<String, String> secretsLabels,
-		ReloadStrategy strategy,
-		ReloadDetectionMode mode, Duration period,
-		Set<String> namespaces, boolean enableReloadFiltering,
-		Duration maxWaitForRestart) {
+		Map<String, String> configMapsLabels, boolean monitoringSecrets, Map<String, String> secretsLabels,
+		ReloadStrategy strategy, ReloadDetectionMode mode, Duration period, Set<String> namespaces,
+		boolean enableReloadFiltering, Duration maxWaitForRestart) {
 
 	@ConstructorBinding
 	public ConfigReloadProperties(boolean enabled, @DefaultValue("true") boolean monitoringConfigMaps,
-		@DefaultValue Map<String, String> configMapsLabels,
-		boolean monitoringSecrets, @DefaultValue Map<String, String> secretsLabels,
-		@DefaultValue("REFRESH") ReloadStrategy strategy,
-		@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
-		@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
-		@DefaultValue("2s") Duration maxWaitForRestart) {
+			@DefaultValue Map<String, String> configMapsLabels, boolean monitoringSecrets,
+			@DefaultValue Map<String, String> secretsLabels, @DefaultValue("REFRESH") ReloadStrategy strategy,
+			@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
+			@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
+			@DefaultValue("2s") Duration maxWaitForRestart) {
 
-			this.enabled = enabled;
-			this.monitoringConfigMaps = monitoringConfigMaps;
-			this.configMapsLabels = configMapsLabels;
-			this.monitoringSecrets = monitoringSecrets;
-			this.secretsLabels = secretsLabels;
-			this.strategy = strategy;
-			this.mode = mode;
-			this.period = period;
-			this.namespaces = namespaces;
-			this.enableReloadFiltering = enableReloadFiltering;
-			this.maxWaitForRestart = maxWaitForRestart;
+		this.enabled = enabled;
+		this.monitoringConfigMaps = monitoringConfigMaps;
+		this.configMapsLabels = configMapsLabels;
+		this.monitoringSecrets = monitoringSecrets;
+		this.secretsLabels = secretsLabels;
+		this.strategy = strategy;
+		this.mode = mode;
+		this.period = period;
+		this.namespaces = namespaces;
+		this.enableReloadFiltering = enableReloadFiltering;
+		this.maxWaitForRestart = maxWaitForRestart;
 	}
 
 	@Deprecated(forRemoval = true)
 	public ConfigReloadProperties(boolean enabled, @DefaultValue("true") boolean monitoringConfigMaps,
-		boolean monitoringSecrets,
-		@DefaultValue("REFRESH") ReloadStrategy strategy,
-		@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
-		@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
-		@DefaultValue("2s") Duration maxWaitForRestart) {
+			boolean monitoringSecrets, @DefaultValue("REFRESH") ReloadStrategy strategy,
+			@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
+			@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
+			@DefaultValue("2s") Duration maxWaitForRestart) {
 
-		this(enabled, monitoringConfigMaps, Map.of(), monitoringSecrets, Map.of(),
-			strategy, mode, period, namespaces, enableReloadFiltering, maxWaitForRestart);
+		this(enabled, monitoringConfigMaps, Map.of(), monitoringSecrets, Map.of(), strategy, mode, period, namespaces,
+				enableReloadFiltering, maxWaitForRestart);
 	}
 
 	/**
