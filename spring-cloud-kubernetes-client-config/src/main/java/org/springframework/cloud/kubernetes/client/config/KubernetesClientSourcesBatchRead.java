@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.config;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -30,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.kubernetes.commons.config.StrippedSourceContainer;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.labelSelector;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.stripConfigMaps;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.stripSecrets;
 
@@ -136,10 +136,6 @@ public final class KubernetesClientSourcesBatchRead {
 		}
 
 		return strippedConfigMaps;
-	}
-
-	private static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
 	}
 
 }
