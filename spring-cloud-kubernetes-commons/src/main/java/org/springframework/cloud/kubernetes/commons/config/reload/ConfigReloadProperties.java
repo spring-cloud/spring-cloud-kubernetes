@@ -95,6 +95,7 @@ public record ConfigReloadProperties(boolean enabled, boolean monitoringConfigMa
 	/**
 	 * label for filtering sources.
 	 */
+	@Deprecated(forRemoval = true)
 	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.config.informer.enabled";
 
 	/**

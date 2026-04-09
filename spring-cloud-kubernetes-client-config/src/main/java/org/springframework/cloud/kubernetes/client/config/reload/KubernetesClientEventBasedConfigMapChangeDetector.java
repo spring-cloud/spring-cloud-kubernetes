@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -45,6 +46,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.labelSelector;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
 
 /**
@@ -72,6 +74,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	private final boolean enableReloadFiltering;
 
 	private final boolean monitoringConfigMaps;
+
+	private final Map<String, String> configMapsLabels;
 
 	private final ResourceEventHandler<V1ConfigMap> handler = new ResourceEventHandler<>() {
 
@@ -113,6 +117,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitoringConfigMaps = properties.monitoringConfigMaps();
+		this.configMapsLabels = properties.configMapsLabels();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 
@@ -122,13 +127,19 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		if (monitoringConfigMaps) {
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
-			String filter;
+			Map<String, String> labelSelector;
 
 			if (enableReloadFiltering) {
-				filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
+				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
+				LOG.warn(() -> "use spring.cloud.kubernetes.reload.config-maps-labels instead");
+				if (!configMapsLabels.isEmpty()) {
+					LOG.warn(() -> "spring.cloud.kubernetes.reload.config-maps-labels is not empty, but "
+							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
+				}
+				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
 			}
 			else {
-				filter = null;
+				labelSelector = configMapsLabels;
 			}
 
 			namespaces.forEach(namespace -> {
@@ -141,10 +152,10 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
-						.labelSelector(filter)
+						.labelSelector(labelSelector(labelSelector))
 						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
-				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with filter : " + filter);
+				LOG.debug(() -> "configmap informer for namespace : " + namespace + " with filter : " + labelSelector);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
