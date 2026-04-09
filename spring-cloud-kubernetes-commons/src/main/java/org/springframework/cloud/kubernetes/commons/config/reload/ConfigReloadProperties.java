@@ -51,18 +51,12 @@ public record ConfigReloadProperties(boolean enabled, @DefaultValue("true") bool
 		@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
 		@DefaultValue Set<String> namespaces,
 		@DefaultValue("2s") Duration maxWaitForRestart) {
-
 	/**
 	 * default instance.
 	 */
 	public static final ConfigReloadProperties DEFAULT = new ConfigReloadProperties(false, true, Map.of(), false,
 			Map.of(), ReloadStrategy.REFRESH, ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(),
 			Duration.ofSeconds(2));
-
-	/**
-	 * label for filtering sources.
-	 */
-	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.config.informer.enabled";
 
 	/**
 	 * Reload strategies.

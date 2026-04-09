@@ -47,6 +47,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.labelSelector;
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
 
 /**
@@ -71,9 +72,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private final ConfigurableEnvironment environment;
 
-	private final boolean enableReloadFiltering;
-
 	private final boolean monitoringSecrets;
+
+	private final Map<String, String> secretsLabels;
 
 	private final ResourceEventHandler<V1Secret> handler = new ResourceEventHandler<>() {
 
@@ -114,23 +115,14 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
-		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitoringSecrets = properties.monitoringSecrets();
+		this.secretsLabels = properties.secretsLabels();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 
 	@PostConstruct
 	void inform() {
 		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
-
-		String filter;
-
-		if (enableReloadFiltering) {
-			filter = ConfigReloadProperties.RELOAD_LABEL_FILTER + "=true";
-		}
-		else {
-			filter = null;
-		}
 
 		if (monitoringSecrets) {
 			namespaces.forEach(namespace -> {
@@ -143,10 +135,10 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
-						.labelSelector(filter)
+						.labelSelector(labelSelector(secretsLabels))
 						.buildCall(null), V1Secret.class, V1SecretList.class);
 
-				LOG.debug(() -> "added secret informer for namespace : " + namespace + " with filter : " + filter);
+				LOG.debug(() -> "secret informer for namespace : " + namespace + " with labels : " + secretsLabels);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
