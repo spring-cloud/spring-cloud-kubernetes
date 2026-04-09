@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.commons.config;
 
 import java.time.Duration;
+import java.util.Map;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -26,26 +27,35 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.context.annotation.Configuration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author wind57
- *
- * Tests binding, since we moved from a class to a record
  */
 class ConfigReloadPropertiesTests {
 
 	@Test
 	void testDefaults() {
 		new ApplicationContextRunner().withUserConfiguration(Config.class).run(context -> {
-			ConfigReloadProperties properties = context.getBean(ConfigReloadProperties.class);
-			Assertions.assertThat(properties).isNotNull();
-			Assertions.assertThat(properties.enabled()).isFalse();
-			Assertions.assertThat(properties.monitoringConfigMaps()).isTrue();
-			Assertions.assertThat(properties.monitoringSecrets()).isFalse();
-			Assertions.assertThat(ConfigReloadProperties.ReloadStrategy.REFRESH).isEqualTo(properties.strategy());
-			Assertions.assertThat(ConfigReloadProperties.ReloadDetectionMode.EVENT).isEqualTo(properties.mode());
-			Assertions.assertThat(Duration.ofMillis(15000)).isEqualTo(properties.period());
-			Assertions.assertThat(properties.namespaces().isEmpty()).isTrue();
-			Assertions.assertThat(Duration.ofSeconds(2)).isEqualTo(properties.maxWaitForRestart());
+			ConfigReloadProperties properties = null;
+			try {
+				properties = context.getBean(ConfigReloadProperties.class);
+			} catch(Exception e) {
+				e.printStackTrace();
+				context.getStartupFailure().printStackTrace();
+			}
+			assertThat(properties).isNotNull();
+			assertThat(properties.enabled()).isFalse();
+			assertThat(properties.monitoringConfigMaps()).isTrue();
+			assertThat(properties.configMapsLabels()).isEmpty();
+			assertThat(properties.monitoringSecrets()).isFalse();
+			assertThat(properties.secretsLabels()).isEmpty();
+			assertThat(ConfigReloadProperties.ReloadStrategy.REFRESH).isEqualTo(properties.strategy());
+			assertThat(ConfigReloadProperties.ReloadDetectionMode.EVENT).isEqualTo(properties.mode());
+			assertThat(Duration.ofMillis(15000)).isEqualTo(properties.period());
+			assertThat(properties.namespaces().isEmpty()).isTrue();
+			assertThat(properties.enableReloadFiltering()).isFalse();
+			assertThat(Duration.ofSeconds(2)).isEqualTo(properties.maxWaitForRestart());
 		});
 	}
 
@@ -54,22 +64,28 @@ class ConfigReloadPropertiesTests {
 		new ApplicationContextRunner().withUserConfiguration(Config.class)
 			.withPropertyValues("spring.cloud.kubernetes.reload.enabled=true",
 					"spring.cloud.kubernetes.reload.monitoring-config-maps=false",
+					"spring.cloud.kubernetes.reload.config-maps-labels[aa]=bb",
 					"spring.cloud.kubernetes.reload.monitoring-secrets=true",
+					"spring.cloud.kubernetes.reload.secrets-labels[cc]=dd",
 					"spring.cloud.kubernetes.reload.strategy=SHUTDOWN", "spring.cloud.kubernetes.reload.mode=POLLING",
 					"spring.cloud.kubernetes.reload.period=1000ms", "spring.cloud.kubernetes.reload.namespaces[0]=a",
 					"spring.cloud.kubernetes.reload.namespaces[1]=b",
+					"spring.cloud.kubernetes.reload.enable-reload-filtering=true",
 					"spring.cloud.kubernetes.reload.max-wait-for-restart=5s")
 			.run(context -> {
 				ConfigReloadProperties properties = context.getBean(ConfigReloadProperties.class);
-				Assertions.assertThat(properties).isNotNull();
-				Assertions.assertThat(properties.enabled()).isTrue();
-				Assertions.assertThat(properties.monitoringConfigMaps()).isFalse();
-				Assertions.assertThat(properties.monitoringSecrets()).isTrue();
-				Assertions.assertThat(ConfigReloadProperties.ReloadStrategy.SHUTDOWN).isEqualTo(properties.strategy());
-				Assertions.assertThat(ConfigReloadProperties.ReloadDetectionMode.POLLING).isEqualTo(properties.mode());
-				Assertions.assertThat(Duration.ofMillis(1000)).isEqualTo(properties.period());
-				Assertions.assertThat(properties.namespaces()).containsExactlyInAnyOrder("a", "b");
-				Assertions.assertThat(Duration.ofSeconds(5)).isEqualTo(properties.maxWaitForRestart());
+				assertThat(properties).isNotNull();
+				assertThat(properties.enabled()).isTrue();
+				assertThat(properties.monitoringConfigMaps()).isFalse();
+				assertThat(properties.configMapsLabels()).containsExactlyInAnyOrderEntriesOf(Map.of("aa", "bb"));
+				assertThat(properties.monitoringSecrets()).isTrue();
+				assertThat(properties.secretsLabels()).containsExactlyInAnyOrderEntriesOf(Map.of("cc", "dd"));
+				assertThat(ConfigReloadProperties.ReloadStrategy.SHUTDOWN).isEqualTo(properties.strategy());
+				assertThat(ConfigReloadProperties.ReloadDetectionMode.POLLING).isEqualTo(properties.mode());
+				assertThat(Duration.ofMillis(1000)).isEqualTo(properties.period());
+				assertThat(properties.namespaces()).containsExactlyInAnyOrder("a", "b");
+				assertThat(properties.enableReloadFiltering()).isTrue();
+				assertThat(Duration.ofSeconds(5)).isEqualTo(properties.maxWaitForRestart());
 			});
 	}
 
