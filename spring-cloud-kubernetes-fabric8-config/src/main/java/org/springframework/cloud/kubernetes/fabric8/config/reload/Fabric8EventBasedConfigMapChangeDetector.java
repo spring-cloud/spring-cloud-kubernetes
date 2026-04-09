@@ -89,19 +89,19 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 			LOG.info("Kubernetes event-based configMap change detector activated");
 
+			Map<String, String> labelSelector;
+
+			if (enableReloadFiltering) {
+				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
+			}
+			else {
+				labelSelector = Map.of();
+			}
+
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<ConfigMap> informer;
-				if (enableReloadFiltering) {
-					informer = kubernetesClient.configMaps()
-						.inNamespace(namespace)
-						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
-						.inform();
-					LOG.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
-				}
-				else {
-					informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
-					LOG.debug("added configmap informer for namespace : " + namespace);
-				}
+				informer = kubernetesClient.configMaps().inNamespace(namespace).withLabels(labelSelector).inform();
+				LOG.debug("added configmap informer for namespace : " + namespace + " with labels : " + labelSelector);
 
 				informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
 				informers.add(informer);

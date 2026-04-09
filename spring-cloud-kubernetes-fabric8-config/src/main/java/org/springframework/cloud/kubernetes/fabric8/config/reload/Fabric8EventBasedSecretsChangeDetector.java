@@ -97,19 +97,19 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 			LOG.info("Kubernetes event-based secrets change detector activated");
 
+			Map<String, String> labelSelector;
+
+			if (enableReloadFiltering) {
+				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
+			}
+			else {
+				labelSelector = Map.of();
+			}
+
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<Secret> informer;
-				if (enableReloadFiltering) {
-					informer = kubernetesClient.secrets()
-						.inNamespace(namespace)
-						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
-						.inform();
-					LOG.debug("added secret informer for namespace : " + namespace + " with enabled filter");
-				}
-				else {
-					informer = kubernetesClient.secrets().inNamespace(namespace).inform();
-					LOG.debug("added secret informer for namespace : " + namespace);
-				}
+				informer = kubernetesClient.secrets().inNamespace(namespace).withLabels(labelSelector).inform();
+				LOG.debug("added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
 
 				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
 				informers.add(informer);
