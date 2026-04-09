@@ -99,7 +99,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 				LOG.warn(() -> "use spring.cloud.kubernetes.reload.config-maps-labels instead");
 				if (!configMapsLabels.isEmpty()) {
 					LOG.warn(() -> "spring.cloud.kubernetes.reload.config-maps-labels is not empty, but "
-						+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
+							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
 				}
 				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
 			}
