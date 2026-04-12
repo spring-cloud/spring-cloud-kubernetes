@@ -52,12 +52,15 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadPr
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.context.ContextConfiguration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -71,6 +74,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 		properties = { "spring.main.allow-bean-definition-overriding=true",
 				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { PollingReloadConfigMapTest.TestConfig.class })
+@ContextConfiguration(initializers = PollingReloadConfigMapTest.Initializer.class)
 @ExtendWith(OutputCaptureExtension.class)
 class PollingReloadConfigMapTest {
 
@@ -171,38 +175,6 @@ class PollingReloadConfigMapTest {
 
 		@Bean
 		@Primary
-		AbstractEnvironment environment() {
-
-			V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
-			V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
-
-			// needed so that our environment is populated with 'something'
-			// this call is done in the method that returns the AbstractEnvironment
-			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(listOne)))
-				.inScenario(SCENARIO_NAME)
-				.whenScenarioStateIs(Scenario.STARTED)
-				.willSetStateTo("go-to-fail"));
-
-			MockEnvironment mockEnvironment = new MockEnvironment();
-			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
-
-			// simulate that environment already has a
-			// KubernetesClientConfigMapPropertySource,
-			// otherwise we can't properly test reload functionality
-			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
-			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
-
-			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,
-					configMapConfigProperties, namespaceProvider)
-				.locate(mockEnvironment);
-
-			mockEnvironment.getPropertySources().addFirst(propertySource);
-			return mockEnvironment;
-		}
-
-		@Bean
-		@Primary
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
 					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(2000), Set.of("non-default"),
@@ -225,9 +197,7 @@ class PollingReloadConfigMapTest {
 		@Bean
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
-			return new ConfigurationUpdateStrategy("to-console", () -> {
-				STRATEGY_CALLED.set(true);
-			});
+			return new ConfigurationUpdateStrategy("to-console", () -> STRATEGY_CALLED.set(true));
 		}
 
 		@Bean
@@ -238,6 +208,39 @@ class PollingReloadConfigMapTest {
 					namespaceProvider);
 		}
 
+	}
+
+	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		@Override
+		public void initialize(ConfigurableApplicationContext context) {
+
+			ConfigurableEnvironment environment = context.getEnvironment();
+
+			V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
+			V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(listOne)))
+				.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(Scenario.STARTED)
+				.willSetStateTo("go-to-fail"));
+
+			// simulate that environment already has a
+			// KubernetesClientConfigMapPropertySource,
+			// otherwise we can't properly test reload functionality
+			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+				Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
+			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+
+			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,
+				configMapConfigProperties, namespaceProvider)
+				.locate(environment);
+
+			environment.getPropertySources().addFirst(propertySource);
+
+		}
 	}
 
 }
