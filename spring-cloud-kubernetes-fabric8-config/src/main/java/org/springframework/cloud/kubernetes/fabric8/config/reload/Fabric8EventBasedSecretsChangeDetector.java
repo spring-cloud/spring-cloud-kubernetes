@@ -82,7 +82,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitorSecrets = properties.monitoringSecrets();
-		secretsLabels = properties.configMapsLabels();
+		secretsLabels = properties.secretsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
 	}
 

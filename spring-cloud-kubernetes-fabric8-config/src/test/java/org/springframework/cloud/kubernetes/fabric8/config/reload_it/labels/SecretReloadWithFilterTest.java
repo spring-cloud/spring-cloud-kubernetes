@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload_it;
+package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
@@ -33,14 +35,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8ConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8SecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -56,21 +58,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(
-	properties = { "spring.main.allow-bean-definition-overriding=true" },
-	classes = { ConfigMapReloadWithReloadFilteringTest.TestConfig.class })
-@ContextConfiguration(initializers = ConfigMapReloadWithReloadFilteringTest.Initializer.class)
+@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true" },
+		classes = { SecretReloadWithFilterTest.TestConfig.class })
+@ContextConfiguration(initializers = SecretReloadWithFilterTest.Initializer.class)
 @EnableKubernetesMockClient(crud = true, https = false)
 @ExtendWith(OutputCaptureExtension.class)
-class ConfigMapReloadWithReloadFilteringTest {
-
-	private static KubernetesClient kubernetesClient;
+class SecretReloadWithFilterTest {
 
 	private static final boolean FAIL_FAST = false;
 
-	private static final String CONFIG_MAP_NAME = "mine";
+	private static final String SECRET_NAME = "mine";
 
 	private static final String NAMESPACE = "spring-k8s";
+
+	private static final String PATH = "/api/v1/namespaces/spring-k8s/secrets";
+
+	private static KubernetesClient kubernetesClient;
 
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
@@ -78,27 +81,27 @@ class ConfigMapReloadWithReloadFilteringTest {
 	 * <pre>
 	 *     - we enable reload filtering, via 'spring.cloud.kubernetes.reload.enable-reload-filtering=true'
 	 *       ( this is done in ConfigReloadProperties )
-	 *     - as such, only configmaps that have 'spring.cloud.kubernetes.config.informer.enabled=true'
+	 *     - as such, only secrets that have 'spring.cloud.kubernetes.config.informer.enabled=true'
 	 *       label are being watched. This is what the informer is created with.
 	 * </pre>
 	 */
 	@Test
 	void test() throws InterruptedException {
-		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"),
-			Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"));
+		Secret secret = secret(SECRET_NAME, Map.of("a", "b"),
+				Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"));
 
-		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
+		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 		Awaitilities.awaitUntil(10, 1000, STRATEGY_CALLED::get);
-		kubernetesClient.configMaps().inAnyNamespace().delete();
+		kubernetesClient.secrets().inAnyNamespace().delete();
 		Awaitilities.awaitUntil(10, 1000,
-			() -> kubernetesClient.configMaps().inNamespace(NAMESPACE).withName(CONFIG_MAP_NAME).get() == null);
+				() -> kubernetesClient.secrets().inNamespace(NAMESPACE).withName(SECRET_NAME).get() == null);
 
 		// reset the strategy
 		STRATEGY_CALLED.set(false);
 
-		// create a configMap without label, the informer does not pick it up
-		configMapOne = configMap(CONFIG_MAP_NAME, Map.of("c", "d"), Map.of());
-		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
+		// create a secret without label, the informer does not pick it up
+		secret = secret(SECRET_NAME, Map.of("c", "d"), Map.of());
+		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
 		// wait a bit so that the informer potentially picks it up
 		Thread.sleep(3_000);
@@ -107,9 +110,17 @@ class ConfigMapReloadWithReloadFilteringTest {
 
 	}
 
-	private static ConfigMap configMap(String name, Map<String, String> data, Map<String, String> labels) {
-		return new ConfigMapBuilder().withNewMetadata().withResourceVersion("1")
-			.withLabels(labels).withName(name).endMetadata().withData(data).build();
+	private static Secret secret(String name, Map<String, String> data, Map<String, String> labels) {
+		Map<String, String> encoded = data.entrySet()
+			.stream()
+			.collect(Collectors.toMap(Map.Entry::getKey,
+					e -> new String(Base64.getEncoder().encode(e.getValue().getBytes()))));
+		return new SecretBuilder().withNewMetadata()
+			.withLabels(labels)
+			.withName(name)
+			.endMetadata()
+			.withData(encoded)
+			.build();
 	}
 
 	@TestConfiguration
@@ -117,35 +128,34 @@ class ConfigMapReloadWithReloadFilteringTest {
 
 		@Bean
 		@Primary
-		Fabric8EventBasedConfigMapChangeDetector fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
-			KubernetesNamespaceProvider namespaceProvider) {
-			return new Fabric8EventBasedConfigMapChangeDetector(environment, configReloadProperties, kubernetesClient,
-				configurationUpdateStrategy, fabric8ConfigMapPropertySourceLocator, namespaceProvider);
+		Fabric8EventBasedSecretsChangeDetector fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment,
+				ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
+				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
+				KubernetesNamespaceProvider namespaceProvider) {
+			return new Fabric8EventBasedSecretsChangeDetector(environment, configReloadProperties, kubernetesClient,
+					configurationUpdateStrategy, fabric8SecretsPropertySourceLocator, namespaceProvider);
 		}
 
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
 
-			boolean monitorConfigMaps = true;
-			boolean monitorSecrets = false;
+			boolean monitorConfigMaps = false;
+			boolean monitorSecrets = true;
 			boolean enableReloadFiltering = true;
 			Map<String, String> configMapsLabels = Map.of();
 			Map<String, String> secretsLabels = Map.of();
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
-				ConfigReloadProperties.ReloadStrategy.REFRESH,
-				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE),
-				enableReloadFiltering, Duration.ofSeconds(2));
+					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
 		}
 
 		@Bean
 		@Primary
-		ConfigMapConfigProperties configMapConfigProperties() {
-			return new ConfigMapConfigProperties(true, List.of(), Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true,
-				FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
+		SecretsConfigProperties secretsConfigProperties() {
+			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, false, true,
+					FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
 		}
 
 		@Bean
@@ -154,8 +164,6 @@ class ConfigMapReloadWithReloadFilteringTest {
 			return new KubernetesNamespaceProvider(environment);
 		}
 
-		// this is called by reloadProperties() and we simulated that
-		// informer correctly caught the update for the configmap.
 		@Bean
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
@@ -164,17 +172,15 @@ class ConfigMapReloadWithReloadFilteringTest {
 
 		@Bean
 		@Primary
-		Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator(
-			ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
-			return new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient, configMapConfigProperties,
-				namespaceProvider);
+		Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator(
+				SecretsConfigProperties secretsConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
+			return new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient, secretsConfigProperties,
+					namespaceProvider);
 		}
 
 	}
 
 	/**
-	 * we need a bean of type 'Fabric8ConfigMapPropertySourceLocator' in the context
-	 * ('VisibleFabric8ConfigMapPropertySourceLocator'), otherwise the reload will not work.
 	 * This one is called before the context is refreshed.
 	 */
 	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -183,19 +189,19 @@ class ConfigMapReloadWithReloadFilteringTest {
 		public void initialize(ConfigurableApplicationContext context) {
 			ConfigurableEnvironment environment = context.getEnvironment();
 
-			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
-				true, List.of(), Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true,
-				RetryProperties.DEFAULT, ReadType.SINGLE
-			);
-
+			// simulate that environment already has a Fabric8SecretsPropertySource,
+			// otherwise we can't properly test reload functionality
+			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
+					SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
-			PropertySource<?> propertySource =
-				new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient, configMapConfigProperties, namespaceProvider)
-					.locate(environment);
+			PropertySource<?> propertySource = new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient,
+					secretsConfigProperties, namespaceProvider)
+				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
 		}
+
 	}
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload_it;
+package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 
 import java.time.Duration;
 import java.util.List;
@@ -56,13 +56,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(
-	properties = { "spring.main.allow-bean-definition-overriding=true" },
-	classes = { ConfigMapWithReloadLabelsFilteringTest.TestConfig.class })
-@ContextConfiguration(initializers = ConfigMapWithReloadLabelsFilteringTest.Initializer.class)
+@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true" },
+		classes = { ConfigMapReloadWithFilterTest.TestConfig.class })
+@ContextConfiguration(initializers = ConfigMapReloadWithFilterTest.Initializer.class)
 @EnableKubernetesMockClient(crud = true, https = false)
 @ExtendWith(OutputCaptureExtension.class)
-class ConfigMapWithReloadLabelsFilteringTest {
+class ConfigMapReloadWithFilterTest {
 
 	private static KubernetesClient kubernetesClient;
 
@@ -76,23 +75,27 @@ class ConfigMapWithReloadLabelsFilteringTest {
 
 	/**
 	 * <pre>
-	 *     - we only watch configmaps with labels: { only-shape:round }
+	 *     - we enable reload filtering, via 'spring.cloud.kubernetes.reload.enable-reload-filtering=true'
+	 *       ( this is done in ConfigReloadProperties )
+	 *     - as such, only configmaps that have 'spring.cloud.kubernetes.config.informer.enabled=true'
+	 *       label are being watched. This is what the informer is created with.
 	 * </pre>
 	 */
 	@Test
 	void test() throws InterruptedException {
-		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
+		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"),
+				Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"));
 
 		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
 		Awaitilities.awaitUntil(10, 1000, STRATEGY_CALLED::get);
 		kubernetesClient.configMaps().inAnyNamespace().delete();
 		Awaitilities.awaitUntil(10, 1000,
-			() -> kubernetesClient.configMaps().inNamespace(NAMESPACE).withName(CONFIG_MAP_NAME).get() == null);
+				() -> kubernetesClient.configMaps().inNamespace(NAMESPACE).withName(CONFIG_MAP_NAME).get() == null);
 
 		// reset the strategy
 		STRATEGY_CALLED.set(false);
 
-		// create a configMap without labels, the informer does not pick it up
+		// create a configMap without label, the informer does not pick it up
 		configMapOne = configMap(CONFIG_MAP_NAME, Map.of("c", "d"), Map.of());
 		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
 
@@ -104,8 +107,13 @@ class ConfigMapWithReloadLabelsFilteringTest {
 	}
 
 	private static ConfigMap configMap(String name, Map<String, String> data, Map<String, String> labels) {
-		return new ConfigMapBuilder().withNewMetadata().withResourceVersion("1")
-			.withLabels(labels).withName(name).endMetadata().withData(data).build();
+		return new ConfigMapBuilder().withNewMetadata()
+			.withResourceVersion("1")
+			.withLabels(labels)
+			.withName(name)
+			.endMetadata()
+			.withData(data)
+			.build();
 	}
 
 	@TestConfiguration
@@ -114,11 +122,11 @@ class ConfigMapWithReloadLabelsFilteringTest {
 		@Bean
 		@Primary
 		Fabric8EventBasedConfigMapChangeDetector fabric8EventBasedSecretsChangeDetector(AbstractEnvironment environment,
-			ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
-			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
-			KubernetesNamespaceProvider namespaceProvider) {
+				ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
+				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
+				KubernetesNamespaceProvider namespaceProvider) {
 			return new Fabric8EventBasedConfigMapChangeDetector(environment, configReloadProperties, kubernetesClient,
-				configurationUpdateStrategy, fabric8ConfigMapPropertySourceLocator, namespaceProvider);
+					configurationUpdateStrategy, fabric8ConfigMapPropertySourceLocator, namespaceProvider);
 		}
 
 		@Bean
@@ -127,21 +135,20 @@ class ConfigMapWithReloadLabelsFilteringTest {
 
 			boolean monitorConfigMaps = true;
 			boolean monitorSecrets = false;
-			boolean enableReloadFiltering = false;
-			Map<String, String> configMapsLabels = Map.of("only-shape", "round");
+			boolean enableReloadFiltering = true;
+			Map<String, String> configMapsLabels = Map.of();
 			Map<String, String> secretsLabels = Map.of();
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
-				ConfigReloadProperties.ReloadStrategy.REFRESH,
-				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE),
-				enableReloadFiltering, Duration.ofSeconds(2));
+					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
 		}
 
 		@Bean
 		@Primary
 		ConfigMapConfigProperties configMapConfigProperties() {
 			return new ConfigMapConfigProperties(true, List.of(), Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true,
-				FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
+					FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
 		}
 
 		@Bean
@@ -161,17 +168,17 @@ class ConfigMapWithReloadLabelsFilteringTest {
 		@Bean
 		@Primary
 		Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator(
-			ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
+				ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
 			return new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient, configMapConfigProperties,
-				namespaceProvider);
+					namespaceProvider);
 		}
 
 	}
 
 	/**
 	 * we need a bean of type 'Fabric8ConfigMapPropertySourceLocator' in the context
-	 * ('VisibleFabric8ConfigMapPropertySourceLocator'), otherwise the reload will not work.
-	 * This one is called before the context is refreshed.
+	 * ('VisibleFabric8ConfigMapPropertySourceLocator'), otherwise the reload will not
+	 * work. This one is called before the context is refreshed.
 	 */
 	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
@@ -179,19 +186,18 @@ class ConfigMapWithReloadLabelsFilteringTest {
 		public void initialize(ConfigurableApplicationContext context) {
 			ConfigurableEnvironment environment = context.getEnvironment();
 
-			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(
-				true, List.of(), Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true,
-				RetryProperties.DEFAULT, ReadType.SINGLE
-			);
+			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.SINGLE);
 
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
-			PropertySource<?> propertySource =
-				new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient, configMapConfigProperties, namespaceProvider)
-					.locate(environment);
+			PropertySource<?> propertySource = new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient,
+					configMapConfigProperties, namespaceProvider)
+				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
 		}
+
 	}
 
 }
