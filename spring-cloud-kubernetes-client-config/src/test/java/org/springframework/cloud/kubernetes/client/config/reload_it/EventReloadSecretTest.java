@@ -57,11 +57,14 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperti
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
-import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.context.ContextConfiguration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -77,6 +80,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 		properties = { "spring.main.allow-bean-definition-overriding=true",
 				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { EventReloadSecretTest.TestConfig.class })
+@ContextConfiguration(initializers = EventReloadSecretTest.Initializer.class)
 @ExtendWith(OutputCaptureExtension.class)
 class EventReloadSecretTest {
 
@@ -200,38 +204,6 @@ class EventReloadSecretTest {
 
 		@Bean
 		@Primary
-		AbstractEnvironment environment() {
-
-			// needed so that our environment is populated with 'something'
-			// this call is done in the method that returns the AbstractEnvironment
-			V1Secret secret = secret(SECRET_NAME, Map.of());
-			V1SecretList secretList = new V1SecretList().addItemsItem(secret);
-
-			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList)))
-				.inScenario(SCENARIO_NAME)
-				.whenScenarioStateIs(Scenario.STARTED)
-				.willSetStateTo("go-to-fail"));
-
-			MockEnvironment mockEnvironment = new MockEnvironment();
-			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
-
-			// simulate that environment already has a
-			// KubernetesClientConfigMapPropertySource,
-			// otherwise we can't properly test reload functionality
-			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
-					SECRET_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
-			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
-
-			PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(coreV1Api,
-					namespaceProvider, secretsConfigProperties)
-				.locate(mockEnvironment);
-
-			mockEnvironment.getPropertySources().addFirst(propertySource);
-			return mockEnvironment;
-		}
-
-		@Bean
-		@Primary
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
 					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(2000), Set.of("spring-k8s"),
@@ -254,9 +226,7 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
-			return new ConfigurationUpdateStrategy("to-console", () -> {
-				STRATEGY_CALLED.set(true);
-			});
+			return new ConfigurationUpdateStrategy("to-console", () -> STRATEGY_CALLED.set(true));
 		}
 
 		@Bean
@@ -267,6 +237,39 @@ class EventReloadSecretTest {
 					secretsConfigProperties);
 		}
 
+	}
+
+	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		@Override
+		public void initialize(ConfigurableApplicationContext context) {
+
+			ConfigurableEnvironment environment = context.getEnvironment();
+
+			// needed so that our environment is populated with 'something'
+			// this call is done in the method that returns the AbstractEnvironment
+			V1Secret secret = secret(SECRET_NAME, Map.of());
+			V1SecretList secretList = new V1SecretList().addItemsItem(secret);
+
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList)))
+				.inScenario(SCENARIO_NAME)
+				.whenScenarioStateIs(Scenario.STARTED)
+				.willSetStateTo("go-to-fail"));
+
+			// simulate that environment already has a
+			// KubernetesClientConfigMapPropertySource,
+			// otherwise we can't properly test reload functionality
+			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
+				SECRET_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
+			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+
+			PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(coreV1Api,
+				namespaceProvider, secretsConfigProperties)
+				.locate(environment);
+
+			environment.getPropertySources().addFirst(propertySource);
+
+		}
 	}
 
 }
