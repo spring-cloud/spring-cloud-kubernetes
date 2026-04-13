@@ -118,12 +118,9 @@ class EventReloadConfigMapTest {
 			.willReturn(aResponse().withStatus(500).withBody("Error From Informer")));
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
-		client.setDebugging(true);
 		MOCK_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient).thenReturn(client);
-		MOCK_STATIC
-			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.anyString(), Mockito.anyString(),
-					Mockito.any()))
-			.thenReturn(NAMESPACE);
+		MOCK_STATIC.when(() -> KubernetesClientUtils.getApplicationNamespace(
+			Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(NAMESPACE);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-present the original author or authors.
+ * Copyright 2012-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.client.config.reload_it;
+package org.springframework.cloud.kubernetes.client.config.reload_it.labels;
 
 import java.time.Duration;
 import java.util.List;
@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
@@ -37,20 +36,22 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
+import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.VisibleKubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.cloud.kubernetes.commons.config.reload.PollingConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -59,40 +60,44 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
-@SpringBootTest(
-		properties = { "spring.main.allow-bean-definition-overriding=true",
-				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
-		classes = { PollingReloadConfigMapTest.TestConfig.class })
-@ContextConfiguration(initializers = PollingReloadConfigMapTest.Initializer.class)
+@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true" },
+		classes = { ConfigMapReloadWithFilterTest.TestConfig.class })
+@ContextConfiguration(initializers = ConfigMapReloadWithFilterTest.Initializer.class)
 @ExtendWith(OutputCaptureExtension.class)
-class PollingReloadConfigMapTest {
+class ConfigMapReloadWithFilterTest {
+
+	private static WireMockServer wireMockServer;
+
+	private static final String PATH = "/api/v1/namespaces/spring-k8s/configmaps";
 
 	private static final boolean FAIL_FAST = false;
 
 	private static final String CONFIG_MAP_NAME = "mine";
 
-	private static final String PATH = "/api/v1/namespaces/spring-k8s/configmaps";
-
 	private static final String NAMESPACE = "spring-k8s";
-
-	private static final String SCENARIO_NAME = "reload-test";
 
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
 	private static CoreV1Api coreV1Api;
 
-	private static WireMockServer wireMockServer;
+	private static final MockedStatic<KubernetesClientUtils> MOCK_STATIC = Mockito
+		.mockStatic(KubernetesClientUtils.class);
+
+	@Autowired
+	private VisibleKubernetesClientEventBasedConfigMapChangeDetector kubernetesClientEventBasedConfigMapChangeDetector;
 
 	@BeforeAll
 	static void setup() {
@@ -101,60 +106,56 @@ class PollingReloadConfigMapTest {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
 
+		// something that the informer can work with. Since we do not care about this one
+		// in the test, we mock it to return a 500 as it does not matter anyway.
+		stubFor(get(urlPathMatching(PATH)).withQueryParam("resourceVersion", equalTo("0"))
+			.withQueryParam("watch", equalTo("false"))
+			.willReturn(aResponse().withStatus(500).withBody("Error From Informer")));
+
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
+		MOCK_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient).thenReturn(client);
+		MOCK_STATIC.when(() -> KubernetesClientUtils.getApplicationNamespace(
+			Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(NAMESPACE);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
 	}
 
 	@AfterAll
 	static void after() {
+		MOCK_STATIC.close();
 		wireMockServer.stop();
 	}
 
 	/**
 	 * <pre>
-	 *     - we have a PropertySource in the environment
-	 *     - first polling cycle tries to read the sources from k8s and fails
-	 *     - second polling cycle reads sources from k8s and finds a change
+	 *     - we enable reload filtering, via 'spring.cloud.kubernetes.reload.enable-reload-filtering=true'
+	 *       ( this is done in ConfigReloadProperties )
+	 *     - as such, only configmaps that have 'spring.cloud.kubernetes.config.informer.enabled=true'
+	 *       label are being watched. This is what the informer is created with.
 	 * </pre>
 	 */
 	@Test
-	void test(CapturedOutput output) {
+	void test() throws InterruptedException {
+		V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"),
+				Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"));
 
-		// first reload call fails
-		stubFor(get(PATH).willReturn(aResponse().withStatus(500).withBody("Internal Server Error"))
-			.inScenario(SCENARIO_NAME)
-			.whenScenarioStateIs("go-to-fail")
-			.willSetStateTo("go-to-ok"));
+		V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMapOne);
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList))));
 
-		// we fail while reading 'configMapOne'
-		Awaitilities.awaitUntil(10, 1000, () -> {
-			boolean one = output.getOut().contains("Failure in reading named sources");
-			boolean two = output.getOut().contains("Failed to load source");
-			boolean three = output.getOut()
-				.contains("Reloadable condition was not satisfied, reload will not be triggered");
-			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
-			System.out.println("one: " + one + " two: " + two + " three: " + three + " updateStrategyNotCalled: "
-					+ updateStrategyNotCalled);
-			return one && two && three && updateStrategyNotCalled;
-		});
+		kubernetesClientEventBasedConfigMapChangeDetector.onEvent(configMapOne);
+		Awaitilities.awaitUntil(10, 1000, STRATEGY_CALLED::get);
 
-		// second reload call passes
-		V1ConfigMap configMapTwo = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
-		V1ConfigMapList listTwo = new V1ConfigMapList().addItemsItem(configMapTwo);
-		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(listTwo)))
-			.inScenario(SCENARIO_NAME)
-			.whenScenarioStateIs("go-to-ok")
-			.willSetStateTo("done"));
+		STRATEGY_CALLED.set(false);
 
-		System.out.println("first assertion passed");
+		// create a configMap without label, the informer does not pick it up
+		configMapOne = configMap(CONFIG_MAP_NAME, Map.of("c", "d"), Map.of());
+		configMapList = new V1ConfigMapList().addItemsItem(configMapOne);
+		stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList))));
 
-		// it passes while reading 'configMapTwo'
-		Awaitilities.awaitUntil(20, 1000, STRATEGY_CALLED::get);
-	}
+		kubernetesClientEventBasedConfigMapChangeDetector.onEvent(configMapOne);
+		Thread.sleep(3_000);
+		assertThat(STRATEGY_CALLED.get()).isFalse();
 
-	private static V1ConfigMap configMap(String name, Map<String, String> data) {
-		return new V1ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().withData(data).build();
 	}
 
 	@TestConfiguration
@@ -162,29 +163,36 @@ class PollingReloadConfigMapTest {
 
 		@Bean
 		@Primary
-		PollingConfigMapChangeDetector pollingConfigMapChangeDetector(AbstractEnvironment environment,
-				ConfigReloadProperties configReloadProperties, ConfigurationUpdateStrategy configurationUpdateStrategy,
-				KubernetesClientConfigMapPropertySourceLocator kubernetesClientConfigMapPropertySourceLocator) {
-			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-			scheduler.initialize();
-			return new PollingConfigMapChangeDetector(environment, configReloadProperties, configurationUpdateStrategy,
-					KubernetesClientConfigMapPropertySource.class, kubernetesClientConfigMapPropertySourceLocator,
-					scheduler);
+		VisibleKubernetesClientEventBasedConfigMapChangeDetector kubernetesClientEventBasedConfigMapChangeDetector(
+			AbstractEnvironment environment, ConfigReloadProperties configReloadProperties,
+			ConfigurationUpdateStrategy configurationUpdateStrategy,
+			KubernetesClientConfigMapPropertySourceLocator kubernetesClientConfigMapPropertySourceLocator,
+			KubernetesNamespaceProvider namespaceProvider) {
+			return new VisibleKubernetesClientEventBasedConfigMapChangeDetector(coreV1Api, environment,
+				configReloadProperties, configurationUpdateStrategy, kubernetesClientConfigMapPropertySourceLocator,
+				namespaceProvider);
 		}
 
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
-			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
-					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(2000), Set.of("non-default"),
-					false, Duration.ofSeconds(2));
+
+			boolean monitorConfigMaps = true;
+			boolean monitorSecrets = false;
+			boolean enableReloadFiltering = true;
+			Map<String, String> configMapsLabels = Map.of();
+			Map<String, String> secretsLabels = Map.of();
+
+			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.POLLING,
+				Duration.ofMillis(2000), Set.of("spring-k8s"), enableReloadFiltering, Duration.ofSeconds(2));
 		}
 
 		@Bean
 		@Primary
 		ConfigMapConfigProperties configMapConfigProperties() {
 			return new ConfigMapConfigProperties(true, List.of(), Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true,
-					FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
+				FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 		}
 
 		@Bean
@@ -202,11 +210,16 @@ class PollingReloadConfigMapTest {
 		@Bean
 		@Primary
 		KubernetesClientConfigMapPropertySourceLocator kubernetesClientConfigMapPropertySourceLocator(
-				ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
+			ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
 			return new KubernetesClientConfigMapPropertySourceLocator(coreV1Api, configMapConfigProperties,
-					namespaceProvider);
+				namespaceProvider);
 		}
 
+	}
+
+	private static V1ConfigMap configMap(String name, Map<String, String> data, Map<String, String> labels) {
+		return new V1ConfigMapBuilder().withNewMetadata().withName(name).withLabels(labels)
+			.endMetadata().withData(data).build();
 	}
 
 	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -216,21 +229,19 @@ class PollingReloadConfigMapTest {
 
 			ConfigurableEnvironment environment = context.getEnvironment();
 
-			V1ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
-			V1ConfigMapList listOne = new V1ConfigMapList().addItemsItem(configMapOne);
+			V1ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of(), Map.of());
+			V1ConfigMapList configMapList = new V1ConfigMapList().addItemsItem(configMap);
 
 			// needed so that our environment is populated with 'something'
 			// this call is done in the method that returns the AbstractEnvironment
-			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(listOne)))
-				.inScenario(SCENARIO_NAME)
-				.whenScenarioStateIs(Scenario.STARTED)
-				.willSetStateTo("go-to-fail"));
+			stubFor(get(PATH).willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList))));
 
 			// simulate that environment already has a
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-				Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
+				Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT,
+				ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
 			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,

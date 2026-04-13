@@ -104,7 +104,6 @@ class PollingReloadSecretTest {
 		WireMock.configureFor("localhost", wireMockServer.port());
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
-		client.setDebugging(true);
 		Configuration.setDefaultApiClient(client);
 		coreV1Api = new CoreV1Api();
 	}
