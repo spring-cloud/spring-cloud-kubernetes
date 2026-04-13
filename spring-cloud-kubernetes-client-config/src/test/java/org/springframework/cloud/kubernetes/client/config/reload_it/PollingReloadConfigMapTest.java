@@ -26,7 +26,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -102,9 +101,7 @@ class PollingReloadConfigMapTest {
 		WireMock.configureFor("localhost", wireMockServer.port());
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
-		client.setDebugging(true);
-		Configuration.setDefaultApiClient(client);
-		coreV1Api = new CoreV1Api();
+		coreV1Api = new CoreV1Api(client);
 	}
 
 	@AfterAll
@@ -231,16 +228,17 @@ class PollingReloadConfigMapTest {
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-				Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
+					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
 			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,
-				configMapConfigProperties, namespaceProvider)
+					configMapConfigProperties, namespaceProvider)
 				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
 
 		}
+
 	}
 
 }
