@@ -71,7 +71,7 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 	}
 
 	@AfterAll
-	static void after() {
+	static void afterAll() {
 		wireMockServer.stop();
 	}
 
