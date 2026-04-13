@@ -28,7 +28,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
@@ -72,6 +71,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
  * @author wind57
@@ -121,10 +123,8 @@ class EventReloadSecretTest {
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		MOCK_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient).thenReturn(client);
-		MOCK_STATIC.when(() -> KubernetesClientUtils.getApplicationNamespace(
-			Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(NAMESPACE);
-		Configuration.setDefaultApiClient(client);
-		coreV1Api = new CoreV1Api();
+		MOCK_STATIC.when(() -> getApplicationNamespace(anyString(), anyString(), any())).thenReturn(NAMESPACE);
+		coreV1Api = new CoreV1Api(client);
 	}
 
 	@AfterAll
@@ -257,16 +257,17 @@ class EventReloadSecretTest {
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
-				SECRET_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
+					SECRET_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
 			PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(coreV1Api,
-				namespaceProvider, secretsConfigProperties)
+					namespaceProvider, secretsConfigProperties)
 				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
 
 		}
+
 	}
 
 }

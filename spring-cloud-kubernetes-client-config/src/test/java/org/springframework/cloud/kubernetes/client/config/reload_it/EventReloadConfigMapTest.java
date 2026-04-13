@@ -26,7 +26,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
@@ -70,6 +69,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.getApplicationNamespace;
 
 /**
  * @author wind57
@@ -78,7 +80,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 		properties = { "spring.main.allow-bean-definition-overriding=true",
 				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { EventReloadConfigMapTest.TestConfig.class })
-@ContextConfiguration(initializers =  { EventReloadConfigMapTest.Initializer.class })
+@ContextConfiguration(initializers = { EventReloadConfigMapTest.Initializer.class })
 @ExtendWith(OutputCaptureExtension.class)
 class EventReloadConfigMapTest {
 
@@ -119,10 +121,8 @@ class EventReloadConfigMapTest {
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
 		MOCK_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient).thenReturn(client);
-		MOCK_STATIC.when(() -> KubernetesClientUtils.getApplicationNamespace(
-			Mockito.anyString(), Mockito.anyString(), Mockito.any())).thenReturn(NAMESPACE);
-		Configuration.setDefaultApiClient(client);
-		coreV1Api = new CoreV1Api();
+		MOCK_STATIC.when(() -> getApplicationNamespace(anyString(), anyString(), any())).thenReturn(NAMESPACE);
+		coreV1Api = new CoreV1Api(client);
 	}
 
 	@AfterAll
@@ -252,17 +252,18 @@ class EventReloadConfigMapTest {
 			// KubernetesClientConfigMapPropertySource,
 			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-				Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT,
-				ReadType.BATCH);
+					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, FAIL_FAST, RetryProperties.DEFAULT,
+					ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
 			PropertySource<?> propertySource = new KubernetesClientConfigMapPropertySourceLocator(coreV1Api,
-				configMapConfigProperties, namespaceProvider)
+					configMapConfigProperties, namespaceProvider)
 				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
 
 		}
+
 	}
 
 }

@@ -28,7 +28,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
@@ -76,7 +75,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 		properties = { "spring.main.allow-bean-definition-overriding=true",
 				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { PollingReloadSecretTest.TestConfig.class })
-@ContextConfiguration(initializers =  { PollingReloadSecretTest.Initializer.class })
+@ContextConfiguration(initializers = { PollingReloadSecretTest.Initializer.class })
 @ExtendWith(OutputCaptureExtension.class)
 class PollingReloadSecretTest {
 
@@ -104,8 +103,7 @@ class PollingReloadSecretTest {
 		WireMock.configureFor("localhost", wireMockServer.port());
 
 		ApiClient client = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
-		Configuration.setDefaultApiClient(client);
-		coreV1Api = new CoreV1Api();
+		coreV1Api = new CoreV1Api(client);
 	}
 
 	@AfterAll
@@ -232,16 +230,17 @@ class PollingReloadSecretTest {
 			// KubernetesClientSecretPropertySource,
 			// otherwise we can't properly test reload functionality
 			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
-				SECRET_NAME, NAMESPACE, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
+					SECRET_NAME, NAMESPACE, false, true, false, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
 			PropertySource<?> propertySource = new KubernetesClientSecretsPropertySourceLocator(coreV1Api,
-				namespaceProvider, secretsConfigProperties)
+					namespaceProvider, secretsConfigProperties)
 				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
 
 		}
+
 	}
 
 }
