@@ -122,10 +122,7 @@ class ConfigMapReloadWithFilterTest {
 			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config.informer.enabled=true"))
 			.willReturn(aResponse().withStatus(200)));
 
-		// update strategy
-		int[] onEventCalls = new int[1];
-		Runnable run = () -> ++onEventCalls[0];
-		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
+		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", () -> {});
 
 		// mock environment
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
@@ -151,6 +148,7 @@ class ConfigMapReloadWithFilterTest {
 
 		changeDetector.inform();
 
+		// assert that both requests from informer are label based
 		Awaitilities.awaitUntil(10, 1000, () -> {
 			try {
 				WireMock.verify(2, getRequestedFor(urlPathEqualTo("/api/v1/namespaces/default/configmaps"))
