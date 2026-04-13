@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import io.kubernetes.client.informer.EventType;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -32,8 +29,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ListMeta;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.ClientBuilder;
-import io.kubernetes.client.util.Watch;
-import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,7 +37,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
@@ -54,9 +48,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static io.kubernetes.client.informer.EventType.ADDED;
+import static io.kubernetes.client.informer.EventType.DELETED;
+import static io.kubernetes.client.informer.EventType.MODIFIED;
+import static io.kubernetes.client.util.Watch.Response;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_PROPERTIES;
 
 /**
  * @author Ryan Baxter
@@ -66,106 +64,126 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 	private static WireMockServer wireMockServer;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
-
 	}
 
 	@AfterAll
-	public static void after() {
+	static void after() {
 		wireMockServer.stop();
 	}
 
 	@AfterEach
-	public void afterEach() {
+	void afterEach() {
 		WireMock.reset();
 	}
 
 	@Test
 	void watch() {
 
-		Map<String, String> data = new HashMap<>();
-		data.put(Constants.APPLICATION_PROPERTIES, "spring.cloud.kubernetes.configuration.watcher.refreshDelay=0\n"
-				+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
-		Map<String, String> updateData = new HashMap<>();
-		updateData.put(Constants.APPLICATION_PROPERTIES,
-				"spring.cloud.kubernetes.configuration.watcher.refreshDelay=1\n"
-						+ "logging.level.org.springframework.cloud.kubernetes=TRACE");
-		V1ConfigMap applicationConfig = new V1ConfigMap().kind("ConfigMap")
-			.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
-			.data(data);
-		V1ConfigMapList configMapList = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("0"))
-			.items(List.of(applicationConfig));
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-			.whenScenarioStateIs(STARTED)
-			.withQueryParam("watch", equalTo("false"))
-			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList)))
-			.willSetStateTo("update"));
+		// ------------------------------------------------------------------------------------------------------------
+		// 0. initial request of the informer ( resourceVersion=0 )
+		Map<String, String> myConfigInitial = Map.of(APPLICATION_PROPERTIES,
+				"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0");
 
-		Watch.Response<V1ConfigMap> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(),
-				new V1ConfigMap().kind("ConfigMap")
-					.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
-					.data(updateData));
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-			.whenScenarioStateIs("update")
-			.withQueryParam("watch", equalTo("true"))
-			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse)))
-			.willSetStateTo("add"));
+		V1ConfigMap myConfigMapInitial = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("my-configmap"))
+			.data(myConfigInitial);
+		V1ConfigMapList myConfigMapListInitial = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("1"))
+			.items(List.of(myConfigMapInitial));
 
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-			.whenScenarioStateIs("add")
-			.withQueryParam("watch", equalTo("true"))
-			.willReturn(aResponse().withStatus(200)
-				.withBody(JSON.serialize(new Watch.Response<>(EventType.ADDED.name(),
-						new V1ConfigMap().kind("ConfigMap")
-							.metadata(new V1ObjectMeta().namespace("default").name("bar3"))
-							.putDataItem(Constants.APPLICATION_PROPERTIES, "debug=true")))))
-			.willSetStateTo("delete"));
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("false"))
+			.withQueryParam("resourceVersion", equalTo("0"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(myConfigMapListInitial))));
 
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-			.whenScenarioStateIs("delete")
-			.withQueryParam("watch", equalTo("true"))
-			.willReturn(aResponse().withStatus(200)
-				.withBody(JSON.serialize(new Watch.Response<>(EventType.DELETED.name(),
-						new V1ConfigMap().kind("ConfigMap")
-							.metadata(new V1ObjectMeta().namespace("default").name("bar1"))
-							.putDataItem(Constants.APPLICATION_PROPERTIES, "debug=true")))))
-			.willSetStateTo("done"));
+		// ------------------------------------------------------------------------------------------------------------
+		// 1. first watch response to request with resourceVersion=1
+		Map<String, String> myConfigChanged = Map.of(APPLICATION_PROPERTIES,
+				"spring.cloud.kubernetes.configuration.watcher.refreshDelay=1");
 
-		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).inScenario("watch")
-			.whenScenarioStateIs("done")
-			.withQueryParam("watch", equalTo("true"))
-			.willReturn(aResponse().withStatus(200)));
+		V1ConfigMap myConfigMapChanged = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("my-configmap").resourceVersion("2"))
+			.data(myConfigChanged);
+
+		Response<V1ConfigMap> watchResponseOne = new Response<>(MODIFIED.name(), myConfigMapChanged);
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("1"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponseOne))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 2. second watch response to request with resourceVersion=2
+
+		Map<String, String> newConfigAdded = Map.of(APPLICATION_PROPERTIES, "debug=true");
+
+		V1ConfigMap newConfigMapAdded = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("new-configmap").resourceVersion("3"))
+			.data(newConfigAdded);
+
+		Response<V1ConfigMap> watchResponseTwo = new Response<>(ADDED.name(), newConfigMapAdded);
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("2"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponseTwo))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 3. third watch response to request with resourceVersion=3
+
+		Map<String, String> newConfigDeleted = Map.of(APPLICATION_PROPERTIES, "debug=true");
+
+		V1ConfigMap newConfigMapDeleted = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("new-configmap").resourceVersion("4"))
+			.data(newConfigDeleted);
+
+		Response<V1ConfigMap> watchResponseThree = new Response<>(DELETED.name(), newConfigMapDeleted);
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("3"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponseThree))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 4. assertions
+
+		changeDetectorAssert();
+	}
+
+	private void changeDetectorAssert() {
+
+		// coreV1Api
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
-		OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
-		apiClient.setHttpClient(httpClient);
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
 
-		int[] howMany = new int[1];
-		Runnable run = () -> {
-			++howMany[0];
-		};
+		// update strategy
+		int[] onEventCalls = new int[1];
+		Runnable run = () -> ++onEventCalls[0];
 		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
 
+		// mock environment
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
-				mock(KubernetesClientConfigMapPropertySource.class))
-			.withProperty("debug", "true");
+				mock(KubernetesClientConfigMapPropertySource.class));
+
+		// locator
 		KubernetesClientConfigMapPropertySourceLocator locator = mock(
 				KubernetesClientConfigMapPropertySourceLocator.class);
 		when(locator.locate(environment)).thenAnswer(x -> new MockPropertySource().withProperty("debug", "false"));
+
+		// namespace provider
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 
+		// change detector
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
 				coreV1Api, environment, ConfigReloadProperties.DEFAULT, strategy, locator, kubernetesNamespaceProvider);
 
-		Thread controllerThread = new Thread(changeDetector::inform);
-		controllerThread.setDaemon(true);
-		controllerThread.start();
+		changeDetector.inform();
 
-		Awaitilities.awaitUntil(10, 1000, () -> howMany[0] >= 4);
+		// all 4 events are caught
+		Awaitilities.awaitUntil(10, 1000, () -> onEventCalls[0] == 4);
+
+		changeDetector.shutdown();
+
 	}
 
 }
