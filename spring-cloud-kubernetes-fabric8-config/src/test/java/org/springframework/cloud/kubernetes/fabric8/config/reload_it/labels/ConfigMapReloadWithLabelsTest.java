@@ -75,7 +75,7 @@ class ConfigMapReloadWithLabelsTest {
 	 * </pre>
 	 */
 	@Test
-	void test() throws InterruptedException {
+	void test() {
 		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
 
 		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();

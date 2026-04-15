@@ -77,7 +77,7 @@ class SecretReloadWithLabelsTest {
 	 * </pre>
 	 */
 	@Test
-	void test() throws InterruptedException {
+	void test() {
 		Secret secret = secret(SECRET_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
 
 		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();

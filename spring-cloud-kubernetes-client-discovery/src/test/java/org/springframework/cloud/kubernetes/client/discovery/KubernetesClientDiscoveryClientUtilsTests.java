@@ -178,4 +178,5 @@ class KubernetesClientDiscoveryClientUtilsTests {
 		List<String> hostNames = addresses.stream().map(V1EndpointAddress::getHostname).sorted().toList();
 		Assertions.assertThat(hostNames).containsExactly("one", "three", "two");
 	}
+
 }
