@@ -99,16 +99,15 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("1"))
 			.items(List.of(dbPassword));
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
-			.withQueryParam("watch", equalTo("false"))
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("false"))
 			.withQueryParam("resourceVersion", equalTo("0"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
 
 		// ------------------------------------------------------------------------------------------------------------
 		// 1. first watch response to request with resourceVersion=1
 
-		V1Secret dbPasswordUpdated = new V1Secret().metadata(
-				new V1ObjectMeta().name("db-password").resourceVersion("2"))
+		V1Secret dbPasswordUpdated = new V1Secret()
+			.metadata(new V1ObjectMeta().name("db-password").resourceVersion("2"))
 			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
 			.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
 			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
@@ -116,8 +115,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		Response<V1Secret> watchResponse = new Response<>(MODIFIED.name(), dbPasswordUpdated);
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
-			.withQueryParam("watch", equalTo("true"))
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", equalTo("1"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse))));
 
@@ -129,11 +127,9 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		Response<V1Secret> rabbitPasswordAddedResponse = new Response<>(ADDED.name(), rabbitPasswordAdded);
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
-			.withQueryParam("watch", equalTo("true"))
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", equalTo("2"))
-			.willReturn(aResponse().withStatus(200)
-				.withBody(JSON.serialize(rabbitPasswordAddedResponse))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordAddedResponse))));
 
 		// ------------------------------------------------------------------------------------------------------------
 		// 3. third watch response to request with resourceVersion=3
@@ -143,11 +139,9 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		Response<V1Secret> rabbitPasswordDeletedResponse = new Response<>(DELETED.name(), rabbitPasswordDeleted);
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*"))
-			.withQueryParam("watch", equalTo("true"))
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", equalTo("3"))
-			.willReturn(aResponse().withStatus(200)
-				.withBody(JSON.serialize(rabbitPasswordDeletedResponse))));
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordDeletedResponse))));
 
 		// ------------------------------------------------------------------------------------------------------------
 		// 4. assertions
@@ -278,7 +272,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		// mock environment
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
-			mock(KubernetesClientSecretsPropertySource.class));
+				mock(KubernetesClientSecretsPropertySource.class));
 
 		// locator
 		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
@@ -287,8 +281,8 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		// properties
 		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
-			ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-			Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
 
 		// namespace provider
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
@@ -296,7 +290,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		// change detector
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-			coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
+				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
 
 		changeDetector.inform();
 
