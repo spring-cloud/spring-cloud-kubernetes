@@ -154,7 +154,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 						.labelSelector(labelSelector(labelSelector))
 						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
-				LOG.debug(() -> "configmap informer for namespace : " + namespace + " with filter : " + labelSelector);
+				LOG.debug(() -> "added configmap informer for namespace : " + namespace
+					+ " with labels : " + labelSelector);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
