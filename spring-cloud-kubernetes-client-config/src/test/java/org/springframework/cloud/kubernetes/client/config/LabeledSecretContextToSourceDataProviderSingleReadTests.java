@@ -141,8 +141,8 @@ class LabeledSecretContextToSourceDataProviderSingleReadTests {
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
 
 		String selector = "label2=value2,label1=value1";
-		String path = "/api/v1/namespaces/default/secrets?labelSelector=" +
-			URLEncoder.encode(selector, StandardCharsets.UTF_8);
+		String path = "/api/v1/namespaces/default/secrets?labelSelector="
+				+ URLEncoder.encode(selector, StandardCharsets.UTF_8);
 		stubCall(secretList, path);
 		CoreV1Api api = new CoreV1Api();
 
@@ -204,8 +204,8 @@ class LabeledSecretContextToSourceDataProviderSingleReadTests {
 		V1SecretList secretList = new V1SecretList().addItemsItem(one);
 
 		String selector = "label2=value2,label1=value1";
-		String path = "/api/v1/namespaces/default/secrets?labelSelector=" +
-			URLEncoder.encode(selector, StandardCharsets.UTF_8);
+		String path = "/api/v1/namespaces/default/secrets?labelSelector="
+				+ URLEncoder.encode(selector, StandardCharsets.UTF_8);
 
 		stubCall(secretList, path);
 		CoreV1Api api = new CoreV1Api();

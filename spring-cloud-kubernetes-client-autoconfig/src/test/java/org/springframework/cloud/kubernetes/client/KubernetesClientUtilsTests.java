@@ -68,7 +68,13 @@ class KubernetesClientUtilsTests {
 	}
 
 	@Test
-	void multipleLabelsLabel() {
+	void testNull() {
+		String result = KubernetesClientUtils.labelSelector(null);
+		Assertions.assertThat(result).isNull();
+	}
+
+	@Test
+	void multipleLabels() {
 		Map<String, String> labels = new LinkedHashMap<>();
 		labels.put("a", "b");
 		labels.put("c", "d");
