@@ -70,6 +70,8 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 	private final boolean monitorConfigMaps;
 
+	private final Map<String, String> configMapsLabels;
+
 	public Fabric8EventBasedConfigMapChangeDetector(AbstractEnvironment environment, ConfigReloadProperties properties,
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
@@ -80,6 +82,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitorConfigMaps = properties.monitoringConfigMaps();
+		this.configMapsLabels = properties.configMapsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "configmap");
 	}
 
@@ -89,19 +92,25 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 			LOG.info("Kubernetes event-based configMap change detector activated");
 
+			Map<String, String> labelSelector;
+
+			if (enableReloadFiltering) {
+				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
+				LOG.warn(() -> "use spring.cloud.kubernetes.reload.config-maps-labels instead");
+				if (!configMapsLabels.isEmpty()) {
+					LOG.warn(() -> "spring.cloud.kubernetes.reload.config-maps-labels is not empty, but "
+							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
+				}
+				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
+			}
+			else {
+				labelSelector = configMapsLabels;
+			}
+
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<ConfigMap> informer;
-				if (enableReloadFiltering) {
-					informer = kubernetesClient.configMaps()
-						.inNamespace(namespace)
-						.withLabels(Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true"))
-						.inform();
-					LOG.debug("added configmap informer for namespace : " + namespace + " with enabled filter");
-				}
-				else {
-					informer = kubernetesClient.configMaps().inNamespace(namespace).inform();
-					LOG.debug("added configmap informer for namespace : " + namespace);
-				}
+				informer = kubernetesClient.configMaps().inNamespace(namespace).withLabels(labelSelector).inform();
+				LOG.debug("added configmap informer for namespace : " + namespace + " with labels : " + labelSelector);
 
 				informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
 				informers.add(informer);

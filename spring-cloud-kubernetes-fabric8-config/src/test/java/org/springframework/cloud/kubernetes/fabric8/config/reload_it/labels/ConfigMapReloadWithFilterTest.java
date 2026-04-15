@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload_it;
+package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 
 import java.time.Duration;
 import java.util.List;
@@ -24,21 +24,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ReadType;
@@ -58,17 +49,18 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author wind57
  */
-@SpringBootTest(
-		properties = { "spring.main.allow-bean-definition-overriding=true",
-				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
-		classes = { EventReloadConfigMapTest.TestConfig.class })
-@ContextConfiguration(initializers = EventReloadConfigMapTest.Initializer.class)
-@EnableKubernetesMockClient(crud = true)
-@ExtendWith(OutputCaptureExtension.class)
-class EventReloadConfigMapTest {
+@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true" },
+		classes = { ConfigMapReloadWithFilterTest.TestConfig.class })
+@ContextConfiguration(initializers = ConfigMapReloadWithFilterTest.Initializer.class)
+@EnableKubernetesMockClient(crud = true, https = false)
+class ConfigMapReloadWithFilterTest {
+
+	private static KubernetesClient kubernetesClient;
 
 	private static final boolean FAIL_FAST = false;
 
@@ -76,70 +68,49 @@ class EventReloadConfigMapTest {
 
 	private static final String NAMESPACE = "spring-k8s";
 
-	private static KubernetesClient kubernetesClient;
-
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
-	@BeforeAll
-	static void beforeAll() {
-
-		kubernetesClient = Mockito.spy(kubernetesClient);
-		kubernetesClient.getConfiguration().setRequestRetryBackoffLimit(0);
-
-		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of());
-
-		// for the informer, when it starts
-		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
-	}
-
+	/**
+	 * <pre>
+	 *     - we enable reload filtering, via 'spring.cloud.kubernetes.reload.enable-reload-filtering=true'
+	 *       ( this is done in ConfigReloadProperties )
+	 *     - as such, only configmaps that have 'spring.cloud.kubernetes.config.informer.enabled=true'
+	 *       label are being watched. This is what the informer is created with.
+	 * </pre>
+	 */
 	@Test
-	@SuppressWarnings({ "unchecked" })
-	void test(CapturedOutput output) {
+	void test() throws InterruptedException {
+		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"),
+				Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"));
 
-		// we need to create this one before mocking calls
-		NonNamespaceOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> operation = kubernetesClient.configMaps()
-			.inNamespace(NAMESPACE);
-
-		// makes sure that when 'onEvent' is triggered (because we added a config map)
-		// the call to /api/v1/namespaces/spring-k8s/configmaps will fail with an
-		// Exception
-		MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mixedOperation = Mockito
-			.mock(MixedOperation.class);
-		NonNamespaceOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> mockedOperation = Mockito
-			.mock(NonNamespaceOperation.class);
-		Mockito.when(kubernetesClient.configMaps()).thenReturn(mixedOperation);
-		Mockito.when(mixedOperation.inNamespace(NAMESPACE)).thenReturn(mockedOperation);
-		Mockito.when(mockedOperation.list()).thenThrow(new RuntimeException("failed in reading configmap"));
-
-		// create a different configmap that triggers even based reloading.
-		// the one we create, will trigger a call to
-		// /api/v1/namespaces/spring-k8s/configmaps
-		// that we mocked above to fail.
-		ConfigMap configMapTwo = configMap("not" + CONFIG_MAP_NAME, Map.of("a", "b"));
-		operation.resource(configMapTwo).create();
-
-		// we fail while reading 'configMapTwo'
-		Awaitilities.awaitUntil(10, 1000, () -> {
-			boolean one = output.getOut().contains("Failure in reading named sources");
-			boolean two = output.getOut().contains("Failed to load source");
-			boolean three = output.getOut()
-				.contains("Reloadable condition was not satisfied, reload will not be triggered");
-			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
-			return one && two && three && updateStrategyNotCalled;
-		});
-
-		// reset the mock and replace our configmap with some data, so that reload
-		// is triggered
-		Mockito.reset(kubernetesClient);
-		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"));
-		operation.resource(configMapOne).update();
-
-		// it passes while reading 'configMapThatWillPass'
+		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
 		Awaitilities.awaitUntil(10, 1000, STRATEGY_CALLED::get);
+		kubernetesClient.configMaps().inAnyNamespace().delete();
+		Awaitilities.awaitUntil(10, 1000,
+				() -> kubernetesClient.configMaps().inNamespace(NAMESPACE).withName(CONFIG_MAP_NAME).get() == null);
+
+		// reset the strategy
+		STRATEGY_CALLED.set(false);
+
+		// create a configMap without label, the informer does not pick it up
+		configMapOne = configMap(CONFIG_MAP_NAME, Map.of("c", "d"), Map.of());
+		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
+
+		// wait a bit so that the informer potentially picks it up
+		Thread.sleep(3_000);
+
+		assertThat(STRATEGY_CALLED.get()).isFalse();
+
 	}
 
-	private static ConfigMap configMap(String name, Map<String, String> data) {
-		return new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().withData(data).build();
+	private static ConfigMap configMap(String name, Map<String, String> data, Map<String, String> labels) {
+		return new ConfigMapBuilder().withNewMetadata()
+			.withResourceVersion("1")
+			.withLabels(labels)
+			.withName(name)
+			.endMetadata()
+			.withData(data)
+			.build();
 	}
 
 	@TestConfiguration
@@ -158,9 +129,16 @@ class EventReloadConfigMapTest {
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
-			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
-					ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE), false,
-					Duration.ofSeconds(2));
+
+			boolean monitorConfigMaps = true;
+			boolean monitorSecrets = false;
+			boolean enableReloadFiltering = true;
+			Map<String, String> configMapsLabels = Map.of();
+			Map<String, String> secretsLabels = Map.of();
+
+			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
+					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
 		}
 
 		@Bean
@@ -176,12 +154,12 @@ class EventReloadConfigMapTest {
 			return new KubernetesNamespaceProvider(environment);
 		}
 
+		// this is called by reloadProperties() and we simulated that
+		// informer correctly caught the update for the configmap.
 		@Bean
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
-			return new ConfigurationUpdateStrategy("to-console", () -> {
-				STRATEGY_CALLED.set(true);
-			});
+			return new ConfigurationUpdateStrategy("to-console", () -> STRATEGY_CALLED.set(true));
 		}
 
 		@Bean
@@ -194,17 +172,20 @@ class EventReloadConfigMapTest {
 
 	}
 
+	/**
+	 * we need a bean of type 'Fabric8ConfigMapPropertySourceLocator' in the context
+	 * ('VisibleFabric8ConfigMapPropertySourceLocator'), otherwise the reload will not
+	 * work. This one is called before the context is refreshed.
+	 */
 	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext context) {
-
 			ConfigurableEnvironment environment = context.getEnvironment();
 
-			// simulate that environment already has a Fabric8ConfigMapPropertySource,
-			// otherwise we can't properly test reload functionality
 			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
 					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.SINGLE);
+
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
 			PropertySource<?> propertySource = new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient,
@@ -212,7 +193,6 @@ class EventReloadConfigMapTest {
 				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
-
 		}
 
 	}

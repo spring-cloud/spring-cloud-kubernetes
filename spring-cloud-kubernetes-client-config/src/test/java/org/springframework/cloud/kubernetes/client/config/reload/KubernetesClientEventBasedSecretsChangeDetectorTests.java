@@ -21,12 +21,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
-import io.kubernetes.client.informer.EventType;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -35,8 +32,6 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
-import io.kubernetes.client.util.Watch;
-import okhttp3.OkHttpClient;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -57,7 +52,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static io.kubernetes.client.informer.EventType.ADDED;
+import static io.kubernetes.client.informer.EventType.DELETED;
+import static io.kubernetes.client.informer.EventType.MODIFIED;
+import static io.kubernetes.client.util.Watch.Response;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,16 +64,10 @@ import static org.mockito.Mockito.when;
  */
 class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
-	private static final Map<String, StringValuePattern> WATCH_FALSE = Map.of("watch", equalTo("false"));
-
-	private static final Map<String, StringValuePattern> WATCH_TRUE = Map.of("watch", equalTo("true"));
-
-	private static final String SCENARIO = "watch";
-
 	private static WireMockServer wireMockServer;
 
 	@BeforeAll
-	public static void setup() {
+	static void setup() {
 		wireMockServer = new WireMockServer(options().dynamicPort());
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
@@ -83,98 +75,78 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 	}
 
 	@AfterAll
-	public static void after() {
+	static void afterAll() {
 		wireMockServer.stop();
 	}
 
 	@AfterEach
-	public void afterEach() {
+	void afterEach() {
 		WireMock.reset();
 	}
 
 	@Test
 	void watch() {
 
-		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
+		// ------------------------------------------------------------------------------------------------------------
+		// 0. initial request of the informer ( resourceVersion=0 )
+
+		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password").resourceVersion("1"))
 			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd".getBytes()))
 			.putDataItem("password", Base64.getEncoder().encode("p455w0rd".getBytes()))
 			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
 			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
-		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("0"))
+
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("1"))
 			.items(List.of(dbPassword));
 
-		V1Secret dbPasswordUpdated = new V1Secret().metadata(new V1ObjectMeta().name("db-password"))
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("false"))
+			.withQueryParam("resourceVersion", equalTo("0"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 1. first watch response to request with resourceVersion=1
+
+		V1Secret dbPasswordUpdated = new V1Secret()
+			.metadata(new V1ObjectMeta().name("db-password").resourceVersion("2"))
 			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
 			.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
 			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
 			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
-		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(EventType.MODIFIED.name(), dbPasswordUpdated);
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO)
-			.whenScenarioStateIs(STARTED)
-			.withQueryParams(WATCH_FALSE)
-			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList)))
-			.willSetStateTo("update"));
+		Response<V1Secret> watchResponse = new Response<>(MODIFIED.name(), dbPasswordUpdated);
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO)
-			.whenScenarioStateIs("update")
-			.withQueryParams(WATCH_TRUE)
-			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse)))
-			.willSetStateTo("add"));
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("1"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse))));
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO)
-			.whenScenarioStateIs("add")
-			.withQueryParams(WATCH_TRUE)
-			.willReturn(aResponse().withStatus(200)
-				.withBody(JSON.serialize(new Watch.Response<>(EventType.ADDED.name(),
-						new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
-							.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
-			.willSetStateTo("delete"));
+		// ------------------------------------------------------------------------------------------------------------
+		// 2. second watch response to request with resourceVersion=2
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario(SCENARIO)
-			.whenScenarioStateIs("delete")
-			.withQueryParams(WATCH_TRUE)
-			.willReturn(aResponse().withStatus(200)
-				.withBody(JSON.serialize(new Watch.Response<>(EventType.DELETED.name(),
-						new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
-							.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()))))))
-			.willSetStateTo("done"));
+		V1Secret rabbitPasswordAdded = new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+			.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()));
 
-		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).inScenario("watch")
-			.whenScenarioStateIs("done")
-			.withQueryParam("watch", equalTo("true"))
-			.willReturn(aResponse().withStatus(200)));
+		Response<V1Secret> rabbitPasswordAddedResponse = new Response<>(ADDED.name(), rabbitPasswordAdded);
 
-		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
-		OkHttpClient httpClient = apiClient.getHttpClient().newBuilder().readTimeout(0, TimeUnit.SECONDS).build();
-		apiClient.setHttpClient(httpClient);
-		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("2"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordAddedResponse))));
 
-		int[] howMany = new int[1];
-		Runnable run = () -> {
-			++howMany[0];
-		};
-		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
+		// ------------------------------------------------------------------------------------------------------------
+		// 3. third watch response to request with resourceVersion=3
 
-		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
-				mock(KubernetesClientSecretsPropertySource.class))
-			.withProperty("db-password", "p455w0rd");
-		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
-		when(locator.locate(environment))
-			.thenAnswer(ignoreMe -> new MockPropertySource().withProperty("db-password", "p455w0rd2"));
-		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
-				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
-		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
-		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
-		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
+		V1Secret rabbitPasswordDeleted = new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+			.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()));
 
-		Thread controllerThread = new Thread(changeDetector::inform);
-		controllerThread.setDaemon(true);
-		controllerThread.start();
+		Response<V1Secret> rabbitPasswordDeletedResponse = new Response<>(DELETED.name(), rabbitPasswordDeleted);
 
-		Awaitilities.awaitUntil(20, 1000, () -> howMany[0] >= 4);
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("3"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordDeletedResponse))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 4. assertions
+
+		changeDetectorAssert();
 	}
 
 	/**
@@ -285,6 +257,48 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
 		Assertions.assertThat(result).isFalse();
+	}
+
+	private void changeDetectorAssert() {
+
+		// coreV1Api
+		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
+		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+
+		// update strategy
+		int[] onEventCalls = new int[1];
+		Runnable run = () -> ++onEventCalls[0];
+		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", run);
+
+		// mock environment
+		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
+				mock(KubernetesClientSecretsPropertySource.class));
+
+		// locator
+		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
+		when(locator.locate(environment))
+			.thenAnswer(ignoreMe -> new MockPropertySource().withProperty("db-password", "p455w0rd2"));
+
+		// properties
+		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
+
+		// namespace provider
+		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
+
+		// change detector
+		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
+				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
+
+		changeDetector.inform();
+
+		// all 4 events are caught
+		Awaitilities.awaitUntil(10, 1000, () -> onEventCalls[0] >= 4);
+
+		changeDetector.shutdown();
+
 	}
 
 }

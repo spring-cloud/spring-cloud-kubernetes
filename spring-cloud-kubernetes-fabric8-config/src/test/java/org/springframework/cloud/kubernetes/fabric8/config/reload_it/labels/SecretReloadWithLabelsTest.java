@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.fabric8.config.reload_it;
+package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 
 import java.time.Duration;
 import java.util.Base64;
@@ -26,21 +26,12 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
@@ -60,17 +51,18 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author wind57
  */
-@SpringBootTest(
-		properties = { "spring.main.allow-bean-definition-overriding=true",
-				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
-		classes = { EventReloadSecretTest.TestConfig.class })
-@ContextConfiguration(initializers = EventReloadSecretTest.Initializer.class)
-@EnableKubernetesMockClient(crud = true)
-@ExtendWith(OutputCaptureExtension.class)
-class EventReloadSecretTest {
+@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true" },
+		classes = { SecretReloadWithLabelsTest.TestConfig.class })
+@ContextConfiguration(initializers = SecretReloadWithLabelsTest.Initializer.class)
+@EnableKubernetesMockClient(crud = true, https = false)
+class SecretReloadWithLabelsTest {
+
+	private static KubernetesClient kubernetesClient;
 
 	private static final boolean FAIL_FAST = false;
 
@@ -78,73 +70,48 @@ class EventReloadSecretTest {
 
 	private static final String NAMESPACE = "spring-k8s";
 
-	private static KubernetesClient kubernetesClient;
-
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 
-	@BeforeAll
-	static void beforeAll() {
-
-		kubernetesClient = Mockito.spy(kubernetesClient);
-		kubernetesClient.getConfiguration().setRequestRetryBackoffLimit(0);
-
-		Secret secretOne = secret(SECRET_NAME, Map.of());
-
-		// for the informer, when it starts
-		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secretOne).create();
-	}
-
+	/**
+	 * <pre>
+	 *     - we only watch secrets with labels: { only-shape:round }
+	 * </pre>
+	 */
 	@Test
-	@SuppressWarnings({ "unchecked" })
-	void test(CapturedOutput output) {
+	void test() throws InterruptedException {
+		Secret secret = secret(SECRET_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
 
-		// we need to create this one before mocking calls
-		NonNamespaceOperation<Secret, SecretList, Resource<Secret>> operation = kubernetesClient.secrets()
-			.inNamespace(NAMESPACE);
-
-		// makes sure that when 'onEvent' is triggered (because we added a config map)
-		// the call to /api/v1/namespaces/spring-k8s/secrets will not fail with an
-		// Exception
-		MixedOperation<Secret, SecretList, Resource<Secret>> mixedOperation = Mockito.mock(MixedOperation.class);
-		NonNamespaceOperation<Secret, SecretList, Resource<Secret>> mockedOperation = Mockito
-			.mock(NonNamespaceOperation.class);
-		Mockito.when(kubernetesClient.secrets()).thenReturn(mixedOperation);
-		Mockito.when(mixedOperation.inNamespace(NAMESPACE)).thenReturn(mockedOperation);
-		Mockito.when(mockedOperation.list()).thenThrow(new RuntimeException("failed in reading secret"));
-
-		// create a different secret that triggers even based reloading.
-		// the one we create, will trigger a call to
-		// /api/v1/namespaces/spring-k8s/secrets
-		// that we mocked above to fail.
-		Secret secretTwo = secret("not" + SECRET_NAME, Map.of("a", "b"));
-		operation.resource(secretTwo).create();
-
-		// we fail while reading 'secretTwo'
-		Awaitilities.awaitUntil(10, 1000, () -> {
-			boolean one = output.getOut().contains("Failure in reading named sources");
-			boolean two = output.getOut().contains("Failed to load source");
-			boolean three = output.getOut()
-				.contains("Reloadable condition was not satisfied, reload will not be triggered");
-			boolean updateStrategyNotCalled = !STRATEGY_CALLED.get();
-			return one && two && three && updateStrategyNotCalled;
-		});
-
-		// reset the mock and replace our secret with some data, so that reload
-		// is triggered
-		Mockito.reset(kubernetesClient);
-		Secret secretOne = secret(SECRET_NAME, Map.of("a", "b"));
-		operation.resource(secretOne).update();
-
-		// it passes while reading 'secretOne'
+		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 		Awaitilities.awaitUntil(10, 1000, STRATEGY_CALLED::get);
+		kubernetesClient.secrets().inAnyNamespace().delete();
+		Awaitilities.awaitUntil(10, 1000,
+				() -> kubernetesClient.secrets().inNamespace(NAMESPACE).withName(SECRET_NAME).get() == null);
+
+		// reset the strategy
+		STRATEGY_CALLED.set(false);
+
+		// create a secret without label, the informer does not pick it up
+		secret = secret(SECRET_NAME, Map.of("c", "d"), Map.of());
+		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
+
+		// wait a bit so that the informer potentially picks it up
+		Thread.sleep(3_000);
+
+		assertThat(STRATEGY_CALLED.get()).isFalse();
+
 	}
 
-	private static Secret secret(String name, Map<String, String> data) {
+	private static Secret secret(String name, Map<String, String> data, Map<String, String> labels) {
 		Map<String, String> encoded = data.entrySet()
 			.stream()
 			.collect(Collectors.toMap(Map.Entry::getKey,
 					e -> new String(Base64.getEncoder().encode(e.getValue().getBytes()))));
-		return new SecretBuilder().withNewMetadata().withName(name).endMetadata().withData(encoded).build();
+		return new SecretBuilder().withNewMetadata()
+			.withLabels(labels)
+			.withName(name)
+			.endMetadata()
+			.withData(encoded)
+			.build();
 	}
 
 	@TestConfiguration
@@ -163,16 +130,23 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
-			return new ConfigReloadProperties(true, true, true, ConfigReloadProperties.ReloadStrategy.REFRESH,
-					ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE), false,
-					Duration.ofSeconds(2));
+
+			boolean monitorConfigMaps = false;
+			boolean monitorSecrets = true;
+			boolean enableReloadFiltering = false;
+			Map<String, String> configMapsLabels = Map.of();
+			Map<String, String> secretsLabels = Map.of("only-shape", "round");
+
+			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
+					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
 		}
 
 		@Bean
 		@Primary
 		SecretsConfigProperties secretsConfigProperties() {
-			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, true, true, FAIL_FAST,
-					RetryProperties.DEFAULT, ReadType.SINGLE);
+			return new SecretsConfigProperties(true, List.of(), Map.of(), SECRET_NAME, NAMESPACE, false, true,
+					FAIL_FAST, RetryProperties.DEFAULT, ReadType.SINGLE);
 		}
 
 		@Bean
@@ -184,9 +158,7 @@ class EventReloadSecretTest {
 		@Bean
 		@Primary
 		ConfigurationUpdateStrategy configurationUpdateStrategy() {
-			return new ConfigurationUpdateStrategy("to-console", () -> {
-				STRATEGY_CALLED.set(true);
-			});
+			return new ConfigurationUpdateStrategy("to-console", () -> STRATEGY_CALLED.set(true));
 		}
 
 		@Bean
@@ -199,18 +171,19 @@ class EventReloadSecretTest {
 
 	}
 
+	/**
+	 * This one is called before the context is refreshed.
+	 */
 	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
 		@Override
 		public void initialize(ConfigurableApplicationContext context) {
-
 			ConfigurableEnvironment environment = context.getEnvironment();
 
-			// simulate that environment already has a
-			// Fabric8SecretsPropertySourceLocator,
+			// simulate that environment already has a Fabric8SecretsPropertySource,
 			// otherwise we can't properly test reload functionality
 			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
-					SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.SINGLE);
+					SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
 			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
 
 			PropertySource<?> propertySource = new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient,
@@ -218,7 +191,6 @@ class EventReloadSecretTest {
 				.locate(environment);
 
 			environment.getPropertySources().addFirst(propertySource);
-
 		}
 
 	}
