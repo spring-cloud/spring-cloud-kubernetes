@@ -99,7 +99,7 @@ class K8sClientConfigMapEventTriggeredIT extends K8sClientReloadBase {
 	@Test
 	void test(CapturedOutput output) {
 
-		assertReloadLogStatements("added configmap informer for namespace : right with filter : null",
+		assertReloadLogStatements("added configmap informer for namespace : right with labels : {}",
 				"added secret informer for namespace", output);
 
 		Assertions.assertThat(rightProperties.getValue()).isEqualTo("right-initial");
