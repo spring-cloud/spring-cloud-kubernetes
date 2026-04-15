@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * General configuration for the configuration reload.
  *
  * @param enabled Enables the Kubernetes configuration reload on change.
- * @param monitoringConfigMaps Enables monitoring on secrets to detect changes.
+ * @param monitoringConfigMaps Enables monitoring on config maps to detect changes.
  * @param configMapsLabels Labels for which to watch config maps.
  * @param monitoringSecrets Monitor secrets or not.
  * @param secretsLabels Labels for which to watch secrets for.

@@ -104,7 +104,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 			if (enableReloadFiltering) {
 				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-				LOG.warn(() -> "use spring.cloud.kubernetes.secrets-labels instead");
+				LOG.warn(() -> "use spring.cloud.kubernetes.reload.secrets-labels instead");
 				if (!secretsLabels.isEmpty()) {
 					LOG.warn(() -> "spring.cloud.kubernetes.reload.secrets-labels is not empty, but "
 							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");

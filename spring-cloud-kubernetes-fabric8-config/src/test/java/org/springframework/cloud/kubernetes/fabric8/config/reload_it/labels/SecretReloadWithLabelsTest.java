@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,8 +51,6 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.test.context.ContextConfiguration;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
@@ -94,10 +93,11 @@ class SecretReloadWithLabelsTest {
 		secret = secret(SECRET_NAME, Map.of("c", "d"), Map.of());
 		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 
-		// wait a bit so that the informer potentially picks it up
-		Thread.sleep(3_000);
-
-		assertThat(STRATEGY_CALLED.get()).isFalse();
+		Awaitility.await()
+			.pollDelay(Duration.ofSeconds(3))
+			.atMost(Duration.ofSeconds(4))
+			.pollInterval(Duration.ofMillis(100))
+			.until(() -> !STRATEGY_CALLED.get());
 
 	}
 
