@@ -123,7 +123,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	@PostConstruct
 	void inform() {
-		LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 		if (monitoringConfigMaps) {
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
