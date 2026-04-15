@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.client.config;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Iterator;
@@ -138,7 +140,10 @@ class LabeledSecretContextToSourceDataProviderSingleReadTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(red);
 
-		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
+		String selector = "label2=value2,label1=value1";
+		String path = "/api/v1/namespaces/default/secrets?labelSelector=" +
+			URLEncoder.encode(selector, StandardCharsets.UTF_8);
+		stubCall(secretList, path);
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE, LABELS, false,
@@ -198,7 +203,11 @@ class LabeledSecretContextToSourceDataProviderSingleReadTests {
 			.build();
 		V1SecretList secretList = new V1SecretList().addItemsItem(one);
 
-		stubCall(secretList, "/api/v1/namespaces/default/secrets?labelSelector=label2%3Dvalue2%26label1%3Dvalue1");
+		String selector = "label2=value2,label1=value1";
+		String path = "/api/v1/namespaces/default/secrets?labelSelector=" +
+			URLEncoder.encode(selector, StandardCharsets.UTF_8);
+
+		stubCall(secretList, path);
 		CoreV1Api api = new CoreV1Api();
 
 		NormalizedSource source = new LabeledSecretNormalizedSource(NAMESPACE + "nope", LABELS, false,
