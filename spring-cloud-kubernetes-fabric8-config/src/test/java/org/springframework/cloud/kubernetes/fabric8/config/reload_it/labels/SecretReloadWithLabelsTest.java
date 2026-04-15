@@ -133,13 +133,12 @@ class SecretReloadWithLabelsTest {
 
 			boolean monitorConfigMaps = false;
 			boolean monitorSecrets = true;
-			boolean enableReloadFiltering = false;
 			Map<String, String> configMapsLabels = Map.of();
 			Map<String, String> secretsLabels = Map.of("only-shape", "round");
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
 		}
 
 		@Bean

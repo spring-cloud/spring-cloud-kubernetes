@@ -43,26 +43,18 @@ Changes from configmaps/secrets will only trigger an event being fired from conf
 
 To put it simpler, if you change a configmap (or secret), that does _not_ have the label above, configuration watcher will skip firing an event for it (if you enabled debug logging, this will be visible in logs).
 
-By default, configuration watcher will monitor all configmaps/secrets in the configured namespace(s). If you want to filter to watch only particular sources, you can do that by setting:
+By default, configuration watcher will monitor all configmaps/secrets in the configured namespace(s). If you want to watch only particular sources, you can do that by choosing only sources with some labels:
 
 [source]
 ----
-SPRING_CLOUD_KUBERNETES_CONFIG_INFORMER_ENABLED=TRUE
-----
-
-This will tell watcher to only monitor sources that have a label: `spring.cloud.kubernetes.config.informer.enabled=true`.
-This support will be dropped in the next major release and will be replaced with:
-
-[source]
-----
-spring.cloud.kubernetes.reload.config-maps-labels
+spring.cloud.kubernetes.reload.config-maps-labels[a]=b
 ----
 
 and
 
 [source]
 ----
-spring.cloud.kubernetes.reload.secrets-labels
+spring.cloud.kubernetes.reload.secrets-labels[c]=d
 ----
 
 One more important configuration, especially for configmaps and secrets that are mounted as volumes (via `spring.config.import`) is:

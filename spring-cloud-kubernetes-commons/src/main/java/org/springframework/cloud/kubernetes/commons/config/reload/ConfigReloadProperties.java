@@ -45,12 +45,11 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.reload")
 public record ConfigReloadProperties(boolean enabled, @DefaultValue("true") boolean monitoringConfigMaps,
-		@DefaultValue Map<String, String> configMapsLabels,
-		boolean monitoringSecrets, @DefaultValue Map<String, String> secretsLabels,
-		@DefaultValue("REFRESH") ReloadStrategy strategy,
+		@DefaultValue Map<String, String> configMapsLabels, boolean monitoringSecrets,
+		@DefaultValue Map<String, String> secretsLabels, @DefaultValue("REFRESH") ReloadStrategy strategy,
 		@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
-		@DefaultValue Set<String> namespaces,
-		@DefaultValue("2s") Duration maxWaitForRestart) {
+		@DefaultValue Set<String> namespaces, @DefaultValue("2s") Duration maxWaitForRestart) {
+
 	/**
 	 * default instance.
 	 */

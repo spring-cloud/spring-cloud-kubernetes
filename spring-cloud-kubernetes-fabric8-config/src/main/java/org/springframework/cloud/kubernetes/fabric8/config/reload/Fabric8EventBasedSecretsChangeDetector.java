@@ -66,8 +66,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 	private final ConfigurableEnvironment environment;
 
-	private final boolean enableReloadFiltering;
-
 	private final boolean monitorSecrets;
 
 	private final Map<String, String> secretsLabels;
@@ -80,7 +78,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		this.environment = environment;
 		this.kubernetesClient = kubernetesClient;
 		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
-		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitorSecrets = properties.monitoringSecrets();
 		secretsLabels = properties.secretsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
@@ -100,25 +97,10 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 			LOG.info("Kubernetes event-based secrets change detector activated");
 
-			Map<String, String> labelSelector;
-
-			if (enableReloadFiltering) {
-				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-				LOG.warn(() -> "use spring.cloud.kubernetes.secrets-labels instead");
-				if (!secretsLabels.isEmpty()) {
-					LOG.warn(() -> "spring.cloud.kubernetes.reload.secrets-labels is not empty, but "
-							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
-				}
-				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
-			}
-			else {
-				labelSelector = secretsLabels;
-			}
-
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<Secret> informer;
-				informer = kubernetesClient.secrets().inNamespace(namespace).withLabels(labelSelector).inform();
-				LOG.debug("added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
+				informer = kubernetesClient.secrets().inNamespace(namespace).withLabels(secretsLabels).inform();
+				LOG.debug("added secret informer for namespace : " + namespace + " with labels : " + secretsLabels);
 
 				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
 				informers.add(informer);
