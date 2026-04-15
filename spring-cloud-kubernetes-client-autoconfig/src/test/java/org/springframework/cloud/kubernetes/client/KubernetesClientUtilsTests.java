@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -49,6 +53,33 @@ class KubernetesClientUtilsTests {
 	void testNamespaceResolutionFailed() {
 		assertThatThrownBy(() -> KubernetesClientUtils.getApplicationNamespace("", "target", null))
 			.isInstanceOf(NamespaceResolutionFailedException.class);
+	}
+
+	@Test
+	void emptyLabels() {
+		String result = KubernetesClientUtils.labelSelector(Map.of());
+		Assertions.assertThat(result).isNull();
+	}
+
+	@Test
+	void singleLabel() {
+		String result = KubernetesClientUtils.labelSelector(Map.of("a", "b"));
+		Assertions.assertThat(result).isEqualTo("a=b");
+	}
+
+	@Test
+	void testNull() {
+		String result = KubernetesClientUtils.labelSelector(null);
+		Assertions.assertThat(result).isNull();
+	}
+
+	@Test
+	void multipleLabels() {
+		Map<String, String> labels = new LinkedHashMap<>();
+		labels.put("a", "b");
+		labels.put("c", "d");
+		String result = KubernetesClientUtils.labelSelector(labels);
+		Assertions.assertThat(result).isEqualTo("a=b,c=d");
 	}
 
 }
