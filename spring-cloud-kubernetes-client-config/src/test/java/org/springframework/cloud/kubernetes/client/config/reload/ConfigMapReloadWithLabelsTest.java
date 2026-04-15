@@ -71,7 +71,7 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  */
 @SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true" })
 @ExtendWith(OutputCaptureExtension.class)
-class ConfigMapReloadWithFilterTest {
+class ConfigMapReloadWithLabelsTest {
 
 	private static WireMockServer wireMockServer;
 
@@ -106,10 +106,9 @@ class ConfigMapReloadWithFilterTest {
 	void test() {
 
 		V1ConfigMap myConfigMap = new V1ConfigMap()
-			.metadata(new V1ObjectMeta().namespace("default")
-				.name("my-config-map")
-				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true")))
-			.data(Map.of("shape", "round"));
+			.metadata(
+					new V1ObjectMeta().namespace("default").name("my-config-map").labels(Map.of("only-shape", "round")))
+			.data(Map.of("color", "blue"));
 
 		V1ConfigMapList configMapList = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("1"))
 			.items(List.of(myConfigMap));
@@ -117,28 +116,28 @@ class ConfigMapReloadWithFilterTest {
 		// 1. first call to informer
 		stubFor(get(urlMatching(PATH)).withQueryParam("watch", equalTo("false"))
 			.withQueryParam("resourceVersion", equalTo("0"))
-			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config.informer.enabled=true"))
+			.withQueryParam("labelSelector", equalTo("only-shape=round"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList))));
 
 		// 2. second call to informer
 		V1ConfigMap second = new V1ConfigMap()
 			.metadata(new V1ObjectMeta().namespace("default")
 				.name("second")
-				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"))
-				.resourceVersion("2"))
+				.resourceVersion("2")
+				.labels(Map.of("only-shape", "round")))
 			.data(Map.of("a", "b"));
 		Watch.Response<V1ConfigMap> watchResponse = new Watch.Response<>(ADDED.name(), second);
 
 		stubFor(get(urlMatching(PATH)).withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", equalTo("1"))
-			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config.informer.enabled=true"))
+			.withQueryParam("labelSelector", equalTo("only-shape=round"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse))));
 
 		// 3. all future calls to informer ( any call with resourceVersion >= 2 )
 		stubFor(get(urlMatching(PATH)).atPriority(10)
 			.withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", WireMock.matching("[2-9][0-9]*"))
-			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config.informer.enabled=true"))
+			.withQueryParam("labelSelector", equalTo("only-shape=round"))
 			.willReturn(aResponse().withStatus(200).withBody("")));
 
 		// update strategy
@@ -160,10 +159,10 @@ class ConfigMapReloadWithFilterTest {
 		when(namespaceProvider.getNamespace()).thenReturn("default");
 
 		// properties
-		boolean enableReloadFiltering = true;
+		boolean enableReloadFiltering = false;
 		boolean monitorConfigMaps = true;
 		boolean monitorSecrets = false;
-		Map<String, String> configMapsLabels = Map.of();
+		Map<String, String> configMapsLabels = Map.of("only-shape", "round");
 		Map<String, String> secretsLabels = Map.of();
 		ConfigReloadProperties properties = new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels,
 				monitorSecrets, secretsLabels, ConfigReloadProperties.ReloadStrategy.REFRESH,
@@ -182,13 +181,11 @@ class ConfigMapReloadWithFilterTest {
 
 				WireMock.verify(WireMock.moreThanOrExactly(1),
 						getRequestedFor(urlMatching(PATH)).withQueryParam("watch", equalTo("false"))
-							.withQueryParam("labelSelector",
-									equalTo("spring.cloud.kubernetes.config.informer.enabled=true")));
+							.withQueryParam("labelSelector", equalTo("only-shape=round")));
 
 				WireMock.verify(WireMock.moreThanOrExactly(1),
 						getRequestedFor(urlMatching(PATH)).withQueryParam("watch", equalTo("true"))
-							.withQueryParam("labelSelector",
-									equalTo("spring.cloud.kubernetes.config.informer.enabled=true")));
+							.withQueryParam("labelSelector", equalTo("only-shape=round")));
 
 				WireMock.verify(0, getRequestedFor(urlMatching(PATH)).withQueryParam("watch", equalTo("false"))
 					.withoutQueryParam("labelSelector"));
@@ -197,6 +194,7 @@ class ConfigMapReloadWithFilterTest {
 					.withoutQueryParam("labelSelector"));
 
 				return true;
+
 			}
 			catch (VerificationException e) {
 				return false;

@@ -29,11 +29,9 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ReadType;
 import org.springframework.cloud.kubernetes.commons.config.RetryProperties;
@@ -62,18 +60,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 		classes = { SecretReloadWithLabelsTest.TestConfig.class })
 @ContextConfiguration(initializers = SecretReloadWithLabelsTest.Initializer.class)
 @EnableKubernetesMockClient(crud = true, https = false)
-@ExtendWith(OutputCaptureExtension.class)
 class SecretReloadWithLabelsTest {
+
+	private static KubernetesClient kubernetesClient;
 
 	private static final boolean FAIL_FAST = false;
 
 	private static final String SECRET_NAME = "mine";
 
 	private static final String NAMESPACE = "spring-k8s";
-
-	private static final String PATH = "/api/v1/namespaces/spring-k8s/secrets";
-
-	private static KubernetesClient kubernetesClient;
 
 	private static final AtomicBoolean STRATEGY_CALLED = new AtomicBoolean(false);
 

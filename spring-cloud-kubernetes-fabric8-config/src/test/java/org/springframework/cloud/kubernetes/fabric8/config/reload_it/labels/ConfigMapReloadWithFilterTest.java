@@ -27,11 +27,9 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.ReadType;
@@ -60,7 +58,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 		classes = { ConfigMapReloadWithFilterTest.TestConfig.class })
 @ContextConfiguration(initializers = ConfigMapReloadWithFilterTest.Initializer.class)
 @EnableKubernetesMockClient(crud = true, https = false)
-@ExtendWith(OutputCaptureExtension.class)
 class ConfigMapReloadWithFilterTest {
 
 	private static KubernetesClient kubernetesClient;

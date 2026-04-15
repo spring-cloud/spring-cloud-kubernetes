@@ -27,10 +27,10 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1ListMeta;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.Watch;
 import org.junit.jupiter.api.AfterAll;
@@ -43,8 +43,8 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -71,11 +71,11 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
  */
 @SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true" })
 @ExtendWith(OutputCaptureExtension.class)
-class ConfigMapReloadWithFilterTest {
+class SecretReloadWithLabelsTest {
 
 	private static WireMockServer wireMockServer;
 
-	private static final String PATH = "^/api/v1/namespaces/default/configmaps.*";
+	private static final String PATH = "^/api/v1/namespaces/default/secrets.*";
 
 	private static CoreV1Api coreV1Api;
 
@@ -105,40 +105,38 @@ class ConfigMapReloadWithFilterTest {
 	@Test
 	void test() {
 
-		V1ConfigMap myConfigMap = new V1ConfigMap()
-			.metadata(new V1ObjectMeta().namespace("default")
-				.name("my-config-map")
-				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true")))
-			.data(Map.of("shape", "round"));
+		V1Secret mySecret = new V1Secret()
+			.metadata(new V1ObjectMeta().namespace("default").name("my-secret").labels(Map.of("only-shape", "round")))
+			.data(Map.of("shape", "round".getBytes()));
 
-		V1ConfigMapList configMapList = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("1"))
-			.items(List.of(myConfigMap));
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("1"))
+			.items(List.of(mySecret));
 
 		// 1. first call to informer
 		stubFor(get(urlMatching(PATH)).withQueryParam("watch", equalTo("false"))
 			.withQueryParam("resourceVersion", equalTo("0"))
-			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config.informer.enabled=true"))
-			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(configMapList))));
+			.withQueryParam("labelSelector", equalTo("only-shape=round"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
 
 		// 2. second call to informer
-		V1ConfigMap second = new V1ConfigMap()
+		V1Secret second = new V1Secret()
 			.metadata(new V1ObjectMeta().namespace("default")
 				.name("second")
-				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"))
+				.labels(Map.of("only-shape", "round"))
 				.resourceVersion("2"))
-			.data(Map.of("a", "b"));
-		Watch.Response<V1ConfigMap> watchResponse = new Watch.Response<>(ADDED.name(), second);
+			.data(Map.of("a", "b".getBytes()));
+		Watch.Response<V1Secret> watchResponse = new Watch.Response<>(ADDED.name(), second);
 
 		stubFor(get(urlMatching(PATH)).withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", equalTo("1"))
-			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config.informer.enabled=true"))
+			.withQueryParam("labelSelector", equalTo("only-shape=round"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse))));
 
 		// 3. all future calls to informer ( any call with resourceVersion >= 2 )
 		stubFor(get(urlMatching(PATH)).atPriority(10)
 			.withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", WireMock.matching("[2-9][0-9]*"))
-			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config.informer.enabled=true"))
+			.withQueryParam("labelSelector", equalTo("only-shape=round"))
 			.willReturn(aResponse().withStatus(200).withBody("")));
 
 		// update strategy
@@ -148,11 +146,10 @@ class ConfigMapReloadWithFilterTest {
 
 		// mock environment
 		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
-				mock(KubernetesClientConfigMapPropertySource.class));
+				mock(KubernetesClientSecretsPropertySource.class));
 
 		// change locator
-		KubernetesClientConfigMapPropertySourceLocator locator = mock(
-				KubernetesClientConfigMapPropertySourceLocator.class);
+		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
 		when(locator.locate(environment)).thenAnswer(x -> new MockPropertySource());
 
 		// namespace provider
@@ -160,18 +157,18 @@ class ConfigMapReloadWithFilterTest {
 		when(namespaceProvider.getNamespace()).thenReturn("default");
 
 		// properties
-		boolean enableReloadFiltering = true;
-		boolean monitorConfigMaps = true;
-		boolean monitorSecrets = false;
+		boolean enableReloadFiltering = false;
+		boolean monitorConfigMaps = false;
+		boolean monitorSecrets = true;
 		Map<String, String> configMapsLabels = Map.of();
-		Map<String, String> secretsLabels = Map.of();
+		Map<String, String> secretsLabels = Map.of("only-shape", "round");
 		ConfigReloadProperties properties = new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels,
 				monitorSecrets, secretsLabels, ConfigReloadProperties.ReloadStrategy.REFRESH,
 				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(),
 				enableReloadFiltering, Duration.ofSeconds(2));
 
 		// change detector
-		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
+		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
 				coreV1Api, environment, properties, strategy, locator, namespaceProvider);
 
 		changeDetector.inform();
@@ -182,13 +179,11 @@ class ConfigMapReloadWithFilterTest {
 
 				WireMock.verify(WireMock.moreThanOrExactly(1),
 						getRequestedFor(urlMatching(PATH)).withQueryParam("watch", equalTo("false"))
-							.withQueryParam("labelSelector",
-									equalTo("spring.cloud.kubernetes.config.informer.enabled=true")));
+							.withQueryParam("labelSelector", equalTo("only-shape=round")));
 
 				WireMock.verify(WireMock.moreThanOrExactly(1),
 						getRequestedFor(urlMatching(PATH)).withQueryParam("watch", equalTo("true"))
-							.withQueryParam("labelSelector",
-									equalTo("spring.cloud.kubernetes.config.informer.enabled=true")));
+							.withQueryParam("labelSelector", equalTo("only-shape=round")));
 
 				WireMock.verify(0, getRequestedFor(urlMatching(PATH)).withQueryParam("watch", equalTo("false"))
 					.withoutQueryParam("labelSelector"));
@@ -197,6 +192,7 @@ class ConfigMapReloadWithFilterTest {
 					.withoutQueryParam("labelSelector"));
 
 				return true;
+
 			}
 			catch (VerificationException e) {
 				return false;
