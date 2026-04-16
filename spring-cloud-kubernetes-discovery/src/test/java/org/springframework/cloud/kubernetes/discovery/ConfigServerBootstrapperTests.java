@@ -31,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -57,9 +56,7 @@ class ConfigServerBootstrapperTests {
 	@AfterEach
 	void close() {
 		wireMockServer.stop();
-		if (this.context != null) {
-			this.context.close();
-		}
+		context.close();
 	}
 
 	@BeforeEach
@@ -128,7 +125,6 @@ class ConfigServerBootstrapperTests {
 		return set.toArray(new String[0]);
 	}
 
-	@TestConfiguration
 	static class TestConfig {
 
 	}

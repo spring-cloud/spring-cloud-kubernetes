@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.Service;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
@@ -81,7 +80,6 @@ class Fabric8DiscoveryClientConfigClientBootstrapConfigurationTests {
 			});
 	}
 
-	@TestConfiguration
 	static class TestConfig {
 
 		@Bean

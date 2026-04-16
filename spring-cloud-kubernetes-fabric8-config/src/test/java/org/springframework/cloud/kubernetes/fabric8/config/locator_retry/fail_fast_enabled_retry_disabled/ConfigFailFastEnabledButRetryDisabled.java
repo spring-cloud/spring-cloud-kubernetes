@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
@@ -95,7 +94,6 @@ abstract class ConfigFailFastEnabledButRetryDisabled {
 		verify(propertySourceLocator, times(1)).locate(any());
 	}
 
-	@TestConfiguration
 	static class ConfigForTest {
 
 		@Bean

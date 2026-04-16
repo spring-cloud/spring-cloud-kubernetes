@@ -24,24 +24,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.assertLogStatement;
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.invokeAndAssert;
 
-@SpringBootTest(classes = { KubernetesClientCatalogWatchEndpointsIT.TestConfig.class, Application.class },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { Application.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWatchBase {
 
 	@LocalServerPort
 	private int port;
+
+	@TestBean
+	private ApiClient apiClient;
+
+	@TestBean
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
 	@BeforeEach
 	void beforeEach() {
@@ -79,21 +82,8 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		ApiClient client() {
-			return apiClient();
-		}
-
-		@Bean
-		@Primary
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false, Set.of(NAMESPACE, NAMESPACE_A));
-		}
-
+	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
+		return discoveryProperties(false, Set.of(NAMESPACE, NAMESPACE_A));
 	}
 
 }

@@ -24,12 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 /**
  * @author wind57
@@ -42,23 +40,19 @@ abstract class Fabric8EventReloadBase {
 
 	protected static Util util;
 
+	@TestBean
+	private KubernetesClient kubernetesClient;
+
 	@BeforeAll
 	protected static void beforeAll() {
 		K3S.start();
 		util = new Util(K3S);
 	}
 
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		KubernetesClient kubernetesClient() {
-			String kubeConfigYaml = K3S.getKubeConfigYaml();
-			Config config = Config.fromKubeconfig(kubeConfigYaml);
-			return new KubernetesClientBuilder().withConfig(config).build();
-		}
-
+	private static KubernetesClient kubernetesClient() {
+		String kubeConfigYaml = K3S.getKubeConfigYaml();
+		Config config = Config.fromKubeconfig(kubeConfigYaml);
+		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
 }

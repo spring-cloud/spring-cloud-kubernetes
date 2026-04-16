@@ -52,6 +52,7 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -83,6 +84,12 @@ class PollingReloadConfigMapAndSecretTest {
 
 	@Autowired
 	private ConfigurableEnvironment environment;
+
+	@TestBean
+	private ConfigurationUpdateStrategy secretConfigurationUpdateStrategy;
+
+	@TestBean
+	private ConfigReloadProperties configReloadProperties;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -160,6 +167,16 @@ class PollingReloadConfigMapAndSecretTest {
 			.update();
 	}
 
+	private static ConfigurationUpdateStrategy secretConfigurationUpdateStrategy() {
+		return new ConfigurationUpdateStrategy("to-console", () -> STRATEGY_FOR_SECRET_CALLED.set(true));
+	}
+
+	private static ConfigReloadProperties configReloadProperties() {
+		return new ConfigReloadProperties(true, true, true, ConfigReloadProperties.ReloadStrategy.REFRESH,
+				ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(200), Set.of(NAMESPACE), false,
+				Duration.ofSeconds(2));
+	}
+
 	@TestConfiguration
 	static class TestConfig {
 
@@ -172,20 +189,6 @@ class PollingReloadConfigMapAndSecretTest {
 			scheduler.initialize();
 			return new PollingConfigMapChangeDetector(environment, configReloadProperties, configurationUpdateStrategy,
 					Fabric8ConfigMapPropertySource.class, fabric8ConfigMapPropertySourceLocator, scheduler);
-		}
-
-		@Bean
-		@Primary
-		ConfigReloadProperties configReloadProperties() {
-			return new ConfigReloadProperties(true, true, true, ConfigReloadProperties.ReloadStrategy.REFRESH,
-					ConfigReloadProperties.ReloadDetectionMode.POLLING, Duration.ofMillis(200), Set.of(NAMESPACE),
-					false, Duration.ofSeconds(2));
-		}
-
-		@Bean
-		@Primary
-		ConfigurationUpdateStrategy secretConfigurationUpdateStrategy() {
-			return new ConfigurationUpdateStrategy("to-console", () -> STRATEGY_FOR_SECRET_CALLED.set(true));
 		}
 
 	}

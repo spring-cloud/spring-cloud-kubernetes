@@ -21,18 +21,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 /**
  * test that asserts the type of published event for blocking discovery.
  *
  * @author wind57
  */
-@SpringBootTest(
-		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
-				"spring.cloud.discovery.reactive.enabled=false" },
-		classes = { HealthEventListenerConfiguration.class, App.class })
-class BlockingDiscoveryHealthPublishedEventTest {
+@SpringBootTest(properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
+		"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
+		"spring.cloud.discovery.reactive.enabled=false" }, classes = { App.class })
+class BlockingDiscoveryHealthPublishedEventTest extends HealthEventListenerConfiguration {
+
+	@TestBean
+	HealthEventListenerConfiguration.HealthEventListener healthEventListener;
 
 	@AfterEach
 	void afterEach() {
