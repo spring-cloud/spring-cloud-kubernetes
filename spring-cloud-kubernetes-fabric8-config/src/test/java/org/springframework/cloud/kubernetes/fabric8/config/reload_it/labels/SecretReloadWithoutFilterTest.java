@@ -16,35 +16,43 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 
+import java.time.Duration;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author wind57
  */
-@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true", "secrets.labels.filtering=true" },
+@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true", "secrets.reload.filtering=true" },
 		classes = { CommonAbstractFiltering.TestConfig.class,
 				CommonAbstractFiltering.ConfigReloadPropertiesConfiguration.class })
 @ContextConfiguration(initializers = CommonAbstractFiltering.Initializer.class)
-class SecretReloadWithLabelsTest extends CommonAbstractFiltering {
+class SecretReloadWithoutFilterTest extends CommonAbstractFiltering {
 
 	/**
 	 * <pre>
-	 *     - we only watch secrets with labels: { only-shape:round }
+	 * 	- informers are created with 'spring.cloud.kubernetes.reload.enable-reload-filtering',
+	 * 	  but this secret does not have such a label, so nothing happens.
 	 * </pre>
 	 */
 	@Test
 	void test() {
-		Secret secret = secret(SECRET_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
+		Secret secret = secret(SECRET_NAME, Map.of("a", "b"), Map.of("shape", "round"));
 
 		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
-		Awaitilities.awaitUntil(10, 1000, reloadProbe::isCalled);
+
+		Awaitility.await()
+			.during(Duration.ofSeconds(3))
+			.atMost(Duration.ofSeconds(4))
+			.pollInterval(Duration.ofMillis(100))
+			.until(reloadProbe::isNotCalled);
+
 	}
 
 }
