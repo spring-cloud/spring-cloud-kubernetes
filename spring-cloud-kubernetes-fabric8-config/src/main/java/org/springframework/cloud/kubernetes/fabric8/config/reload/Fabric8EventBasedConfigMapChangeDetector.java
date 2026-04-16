@@ -168,7 +168,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		@Override
 		public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
 			LOG.debug("ConfigMap " + configMap.getMetadata().getName() + " was deleted in namespace "
-					+ configMap.getMetadata().getName());
+					+ configMap.getMetadata().getNamespace());
 			onEvent(configMap);
 		}
 

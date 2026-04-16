@@ -17,8 +17,6 @@
 package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -133,9 +131,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		replaceConfigMap(coreV1Api, rightConfigMapAfterChange);
 
-		// sleep for 5 seconds
-		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
-		Assertions.assertThat(rightProperties.getValue()).isEqualTo("right-after-change");
+		Awaitilities.awaitUntil(10, 1000, () -> rightProperties.getValue().equals("right-after-change"));
 
 		// then deploy a new version of right-configmap-with-label
 		// but only add a label, this does not trigger a refresh
