@@ -23,19 +23,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 /**
  * test that asserts the type of published event for reactive discovery.
  *
  * @author wind57
  */
-@SpringBootTest(
-		properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
-				// disable blocking implementation
-				"spring.cloud.discovery.blocking.enabled=false" },
-		classes = { HealthEventListenerConfiguration.class, App.class })
-class ReactiveDiscoveryHealthPublishedEventTest {
+@SpringBootTest(properties = { "spring.main.cloud-platform=kubernetes", "spring.cloud.config.enabled=false",
+		"spring.cloud.kubernetes.discovery.discovery-server-url=http://example",
+		// disable blocking implementation
+		"spring.cloud.discovery.blocking.enabled=false" }, classes = { App.class })
+class ReactiveDiscoveryHealthPublishedEventTest extends HealthEventListenerConfiguration {
+
+	@TestBean
+	HealthEventListenerConfiguration.HealthEventListener healthEventListener;
 
 	// blocking client is not present, as such the blocking auto-configuration was not
 	// picked up, therefor the health event comes from the reactive one.

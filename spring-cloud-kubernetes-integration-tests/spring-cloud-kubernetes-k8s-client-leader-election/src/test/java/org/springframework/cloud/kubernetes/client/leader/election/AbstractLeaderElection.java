@@ -32,7 +32,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -42,6 +41,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 /**
  * @author wind57
@@ -54,13 +54,12 @@ import org.springframework.test.annotation.DirtiesContext;
 				"logging.level.org.springframework.cloud.kubernetes.commons.leader.election=debug",
 				"logging.level.org.springframework.cloud.kubernetes.client.leader.election=debug",
 				"logging.level.io.kubernetes.client.extended.leaderelection=debug" },
-		classes = { App.class, AbstractLeaderElection.TestConfig.class,
-				AbstractLeaderElection.PodReadyTestConfiguration.class })
+		classes = { App.class, AbstractLeaderElection.PodReadyTestConfiguration.class })
 @DirtiesContext
 abstract class AbstractLeaderElection {
 
-	@Autowired
-	private ApiClient apiClient;
+	@TestBean
+	private ApiClient client;
 
 	private static K3sContainer container;
 
@@ -83,7 +82,7 @@ abstract class AbstractLeaderElection {
 		initiator.preDestroy();
 
 		if (deleteLease) {
-			CoordinationV1Api api = new CoordinationV1Api(apiClient);
+			CoordinationV1Api api = new CoordinationV1Api(client);
 
 			try {
 				api.deleteNamespacedLease("spring-k8s-leader-election-lock", "default").execute();
@@ -95,7 +94,7 @@ abstract class AbstractLeaderElection {
 	}
 
 	V1Lease getLease() {
-		CoordinationV1Api api = new CoordinationV1Api(apiClient);
+		CoordinationV1Api api = new CoordinationV1Api(client);
 		try {
 			return api.readNamespacedLease("spring-k8s-leader-election-lock", "default").execute();
 		}
@@ -105,7 +104,7 @@ abstract class AbstractLeaderElection {
 	}
 
 	V1Lease updateLease(V1Lease lease) {
-		CoordinationV1Api api = new CoordinationV1Api(apiClient);
+		CoordinationV1Api api = new CoordinationV1Api(client);
 		try {
 			return api.replaceNamespacedLease("spring-k8s-leader-election-lock", "default", lease).execute();
 		}
@@ -114,24 +113,17 @@ abstract class AbstractLeaderElection {
 		}
 	}
 
-	@TestConfiguration
-	static class TestConfig {
+	private static ApiClient client() {
+		String kubeConfigYaml = container.getKubeConfigYaml();
 
-		@Bean
-		@Primary
-		ApiClient client() {
-			String kubeConfigYaml = container.getKubeConfigYaml();
-
-			ApiClient client;
-			try {
-				client = Config.fromConfig(new StringReader(kubeConfigYaml));
-			}
-			catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			return client;
+		ApiClient client;
+		try {
+			client = Config.fromConfig(new StringReader(kubeConfigYaml));
 		}
-
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return client;
 	}
 
 	@TestConfiguration

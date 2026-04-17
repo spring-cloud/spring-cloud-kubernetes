@@ -29,7 +29,6 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -39,9 +38,8 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAssertions.assertLogStatement;
@@ -49,11 +47,16 @@ import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAsse
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { DiscoveryApp.class, KubernetesClientDiscoverySimpleIT.TestConfig.class },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { DiscoveryApp.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=default",
 		"org.springframework.cloud.kubernetes.client.discovery=debug" })
 class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
+
+	@TestBean
+	private ApiClient apiClient;
+
+	@TestBean
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
@@ -155,21 +158,8 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 		assertThat(serviceInstances).isEmpty();
 	}
 
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		ApiClient client() {
-			return apiClient();
-		}
-
-		@Bean
-		@Primary
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false, Set.of(DEFAULT_NAMESPACE), null, Map.of());
-		}
-
+	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
+		return discoveryProperties(false, Set.of(DEFAULT_NAMESPACE), null, Map.of());
 	}
 
 }

@@ -36,6 +36,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_cl
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 /**
  * @author wind57
@@ -56,18 +57,27 @@ abstract class Fabric8DiscoveryBase {
 
 	protected static Util util;
 
+	@TestBean
+	private KubernetesClient kubernetesClient;
+
 	@BeforeAll
 	protected static void beforeAll() {
 		K3S.start();
 		util = new Util(K3S);
 	}
 
-	protected static KubernetesDiscoveryProperties discoveryProperties(boolean allNamespaces, Set<String> namespaces,
-			String filter, Map<String, String> labels) {
+	protected static KubernetesDiscoveryProperties discoveryProperties(Set<String> namespaces,
+			Map<String, String> labels) {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, null, true,
 				null, true, "port.", true, true);
-		return new KubernetesDiscoveryProperties(true, allNamespaces, namespaces, true, 60, false, filter,
-				Set.of(443, 8443), labels, null, metadata, 0, false, true, null);
+		return new KubernetesDiscoveryProperties(true, true, namespaces, true, 60, false, null, Set.of(443, 8443),
+				labels, null, metadata, 0, false, true, null);
+	}
+
+	private static KubernetesClient kubernetesClient() {
+		String kubeConfigYaml = K3S.getKubeConfigYaml();
+		Config config = Config.fromKubeconfig(kubeConfigYaml);
+		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
 	@TestConfiguration
@@ -75,24 +85,16 @@ abstract class Fabric8DiscoveryBase {
 
 		@Bean
 		@Primary
-		KubernetesClient kubernetesClient() {
-			String kubeConfigYaml = K3S.getKubeConfigYaml();
-			Config config = Config.fromKubeconfig(kubeConfigYaml);
-			return new KubernetesClientBuilder().withConfig(config).build();
-		}
-
-		@Bean
-		@Primary
 		@ConditionalOnProperty(value = "all.namespaces.no.labels", havingValue = "true", matchIfMissing = false)
 		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(true, Set.of(), null, Map.of());
+			return discoveryProperties(Set.of(), Map.of());
 		}
 
 		@Bean
 		@Primary
 		@ConditionalOnProperty(value = "all.namespaces.wiremock.labels", havingValue = "true", matchIfMissing = false)
 		KubernetesDiscoveryProperties kubernetesDiscoveryPropertiesAllNamespacesWiremockLabels() {
-			return discoveryProperties(true, Set.of(), null, Map.of("app", "service-wiremock"));
+			return discoveryProperties(Set.of(), Map.of("app", "service-wiremock"));
 		}
 
 	}

@@ -19,12 +19,10 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -107,28 +105,23 @@ class RefreshTriggerAutoConfigurationTests {
 			.withPropertyValues("spring.main.cloud-platform=kubernetes", "spring.profiles.active=" + activeProfiles);
 	}
 
-	@TestConfiguration
 	static class TestConfig {
 
 		@Bean
-		@Primary
-		BusProperties busProperties() {
+		private static BusProperties busProperties() {
 			return new BusProperties();
 		}
 
 		@Bean
-		@Primary
 		KubernetesClientInformerReactiveDiscoveryClient client() {
 			return Mockito.mock(KubernetesClientInformerReactiveDiscoveryClient.class);
 		}
 
 		@Bean
-		@Primary
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties() {
 			return new ConfigurationWatcherConfigurationProperties();
 		}
 
-		@Primary
 		@Bean
 		WebClient webClient() {
 			return Mockito.mock(WebClient.class);

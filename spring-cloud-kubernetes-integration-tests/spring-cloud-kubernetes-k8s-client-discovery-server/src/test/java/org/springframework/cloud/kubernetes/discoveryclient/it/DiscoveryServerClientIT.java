@@ -29,7 +29,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
@@ -39,23 +38,27 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { App.class, DiscoveryServerClientIT.TestConfig.class },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { App.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes",
 		"logging.level.org.springframework.cloud.kubernetes.discovery=debug",
 		"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=3000",
 		"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true" })
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DiscoveryServerClientIT extends DiscoveryServerClientBase {
+
+	@TestBean
+	private ApiClient apiClient;
+
+	@TestBean
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
@@ -146,21 +149,8 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 		assertThat(namespaces).containsExactlyInAnyOrder(NAMESPACE_LEFT, NAMESPACE_RIGHT);
 	}
 
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		ApiClient client() {
-			return apiClient();
-		}
-
-		@Bean
-		@Primary
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(Set.of(NAMESPACE_LEFT, NAMESPACE_RIGHT));
-		}
-
+	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
+		return discoveryProperties(Set.of(NAMESPACE_LEFT, NAMESPACE_RIGHT));
 	}
 
 }

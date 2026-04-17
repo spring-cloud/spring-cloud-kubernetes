@@ -18,27 +18,23 @@ package org.springframework.cloud.kubernetes.discovery;
 
 import org.assertj.core.api.Assertions;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
 
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer.RegisteredEventSource;
 
 /**
  * @author wind57
  */
-@TestConfiguration
 class HealthEventListenerConfiguration {
 
 	static boolean caught = false;
 
-	@Bean
-	HealthEventListener healthEventListener() {
+	protected static HealthEventListener healthEventListener() {
 		return new HealthEventListener();
 	}
 
-	private static final class HealthEventListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
+	static final class HealthEventListener implements ApplicationListener<InstanceRegisteredEvent<?>> {
 
 		@Override
 		public void onApplicationEvent(InstanceRegisteredEvent<?> event) {

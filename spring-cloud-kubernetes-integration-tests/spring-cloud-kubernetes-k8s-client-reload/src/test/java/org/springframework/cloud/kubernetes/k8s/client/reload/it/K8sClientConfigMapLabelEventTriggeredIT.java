@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.util.Map;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
@@ -32,7 +31,6 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -41,15 +39,12 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.native_cli
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightWithLabelsProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { App.class, K8sClientConfigMapLabelEventTriggeredIT.TestConfig.class },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { App.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes", "spring.profiles.active=three",
 		"spring.cloud.bootstrap.enabled=true",
 		"logging.level.org.springframework.cloud.kubernetes.client.config.reload=debug" })
@@ -165,17 +160,6 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 				() -> output.getOut().contains("ConfigMap right-configmap-with-label was updated in namespace right"));
 		Awaitilities.awaitUntil(60, 1000,
 				() -> rightWithLabelsProperties.getValue().equals("right-with-label-after-change"));
-	}
-
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		ApiClient client() {
-			return apiClient();
-		}
-
 	}
 
 }

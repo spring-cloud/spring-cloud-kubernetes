@@ -21,7 +21,6 @@ import org.mockito.Mockito;
 
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
@@ -136,7 +135,6 @@ class ConfigReloadAutoConfigurationApplicationContextTests {
 			.withPropertyValues(properties);
 	}
 
-	@TestConfiguration
 	static class RebinderConfig {
 
 		@Bean
