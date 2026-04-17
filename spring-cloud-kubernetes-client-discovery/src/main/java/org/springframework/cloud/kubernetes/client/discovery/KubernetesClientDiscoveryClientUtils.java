@@ -43,6 +43,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.ServiceMetadata;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.util.CollectionUtils;
 
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.labelSelector;
 import static org.springframework.cloud.kubernetes.commons.discovery.DiscoveryClientUtils.poll;
 import static org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryConstants.UNSET_PORT_NAME;
 import static org.springframework.util.StringUtils.hasText;
@@ -155,13 +156,6 @@ final class KubernetesClientDiscoveryClientUtils {
 			.watch(params.watch)
 			.labelSelector(labelSelector(serviceLabels))
 			.buildCall(null);
-	}
-
-	static String labelSelector(Map<String, String> labels) {
-		if (labels == null || labels.isEmpty()) {
-			return null;
-		}
-		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 }

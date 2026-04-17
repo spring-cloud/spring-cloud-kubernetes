@@ -65,7 +65,7 @@ abstract class K8sClientReloadBase {
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return new CoreV1Api(client).getApiClient();
+		return client;
 	}
 
 	/**

@@ -42,6 +42,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAssertions.assertBlockingConfiguration;
@@ -55,6 +56,9 @@ class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 
 	@LocalManagementPort
 	private int port;
+
+	@TestBean
+	ApiClient apiClient;
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
@@ -199,12 +203,6 @@ class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 
 	@TestConfiguration
 	static class TestConfig {
-
-		@Bean
-		@Primary
-		ApiClient client() {
-			return apiClient();
-		}
 
 		@Bean
 		@Primary

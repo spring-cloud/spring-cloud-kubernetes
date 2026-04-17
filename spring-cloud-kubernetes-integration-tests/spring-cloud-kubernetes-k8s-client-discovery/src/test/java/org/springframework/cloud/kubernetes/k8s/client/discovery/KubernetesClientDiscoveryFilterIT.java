@@ -28,24 +28,21 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { DiscoveryApp.class, KubernetesClientDiscoveryFilterIT.TestConfig.class },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { DiscoveryApp.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=a-uat",
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat" })
 class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
@@ -56,6 +53,12 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
+
+	@TestBean
+	private ApiClient apiClient;
+
+	@TestBean
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
 	@BeforeEach
 	void beforeEach() {
@@ -117,22 +120,9 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 	}
 
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		ApiClient client() {
-			return apiClient();
-		}
-
-		@Bean
-		@Primary
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(false, Set.of(NAMESPACE_A_UAT, NAMESPACE_B_UAT),
-					"#root.metadata.namespace matches '^.*uat$'", Map.of());
-		}
-
+	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
+		return discoveryProperties(false, Set.of(NAMESPACE_A_UAT, NAMESPACE_B_UAT),
+				"#root.metadata.namespace matches '^.*uat$'", Map.of());
 	}
 
 }

@@ -16,34 +16,43 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 
+import java.time.Duration;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author wind57
  */
-@SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true", "secrets.labels.filtering=true" },
+@SpringBootTest(
+		properties = { "spring.main.allow-bean-definition-overriding=true", "configmaps.labels.filtering=true" },
 		classes = { CommonAbstractFiltering.TestConfig.class,
 				CommonAbstractFiltering.ConfigReloadPropertiesConfiguration.class })
 @ContextConfiguration(initializers = CommonAbstractFiltering.Initializer.class)
-class SecretReloadWithLabelsTest extends CommonAbstractFiltering {
+class ConfigMapReloadWithoutLabelsTest extends CommonAbstractFiltering {
 
 	/**
 	 * <pre>
-	 *     - we only watch secrets with labels: { only-shape:round }
+	 *     - we only watch configmaps with labels: { only-shape:round }
+	 *     - configmap that we created does not have such labels, so nothing happens.
 	 * </pre>
 	 */
 	@Test
 	void test() {
-		Secret secret = secret(SECRET_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
-		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
-		Awaitilities.awaitUntil(10, 1000, reloadProbe::isCalled);
+		ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of("a", "b"), Map.of("shape", "round"));
+
+		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
+
+		Awaitility.await()
+			.during(Duration.ofSeconds(3))
+			.atMost(Duration.ofSeconds(4))
+			.pollInterval(Duration.ofMillis(100))
+			.until(reloadProbe::isNotCalled);
 	}
 
 }

@@ -32,29 +32,29 @@ import io.kubernetes.client.openapi.models.V1ObjectReferenceBuilder;
 import io.kubernetes.client.openapi.models.V1Service;
 import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import io.kubernetes.client.openapi.models.V1ServiceStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.VisibleKubernetesClientInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.bean.override.convention.TestBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author wind57
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = DiscoveryServerIntegrationAppsNameEndpointTests.TestConfig.class,
 		properties = { "management.health.livenessstate.enabled=true",
 				/* disable kubernetes from liveness and readiness */
 				"management.endpoint.health.group.liveness.include=livenessState",
@@ -62,6 +62,15 @@ import static org.mockito.Mockito.when;
 				"management.endpoint.health.group.readiness.include=readinessState" })
 @AutoConfigureWebTestClient
 class DiscoveryServerIntegrationAppsNameEndpointTests {
+
+	@MockitoBean
+	private KubernetesNamespaceProvider kubernetesNamespaceProvider;
+
+	@TestBean
+	private KubernetesClientInformerReactiveDiscoveryClient discoveryClient;
+
+	@Autowired
+	private WebTestClient webTestClient;
 
 	private static final String NAMESPACE = "namespace";
 
@@ -81,8 +90,10 @@ class DiscoveryServerIntegrationAppsNameEndpointTests {
 			.addAddressesItem(new V1EndpointAddress().ip("2.2.2.2")
 				.targetRef(new V1ObjectReferenceBuilder().withUid("uid2").build())));
 
-	@Autowired
-	private WebTestClient webTestClient;
+	@BeforeEach
+	void beforeEach() {
+		when(kubernetesNamespaceProvider.getNamespace()).thenReturn(NAMESPACE);
+	}
 
 	@Test
 	void appsName() {
@@ -107,31 +118,16 @@ class DiscoveryServerIntegrationAppsNameEndpointTests {
 			.contains(kubernetesServiceInstance);
 	}
 
-	@TestConfiguration
-	static class TestConfig {
+	private static KubernetesClientInformerReactiveDiscoveryClient discoveryClient() {
 
-		@Bean
-		KubernetesNamespaceProvider kubernetesNamespaceProvider() {
-			KubernetesNamespaceProvider provider = mock(KubernetesNamespaceProvider.class);
-			when(provider.getNamespace()).thenReturn(NAMESPACE);
-			return provider;
-		}
+		Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE);
+		Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS);
 
-		@Bean
-		KubernetesClientInformerReactiveDiscoveryClient discoveryClient() {
-			return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesInformerDiscoveryClient());
-		}
+		KubernetesClientInformerDiscoveryClient kubernetesClientInformerDiscoveryClient = new VisibleKubernetesClientInformerDiscoveryClient(
+				List.of(SHARED_INFORMER_FACTORY), List.of(serviceLister), List.of(endpointsLister), null, null,
+				KubernetesDiscoveryProperties.DEFAULT, Mockito.mock(CoreV1Api.class), x -> true);
 
-		private VisibleKubernetesClientInformerDiscoveryClient kubernetesInformerDiscoveryClient() {
-
-			Lister<V1Service> serviceLister = Util.setupServiceLister(TEST_SERVICE);
-			Lister<V1Endpoints> endpointsLister = Util.setupEndpointsLister(TEST_ENDPOINTS);
-
-			return new VisibleKubernetesClientInformerDiscoveryClient(List.of(SHARED_INFORMER_FACTORY),
-					List.of(serviceLister), List.of(endpointsLister), null, null, KubernetesDiscoveryProperties.DEFAULT,
-					Mockito.mock(CoreV1Api.class), x -> true);
-		}
-
+		return new KubernetesClientInformerReactiveDiscoveryClient(kubernetesClientInformerDiscoveryClient);
 	}
 
 }

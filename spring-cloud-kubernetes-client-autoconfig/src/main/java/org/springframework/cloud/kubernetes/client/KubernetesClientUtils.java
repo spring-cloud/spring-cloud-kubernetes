@@ -115,7 +115,10 @@ public final class KubernetesClientUtils {
 	}
 
 	public static String labelSelector(Map<String, String> labels) {
-		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining("&"));
+		if (labels == null || labels.isEmpty()) {
+			return null;
+		}
+		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 }
