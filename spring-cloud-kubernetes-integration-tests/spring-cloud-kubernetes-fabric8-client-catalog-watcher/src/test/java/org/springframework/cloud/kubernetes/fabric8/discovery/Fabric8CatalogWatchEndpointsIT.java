@@ -53,21 +53,21 @@ class Fabric8CatalogWatchEndpointsIT extends Fabric8CatalogWatchBase {
 	@BeforeEach
 	void beforeEach() {
 
-		util.createNamespace(NAMESPACE_A);
-		util.createNamespace(NAMESPACE_B);
+		fabric8KubernetesFixture.createNamespace(NAMESPACE_A);
+		fabric8KubernetesFixture.createNamespace(NAMESPACE_B);
 
 		Images.loadBusybox(K3S);
 
-		util.busybox(NAMESPACE_A, Phase.CREATE);
-		util.busybox(NAMESPACE_B, Phase.CREATE);
+		fabric8KubernetesFixture.busybox(NAMESPACE_A, Phase.CREATE);
+		fabric8KubernetesFixture.busybox(NAMESPACE_B, Phase.CREATE);
 
 	}
 
 	@AfterEach
 	void afterEach() {
 		// busybox is deleted as part of the assertions, thus not seen here
-		util.deleteNamespace(NAMESPACE_A);
-		util.deleteNamespace(NAMESPACE_B);
+		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_A);
+		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_B);
 	}
 
 	/**
@@ -83,7 +83,7 @@ class Fabric8CatalogWatchEndpointsIT extends Fabric8CatalogWatchBase {
 	@Test
 	void test(CapturedOutput output) {
 		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointsCatalogWatch");
-		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
+		invokeAndAssert(fabric8KubernetesFixture, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {

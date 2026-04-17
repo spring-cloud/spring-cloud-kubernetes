@@ -71,18 +71,18 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 
 	@BeforeAll
 	static void beforeAllLocal() throws Exception {
-		util.createNamespace(NAMESPACE_LEFT);
-		util.createNamespace(NAMESPACE_RIGHT);
+		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_LEFT);
+		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_RIGHT);
 
 		Commons.validateImage(DISCOVERY_SERVER_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
-		util.setUp(NAMESPACE);
+		k8sNativeKubernetesFixture.setUp(NAMESPACE);
 		serviceAccount(Phase.CREATE);
 		discoveryServer(Phase.CREATE);
 
 		Images.loadWiremock(K3S);
-		util.wiremock(NAMESPACE_LEFT, Phase.CREATE, false);
-		util.wiremock(NAMESPACE_RIGHT, Phase.CREATE, false);
+		k8sNativeKubernetesFixture.wiremock(NAMESPACE_LEFT, Phase.CREATE, false);
+		k8sNativeKubernetesFixture.wiremock(NAMESPACE_RIGHT, Phase.CREATE, false);
 	}
 
 	@AfterAll
@@ -90,11 +90,11 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 		serviceAccount(Phase.DELETE);
 		discoveryServer(Phase.DELETE);
 
-		util.wiremock(NAMESPACE_LEFT, Phase.DELETE, false);
-		util.wiremock(NAMESPACE_RIGHT, Phase.DELETE, false);
+		k8sNativeKubernetesFixture.wiremock(NAMESPACE_LEFT, Phase.DELETE, false);
+		k8sNativeKubernetesFixture.wiremock(NAMESPACE_RIGHT, Phase.DELETE, false);
 
-		util.deleteNamespace(NAMESPACE_LEFT);
-		util.deleteNamespace(NAMESPACE_RIGHT);
+		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_LEFT);
+		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_RIGHT);
 	}
 
 	/**

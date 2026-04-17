@@ -49,12 +49,12 @@ class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 	@BeforeEach
 	void beforeEach() {
 		Images.loadBusybox(K3S);
-		util.busybox(NAMESPACE, Phase.CREATE);
+		fabric8KubernetesFixture.busybox(NAMESPACE, Phase.CREATE);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.busybox(NAMESPACE, Phase.DELETE);
+		fabric8KubernetesFixture.busybox(NAMESPACE, Phase.DELETE);
 	}
 
 	@Test

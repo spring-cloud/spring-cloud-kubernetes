@@ -66,19 +66,19 @@ class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 	@BeforeAll
 	static void beforeAllLocal() {
 
-		util.createNamespace(NON_DEFAULT_NAMESPACE);
+		k8sNativeKubernetesFixture.createNamespace(NON_DEFAULT_NAMESPACE);
 
 		Images.loadWiremock(K3S);
 		Images.loadBusybox(K3S);
-		util.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, false);
-		util.busybox(NON_DEFAULT_NAMESPACE, Phase.CREATE);
+		k8sNativeKubernetesFixture.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, false);
+		k8sNativeKubernetesFixture.busybox(NON_DEFAULT_NAMESPACE, Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAllLocal() {
-		util.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, false);
-		util.busybox(NON_DEFAULT_NAMESPACE, Phase.DELETE);
-		util.deleteNamespace(NON_DEFAULT_NAMESPACE);
+		k8sNativeKubernetesFixture.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, false);
+		k8sNativeKubernetesFixture.busybox(NON_DEFAULT_NAMESPACE, Phase.DELETE);
+		k8sNativeKubernetesFixture.deleteNamespace(NON_DEFAULT_NAMESPACE);
 	}
 
 	private void assertAllNamespacesAllLabels(DiscoveryClient discoveryClient) {

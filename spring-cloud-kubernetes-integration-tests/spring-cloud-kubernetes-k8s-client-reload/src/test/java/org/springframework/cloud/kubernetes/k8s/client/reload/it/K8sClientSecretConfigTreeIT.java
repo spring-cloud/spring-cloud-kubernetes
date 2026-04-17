@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -58,15 +58,15 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
 
-		util.setUp(NAMESPACE);
-		manifestsSecret(Phase.CREATE, util, NAMESPACE, IMAGE_NAME);
-		util.configWatcher(Phase.CREATE);
+		k8sNativeKubernetesFixture.setUp(NAMESPACE);
+		manifestsSecret(Phase.CREATE, k8sNativeKubernetesFixture, NAMESPACE, IMAGE_NAME);
+		k8sNativeKubernetesFixture.configWatcher(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
-		manifestsSecret(Phase.DELETE, util, NAMESPACE, IMAGE_NAME);
-		util.configWatcher(Phase.DELETE);
+		manifestsSecret(Phase.DELETE, k8sNativeKubernetesFixture, NAMESPACE, IMAGE_NAME);
+		k8sNativeKubernetesFixture.configWatcher(Phase.DELETE);
 	}
 
 	/**
@@ -96,7 +96,7 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 
 		// replace data in secret and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		V1Secret secret = Util.yaml("mount/secret.yaml", V1Secret.class);
+		V1Secret secret = K8sNativeKubernetesFixture.yaml("mount/secret.yaml", V1Secret.class);
 		secret.setData(Map.of("application.properties",
 				"from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8)));
 

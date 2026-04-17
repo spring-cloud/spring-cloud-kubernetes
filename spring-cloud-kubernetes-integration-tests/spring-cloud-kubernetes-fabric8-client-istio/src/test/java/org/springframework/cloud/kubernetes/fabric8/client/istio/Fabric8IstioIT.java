@@ -32,7 +32,7 @@ import org.testcontainers.k3s.K3sContainer;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -48,7 +48,7 @@ class Fabric8IstioIT {
 
 	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-istio";
 
-	private static Util util;
+	private static Fabric8KubernetesFixture fabric8KubernetesFixture;
 
 	private static K3sContainer K3S;
 
@@ -56,7 +56,7 @@ class Fabric8IstioIT {
 	static void beforeAll() throws Exception {
 		K3S = Commons.container();
 		K3S.start();
-		util = new Util(K3S);
+		fabric8KubernetesFixture = new Fabric8KubernetesFixture(K3S);
 		Commons.validateImage(IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
 
@@ -68,7 +68,7 @@ class Fabric8IstioIT {
 		processExecResult(
 				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
 
-		util.setUpIstioctl(NAMESPACE, Phase.CREATE);
+		fabric8KubernetesFixture.setUpIstioctl(NAMESPACE, Phase.CREATE);
 
 		String istioctlPodName = istioctlPodName();
 		K3S.execInContainer("sh", "-c",
@@ -78,20 +78,20 @@ class Fabric8IstioIT {
 		processExecResult(K3S.execInContainer("sh", "-c",
 				"/tmp/istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
 
-		util.setUpIstio(NAMESPACE);
+		fabric8KubernetesFixture.setUpIstio(NAMESPACE);
 
 		appManifests(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
-		util.deleteNamespace("istio-system");
+		fabric8KubernetesFixture.deleteNamespace("istio-system");
 	}
 
 	@AfterAll
 	static void after() {
 		appManifests(Phase.DELETE);
-		util.setUpIstioctl(NAMESPACE, Phase.DELETE);
+		fabric8KubernetesFixture.setUpIstioctl(NAMESPACE, Phase.DELETE);
 	}
 
 	@Test
@@ -111,17 +111,17 @@ class Fabric8IstioIT {
 
 	private static void appManifests(Phase phase) {
 
-		InputStream deploymentStream = util.inputStream("istio-deployment.yaml");
-		InputStream serviceStream = util.inputStream("istio-service.yaml");
+		InputStream deploymentStream = fabric8KubernetesFixture.inputStream("istio-deployment.yaml");
+		InputStream serviceStream = fabric8KubernetesFixture.inputStream("istio-service.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, true);
+			fabric8KubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service);
+			fabric8KubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
 		}
 
 	}

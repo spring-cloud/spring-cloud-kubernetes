@@ -46,14 +46,14 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 		Images.loadBusybox(K3S);
 		Images.loadWiremock(K3S);
 
-		util.busybox(NAMESPACE, Phase.CREATE);
-		util.wiremock(NAMESPACE, Phase.CREATE, false);
+		fabric8KubernetesFixture.busybox(NAMESPACE, Phase.CREATE);
+		fabric8KubernetesFixture.wiremock(NAMESPACE, Phase.CREATE, false);
 	}
 
 	@AfterAll
 	static void afterAll() {
-		util.busybox(NAMESPACE, Phase.DELETE);
-		util.wiremock(NAMESPACE, Phase.DELETE, false);
+		fabric8KubernetesFixture.busybox(NAMESPACE, Phase.DELETE);
+		fabric8KubernetesFixture.wiremock(NAMESPACE, Phase.DELETE, false);
 	}
 
 	@Nested

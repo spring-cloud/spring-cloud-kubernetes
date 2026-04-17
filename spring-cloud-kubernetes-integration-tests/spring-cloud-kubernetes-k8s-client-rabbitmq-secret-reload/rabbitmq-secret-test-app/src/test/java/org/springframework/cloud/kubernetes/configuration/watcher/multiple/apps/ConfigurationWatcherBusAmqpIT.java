@@ -37,7 +37,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitiliti
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -55,7 +55,7 @@ class ConfigurationWatcherBusAmqpIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
-	private static Util util;
+	private static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -69,20 +69,20 @@ class ConfigurationWatcherBusAmqpIT {
 
 		Images.loadRabbitmq(K3S);
 
-		util = new Util(K3S);
-		util.setUp(NAMESPACE);
+		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
+		k8sNativeKubernetesFixture.setUp(NAMESPACE);
 	}
 
 	@BeforeEach
 	void setup() {
-		util.rabbitMq(NAMESPACE, Phase.CREATE);
+		k8sNativeKubernetesFixture.rabbitMq(NAMESPACE, Phase.CREATE);
 		appA(Phase.CREATE);
 		configWatcher(Phase.CREATE);
 	}
 
 	@AfterEach
 	void after() {
-		util.rabbitMq(NAMESPACE, Phase.DELETE);
+		k8sNativeKubernetesFixture.rabbitMq(NAMESPACE, Phase.DELETE);
 		appA(Phase.DELETE);
 		configWatcher(Phase.DELETE);
 	}
@@ -98,7 +98,7 @@ class ConfigurationWatcherBusAmqpIT {
 			.addToAnnotations("spring.cloud.kubernetes.secret.apps", "app")
 			.endMetadata()
 			.build();
-		util.createAndWait(NAMESPACE, null, secret);
+		k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, secret);
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:32321/app").build();
@@ -114,30 +114,30 @@ class ConfigurationWatcherBusAmqpIT {
 		});
 
 		Assertions.assertThat(value[0]).isTrue();
-		util.deleteAndWait(NAMESPACE, null, secret);
+		k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, null, secret);
 	}
 
 	private void appA(Phase phase) {
-		V1Deployment deployment = Util.yaml("app/app-deployment.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("app/app-service.yaml", V1Service.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("app/app-deployment.yaml", V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("app/app-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 
 	private void configWatcher(Phase phase) {
-		V1Deployment deployment = Util.yaml("config-watcher/watcher-deployment.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("config-watcher/watcher-service.yaml", V1Service.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-deployment.yaml", V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 

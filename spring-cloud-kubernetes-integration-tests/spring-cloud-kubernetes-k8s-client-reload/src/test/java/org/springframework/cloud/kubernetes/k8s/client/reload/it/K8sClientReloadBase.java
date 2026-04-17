@@ -35,7 +35,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 
 /**
  * @author wind57
@@ -47,12 +47,12 @@ abstract class K8sClientReloadBase {
 
 	protected static final K3sContainer K3S = Commons.container();
 
-	protected static Util util;
+	protected static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
 
 	@BeforeAll
 	protected static void beforeAll() {
 		K3S.start();
-		util = new Util(K3S);
+		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
 	}
 
 	protected static ApiClient apiClient() {
@@ -94,36 +94,36 @@ abstract class K8sClientReloadBase {
 		}
 	}
 
-	protected static void manifests(Phase phase, Util util, String namespace, String imageName) {
+	protected static void manifests(Phase phase, K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace, String imageName) {
 
-		V1Deployment deployment = Util.yaml("mount/deployment.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("mount/service.yaml", V1Service.class);
-		V1ConfigMap configMap = Util.yaml("mount/configmap.yaml", V1ConfigMap.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("mount/deployment.yaml", V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("mount/service.yaml", V1Service.class);
+		V1ConfigMap configMap = K8sNativeKubernetesFixture.yaml("mount/configmap.yaml", V1ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(namespace, configMap, null);
-			util.createAndWait(namespace, imageName, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(namespace, configMap, null);
+			k8sNativeKubernetesFixture.createAndWait(namespace, imageName, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(namespace, configMap, null);
-			util.deleteAndWait(namespace, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(namespace, configMap, null);
+			k8sNativeKubernetesFixture.deleteAndWait(namespace, deployment, service);
 		}
 
 	}
 
-	protected static void manifestsSecret(Phase phase, Util util, String namespace, String imageName) {
+	protected static void manifestsSecret(Phase phase, K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace, String imageName) {
 
-		V1Secret secret = Util.yaml("mount/secret.yaml", V1Secret.class);
-		V1Deployment deployment = Util.yaml("mount/deployment-with-secret.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("mount/service-with-secret.yaml", V1Service.class);
+		V1Secret secret = K8sNativeKubernetesFixture.yaml("mount/secret.yaml", V1Secret.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("mount/deployment-with-secret.yaml", V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("mount/service-with-secret.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(namespace, null, secret);
-			util.createAndWait(namespace, imageName, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(namespace, null, secret);
+			k8sNativeKubernetesFixture.createAndWait(namespace, imageName, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(namespace, null, secret);
-			util.deleteAndWait(namespace, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(namespace, null, secret);
+			k8sNativeKubernetesFixture.deleteAndWait(namespace, deployment, service);
 		}
 
 	}
