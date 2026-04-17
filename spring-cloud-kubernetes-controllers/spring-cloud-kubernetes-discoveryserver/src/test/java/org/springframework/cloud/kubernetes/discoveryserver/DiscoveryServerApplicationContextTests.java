@@ -19,28 +19,30 @@ package org.springframework.cloud.kubernetes.discoveryserver;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
-import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * @author wind57
  */
+@SpringBootTest
 class DiscoveryServerApplicationContextTests {
 
+	@MockitoBean
+	private KubernetesClientInformerReactiveDiscoveryClient reactiveDiscoveryClient;
+
 	@Nested
-	@SpringBootTest(classes = TestConfig.class,
-			properties = { "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
-					/* disable kubernetes from liveness and readiness */
-					"management.health.livenessstate.enabled=true",
-					"management.endpoint.health.group.liveness.include=livenessState",
-					"management.health.readinessstate.enabled=true",
-					"management.endpoint.health.group.readiness.include=readinessState" })
+	@TestPropertySource(properties = { "spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
+			/* disable kubernetes from liveness and readiness */
+			"management.health.livenessstate.enabled=true",
+			"management.endpoint.health.group.liveness.include=livenessState",
+			"management.health.readinessstate.enabled=true",
+			"management.endpoint.health.group.readiness.include=readinessState" })
 	class BothControllersPresent {
 
 		@Autowired
@@ -62,14 +64,13 @@ class DiscoveryServerApplicationContextTests {
 	}
 
 	@Nested
-	@SpringBootTest(classes = TestConfig.class,
-			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
-					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
-					/* disable kubernetes from liveness and readiness */
-					"management.health.livenessstate.enabled=true",
-					"management.endpoint.health.group.liveness.include=livenessState",
-					"management.health.readinessstate.enabled=true",
-					"management.endpoint.health.group.readiness.include=readinessState" })
+	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
+			"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true",
+			/* disable kubernetes from liveness and readiness */
+			"management.health.livenessstate.enabled=true",
+			"management.endpoint.health.group.liveness.include=livenessState",
+			"management.health.readinessstate.enabled=true",
+			"management.endpoint.health.group.readiness.include=readinessState" })
 	class CatalogControllerNotPresentOne {
 
 		@Autowired
@@ -91,14 +92,13 @@ class DiscoveryServerApplicationContextTests {
 	}
 
 	@Nested
-	@SpringBootTest(classes = TestConfig.class,
-			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=true",
-					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
-					/* disable kubernetes from liveness and readiness */
-					"management.health.livenessstate.enabled=true",
-					"management.endpoint.health.group.liveness.include=livenessState",
-					"management.health.readinessstate.enabled=true",
-					"management.endpoint.health.group.readiness.include=readinessState" })
+	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=true",
+			"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
+			/* disable kubernetes from liveness and readiness */
+			"management.health.livenessstate.enabled=true",
+			"management.endpoint.health.group.liveness.include=livenessState",
+			"management.health.readinessstate.enabled=true",
+			"management.endpoint.health.group.readiness.include=readinessState" })
 	class CatalogControllerNotPresentTwo {
 
 		@Autowired
@@ -120,14 +120,13 @@ class DiscoveryServerApplicationContextTests {
 	}
 
 	@Nested
-	@SpringBootTest(classes = TestConfig.class,
-			properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
-					"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
-					/* disable kubernetes from liveness and readiness */
-					"management.health.livenessstate.enabled=true",
-					"management.endpoint.health.group.liveness.include=livenessState",
-					"management.health.readinessstate.enabled=true",
-					"management.endpoint.health.group.readiness.include=readinessState" })
+	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.catalog-services-watch.enabled=false",
+			"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=false",
+			/* disable kubernetes from liveness and readiness */
+			"management.health.livenessstate.enabled=true",
+			"management.endpoint.health.group.liveness.include=livenessState",
+			"management.health.readinessstate.enabled=true",
+			"management.endpoint.health.group.readiness.include=readinessState" })
 	class CatalogControllerNotPresentThree {
 
 		@Autowired
@@ -144,16 +143,6 @@ class DiscoveryServerApplicationContextTests {
 			Assertions.assertThat(discoveryServerController.getIfAvailable()).isNotNull();
 			Assertions.assertThat(discoveryCatalogWatcherController.getIfAvailable()).isNull();
 			Assertions.assertThat(heartBeatListener.getIfAvailable()).isNull();
-		}
-
-	}
-
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		KubernetesClientInformerReactiveDiscoveryClient discoveryClient() {
-			return Mockito.mock(KubernetesClientInformerReactiveDiscoveryClient.class);
 		}
 
 	}

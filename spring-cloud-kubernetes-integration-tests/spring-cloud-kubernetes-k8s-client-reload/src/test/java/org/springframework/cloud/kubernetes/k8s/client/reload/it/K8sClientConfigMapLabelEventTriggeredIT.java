@@ -17,10 +17,7 @@
 package org.springframework.cloud.kubernetes.k8s.client.reload.it;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
@@ -34,7 +31,6 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
@@ -43,15 +39,12 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.native_cli
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightWithLabelsProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { App.class, K8sClientConfigMapLabelEventTriggeredIT.TestConfig.class },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { App.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes", "spring.profiles.active=three",
 		"spring.cloud.bootstrap.enabled=true",
 		"logging.level.org.springframework.cloud.kubernetes.client.config.reload=debug" })
@@ -114,7 +107,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		assertReloadLogStatements(
 				"added configmap informer for namespace : "
-						+ "right with filter : spring.cloud.kubernetes.config.informer.enabled=true",
+						+ "right with labels : {spring.cloud.kubernetes.config.informer.enabled=true}",
 				"added secret informer for namespace", output);
 
 		// read the initial value from the right-configmap
@@ -125,15 +118,15 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT).name("right-configmap"))
+			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT)
+				.name("right-configmap")
+				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true")))
 			.withData(Map.of("right.value", "right-after-change"))
 			.build();
 
 		replaceConfigMap(coreV1Api, rightConfigMapAfterChange);
 
-		// sleep for 5 seconds
-		LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(5));
-		Assertions.assertThat(rightProperties.getValue()).isEqualTo("right-after-change");
+		Awaitilities.awaitUntil(10, 1000, () -> rightProperties.getValue().equals("right-after-change"));
 
 		// then deploy a new version of right-configmap-with-label
 		// but only add a label, this does not trigger a refresh
@@ -167,17 +160,6 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 				() -> output.getOut().contains("ConfigMap right-configmap-with-label was updated in namespace right"));
 		Awaitilities.awaitUntil(60, 1000,
 				() -> rightWithLabelsProperties.getValue().equals("right-with-label-after-change"));
-	}
-
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		ApiClient client() {
-			return apiClient();
-		}
-
 	}
 
 }

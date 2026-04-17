@@ -45,6 +45,29 @@ spring:
 ----
 
 What this will do, is watch configmaps/secrets that only have the `spring.cloud.kubernetes.config.informer.enabled: true` label.
+In the next major release this support will be removed and replaced with:
+
+[source,yaml]
+----
+spring:
+  cloud:
+    kubernetes:
+      reload:
+        config-maps-labels:
+          label-key: label-value
+----
+
+Same for secrets:
+
+[source,yaml]
+----
+spring:
+  cloud:
+    kubernetes:
+      reload:
+        secrets-labels:
+          label-key: label-value
+----
 
 .Properties:
 [options="header,footer"]

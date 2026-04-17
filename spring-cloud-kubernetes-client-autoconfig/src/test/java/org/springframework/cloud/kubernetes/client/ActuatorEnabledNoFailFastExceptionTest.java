@@ -33,15 +33,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
 /**
  * @author wind57
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		classes = { TestApp.class, ActuatorEnabledNoFailFastExceptionTest.ActuatorConfig.class },
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = { TestApp.class },
 		properties = { "management.endpoint.health.show-details=always",
 				"management.endpoint.health.show-components=always", "management.endpoints.web.exposure.include=health",
 				"spring.main.cloud-platform=KUBERNETES" })
@@ -58,6 +57,9 @@ class ActuatorEnabledNoFailFastExceptionTest {
 
 	@Autowired
 	private KubernetesClientHealthIndicator healthIndicator;
+
+	@TestBean
+	private KubernetesClientPodUtils kubernetesClientPodUtils;
 
 	@AfterEach
 	void afterEach() {
@@ -94,22 +96,14 @@ class ActuatorEnabledNoFailFastExceptionTest {
 		pathsMockedStatic.when(() -> Paths.get(Config.SERVICEACCOUNT_CA_PATH)).thenReturn(serviceAccountCAPath);
 	}
 
-	@TestConfiguration
-	static class ActuatorConfig {
-
-		// will be created "instead" of
-		// KubernetesClientAutoConfiguration::kubernetesPodUtils
-		@Bean
-		KubernetesClientPodUtils kubernetesPodUtils() throws ApiException {
-
-			mocks();
-
-			Mockito.when(coreV1Api.readNamespacedPod("host", "my-namespace"))
-				.thenThrow(new RuntimeException("just because"));
-
-			return new KubernetesClientPodUtils(coreV1Api, "my-namespace", FAIL_FAST);
-		}
-
+	// will be created "instead" of
+	// KubernetesClientAutoConfiguration::kubernetesPodUtils
+	@Bean
+	private static KubernetesClientPodUtils kubernetesClientPodUtils() {
+		mocks();
+		Mockito.when(coreV1Api.readNamespacedPod("host", "my-namespace"))
+			.thenThrow(new RuntimeException("just because"));
+		return new KubernetesClientPodUtils(coreV1Api, "my-namespace", FAIL_FAST);
 	}
 
 }

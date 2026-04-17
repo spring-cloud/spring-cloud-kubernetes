@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.ClientBuilder;
 import org.apache.commons.logging.Log;
@@ -109,6 +112,13 @@ public final class KubernetesClientUtils {
 		}
 
 		throw new NamespaceResolutionFailedException("unresolved namespace");
+	}
+
+	public static String labelSelector(Map<String, String> labels) {
+		if (labels == null || labels.isEmpty()) {
+			return null;
+		}
+		return labels.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(","));
 	}
 
 }
