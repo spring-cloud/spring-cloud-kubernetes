@@ -31,7 +31,7 @@ import org.testcontainers.k3s.K3sContainer;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -53,7 +53,7 @@ class Fabric8ConfigMapConfigTreeIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
-	private static Util util;
+	private static Fabric8KubernetesFixture fabric8KubernetesFixture;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -64,16 +64,16 @@ class Fabric8ConfigMapConfigTreeIT {
 		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
 
-		util = new Util(K3S);
-		util.setUp(NAMESPACE);
-		manifests(Phase.CREATE, util, NAMESPACE);
-		util.configWatcher(Phase.CREATE);
+		fabric8KubernetesFixture = new Fabric8KubernetesFixture(K3S);
+		fabric8KubernetesFixture.setUp(NAMESPACE);
+		manifests(Phase.CREATE, fabric8KubernetesFixture, NAMESPACE);
+		fabric8KubernetesFixture.configWatcher(Phase.CREATE);
 	}
 
 	@AfterAll
 	static void afterAll() {
-		manifests(Phase.DELETE, util, NAMESPACE);
-		util.configWatcher(Phase.DELETE);
+		manifests(Phase.DELETE, fabric8KubernetesFixture, NAMESPACE);
+		fabric8KubernetesFixture.configWatcher(Phase.DELETE);
 	}
 
 	/**
@@ -102,7 +102,7 @@ class Fabric8ConfigMapConfigTreeIT {
 		assertThat(result).isEqualTo("as-mount-initial");
 
 		// replace data in configmap and wait for configuration watcher to pick it up.
-		InputStream configMapConfigTreeStream = util.inputStream("manifests/configmap-configtree.yaml");
+		InputStream configMapConfigTreeStream = fabric8KubernetesFixture.inputStream("manifests/configmap-configtree.yaml");
 		ConfigMap configMapConfigTree = Serialization.unmarshal(configMapConfigTreeStream, ConfigMap.class);
 		configMapConfigTree.setData(Map.of("from.properties.key", "as-mount-changed"));
 		// add label so that configuration-watcher picks this up
@@ -118,7 +118,7 @@ class Fabric8ConfigMapConfigTreeIT {
 				"spring-cloud-kubernetes-fabric8-client-reload");
 		configMapConfigTree.getMetadata().setAnnotations(existingAnnotations);
 
-		util.client().configMaps().resource(configMapConfigTree).update();
+		fabric8KubernetesFixture.client().configMaps().resource(configMapConfigTree).update();
 
 		Awaitilities.awaitUntil(180, 1000,
 				() -> webClient.method(HttpMethod.GET)

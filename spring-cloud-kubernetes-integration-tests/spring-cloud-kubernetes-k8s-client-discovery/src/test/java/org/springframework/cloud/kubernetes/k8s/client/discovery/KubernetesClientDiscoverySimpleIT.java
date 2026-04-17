@@ -37,7 +37,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameKubern
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
@@ -66,16 +66,16 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 	@BeforeEach
 	void beforeEach() {
 		Images.loadBusybox(K3S);
-		util.busybox(DEFAULT_NAMESPACE, Phase.CREATE);
+		k8sNativeKubernetesFixture.busybox(DEFAULT_NAMESPACE, Phase.CREATE);
 
-		externalNameService = Util.yaml("external-name-service.yaml", V1Service.class);
-		util.createAndWait(DEFAULT_NAMESPACE, null, null, externalNameService, true);
+		externalNameService = K8sNativeKubernetesFixture.yaml("external-name-service.yaml", V1Service.class);
+		k8sNativeKubernetesFixture.createAndWait(DEFAULT_NAMESPACE, null, null, externalNameService, true);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.busybox(DEFAULT_NAMESPACE, Phase.DELETE);
-		util.deleteAndWait(DEFAULT_NAMESPACE, null, externalNameService);
+		k8sNativeKubernetesFixture.busybox(DEFAULT_NAMESPACE, Phase.DELETE);
+		k8sNativeKubernetesFixture.deleteAndWait(DEFAULT_NAMESPACE, null, externalNameService);
 	}
 
 	@Test

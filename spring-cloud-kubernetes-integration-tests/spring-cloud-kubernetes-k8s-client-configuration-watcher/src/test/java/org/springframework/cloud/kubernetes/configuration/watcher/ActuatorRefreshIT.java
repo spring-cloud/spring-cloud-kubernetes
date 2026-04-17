@@ -31,7 +31,7 @@ import org.testcontainers.k3s.K3sContainer;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME;
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.configureWireMock;
@@ -48,7 +48,7 @@ class ActuatorRefreshIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
-	private static Util util;
+	private static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -57,8 +57,8 @@ class ActuatorRefreshIT {
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Images.loadWiremock(K3S);
 
-		util = new Util(K3S);
-		util.setUp(NAMESPACE);
+		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
+		k8sNativeKubernetesFixture.setUp(NAMESPACE);
 
 		configWatcher(Phase.CREATE);
 	}
@@ -70,12 +70,12 @@ class ActuatorRefreshIT {
 
 	@BeforeEach
 	void setup() {
-		util.wiremock(NAMESPACE, Phase.CREATE, true);
+		k8sNativeKubernetesFixture.wiremock(NAMESPACE, Phase.CREATE, true);
 	}
 
 	@AfterEach
 	void after() {
-		util.wiremock(NAMESPACE, Phase.DELETE, true);
+		k8sNativeKubernetesFixture.wiremock(NAMESPACE, Phase.DELETE, true);
 	}
 
 	/*
@@ -88,19 +88,19 @@ class ActuatorRefreshIT {
 	@Test
 	void testActuatorRefresh() {
 		configureWireMock();
-		createConfigMap(util, NAMESPACE);
+		createConfigMap(k8sNativeKubernetesFixture, NAMESPACE);
 		verifyActuatorCalled(1);
 
 		Commons.waitForLogStatement("creating NOOP strategy because reload is disabled", K3S,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 
-		deleteConfigMap(util, NAMESPACE);
+		deleteConfigMap(k8sNativeKubernetesFixture, NAMESPACE);
 	}
 
 	private static void configWatcher(Phase phase) {
-		V1Deployment deployment = Util
+		V1Deployment deployment = K8sNativeKubernetesFixture
 			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml",
+		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml",
 				V1Service.class);
 
 		List<V1EnvVar> envVars = List.of(
@@ -112,10 +112,10 @@ class ActuatorRefreshIT {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
 		}
 
 	}

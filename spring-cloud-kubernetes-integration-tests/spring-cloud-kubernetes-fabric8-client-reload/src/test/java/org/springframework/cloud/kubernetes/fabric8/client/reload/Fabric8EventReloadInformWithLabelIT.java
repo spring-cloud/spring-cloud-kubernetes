@@ -66,23 +66,23 @@ class Fabric8EventReloadInformWithLabelIT extends Fabric8EventReloadBase {
 
 	@BeforeAll
 	static void beforeAllLocal() {
-		InputStream rightConfigMapStream = util.inputStream("manifests/right-configmap.yaml");
-		InputStream rightConfigMapWithLabelStream = util.inputStream("manifests/right-configmap-with-label.yaml");
+		InputStream rightConfigMapStream = fabric8KubernetesFixture.inputStream("manifests/right-configmap.yaml");
+		InputStream rightConfigMapWithLabelStream = fabric8KubernetesFixture.inputStream("manifests/right-configmap-with-label.yaml");
 
 		rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
 		rightConfigMapWithLabel = Serialization.unmarshal(rightConfigMapWithLabelStream, ConfigMap.class);
 
-		util.createNamespace(RIGHT_NAMESPACE);
+		fabric8KubernetesFixture.createNamespace(RIGHT_NAMESPACE);
 
-		configMap(Phase.CREATE, util, rightConfigMap, RIGHT_NAMESPACE);
-		configMap(Phase.CREATE, util, rightConfigMapWithLabel, RIGHT_NAMESPACE);
+		configMap(Phase.CREATE, fabric8KubernetesFixture, rightConfigMap, RIGHT_NAMESPACE);
+		configMap(Phase.CREATE, fabric8KubernetesFixture, rightConfigMapWithLabel, RIGHT_NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAllLocal() {
-		configMap(Phase.DELETE, util, rightConfigMap, RIGHT_NAMESPACE);
-		configMap(Phase.DELETE, util, rightConfigMapWithLabel, RIGHT_NAMESPACE);
-		util.deleteNamespace(RIGHT_NAMESPACE);
+		configMap(Phase.DELETE, fabric8KubernetesFixture, rightConfigMap, RIGHT_NAMESPACE);
+		configMap(Phase.DELETE, fabric8KubernetesFixture, rightConfigMapWithLabel, RIGHT_NAMESPACE);
+		fabric8KubernetesFixture.deleteNamespace(RIGHT_NAMESPACE);
 	}
 
 	/**

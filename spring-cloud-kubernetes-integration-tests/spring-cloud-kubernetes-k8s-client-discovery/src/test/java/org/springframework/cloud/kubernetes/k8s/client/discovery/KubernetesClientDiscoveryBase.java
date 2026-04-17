@@ -31,7 +31,7 @@ import org.testcontainers.k3s.K3sContainer;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -51,12 +51,12 @@ abstract class KubernetesClientDiscoveryBase {
 
 	protected static final K3sContainer K3S = Commons.container();
 
-	protected static Util util;
+	protected static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
 
 	@BeforeAll
 	protected static void beforeAll() {
 		K3S.start();
-		util = new Util(K3S);
+		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
 	}
 
 	protected static ApiClient apiClient() {

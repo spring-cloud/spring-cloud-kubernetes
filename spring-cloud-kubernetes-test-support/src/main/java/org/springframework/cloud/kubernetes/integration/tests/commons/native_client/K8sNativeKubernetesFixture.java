@@ -67,9 +67,9 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-public final class Util {
+public final class K8sNativeKubernetesFixture {
 
-	private static final Log LOG = LogFactory.getLog(Util.class);
+	private static final Log LOG = LogFactory.getLog(K8sNativeKubernetesFixture.class);
 
 	private final CoreV1Api coreV1Api;
 
@@ -79,7 +79,7 @@ public final class Util {
 
 	private final K3sContainer container;
 
-	public Util(K3sContainer container) {
+	public K8sNativeKubernetesFixture(K3sContainer container) {
 
 		ApiClient client;
 		try {
@@ -278,7 +278,7 @@ public final class Util {
 	 * reads a yaml from classpath, fails if not found.
 	 */
 	public static <T> T yaml(String fileName, Class<T> type) {
-		ClassLoader classLoader = Util.class.getClassLoader();
+		ClassLoader classLoader = K8sNativeKubernetesFixture.class.getClassLoader();
 
 		try (InputStream inputStream = classLoader.getResourceAsStream(fileName)) {
 			if (inputStream == null) {

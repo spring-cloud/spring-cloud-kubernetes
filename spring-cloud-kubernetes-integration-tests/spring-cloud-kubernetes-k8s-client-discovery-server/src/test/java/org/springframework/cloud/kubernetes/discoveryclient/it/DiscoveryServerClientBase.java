@@ -40,7 +40,7 @@ import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscover
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -59,12 +59,12 @@ abstract class DiscoveryServerClientBase {
 
 	protected static final K3sContainer K3S = Commons.container();
 
-	protected static Util util;
+	protected static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
 
 	@BeforeAll
 	protected static void beforeAll() {
 		K3S.start();
-		util = new Util(K3S);
+		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
 	}
 
 	protected static ApiClient apiClient() {
@@ -88,21 +88,21 @@ abstract class DiscoveryServerClientBase {
 	}
 
 	protected static void discoveryServer(Phase phase) {
-		V1Deployment deployment = Util.yaml("manifests/discoveryserver-deployment.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("manifests/discoveryserver-service.yaml", V1Service.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("manifests/discoveryserver-deployment.yaml", V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("manifests/discoveryserver-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 
 	protected static void serviceAccount(Phase phase) {
 
 		try {
-			V1ClusterRoleBinding clusterRoleBinding = Util.yaml("manifests/cluster-role.yaml",
+			V1ClusterRoleBinding clusterRoleBinding = K8sNativeKubernetesFixture.yaml("manifests/cluster-role.yaml",
 					V1ClusterRoleBinding.class);
 			RbacAuthorizationV1Api rbacApi = new RbacAuthorizationV1Api();
 

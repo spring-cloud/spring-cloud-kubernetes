@@ -43,16 +43,16 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
 	@BeforeAll
 	static void beforeAllInNested() {
-		InputStream externalNameServiceStream = util.inputStream("external-name-service.yaml");
+		InputStream externalNameServiceStream = fabric8KubernetesFixture.inputStream("external-name-service.yaml");
 		externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
 	}
 
 	private void externalNameServices(Phase phase) {
 		if (phase == Phase.CREATE) {
-			util.createAndWait(NAMESPACE, null, null, externalServiceName, true);
+			fabric8KubernetesFixture.createAndWait(NAMESPACE, null, null, externalServiceName, true);
 		}
 		else {
-			util.deleteAndWait(NAMESPACE, null, externalServiceName);
+			fabric8KubernetesFixture.deleteAndWait(NAMESPACE, null, externalServiceName);
 		}
 	}
 
@@ -66,13 +66,13 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 		@BeforeEach
 		void beforeEach() {
 			Images.loadBusybox(K3S);
-			util.busybox(NAMESPACE, Phase.CREATE);
+			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.CREATE);
 			externalNameServices(Phase.CREATE);
 		}
 
 		@AfterEach
 		void afterEach() {
-			util.busybox(NAMESPACE, Phase.DELETE);
+			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.DELETE);
 			externalNameServices(Phase.DELETE);
 		}
 
@@ -100,13 +100,13 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 		@BeforeEach
 		void beforeEach() {
 			Images.loadBusybox(K3S);
-			util.busybox(NAMESPACE, Phase.CREATE);
+			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.CREATE);
 			externalNameServices(Phase.CREATE);
 		}
 
 		@AfterEach
 		void afterEach() {
-			util.busybox(NAMESPACE, Phase.DELETE);
+			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.DELETE);
 			externalNameServices(Phase.DELETE);
 		}
 

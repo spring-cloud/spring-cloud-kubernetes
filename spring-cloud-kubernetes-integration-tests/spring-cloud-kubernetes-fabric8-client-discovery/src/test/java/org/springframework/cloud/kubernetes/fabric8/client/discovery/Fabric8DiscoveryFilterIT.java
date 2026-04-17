@@ -48,22 +48,22 @@ class Fabric8DiscoveryFilterIT extends Fabric8DiscoveryBase {
 	void beforeEach() {
 		Images.loadWiremock(K3S);
 
-		util.createNamespace(NAMESPACE_A_UAT);
-		util.createNamespace(NAMESPACE_B_UAT);
+		fabric8KubernetesFixture.createNamespace(NAMESPACE_A_UAT);
+		fabric8KubernetesFixture.createNamespace(NAMESPACE_B_UAT);
 
-		util.wiremock(NAMESPACE_A_UAT, Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B_UAT, Phase.CREATE, false);
+		fabric8KubernetesFixture.wiremock(NAMESPACE_A_UAT, Phase.CREATE, false);
+		fabric8KubernetesFixture.wiremock(NAMESPACE_B_UAT, Phase.CREATE, false);
 
 	}
 
 	@AfterEach
 	void afterEach() {
 
-		util.wiremock(NAMESPACE_A_UAT, Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B_UAT, Phase.DELETE, false);
+		fabric8KubernetesFixture.wiremock(NAMESPACE_A_UAT, Phase.DELETE, false);
+		fabric8KubernetesFixture.wiremock(NAMESPACE_B_UAT, Phase.DELETE, false);
 
-		util.deleteNamespace(NAMESPACE_A_UAT);
-		util.deleteNamespace(NAMESPACE_B_UAT);
+		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_A_UAT);
+		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_B_UAT);
 	}
 
 	@Test

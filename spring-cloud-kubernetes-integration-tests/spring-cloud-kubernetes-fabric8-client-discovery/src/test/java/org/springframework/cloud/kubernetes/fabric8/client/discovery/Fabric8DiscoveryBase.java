@@ -32,7 +32,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
@@ -55,7 +55,7 @@ abstract class Fabric8DiscoveryBase {
 
 	protected static final K3sContainer K3S = Commons.container();
 
-	protected static Util util;
+	protected static Fabric8KubernetesFixture fabric8KubernetesFixture;
 
 	@TestBean
 	private KubernetesClient kubernetesClient;
@@ -63,7 +63,7 @@ abstract class Fabric8DiscoveryBase {
 	@BeforeAll
 	protected static void beforeAll() {
 		K3S.start();
-		util = new Util(K3S);
+		fabric8KubernetesFixture = new Fabric8KubernetesFixture(K3S);
 	}
 
 	protected static KubernetesDiscoveryProperties discoveryProperties(Set<String> namespaces,

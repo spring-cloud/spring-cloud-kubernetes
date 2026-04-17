@@ -35,7 +35,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightWithLabelsProperties;
@@ -77,11 +77,11 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 					Mockito.any(KubernetesNamespaceProvider.class)))
 			.thenReturn(NAMESPACE_RIGHT);
 
-		util.createNamespace(NAMESPACE_RIGHT);
-		rightConfigMap = Util.yaml("right-configmap.yaml", V1ConfigMap.class);
-		rightConfigMapWithLabel = Util.yaml("right-configmap-with-label.yaml", V1ConfigMap.class);
-		util.createAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
-		util.createAndWait(NAMESPACE_RIGHT, rightConfigMapWithLabel, null);
+		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_RIGHT);
+		rightConfigMap = K8sNativeKubernetesFixture.yaml("right-configmap.yaml", V1ConfigMap.class);
+		rightConfigMapWithLabel = K8sNativeKubernetesFixture.yaml("right-configmap-with-label.yaml", V1ConfigMap.class);
+		k8sNativeKubernetesFixture.createAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
+		k8sNativeKubernetesFixture.createAndWait(NAMESPACE_RIGHT, rightConfigMapWithLabel, null);
 	}
 
 	@AfterAll
@@ -89,9 +89,9 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		KUBERNETES_CLIENT_UTILS_MOCKED_STATIC.close();
 
-		util.deleteAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
-		util.deleteAndWait(NAMESPACE_RIGHT, rightConfigMapWithLabel, null);
-		util.deleteNamespace(NAMESPACE_RIGHT);
+		k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
+		k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE_RIGHT, rightConfigMapWithLabel, null);
+		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_RIGHT);
 	}
 
 	/**

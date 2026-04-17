@@ -84,14 +84,14 @@ class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 		System.setProperty(Config.KUBERNETES_CLIENT_KEY_ALGO_SYSTEM_PROPERTY, clientKeyAlgo);
 		System.setProperty(Config.KUBERNETES_CLIENT_KEY_PASSPHRASE_SYSTEM_PROPERTY, clientKeyPass);
 
-		InputStream secretStream = util.inputStream("manifests/secret.yaml");
+		InputStream secretStream = fabric8KubernetesFixture.inputStream("manifests/secret.yaml");
 		secret = Serialization.unmarshal(secretStream, Secret.class);
-		secret(Phase.CREATE, util, secret, NAMESPACE);
+		secret(Phase.CREATE, fabric8KubernetesFixture, secret, NAMESPACE);
 	}
 
 	@AfterAll
 	static void afterAllLocal() {
-		secret(Phase.DELETE, util, secret, NAMESPACE);
+		secret(Phase.DELETE, fabric8KubernetesFixture, secret, NAMESPACE);
 	}
 
 	/**

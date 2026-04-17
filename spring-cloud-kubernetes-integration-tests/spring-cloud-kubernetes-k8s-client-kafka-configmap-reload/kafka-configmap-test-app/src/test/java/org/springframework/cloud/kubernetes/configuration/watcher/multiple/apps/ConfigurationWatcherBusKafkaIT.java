@@ -37,7 +37,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitiliti
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -57,12 +57,12 @@ class ConfigurationWatcherBusKafkaIT {
 
 	private static final K3sContainer K3S = Commons.container();
 
-	private static Util util;
+	private static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		K3S.start();
-		util = new Util(K3S);
+		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
 
 		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
 		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
@@ -71,19 +71,19 @@ class ConfigurationWatcherBusKafkaIT {
 		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_APP_IMAGE, K3S);
 
 		Images.loadKafka(K3S);
-		util.setUp(NAMESPACE);
+		k8sNativeKubernetesFixture.setUp(NAMESPACE);
 	}
 
 	@BeforeEach
 	void setup() {
-		util.kafka(NAMESPACE, Phase.CREATE);
+		k8sNativeKubernetesFixture.kafka(NAMESPACE, Phase.CREATE);
 		app(Phase.CREATE);
 		configWatcher(Phase.CREATE);
 	}
 
 	@AfterEach
 	void afterEach() {
-		util.kafka(NAMESPACE, Phase.DELETE);
+		k8sNativeKubernetesFixture.kafka(NAMESPACE, Phase.DELETE);
 		app(Phase.DELETE);
 		configWatcher(Phase.DELETE);
 	}
@@ -146,7 +146,7 @@ class ConfigurationWatcherBusKafkaIT {
 			.addToAnnotations("spring.cloud.kubernetes.configmap.apps", "app")
 			.endMetadata()
 			.build();
-		util.createAndWait(NAMESPACE, configMap, null);
+		k8sNativeKubernetesFixture.createAndWait(NAMESPACE, configMap, null);
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:32321/app").build();
@@ -163,30 +163,30 @@ class ConfigurationWatcherBusKafkaIT {
 
 		Assertions.assertThat(value[0]).isTrue();
 
-		util.deleteAndWait(NAMESPACE, configMap, null);
+		k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, configMap, null);
 	}
 
 	private void app(Phase phase) {
-		V1Deployment deployment = Util.yaml("app/app-deployment.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("app/app-service.yaml", V1Service.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("app/app-deployment.yaml", V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("app/app-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 
 	private void configWatcher(Phase phase) {
-		V1Deployment deployment = Util.yaml("config-watcher/watcher-bus-kafka-deployment.yaml", V1Deployment.class);
-		V1Service service = Util.yaml("config-watcher/watcher-kus-kafka-service.yaml", V1Service.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-bus-kafka-deployment.yaml", V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-kus-kafka-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(NAMESPACE, null, deployment, service, true);
+			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			util.deleteAndWait(NAMESPACE, deployment, service);
+			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
 		}
 	}
 

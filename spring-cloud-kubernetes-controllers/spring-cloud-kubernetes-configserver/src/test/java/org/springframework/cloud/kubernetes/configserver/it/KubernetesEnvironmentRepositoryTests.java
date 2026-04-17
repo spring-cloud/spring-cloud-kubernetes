@@ -39,7 +39,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -55,16 +55,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesEnvironmentRepositoryTests {
 
-	private static final V1ConfigMapList CONFIGMAP_LIST_DEFAULT_NAMESPACE = Util.yaml("configmap-default-list.yaml",
+	private static final V1ConfigMapList CONFIGMAP_LIST_DEFAULT_NAMESPACE = K8sNativeKubernetesFixture.yaml("configmap-default-list.yaml",
 			V1ConfigMapList.class);
 
-	private static final V1ConfigMapList CONFIGMAP_LIST_DEV_NAMESPACE = Util.yaml("configmap-dev-list.yaml",
+	private static final V1ConfigMapList CONFIGMAP_LIST_DEV_NAMESPACE = K8sNativeKubernetesFixture.yaml("configmap-dev-list.yaml",
 			V1ConfigMapList.class);
 
-	private static final V1SecretList SECRET_LIST_DEFAULT_NAMESPACE = Util.yaml("secret-one-list.yaml",
+	private static final V1SecretList SECRET_LIST_DEFAULT_NAMESPACE = K8sNativeKubernetesFixture.yaml("secret-one-list.yaml",
 			V1SecretList.class);
 
-	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = Util.yaml("configmap-one-list.yaml",
+	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = K8sNativeKubernetesFixture.yaml("configmap-one-list.yaml",
 			V1ConfigMapList.class);
 
 	private static WireMockServer wireMockServer;
