@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Primary;
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { App.class })
+@SpringBootTest(classes = { App.class, Fabric8EventReloadBase.TestConfig.class })
 @ExtendWith(OutputCaptureExtension.class)
 abstract class Fabric8EventReloadBase {
 

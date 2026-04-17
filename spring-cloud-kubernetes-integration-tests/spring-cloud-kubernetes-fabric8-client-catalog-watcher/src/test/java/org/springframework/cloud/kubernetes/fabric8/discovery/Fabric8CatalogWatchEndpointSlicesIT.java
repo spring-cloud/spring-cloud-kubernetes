@@ -24,25 +24,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.bean.override.convention.TestBean;
 
-import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8CatalogWatchEndpointSlicesIT.TestConfig;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.TestAssertions.assertLogStatement;
 import static org.springframework.cloud.kubernetes.fabric8.discovery.TestAssertions.invokeAndAssert;
 
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { Fabric8CatalogWatchAutoConfiguration.class, TestConfig.class, Application.class },
+@SpringBootTest(classes = { Fabric8CatalogWatchAutoConfiguration.class, Application.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class Fabric8CatalogWatchEndpointSlicesIT extends Fabric8CatalogWatchBase {
+
+	@TestBean
+	private KubernetesClient client;
+
+	@TestBean
+	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
 
 	@LocalServerPort
 	private int port;
@@ -83,21 +86,8 @@ class Fabric8CatalogWatchEndpointSlicesIT extends Fabric8CatalogWatchBase {
 		invokeAndAssert(util, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
-	@TestConfiguration
-	static class TestConfig {
-
-		@Bean
-		@Primary
-		KubernetesClient kubernetesClient() {
-			return client();
-		}
-
-		@Bean
-		@Primary
-		KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-			return discoveryProperties(true, Set.of(NAMESPACE, NAMESPACE_A));
-		}
-
+	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
+		return discoveryProperties(true, Set.of(NAMESPACE, NAMESPACE_A));
 	}
 
 }

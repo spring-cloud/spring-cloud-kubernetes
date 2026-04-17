@@ -49,11 +49,14 @@ import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPrope
 import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
-import org.springframework.mock.env.MockEnvironment;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author wind57
@@ -62,6 +65,7 @@ import org.springframework.mock.env.MockEnvironment;
 		properties = { "spring.main.allow-bean-definition-overriding=true",
 				"logging.level.org.springframework.cloud.kubernetes.commons.config=debug" },
 		classes = { EventReloadConfigMapTest.TestConfig.class })
+@ContextConfiguration(initializers = EventReloadConfigMapTest.Initializer.class)
 @EnableKubernetesMockClient(crud = true)
 @ExtendWith(OutputCaptureExtension.class)
 class EventReloadConfigMapTest {
@@ -153,26 +157,6 @@ class EventReloadConfigMapTest {
 
 		@Bean
 		@Primary
-		AbstractEnvironment environment() {
-			MockEnvironment mockEnvironment = new MockEnvironment();
-			mockEnvironment.setProperty("spring.cloud.kubernetes.client.namespace", NAMESPACE);
-
-			// simulate that environment already has a Fabric8ConfigMapPropertySource,
-			// otherwise we can't properly test reload functionality
-			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.SINGLE);
-			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(mockEnvironment);
-
-			PropertySource<?> propertySource = new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient,
-					configMapConfigProperties, namespaceProvider)
-				.locate(mockEnvironment);
-
-			mockEnvironment.getPropertySources().addFirst(propertySource);
-			return mockEnvironment;
-		}
-
-		@Bean
-		@Primary
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
 					ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE), false,
@@ -206,6 +190,29 @@ class EventReloadConfigMapTest {
 				ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
 			return new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient, configMapConfigProperties,
 					namespaceProvider);
+		}
+
+	}
+
+	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+		@Override
+		public void initialize(ConfigurableApplicationContext context) {
+
+			ConfigurableEnvironment environment = context.getEnvironment();
+
+			// simulate that environment already has a Fabric8ConfigMapPropertySource,
+			// otherwise we can't properly test reload functionality
+			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
+					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.SINGLE);
+			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
+
+			PropertySource<?> propertySource = new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient,
+					configMapConfigProperties, namespaceProvider)
+				.locate(environment);
+
+			environment.getPropertySources().addFirst(propertySource);
+
 		}
 
 	}
