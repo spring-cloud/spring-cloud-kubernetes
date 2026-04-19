@@ -49,21 +49,21 @@ class KubernetesClientCatalogWatchEndpointSlicesIT extends KubernetesClientCatal
 	@BeforeEach
 	void beforeEach() {
 
-		fabric8KubernetesFixture.createNamespace(NAMESPACE_A);
-		fabric8KubernetesFixture.createNamespace(NAMESPACE_B);
+		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_A);
+		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_B);
 
 		Images.loadBusybox(K3S);
 
-		fabric8KubernetesFixture.busybox(NAMESPACE_A, Phase.CREATE);
-		fabric8KubernetesFixture.busybox(NAMESPACE_B, Phase.CREATE);
+		k8sNativeKubernetesFixture.busybox(NAMESPACE_A, Phase.CREATE);
+		k8sNativeKubernetesFixture.busybox(NAMESPACE_B, Phase.CREATE);
 
 	}
 
 	@AfterEach
 	void afterEach() {
 		// busybox is deleted as part of the assertions, thus not seen here
-		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_A);
-		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_B);
+		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_A);
+		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_B);
 	}
 
 	/**
@@ -79,7 +79,7 @@ class KubernetesClientCatalogWatchEndpointSlicesIT extends KubernetesClientCatal
 	@Test
 	void testCatalogWatchWithEndpoints(CapturedOutput output) {
 		assertLogStatement(output, "stateGenerator is of type: KubernetesClientEndpointSlicesCatalogWatch");
-		invokeAndAssert(fabric8KubernetesFixture, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
+		invokeAndAssert(k8sNativeKubernetesFixture, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
