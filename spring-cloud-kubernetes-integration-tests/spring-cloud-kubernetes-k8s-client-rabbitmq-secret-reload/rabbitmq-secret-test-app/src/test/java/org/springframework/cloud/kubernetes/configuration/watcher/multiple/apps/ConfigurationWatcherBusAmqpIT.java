@@ -130,7 +130,8 @@ class ConfigurationWatcherBusAmqpIT {
 	}
 
 	private void configWatcher(Phase phase) {
-		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-deployment.yaml", V1Deployment.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-deployment.yaml",
+				V1Deployment.class);
 		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {

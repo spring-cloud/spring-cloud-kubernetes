@@ -61,7 +61,8 @@ class ActuatorRefreshMultipleNamespacesIT {
 		k8sNativeKubernetesFixture.createNamespace(LEFT_NAMESPACE);
 		k8sNativeKubernetesFixture.createNamespace(RIGHT_NAMESPACE);
 		k8sNativeKubernetesFixture.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, true);
-		k8sNativeKubernetesFixture.setUpClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
+		k8sNativeKubernetesFixture.setUpClusterWide(DEFAULT_NAMESPACE,
+				Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
 		configWatcher(Phase.CREATE);
 	}
 
@@ -69,7 +70,8 @@ class ActuatorRefreshMultipleNamespacesIT {
 	static void afterAll() {
 		configWatcher(Phase.DELETE);
 		k8sNativeKubernetesFixture.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, true);
-		k8sNativeKubernetesFixture.deleteClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
+		k8sNativeKubernetesFixture.deleteClusterWide(DEFAULT_NAMESPACE,
+				Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
 		k8sNativeKubernetesFixture.deleteNamespace(LEFT_NAMESPACE);
 		k8sNativeKubernetesFixture.deleteNamespace(RIGHT_NAMESPACE);
 	}
@@ -125,8 +127,8 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
-		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml",
-				V1Service.class);
+		V1Service service = K8sNativeKubernetesFixture
+			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			k8sNativeKubernetesFixture.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, true);

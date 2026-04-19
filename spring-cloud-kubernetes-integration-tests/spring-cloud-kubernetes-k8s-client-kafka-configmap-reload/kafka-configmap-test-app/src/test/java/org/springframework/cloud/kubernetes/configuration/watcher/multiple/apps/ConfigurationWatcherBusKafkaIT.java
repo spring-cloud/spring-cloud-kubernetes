@@ -179,8 +179,10 @@ class ConfigurationWatcherBusKafkaIT {
 	}
 
 	private void configWatcher(Phase phase) {
-		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-bus-kafka-deployment.yaml", V1Deployment.class);
-		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-kus-kafka-service.yaml", V1Service.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-bus-kafka-deployment.yaml",
+				V1Deployment.class);
+		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-kus-kafka-service.yaml",
+				V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
 			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);

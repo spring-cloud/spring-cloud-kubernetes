@@ -42,10 +42,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author wind57
  */
-@SpringBootTest(classes = { DiscoveryApp.class },
-	webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = { DiscoveryApp.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=a-uat",
-	"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat" })
+		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat" })
 class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 
 	private static final String NAMESPACE_A_UAT = "a-uat";
@@ -110,7 +109,7 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 		assertThat(first.getPort()).isEqualTo(8080);
 		assertThat(first.getNamespace()).isEqualTo("a-uat");
 		assertThat(first.getMetadata()).containsAllEntriesOf(
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "a-uat", "type", "ClusterIP"));
 
 		DefaultKubernetesServiceInstance second = sorted.get(1);
 		assertThat(second.getServiceId()).isEqualTo("service-wiremock");
@@ -118,12 +117,12 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 		assertThat(second.getPort()).isEqualTo(8080);
 		assertThat(second.getNamespace()).isEqualTo("b-uat");
 		assertThat(second.getMetadata()).containsAllEntriesOf(
-			Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
+				Map.of("app", "service-wiremock", "port.http", "8080", "k8s_namespace", "b-uat", "type", "ClusterIP"));
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
 		return discoveryProperties(false, Set.of(NAMESPACE_A_UAT, NAMESPACE_B_UAT),
-			"#root.metadata.namespace matches '^.*uat$'", Map.of());
+				"#root.metadata.namespace matches '^.*uat$'", Map.of());
 	}
 
 }

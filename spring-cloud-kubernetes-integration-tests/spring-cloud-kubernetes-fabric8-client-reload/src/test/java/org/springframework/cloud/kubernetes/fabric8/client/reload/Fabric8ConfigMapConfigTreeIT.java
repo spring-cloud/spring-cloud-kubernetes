@@ -26,12 +26,11 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -43,37 +42,20 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
+@K3sIntegrationTest(
+		withImages = { "spring-cloud-kubernetes-fabric8-client-reload",
+				"spring-cloud-kubernetes-configuration-watcher" },
+		rbacNamespaces = "default", deployConfigurationWatcher = true)
 class Fabric8ConfigMapConfigTreeIT {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-reload";
-
-	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
-
-	private static final String NAMESPACE = "default";
-
-	private static final K3sContainer K3S = Commons.container();
-
-	private static Fabric8KubernetesFixture fabric8KubernetesFixture;
-
 	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S.start();
-		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-
-		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
-
-		fabric8KubernetesFixture = new Fabric8KubernetesFixture(K3S);
-		fabric8KubernetesFixture.setUp(NAMESPACE);
-		manifests(Phase.CREATE, fabric8KubernetesFixture, NAMESPACE);
-		fabric8KubernetesFixture.configWatcher(Phase.CREATE);
+	static void beforeAll(Fabric8KubernetesFixture fabric8KubernetesFixture) {
+		manifests(Phase.CREATE, fabric8KubernetesFixture, "default");
 	}
 
 	@AfterAll
-	static void afterAll() {
-		manifests(Phase.DELETE, fabric8KubernetesFixture, NAMESPACE);
-		fabric8KubernetesFixture.configWatcher(Phase.DELETE);
+	static void afterAll(Fabric8KubernetesFixture fabric8KubernetesFixture) {
+		manifests(Phase.DELETE, fabric8KubernetesFixture, "default");
 	}
 
 	/**
@@ -90,7 +72,7 @@ class Fabric8ConfigMapConfigTreeIT {
 	 * </pre>
 	 */
 	@Test
-	void test() {
+	void test(Fabric8KubernetesFixture fabric8KubernetesFixture) {
 		WebClient webClient = builder().baseUrl("http://localhost:32321/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
@@ -102,7 +84,8 @@ class Fabric8ConfigMapConfigTreeIT {
 		assertThat(result).isEqualTo("as-mount-initial");
 
 		// replace data in configmap and wait for configuration watcher to pick it up.
-		InputStream configMapConfigTreeStream = fabric8KubernetesFixture.inputStream("manifests/configmap-configtree.yaml");
+		InputStream configMapConfigTreeStream = fabric8KubernetesFixture
+			.inputStream("manifests/configmap-configtree.yaml");
 		ConfigMap configMapConfigTree = Serialization.unmarshal(configMapConfigTreeStream, ConfigMap.class);
 		configMapConfigTree.setData(Map.of("from.properties.key", "as-mount-changed"));
 		// add label so that configuration-watcher picks this up

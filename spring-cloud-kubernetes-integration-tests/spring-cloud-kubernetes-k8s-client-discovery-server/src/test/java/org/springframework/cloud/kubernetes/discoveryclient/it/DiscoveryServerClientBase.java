@@ -88,7 +88,8 @@ abstract class DiscoveryServerClientBase {
 	}
 
 	protected static void discoveryServer(Phase phase) {
-		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("manifests/discoveryserver-deployment.yaml", V1Deployment.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("manifests/discoveryserver-deployment.yaml",
+				V1Deployment.class);
 		V1Service service = K8sNativeKubernetesFixture.yaml("manifests/discoveryserver-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {

@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.filterMatchesBothNamespacesViaThePredicate;
@@ -35,36 +32,11 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat",
 		"spring.cloud.kubernetes.discovery.filter=#root.metadata.namespace matches '^.*uat$'",
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG" })
+@K3sIntegrationTest(namespaces = { "a-uat", "b-uat" }, wiremockNamespaces = { "a-uat", "b-uat" })
 class Fabric8DiscoveryFilterIT extends Fabric8DiscoveryBase {
-
-	private static final String NAMESPACE_A_UAT = "a-uat";
-
-	private static final String NAMESPACE_B_UAT = "b-uat";
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
-
-	@BeforeEach
-	void beforeEach() {
-		Images.loadWiremock(K3S);
-
-		fabric8KubernetesFixture.createNamespace(NAMESPACE_A_UAT);
-		fabric8KubernetesFixture.createNamespace(NAMESPACE_B_UAT);
-
-		fabric8KubernetesFixture.wiremock(NAMESPACE_A_UAT, Phase.CREATE, false);
-		fabric8KubernetesFixture.wiremock(NAMESPACE_B_UAT, Phase.CREATE, false);
-
-	}
-
-	@AfterEach
-	void afterEach() {
-
-		fabric8KubernetesFixture.wiremock(NAMESPACE_A_UAT, Phase.DELETE, false);
-		fabric8KubernetesFixture.wiremock(NAMESPACE_B_UAT, Phase.DELETE, false);
-
-		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_A_UAT);
-		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_B_UAT);
-	}
 
 	@Test
 	void test() {

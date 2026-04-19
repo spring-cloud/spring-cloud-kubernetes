@@ -37,6 +37,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
@@ -53,9 +54,10 @@ import org.springframework.test.annotation.DirtiesContext;
 				"logging.level.org.springframework.cloud.kubernetes.fabric8.leader.election=debug" },
 		classes = { App.class, AbstractLeaderElection.LocalConfiguration.class })
 @DirtiesContext
+@K3sIntegrationTest
 abstract class AbstractLeaderElection {
 
-	private static K3sContainer container;
+	private static final K3sContainer CONTAINER = Commons.container();
 
 	private static MockedStatic<LeaderUtils> LEADER_UTILS_MOCKED_STATIC;
 
@@ -63,9 +65,6 @@ abstract class AbstractLeaderElection {
 	KubernetesClient kubernetesClient;
 
 	static void beforeAll(String candidateIdentity) {
-		container = Commons.container();
-		container.start();
-
 		LEADER_UTILS_MOCKED_STATIC = Mockito.mockStatic(LeaderUtils.class);
 		LEADER_UTILS_MOCKED_STATIC.when(LeaderUtils::hostName).thenReturn(candidateIdentity);
 	}
@@ -96,7 +95,7 @@ abstract class AbstractLeaderElection {
 		@Bean
 		@Primary
 		KubernetesClient client() {
-			String kubeConfigYaml = container.getKubeConfigYaml();
+			String kubeConfigYaml = CONTAINER.getKubeConfigYaml();
 			Config config = Config.fromKubeconfig(kubeConfigYaml);
 			return new KubernetesClientBuilder().withConfig(config).build();
 		}

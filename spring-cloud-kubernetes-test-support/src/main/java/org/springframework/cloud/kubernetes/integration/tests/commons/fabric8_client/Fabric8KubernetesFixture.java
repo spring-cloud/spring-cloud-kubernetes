@@ -130,6 +130,17 @@ public final class Fabric8KubernetesFixture {
 		}
 	}
 
+	public void externalName(Phase phase) {
+		InputStream serviceStream = inputStream("external-name-service/external-name-service.yaml");
+		Service service = Serialization.unmarshal(serviceStream, Service.class);
+		if (Phase.CREATE.equals(phase)) {
+			createAndWait("default", null, null, service, false);
+		}
+		else {
+			deleteAndWait("default", null, service);
+		}
+	}
+
 	public void deleteAndWait(String namespace, @Nullable Deployment deployment, @Nullable Service service) {
 		try {
 
@@ -159,7 +170,7 @@ public final class Fabric8KubernetesFixture {
 		}
 	}
 
-	public void setUp(String namespace) throws Exception {
+	public void setUp(String namespace) {
 		InputStream serviceAccountAsStream = inputStream("setup/service-account.yaml");
 		InputStream roleBindingAsStream = inputStream("setup/role-binding.yaml");
 		InputStream roleAsStream = inputStream("setup/role.yaml");
@@ -173,6 +184,10 @@ public final class Fabric8KubernetesFixture {
 
 	public void createNamespace(String name) {
 		try {
+			if (name.equals("default")) {
+				return;
+			}
+
 			client.namespaces()
 				.resource(new NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.create();
@@ -192,8 +207,11 @@ public final class Fabric8KubernetesFixture {
 	public void deleteNamespace(String name) {
 		try {
 
-			// sometimes we get errors like :
+			if ("default".equals(name)) {
+				return;
+			}
 
+			// sometimes we get errors like :
 			// "message": "Discovery failed for some groups,
 			// 1 failing: unable to retrieve the complete list of server APIs:
 			// metrics.k8s.io/v1beta1: stale GroupVersion discovery:
@@ -256,7 +274,7 @@ public final class Fabric8KubernetesFixture {
 		innerSetup(namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
 	}
 
-	public void setUpIstioctl(String namespace, Phase phase) {
+	public void istioCtl(String namespace, Phase phase) {
 		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
 		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
 
@@ -274,6 +292,19 @@ public final class Fabric8KubernetesFixture {
 		}
 		else {
 			deleteAndWait(namespace, istioctlDeployment, null);
+		}
+	}
+
+	public String istioctlPodName() {
+		try {
+			return container
+				.execInContainer("sh", "-c",
+						"kubectl get pods -n istio-test -l app=istio-ctl -o=name --no-headers | tr -d '\n'")
+				.getStdout()
+				.split("/")[1];
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 

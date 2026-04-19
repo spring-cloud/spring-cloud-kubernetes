@@ -16,20 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import java.io.InputStream;
-
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertAllServices;
@@ -39,42 +31,13 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
  */
 class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
-	private static Service externalServiceName;
-
-	@BeforeAll
-	static void beforeAllInNested() {
-		InputStream externalNameServiceStream = fabric8KubernetesFixture.inputStream("external-name-service.yaml");
-		externalServiceName = Serialization.unmarshal(externalNameServiceStream, Service.class);
-	}
-
-	private void externalNameServices(Phase phase) {
-		if (phase == Phase.CREATE) {
-			fabric8KubernetesFixture.createAndWait(NAMESPACE, null, null, externalServiceName, true);
-		}
-		else {
-			fabric8KubernetesFixture.deleteAndWait(NAMESPACE, null, externalServiceName);
-		}
-	}
-
 	@Nested
 	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.include-external-name-services=true" })
+	@K3sIntegrationTest(namespaces = "default", busyboxNamespaces = "default", deployExternalNameService = true)
 	class NonBootstrap {
 
 		@Autowired
 		private DiscoveryClient discoveryClient;
-
-		@BeforeEach
-		void beforeEach() {
-			Images.loadBusybox(K3S);
-			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.CREATE);
-			externalNameServices(Phase.CREATE);
-		}
-
-		@AfterEach
-		void afterEach() {
-			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.DELETE);
-			externalNameServices(Phase.DELETE);
-		}
 
 		/**
 		 * <pre>
@@ -92,23 +55,11 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 	@Nested
 	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.include-external-name-services=true",
 			"spring.cloud.bootstrap.enabled=true" })
+	@K3sIntegrationTest(namespaces = "default", busyboxNamespaces = "default", deployExternalNameService = true)
 	class Bootstrap {
 
 		@Autowired
 		private DiscoveryClient discoveryClient;
-
-		@BeforeEach
-		void beforeEach() {
-			Images.loadBusybox(K3S);
-			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.CREATE);
-			externalNameServices(Phase.CREATE);
-		}
-
-		@AfterEach
-		void afterEach() {
-			fabric8KubernetesFixture.busybox(NAMESPACE, Phase.DELETE);
-			externalNameServices(Phase.DELETE);
-		}
 
 		/**
 		 * <pre>

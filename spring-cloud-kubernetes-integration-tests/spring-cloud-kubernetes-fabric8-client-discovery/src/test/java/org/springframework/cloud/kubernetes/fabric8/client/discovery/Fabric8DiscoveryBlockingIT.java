@@ -17,8 +17,6 @@
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -26,13 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertBlockingConfiguration;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertPodMetadata;
 
+@K3sIntegrationTest(namespaces = "default", busyboxNamespaces = "default", wiremockNamespaces = "default")
 class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort
@@ -40,21 +38,6 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
-
-	@BeforeAll
-	static void beforeAllLocal() {
-		Images.loadBusybox(K3S);
-		Images.loadWiremock(K3S);
-
-		fabric8KubernetesFixture.busybox(NAMESPACE, Phase.CREATE);
-		fabric8KubernetesFixture.wiremock(NAMESPACE, Phase.CREATE, false);
-	}
-
-	@AfterAll
-	static void afterAll() {
-		fabric8KubernetesFixture.busybox(NAMESPACE, Phase.DELETE);
-		fabric8KubernetesFixture.wiremock(NAMESPACE, Phase.DELETE, false);
-	}
 
 	@Nested
 	@TestPropertySource(properties = { "spring.cloud.discovery.reactive.enabled=false",

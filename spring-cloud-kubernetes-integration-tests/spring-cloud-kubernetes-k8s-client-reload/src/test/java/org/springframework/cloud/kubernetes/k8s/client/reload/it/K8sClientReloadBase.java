@@ -94,7 +94,8 @@ abstract class K8sClientReloadBase {
 		}
 	}
 
-	protected static void manifests(Phase phase, K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace, String imageName) {
+	protected static void manifests(Phase phase, K8sNativeKubernetesFixture k8sNativeKubernetesFixture,
+			String namespace, String imageName) {
 
 		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("mount/deployment.yaml", V1Deployment.class);
 		V1Service service = K8sNativeKubernetesFixture.yaml("mount/service.yaml", V1Service.class);
@@ -111,10 +112,12 @@ abstract class K8sClientReloadBase {
 
 	}
 
-	protected static void manifestsSecret(Phase phase, K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace, String imageName) {
+	protected static void manifestsSecret(Phase phase, K8sNativeKubernetesFixture k8sNativeKubernetesFixture,
+			String namespace, String imageName) {
 
 		V1Secret secret = K8sNativeKubernetesFixture.yaml("mount/secret.yaml", V1Secret.class);
-		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("mount/deployment-with-secret.yaml", V1Deployment.class);
+		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("mount/deployment-with-secret.yaml",
+				V1Deployment.class);
 		V1Service service = K8sNativeKubernetesFixture.yaml("mount/service-with-secret.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {

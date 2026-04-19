@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.fabric8.client.reload;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -27,7 +26,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -39,14 +37,6 @@ import org.springframework.context.annotation.Primary;
 abstract class Fabric8EventReloadBase {
 
 	protected static final K3sContainer K3S = Commons.container();
-
-	protected static Fabric8KubernetesFixture fabric8KubernetesFixture;
-
-	@BeforeAll
-	protected static void beforeAll() {
-		K3S.start();
-		fabric8KubernetesFixture = new Fabric8KubernetesFixture(K3S);
-	}
 
 	@TestConfiguration
 	static class TestConfig {
