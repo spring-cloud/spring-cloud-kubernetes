@@ -100,7 +100,7 @@ public @interface NativeClientIntegrationTest {
 		/**
 		 * 'SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY' value.
 		 */
-		String refreshDelay() default "12000";
+		String refreshDelay() default "120000";
 
 		/**
 		 * 'SPRING_CLOUD_KUBERNETES_RELOAD_ENABLED' value.

@@ -33,7 +33,7 @@ import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.Te
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.invokeAndAssert;
 
 @SpringBootTest(classes = { Application.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@NativeClientIntegrationTest(namespaces = {"a", "b"}, busyboxNamespaces = {"a", "b"})
+@NativeClientIntegrationTest(namespaces = { "a", "b" }, busyboxNamespaces = { "a", "b" })
 class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWatchBase {
 
 	@LocalServerPort
@@ -44,7 +44,6 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 
 	@TestBean
 	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
-
 
 	/**
 	 * <pre>
@@ -57,7 +56,8 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 	 * </pre>
 	 */
 	@Test
-	void testCatalogWatchWithEndpoints(CapturedOutput output, NativeClientKubernetesFixture k8sNativeKubernetesFixture) {
+	void testCatalogWatchWithEndpoints(CapturedOutput output,
+			NativeClientKubernetesFixture k8sNativeKubernetesFixture) {
 		assertLogStatement(output, "stateGenerator is of type: KubernetesClientEndpointsCatalogWatch");
 		invokeAndAssert(k8sNativeKubernetesFixture, Set.of("a", "b"), port, "a");
 	}

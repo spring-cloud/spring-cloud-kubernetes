@@ -43,7 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=a-uat",
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat" })
 @NativeClientIntegrationTest(namespaces = { "a-uat", "b-uat" },
-	wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = { "a-uat", "b-uat" }, withNodePort = false))
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = { "a-uat", "b-uat" },
+				withNodePort = false))
 class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 
 	@Autowired
@@ -97,8 +98,8 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-		return discoveryProperties(false, Set.of("a-uat", "b-uat"),
-				"#root.metadata.namespace matches '^.*uat$'", Map.of());
+		return discoveryProperties(false, Set.of("a-uat", "b-uat"), "#root.metadata.namespace matches '^.*uat$'",
+				Map.of());
 	}
 
 }

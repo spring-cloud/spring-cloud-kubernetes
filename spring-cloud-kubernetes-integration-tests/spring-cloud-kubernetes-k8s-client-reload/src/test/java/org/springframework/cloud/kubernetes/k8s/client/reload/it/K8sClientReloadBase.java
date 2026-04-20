@@ -46,7 +46,7 @@ abstract class K8sClientReloadBase {
 
 	@BeforeAll
 	protected static void beforeAll(K3sContainer k3sContainer) {
-		container =  k3sContainer;
+		container = k3sContainer;
 	}
 
 	protected static ApiClient apiClient() {
@@ -88,39 +88,37 @@ abstract class K8sClientReloadBase {
 		}
 	}
 
-//	protected static void manifests(Phase phase, NativeClientKubernetesFixture k8sNativeKubernetesFixture,
-//			String namespace, String imageName) {
-//
-//		V1Deployment deployment = NativeClientKubernetesFixture.yaml("mount/deployment.yaml", V1Deployment.class);
-//		V1Service service = NativeClientKubernetesFixture.yaml("mount/service.yaml", V1Service.class);
-//		V1ConfigMap configMap = NativeClientKubernetesFixture.yaml("mount/configmap.yaml", V1ConfigMap.class);
-//
-//		if (phase.equals(Phase.CREATE)) {
-//			k8sNativeKubernetesFixture.createAndWait(namespace, configMap, null);
-//			k8sNativeKubernetesFixture.createAndWait(namespace, imageName, deployment, service, true);
-//		}
-//		else {
-//			k8sNativeKubernetesFixture.deleteAndWait(namespace, configMap, null);
-//			k8sNativeKubernetesFixture.deleteAndWait(namespace, deployment, service);
-//		}
-//
-//	}
+	protected static void manifests(Phase phase, NativeClientKubernetesFixture fixture, String namespace,
+			String imageName) {
 
-	protected static void manifestsSecret(Phase phase, NativeClientKubernetesFixture fixture,
-			String namespace, String imageName) {
-
-		V1Secret secret = fixture.yaml("mount/secret.yaml", V1Secret.class);
-		V1Deployment deployment = fixture.yaml("mount/deployment-with-secret.yaml",
-				V1Deployment.class);
-		V1Service service = fixture.yaml("mount/service-with-secret.yaml", V1Service.class);
+		V1Deployment deployment = fixture.yaml("mount/deployment.yaml", V1Deployment.class);
+		V1Service service = fixture.yaml("mount/service.yaml", V1Service.class);
+		V1ConfigMap configMap = fixture.yaml("mount/configmap.yaml", V1ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			fixture.createAndWait(namespace, null, secret);
+			fixture.createAndWait(namespace, configMap, null);
 			fixture.createAndWait(namespace, imageName, deployment, service, true);
 		}
 		else {
-			fixture.deleteAndWait(namespace, null, secret);
+			fixture.deleteAndWait(namespace, configMap, null);
 			fixture.deleteAndWait(namespace, deployment, service);
+		}
+
+	}
+
+	protected static void manifestsSecret(Phase phase, NativeClientKubernetesFixture fixture) {
+
+		V1Secret secret = fixture.yaml("mount/secret.yaml", V1Secret.class);
+		V1Deployment deployment = fixture.yaml("mount/deployment-with-secret.yaml", V1Deployment.class);
+		V1Service service = fixture.yaml("mount/service-with-secret.yaml", V1Service.class);
+
+		if (phase.equals(Phase.CREATE)) {
+			fixture.createAndWait("default", null, secret);
+			fixture.createAndWait("default", "spring-cloud-kubernetes-k8s-client-reload", deployment, service, true);
+		}
+		else {
+			fixture.deleteAndWait("default", null, secret);
+			fixture.deleteAndWait("default", deployment, service);
 		}
 
 	}

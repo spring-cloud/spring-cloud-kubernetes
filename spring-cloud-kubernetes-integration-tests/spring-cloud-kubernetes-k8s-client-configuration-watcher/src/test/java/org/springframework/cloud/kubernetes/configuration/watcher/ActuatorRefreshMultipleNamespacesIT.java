@@ -18,10 +18,10 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.configureWireMock;
@@ -32,12 +32,12 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.TestUti
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.verifyActuatorCalled;
 
 @NativeClientIntegrationTest(withImages = { "spring-cloud-kubernetes-configuration-watcher" },
-	wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = "default", withNodePort = true),
-	namespaces = { "left", "right" }, rbacNamespaces = "default",
-	configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(
-		enabled = true, refreshDelay = "0", reloadEnabled = false, watchNamespaces = { "left", "right" }),
-	clusterWideRBAC = @NativeClientIntegrationTest.ClusterWideRBAC(
-		enabled = true, serviceAccountNamespace = "default", roleBindingNamespaces = { "left", "right" }))
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = "default", withNodePort = true),
+		namespaces = { "left", "right" }, rbacNamespaces = "default",
+		configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true, refreshDelay = "0",
+				reloadEnabled = false, watchNamespaces = { "left", "right" }),
+		clusterWideRBAC = @NativeClientIntegrationTest.ClusterWideRBAC(enabled = true,
+				serviceAccountNamespace = "default", roleBindingNamespaces = { "left", "right" }))
 class ActuatorRefreshMultipleNamespacesIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";

@@ -41,20 +41,21 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-@NativeClientIntegrationTest(withImages =
-	{"spring-cloud-kubernetes-k8s-client-reload", "spring-cloud-kubernetes-configuration-watcher"},
-	configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true, watchNamespaces = "default"),
-	rbacNamespaces = "default")
+@NativeClientIntegrationTest(
+		withImages = { "spring-cloud-kubernetes-k8s-client-reload", "spring-cloud-kubernetes-configuration-watcher" },
+		configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true,
+				watchNamespaces = "default"),
+		rbacNamespaces = "default")
 class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 
 	@BeforeAll
 	static void beforeAllLocal(NativeClientKubernetesFixture fixture) {
-		manifestsSecret(Phase.CREATE, fixture, "default", "spring-cloud-kubernetes-k8s-client-reload");
+		manifestsSecret(Phase.CREATE, fixture);
 	}
 
 	@AfterAll
 	static void afterAll(NativeClientKubernetesFixture fixture) {
-		manifestsSecret(Phase.DELETE, fixture, "default", "spring-cloud-kubernetes-k8s-client-reload");
+		manifestsSecret(Phase.DELETE, fixture);
 	}
 
 	/**
@@ -86,29 +87,29 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 		// our polling will detect that and restart the app
 		V1Secret secret = fixture.yaml("mount/secret.yaml", V1Secret.class);
 		secret.setData(Map.of("application.properties",
-			"from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8)));
+				"from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8)));
 
 		// add label so that configuration-watcher picks this up
 		Map<String, String> existingLabels = new HashMap<>(
-			Optional.ofNullable(secret.getMetadata().getLabels()).orElse(new HashMap<>()));
+				Optional.ofNullable(secret.getMetadata().getLabels()).orElse(new HashMap<>()));
 		existingLabels.put("spring.cloud.kubernetes.secret", "true");
 		secret.getMetadata().setLabels(existingLabels);
 
 		// add app annotation
 		Map<String, String> existingAnnotations = new HashMap<>(
-			Optional.ofNullable(secret.getMetadata().getAnnotations()).orElse(new HashMap<>()));
+				Optional.ofNullable(secret.getMetadata().getAnnotations()).orElse(new HashMap<>()));
 		existingAnnotations.put("spring.cloud.kubernetes.secret.apps", "spring-cloud-kubernetes-k8s-client-reload");
 		secret.getMetadata().setAnnotations(existingAnnotations);
 
 		new CoreV1Api().replaceNamespacedSecret("secret-reload", "default", secret).execute();
 
 		Awaitilities.awaitUntil(180, 1000,
-			() -> webClient.method(HttpMethod.GET)
-				.retrieve()
-				.bodyToMono(String.class)
-				.retryWhen(retrySpec())
-				.block()
-				.equals("as-mount-changed"));
+				() -> webClient.method(HttpMethod.GET)
+					.retrieve()
+					.bodyToMono(String.class)
+					.retryWhen(retrySpec())
+					.block()
+					.equals("as-mount-changed"));
 	}
 
 }

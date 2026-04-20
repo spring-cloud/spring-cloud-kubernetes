@@ -33,7 +33,7 @@ import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.Te
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.invokeAndAssert;
 
 @SpringBootTest(classes = { Application.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@NativeClientIntegrationTest(namespaces = {"a", "b"}, busyboxNamespaces = {"a", "b"})
+@NativeClientIntegrationTest(namespaces = { "a", "b" }, busyboxNamespaces = { "a", "b" })
 class KubernetesClientCatalogWatchEndpointSlicesIT extends KubernetesClientCatalogWatchBase {
 
 	@LocalServerPort

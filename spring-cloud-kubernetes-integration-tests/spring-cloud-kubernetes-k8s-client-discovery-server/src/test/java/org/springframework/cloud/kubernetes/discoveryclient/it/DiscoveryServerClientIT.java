@@ -52,13 +52,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 		"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=3000",
 		"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true" })
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@NativeClientIntegrationTest(
-	namespaces = { "left", "right" },
-	wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = {"left", "right"}, withNodePort = false),
-	withImages = "spring-cloud-kubernetes-discoveryserver", rbacNamespaces = "default",
-	clusterWideRBAC = @NativeClientIntegrationTest.ClusterWideRBAC(enabled = true, serviceAccountNamespace = "default",
-	roleBindingNamespaces = { "left", "right" }),
-	deployDiscoverServer = true)
+@NativeClientIntegrationTest(namespaces = { "left", "right" },
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = { "left", "right" },
+				withNodePort = false),
+		withImages = "spring-cloud-kubernetes-discoveryserver", rbacNamespaces = "default",
+		clusterWideRBAC = @NativeClientIntegrationTest.ClusterWideRBAC(enabled = true,
+				serviceAccountNamespace = "default", roleBindingNamespaces = { "left", "right" }),
+		deployDiscoverServer = true)
 class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 
 	@TestBean

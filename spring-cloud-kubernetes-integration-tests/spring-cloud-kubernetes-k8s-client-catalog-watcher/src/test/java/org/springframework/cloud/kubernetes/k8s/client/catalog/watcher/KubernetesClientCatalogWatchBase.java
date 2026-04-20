@@ -57,7 +57,6 @@ abstract class KubernetesClientCatalogWatchBase {
 				Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices, false, null);
 	}
 
-
 	protected static ApiClient apiClient() {
 		String kubeConfigYaml = container.getKubeConfigYaml();
 

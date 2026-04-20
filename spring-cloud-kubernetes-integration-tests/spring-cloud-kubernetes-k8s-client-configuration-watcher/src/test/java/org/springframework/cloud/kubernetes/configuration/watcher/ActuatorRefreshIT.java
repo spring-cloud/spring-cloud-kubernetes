@@ -18,10 +18,10 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME;
@@ -34,9 +34,10 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.TestUti
  * @author Ryan Baxter
  */
 @NativeClientIntegrationTest(withImages = { "spring-cloud-kubernetes-configuration-watcher" },
-	wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = "default", withNodePort = true),
-	configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true, refreshDelay = "0", reloadEnabled = false),
-	rbacNamespaces = "default")
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = "default", withNodePort = true),
+		configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true, refreshDelay = "0",
+				reloadEnabled = false),
+		rbacNamespaces = "default")
 class ActuatorRefreshIT {
 
 	private static K3sContainer container;

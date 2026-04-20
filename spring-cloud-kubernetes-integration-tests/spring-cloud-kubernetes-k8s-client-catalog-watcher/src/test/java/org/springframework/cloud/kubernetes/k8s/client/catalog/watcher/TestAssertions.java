@@ -52,8 +52,8 @@ final class TestAssertions {
 	 * for them is different.
 	 */
 	@SuppressWarnings("unchecked")
-	static void invokeAndAssert(NativeClientKubernetesFixture k8sNativeKubernetesFixture, Set<String> namespaces, int port,
-			String assertionNamespace) {
+	static void invokeAndAssert(NativeClientKubernetesFixture k8sNativeKubernetesFixture, Set<String> namespaces,
+			int port, String assertionNamespace) {
 
 		WebClient client = builder().baseUrl("http://localhost:" + port + "/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
