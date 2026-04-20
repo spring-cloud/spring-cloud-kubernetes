@@ -69,13 +69,16 @@ final class TestUtil {
 				() -> stubMapping.getResponse().wasConfigured());
 	}
 
-	static void verifyActuatorCalled() {
+	static void verifyActuatorCalled(int timesCalled) {
 
 		Awaitilities.awaitUntil(60, 1000, () -> {
 			List<LoggedRequest> requests = WireMock
 				.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 			return !requests.isEmpty();
 		});
+
+		WireMock.verify(WireMock.exactly(timesCalled),
+			WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 	}
 
 	static void createConfigMap(NativeClientKubernetesFixture k8sNativeKubernetesFixture, String namespace) {

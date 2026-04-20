@@ -80,7 +80,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 		Commons.waitForLogStatement("Secret service-wiremock was added in namespace right", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 
-		verifyActuatorCalled();
+		verifyActuatorCalled(4);
 	}
 
 }

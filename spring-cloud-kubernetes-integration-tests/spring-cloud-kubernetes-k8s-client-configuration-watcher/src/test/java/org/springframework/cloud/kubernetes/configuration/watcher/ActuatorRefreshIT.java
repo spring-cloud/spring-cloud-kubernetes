@@ -58,7 +58,7 @@ class ActuatorRefreshIT {
 	void testActuatorRefresh(NativeClientKubernetesFixture fixture) {
 		configureWireMock();
 		createConfigMap(fixture, "default");
-		verifyActuatorCalled();
+		verifyActuatorCalled(1);
 
 		Commons.waitForLogStatement("creating NOOP strategy because reload is disabled", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
