@@ -37,7 +37,8 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.context.annotation.Bean;
@@ -52,6 +53,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes", "spring.profiles.active=two",
 		"spring.cloud.bootstrap.enabled=true",
 		"logging.level.org.springframework.cloud.kubernetes.client.config.reload=debug" })
+@NativeClientIntegrationTest(namespaces = "right")
 class K8sClientConfigMapEventTriggeredIT extends K8sClientReloadBase {
 
 	private static final MockedStatic<KubernetesClientUtils> KUBERNETES_CLIENT_UTILS_MOCKED_STATIC = Mockito
@@ -66,7 +68,7 @@ class K8sClientConfigMapEventTriggeredIT extends K8sClientReloadBase {
 	private CoreV1Api coreV1Api;
 
 	@BeforeAll
-	static void beforeAllLocal() {
+	static void beforeAllLocal(NativeClientKubernetesFixture fixture) {
 
 		KUBERNETES_CLIENT_UTILS_MOCKED_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient)
 			.thenReturn(apiClient());
@@ -74,18 +76,16 @@ class K8sClientConfigMapEventTriggeredIT extends K8sClientReloadBase {
 		KUBERNETES_CLIENT_UTILS_MOCKED_STATIC
 			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.anyString(), Mockito.anyString(),
 					Mockito.any(KubernetesNamespaceProvider.class)))
-			.thenReturn(NAMESPACE_RIGHT);
+			.thenReturn("right");
 
-		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_RIGHT);
-		rightConfigMap = K8sNativeKubernetesFixture.yaml("right-configmap.yaml", V1ConfigMap.class);
-		k8sNativeKubernetesFixture.createAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
+		rightConfigMap = fixture.yaml("right-configmap.yaml", V1ConfigMap.class);
+		fixture.createAndWait("right", rightConfigMap, null);
 	}
 
 	@AfterAll
-	static void afterAllLocal() {
+	static void afterAllLocal(NativeClientKubernetesFixture fixture) {
 		KUBERNETES_CLIENT_UTILS_MOCKED_STATIC.close();
-		k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
-		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_RIGHT);
+		fixture.deleteAndWait("right", rightConfigMap, null);
 	}
 
 	/**
@@ -106,7 +106,7 @@ class K8sClientConfigMapEventTriggeredIT extends K8sClientReloadBase {
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT).name("right-configmap"))
+			.withMetadata(new V1ObjectMeta().namespace("right").name("right-configmap"))
 			.withData(Map.of("right.value", "right-after-change"))
 			.build();
 

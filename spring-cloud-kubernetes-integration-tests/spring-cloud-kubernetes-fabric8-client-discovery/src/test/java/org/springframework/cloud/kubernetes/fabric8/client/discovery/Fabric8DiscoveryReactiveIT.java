@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.testReactiveConfiguration;
@@ -35,7 +35,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
 		"spring.cloud.discovery.blocking.enabled=false" })
-@K3sIntegrationTest(namespaces = "default", busyboxNamespaces = "default")
+@Fabric8ClientIntegrationTest(namespaces = "default", busyboxNamespaces = "default")
 class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort

@@ -33,30 +33,30 @@ import org.testcontainers.k3s.K3sContainer;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 
 /**
  * @author wind57
  */
-public final class Fabric8K3sIntegrationTestExtension
+public final class FabricClientIntegrationTestExtension
 		implements BeforeAllCallback, AfterAllCallback, ParameterResolver {
 
-	private static final String FABRIC8_KUBERNETES_FIXTURE_NAME = Fabric8KubernetesFixture.class.getSimpleName();
+	private static final String FABRIC8_KUBERNETES_FIXTURE_NAME = Fabric8ClientKubernetesFixture.class.getSimpleName();
 
 	// store for our integration tests only.
 	private static final ExtensionContext.Namespace K3S_STORE_NAMESPACE = ExtensionContext.Namespace
-		.create(Fabric8K3sIntegrationTestExtension.class);
+		.create(FabricClientIntegrationTestExtension.class);
 
 	@Override
 	public void beforeAll(ExtensionContext context) {
-		K3sIntegrationTest scenario = k3sIntegrationTest(context);
+		Fabric8ClientIntegrationTest scenario = fabric8K3sIntegrationTest(context);
 		if (scenario == null) {
 			return;
 		}
 
 		K3sContainer container = ensureK3sStarted();
-		Fabric8KubernetesFixture fabric8KubernetesFixture = fabric8KubernetesFixture(context);
+		Fabric8ClientKubernetesFixture fabric8KubernetesFixture = fabric8KubernetesFixture(context);
 
 		// 1. create all namespaces
 		for (String namespace : scenario.namespaces()) {
@@ -109,12 +109,12 @@ public final class Fabric8K3sIntegrationTestExtension
 
 	@Override
 	public void afterAll(ExtensionContext context) {
-		K3sIntegrationTest scenario = k3sIntegrationTest(context);
+		Fabric8ClientIntegrationTest scenario = fabric8K3sIntegrationTest(context);
 		if (scenario == null) {
 			return;
 		}
 
-		Fabric8KubernetesFixture fabric8KubernetesFixture = fabric8KubernetesFixture(context);
+		Fabric8ClientKubernetesFixture fabric8KubernetesFixture = fabric8KubernetesFixture(context);
 
 		// 1. delete istio
 		if (scenario.deployIstio()) {
@@ -153,8 +153,9 @@ public final class Fabric8K3sIntegrationTestExtension
 			throws ParameterResolutionException {
 
 		// @Test(Fabric8KubernetesFixture fixture) => check is we support such an argument
+		// @BeforeAll(K3sContainer container) => check if we support this also
 		Class<?> testParameterType = parameterContext.getParameter().getType();
-		return testParameterType == Fabric8KubernetesFixture.class;
+		return testParameterType == Fabric8ClientKubernetesFixture.class || testParameterType == K3sContainer.class;
 	}
 
 	@Override
@@ -165,25 +166,31 @@ public final class Fabric8K3sIntegrationTestExtension
 
 		// if 'supportsParameter' returns true, this method resolves the instance,
 		// we get a single instance across all tests.
-		if (testParameterType == Fabric8KubernetesFixture.class) {
+		if (testParameterType == Fabric8ClientKubernetesFixture.class) {
 			return fabric8KubernetesFixture(extensionContext);
+		}
+
+		if (testParameterType == K3sContainer.class) {
+			return ensureK3sStarted();
 		}
 
 		throw new ParameterResolutionException("Unsupported parameter type: " + testParameterType.getName());
 	}
 
-	private Fabric8KubernetesFixture fabric8KubernetesFixture(ExtensionContext context) {
+	private Fabric8ClientKubernetesFixture fabric8KubernetesFixture(ExtensionContext context) {
 		return context.getRoot()
 			.getStore(K3S_STORE_NAMESPACE)
-			.computeIfAbsent(FABRIC8_KUBERNETES_FIXTURE_NAME, key -> new Fabric8KubernetesFixture(ensureK3sStarted()),
-					Fabric8KubernetesFixture.class);
+			.computeIfAbsent(FABRIC8_KUBERNETES_FIXTURE_NAME,
+					key -> new Fabric8ClientKubernetesFixture(ensureK3sStarted()),
+					Fabric8ClientKubernetesFixture.class);
 	}
 
 	/**
-	 * check if test is annotated with @K3sIntegrationTest.
+	 * check if test is annotated with @Fabric8K3sIntegrationTest.
 	 */
-	private K3sIntegrationTest k3sIntegrationTest(ExtensionContext context) {
-		return AnnotatedElementUtils.findMergedAnnotation(context.getRequiredTestClass(), K3sIntegrationTest.class);
+	private Fabric8ClientIntegrationTest fabric8K3sIntegrationTest(ExtensionContext context) {
+		return AnnotatedElementUtils.findMergedAnnotation(context.getRequiredTestClass(),
+				Fabric8ClientIntegrationTest.class);
 	}
 
 	private static K3sContainer ensureK3sStarted() {
@@ -194,7 +201,7 @@ public final class Fabric8K3sIntegrationTestExtension
 		return container;
 	}
 
-	private void istioSetup(K3sContainer container, Fabric8KubernetesFixture fabric8KubernetesFixture) {
+	private void istioSetup(K3sContainer container, Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
 		try {
 
 			Images.loadIstioCtl(container);

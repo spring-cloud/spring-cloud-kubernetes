@@ -30,14 +30,15 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.commons.config.Constants;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -53,7 +54,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAss
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
 		"spring.cloud.kubernetes.client.namespace=default" })
 @ActiveProfiles("with-secret")
-@K3sIntegrationTest
+@Fabric8ClientIntegrationTest
 class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 
 	private static final String NAMESPACE = "default";
@@ -67,12 +68,12 @@ class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 	private SecretProperties secretProperties;
 
 	@BeforeAll
-	static void beforeAllLocal(Fabric8KubernetesFixture fabric8KubernetesFixture) {
+	static void beforeAllLocal(Fabric8ClientKubernetesFixture fabric8KubernetesFixture, K3sContainer container) {
 
 		// set system properties very early, so that when
 		// 'Fabric8ConfigDataLocationResolver'
 		// loads KubernetesClient from Config, these would be already present
-		Config config = Config.fromKubeconfig(K3S.getKubeConfigYaml());
+		Config config = Config.fromKubeconfig(container.getKubeConfigYaml());
 		String caCertData = config.getCaCertData();
 		String clientCertData = config.getClientCertData();
 		String clientKeyData = config.getClientKeyData();
@@ -93,7 +94,7 @@ class Fabric8EventReloadSecretConfigDataIT extends Fabric8EventReloadBase {
 	}
 
 	@AfterAll
-	static void afterAllLocal(Fabric8KubernetesFixture fabric8KubernetesFixture) {
+	static void afterAllLocal(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
 		secret(Phase.DELETE, fabric8KubernetesFixture, secret, NAMESPACE);
 	}
 

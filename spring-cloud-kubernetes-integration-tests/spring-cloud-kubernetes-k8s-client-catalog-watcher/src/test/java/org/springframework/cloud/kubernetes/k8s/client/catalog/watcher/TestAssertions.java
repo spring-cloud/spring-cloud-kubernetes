@@ -24,7 +24,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
@@ -52,7 +52,7 @@ final class TestAssertions {
 	 * for them is different.
 	 */
 	@SuppressWarnings("unchecked")
-	static void invokeAndAssert(K8sNativeKubernetesFixture k8sNativeKubernetesFixture, Set<String> namespaces, int port,
+	static void invokeAndAssert(NativeClientKubernetesFixture k8sNativeKubernetesFixture, Set<String> namespaces, int port,
 			String assertionNamespace) {
 
 		WebClient client = builder().baseUrl("http://localhost:" + port + "/result").build();

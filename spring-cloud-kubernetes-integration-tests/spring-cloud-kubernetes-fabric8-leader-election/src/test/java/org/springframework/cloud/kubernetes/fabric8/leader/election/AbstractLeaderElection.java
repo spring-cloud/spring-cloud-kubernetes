@@ -25,9 +25,11 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +38,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
@@ -54,10 +54,10 @@ import org.springframework.test.annotation.DirtiesContext;
 				"logging.level.org.springframework.cloud.kubernetes.fabric8.leader.election=debug" },
 		classes = { App.class, AbstractLeaderElection.LocalConfiguration.class })
 @DirtiesContext
-@K3sIntegrationTest
+@Fabric8ClientIntegrationTest
 abstract class AbstractLeaderElection {
 
-	private static final K3sContainer CONTAINER = Commons.container();
+	private static K3sContainer container;
 
 	private static MockedStatic<LeaderUtils> LEADER_UTILS_MOCKED_STATIC;
 
@@ -67,6 +67,11 @@ abstract class AbstractLeaderElection {
 	static void beforeAll(String candidateIdentity) {
 		LEADER_UTILS_MOCKED_STATIC = Mockito.mockStatic(LeaderUtils.class);
 		LEADER_UTILS_MOCKED_STATIC.when(LeaderUtils::hostName).thenReturn(candidateIdentity);
+	}
+
+	@BeforeAll
+	static void beforeAll(K3sContainer k3sContainer) {
+		container = k3sContainer;
 	}
 
 	@AfterAll
@@ -95,7 +100,7 @@ abstract class AbstractLeaderElection {
 		@Bean
 		@Primary
 		KubernetesClient client() {
-			String kubeConfigYaml = CONTAINER.getKubeConfigYaml();
+			String kubeConfigYaml = container.getKubeConfigYaml();
 			Config config = Config.fromKubeconfig(kubeConfigYaml);
 			return new KubernetesClientBuilder().withConfig(config).build();
 		}

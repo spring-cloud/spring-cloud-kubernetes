@@ -34,9 +34,9 @@ import org.springframework.test.context.ContextConfiguration;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@ExtendWith(Fabric8K3sIntegrationTestExtension.class)
 @ContextConfiguration(initializers = K3sContextInitializer.class)
-public @interface K3sIntegrationTest {
+@ExtendWith(FabricClientIntegrationTestExtension.class)
+public @interface Fabric8ClientIntegrationTest {
 
 	/**
 	 * what namespaces to create during this test.

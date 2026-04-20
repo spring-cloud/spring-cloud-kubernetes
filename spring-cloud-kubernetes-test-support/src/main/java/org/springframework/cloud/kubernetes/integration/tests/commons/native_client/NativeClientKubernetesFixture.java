@@ -23,9 +23,9 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.ApiClient;
@@ -41,6 +41,7 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentCondition;
 import io.kubernetes.client.openapi.models.V1DeploymentList;
+import io.kubernetes.client.openapi.models.V1EnvVar;
 import io.kubernetes.client.openapi.models.V1NamespaceBuilder;
 import io.kubernetes.client.openapi.models.V1Role;
 import io.kubernetes.client.openapi.models.V1RoleBinding;
@@ -67,9 +68,9 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-public final class K8sNativeKubernetesFixture {
+public final class NativeClientKubernetesFixture {
 
-	private static final Log LOG = LogFactory.getLog(K8sNativeKubernetesFixture.class);
+	private static final Log LOG = LogFactory.getLog(NativeClientKubernetesFixture.class);
 
 	private final CoreV1Api coreV1Api;
 
@@ -79,7 +80,7 @@ public final class K8sNativeKubernetesFixture {
 
 	private final K3sContainer container;
 
-	public K8sNativeKubernetesFixture(K3sContainer container) {
+	public NativeClientKubernetesFixture(K3sContainer container) {
 
 		ApiClient client;
 		try {
@@ -184,6 +185,11 @@ public final class K8sNativeKubernetesFixture {
 	}
 
 	public void createNamespace(String name) {
+
+		if ("default".equals(name)) {
+			return;
+		}
+
 		try {
 			coreV1Api.createNamespace(new V1NamespaceBuilder().withNewMetadata().withName(name).and().build())
 				.execute();
@@ -199,23 +205,58 @@ public final class K8sNativeKubernetesFixture {
 		try {
 			if (deployment != null) {
 				String deploymentName = deploymentName(deployment);
-				Map<String, String> podLabels = appsV1Api.readNamespacedDeployment(deploymentName, namespace)
-					.execute()
-					.getSpec()
-					.getTemplate()
-					.getMetadata()
-					.getLabels();
-				appsV1Api.deleteNamespacedDeployment(deploymentName, namespace).execute();
-				coreV1Api.deleteCollectionNamespacedPod(namespace).labelSelector(labelSelector(podLabels)).execute();
-				waitForDeploymentToBeDeleted(deploymentName, namespace);
-				waitForDeploymentPodsToBeDeleted(podLabels, namespace);
+
+				boolean deploymentPresent = true;
+				V1Deployment k8sDeployment = null;
+				try {
+					k8sDeployment = appsV1Api.readNamespacedDeployment(deploymentName, namespace).execute();
+				}
+				catch (ApiException apiException) {
+					if (apiException.getCode() == 404) {
+						deploymentPresent = false;
+					}
+					else {
+						throw new RuntimeException(apiException);
+					}
+				}
+
+				if (deploymentPresent) {
+					Map<String, String> podLabels = k8sDeployment.getSpec().getTemplate().getMetadata().getLabels();
+					appsV1Api.deleteNamespacedDeployment(deploymentName, namespace).execute();
+					coreV1Api.deleteCollectionNamespacedPod(namespace)
+						.labelSelector(labelSelector(podLabels))
+						.execute();
+					waitForDeploymentToBeDeleted(deploymentName, namespace);
+					waitForDeploymentPodsToBeDeleted(podLabels, namespace);
+				}
+
 			}
 
 			if (service != null) {
+
 				service.getMetadata().setNamespace(namespace);
-				coreV1Api.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace())
-					.execute();
-				waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
+				boolean servicePresent = true;
+
+				try {
+					coreV1Api
+						.readNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace())
+						.execute();
+				}
+				catch (ApiException apiException) {
+					if (apiException.getCode() == 404) {
+						servicePresent = false;
+					}
+					else {
+						throw new RuntimeException(apiException);
+					}
+				}
+
+				if (servicePresent) {
+					coreV1Api
+						.deleteNamespacedService(service.getMetadata().getName(), service.getMetadata().getNamespace())
+						.execute();
+					waitForServiceToBeDeleted(service.getMetadata().getName(), namespace);
+				}
 			}
 
 		}
@@ -240,7 +281,7 @@ public final class K8sNativeKubernetesFixture {
 		}
 	}
 
-	public void kafka(String namespace, Phase phase) {
+	public void kafka(Phase phase) {
 		V1Deployment deployment = yaml("kafka/kafka-deployment.yaml", V1Deployment.class);
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
@@ -250,14 +291,14 @@ public final class K8sNativeKubernetesFixture {
 		V1Service service = yaml("kafka/kafka-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "kafka", deployment, service, false);
+			createAndWait("default", "kafka", deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait(namespace, deployment, service);
+			deleteAndWait("default", deployment, service);
 		}
 	}
 
-	public void rabbitMq(String namespace, Phase phase) {
+	public void rabbitMq(Phase phase) {
 		V1Deployment deployment = yaml("rabbitmq/rabbitmq-deployment.yaml", V1Deployment.class);
 
 		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
@@ -267,18 +308,18 @@ public final class K8sNativeKubernetesFixture {
 		V1Service service = yaml("rabbitmq/rabbitmq-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "rabbitmq", deployment, service, false);
+			createAndWait("default", "rabbitmq", deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
-			deleteAndWait(namespace, deployment, service);
+			deleteAndWait("default", deployment, service);
 		}
 	}
 
 	/**
 	 * reads a yaml from classpath, fails if not found.
 	 */
-	public static <T> T yaml(String fileName, Class<T> type) {
-		ClassLoader classLoader = K8sNativeKubernetesFixture.class.getClassLoader();
+	public <T> T yaml(String fileName, Class<T> type) {
+		ClassLoader classLoader = NativeClientKubernetesFixture.class.getClassLoader();
 
 		try (InputStream inputStream = classLoader.getResourceAsStream(fileName)) {
 			if (inputStream == null) {
@@ -322,7 +363,7 @@ public final class K8sNativeKubernetesFixture {
 
 	}
 
-	public void setUpClusterWide(String serviceAccountNamespace, Set<String> namespaces) {
+	public void setUpClusterWide(String serviceAccountNamespace, String[] roleBindingNamespaces) {
 
 		try {
 			V1ServiceAccount serviceAccount = yaml("cluster/service-account.yaml", V1ServiceAccount.class);
@@ -339,18 +380,19 @@ public final class K8sNativeKubernetesFixture {
 					() -> rbacApi.createClusterRole(clusterRole).execute());
 
 			V1RoleBinding roleBinding = yaml("cluster/role-binding.yaml", V1RoleBinding.class);
-			namespaces.forEach(namespace -> {
-				roleBinding.getMetadata().setNamespace(namespace);
+			for (String roleBindingNamespace : roleBindingNamespaces) {
+				roleBinding.getMetadata().setNamespace(roleBindingNamespace);
 				try {
 					notExistsHandler(
-							() -> rbacApi.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace)
+							() -> rbacApi
+								.readNamespacedRoleBinding(roleBinding.getMetadata().getName(), roleBindingNamespace)
 								.execute(),
-							() -> rbacApi.createNamespacedRoleBinding(namespace, roleBinding).execute());
+							() -> rbacApi.createNamespacedRoleBinding(roleBindingNamespace, roleBinding).execute());
 				}
 				catch (Exception e) {
 					throw new RuntimeException(e);
 				}
-			});
+			}
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -358,7 +400,7 @@ public final class K8sNativeKubernetesFixture {
 
 	}
 
-	public void deleteClusterWide(String serviceAccountNamespace, Set<String> namespaces) {
+	public void deleteClusterWide(String serviceAccountNamespace, String[] roleBindingNamespaces) {
 		try {
 			V1ServiceAccount serviceAccount = yaml("cluster/service-account.yaml", V1ServiceAccount.class);
 			V1ClusterRole clusterRole = yaml("cluster/cluster-role.yaml", V1ClusterRole.class);
@@ -367,15 +409,16 @@ public final class K8sNativeKubernetesFixture {
 			coreV1Api.deleteNamespacedServiceAccount(serviceAccount.getMetadata().getName(), serviceAccountNamespace)
 				.execute();
 			rbacApi.deleteClusterRole(clusterRole.getMetadata().getName()).execute();
-			namespaces.forEach(namespace -> {
-				roleBinding.getMetadata().setNamespace(namespace);
+			for (String roleBindingNamespace : roleBindingNamespaces) {
+				roleBinding.getMetadata().setNamespace(roleBindingNamespace);
 				try {
-					rbacApi.deleteNamespacedRoleBinding(roleBinding.getMetadata().getName(), namespace).execute();
+					rbacApi.deleteNamespacedRoleBinding(roleBinding.getMetadata().getName(), roleBindingNamespace)
+						.execute();
 				}
 				catch (Exception e) {
 					throw new RuntimeException(e);
 				}
-			});
+			}
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -383,6 +426,10 @@ public final class K8sNativeKubernetesFixture {
 	}
 
 	public void deleteNamespace(String name) {
+
+		if ("default".equals(name)) {
+			return;
+		}
 
 		// sometimes we get errors like :
 
@@ -456,10 +503,56 @@ public final class K8sNativeKubernetesFixture {
 
 	}
 
-	public void configWatcher(Phase phase) {
+	public void externalName(Phase phase) {
+		V1Service service = yaml("external-name-service/external-name-service.yaml", V1Service.class);
+		if (Phase.CREATE.equals(phase)) {
+			createAndWait("default", null, null, service, false);
+		}
+		else {
+			deleteAndWait("default", null, service);
+		}
+	}
+
+	public void configWatcher(Phase phase, String refreshDelay, boolean reloadEnabled, String[] watchNamespaces,
+			boolean kafkaEnabled, boolean rabbitMqEnabled) {
 
 		V1Deployment deployment = yaml("config-watcher/deployment.yaml", V1Deployment.class);
 		V1Service service = yaml("config-watcher/service.yaml", V1Service.class);
+
+		List<V1EnvVar> envVars = new ArrayList<>();
+		envVars
+			.add(new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY").value(refreshDelay));
+		envVars.add(new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_ENABLED").value(String.valueOf(reloadEnabled)));
+		envVars.add(new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CONFIGURATION_WATCHER")
+			.value("DEBUG"));
+		envVars.add(new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD")
+			.value("DEBUG"));
+		envVars.add(new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED").value("TRUE"));
+
+		if (kafkaEnabled) {
+			envVars.add(new V1EnvVar().name("SPRING_PROFILES_ACTIVE").value("bus-kafka"));
+			envVars.add(new V1EnvVar().name("SPRING_CLOUD_BUS_DESTINATION").value("app"));
+			envVars.add(new V1EnvVar().name("spring.kafka.bootstrap-servers").value("kafka:9092"));
+			envVars.add(new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER")
+				.value("DEBUG"));
+		}
+
+		if (rabbitMqEnabled) {
+			envVars.add(new V1EnvVar().name("SPRING_PROFILES_ACTIVE").value("bus-amqp"));
+			envVars.add(new V1EnvVar().name("SPRING_RABBITMQ_HOST").value("rabbitmq-service"));
+			envVars.add(new V1EnvVar().name("SPRING_CLOUD_BUS_DESTINATION").value("app"));
+		}
+
+		// SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0 = a
+		// SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_1 = b
+		if (watchNamespaces != null && watchNamespaces.length > 0) {
+			for (int i = 0; i < watchNamespaces.length; i++) {
+				envVars.add(new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_" + i)
+					.value(watchNamespaces[i]));
+			}
+		}
+
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		if (phase.equals(Phase.CREATE)) {
 			createAndWait("default", deployment.getMetadata().getName(), deployment, service, true);
@@ -467,6 +560,19 @@ public final class K8sNativeKubernetesFixture {
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait("default", deployment, service);
 		}
+	}
+
+	public void discoveryServer(Phase phase) {
+		V1Deployment deployment = yaml("discovery-server/discoveryserver-deployment.yaml", V1Deployment.class);
+		V1Service service = yaml("discovery-server/discoveryserver-service.yaml", V1Service.class);
+
+		if (phase == Phase.CREATE) {
+			createAndWait("default", null, deployment, service, true);
+		}
+		else {
+			deleteAndWait("default", null, service);
+		}
+
 	}
 
 	private String deploymentName(V1Deployment deployment) {
@@ -664,7 +770,7 @@ public final class K8sNativeKubernetesFixture {
 		}
 	}
 
-	private static <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {
+	private <T> void notExistsHandler(CheckedSupplier<T> callee, CheckedSupplier<T> defaulter) throws Exception {
 		try {
 			callee.get();
 		}
@@ -679,7 +785,7 @@ public final class K8sNativeKubernetesFixture {
 		}
 	}
 
-	private static String labelSelector(Map<String, String> labels) {
+	private String labelSelector(Map<String, String> labels) {
 		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
 	}
 

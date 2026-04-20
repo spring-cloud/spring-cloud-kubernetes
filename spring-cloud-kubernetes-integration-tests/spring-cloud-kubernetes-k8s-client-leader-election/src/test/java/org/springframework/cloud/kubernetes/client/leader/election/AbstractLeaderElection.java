@@ -27,9 +27,11 @@ import io.kubernetes.client.openapi.apis.CoordinationV1Api;
 import io.kubernetes.client.openapi.models.V1Lease;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -56,6 +58,7 @@ import org.springframework.test.context.bean.override.convention.TestBean;
 				"logging.level.io.kubernetes.client.extended.leaderelection=debug" },
 		classes = { App.class, AbstractLeaderElection.PodReadyTestConfiguration.class })
 @DirtiesContext
+@NativeClientIntegrationTest
 abstract class AbstractLeaderElection {
 
 	@TestBean
@@ -66,11 +69,13 @@ abstract class AbstractLeaderElection {
 	private static MockedStatic<LeaderUtils> LEADER_UTILS_MOCKED_STATIC;
 
 	static void beforeAll(String candidateIdentity) {
-		container = Commons.container();
-		container.start();
-
 		LEADER_UTILS_MOCKED_STATIC = Mockito.mockStatic(LeaderUtils.class);
 		LEADER_UTILS_MOCKED_STATIC.when(LeaderUtils::hostName).thenReturn(candidateIdentity);
+	}
+
+	@BeforeAll
+	static void beforeAll(K3sContainer k3sContainer) {
+		container = k3sContainer;
 	}
 
 	@AfterAll

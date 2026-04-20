@@ -19,15 +19,10 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 import java.util.Map;
 import java.util.Set;
 
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -42,20 +37,11 @@ import org.springframework.test.context.TestPropertySource;
 @ExtendWith(OutputCaptureExtension.class)
 abstract class Fabric8CatalogWatchBase {
 
-	private static final K3sContainer K3S = Commons.container();
-
 	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices,
 			Set<String> discoveryNamespaces) {
 		return new KubernetesDiscoveryProperties(true, false, discoveryNamespaces, true, 60, false, null,
 				Set.of(443, 8443), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices,
 				false, null);
-	}
-
-	// needed for @TestBean
-	protected static KubernetesClient client() {
-		String kubeConfigYaml = K3S.getKubeConfigYaml();
-		Config config = Config.fromKubeconfig(kubeConfigYaml);
-		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
 }

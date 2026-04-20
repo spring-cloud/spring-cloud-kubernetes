@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.filterMatchesBothNamespacesViaThePredicate;
@@ -32,7 +32,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat",
 		"spring.cloud.kubernetes.discovery.filter=#root.metadata.namespace matches '^.*uat$'",
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG" })
-@K3sIntegrationTest(namespaces = { "a-uat", "b-uat" }, wiremockNamespaces = { "a-uat", "b-uat" })
+@Fabric8ClientIntegrationTest(namespaces = { "a-uat", "b-uat" }, wiremockNamespaces = { "a-uat", "b-uat" })
 class Fabric8DiscoveryFilterIT extends Fabric8DiscoveryBase {
 
 	@Autowired

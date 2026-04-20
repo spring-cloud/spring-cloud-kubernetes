@@ -19,18 +19,19 @@ package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertBlockingConfiguration;
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertPodMetadata;
 
-@K3sIntegrationTest(namespaces = "default", busyboxNamespaces = "default", wiremockNamespaces = "default")
+@Fabric8ClientIntegrationTest(namespaces = "default", busyboxNamespaces = "default", wiremockNamespaces = "default")
 class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort
@@ -47,9 +48,9 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 	class AllNamespacesNoLabels {
 
 		@Test
-		void test(CapturedOutput output) throws Exception {
+		void test(CapturedOutput output, K3sContainer container) throws Exception {
 
-			String[] busyboxPods = K3S
+			String[] busyboxPods = container
 				.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
 				.getStdout()
 				.split("\n");
@@ -57,8 +58,8 @@ class Fabric8DiscoveryBlockingIT extends Fabric8DiscoveryBase {
 			String podOne = busyboxPods[0].split("/")[1];
 			String podTwo = busyboxPods[1].split("/")[1];
 
-			K3S.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
-			K3S.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
+			container.execInContainer("sh", "-c", "kubectl label pods " + podOne + " my-label=my-value");
+			container.execInContainer("sh", "-c", "kubectl annotate pods " + podTwo + " my-annotation=my-value");
 
 			assertBlockingConfiguration(output, port);
 			assertPodMetadata(discoveryClient);

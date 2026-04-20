@@ -51,15 +51,15 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-public final class Fabric8KubernetesFixture {
+public final class Fabric8ClientKubernetesFixture {
 
-	private static final Log LOG = LogFactory.getLog(Fabric8KubernetesFixture.class);
+	private static final Log LOG = LogFactory.getLog(Fabric8ClientKubernetesFixture.class);
 
 	private final K3sContainer container;
 
 	private final KubernetesClient client;
 
-	public Fabric8KubernetesFixture(K3sContainer container) {
+	public Fabric8ClientKubernetesFixture(K3sContainer container) {
 		this.container = container;
 		this.client = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(container.getKubeConfigYaml()))
 			.build();
@@ -179,7 +179,7 @@ public final class Fabric8KubernetesFixture {
 	}
 
 	public InputStream inputStream(String fileName) {
-		return Fabric8KubernetesFixture.class.getClassLoader().getResourceAsStream(fileName);
+		return Fabric8ClientKubernetesFixture.class.getClassLoader().getResourceAsStream(fileName);
 	}
 
 	public void createNamespace(String name) {

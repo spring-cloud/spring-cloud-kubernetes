@@ -18,15 +18,19 @@ package org.springframework.cloud.kubernetes.fabric8.discovery;
 
 import java.util.Set;
 
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.TestAssertions.assertLogStatement;
@@ -37,8 +41,10 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.TestAsserti
  */
 @SpringBootTest(classes = { Fabric8CatalogWatchAutoConfiguration.class, Application.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@K3sIntegrationTest(namespaces = { "a", "b" }, busyboxNamespaces = { "a", "b" })
+@Fabric8ClientIntegrationTest(namespaces = { "a", "b" }, busyboxNamespaces = { "a", "b" })
 class Fabric8CatalogWatchEndpointSlicesIT extends Fabric8CatalogWatchBase {
+
+	private static K3sContainer container;
 
 	@TestBean
 	private KubernetesClient client;
@@ -48,6 +54,11 @@ class Fabric8CatalogWatchEndpointSlicesIT extends Fabric8CatalogWatchBase {
 
 	@LocalServerPort
 	private int port;
+
+	@BeforeAll
+	static void beforeAll(K3sContainer k3sContainer) {
+		container = k3sContainer;
+	}
 
 	/**
 	 * <pre>
@@ -60,13 +71,19 @@ class Fabric8CatalogWatchEndpointSlicesIT extends Fabric8CatalogWatchBase {
 	 * </pre>
 	 */
 	@Test
-	void test(CapturedOutput output, Fabric8KubernetesFixture fixture) {
+	void test(CapturedOutput output, Fabric8ClientKubernetesFixture fixture) {
 		assertLogStatement(output, "stateGenerator is of type: Fabric8EndpointSliceCatalogWatch");
 		invokeAndAssert(fixture, Set.of("a", "b"), port, "a");
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
 		return discoveryProperties(true, Set.of("default", "a"));
+	}
+
+	private static KubernetesClient client() {
+		String kubeConfigYaml = container.getKubeConfigYaml();
+		Config config = Config.fromKubeconfig(kubeConfigYaml);
+		return new KubernetesClientBuilder().withConfig(config).build();
 	}
 
 }

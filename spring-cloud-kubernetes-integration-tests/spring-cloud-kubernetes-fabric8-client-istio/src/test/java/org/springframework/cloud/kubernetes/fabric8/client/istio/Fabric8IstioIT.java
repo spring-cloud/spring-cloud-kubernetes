@@ -21,7 +21,7 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -31,7 +31,7 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-@K3sIntegrationTest(namespaces = { "istio-test", "istio-system" },
+@Fabric8ClientIntegrationTest(namespaces = { "istio-test", "istio-system" },
 		withImages = "spring-cloud-kubernetes-fabric8-client-istio", deployIstio = true)
 class Fabric8IstioIT {
 

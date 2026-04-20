@@ -29,8 +29,8 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -42,19 +42,19 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
-@K3sIntegrationTest(
+@Fabric8ClientIntegrationTest(
 		withImages = { "spring-cloud-kubernetes-fabric8-client-reload",
 				"spring-cloud-kubernetes-configuration-watcher" },
 		rbacNamespaces = "default", deployConfigurationWatcher = true)
 class Fabric8ConfigMapConfigTreeIT {
 
 	@BeforeAll
-	static void beforeAll(Fabric8KubernetesFixture fabric8KubernetesFixture) {
+	static void beforeAll(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
 		manifests(Phase.CREATE, fabric8KubernetesFixture, "default");
 	}
 
 	@AfterAll
-	static void afterAll(Fabric8KubernetesFixture fabric8KubernetesFixture) {
+	static void afterAll(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
 		manifests(Phase.DELETE, fabric8KubernetesFixture, "default");
 	}
 
@@ -72,7 +72,7 @@ class Fabric8ConfigMapConfigTreeIT {
 	 * </pre>
 	 */
 	@Test
-	void test(Fabric8KubernetesFixture fabric8KubernetesFixture) {
+	void test(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
 		WebClient webClient = builder().baseUrl("http://localhost:32321/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()

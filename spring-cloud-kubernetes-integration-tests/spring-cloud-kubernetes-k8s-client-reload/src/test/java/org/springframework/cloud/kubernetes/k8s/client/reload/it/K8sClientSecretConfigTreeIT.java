@@ -28,9 +28,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -41,32 +41,20 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
+@NativeClientIntegrationTest(withImages =
+	{"spring-cloud-kubernetes-k8s-client-reload", "spring-cloud-kubernetes-configuration-watcher"},
+	configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true, watchNamespaces = "default"),
+	rbacNamespaces = "default")
 class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-k8s-client-reload";
-
-	private static final String CONFIGURATION_WATCHER_IMAGE_NAME = "spring-cloud-kubernetes-configuration-watcher";
-
-	private static final String NAMESPACE = "default";
-
 	@BeforeAll
-	static void beforeAllLocal() throws Exception {
-		K3S.start();
-		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-
-		Commons.validateImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(CONFIGURATION_WATCHER_IMAGE_NAME, K3S);
-
-		k8sNativeKubernetesFixture.setUp(NAMESPACE);
-		manifestsSecret(Phase.CREATE, k8sNativeKubernetesFixture, NAMESPACE, IMAGE_NAME);
-		k8sNativeKubernetesFixture.configWatcher(Phase.CREATE);
+	static void beforeAllLocal(NativeClientKubernetesFixture fixture) {
+		manifestsSecret(Phase.CREATE, fixture, "default", "spring-cloud-kubernetes-k8s-client-reload");
 	}
 
 	@AfterAll
-	static void afterAll() {
-		manifestsSecret(Phase.DELETE, k8sNativeKubernetesFixture, NAMESPACE, IMAGE_NAME);
-		k8sNativeKubernetesFixture.configWatcher(Phase.DELETE);
+	static void afterAll(NativeClientKubernetesFixture fixture) {
+		manifestsSecret(Phase.DELETE, fixture, "default", "spring-cloud-kubernetes-k8s-client-reload");
 	}
 
 	/**
@@ -83,7 +71,7 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 	 * </pre>
 	 */
 	@Test
-	void test() throws Exception {
+	void test(NativeClientKubernetesFixture fixture) throws Exception {
 		WebClient webClient = builder().baseUrl("http://localhost:32321/secret").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
@@ -96,31 +84,31 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 
 		// replace data in secret and wait for k8s to pick it up
 		// our polling will detect that and restart the app
-		V1Secret secret = K8sNativeKubernetesFixture.yaml("mount/secret.yaml", V1Secret.class);
+		V1Secret secret = fixture.yaml("mount/secret.yaml", V1Secret.class);
 		secret.setData(Map.of("application.properties",
-				"from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8)));
+			"from.properties.secret.key=as-mount-changed".getBytes(StandardCharsets.UTF_8)));
 
 		// add label so that configuration-watcher picks this up
 		Map<String, String> existingLabels = new HashMap<>(
-				Optional.ofNullable(secret.getMetadata().getLabels()).orElse(new HashMap<>()));
+			Optional.ofNullable(secret.getMetadata().getLabels()).orElse(new HashMap<>()));
 		existingLabels.put("spring.cloud.kubernetes.secret", "true");
 		secret.getMetadata().setLabels(existingLabels);
 
 		// add app annotation
 		Map<String, String> existingAnnotations = new HashMap<>(
-				Optional.ofNullable(secret.getMetadata().getAnnotations()).orElse(new HashMap<>()));
-		existingAnnotations.put("spring.cloud.kubernetes.secret.apps", IMAGE_NAME);
+			Optional.ofNullable(secret.getMetadata().getAnnotations()).orElse(new HashMap<>()));
+		existingAnnotations.put("spring.cloud.kubernetes.secret.apps", "spring-cloud-kubernetes-k8s-client-reload");
 		secret.getMetadata().setAnnotations(existingAnnotations);
 
-		new CoreV1Api().replaceNamespacedSecret("secret-reload", NAMESPACE, secret).execute();
+		new CoreV1Api().replaceNamespacedSecret("secret-reload", "default", secret).execute();
 
 		Awaitilities.awaitUntil(180, 1000,
-				() -> webClient.method(HttpMethod.GET)
-					.retrieve()
-					.bodyToMono(String.class)
-					.retryWhen(retrySpec())
-					.block()
-					.equals("as-mount-changed"));
+			() -> webClient.method(HttpMethod.GET)
+				.retrieve()
+				.bodyToMono(String.class)
+				.retryWhen(retrySpec())
+				.block()
+				.equals("as-mount-changed"));
 	}
 
 }

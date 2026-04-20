@@ -30,8 +30,6 @@ import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -46,20 +44,11 @@ import org.springframework.test.context.TestPropertySource;
 @ExtendWith(OutputCaptureExtension.class)
 abstract class KubernetesClientCatalogWatchBase {
 
-	protected static final String NAMESPACE = "default";
-
-	protected static final String NAMESPACE_A = "a";
-
-	protected static final String NAMESPACE_B = "b";
-
-	protected static final K3sContainer K3S = Commons.container();
-
-	protected static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
+	protected static K3sContainer container;
 
 	@BeforeAll
-	protected static void beforeAll() {
-		K3S.start();
-		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
+	static void beforeAll(K3sContainer k3sContainer) {
+		container = k3sContainer;
 	}
 
 	protected static KubernetesDiscoveryProperties discoveryProperties(boolean useEndpointSlices,
@@ -68,8 +57,9 @@ abstract class KubernetesClientCatalogWatchBase {
 				Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, useEndpointSlices, false, null);
 	}
 
+
 	protected static ApiClient apiClient() {
-		String kubeConfigYaml = K3S.getKubeConfigYaml();
+		String kubeConfigYaml = container.getKubeConfigYaml();
 
 		ApiClient client;
 		try {

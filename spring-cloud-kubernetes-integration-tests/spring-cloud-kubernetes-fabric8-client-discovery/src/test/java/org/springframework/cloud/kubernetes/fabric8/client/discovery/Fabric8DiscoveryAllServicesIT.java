@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.K3sIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.assertAllServices;
@@ -29,11 +29,11 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 /**
  * @author wind57
  */
+@Fabric8ClientIntegrationTest(namespaces = "default", busyboxNamespaces = "default", deployExternalNameService = true)
 class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 
 	@Nested
 	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.include-external-name-services=true" })
-	@K3sIntegrationTest(namespaces = "default", busyboxNamespaces = "default", deployExternalNameService = true)
 	class NonBootstrap {
 
 		@Autowired
@@ -55,7 +55,6 @@ class Fabric8DiscoveryAllServicesIT extends Fabric8DiscoveryBase {
 	@Nested
 	@TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.include-external-name-services=true",
 			"spring.cloud.bootstrap.enabled=true" })
-	@K3sIntegrationTest(namespaces = "default", busyboxNamespaces = "default", deployExternalNameService = true)
 	class Bootstrap {
 
 		@Autowired

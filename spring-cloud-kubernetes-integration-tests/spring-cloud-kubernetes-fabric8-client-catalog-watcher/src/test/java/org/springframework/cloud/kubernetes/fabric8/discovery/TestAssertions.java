@@ -24,7 +24,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.commons.discovery.EndpointNameAndNamespace;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpMethod;
@@ -52,8 +52,8 @@ final class TestAssertions {
 	 * for them is different.
 	 */
 	@SuppressWarnings("unchecked")
-	static void invokeAndAssert(Fabric8KubernetesFixture fabric8KubernetesFixture, Set<String> namespaces, int port,
-			String assertionNamespace) {
+	static void invokeAndAssert(Fabric8ClientKubernetesFixture fabric8KubernetesFixture, Set<String> namespaces,
+			int port, String assertionNamespace) {
 
 		WebClient client = builder().baseUrl("http://localhost:" + port + "/result").build();
 		EndpointNameAndNamespace[] holder = new EndpointNameAndNamespace[2];
