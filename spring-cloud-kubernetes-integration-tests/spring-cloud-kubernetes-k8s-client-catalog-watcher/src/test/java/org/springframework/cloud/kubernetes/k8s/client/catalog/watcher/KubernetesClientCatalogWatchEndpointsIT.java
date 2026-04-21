@@ -19,22 +19,21 @@ package org.springframework.cloud.kubernetes.k8s.client.catalog.watcher;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.assertLogStatement;
 import static org.springframework.cloud.kubernetes.k8s.client.catalog.watcher.TestAssertions.invokeAndAssert;
 
 @SpringBootTest(classes = { Application.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@NativeClientIntegrationTest(namespaces = { "a", "b" }, busyboxNamespaces = { "a", "b" })
 class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWatchBase {
 
 	@LocalServerPort
@@ -45,26 +44,6 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 
 	@TestBean
 	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
-
-	@BeforeEach
-	void beforeEach() {
-
-		fabric8KubernetesFixture.createNamespace(NAMESPACE_A);
-		fabric8KubernetesFixture.createNamespace(NAMESPACE_B);
-
-		Images.loadBusybox(K3S);
-
-		fabric8KubernetesFixture.busybox(NAMESPACE_A, Phase.CREATE);
-		fabric8KubernetesFixture.busybox(NAMESPACE_B, Phase.CREATE);
-
-	}
-
-	@AfterEach
-	void afterEach() {
-		// busybox is deleted as part of the assertions, thus not seen here
-		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_A);
-		fabric8KubernetesFixture.deleteNamespace(NAMESPACE_B);
-	}
 
 	/**
 	 * <pre>
@@ -77,13 +56,14 @@ class KubernetesClientCatalogWatchEndpointsIT extends KubernetesClientCatalogWat
 	 * </pre>
 	 */
 	@Test
-	void testCatalogWatchWithEndpoints(CapturedOutput output) {
+	void testCatalogWatchWithEndpoints(CapturedOutput output,
+			NativeClientKubernetesFixture k8sNativeKubernetesFixture) {
 		assertLogStatement(output, "stateGenerator is of type: KubernetesClientEndpointsCatalogWatch");
-		invokeAndAssert(fabric8KubernetesFixture, Set.of(NAMESPACE_A, NAMESPACE_B), port, NAMESPACE_A);
+		invokeAndAssert(k8sNativeKubernetesFixture, Set.of("a", "b"), port, "a");
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-		return discoveryProperties(false, Set.of(NAMESPACE, NAMESPACE_A));
+		return discoveryProperties(false, Set.of("default", "a"));
 	}
 
 }

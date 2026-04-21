@@ -16,12 +16,14 @@
 
 package org.springframework.cloud.kubernetes.discoveryclient.it;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -35,9 +37,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
@@ -52,6 +52,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 		"spring.cloud.kubernetes.discovery.catalogServicesWatchDelay=3000",
 		"spring.cloud.kubernetes.http.discovery.catalog.watcher.enabled=true" })
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@NativeClientIntegrationTest(namespaces = { "left", "right" },
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = { "left", "right" },
+				withNodePort = false),
+		withImages = "spring-cloud-kubernetes-discoveryserver", rbacNamespaces = "default",
+		clusterWideRBAC = @NativeClientIntegrationTest.ClusterWideRBAC(enabled = true,
+				serviceAccountNamespace = "default", roleBindingNamespaces = { "left", "right" }),
+		deployDiscoverServer = true)
 class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 
 	@TestBean
@@ -68,34 +75,6 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 
 	@Autowired
 	private HeartbeatListener heartbeatListener;
-
-	@BeforeAll
-	static void beforeAllLocal() throws Exception {
-		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_LEFT);
-		k8sNativeKubernetesFixture.createNamespace(NAMESPACE_RIGHT);
-
-		Commons.validateImage(DISCOVERY_SERVER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(DISCOVERY_SERVER_APP_NAME, K3S);
-		k8sNativeKubernetesFixture.setUp(NAMESPACE);
-		serviceAccount(Phase.CREATE);
-		discoveryServer(Phase.CREATE);
-
-		Images.loadWiremock(K3S);
-		k8sNativeKubernetesFixture.wiremock(NAMESPACE_LEFT, Phase.CREATE, false);
-		k8sNativeKubernetesFixture.wiremock(NAMESPACE_RIGHT, Phase.CREATE, false);
-	}
-
-	@AfterAll
-	static void afterAllLocal() {
-		serviceAccount(Phase.DELETE);
-		discoveryServer(Phase.DELETE);
-
-		k8sNativeKubernetesFixture.wiremock(NAMESPACE_LEFT, Phase.DELETE, false);
-		k8sNativeKubernetesFixture.wiremock(NAMESPACE_RIGHT, Phase.DELETE, false);
-
-		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_LEFT);
-		k8sNativeKubernetesFixture.deleteNamespace(NAMESPACE_RIGHT);
-	}
 
 	/**
 	 * <pre>
@@ -120,7 +99,7 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 		List<String> namespaces = defaultKubernetesServiceInstances.stream()
 			.map(DefaultKubernetesServiceInstance::getNamespace)
 			.toList();
-		assertThat(namespaces).containsExactlyInAnyOrder(NAMESPACE_LEFT, NAMESPACE_RIGHT);
+		assertThat(namespaces).containsExactlyInAnyOrder("left", "right");
 
 		testHeartBeat(heartbeatListener, output);
 	}
@@ -146,11 +125,24 @@ class DiscoveryServerClientIT extends DiscoveryServerClientBase {
 		List<String> namespaces = defaultKubernetesServiceInstances.stream()
 			.map(DefaultKubernetesServiceInstance::getNamespace)
 			.toList();
-		assertThat(namespaces).containsExactlyInAnyOrder(NAMESPACE_LEFT, NAMESPACE_RIGHT);
+		assertThat(namespaces).containsExactlyInAnyOrder("left", "right");
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-		return discoveryProperties(Set.of(NAMESPACE_LEFT, NAMESPACE_RIGHT));
+		return discoveryProperties(Set.of("left", "right"));
+	}
+
+	private static ApiClient apiClient() {
+		String kubeConfigYaml = K3S.getKubeConfigYaml();
+
+		ApiClient client;
+		try {
+			client = Config.fromConfig(new StringReader(kubeConfigYaml));
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return new CoreV1Api(client).getApiClient();
 	}
 
 }

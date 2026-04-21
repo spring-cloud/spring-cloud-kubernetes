@@ -25,19 +25,15 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1Service;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.k3s.K3sContainer;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -45,47 +41,26 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author wind57
  */
+@NativeClientIntegrationTest(withImages = { "kafka-configmap-app", "spring-cloud-kubernetes-configuration-watcher" },
+		configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true,
+				watchNamespaces = "default", kafkaEnabled = true, refreshDelay = "1"),
+		rbacNamespaces = "default", deployKafka = true)
 class ConfigurationWatcherBusKafkaIT {
-
-	private static final String CONFIG_WATCHER_APP_IMAGE = "kafka-configmap-app";
-
-	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
 	private static final String CONFIG_MAP_NAME = "apps";
 
-	private static final String NAMESPACE = "default";
-
-	private static final K3sContainer K3S = Commons.container();
-
-	private static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
-
-	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S.start();
-		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
-
-		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-
-		Commons.validateImage(CONFIG_WATCHER_APP_IMAGE, K3S);
-		Commons.loadSpringCloudKubernetesImage(CONFIG_WATCHER_APP_IMAGE, K3S);
-
-		Images.loadKafka(K3S);
-		k8sNativeKubernetesFixture.setUp(NAMESPACE);
-	}
-
 	@BeforeEach
-	void setup() {
-		k8sNativeKubernetesFixture.kafka(NAMESPACE, Phase.CREATE);
-		app(Phase.CREATE);
-		configWatcher(Phase.CREATE);
+	void setup(NativeClientKubernetesFixture fixture) {
+		V1Deployment deployment = fixture.yaml("app/app-deployment.yaml", V1Deployment.class);
+		V1Service service = fixture.yaml("app/app-service.yaml", V1Service.class);
+		fixture.createAndWait("default", null, deployment, service, true);
 	}
 
 	@AfterEach
-	void afterEach() {
-		k8sNativeKubernetesFixture.kafka(NAMESPACE, Phase.DELETE);
-		app(Phase.DELETE);
-		configWatcher(Phase.DELETE);
+	void afterEach(NativeClientKubernetesFixture fixture) {
+		V1Deployment deployment = fixture.yaml("app/app-deployment.yaml", V1Deployment.class);
+		V1Service service = fixture.yaml("app/app-service.yaml", V1Service.class);
+		fixture.deleteAndWait("default", deployment, service);
 	}
 
 	/**
@@ -136,7 +111,7 @@ class ConfigurationWatcherBusKafkaIT {
 	 * </pre>
 	 */
 	@Test
-	void testRefresh() {
+	void testRefresh(NativeClientKubernetesFixture fixture) {
 
 		// configmap has one label, one that says that we should refresh
 		// and one annotation that says that we should refresh some specific services
@@ -146,7 +121,7 @@ class ConfigurationWatcherBusKafkaIT {
 			.addToAnnotations("spring.cloud.kubernetes.configmap.apps", "app")
 			.endMetadata()
 			.build();
-		k8sNativeKubernetesFixture.createAndWait(NAMESPACE, configMap, null);
+		fixture.createAndWait("default", configMap, null);
 
 		WebClient.Builder builder = builder();
 		WebClient serviceClient = builder.baseUrl("http://localhost:32321/app").build();
@@ -163,31 +138,7 @@ class ConfigurationWatcherBusKafkaIT {
 
 		Assertions.assertThat(value[0]).isTrue();
 
-		k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, configMap, null);
-	}
-
-	private void app(Phase phase) {
-		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("app/app-deployment.yaml", V1Deployment.class);
-		V1Service service = K8sNativeKubernetesFixture.yaml("app/app-service.yaml", V1Service.class);
-
-		if (phase.equals(Phase.CREATE)) {
-			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
-		}
-	}
-
-	private void configWatcher(Phase phase) {
-		V1Deployment deployment = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-bus-kafka-deployment.yaml", V1Deployment.class);
-		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/watcher-kus-kafka-service.yaml", V1Service.class);
-
-		if (phase.equals(Phase.CREATE)) {
-			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
-		}
-		else if (phase.equals(Phase.DELETE)) {
-			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
-		}
+		fixture.deleteAndWait("default", configMap, null);
 	}
 
 	private WebClient.Builder builder() {

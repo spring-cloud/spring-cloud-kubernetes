@@ -16,22 +16,13 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.util.List;
-
-import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1EnvVar;
-import io.kubernetes.client.openapi.models.V1Service;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME;
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.configureWireMock;
@@ -42,40 +33,18 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.TestUti
 /**
  * @author Ryan Baxter
  */
+@NativeClientIntegrationTest(withImages = { "spring-cloud-kubernetes-configuration-watcher" },
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = "default", withNodePort = true),
+		configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true, refreshDelay = "0",
+				reloadEnabled = false),
+		rbacNamespaces = "default")
 class ActuatorRefreshIT {
 
-	private static final String NAMESPACE = "default";
-
-	private static final K3sContainer K3S = Commons.container();
-
-	private static K8sNativeKubernetesFixture k8sNativeKubernetesFixture;
+	private static K3sContainer container;
 
 	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S.start();
-		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Images.loadWiremock(K3S);
-
-		k8sNativeKubernetesFixture = new K8sNativeKubernetesFixture(K3S);
-		k8sNativeKubernetesFixture.setUp(NAMESPACE);
-
-		configWatcher(Phase.CREATE);
-	}
-
-	@AfterAll
-	static void afterAll() {
-		configWatcher(Phase.DELETE);
-	}
-
-	@BeforeEach
-	void setup() {
-		k8sNativeKubernetesFixture.wiremock(NAMESPACE, Phase.CREATE, true);
-	}
-
-	@AfterEach
-	void after() {
-		k8sNativeKubernetesFixture.wiremock(NAMESPACE, Phase.DELETE, true);
+	static void beforeAll(K3sContainer k3sContainer) {
+		container = k3sContainer;
 	}
 
 	/*
@@ -86,38 +55,15 @@ class ActuatorRefreshIT {
 	 * refresh that we capture and assert for.
 	 */
 	@Test
-	void testActuatorRefresh() {
+	void testActuatorRefresh(NativeClientKubernetesFixture fixture) {
 		configureWireMock();
-		createConfigMap(k8sNativeKubernetesFixture, NAMESPACE);
+		createConfigMap(fixture, "default");
 		verifyActuatorCalled(1);
 
-		Commons.waitForLogStatement("creating NOOP strategy because reload is disabled", K3S,
+		Commons.waitForLogStatement("creating NOOP strategy because reload is disabled", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 
-		deleteConfigMap(k8sNativeKubernetesFixture, NAMESPACE);
-	}
-
-	private static void configWatcher(Phase phase) {
-		V1Deployment deployment = K8sNativeKubernetesFixture
-			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml", V1Deployment.class);
-		V1Service service = K8sNativeKubernetesFixture.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml",
-				V1Service.class);
-
-		List<V1EnvVar> envVars = List.of(
-				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY").value("0"),
-				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_ENABLED").value("FALSE"),
-				new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CONFIGURATION_WATCHER")
-					.value("DEBUG"));
-
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		if (phase.equals(Phase.CREATE)) {
-			k8sNativeKubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
-		}
-		else {
-			k8sNativeKubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
-		}
-
+		deleteConfigMap(fixture, "default");
 	}
 
 }

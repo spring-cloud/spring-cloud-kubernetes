@@ -16,23 +16,12 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.istio;
 
-import java.io.InputStream;
 import java.util.List;
 
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.Container;
-import org.testcontainers.k3s.K3sContainer;
 
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -42,57 +31,9 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 /**
  * @author wind57
  */
+@Fabric8ClientIntegrationTest(namespaces = { "istio-test", "istio-system" },
+		withImages = "spring-cloud-kubernetes-fabric8-client-istio", deployIstio = true)
 class Fabric8IstioIT {
-
-	private static final String NAMESPACE = "istio-test";
-
-	private static final String IMAGE_NAME = "spring-cloud-kubernetes-fabric8-client-istio";
-
-	private static Fabric8KubernetesFixture fabric8KubernetesFixture;
-
-	private static K3sContainer K3S;
-
-	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S = Commons.container();
-		K3S.start();
-		fabric8KubernetesFixture = new Fabric8KubernetesFixture(K3S);
-		Commons.validateImage(IMAGE_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(IMAGE_NAME, K3S);
-
-		Images.loadIstioCtl(K3S);
-		Images.loadIstioProxyV2(K3S);
-		Images.loadIstioPilot(K3S);
-
-		processExecResult(K3S.execInContainer("sh", "-c", "kubectl create namespace istio-test"));
-		processExecResult(
-				K3S.execInContainer("sh", "-c", "kubectl label namespace istio-test istio-injection=enabled"));
-
-		fabric8KubernetesFixture.setUpIstioctl(NAMESPACE, Phase.CREATE);
-
-		String istioctlPodName = istioctlPodName();
-		K3S.execInContainer("sh", "-c",
-				"kubectl cp istio-test/" + istioctlPodName + ":/usr/local/bin/istioctl /tmp/istioctl");
-		K3S.execInContainer("sh", "-c", "chmod +x /tmp/istioctl");
-
-		processExecResult(K3S.execInContainer("sh", "-c",
-				"/tmp/istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
-
-		fabric8KubernetesFixture.setUpIstio(NAMESPACE);
-
-		appManifests(Phase.CREATE);
-	}
-
-	@AfterAll
-	static void afterAll() {
-		fabric8KubernetesFixture.deleteNamespace("istio-system");
-	}
-
-	@AfterAll
-	static void after() {
-		appManifests(Phase.DELETE);
-		fabric8KubernetesFixture.setUpIstioctl(NAMESPACE, Phase.DELETE);
-	}
 
 	@Test
 	void test() {
@@ -107,44 +48,6 @@ class Fabric8IstioIT {
 
 		// istio profile is present
 		Assertions.assertThat(result).contains("istio");
-	}
-
-	private static void appManifests(Phase phase) {
-
-		InputStream deploymentStream = fabric8KubernetesFixture.inputStream("istio-deployment.yaml");
-		InputStream serviceStream = fabric8KubernetesFixture.inputStream("istio-service.yaml");
-
-		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
-		Service service = Serialization.unmarshal(serviceStream, Service.class);
-
-		if (phase.equals(Phase.CREATE)) {
-			fabric8KubernetesFixture.createAndWait(NAMESPACE, null, deployment, service, true);
-		}
-		else {
-			fabric8KubernetesFixture.deleteAndWait(NAMESPACE, deployment, service);
-		}
-
-	}
-
-	private static String istioctlPodName() {
-		try {
-			return K3S
-				.execInContainer("sh", "-c",
-						"kubectl get pods -n istio-test -l app=istio-ctl -o=name --no-headers | tr -d '\n'")
-				.getStdout()
-				.split("/")[1];
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private static String processExecResult(Container.ExecResult execResult) {
-		if (execResult.getExitCode() != 0) {
-			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
-		}
-
-		return execResult.getStdout();
 	}
 
 }

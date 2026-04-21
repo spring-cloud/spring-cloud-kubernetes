@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +35,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
@@ -52,6 +49,9 @@ import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAsse
  */
 @SpringBootTest(classes = { DiscoveryApp.class, KubernetesClientBlockingIT.TestConfig.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@NativeClientIntegrationTest(namespaces = "non-default",
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = "default", withNodePort = true),
+		busyboxNamespaces = "non-default")
 class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 
 	@LocalManagementPort
@@ -63,24 +63,6 @@ class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 	@Autowired
 	private DiscoveryClient discoveryClient;
 
-	@BeforeAll
-	static void beforeAllLocal() {
-
-		k8sNativeKubernetesFixture.createNamespace(NON_DEFAULT_NAMESPACE);
-
-		Images.loadWiremock(K3S);
-		Images.loadBusybox(K3S);
-		k8sNativeKubernetesFixture.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, false);
-		k8sNativeKubernetesFixture.busybox(NON_DEFAULT_NAMESPACE, Phase.CREATE);
-	}
-
-	@AfterAll
-	static void afterAllLocal() {
-		k8sNativeKubernetesFixture.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, false);
-		k8sNativeKubernetesFixture.busybox(NON_DEFAULT_NAMESPACE, Phase.DELETE);
-		k8sNativeKubernetesFixture.deleteNamespace(NON_DEFAULT_NAMESPACE);
-	}
-
 	private void assertAllNamespacesAllLabels(DiscoveryClient discoveryClient) {
 
 		List<ServiceInstance> wiremockServiceInstances = discoveryClient.getInstances("service-wiremock");
@@ -90,8 +72,8 @@ class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 		assertThat(wiremockService.getServiceId()).isEqualTo("service-wiremock");
 		assertThat(wiremockService.getInstanceId()).isNotNull();
 		assertThat(wiremockService.getHost()).isNotNull();
-		assertThat(wiremockService.getMetadata()).isEqualTo(Map.of("k8s_namespace", "default", "type", "ClusterIP",
-				"port.http", "8080", "app", "service-wiremock"));
+		assertThat(wiremockService.getMetadata()).isEqualTo(
+				Map.of("k8s_namespace", "default", "type", "NodePort", "port.http", "8080", "app", "service-wiremock"));
 
 		List<ServiceInstance> busyboxServiceInstances = discoveryClient.getInstances("busybox-service");
 		assertThat(busyboxServiceInstances).hasSize(2);
@@ -119,8 +101,8 @@ class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 		assertThat(defaultKubernetesServiceInstance.getServiceId()).isEqualTo("service-wiremock");
 		assertThat(defaultKubernetesServiceInstance.getInstanceId()).isNotNull();
 		assertThat(defaultKubernetesServiceInstance.getHost()).isNotNull();
-		assertThat(defaultKubernetesServiceInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "default", "type",
-				"ClusterIP", "port.http", "8080", "app", "service-wiremock"));
+		assertThat(defaultKubernetesServiceInstance.getMetadata()).isEqualTo(
+				Map.of("k8s_namespace", "default", "type", "NodePort", "port.http", "8080", "app", "service-wiremock"));
 
 	}
 
@@ -138,8 +120,8 @@ class KubernetesClientBlockingIT extends KubernetesClientDiscoveryBase {
 		assertThat(defaultKubernetesServiceInstance.getServiceId()).isEqualTo("service-wiremock");
 		assertThat(defaultKubernetesServiceInstance.getInstanceId()).isNotNull();
 		assertThat(defaultKubernetesServiceInstance.getHost()).isNotNull();
-		assertThat(defaultKubernetesServiceInstance.getMetadata()).isEqualTo(Map.of("k8s_namespace", "default", "type",
-				"ClusterIP", "port.http", "8080", "app", "service-wiremock"));
+		assertThat(defaultKubernetesServiceInstance.getMetadata()).isEqualTo(
+				Map.of("k8s_namespace", "default", "type", "NodePort", "port.http", "8080", "app", "service-wiremock"));
 
 	}
 

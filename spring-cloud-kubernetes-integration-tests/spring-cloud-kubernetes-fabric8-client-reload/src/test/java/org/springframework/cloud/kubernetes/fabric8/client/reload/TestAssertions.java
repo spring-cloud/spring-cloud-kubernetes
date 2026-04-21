@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8KubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
 
 /**
  * @author wind57
@@ -63,7 +63,8 @@ final class TestAssertions {
 		client.secrets().inNamespace(namespace).resource(secret).update();
 	}
 
-	static void configMap(Phase phase, Fabric8KubernetesFixture fabric8KubernetesFixture, ConfigMap configMap, String namespace) {
+	static void configMap(Phase phase, Fabric8ClientKubernetesFixture fabric8KubernetesFixture, ConfigMap configMap,
+			String namespace) {
 		if (phase.equals(Phase.CREATE)) {
 			fabric8KubernetesFixture.createAndWait(namespace, configMap, null);
 		}
@@ -72,7 +73,8 @@ final class TestAssertions {
 		}
 	}
 
-	static void secret(Phase phase, Fabric8KubernetesFixture fabric8KubernetesFixture, Secret secret, String namespace) {
+	static void secret(Phase phase, Fabric8ClientKubernetesFixture fabric8KubernetesFixture, Secret secret,
+			String namespace) {
 		if (phase.equals(Phase.CREATE)) {
 			fabric8KubernetesFixture.createAndWait(namespace, null, secret);
 		}
@@ -81,7 +83,7 @@ final class TestAssertions {
 		}
 	}
 
-	static void manifests(Phase phase, Fabric8KubernetesFixture fabric8KubernetesFixture, String namespace) {
+	static void manifests(Phase phase, Fabric8ClientKubernetesFixture fabric8KubernetesFixture, String namespace) {
 
 		InputStream deploymentStream = fabric8KubernetesFixture.inputStream("manifests/deployment.yaml");
 		InputStream serviceStream = fabric8KubernetesFixture.inputStream("manifests/service.yaml");

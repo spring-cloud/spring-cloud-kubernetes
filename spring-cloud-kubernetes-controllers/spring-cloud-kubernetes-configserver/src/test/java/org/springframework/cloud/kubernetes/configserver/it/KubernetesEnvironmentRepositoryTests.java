@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.kubernetes.configserver.it;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +30,7 @@ import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
+import io.kubernetes.client.util.Yaml;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -39,7 +44,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -55,17 +60,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesEnvironmentRepositoryTests {
 
-	private static final V1ConfigMapList CONFIGMAP_LIST_DEFAULT_NAMESPACE = K8sNativeKubernetesFixture.yaml("configmap-default-list.yaml",
+	private static final V1ConfigMapList CONFIGMAP_LIST_DEFAULT_NAMESPACE = yaml("configmap-default-list.yaml",
 			V1ConfigMapList.class);
 
-	private static final V1ConfigMapList CONFIGMAP_LIST_DEV_NAMESPACE = K8sNativeKubernetesFixture.yaml("configmap-dev-list.yaml",
+	private static final V1ConfigMapList CONFIGMAP_LIST_DEV_NAMESPACE = yaml("configmap-dev-list.yaml",
 			V1ConfigMapList.class);
 
-	private static final V1SecretList SECRET_LIST_DEFAULT_NAMESPACE = K8sNativeKubernetesFixture.yaml("secret-one-list.yaml",
-			V1SecretList.class);
+	private static final V1SecretList SECRET_LIST_DEFAULT_NAMESPACE = yaml("secret-one-list.yaml", V1SecretList.class);
 
-	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = K8sNativeKubernetesFixture.yaml("configmap-one-list.yaml",
-			V1ConfigMapList.class);
+	private static final V1ConfigMapList CONFIGMAP_ONE_LIST = yaml("configmap-one-list.yaml", V1ConfigMapList.class);
 
 	private static WireMockServer wireMockServer;
 
@@ -86,6 +89,24 @@ class KubernetesEnvironmentRepositoryTests {
 	static void afterAll() {
 		wireMockServer.stop();
 		wireMockServer.shutdownServer();
+	}
+
+	private static <T> T yaml(String fileName, Class<T> type) {
+		ClassLoader classLoader = NativeClientKubernetesFixture.class.getClassLoader();
+
+		try (InputStream inputStream = classLoader.getResourceAsStream(fileName)) {
+			if (inputStream == null) {
+				throw new IllegalArgumentException("Resource not found: " + fileName);
+			}
+
+			String file = new BufferedReader(new InputStreamReader(inputStream)).lines()
+				.collect(Collectors.joining("\n"));
+
+			return Yaml.loadAs(file, type);
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to load yaml resource: " + fileName, e);
+		}
 	}
 
 	@TestConfiguration

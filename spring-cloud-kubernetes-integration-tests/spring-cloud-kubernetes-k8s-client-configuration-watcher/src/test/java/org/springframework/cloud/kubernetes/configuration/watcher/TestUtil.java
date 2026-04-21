@@ -31,7 +31,7 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.K8sNativeKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -76,9 +76,12 @@ final class TestUtil {
 				.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 			return !requests.isEmpty();
 		});
+
+		WireMock.verify(WireMock.exactly(timesCalled),
+				WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 	}
 
-	static void createConfigMap(K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
+	static void createConfigMap(NativeClientKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata()
 			.withName("service-wiremock")
 			.withNamespace(namespace)
@@ -89,7 +92,7 @@ final class TestUtil {
 		k8sNativeKubernetesFixture.createAndWait(namespace, configMap, null);
 	}
 
-	static void deleteConfigMap(K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
+	static void deleteConfigMap(NativeClientKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
 		V1ConfigMap configMap = new V1ConfigMapBuilder().editOrNewMetadata()
 			.withName("service-wiremock")
 			.withNamespace(namespace)
@@ -98,7 +101,7 @@ final class TestUtil {
 		k8sNativeKubernetesFixture.deleteAndWait(namespace, configMap, null);
 	}
 
-	static void createSecret(K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
+	static void createSecret(NativeClientKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
 		V1Secret secret = new V1SecretBuilder().editOrNewMetadata()
 			.withLabels(Map.of("spring.cloud.kubernetes.secret", "true"))
 			.withName("service-wiremock")
@@ -109,7 +112,7 @@ final class TestUtil {
 		k8sNativeKubernetesFixture.createAndWait(namespace, null, secret);
 	}
 
-	static void deleteSecret(K8sNativeKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
+	static void deleteSecret(NativeClientKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
 		V1Secret secret = new V1SecretBuilder().editOrNewMetadata()
 			.withName("service-wiremock")
 			.withNamespace(namespace)
