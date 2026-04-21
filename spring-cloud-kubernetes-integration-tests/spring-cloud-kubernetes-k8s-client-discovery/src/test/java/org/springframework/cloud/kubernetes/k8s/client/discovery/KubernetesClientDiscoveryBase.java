@@ -25,10 +25,10 @@ import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.Config;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.test.context.TestPropertySource;
 
 /**

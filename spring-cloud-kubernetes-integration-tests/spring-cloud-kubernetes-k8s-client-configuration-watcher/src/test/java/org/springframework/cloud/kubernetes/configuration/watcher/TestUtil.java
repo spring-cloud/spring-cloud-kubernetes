@@ -78,7 +78,7 @@ final class TestUtil {
 		});
 
 		WireMock.verify(WireMock.exactly(timesCalled),
-			WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
+				WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 	}
 
 	static void createConfigMap(NativeClientKubernetesFixture k8sNativeKubernetesFixture, String namespace) {
