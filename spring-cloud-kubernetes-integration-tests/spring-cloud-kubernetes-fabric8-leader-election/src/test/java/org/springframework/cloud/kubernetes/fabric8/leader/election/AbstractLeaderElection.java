@@ -25,11 +25,10 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.testcontainers.k3s.K3sContainer;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -57,8 +56,6 @@ import org.springframework.test.annotation.DirtiesContext;
 @Fabric8ClientIntegrationTest
 abstract class AbstractLeaderElection {
 
-	private static K3sContainer container;
-
 	private static MockedStatic<LeaderUtils> LEADER_UTILS_MOCKED_STATIC;
 
 	@Autowired
@@ -67,11 +64,6 @@ abstract class AbstractLeaderElection {
 	static void beforeAll(String candidateIdentity) {
 		LEADER_UTILS_MOCKED_STATIC = Mockito.mockStatic(LeaderUtils.class);
 		LEADER_UTILS_MOCKED_STATIC.when(LeaderUtils::hostName).thenReturn(candidateIdentity);
-	}
-
-	@BeforeAll
-	static void beforeAll(K3sContainer k3sContainer) {
-		container = k3sContainer;
 	}
 
 	@AfterAll
@@ -100,7 +92,8 @@ abstract class AbstractLeaderElection {
 		@Bean
 		@Primary
 		KubernetesClient client() {
-			String kubeConfigYaml = container.getKubeConfigYaml();
+			// K3sContextInitializer makes sure it is started
+			String kubeConfigYaml = Commons.container().getKubeConfigYaml();
 			Config config = Config.fromKubeconfig(kubeConfigYaml);
 			return new KubernetesClientBuilder().withConfig(config).build();
 		}

@@ -21,9 +21,8 @@ import java.util.Set;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.k3s.K3sContainer;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -44,8 +43,6 @@ import static org.springframework.cloud.kubernetes.fabric8.discovery.TestAsserti
 @Fabric8ClientIntegrationTest(namespaces = { "a", "b" }, busyboxNamespaces = { "a", "b" })
 class Fabric8CatalogWatchEndpointsIT extends Fabric8CatalogWatchBase {
 
-	private static K3sContainer container;
-
 	@TestBean
 	private KubernetesClient client;
 
@@ -54,11 +51,6 @@ class Fabric8CatalogWatchEndpointsIT extends Fabric8CatalogWatchBase {
 
 	@LocalServerPort
 	private int port;
-
-	@BeforeAll
-	static void beforeAll(K3sContainer k3sContainer) {
-		container = k3sContainer;
-	}
 
 	/**
 	 * <pre>
@@ -81,7 +73,8 @@ class Fabric8CatalogWatchEndpointsIT extends Fabric8CatalogWatchBase {
 	}
 
 	private static KubernetesClient client() {
-		String kubeConfigYaml = container.getKubeConfigYaml();
+		// K3sContextInitializer makes sure it is started
+		String kubeConfigYaml = Commons.container().getKubeConfigYaml();
 		Config config = Config.fromKubeconfig(kubeConfigYaml);
 		return new KubernetesClientBuilder().withConfig(config).build();
 	}

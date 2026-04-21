@@ -24,9 +24,8 @@ import java.util.Set;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.util.Config;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testcontainers.k3s.K3sContainer;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
@@ -45,15 +44,9 @@ abstract class KubernetesClientDiscoveryBase {
 
 	protected static final String DEFAULT_NAMESPACE = "default";
 
-	protected static K3sContainer container;
-
-	@BeforeAll
-	protected static void beforeAll(K3sContainer k3sContainer) {
-		container = k3sContainer;
-	}
-
 	protected static ApiClient apiClient() {
-		String kubeConfigYaml = container.getKubeConfigYaml();
+		// K3sContextInitializer makes sure it is started
+		String kubeConfigYaml = Commons.container().getKubeConfigYaml();
 
 		ApiClient client;
 		try {

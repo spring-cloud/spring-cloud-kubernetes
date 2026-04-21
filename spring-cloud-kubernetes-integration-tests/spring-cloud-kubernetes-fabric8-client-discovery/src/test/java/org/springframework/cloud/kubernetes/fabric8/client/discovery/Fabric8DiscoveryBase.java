@@ -22,9 +22,8 @@ import java.util.Set;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testcontainers.k3s.K3sContainer;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,8 +48,6 @@ import org.springframework.test.context.bean.override.convention.TestBean;
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 abstract class Fabric8DiscoveryBase {
 
-	private static K3sContainer container;
-
 	@TestBean
 	private KubernetesClient kubernetesClient;
 
@@ -62,13 +59,9 @@ abstract class Fabric8DiscoveryBase {
 				labels, null, metadata, 0, false, true, null);
 	}
 
-	@BeforeAll
-	static void beforeAll(K3sContainer k3sContainer) {
-		container = k3sContainer;
-	}
-
 	private static KubernetesClient kubernetesClient() {
-		String kubeConfigYaml = container.getKubeConfigYaml();
+		// K3sContextInitializer makes sure it is started
+		String kubeConfigYaml = Commons.container().getKubeConfigYaml();
 		Config config = Config.fromKubeconfig(kubeConfigYaml);
 		return new KubernetesClientBuilder().withConfig(config).build();
 	}
