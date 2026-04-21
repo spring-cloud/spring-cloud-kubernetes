@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -42,10 +43,22 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
+	@BeforeAll
+	static void beforeAll(NativeClientKubernetesFixture fixture) {
+		configureWireMock();
+
+		createConfigMap(fixture, "left");
+		createConfigMap(fixture, "right");
+
+		createSecret(fixture, "left");
+		createSecret(fixture, "right");
+	}
+
 	@AfterAll
 	static void afterAll(NativeClientKubernetesFixture fixture) {
 		deleteConfigMap(fixture, "left");
 		deleteConfigMap(fixture, "right");
+
 		deleteSecret(fixture, "left");
 		deleteSecret(fixture, "right");
 	}
@@ -62,13 +75,6 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 */
 	@Test
 	void testConfigMapActuatorRefreshMultipleNamespaces(NativeClientKubernetesFixture fixture, K3sContainer container) {
-		configureWireMock();
-
-		createConfigMap(fixture, "left");
-		createConfigMap(fixture, "right");
-
-		createSecret(fixture, "left");
-		createSecret(fixture, "right");
 
 		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace left", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
