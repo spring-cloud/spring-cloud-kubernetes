@@ -17,7 +17,9 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,14 +78,19 @@ public final class Commons {
 		return CONTAINER;
 	}
 
-	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) throws Exception {
-		loadImage("springcloud/" + project, pomVersion(), project, container);
+	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) {
+		try {
+			loadImage("springcloud/" + project, pomVersion(), project, container);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
 	 * create a tar, copy it in the running k3s and load this tar as an image.
 	 */
-	public static void loadImage(String image, String tag, String tarName, K3sContainer container) throws Exception {
+	public static void loadImage(String image, String tag, String tarName, K3sContainer container) {
 
 		if (imageAlreadyInK3s(container, tarName)) {
 			return;
@@ -94,7 +101,12 @@ public final class Commons {
 			InputStream imageStream = saveImageCmd.withTag(tag).exec();
 
 			Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
-			Files.copy(imageStream, imagePath, StandardCopyOption.REPLACE_EXISTING);
+			try {
+				Files.copy(imageStream, imagePath, StandardCopyOption.REPLACE_EXISTING);
+			}
+			catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
 			// import image with ctr. this works because TEMP_FOLDER is mounted in the
 			// container
 			Awaitilities.awaitUntil(120, 1000, () -> {

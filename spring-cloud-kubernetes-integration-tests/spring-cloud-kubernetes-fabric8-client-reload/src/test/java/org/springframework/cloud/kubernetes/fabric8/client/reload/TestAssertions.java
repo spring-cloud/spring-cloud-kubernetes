@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
 
 /**
  * @author wind57
@@ -63,29 +63,31 @@ final class TestAssertions {
 		client.secrets().inNamespace(namespace).resource(secret).update();
 	}
 
-	static void configMap(Phase phase, Util util, ConfigMap configMap, String namespace) {
+	static void configMap(Phase phase, Fabric8ClientKubernetesFixture fabric8KubernetesFixture, ConfigMap configMap,
+			String namespace) {
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(namespace, configMap, null);
+			fabric8KubernetesFixture.createAndWait(namespace, configMap, null);
 		}
 		else {
-			util.deleteAndWait(namespace, configMap, null);
+			fabric8KubernetesFixture.deleteAndWait(namespace, configMap, null);
 		}
 	}
 
-	static void secret(Phase phase, Util util, Secret secret, String namespace) {
+	static void secret(Phase phase, Fabric8ClientKubernetesFixture fabric8KubernetesFixture, Secret secret,
+			String namespace) {
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(namespace, null, secret);
+			fabric8KubernetesFixture.createAndWait(namespace, null, secret);
 		}
 		else {
-			util.deleteAndWait(namespace, null, secret);
+			fabric8KubernetesFixture.deleteAndWait(namespace, null, secret);
 		}
 	}
 
-	static void manifests(Phase phase, Util util, String namespace) {
+	static void manifests(Phase phase, Fabric8ClientKubernetesFixture fabric8KubernetesFixture, String namespace) {
 
-		InputStream deploymentStream = util.inputStream("manifests/deployment.yaml");
-		InputStream serviceStream = util.inputStream("manifests/service.yaml");
-		InputStream configMapAsStream = util.inputStream("manifests/configmap-configtree.yaml");
+		InputStream deploymentStream = fabric8KubernetesFixture.inputStream("manifests/deployment.yaml");
+		InputStream serviceStream = fabric8KubernetesFixture.inputStream("manifests/service.yaml");
+		InputStream configMapAsStream = fabric8KubernetesFixture.inputStream("manifests/configmap-configtree.yaml");
 
 		Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 
@@ -93,12 +95,12 @@ final class TestAssertions {
 		ConfigMap configMap = Serialization.unmarshal(configMapAsStream, ConfigMap.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(namespace, configMap, null);
-			util.createAndWait(namespace, null, deployment, service, true);
+			fabric8KubernetesFixture.createAndWait(namespace, configMap, null);
+			fabric8KubernetesFixture.createAndWait(namespace, null, deployment, service, true);
 		}
 		else {
-			util.deleteAndWait(namespace, configMap, null);
-			util.deleteAndWait(namespace, deployment, service);
+			fabric8KubernetesFixture.deleteAndWait(namespace, configMap, null);
+			fabric8KubernetesFixture.deleteAndWait(namespace, deployment, service);
 		}
 
 	}

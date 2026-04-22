@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +30,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
@@ -45,11 +42,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = { DiscoveryApp.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=a-uat",
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat" })
+@NativeClientIntegrationTest(namespaces = { "a-uat", "b-uat" },
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = { "a-uat", "b-uat" },
+				withNodePort = false))
 class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
-
-	private static final String NAMESPACE_A_UAT = "a-uat";
-
-	private static final String NAMESPACE_B_UAT = "b-uat";
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
@@ -59,25 +55,6 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 
 	@TestBean
 	private KubernetesDiscoveryProperties kubernetesDiscoveryProperties;
-
-	@BeforeEach
-	void beforeEach() {
-		util.createNamespace(NAMESPACE_A_UAT);
-		util.createNamespace(NAMESPACE_B_UAT);
-
-		Images.loadWiremock(K3S);
-		util.wiremock(NAMESPACE_A_UAT, Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B_UAT, Phase.CREATE, false);
-	}
-
-	@AfterEach
-	void afterEach() {
-		util.wiremock(NAMESPACE_A_UAT, Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B_UAT, Phase.DELETE, false);
-
-		util.deleteNamespace(NAMESPACE_A_UAT);
-		util.deleteNamespace(NAMESPACE_B_UAT);
-	}
 
 	/**
 	 * <pre>
@@ -121,8 +98,8 @@ class KubernetesClientDiscoveryFilterIT extends KubernetesClientDiscoveryBase {
 	}
 
 	private static KubernetesDiscoveryProperties kubernetesDiscoveryProperties() {
-		return discoveryProperties(false, Set.of(NAMESPACE_A_UAT, NAMESPACE_B_UAT),
-				"#root.metadata.namespace matches '^.*uat$'", Map.of());
+		return discoveryProperties(false, Set.of("a-uat", "b-uat"), "#root.metadata.namespace matches '^.*uat$'",
+				Map.of());
 	}
 
 }

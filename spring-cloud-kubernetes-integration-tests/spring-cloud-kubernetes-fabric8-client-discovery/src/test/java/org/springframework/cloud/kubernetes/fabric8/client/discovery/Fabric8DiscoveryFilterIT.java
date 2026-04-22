@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.filterMatchesBothNamespacesViaThePredicate;
@@ -35,36 +32,11 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 		"spring.cloud.kubernetes.discovery.namespaces[1]=b-uat",
 		"spring.cloud.kubernetes.discovery.filter=#root.metadata.namespace matches '^.*uat$'",
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG" })
+@Fabric8ClientIntegrationTest(namespaces = { "a-uat", "b-uat" }, wiremockNamespaces = { "a-uat", "b-uat" })
 class Fabric8DiscoveryFilterIT extends Fabric8DiscoveryBase {
-
-	private static final String NAMESPACE_A_UAT = "a-uat";
-
-	private static final String NAMESPACE_B_UAT = "b-uat";
 
 	@Autowired
 	private DiscoveryClient discoveryClient;
-
-	@BeforeEach
-	void beforeEach() {
-		Images.loadWiremock(K3S);
-
-		util.createNamespace(NAMESPACE_A_UAT);
-		util.createNamespace(NAMESPACE_B_UAT);
-
-		util.wiremock(NAMESPACE_A_UAT, Phase.CREATE, false);
-		util.wiremock(NAMESPACE_B_UAT, Phase.CREATE, false);
-
-	}
-
-	@AfterEach
-	void afterEach() {
-
-		util.wiremock(NAMESPACE_A_UAT, Phase.DELETE, false);
-		util.wiremock(NAMESPACE_B_UAT, Phase.DELETE, false);
-
-		util.deleteNamespace(NAMESPACE_A_UAT);
-		util.deleteNamespace(NAMESPACE_B_UAT);
-	}
 
 	@Test
 	void test() {

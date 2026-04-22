@@ -21,11 +21,9 @@ import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.models.V1Service;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,9 +33,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
@@ -50,6 +46,7 @@ import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAsse
 @SpringBootTest(classes = { DiscoveryApp.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(properties = { "spring.cloud.kubernetes.discovery.namespaces[0]=default",
 		"org.springframework.cloud.kubernetes.client.discovery=debug" })
+@NativeClientIntegrationTest(busyboxNamespaces = "default", deployExternalNameService = true)
 class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 
 	@TestBean
@@ -61,36 +58,19 @@ class KubernetesClientDiscoverySimpleIT extends KubernetesClientDiscoveryBase {
 	@Autowired
 	private DiscoveryClient discoveryClient;
 
-	private static V1Service externalNameService;
-
-	@BeforeEach
-	void beforeEach() {
-		Images.loadBusybox(K3S);
-		util.busybox(DEFAULT_NAMESPACE, Phase.CREATE);
-
-		externalNameService = Util.yaml("external-name-service.yaml", V1Service.class);
-		util.createAndWait(DEFAULT_NAMESPACE, null, null, externalNameService, true);
-	}
-
-	@AfterEach
-	void afterEach() {
-		util.busybox(DEFAULT_NAMESPACE, Phase.DELETE);
-		util.deleteAndWait(DEFAULT_NAMESPACE, null, externalNameService);
-	}
-
 	@Test
-	void test(CapturedOutput output) throws Exception {
+	void test(CapturedOutput output, K3sContainer container) throws Exception {
 
 		// find both pods
-		String[] both = K3S.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
+		String[] both = container.execInContainer("sh", "-c", "kubectl get pods -l app=busybox -o=name --no-headers")
 			.getStdout()
 			.split("\n");
 		// add a label to first pod
-		K3S.execInContainer("sh", "-c",
+		container.execInContainer("sh", "-c",
 				"kubectl label pods " + both[0].split("/")[1] + " custom-label=custom-label-value");
 
 		// add annotation to the second pod
-		K3S.execInContainer("sh", "-c",
+		container.execInContainer("sh", "-c",
 				"kubectl annotate pods " + both[1].split("/")[1] + " custom-annotation=custom-annotation-value");
 
 		assertLogStatement(output, "serviceSharedInformers will use selective namespaces : [default]");
