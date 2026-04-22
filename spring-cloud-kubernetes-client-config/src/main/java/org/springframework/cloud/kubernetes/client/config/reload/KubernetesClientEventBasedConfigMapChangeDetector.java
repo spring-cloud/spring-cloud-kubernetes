@@ -71,8 +71,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 
 	private final ConfigurableEnvironment environment;
 
-	private final boolean enableReloadFiltering;
-
 	private final boolean monitoringConfigMaps;
 
 	private final Map<String, String> configMapsLabels;
@@ -115,7 +113,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		this.propertySourceLocator = propertySourceLocator;
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
-		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitoringConfigMaps = properties.monitoringConfigMaps();
 		this.configMapsLabels = properties.configMapsLabels();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
@@ -125,21 +122,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 	void inform() {
 		if (monitoringConfigMaps) {
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
-
-			Map<String, String> labelSelector;
-
-			if (enableReloadFiltering) {
-				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-				LOG.warn(() -> "use spring.cloud.kubernetes.reload.config-maps-labels instead");
-				if (!configMapsLabels.isEmpty()) {
-					LOG.warn(() -> "spring.cloud.kubernetes.reload.config-maps-labels is not empty, but "
-							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
-				}
-				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
-			}
-			else {
-				labelSelector = configMapsLabels;
-			}
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
@@ -151,11 +133,11 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
-						.labelSelector(labelSelector(labelSelector))
+						.labelSelector(labelSelector(configMapsLabels))
 						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
-				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with labels : "
-						+ labelSelector);
+				LOG.debug(
+						() -> "configmap informer for namespace : " + namespace + " with labels : " + configMapsLabels);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
