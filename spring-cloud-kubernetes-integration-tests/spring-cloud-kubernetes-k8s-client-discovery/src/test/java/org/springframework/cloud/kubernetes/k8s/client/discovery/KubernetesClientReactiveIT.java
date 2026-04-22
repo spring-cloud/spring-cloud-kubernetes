@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.ApiClient;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +28,7 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.convention.TestBean;
 
@@ -47,6 +44,8 @@ import static org.springframework.cloud.kubernetes.k8s.client.discovery.TestAsse
 				"logging.level.org.springframework.cloud.kubernetes.commons.discovery=debug",
 				"logging.level.org.springframework.cloud.client.discovery.health=debug",
 				"logging.level.org.springframework.cloud.kubernetes.client.discovery=debug" })
+@NativeClientIntegrationTest(wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true,
+		namespaces = { "default" }, withNodePort = true))
 class KubernetesClientReactiveIT extends KubernetesClientDiscoveryBase {
 
 	@TestBean
@@ -60,17 +59,6 @@ class KubernetesClientReactiveIT extends KubernetesClientDiscoveryBase {
 
 	@Autowired
 	private ReactiveDiscoveryClient discoveryClient;
-
-	@BeforeEach
-	void beforeEach() {
-		Images.loadWiremock(K3S);
-		util.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, true);
-	}
-
-	@AfterEach
-	void afterEach() {
-		util.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, true);
-	}
 
 	/**
 	 * <pre>

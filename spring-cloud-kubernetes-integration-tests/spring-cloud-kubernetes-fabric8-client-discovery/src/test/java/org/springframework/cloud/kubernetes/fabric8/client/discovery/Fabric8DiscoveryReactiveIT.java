@@ -16,16 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8.client.discovery;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.cloud.kubernetes.fabric8.client.discovery.TestAssertions.testReactiveConfiguration;
@@ -38,6 +35,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.discovery.Test
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery.reactive=DEBUG",
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.discovery=DEBUG",
 		"spring.cloud.discovery.blocking.enabled=false" })
+@Fabric8ClientIntegrationTest(namespaces = "default", busyboxNamespaces = "default")
 class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
 	@LocalManagementPort
@@ -45,17 +43,6 @@ class Fabric8DiscoveryReactiveIT extends Fabric8DiscoveryBase {
 
 	@Autowired
 	private ReactiveDiscoveryClient discoveryClient;
-
-	@BeforeEach
-	void beforeEach() {
-		Images.loadBusybox(K3S);
-		util.busybox(NAMESPACE, Phase.CREATE);
-	}
-
-	@AfterEach
-	void afterEach() {
-		util.busybox(NAMESPACE, Phase.DELETE);
-	}
 
 	@Test
 	void test(CapturedOutput output) {
