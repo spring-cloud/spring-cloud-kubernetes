@@ -16,18 +16,12 @@
 
 package org.springframework.cloud.kubernetes.integration.tests.commons.k3s;
 
-import java.io.InputStream;
-
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
@@ -69,12 +63,7 @@ public final class FabricClientIntegrationTestExtension
 			Commons.loadSpringCloudKubernetesImage(image, container);
 		}
 
-		// 3. deploy istio
-		if (scenario.deployIstio()) {
-			istioSetup(container, fabric8KubernetesFixture);
-		}
-
-		// 4. create busybox instances in proper namespaces
+		// 3. create busybox instances in proper namespaces
 		if (scenario.busyboxNamespaces().length > 0) {
 			Images.loadBusybox(container);
 			for (String busyboxNamespace : scenario.busyboxNamespaces()) {
@@ -82,7 +71,7 @@ public final class FabricClientIntegrationTestExtension
 			}
 		}
 
-		// 5. create wiremock instances in proper namespaces
+		// 4. create wiremock instances in proper namespaces
 		if (scenario.wiremockNamespaces().length > 0) {
 			Images.loadWiremock(container);
 			for (String wiremockNamespace : scenario.wiremockNamespaces()) {
@@ -90,17 +79,17 @@ public final class FabricClientIntegrationTestExtension
 			}
 		}
 
-		// 6. set-up RBAC.
+		// 5. set-up RBAC.
 		for (String rbacNamespace : scenario.rbacNamespaces()) {
 			fabric8KubernetesFixture.setUp(rbacNamespace);
 		}
 
-		// 7. deploy external-name-service
+		// 6. deploy external-name-service
 		if (scenario.deployExternalNameService()) {
 			fabric8KubernetesFixture.externalName(Phase.CREATE);
 		}
 
-		// 8. deploy configuration watcher.
+		// 7. deploy configuration watcher.
 		if (scenario.deployConfigurationWatcher()) {
 			fabric8KubernetesFixture.configWatcher(Phase.CREATE);
 		}
@@ -116,32 +105,27 @@ public final class FabricClientIntegrationTestExtension
 
 		Fabric8ClientKubernetesFixture fabric8KubernetesFixture = fabric8KubernetesFixture(context);
 
-		// 1. delete istio
-		if (scenario.deployIstio()) {
-			fabric8KubernetesFixture.istioCtl("istio-test", Phase.DELETE);
-		}
-
-		// 2. delete busybox instances in proper namespaces
+		// 1. delete busybox instances in proper namespaces
 		for (String busyboxNamespace : scenario.busyboxNamespaces()) {
 			fabric8KubernetesFixture.busybox(busyboxNamespace, Phase.DELETE);
 		}
 
-		// 3. delete wiremock instances in proper namespaces
+		// 2. delete wiremock instances in proper namespaces
 		for (String wiremockNamespace : scenario.wiremockNamespaces()) {
 			fabric8KubernetesFixture.wiremock(wiremockNamespace, Phase.DELETE, false);
 		}
 
-		// 4. delete external-name-service
+		// 3. delete external-name-service
 		if (scenario.deployExternalNameService()) {
 			fabric8KubernetesFixture.externalName(Phase.DELETE);
 		}
 
-		// 5. delete configuration watcher.
+		// 4. delete configuration watcher.
 		if (scenario.deployConfigurationWatcher()) {
 			fabric8KubernetesFixture.configWatcher(Phase.DELETE);
 		}
 
-		// 6. delete all namespaces
+		// 5. delete all namespaces
 		for (String namespace : scenario.namespaces()) {
 			fabric8KubernetesFixture.deleteNamespace(namespace);
 		}
@@ -199,51 +183,6 @@ public final class FabricClientIntegrationTestExtension
 			container.start();
 		}
 		return container;
-	}
-
-	private void istioSetup(K3sContainer container, Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
-		try {
-
-			Images.loadIstioCtl(container);
-			Images.loadIstioProxyV2(container);
-			Images.loadIstioPilot(container);
-
-			processExecResult(container.execInContainer("sh", "-c",
-					"kubectl label namespace istio-test istio-injection=enabled"));
-			fabric8KubernetesFixture.istioCtl("istio-test", Phase.CREATE);
-
-			String istioctlPodName = fabric8KubernetesFixture.istioctlPodName();
-
-			processExecResult(container.execInContainer("sh", "-c",
-					"kubectl cp istio-test/" + istioctlPodName + ":/usr/local/bin/istioctl /tmp/istioctl"));
-
-			processExecResult(container.execInContainer("sh", "-c", "chmod +x /tmp/istioctl"));
-
-			processExecResult(container.execInContainer("sh", "-c",
-					"/tmp/istioctl" + " --kubeconfig=/etc/rancher/k3s/k3s.yaml install --set profile=minimal -y"));
-
-			fabric8KubernetesFixture.setUpIstio("istio-test");
-
-			InputStream deploymentStream = fabric8KubernetesFixture.inputStream("istio-deployment.yaml");
-			InputStream serviceStream = fabric8KubernetesFixture.inputStream("istio-service.yaml");
-
-			Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
-			Service service = Serialization.unmarshal(serviceStream, Service.class);
-
-			fabric8KubernetesFixture.createAndWait("istio-test", null, deployment, service, true);
-
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private String processExecResult(Container.ExecResult execResult) {
-		if (execResult.getExitCode() != 0) {
-			throw new RuntimeException("stdout=" + execResult.getStdout() + "\n" + "stderr=" + execResult.getStderr());
-		}
-
-		return execResult.getStdout();
 	}
 
 }

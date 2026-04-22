@@ -266,48 +266,6 @@ public final class Fabric8ClientKubernetesFixture {
 		}
 	}
 
-	public void setUpIstio(String namespace) {
-		InputStream serviceAccountAsStream = inputStream("istio/service-account.yaml");
-		InputStream roleBindingAsStream = inputStream("istio/role-binding.yaml");
-		InputStream roleAsStream = inputStream("istio/role.yaml");
-
-		innerSetup(namespace, serviceAccountAsStream, roleBindingAsStream, roleAsStream);
-	}
-
-	public void istioCtl(String namespace, Phase phase) {
-		InputStream istioctlDeploymentStream = inputStream("istio/istioctl-deployment.yaml");
-		Deployment istioctlDeployment = Serialization.unmarshal(istioctlDeploymentStream, Deployment.class);
-
-		String imageWithoutVersion = istioctlDeployment.getSpec()
-			.getTemplate()
-			.getSpec()
-			.getContainers()
-			.get(0)
-			.getImage();
-		String imageWithVersion = imageWithoutVersion + ":" + Images.istioVersion();
-		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
-
-		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, null, istioctlDeployment, null, false);
-		}
-		else {
-			deleteAndWait(namespace, istioctlDeployment, null);
-		}
-	}
-
-	public String istioctlPodName() {
-		try {
-			return container
-				.execInContainer("sh", "-c",
-						"kubectl get pods -n istio-test -l app=istio-ctl -o=name --no-headers | tr -d '\n'")
-				.getStdout()
-				.split("/")[1];
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	private void waitForConfigMap(String namespace, ConfigMap configMap, Phase phase) {
 		String configMapName = configMapName(configMap);
 
