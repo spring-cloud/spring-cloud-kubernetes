@@ -103,9 +103,9 @@ final class TestAssertions {
 	static void assertAllServices(DiscoveryClient discoveryClient) {
 
 		Awaitilities.awaitUntil(5, 100, () -> {
-			List<String> innerServices = discoveryClient.getServices();
-			if (innerServices.size() != 3) {
-				LOG.info(() -> "Not yet 3 services : " + innerServices);
+			List<String> services = discoveryClient.getServices();
+			if (services.size() != 3) {
+				LOG.info(() -> "Not yet 3 services : " + services);
 				return false;
 			}
 			return true;

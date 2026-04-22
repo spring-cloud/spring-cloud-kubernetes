@@ -16,20 +16,14 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.util.List;
-import java.util.Set;
-
-import io.kubernetes.client.openapi.models.V1Deployment;
-import io.kubernetes.client.openapi.models.V1EnvVar;
-import io.kubernetes.client.openapi.models.V1Service;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.configureWireMock;
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.createConfigMap;
@@ -38,40 +32,35 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.TestUti
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.deleteSecret;
 import static org.springframework.cloud.kubernetes.configuration.watcher.TestUtil.verifyActuatorCalled;
 
+@NativeClientIntegrationTest(withImages = { "spring-cloud-kubernetes-configuration-watcher" },
+		wiremock = @NativeClientIntegrationTest.Wiremock(enabled = true, namespaces = "default", withNodePort = true),
+		namespaces = { "left", "right" }, rbacNamespaces = "default",
+		configurationWatcher = @NativeClientIntegrationTest.ConfigurationWatcher(enabled = true, refreshDelay = "0",
+				reloadEnabled = false, watchNamespaces = { "left", "right" }),
+		clusterWideRBAC = @NativeClientIntegrationTest.ClusterWideRBAC(enabled = true,
+				serviceAccountNamespace = "default", roleBindingNamespaces = { "left", "right" }))
 class ActuatorRefreshMultipleNamespacesIT {
 
 	private static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
 
-	private static final String DEFAULT_NAMESPACE = "default";
-
-	private static final String LEFT_NAMESPACE = "left";
-
-	private static final String RIGHT_NAMESPACE = "right";
-
-	private static final K3sContainer K3S = Commons.container();
-
-	private static Util util;
-
 	@BeforeAll
-	static void beforeAll() throws Exception {
-		K3S.start();
-		Commons.validateImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		Commons.loadSpringCloudKubernetesImage(SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME, K3S);
-		util = new Util(K3S);
-		util.createNamespace(LEFT_NAMESPACE);
-		util.createNamespace(RIGHT_NAMESPACE);
-		util.wiremock(DEFAULT_NAMESPACE, Phase.CREATE, true);
-		util.setUpClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
-		configWatcher(Phase.CREATE);
+	static void beforeAll(NativeClientKubernetesFixture fixture) {
+		configureWireMock();
+
+		createConfigMap(fixture, "left");
+		createConfigMap(fixture, "right");
+
+		createSecret(fixture, "left");
+		createSecret(fixture, "right");
 	}
 
 	@AfterAll
-	static void afterAll() {
-		configWatcher(Phase.DELETE);
-		util.wiremock(DEFAULT_NAMESPACE, Phase.DELETE, true);
-		util.deleteClusterWide(DEFAULT_NAMESPACE, Set.of(DEFAULT_NAMESPACE, LEFT_NAMESPACE, RIGHT_NAMESPACE));
-		util.deleteNamespace(LEFT_NAMESPACE);
-		util.deleteNamespace(RIGHT_NAMESPACE);
+	static void afterAll(NativeClientKubernetesFixture fixture) {
+		deleteConfigMap(fixture, "left");
+		deleteConfigMap(fixture, "right");
+
+		deleteSecret(fixture, "left");
+		deleteSecret(fixture, "right");
 	}
 
 	/**
@@ -85,56 +74,19 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 * </pre>
 	 */
 	@Test
-	void testConfigMapActuatorRefreshMultipleNamespaces() {
-		configureWireMock();
+	void testConfigMapActuatorRefreshMultipleNamespaces(NativeClientKubernetesFixture fixture, K3sContainer container) {
 
-		createConfigMap(util, LEFT_NAMESPACE);
-		createConfigMap(util, RIGHT_NAMESPACE);
-
-		createSecret(util, LEFT_NAMESPACE);
-		createSecret(util, RIGHT_NAMESPACE);
-
-		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace left", K3S,
+		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace left", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
-		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace right", K3S,
+		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace right", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 
-		Commons.waitForLogStatement("Secret service-wiremock was added in namespace left", K3S,
+		Commons.waitForLogStatement("Secret service-wiremock was added in namespace left", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
-		Commons.waitForLogStatement("Secret service-wiremock was added in namespace right", K3S,
+		Commons.waitForLogStatement("Secret service-wiremock was added in namespace right", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);
 
 		verifyActuatorCalled(4);
-		deleteConfigMap(util, LEFT_NAMESPACE);
-		deleteConfigMap(util, RIGHT_NAMESPACE);
-		deleteSecret(util, LEFT_NAMESPACE);
-		deleteSecret(util, RIGHT_NAMESPACE);
-	}
-
-	private static void configWatcher(Phase phase) {
-		V1Deployment deployment = Util
-			.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-deployment.yaml", V1Deployment.class);
-
-		List<V1EnvVar> envVars = List.of(
-				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0").value(LEFT_NAMESPACE),
-				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_REFRESHDELAY").value("0"),
-				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED").value("TRUE"),
-				new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_1").value(RIGHT_NAMESPACE),
-				new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD")
-					.value("DEBUG"));
-
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
-
-		V1Service service = Util.yaml("config-watcher/spring-cloud-kubernetes-configuration-watcher-service.yaml",
-				V1Service.class);
-
-		if (phase.equals(Phase.CREATE)) {
-			util.createAndWait(DEFAULT_NAMESPACE, null, deployment, service, true);
-		}
-		else {
-			util.deleteAndWait(DEFAULT_NAMESPACE, deployment, service);
-		}
-
 	}
 
 }

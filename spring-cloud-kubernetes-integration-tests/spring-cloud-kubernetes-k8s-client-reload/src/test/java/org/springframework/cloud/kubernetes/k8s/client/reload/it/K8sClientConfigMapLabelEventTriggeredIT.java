@@ -35,7 +35,8 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
-import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.Util;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
+import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.cloud.kubernetes.k8s.client.reload.App;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightProperties;
 import org.springframework.cloud.kubernetes.k8s.client.reload.RightWithLabelsProperties;
@@ -48,6 +49,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = { "spring.main.cloud-platform=kubernetes", "spring.profiles.active=three",
 		"spring.cloud.bootstrap.enabled=true",
 		"logging.level.org.springframework.cloud.kubernetes.client.config.reload=debug" })
+@NativeClientIntegrationTest(namespaces = "right")
 class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 	private static final MockedStatic<KubernetesClientUtils> KUBERNETES_CLIENT_UTILS_MOCKED_STATIC = Mockito
@@ -67,7 +69,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 	private CoreV1Api coreV1Api;
 
 	@BeforeAll
-	static void beforeAllLocal() {
+	static void beforeAllLocal(NativeClientKubernetesFixture fixture) {
 
 		KUBERNETES_CLIENT_UTILS_MOCKED_STATIC.when(KubernetesClientUtils::createApiClientForInformerClient)
 			.thenReturn(apiClient());
@@ -75,23 +77,19 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 		KUBERNETES_CLIENT_UTILS_MOCKED_STATIC
 			.when(() -> KubernetesClientUtils.getApplicationNamespace(Mockito.anyString(), Mockito.anyString(),
 					Mockito.any(KubernetesNamespaceProvider.class)))
-			.thenReturn(NAMESPACE_RIGHT);
+			.thenReturn("right");
 
-		util.createNamespace(NAMESPACE_RIGHT);
-		rightConfigMap = Util.yaml("right-configmap.yaml", V1ConfigMap.class);
-		rightConfigMapWithLabel = Util.yaml("right-configmap-with-label.yaml", V1ConfigMap.class);
-		util.createAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
-		util.createAndWait(NAMESPACE_RIGHT, rightConfigMapWithLabel, null);
+		rightConfigMap = fixture.yaml("right-configmap.yaml", V1ConfigMap.class);
+		rightConfigMapWithLabel = fixture.yaml("right-configmap-with-label.yaml", V1ConfigMap.class);
+		fixture.createAndWait("right", rightConfigMap, null);
+		fixture.createAndWait("right", rightConfigMapWithLabel, null);
 	}
 
 	@AfterAll
-	static void afterAllLocal() {
-
+	static void afterAllLocal(NativeClientKubernetesFixture fixture) {
 		KUBERNETES_CLIENT_UTILS_MOCKED_STATIC.close();
-
-		util.deleteAndWait(NAMESPACE_RIGHT, rightConfigMap, null);
-		util.deleteAndWait(NAMESPACE_RIGHT, rightConfigMapWithLabel, null);
-		util.deleteNamespace(NAMESPACE_RIGHT);
+		fixture.deleteAndWait("right", rightConfigMap, null);
+		fixture.deleteAndWait("right", rightConfigMapWithLabel, null);
 	}
 
 	/**
@@ -118,7 +116,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 
 		// then deploy a new version of right-configmap
 		V1ConfigMap rightConfigMapAfterChange = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT)
+			.withMetadata(new V1ObjectMeta().namespace("right")
 				.name("right-configmap")
 				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true")))
 			.withData(Map.of("right.value", "right-after-change"))
@@ -131,7 +129,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 		// then deploy a new version of right-configmap-with-label
 		// but only add a label, this does not trigger a refresh
 		V1ConfigMap rightWithLabelConfigMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT)
+			.withMetadata(new V1ObjectMeta().namespace("right")
 				.name("right-configmap-with-label")
 				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true", "custom.label",
 						"spring-k8s")))
@@ -148,7 +146,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 		// then deploy a new version of right-configmap-with-label
 		// that changes data also
 		V1ConfigMap rightWithLabelConfigMapAfterChange = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().namespace(NAMESPACE_RIGHT)
+			.withMetadata(new V1ObjectMeta().namespace("right")
 				.name("right-configmap-with-label")
 				.labels(Map.of("spring.cloud.kubernetes.config.informer.enabled", "true")))
 			.withData(Map.of("right.with.label.value", "right-with-label-after-change"))

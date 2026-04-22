@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
+import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -47,6 +49,7 @@ import static org.springframework.cloud.kubernetes.fabric8.client.reload.TestAss
 		"logging.level.org.springframework.cloud.kubernetes.fabric8.config.reload=debug",
 		"spring.cloud.bootstrap.enabled=true" })
 @ActiveProfiles("two")
+@Fabric8ClientIntegrationTest(namespaces = { "left", "right" })
 class Fabric8EventReloadConfigMapBootstrapIT extends Fabric8EventReloadBase {
 
 	private static final String LEFT_NAMESPACE = "left";
@@ -67,27 +70,22 @@ class Fabric8EventReloadConfigMapBootstrapIT extends Fabric8EventReloadBase {
 	private KubernetesClient kubernetesClient;
 
 	@BeforeAll
-	static void beforeAllLocal() {
-		InputStream leftConfigMapStream = util.inputStream("manifests/left-configmap.yaml");
-		InputStream rightConfigMapStream = util.inputStream("manifests/right-configmap.yaml");
+	static void beforeAllLocal(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
+		InputStream leftConfigMapStream = fabric8KubernetesFixture.inputStream("manifests/left-configmap.yaml");
+		InputStream rightConfigMapStream = fabric8KubernetesFixture.inputStream("manifests/right-configmap.yaml");
 
 		leftConfigMap = Serialization.unmarshal(leftConfigMapStream, ConfigMap.class);
 		rightConfigMap = Serialization.unmarshal(rightConfigMapStream, ConfigMap.class);
 
-		util.createNamespace(LEFT_NAMESPACE);
-		util.createNamespace(RIGHT_NAMESPACE);
-
-		configMap(Phase.CREATE, util, leftConfigMap, LEFT_NAMESPACE);
-		configMap(Phase.CREATE, util, rightConfigMap, RIGHT_NAMESPACE);
+		configMap(Phase.CREATE, fabric8KubernetesFixture, leftConfigMap, LEFT_NAMESPACE);
+		configMap(Phase.CREATE, fabric8KubernetesFixture, rightConfigMap, RIGHT_NAMESPACE);
 	}
 
 	@AfterAll
-	static void afterAllLocal() {
-		configMap(Phase.DELETE, util, leftConfigMap, LEFT_NAMESPACE);
-		configMap(Phase.DELETE, util, rightConfigMap, RIGHT_NAMESPACE);
+	static void afterAllLocal(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
+		configMap(Phase.DELETE, fabric8KubernetesFixture, leftConfigMap, LEFT_NAMESPACE);
+		configMap(Phase.DELETE, fabric8KubernetesFixture, rightConfigMap, RIGHT_NAMESPACE);
 
-		util.deleteNamespace(LEFT_NAMESPACE);
-		util.deleteNamespace(RIGHT_NAMESPACE);
 	}
 
 	/**
