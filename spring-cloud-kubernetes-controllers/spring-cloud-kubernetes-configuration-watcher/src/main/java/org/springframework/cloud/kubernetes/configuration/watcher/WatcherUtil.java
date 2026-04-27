@@ -33,6 +33,8 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.configuration.watcher.KubernetesSource.fromK8sType;
+
 /**
  * A common place where 'onEvent' code delegates to.
  *
@@ -45,31 +47,44 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(KubernetesObject kubernetesObject, String label, String annotationName, long refreshDelay,
-			ScheduledExecutorService executorService, String type,
+	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, ScheduledExecutorService executorService,
 			BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh) {
 
+		KubernetesSource source = fromK8sType(kubernetesObject);
+
 		String name = kubernetesObject.getMetadata().getName();
-		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(kubernetesObject, label);
+		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(kubernetesObject, source.label());
 
 		if (isSpringCloudKubernetes) {
 
-			Set<String> apps = apps(kubernetesObject, annotationName);
+			Set<String> apps = apps(kubernetesObject, source.annotation());
 
 			if (apps.isEmpty()) {
 				apps.add(name);
 			}
 
 			LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
-			apps.forEach(appName -> schedule(type, appName, refreshDelay, executorService, triggerRefresh,
-					kubernetesObject));
+			apps.forEach(appName -> schedule(source.description(), appName, refreshDelay, executorService,
+					triggerRefresh, kubernetesObject));
 
 		}
 		else {
-			LOG.debug(() -> "Not publishing event." + type + ": " + name + " does not contain the label " + label);
+			LOG.debug(() -> "Not publishing event : " + source.description() + ": " + name
+					+ " does not contain the label " + source.label());
 		}
 	}
 
+	/**
+	 * @deprecated for removal in the next major release, in favor of informer-side
+	 * filtering via {@code spring.cloud.kubernetes.reload.config-maps-labels} and
+	 * {@code spring.cloud.kubernetes.reload.secrets-labels}.
+	 * <p>
+	 * Today the configuration watcher receives all ConfigMap/Secret events from the
+	 * informer and filters them locally by legacy labels. With informer label selectors
+	 * configured, only matching sources are delivered, so this extra local check is no
+	 * longer needed.
+	 */
+	@Deprecated(forRemoval = true)
 	static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
 		if (kubernetesObject.getMetadata() == null) {
 			return false;
