@@ -32,32 +32,32 @@ class WatcherUtilTests {
 	@Test
 	void isSpringCloudKubernetesConfigFalse() {
 		V1ConfigMap configMap = new V1ConfigMapBuilder().withMetadata(new V1ObjectMeta().labels(Map.of())).build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, "spring.cloud.kubernetes.config");
+		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, KubernetesSource.CONFIGMAP.label());
 		Assertions.assertThat(present).isFalse();
 	}
 
 	@Test
 	void isSpringCloudKubernetesConfigTrue() {
 		V1ConfigMap configMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().labels(Map.of("spring.cloud.kubernetes.config", "true")))
+			.withMetadata(new V1ObjectMeta().labels(Map.of(KubernetesSource.CONFIGMAP.label(), "true")))
 			.build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, "spring.cloud.kubernetes.config");
+		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, KubernetesSource.CONFIGMAP.label());
 		Assertions.assertThat(present).isTrue();
 	}
 
 	@Test
 	void isSpringCloudKubernetesSecretFalse() {
 		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().labels(Map.of())).build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, "spring.cloud.kubernetes.secret");
+		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, KubernetesSource.SECRET.label());
 		Assertions.assertThat(present).isFalse();
 	}
 
 	@Test
 	void isSpringCloudKubernetesSecretTrue() {
 		V1Secret secret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMeta().labels(Map.of("spring.cloud.kubernetes.secret", "true")))
+			.withMetadata(new V1ObjectMeta().labels(Map.of(KubernetesSource.SECRET.label(), "true")))
 			.build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, "spring.cloud.kubernetes.secret");
+		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, KubernetesSource.SECRET.label());
 		Assertions.assertThat(present).isTrue();
 	}
 

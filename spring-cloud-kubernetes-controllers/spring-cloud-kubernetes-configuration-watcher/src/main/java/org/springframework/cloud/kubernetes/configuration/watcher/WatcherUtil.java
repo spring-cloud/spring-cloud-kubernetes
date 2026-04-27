@@ -69,7 +69,7 @@ final class WatcherUtil {
 
 		}
 		else {
-			LOG.debug(() -> "Not publishing event." + source.description() + ": " + name
+			LOG.debug(() -> "Not publishing event : " + source.description() + ": " + name
 					+ " does not contain the label " + source.label());
 		}
 	}
