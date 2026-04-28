@@ -39,31 +39,45 @@ env:
 This one lets watcher know where to search for secrets and configmaps. You have two options here: selective namespaces (the setting above) and a namespace chosen by xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] (this is the default option).
 Keep in mind that all these options require proper RBAC rules.
 
-Changes from configmaps/secrets will only trigger an event being fired from configuration watcher if that particular change came from a source that has a label: `spring.cloud.kubernetes.config=true` or `spring.cloud.kubernetes.secret=true`.
-
-To put it simpler, if you change a configmap (or secret), that does _not_ have the label above, configuration watcher will skip firing an event for it (if you enabled debug logging, this will be visible in logs).
-
-By default, configuration watcher will monitor all configmaps/secrets in the configured namespace(s). If you want to filter to watch only particular sources, you can do that by setting:
+By default, Configuration Watcher monitors only ConfigMaps and Secrets that carry these labels:
 
 [source]
 ----
-SPRING_CLOUD_KUBERNETES_CONFIG_INFORMER_ENABLED=TRUE
-----
-
-This will tell watcher to only monitor sources that have a label: `spring.cloud.kubernetes.config.informer.enabled=true`.
-This support will be dropped in the next major release and will be replaced with:
-
-[source]
-----
-spring.cloud.kubernetes.reload.config-maps-labels
+spring.cloud.kubernetes.config: "true"
 ----
 
 and
 
 [source]
 ----
-spring.cloud.kubernetes.reload.secrets-labels
+spring.cloud.kubernetes.secret: "true"
 ----
+
+You can change which sources are monitored by configuring label selectors:
+
+[source,yaml]
+----
+spring:
+  cloud:
+    kubernetes:
+      reload:
+        config-maps-labels:
+          my-configmap-label: "my-configmap-value"
+        secrets-labels:
+          my-secret-label: "my-secret-value"
+----
+
+These properties can also be provided through environment variables in the deployment:
+
+[source,yaml]
+----
+env:
+  - name: SPRING_CLOUD_KUBERNETES_RELOAD_CONFIG_MAPS_LABELS_MY_CONFIGMAP_LABEL
+    value: "my-configmap-value"
+  - name: SPRING_CLOUD_KUBERNETES_RELOAD_SECRETS_LABELS_MY_SECRET_LABEL
+    value: "my-secret-value"
+----
+
 
 One more important configuration, especially for configmaps and secrets that are mounted as volumes (via `spring.config.import`) is:
 
