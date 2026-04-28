@@ -53,43 +53,17 @@ final class WatcherUtil {
 		KubernetesSource source = fromK8sType(kubernetesObject);
 
 		String name = kubernetesObject.getMetadata().getName();
-		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(kubernetesObject, source.label());
 
-		if (isSpringCloudKubernetes) {
+		Set<String> apps = apps(kubernetesObject, source.annotation());
 
-			Set<String> apps = apps(kubernetesObject, source.annotation());
-
-			if (apps.isEmpty()) {
-				apps.add(name);
-			}
-
-			LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
-			apps.forEach(appName -> schedule(source.description(), appName, refreshDelay, executorService,
-					triggerRefresh, kubernetesObject));
-
+		if (apps.isEmpty()) {
+			apps.add(name);
 		}
-		else {
-			LOG.debug(() -> "Not publishing event : " + source.description() + ": " + name
-					+ " does not contain the label " + source.label());
-		}
-	}
 
-	/**
-	 * @deprecated for removal in the next major release, in favor of informer-side
-	 * filtering via {@code spring.cloud.kubernetes.reload.config-maps-labels} and
-	 * {@code spring.cloud.kubernetes.reload.secrets-labels}.
-	 * <p>
-	 * Today the configuration watcher receives all ConfigMap/Secret events from the
-	 * informer and filters them locally by legacy labels. With informer label selectors
-	 * configured, only matching sources are delivered, so this extra local check is no
-	 * longer needed.
-	 */
-	@Deprecated(forRemoval = true)
-	static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
-		if (kubernetesObject.getMetadata() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(labels(kubernetesObject).getOrDefault(label, "false"));
+		LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
+		apps.forEach(appName -> schedule(source.description(), appName, refreshDelay, executorService, triggerRefresh,
+				kubernetesObject));
+
 	}
 
 	static Set<String> apps(KubernetesObject kubernetesObject, String annotationName) {

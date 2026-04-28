@@ -19,8 +19,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.util.Map;
 import java.util.Set;
 
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
@@ -28,38 +26,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class WatcherUtilTests {
-
-	@Test
-	void isSpringCloudKubernetesConfigFalse() {
-		V1ConfigMap configMap = new V1ConfigMapBuilder().withMetadata(new V1ObjectMeta().labels(Map.of())).build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, KubernetesSource.CONFIGMAP.label());
-		Assertions.assertThat(present).isFalse();
-	}
-
-	@Test
-	void isSpringCloudKubernetesConfigTrue() {
-		V1ConfigMap configMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().labels(Map.of(KubernetesSource.CONFIGMAP.label(), "true")))
-			.build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, KubernetesSource.CONFIGMAP.label());
-		Assertions.assertThat(present).isTrue();
-	}
-
-	@Test
-	void isSpringCloudKubernetesSecretFalse() {
-		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().labels(Map.of())).build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, KubernetesSource.SECRET.label());
-		Assertions.assertThat(present).isFalse();
-	}
-
-	@Test
-	void isSpringCloudKubernetesSecretTrue() {
-		V1Secret secret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMeta().labels(Map.of(KubernetesSource.SECRET.label(), "true")))
-			.build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, KubernetesSource.SECRET.label());
-		Assertions.assertThat(present).isTrue();
-	}
 
 	@Test
 	void labelsMissing() {
