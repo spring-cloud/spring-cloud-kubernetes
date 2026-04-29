@@ -67,7 +67,7 @@ import static io.kubernetes.client.informer.EventType.MODIFIED;
 				"spring.cloud.kubernetes.reload.monitoring-config-maps=false",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=true",
 				"spring.cloud.kubernetes.secrets.enabled=true",
-				"spring.cloud.kubernetes.reload.config-maps-labels[spring.cloud.kubernetes.secret]=true",
+				"spring.cloud.kubernetes.reload.secrets-labels[spring.cloud.kubernetes.secret]=true",
 				"spring.cloud.kubernetes.configuration.watcher.refresh-delay=1ms" })
 class SecretWatcherWithLabelsTest {
 
@@ -131,7 +131,7 @@ class SecretWatcherWithLabelsTest {
 	 */
 	@Test
 	void test() {
-		Awaitilities.awaitUntil(101111, 1000, () -> OBSERVED_COLORS.size() == 2);
+		Awaitilities.awaitUntil(10, 1000, () -> OBSERVED_COLORS.size() == 2);
 		Assertions.assertThat(OBSERVED_COLORS).containsExactly("white", "blue");
 	}
 
@@ -200,7 +200,8 @@ class SecretWatcherWithLabelsTest {
 			HttpRefreshTrigger refreshTrigger = Mockito.mock(HttpRefreshTrigger.class);
 			Mockito.when(refreshTrigger.triggerRefresh(Mockito.any(), Mockito.anyString())).thenAnswer(invocation -> {
 				V1Secret secret = invocation.getArgument(0);
-				return Mono.fromRunnable(() -> OBSERVED_COLORS.add(new String(secret.getData().get("color"))));
+				return Mono.fromRunnable(
+						() -> OBSERVED_COLORS.add(new String(secret.getData().get("color"), StandardCharsets.UTF_8)));
 			});
 
 			return refreshTrigger;
