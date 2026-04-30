@@ -36,6 +36,7 @@
 					<image>
 						<env>
 							<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
+							<BP_LOG_LEVEL>DEBUG</BP_LOG_LEVEL>
 						</env>
 						<name>docker.io/springcloud/${project.artifactId}:${project.version}</name>
 					</image>
