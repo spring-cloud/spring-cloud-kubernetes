@@ -50,7 +50,9 @@ Secrets are not monitored by default. To enable Secret monitoring, set:
 
 [source,yaml]
 ----
-SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED=TRUE
+env:
+  - name: SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED
+    value: "TRUE"
 ----
 
 Once enabled, only Secrets labeled: `spring.cloud.kubernetes.secret: "true"` are monitored.
