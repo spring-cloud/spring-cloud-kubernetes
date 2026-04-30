@@ -67,6 +67,7 @@ import static io.kubernetes.client.informer.EventType.MODIFIED;
 				"spring.cloud.kubernetes.reload.monitoring-config-maps=false",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=true",
 				"spring.cloud.kubernetes.secrets.enabled=true",
+				"spring.cloud.kubernetes.secrets.enabled=true",
 				"spring.cloud.kubernetes.reload.secrets-labels[spring.cloud.kubernetes.secret]=true",
 				"spring.cloud.kubernetes.configuration.watcher.refresh-delay=1ms" })
 class SecretWatcherWithLabelsTest {

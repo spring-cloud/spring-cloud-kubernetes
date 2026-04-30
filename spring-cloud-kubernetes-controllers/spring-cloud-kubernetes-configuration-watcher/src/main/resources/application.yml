@@ -6,7 +6,7 @@ spring:
   cloud:
     kubernetes:
       secrets:
-        enabled: true
+        enabled: false
       config:
         enabled: true
       reload:
