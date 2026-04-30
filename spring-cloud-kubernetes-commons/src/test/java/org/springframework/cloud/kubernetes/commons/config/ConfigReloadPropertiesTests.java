@@ -47,7 +47,6 @@ class ConfigReloadPropertiesTests {
 			assertThat(ConfigReloadProperties.ReloadDetectionMode.EVENT).isEqualTo(properties.mode());
 			assertThat(Duration.ofMillis(15000)).isEqualTo(properties.period());
 			assertThat(properties.namespaces().isEmpty()).isTrue();
-			assertThat(properties.enableReloadFiltering()).isFalse();
 			assertThat(Duration.ofSeconds(2)).isEqualTo(properties.maxWaitForRestart());
 		});
 	}
@@ -63,7 +62,6 @@ class ConfigReloadPropertiesTests {
 					"spring.cloud.kubernetes.reload.strategy=SHUTDOWN", "spring.cloud.kubernetes.reload.mode=POLLING",
 					"spring.cloud.kubernetes.reload.period=1000ms", "spring.cloud.kubernetes.reload.namespaces[0]=a",
 					"spring.cloud.kubernetes.reload.namespaces[1]=b",
-					"spring.cloud.kubernetes.reload.enable-reload-filtering=true",
 					"spring.cloud.kubernetes.reload.max-wait-for-restart=5s")
 			.run(context -> {
 				ConfigReloadProperties properties = context.getBean(ConfigReloadProperties.class);
@@ -77,7 +75,6 @@ class ConfigReloadPropertiesTests {
 				assertThat(ConfigReloadProperties.ReloadDetectionMode.POLLING).isEqualTo(properties.mode());
 				assertThat(Duration.ofMillis(1000)).isEqualTo(properties.period());
 				assertThat(properties.namespaces()).containsExactlyInAnyOrder("a", "b");
-				assertThat(properties.enableReloadFiltering()).isTrue();
 				assertThat(Duration.ofSeconds(5)).isEqualTo(properties.maxWaitForRestart());
 			});
 	}
