@@ -30,9 +30,6 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.CONFIG_MAP_APPS_ANNOTATION;
-import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.CONFIG_MAP_LABEL;
-
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
@@ -59,9 +56,7 @@ abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 
 	@Override
 	protected final void onEvent(KubernetesObject configMap) {
-		// this::refreshTrigger is coming from BusEventBasedConfigMapWatcherChangeDetector
-		WatcherUtil.onEvent(configMap, CONFIG_MAP_LABEL, CONFIG_MAP_APPS_ANNOTATION, refreshDelay, executorService,
-				"config-map", this::triggerRefresh);
+		WatcherUtil.onEvent(configMap, refreshDelay, executorService, this::triggerRefresh);
 	}
 
 }

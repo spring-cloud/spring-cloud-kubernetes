@@ -19,50 +19,13 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.util.Map;
 import java.util.Set;
 
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.CONFIG_MAP_LABEL;
-import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_APPS_ANNOTATION;
-import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.SECRET_LABEL;
-
 class WatcherUtilTests {
-
-	@Test
-	void isSpringCloudKubernetesConfigFalse() {
-		V1ConfigMap configMap = new V1ConfigMapBuilder().withMetadata(new V1ObjectMeta().labels(Map.of())).build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, CONFIG_MAP_LABEL);
-		Assertions.assertThat(present).isFalse();
-	}
-
-	@Test
-	void isSpringCloudKubernetesConfigTrue() {
-		V1ConfigMap configMap = new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().labels(Map.of(CONFIG_MAP_LABEL, "true")))
-			.build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(configMap, CONFIG_MAP_LABEL);
-		Assertions.assertThat(present).isTrue();
-	}
-
-	@Test
-	void isSpringCloudKubernetesSecretFalse() {
-		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().labels(Map.of())).build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, SECRET_LABEL);
-		Assertions.assertThat(present).isFalse();
-	}
-
-	@Test
-	void isSpringCloudKubernetesSecretTrue() {
-		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().labels(Map.of(SECRET_LABEL, "true")))
-			.build();
-		boolean present = WatcherUtil.isSpringCloudKubernetes(secret, SECRET_LABEL);
-		Assertions.assertThat(present).isTrue();
-	}
 
 	@Test
 	void labelsMissing() {
@@ -81,39 +44,40 @@ class WatcherUtilTests {
 	@Test
 	void appsNoMetadata() {
 		V1Secret secret = new V1SecretBuilder().build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
+		Set<String> apps = WatcherUtil.apps(secret, "spring.cloud.kubernetes.secret.apps");
 		Assertions.assertThat(apps).isEmpty();
 	}
 
 	@Test
 	void appsNoAnnotations() {
 		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().annotations(Map.of())).build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
+		Set<String> apps = WatcherUtil.apps(secret, "spring.cloud.kubernetes.secret.apps");
 		Assertions.assertThat(apps).isEmpty();
 	}
 
 	@Test
 	void appsAnnotationNotFound() {
 		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().annotations(Map.of("a", "b"))).build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
+		Set<String> apps = WatcherUtil.apps(secret, "spring.cloud.kubernetes.secret.apps");
 		Assertions.assertThat(apps).isEmpty();
 	}
 
 	@Test
 	void appsSingleResult() {
 		V1Secret secret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one-app")))
+			.withMetadata(new V1ObjectMeta().annotations(Map.of("spring.cloud.kubernetes.secret.apps", "one-app")))
 			.build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
+		Set<String> apps = WatcherUtil.apps(secret, "spring.cloud.kubernetes.secret.apps");
 		Assertions.assertThat(apps).containsExactlyInAnyOrder("one-app");
 	}
 
 	@Test
 	void appsMultipleResults() {
 		V1Secret secret = new V1SecretBuilder()
-			.withMetadata(new V1ObjectMeta().annotations(Map.of(SECRET_APPS_ANNOTATION, "one, two,  three ")))
+			.withMetadata(
+					new V1ObjectMeta().annotations(Map.of("spring.cloud.kubernetes.secret.apps", "one, two,  three ")))
 			.build();
-		Set<String> apps = WatcherUtil.apps(secret, SECRET_APPS_ANNOTATION);
+		Set<String> apps = WatcherUtil.apps(secret, "spring.cloud.kubernetes.secret.apps");
 		Assertions.assertThat(apps).containsExactlyInAnyOrder("one", "two", "three");
 	}
 

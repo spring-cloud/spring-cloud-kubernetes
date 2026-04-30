@@ -33,6 +33,8 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.configuration.watcher.KubernetesSource.fromK8sType;
+
 /**
  * A common place where 'onEvent' code delegates to.
  *
@@ -45,36 +47,23 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(KubernetesObject kubernetesObject, String label, String annotationName, long refreshDelay,
-			ScheduledExecutorService executorService, String type,
+	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, ScheduledExecutorService executorService,
 			BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh) {
 
+		KubernetesSource source = fromK8sType(kubernetesObject);
+
 		String name = kubernetesObject.getMetadata().getName();
-		boolean isSpringCloudKubernetes = isSpringCloudKubernetes(kubernetesObject, label);
 
-		if (isSpringCloudKubernetes) {
+		Set<String> apps = apps(kubernetesObject, source.annotation());
 
-			Set<String> apps = apps(kubernetesObject, annotationName);
-
-			if (apps.isEmpty()) {
-				apps.add(name);
-			}
-
-			LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
-			apps.forEach(appName -> schedule(type, appName, refreshDelay, executorService, triggerRefresh,
-					kubernetesObject));
-
+		if (apps.isEmpty()) {
+			apps.add(name);
 		}
-		else {
-			LOG.debug(() -> "Not publishing event." + type + ": " + name + " does not contain the label " + label);
-		}
-	}
 
-	static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
-		if (kubernetesObject.getMetadata() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(labels(kubernetesObject).getOrDefault(label, "false"));
+		LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
+		apps.forEach(appName -> schedule(source.description(), appName, refreshDelay, executorService, triggerRefresh,
+				kubernetesObject));
+
 	}
 
 	static Set<String> apps(KubernetesObject kubernetesObject, String annotationName) {
