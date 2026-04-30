@@ -5,10 +5,19 @@ spring:
     name: spring-cloud-kubernetes-configuration-watcher
   cloud:
     kubernetes:
+      secrets:
+        enabled: false
+      config:
+        enabled: true
       reload:
         enabled: true
         monitoring-secrets: true
+        monitoring-config-maps: true
         strategy: shutdown
+        config-maps-labels:
+          spring.cloud.kubernetes.config: true
+        secrets-labels:
+          spring.cloud.kubernetes.secret: true
     bus:
       enabled: false
 management:

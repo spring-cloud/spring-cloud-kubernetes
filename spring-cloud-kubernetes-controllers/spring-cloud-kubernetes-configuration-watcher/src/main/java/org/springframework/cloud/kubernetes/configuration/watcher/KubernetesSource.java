@@ -32,11 +32,6 @@ enum KubernetesSource {
 		}
 
 		@Override
-		String label() {
-			return "spring.cloud.kubernetes.config";
-		}
-
-		@Override
 		String annotation() {
 			return "spring.cloud.kubernetes.configmap.apps";
 		}
@@ -48,11 +43,6 @@ enum KubernetesSource {
 		}
 
 		@Override
-		String label() {
-			return "spring.cloud.kubernetes.secret";
-		}
-
-		@Override
 		String annotation() {
 			return "spring.cloud.kubernetes.secret.apps";
 		}
@@ -60,8 +50,6 @@ enum KubernetesSource {
 	};
 
 	abstract String description();
-
-	abstract String label();
 
 	abstract String annotation();
 
