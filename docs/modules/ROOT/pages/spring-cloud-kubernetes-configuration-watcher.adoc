@@ -39,21 +39,23 @@ env:
 This one lets watcher know where to search for secrets and configmaps. You have two options here: selective namespaces (the setting above) and a namespace chosen by xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] (this is the default option).
 Keep in mind that all these options require proper RBAC rules.
 
-By default, Configuration Watcher monitors only ConfigMaps and Secrets that carry these labels:
+By default, Configuration Watcher monitors only ConfigMaps labeled:
 
 [source]
 ----
 spring.cloud.kubernetes.config: "true"
 ----
 
-and
+Secrets are not monitored by default. To enable Secret monitoring, set:
 
-[source]
+[source,yaml]
 ----
-spring.cloud.kubernetes.secret: "true"
+SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED=TRUE
 ----
 
-You can change which sources are monitored by configuring label selectors:
+Once enabled, only Secrets labeled: `spring.cloud.kubernetes.secret: "true"` are monitored.
+
+You can customize these label selectors in the Configuration Watcher application itself:
 
 [source,yaml]
 ----
@@ -67,7 +69,8 @@ spring:
           my-secret-label: "my-secret-value"
 ----
 
-These properties can also be provided through environment variables in the deployment:
+
+or via environment variables in the watcher Deployment:
 
 [source,yaml]
 ----
