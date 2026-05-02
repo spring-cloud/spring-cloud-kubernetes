@@ -110,7 +110,7 @@ public final class Commons {
 			// import image with ctr. this works because TEMP_FOLDER is mounted in the
 			// container
 			Awaitilities.awaitUntil(120, 1000, () -> {
-				Container.ExecResult result = null;
+				Container.ExecResult result;
 				try {
 					result = container.execInContainer("ctr", "i", "import",
 							Constants.TEMP_FOLDER + "/" + tarName + ".tar");
@@ -129,9 +129,15 @@ public final class Commons {
 	}
 
 	/**
-	 * either get the tar from '/tmp/docker/images', or pull the image.
+	 * Ensures a common external test image is available inside K3s/containerd.
+	 * It first checks whether the image is already present in K3s.
+	 * If not, it tries to load it as a tar under '/tmp/docker/images'.
+	 * If no matching tar is found, it pulls the image directly inside K3s
+	 * using 'ctr images pull'.
+	 * This is meant for shared test images such as busybox, wiremock, kafka, etc.
 	 */
-	public static void load(K3sContainer container, String tarName, String imageNameForDownload, String imageVersion) {
+	public static void loadOrPullCommonTestImages(K3sContainer container, String tarName,
+			String imageNameForDownload, String imageVersion) {
 
 		if (imageAlreadyInK3s(container, tarName)) {
 			return;
