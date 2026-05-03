@@ -61,9 +61,10 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitiliti
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.tagAndPushImage;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.FixedPortsK3sContainer.REGISTRY_PORT;
 
 /**
  * @author wind57
@@ -107,7 +108,7 @@ public final class NativeClientKubernetesFixture {
 	 *
 	 */
 	public void createAndWait(String namespace, String name, V1Deployment deployment, V1Service service,
-			boolean changeVersion) {
+			boolean imageWithoutTag) {
 		try {
 
 			coreV1Api.createNamespacedService(namespace, service).execute();
@@ -119,18 +120,24 @@ public final class NativeClientKubernetesFixture {
 					.getContainers()
 					.get(0)
 					.getImage();
-				if (changeVersion) {
+
+				if (imageWithoutTag) {
+
+					String imageFromDeploymentWithTag = imageFromDeployment + ":" + pomVersion();
+
+					// change format to localhost:5000/....
+					String imageFormatForRegistry = springCloudImageInLocalRegistry(imageFromDeploymentWithTag);
+
 					deployment.getSpec()
 						.getTemplate()
 						.getSpec()
 						.getContainers()
 						.get(0)
-						.setImage(imageFromDeployment + ":" + pomVersion());
+						.setImage(imageFormatForRegistry);
 				}
 				else {
-					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], name, container);
-					loadImage(image[0], image[1], name, container);
+					pullImage(imageFromDeployment, container);
+					tagAndPushImage(imageFromDeployment, container);
 				}
 
 				appsV1Api.createNamespacedDeployment(namespace, deployment).execute();
@@ -787,6 +794,18 @@ public final class NativeClientKubernetesFixture {
 
 	private String labelSelector(Map<String, String> labels) {
 		return labels.entrySet().stream().map(en -> en.getKey() + "=" + en.getValue()).collect(Collectors.joining(","));
+	}
+
+	// from docker.io/springcloud/spring-cloud-kubernetes-configuration-watcher ->
+	// localhost:5000/springcloud/spring-cloud-kubernetes-configuration-watcher:5.0.2-SNAPSHOT
+	private static String springCloudImageInLocalRegistry(String imageFromDeploymentWithTag) {
+		String image = imageFromDeploymentWithTag;
+
+		if (image.startsWith("docker.io/")) {
+			image = image.substring("docker.io/".length());
+		}
+
+		return "localhost:" + REGISTRY_PORT + "/" + image;
 	}
 
 	private interface CheckedSupplier<T> {

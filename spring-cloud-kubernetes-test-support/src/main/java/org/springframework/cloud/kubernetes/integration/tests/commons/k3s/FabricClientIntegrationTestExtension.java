@@ -66,7 +66,7 @@ public final class FabricClientIntegrationTestExtension
 		// 2. external image presence
 		for (String image : scenario.withImages()) {
 			Commons.validateImage(image, container);
-			Commons.loadSpringCloudKubernetesImage(image, container);
+			Commons.tagAndPushSpringCloudKubernetesImage(image, container);
 		}
 
 		// 3. deploy istio
@@ -230,7 +230,7 @@ public final class FabricClientIntegrationTestExtension
 			Deployment deployment = Serialization.unmarshal(deploymentStream, Deployment.class);
 			Service service = Serialization.unmarshal(serviceStream, Service.class);
 
-			fabric8KubernetesFixture.createAndWait("istio-test", null, deployment, service, true);
+			fabric8KubernetesFixture.createAndWait("istio-test", deployment, service, true);
 
 		}
 		catch (Exception e) {

@@ -17,14 +17,9 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +28,6 @@ import java.util.Optional;
 
 import com.github.dockerjava.api.command.ListImagesCmd;
 import com.github.dockerjava.api.command.PullImageCmd;
-import com.github.dockerjava.api.command.SaveImageCmd;
 import com.github.dockerjava.api.model.Image;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,9 +44,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.KUBERNETES_VERSION_FILE;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.TEMP_FOLDER;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.TMP_IMAGES;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.FixedPortsK3sContainer.CONTAINER;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.FixedPortsK3sContainer.REGISTRY_PORT;
 
 /**
  * A few commons things that can be re-used across clients. This is meant to be used for
@@ -78,9 +72,10 @@ public final class Commons {
 		return CONTAINER;
 	}
 
-	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) {
+	public static void tagAndPushSpringCloudKubernetesImage(String imageName, K3sContainer container) {
 		try {
-			loadImage("springcloud/" + project, pomVersion(), project, container);
+			String springCloudImage = "springcloud/" + imageName + ":" + pomVersion();
+			tagAndPushImage(springCloudImage, container);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -88,56 +83,53 @@ public final class Commons {
 	}
 
 	/**
-	 * create a tar, copy it in the running k3s and load this tar as an image.
+	 * tag image and push to local registry.
 	 */
-	public static void loadImage(String image, String tag, String tarName, K3sContainer container) {
+	public static void tagAndPushImage(String imageFromDeploymentWithTag, K3sContainer container) {
 
-		if (imageAlreadyInK3s(container, tarName)) {
+		if (imageAlreadyInK3s(container, imageFromDeploymentWithTag)) {
 			return;
 		}
 
-		// save image
-		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
-			InputStream imageStream = saveImageCmd.withTag(tag).exec();
+		try {
+			int lastColon = imageFromDeploymentWithTag.lastIndexOf(':');
+			if (lastColon < 0) {
+				throw new IllegalArgumentException("image must include tag: " + imageFromDeploymentWithTag);
+			}
 
-			Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
-			try {
-				Files.copy(imageStream, imagePath, StandardCopyOption.REPLACE_EXISTING);
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-			// import image with ctr. this works because TEMP_FOLDER is mounted in the
-			// container
+			String imageWithoutTag = imageFromDeploymentWithTag.substring(0, lastColon);
+			String tag = imageFromDeploymentWithTag.substring(lastColon + 1);
+
+			String targetRepository = "localhost:" + REGISTRY_PORT + "/" + imageWithoutTag;
+			String targetImageWithTag = targetRepository + ":" + tag;
+
+			container.getDockerClient().tagImageCmd(imageFromDeploymentWithTag, targetRepository, tag).exec();
+
 			Awaitilities.awaitUntil(120, 1000, () -> {
-				Container.ExecResult result;
 				try {
-					result = container.execInContainer("ctr", "i", "import",
-							Constants.TEMP_FOLDER + "/" + tarName + ".tar");
+					container.getDockerClient().pushImageCmd(targetImageWithTag).start().awaitCompletion();
+					return true;
 				}
 				catch (Exception e) {
-					throw new RuntimeException(e);
+					LOG.info("failed to push image " + targetImageWithTag + " to local registry", e);
+					return false;
 				}
-				boolean noErrors = result.getStderr() == null || result.getStderr().isEmpty();
-				if (!noErrors) {
-					LOG.info("error is : " + result.getStderr());
-				}
-				return noErrors;
 			});
 		}
-
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
-	 * Ensures a common external test image is available inside K3s/containerd.
-	 * It first checks whether the image is already present in K3s.
-	 * If not, it tries to load it as a tar under '/tmp/docker/images'.
-	 * If no matching tar is found, it pulls the image directly inside K3s
-	 * using 'ctr images pull'.
-	 * This is meant for shared test images such as busybox, wiremock, kafka, etc.
+	 * Ensures a common external test image is available inside K3s/containerd. It first
+	 * checks whether the image is already present in K3s. If not, it tries to load it as
+	 * a tar under '/tmp/docker/images'. If no matching tar is found, it pulls the image
+	 * directly inside K3s using 'ctr images pull'. This is meant for shared test images
+	 * such as busybox, wiremock, kafka, etc.
 	 */
-	public static void loadOrPullCommonTestImages(K3sContainer container, String tarName,
-			String imageNameForDownload, String imageVersion) {
+	public static void loadOrPullCommonTestImages(K3sContainer container, String tarName, String imageNameForDownload,
+			String imageVersion) {
 
 		if (imageAlreadyInK3s(container, tarName)) {
 			return;
@@ -239,15 +231,14 @@ public final class Commons {
 		}
 	}
 
-	public static void pullImage(String image, String tag, String tarName, K3sContainer container)
-			throws InterruptedException {
+	public static void pullImage(String imageFromDeployment, K3sContainer container) throws InterruptedException {
 
-		if (imageAlreadyInK3s(container, tarName)) {
+		if (imageAlreadyInK3s(container, imageFromDeployment)) {
 			return;
 		}
 
-		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(image)) {
-			pullImageCmd.withTag(tag).start().awaitCompletion();
+		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(imageFromDeployment)) {
+			pullImageCmd.start().awaitCompletion();
 		}
 	}
 
@@ -324,24 +315,19 @@ public final class Commons {
 		});
 	}
 
-	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
-
-		if (tarName == null) {
-			return false;
-		}
-
+	private static boolean imageAlreadyInK3s(K3sContainer container, String imageWithTag) {
 		try {
-			boolean present = container.execInContainer("sh", "-c", "ctr images list | grep " + tarName)
-				.getStdout()
-				.contains(tarName);
+			String stdout = container.execInContainer("ctr", "-n", "k8s.io", "images", "list", "-q").getStdout();
+
+			boolean present = Arrays.stream(stdout.split("\\R")).map(String::trim).anyMatch(imageWithTag::equals);
+
 			if (present) {
-				System.out.println("image : " + tarName + " already in k3s, skipping");
+				System.out.println("image : " + imageWithTag + " already in k3s, skipping");
 				return true;
 			}
-			else {
-				System.out.println("image : " + tarName + " not in k3s");
-				return false;
-			}
+
+			System.out.println("image : " + imageWithTag + " not in k3s");
+			return false;
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
