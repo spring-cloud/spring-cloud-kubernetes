@@ -110,11 +110,13 @@ public final class NativeClientIntegrationTestExtension
 
 		// 10. deploy kafka
 		if (scenario.deployKafka()) {
+			Images.loadKafka(container);
 			nativeClientKubernetesFixture.kafka(Phase.CREATE);
 		}
 
 		// 11. deploy rabbitMq
 		if (scenario.deployRabbitMq()) {
+			Images.loadRabbitmq(container);
 			nativeClientKubernetesFixture.rabbitMq(Phase.CREATE);
 		}
 	}
