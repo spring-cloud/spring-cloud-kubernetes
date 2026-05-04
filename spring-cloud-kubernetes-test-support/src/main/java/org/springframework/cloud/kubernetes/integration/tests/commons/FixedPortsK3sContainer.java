@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Objects;
 
 import com.github.dockerjava.api.model.Bind;
@@ -30,9 +26,8 @@ import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
-import org.springframework.test.util.TestSocketUtils;
-
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.TMP_IMAGES;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.FixedIdNetworkProvider.createReusableNetwork;
 
 /**
  * A K3sContainer, but with fixed port mappings. This is needed because of the nature of
@@ -50,11 +45,23 @@ public final class FixedPortsK3sContainer extends K3sContainer {
 	/**
 	 * Port for the local running images registry.
 	 */
-	public static final int REGISTRY_PORT = TestSocketUtils.findAvailableTcpPort();
+	public static final int REGISTRY_PORT = 6000;
 
-	private static final Network NETWORK = Network.newNetwork();
-
-	private static final Path REGISTRIES_YAML = createRegistriesYaml();
+	/**
+	 * Small doc on how the set-up works. ( 5000 is just an example ) <pre>
+	 *     - we start a local registry and expose it on localhost:<5000>
+	 *     - from the host, we can push an image with:
+	 *       docker push localhost:5000/image:tag
+	 *     - the image is now stored in that local registry
+	 *     - k3s later sees the image reference: localhost:5000/image:tag
+	 *     - inside the k3s container, localhost would point to k3s itself, not to the registry
+	 *     - because of the mirror entry in registries.yaml, when k3s/containerd sees
+	 *       an image starting with localhost:5000, it actually uses the endpoint 'http://registry:5000'
+	 *     - LocalRegistryContainer has withNetworkAliases("registry")
+	 *     - this makes the registry reachable from the same Docker network via the hostname "registry"
+	 * </pre>
+	 */
+	private static final Network NETWORK = createReusableNetwork("spring-cloud-kubernetes-local-docker-registry");
 
 	private static final LocalRegistryContainer REGISTRY = new LocalRegistryContainer().configureFixedPorts()
 		.withNetwork(NETWORK)
@@ -83,7 +90,8 @@ public final class FixedPortsK3sContainer extends K3sContainer {
 		.withCommand(RANCHER_COMMAND)
 		.withReuse(true)
 		.withNetwork(NETWORK)
-		.withCopyFileToContainer(MountableFile.forHostPath(REGISTRIES_YAML), "/etc/rancher/k3s/registries.yaml");
+		.withCopyFileToContainer(MountableFile.forClasspathResource("registries.yaml"),
+				"/etc/rancher/k3s/registries.yaml");
 
 	private FixedPortsK3sContainer(DockerImageName dockerImageName) {
 		super(dockerImageName);
@@ -104,34 +112,6 @@ public final class FixedPortsK3sContainer extends K3sContainer {
 		});
 
 		return this;
-	}
-
-	/**
-	 * Small doc on how the set-up works. ( 5000 is just an example ) <pre>
-	 *     - we start a local registry and expose it on localhost:<5000>
-	 *     - from the host, we can push an image with:
-	 *       docker push localhost:5000/image:tag
-	 *     - the image is now stored in that local registry
-	 *     - k3s later sees the image reference: localhost:5000/image:tag
-	 *     - inside the k3s container, localhost would point to k3s itself, not to the registry
-	 *     - because of the mirror entry in registries.yaml, when k3s/containerd sees
-	 *       an image starting with localhost:5000, it actually uses the endpoint 'http://registry:5000'
-	 *     - LocalRegistryContainer has withNetworkAliases("registry")
-	 *     - this makes the registry reachable from the same Docker network via the hostname "registry"
-	 * </pre>
-	 */
-	private static Path createRegistriesYaml() {
-		try {
-			Path file = Files.createTempFile("registries", ".yaml");
-			// can't use text blocks here because of checkstyle
-			String content = "mirrors:\n" + "  \"localhost:%s\":\n" + "    endpoint:\n"
-					+ "      - \"http://registry:5000\"\n";
-			Files.writeString(file, content.formatted(REGISTRY_PORT));
-			return file;
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
 	}
 
 	/**

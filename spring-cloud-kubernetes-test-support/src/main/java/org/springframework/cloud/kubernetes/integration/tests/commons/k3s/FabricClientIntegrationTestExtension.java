@@ -66,7 +66,7 @@ public final class FabricClientIntegrationTestExtension
 		// 2. external image presence
 		for (String image : scenario.withImages()) {
 			Commons.validateImage(image, container);
-			Commons.tagAndPushSpringCloudKubernetesImage(image, container);
+			Commons.tagAndPushSpringCloudKubernetesImageToLocalDockerRegistry(image, container);
 		}
 
 		// 3. deploy istio

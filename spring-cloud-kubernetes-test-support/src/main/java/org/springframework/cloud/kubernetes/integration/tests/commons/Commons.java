@@ -72,10 +72,11 @@ public final class Commons {
 		return CONTAINER;
 	}
 
-	public static void tagAndPushSpringCloudKubernetesImage(String imageName, K3sContainer container) {
+	public static void tagAndPushSpringCloudKubernetesImageToLocalDockerRegistry(String imageNameWithoutTag,
+			K3sContainer container) {
 		try {
-			String springCloudImage = "springcloud/" + imageName + ":" + pomVersion();
-			tagAndPushImage(springCloudImage, container);
+			String springCloudImageWithTag = "springcloud/" + imageNameWithoutTag + ":" + pomVersion();
+			tagAndPushImage(springCloudImageWithTag, container);
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
@@ -85,25 +86,25 @@ public final class Commons {
 	/**
 	 * tag image and push to local registry.
 	 */
-	public static void tagAndPushImage(String imageFromDeploymentWithTag, K3sContainer container) {
+	public static void tagAndPushImage(String imageNameWithTag, K3sContainer container) {
 
-		if (imageAlreadyInK3s(container, imageFromDeploymentWithTag)) {
+		if (imageAlreadyInK3s(container, imageNameWithTag)) {
 			return;
 		}
 
 		try {
-			int lastColon = imageFromDeploymentWithTag.lastIndexOf(':');
+			int lastColon = imageNameWithTag.lastIndexOf(':');
 			if (lastColon < 0) {
-				throw new IllegalArgumentException("image must include tag: " + imageFromDeploymentWithTag);
+				throw new IllegalArgumentException("image must include tag: " + imageNameWithTag);
 			}
 
-			String imageWithoutTag = imageFromDeploymentWithTag.substring(0, lastColon);
-			String tag = imageFromDeploymentWithTag.substring(lastColon + 1);
+			String imageWithoutTag = imageNameWithTag.substring(0, lastColon);
+			String tag = imageNameWithTag.substring(lastColon + 1);
 
 			String targetRepository = "localhost:" + REGISTRY_PORT + "/" + imageWithoutTag;
 			String targetImageWithTag = targetRepository + ":" + tag;
 
-			container.getDockerClient().tagImageCmd(imageFromDeploymentWithTag, targetRepository, tag).exec();
+			container.getDockerClient().tagImageCmd(imageNameWithTag, targetRepository, tag).exec();
 
 			Awaitilities.awaitUntil(120, 1000, () -> {
 				try {
@@ -217,7 +218,7 @@ public final class Commons {
 	}
 
 	/**
-	 * validates that the provided image does exist in the local docker registry.
+	 * validates that the provided image does exist in the local dcoker cache.
 	 */
 	public static void validateImage(String image, K3sContainer container) {
 		try (ListImagesCmd listImagesCmd = container.getDockerClient().listImagesCmd()) {
@@ -319,14 +320,16 @@ public final class Commons {
 		try {
 			String stdout = container.execInContainer("ctr", "-n", "k8s.io", "images", "list", "-q").getStdout();
 
-			boolean present = Arrays.stream(stdout.split("\\R")).map(String::trim).anyMatch(imageWithTag::equals);
+			boolean present = Arrays.stream(stdout.split("\\R"))
+				.map(String::trim)
+				.anyMatch(line -> line.contains(imageWithTag));
 
 			if (present) {
-				System.out.println("image : " + imageWithTag + " already in k3s, skipping");
+				LOG.info("image : " + imageWithTag + " already in k3s, skipping");
 				return true;
 			}
 
-			System.out.println("image : " + imageWithTag + " not in k3s");
+			LOG.info("image : " + imageWithTag + " not in k3s");
 			return false;
 		}
 		catch (Exception e) {

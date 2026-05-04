@@ -19,12 +19,16 @@ package org.springframework.cloud.kubernetes.integration.tests.commons;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
 /**
  * @author wind57
  */
 public final class Images {
+
+	private static final Log LOG = LogFactory.getLog(Images.class);
 
 	private static final String BUSYBOX = "busybox";
 
@@ -116,11 +120,11 @@ public final class Images {
 				.getStdout()
 				.contains(tarName);
 			if (present) {
-				System.out.println("image : " + tarName + " already in k3s, skipping");
+				LOG.info("image : " + tarName + " already in k3s, skipping");
 				return true;
 			}
 			else {
-				System.out.println("image : " + tarName + " not in k3s");
+				LOG.info("image : " + tarName + " not in k3s");
 				return false;
 			}
 		}
