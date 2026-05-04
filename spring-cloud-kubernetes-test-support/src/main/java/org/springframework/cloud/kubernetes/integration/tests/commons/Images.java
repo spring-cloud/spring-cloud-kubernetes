@@ -80,34 +80,34 @@ public final class Images {
 
 	public static void loadBusybox(K3sContainer container) {
 		if (!imageAlreadyInK3s(container, BUSYBOX_TAR)) {
-			Commons.load(container, BUSYBOX_TAR, BUSYBOX, busyboxVersion());
+			Commons.loadOrPullCommonTestImages(container, BUSYBOX_TAR, BUSYBOX, busyboxVersion());
 		}
 	}
 
 	public static void loadWiremock(K3sContainer container) {
 		if (!imageAlreadyInK3s(container, WIREMOCK_TAR)) {
-			Commons.load(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
+			Commons.loadOrPullCommonTestImages(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
 		}
 	}
 
 	public static void loadIstioCtl(K3sContainer container) {
-		Commons.load(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
+		Commons.loadOrPullCommonTestImages(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
 	}
 
 	public static void loadIstioProxyV2(K3sContainer container) {
-		Commons.load(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
+		Commons.loadOrPullCommonTestImages(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
 	}
 
 	public static void loadIstioPilot(K3sContainer container) {
-		Commons.load(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
+		Commons.loadOrPullCommonTestImages(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
 	}
 
 	public static void loadKafka(K3sContainer container) {
-		Commons.load(container, KAFKA_TAR, KAFKA, kafkaVersion());
+		Commons.loadOrPullCommonTestImages(container, KAFKA_TAR, KAFKA, kafkaVersion());
 	}
 
 	public static void loadRabbitmq(K3sContainer container) {
-		Commons.load(container, RABBITMQ_TAR, RABBITMQ, rabbitMqVersion());
+		Commons.loadOrPullCommonTestImages(container, RABBITMQ_TAR, RABBITMQ, rabbitMqVersion());
 	}
 
 	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {
