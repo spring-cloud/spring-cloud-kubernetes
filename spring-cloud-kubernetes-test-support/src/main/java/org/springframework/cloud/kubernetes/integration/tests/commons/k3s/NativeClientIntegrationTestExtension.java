@@ -58,9 +58,9 @@ public final class NativeClientIntegrationTestExtension
 		}
 
 		// 2. external image presence
-		for (String imageName : scenario.withImages()) {
-			Commons.validateImage(imageName, container);
-			Commons.loadSpringCloudKubernetesImage(imageName, container);
+		for (String imageNameWithoutTag : scenario.withImages()) {
+			Commons.validateImage(imageNameWithoutTag, container);
+			Commons.loadSpringCloudKubernetesImage(imageNameWithoutTag, container);
 		}
 
 		// 3. set-up RBAC.

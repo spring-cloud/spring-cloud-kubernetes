@@ -128,8 +128,8 @@ public final class NativeClientKubernetesFixture {
 						.setImage(imageFromDeployment + ":" + pomVersion());
 				}
 				else {
+					pullImage(imageFromDeployment, name, container);
 					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], name, container);
 					loadImage(image[0], image[1], name, container);
 				}
 

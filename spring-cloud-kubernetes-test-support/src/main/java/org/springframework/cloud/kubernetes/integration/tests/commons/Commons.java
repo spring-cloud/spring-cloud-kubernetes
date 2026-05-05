@@ -78,30 +78,33 @@ public final class Commons {
 		return CONTAINER;
 	}
 
-	public static void loadSpringCloudKubernetesImage(String imageName, K3sContainer container) {
+	public static void loadSpringCloudKubernetesImage(String imageNameWithoutTag, K3sContainer container) {
 		File dockerImagesRootDir = Paths.get(K3S_IMAGE_TARS_DIR).toFile();
-		String tarName = imageName + ":" + pomVersion();
+		String tarName = imageNameWithoutTag + ":" + pomVersion() + ".tar";
 
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
-			// we are in github actions ( not locally )
-			loadImageFromPath(tarName, container);
+			File[] tars = dockerImagesRootDir.listFiles();
+			if (tars != null && tars.length > 0) {
+				// we are in github actions ( not locally )
+				loadImageFromPath(tarName, container);
+				return;
+			}
 		}
-		else {
-			loadImage(imageName, pomVersion(), tarName, container);
-		}
+
+		loadImage("springcloud/" + imageNameWithoutTag, pomVersion(), tarName, container);
 	}
 
 	/**
 	 * create a tar, copy it in the running k3s and load this tar as an image.
 	 */
-	public static void loadImage(String image, String tag, String tarName, K3sContainer container) {
+	public static void loadImage(String imageNameWithoutTag, String tag, String tarName, K3sContainer container) {
 
 		if (imageAlreadyInK3s(container, tarName)) {
 			return;
 		}
 
 		// save image
-		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
+		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(imageNameWithoutTag)) {
 			InputStream imageStream = saveImageCmd.withTag(tag).exec();
 
 			Path imagePath = Paths.get(IMAGE_TARS_TEMP_DIR + "/" + tarName + ".tar");
@@ -246,15 +249,15 @@ public final class Commons {
 		}
 	}
 
-	public static void pullImage(String image, String tag, String tarName, K3sContainer container)
+	public static void pullImage(String imageWithTag, String tarName, K3sContainer container)
 			throws InterruptedException {
 
 		if (imageAlreadyInK3s(container, tarName)) {
 			return;
 		}
 
-		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(image)) {
-			pullImageCmd.withTag(tag).start().awaitCompletion();
+		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(imageWithTag)) {
+			pullImageCmd.start().awaitCompletion();
 		}
 	}
 
@@ -342,11 +345,11 @@ public final class Commons {
 				.getStdout()
 				.contains(tarName);
 			if (present) {
-				System.out.println("image : " + tarName + " already in k3s, skipping");
+				LOG.info("image : " + tarName + " already in k3s, skipping");
 				return true;
 			}
 			else {
-				System.out.println("image : " + tarName + " not in k3s");
+				LOG.info("image : " + tarName + " not in k3s");
 				return false;
 			}
 		}

@@ -70,10 +70,11 @@ public final class Fabric8ClientKubernetesFixture {
 	 * service. It creates the given resources as-well as waits for them to be created.
 	 * The delay check is intentionally not taken as an argument, so that it stays as
 	 * tight as possible, providing reasonable defaults.
-	 *
+	 * @param appendTag is false for common test images like busybox, wiremock. it is true
+	 * for our images that we build from integration tests.
 	 */
 	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, @Nullable Service service,
-			boolean changeVersion) {
+			boolean appendTag) {
 		try {
 
 			if (deployment != null) {
@@ -83,7 +84,8 @@ public final class Fabric8ClientKubernetesFixture {
 					.getContainers()
 					.get(0)
 					.getImage();
-				if (changeVersion) {
+
+				if (appendTag) {
 					deployment.getSpec()
 						.getTemplate()
 						.getSpec()
@@ -92,8 +94,10 @@ public final class Fabric8ClientKubernetesFixture {
 						.setImage(imageFromDeployment + ":" + pomVersion());
 				}
 				else {
+					// pullImage is only needed when we run some test locally.
+					// Inside github actions, this will be a NOOP.
+					pullImage(imageFromDeployment, name, container);
 					String[] image = imageFromDeployment.split(":", 2);
-					pullImage(image[0], image[1], name, container);
 					loadImage(image[0], image[1], name, container);
 				}
 
