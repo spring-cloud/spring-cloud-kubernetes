@@ -49,9 +49,9 @@ import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.IMAGE_TARS_TEMP_DIR;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.K3S_IMAGE_TARS_DIR;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.KUBERNETES_VERSION_FILE;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.TEMP_FOLDER;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.TMP_IMAGES;
 import static org.springframework.cloud.kubernetes.integration.tests.commons.FixedPortsK3sContainer.CONTAINER;
 
 /**
@@ -78,12 +78,16 @@ public final class Commons {
 		return CONTAINER;
 	}
 
-	public static void loadSpringCloudKubernetesImage(String project, K3sContainer container) {
-		try {
-			loadImage("springcloud/" + project, pomVersion(), project, container);
+	public static void loadSpringCloudKubernetesImage(String imageName, K3sContainer container) {
+		File dockerImagesRootDir = Paths.get(K3S_IMAGE_TARS_DIR).toFile();
+		String tarName = imageName + ":" + pomVersion();
+
+		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
+			// we are in github actions ( not locally )
+			loadImageFromPath(tarName, container);
 		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
+		else {
+			loadImage(imageName, pomVersion(), tarName, container);
 		}
 	}
 
@@ -100,20 +104,21 @@ public final class Commons {
 		try (SaveImageCmd saveImageCmd = container.getDockerClient().saveImageCmd(image)) {
 			InputStream imageStream = saveImageCmd.withTag(tag).exec();
 
-			Path imagePath = Paths.get(TEMP_FOLDER + "/" + tarName + ".tar");
+			Path imagePath = Paths.get(IMAGE_TARS_TEMP_DIR + "/" + tarName + ".tar");
 			try {
 				Files.copy(imageStream, imagePath, StandardCopyOption.REPLACE_EXISTING);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
-			// import image with ctr. this works because TEMP_FOLDER is mounted in the
+			// import image with ctr. this works because IMAGE_TARS_TEMP_DIR is mounted in
+			// the
 			// container
 			Awaitilities.awaitUntil(120, 1000, () -> {
 				Container.ExecResult result;
 				try {
 					result = container.execInContainer("ctr", "i", "import",
-							Constants.TEMP_FOLDER + "/" + tarName + ".tar");
+							Constants.IMAGE_TARS_TEMP_DIR + "/" + tarName + ".tar");
 				}
 				catch (Exception e) {
 					throw new RuntimeException(e);
@@ -129,21 +134,20 @@ public final class Commons {
 	}
 
 	/**
-	 * Ensures a common external test image is available inside K3s/containerd.
-	 * It first checks whether the image is already present in K3s.
-	 * If not, it tries to load it as a tar under '/tmp/docker/images'.
-	 * If no matching tar is found, it pulls the image directly inside K3s
-	 * using 'ctr images pull'.
-	 * This is meant for shared test images such as busybox, wiremock, kafka, etc.
+	 * Ensures a common external test image is available inside K3s/containerd. It first
+	 * checks whether the image is already present in K3s. If not, it tries to load it as
+	 * a tar under '/tmp/docker/images'. If no matching tar is found, it pulls the image
+	 * directly inside K3s using 'ctr images pull'. This is meant for shared test images
+	 * such as busybox, wiremock, kafka, etc.
 	 */
-	public static void loadOrPullCommonTestImages(K3sContainer container, String tarName,
-			String imageNameForDownload, String imageVersion) {
+	public static void loadOrPullCommonTestImages(K3sContainer container, String tarName, String imageNameForDownload,
+			String imageVersion) {
 
 		if (imageAlreadyInK3s(container, tarName)) {
 			return;
 		}
 
-		File dockerImagesRootDir = Paths.get(TMP_IMAGES).toFile();
+		File dockerImagesRootDir = Paths.get(K3S_IMAGE_TARS_DIR).toFile();
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();
 			if (tars != null && tars.length > 0) {
@@ -152,7 +156,8 @@ public final class Commons {
 					.filter(x -> x.contains(tarName))
 					.findFirst();
 				if (found.isPresent()) {
-					LOG.info("running in github actions, will load from : " + TMP_IMAGES + " tar : " + found.get());
+					LOG.info("running in github actions, will load from : " + K3S_IMAGE_TARS_DIR + " tar : "
+							+ found.get());
 					loadImageFromPath(found.get(), container);
 					return;
 				}
@@ -225,7 +230,9 @@ public final class Commons {
 	}
 
 	/**
-	 * validates that the provided image does exist in the local docker registry.
+	 * validates that the provided image does exist in the local docker registry. This is
+	 * only needed when running tests locally, in github actions images are already built
+	 * by the pipeline.
 	 */
 	public static void validateImage(String image, K3sContainer container) {
 		try (ListImagesCmd listImagesCmd = container.getDockerClient().listImagesCmd()) {
@@ -311,7 +318,7 @@ public final class Commons {
 		Awaitilities.awaitUntil(120, 1000, () -> {
 			Container.ExecResult result;
 			try {
-				result = container.execInContainer("ctr", "i", "import", Constants.TMP_IMAGES + "/" + tarName);
+				result = container.execInContainer("ctr", "i", "import", Constants.K3S_IMAGE_TARS_DIR + "/" + tarName);
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
