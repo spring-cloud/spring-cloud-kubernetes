@@ -81,10 +81,6 @@ public final class K3sImageLoader {
 	public static void loadOrPullCommonTestImages(K3sContainer container, String tarName, String imageNameForDownload,
 			String imageVersion) {
 
-		if (imageAlreadyInK3s(container, tarName)) {
-			return;
-		}
-
 		File dockerImagesRootDir = Paths.get(CI_IMAGE_TARS_DIR).toFile();
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
 			File[] tars = dockerImagesRootDir.listFiles();

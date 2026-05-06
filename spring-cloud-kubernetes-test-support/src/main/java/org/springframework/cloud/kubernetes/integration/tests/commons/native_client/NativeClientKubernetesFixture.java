@@ -104,15 +104,14 @@ public final class NativeClientKubernetesFixture {
 	 * tight as possible, providing reasonable defaults.
 	 *
 	 */
-	public void createAndWait(String namespace, String name, V1Deployment deployment, V1Service service,
-			boolean imageWithoutTag) {
+	public void createAndWait(String namespace, V1Deployment deployment, V1Service service, boolean appendTag) {
 		try {
 
 			coreV1Api.createNamespacedService(namespace, service).execute();
 
 			if (deployment != null) {
 
-				if (imageWithoutTag) {
+				if (appendTag) {
 					String imageFromDeployment = deployment.getSpec()
 						.getTemplate()
 						.getSpec()
@@ -262,13 +261,13 @@ public final class NativeClientKubernetesFixture {
 	public void busybox(String namespace, Phase phase) {
 		V1Deployment deployment = yaml("busybox/deployment.yaml", V1Deployment.class);
 
-		String imageWithoutVersion = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
-		String imageWithVersion = imageWithoutVersion + ":" + Images.busyboxVersion();
-		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
+		String imageWithoutTag = deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getImage();
+		String imageWithTag = imageWithoutTag + ":" + Images.busyboxVersion();
+		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithTag);
 
 		V1Service service = yaml("busybox/service.yaml", V1Service.class);
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "busybox", deployment, service, false);
+			createAndWait(namespace, deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait(namespace, deployment, service);
@@ -285,7 +284,7 @@ public final class NativeClientKubernetesFixture {
 		V1Service service = yaml("kafka/kafka-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait("default", "kafka", deployment, service, false);
+			createAndWait("default", deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait("default", deployment, service);
@@ -302,7 +301,7 @@ public final class NativeClientKubernetesFixture {
 		V1Service service = yaml("rabbitmq/rabbitmq-service.yaml", V1Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait("default", "rabbitmq", deployment, service, false);
+			createAndWait("default", deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait("default", deployment, service);
@@ -489,7 +488,7 @@ public final class NativeClientKubernetesFixture {
 		if (phase.equals(Phase.CREATE)) {
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			createAndWait(namespace, "wiremock", deployment, service, false);
+			createAndWait(namespace, deployment, service, false);
 		}
 		else {
 			deleteAndWait(namespace, deployment, service);
@@ -500,7 +499,7 @@ public final class NativeClientKubernetesFixture {
 	public void externalName(Phase phase) {
 		V1Service service = yaml("external-name-service/external-name-service.yaml", V1Service.class);
 		if (Phase.CREATE.equals(phase)) {
-			createAndWait("default", null, null, service, false);
+			createAndWait("default", null, service, false);
 		}
 		else {
 			deleteAndWait("default", null, service);
@@ -549,7 +548,7 @@ public final class NativeClientKubernetesFixture {
 		deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setEnv(envVars);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait("default", deployment.getMetadata().getName(), deployment, service, true);
+			createAndWait("default", deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait("default", deployment, service);
@@ -561,7 +560,7 @@ public final class NativeClientKubernetesFixture {
 		V1Service service = yaml("discovery-server/discoveryserver-service.yaml", V1Service.class);
 
 		if (phase == Phase.CREATE) {
-			createAndWait("default", null, deployment, service, true);
+			createAndWait("default", deployment, service, true);
 		}
 		else {
 			deleteAndWait("default", null, service);
