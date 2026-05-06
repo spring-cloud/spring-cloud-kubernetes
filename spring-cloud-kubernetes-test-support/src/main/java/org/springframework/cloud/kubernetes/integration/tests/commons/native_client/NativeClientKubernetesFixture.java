@@ -58,12 +58,10 @@ import org.testcontainers.containers.Container;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
+import org.springframework.cloud.kubernetes.integration.tests.commons.K3sImageLoader;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
 
 /**
  * @author wind57
@@ -107,30 +105,26 @@ public final class NativeClientKubernetesFixture {
 	 *
 	 */
 	public void createAndWait(String namespace, String name, V1Deployment deployment, V1Service service,
-			boolean changeVersion) {
+			boolean imageWithoutTag) {
 		try {
 
 			coreV1Api.createNamespacedService(namespace, service).execute();
 
 			if (deployment != null) {
-				String imageFromDeployment = deployment.getSpec()
-					.getTemplate()
-					.getSpec()
-					.getContainers()
-					.get(0)
-					.getImage();
-				if (changeVersion) {
-					deployment.getSpec()
+
+				if (imageWithoutTag) {
+					String imageFromDeployment = deployment.getSpec()
 						.getTemplate()
 						.getSpec()
 						.getContainers()
 						.get(0)
-						.setImage(imageFromDeployment + ":" + pomVersion());
-				}
-				else {
-					pullImage(imageFromDeployment, name, container);
-					String[] image = imageFromDeployment.split(":", 2);
-					loadImage(image[0], image[1], name, container);
+						.getImage();
+
+					String imageNameWithoutTag = imageFromDeployment.substring("docker.io/springcloud/".length());
+					K3sImageLoader.loadSpringCloudKubernetesImage(imageNameWithoutTag, container);
+
+					String imageWithVersion = imageFromDeployment + ":" + Commons.pomVersion();
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 				}
 
 				appsV1Api.createNamespacedDeployment(namespace, deployment).execute();

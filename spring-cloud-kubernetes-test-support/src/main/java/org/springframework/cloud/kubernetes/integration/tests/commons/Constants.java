@@ -28,18 +28,19 @@ final class Constants {
 	}
 
 	/**
-	 * Path populated by the GitHub Actions pipeline. It contains tar files for:
+	 * Directory populated by the CI pipeline with prebuilt image tar files. It contains
+	 * tar files for:
 	 * <li>common test images (busybox, wiremock, etc.)</li>
 	 * <li>controller images (configuration watcher, discovery server, config server)</li>
 	 * <li>application images built from the integration-tests project</li>
 	 */
-	static final String K3S_IMAGE_TARS_DIR = "/tmp/docker/images";
+	static final String CI_IMAGE_TARS_DIR = "/tmp/docker/images";
 
 	/**
-	 * Used by local integration-test runs to stage image tar files so they can later be
-	 * imported into K3s via `ctr`.
+	 * Directory used during local runs to stage image tar files created from the local
+	 * Docker cache before importing them into K3s with 'ctr i import'.
 	 */
-	static final String IMAGE_TARS_TEMP_DIR = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
+	static final String LOCAL_IMAGE_TARS_DIR = new File(System.getProperty("java.io.tmpdir")).getAbsolutePath();
 
 	/**
 	 * where is the version situated.

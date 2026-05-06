@@ -23,8 +23,8 @@ import com.github.dockerjava.api.model.HostConfig;
 import org.testcontainers.k3s.K3sContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.IMAGE_TARS_TEMP_DIR;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.K3S_IMAGE_TARS_DIR;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.CI_IMAGE_TARS_DIR;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Constants.LOCAL_IMAGE_TARS_DIR;
 
 /**
  * A K3sContainer, but with fixed port mappings. This is needed because of the nature of
@@ -70,8 +70,8 @@ final class FixedPortsK3sContainer extends K3sContainer {
 	FixedPortsK3sContainer addBinds() {
 		super.withCreateContainerCmdModifier(cmd -> {
 			HostConfig hostConfig = Objects.requireNonNull(cmd.getHostConfig());
-			hostConfig.withBinds(Bind.parse(IMAGE_TARS_TEMP_DIR + ":" + IMAGE_TARS_TEMP_DIR),
-					Bind.parse(K3S_IMAGE_TARS_DIR + ":" + K3S_IMAGE_TARS_DIR));
+			hostConfig.withBinds(Bind.parse(LOCAL_IMAGE_TARS_DIR + ":" + LOCAL_IMAGE_TARS_DIR),
+					Bind.parse(CI_IMAGE_TARS_DIR + ":" + CI_IMAGE_TARS_DIR));
 		});
 
 		return this;

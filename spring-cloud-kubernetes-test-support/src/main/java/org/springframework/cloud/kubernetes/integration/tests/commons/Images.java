@@ -80,34 +80,34 @@ public final class Images {
 
 	public static void loadBusybox(K3sContainer container) {
 		if (!imageAlreadyInK3s(container, BUSYBOX_TAR)) {
-			Commons.loadOrPullCommonTestImages(container, BUSYBOX_TAR, BUSYBOX, busyboxVersion());
+			K3sImageLoader.loadOrPullCommonTestImages(container, BUSYBOX_TAR, BUSYBOX, busyboxVersion());
 		}
 	}
 
 	public static void loadWiremock(K3sContainer container) {
 		if (!imageAlreadyInK3s(container, WIREMOCK_TAR)) {
-			Commons.loadOrPullCommonTestImages(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
+			K3sImageLoader.loadOrPullCommonTestImages(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
 		}
 	}
 
 	public static void loadIstioCtl(K3sContainer container) {
-		Commons.loadOrPullCommonTestImages(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
+		K3sImageLoader.loadOrPullCommonTestImages(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
 	}
 
 	public static void loadIstioProxyV2(K3sContainer container) {
-		Commons.loadOrPullCommonTestImages(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
+		K3sImageLoader.loadOrPullCommonTestImages(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
 	}
 
 	public static void loadIstioPilot(K3sContainer container) {
-		Commons.loadOrPullCommonTestImages(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
+		K3sImageLoader.loadOrPullCommonTestImages(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
 	}
 
 	public static void loadKafka(K3sContainer container) {
-		Commons.loadOrPullCommonTestImages(container, KAFKA_TAR, KAFKA, kafkaVersion());
+		K3sImageLoader.loadOrPullCommonTestImages(container, KAFKA_TAR, KAFKA, kafkaVersion());
 	}
 
 	public static void loadRabbitmq(K3sContainer container) {
-		Commons.loadOrPullCommonTestImages(container, RABBITMQ_TAR, RABBITMQ, rabbitMqVersion());
+		K3sImageLoader.loadOrPullCommonTestImages(container, RABBITMQ_TAR, RABBITMQ, rabbitMqVersion());
 	}
 
 	private static boolean imageAlreadyInK3s(K3sContainer container, String tarName) {

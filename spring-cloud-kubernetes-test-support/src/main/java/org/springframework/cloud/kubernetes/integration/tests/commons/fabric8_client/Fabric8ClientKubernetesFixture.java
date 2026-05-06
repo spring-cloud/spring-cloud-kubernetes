@@ -41,12 +41,10 @@ import org.apache.commons.logging.LogFactory;
 import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
+import org.springframework.cloud.kubernetes.integration.tests.commons.K3sImageLoader;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
-
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.loadImage;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pomVersion;
-import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.pullImage;
 
 /**
  * @author wind57
@@ -73,32 +71,26 @@ public final class Fabric8ClientKubernetesFixture {
 	 * @param appendTag is false for common test images like busybox, wiremock. it is true
 	 * for our images that we build from integration tests.
 	 */
-	public void createAndWait(String namespace, String name, @Nullable Deployment deployment, @Nullable Service service,
+	public void createAndWait(String namespace, @Nullable Deployment deployment, @Nullable Service service,
 			boolean appendTag) {
 		try {
 
 			if (deployment != null) {
-				String imageFromDeployment = deployment.getSpec()
-					.getTemplate()
-					.getSpec()
-					.getContainers()
-					.get(0)
-					.getImage();
 
 				if (appendTag) {
-					deployment.getSpec()
+					String imageFromDeployment = deployment.getSpec()
 						.getTemplate()
 						.getSpec()
 						.getContainers()
 						.get(0)
-						.setImage(imageFromDeployment + ":" + pomVersion());
-				}
-				else {
-					// pullImage is only needed when we run some test locally.
-					// Inside github actions, this will be a NOOP.
-					pullImage(imageFromDeployment, name, container);
-					String[] image = imageFromDeployment.split(":", 2);
-					loadImage(image[0], image[1], name, container);
+						.getImage();
+
+					String imageNameWithoutTag = imageFromDeployment.replace("docker.io/springcloud/", "");
+					K3sImageLoader.loadSpringCloudKubernetesImage(imageNameWithoutTag, container);
+
+					String imageWithVersion = imageFromDeployment + ":" + Commons.pomVersion();
+
+					deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 				}
 
 				client.apps().deployments().inNamespace(namespace).resource(deployment).create();
@@ -127,7 +119,7 @@ public final class Fabric8ClientKubernetesFixture {
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, "busybox", deployment, service, false);
+			createAndWait(namespace, deployment, service, false);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait(namespace, deployment, service);
@@ -138,7 +130,7 @@ public final class Fabric8ClientKubernetesFixture {
 		InputStream serviceStream = inputStream("external-name-service/external-name-service.yaml");
 		Service service = Serialization.unmarshal(serviceStream, Service.class);
 		if (Phase.CREATE.equals(phase)) {
-			createAndWait("default", null, null, service, false);
+			createAndWait("default", null, service, false);
 		}
 		else {
 			deleteAndWait("default", null, service);
@@ -292,7 +284,7 @@ public final class Fabric8ClientKubernetesFixture {
 		istioctlDeployment.getSpec().getTemplate().getSpec().getContainers().get(0).setImage(imageWithVersion);
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait(namespace, null, istioctlDeployment, null, false);
+			createAndWait(namespace, istioctlDeployment, null, false);
 		}
 		else {
 			deleteAndWait(namespace, istioctlDeployment, null);
@@ -355,7 +347,7 @@ public final class Fabric8ClientKubernetesFixture {
 		if (phase.equals(Phase.CREATE)) {
 			deployment.getMetadata().setNamespace(namespace);
 			service.getMetadata().setNamespace(namespace);
-			createAndWait(namespace, "wiremock", deployment, service, false);
+			createAndWait(namespace, deployment, service, false);
 		}
 		else {
 			deleteAndWait(namespace, deployment, service);
@@ -372,7 +364,7 @@ public final class Fabric8ClientKubernetesFixture {
 		Service service = client.services().load(serviceStream).item();
 
 		if (phase.equals(Phase.CREATE)) {
-			createAndWait("default", deployment.getMetadata().getName(), deployment, service, true);
+			createAndWait("default", deployment, service, true);
 		}
 		else if (phase.equals(Phase.DELETE)) {
 			deleteAndWait("default", deployment, service);
