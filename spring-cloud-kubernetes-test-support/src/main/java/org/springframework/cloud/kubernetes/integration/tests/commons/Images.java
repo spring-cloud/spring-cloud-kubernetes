@@ -52,11 +52,11 @@ public final class Images {
 
 	private static final String KAFKA = "confluentinc/confluent-local";
 
-	private static final String KAFKA_TAR = KAFKA.replace('/', '-') + kafkaVersion();
+	private static final String KAFKA_TAR = KAFKA.replace('/', '-') + ":" + kafkaVersion();
 
 	private static final String RABBITMQ = "rabbitmq";
 
-	private static final String RABBITMQ_TAR = "rabbitmq";
+	private static final String RABBITMQ_TAR = "rabbitmq" + ":" + rabbitMqVersion();
 
 	private Images() {
 

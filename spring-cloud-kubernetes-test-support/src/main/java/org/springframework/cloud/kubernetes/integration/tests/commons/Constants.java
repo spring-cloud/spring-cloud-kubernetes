@@ -30,9 +30,11 @@ final class Constants {
 	/**
 	 * Directory populated by the CI pipeline with prebuilt image tar files. It contains
 	 * tar files for:
+	 * <ul>
 	 * <li>common test images (busybox, wiremock, etc.)</li>
 	 * <li>controller images (configuration watcher, discovery server, config server)</li>
 	 * <li>application images built from the integration-tests project</li>
+	 * </ul>
 	 */
 	static final String CI_IMAGE_TARS_DIR = "/tmp/docker/images";
 

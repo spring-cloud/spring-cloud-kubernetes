@@ -59,6 +59,11 @@ public final class K3sImageLoader {
 	public static void loadSpringCloudKubernetesImage(String imageNameWithoutTag, K3sContainer container) {
 		String tag = pomVersion();
 		String imageNameWithTag = imageNameWithoutTag + ":" + tag;
+
+		if (imageAlreadyInK3s(container, imageNameWithTag)) {
+			return;
+		}
+
 		String tarFileName = imageNameWithTag + ".tar";
 		Path ciTarPath = Paths.get(CI_IMAGE_TARS_DIR, tarFileName);
 
@@ -80,6 +85,10 @@ public final class K3sImageLoader {
 	 */
 	public static void loadOrPullCommonTestImages(K3sContainer container, String tarName, String imageNameForDownload,
 			String imageVersion) {
+
+		if (imageAlreadyInK3s(container, tarName)) {
+			return;
+		}
 
 		File dockerImagesRootDir = Paths.get(CI_IMAGE_TARS_DIR).toFile();
 		if (dockerImagesRootDir.exists() && dockerImagesRootDir.isDirectory()) {
