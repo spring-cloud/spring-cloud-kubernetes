@@ -94,7 +94,7 @@
 		<maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>5.0.2-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-config.version>5.0.2-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-config.version>5.0.4-SNAPSHOT</spring-cloud-config.version>
 		<spring-cloud-bus.version>5.0.2-SNAPSHOT</spring-cloud-bus.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
