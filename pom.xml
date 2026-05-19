@@ -91,6 +91,7 @@
 		<surefire-reports-directory>surefire-reports</surefire-reports-directory>
 		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
+		<maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>5.0.2-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>5.0.2-SNAPSHOT</spring-cloud-config.version>
