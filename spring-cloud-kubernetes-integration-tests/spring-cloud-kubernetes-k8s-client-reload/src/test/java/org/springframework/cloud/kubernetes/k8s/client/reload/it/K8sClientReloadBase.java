@@ -88,8 +88,7 @@ abstract class K8sClientReloadBase {
 		}
 	}
 
-	protected static void manifests(Phase phase, NativeClientKubernetesFixture fixture, String namespace,
-			String imageName) {
+	protected static void manifests(Phase phase, NativeClientKubernetesFixture fixture, String namespace) {
 
 		V1Deployment deployment = fixture.yaml("mount/deployment.yaml", V1Deployment.class);
 		V1Service service = fixture.yaml("mount/service.yaml", V1Service.class);
@@ -97,7 +96,7 @@ abstract class K8sClientReloadBase {
 
 		if (phase.equals(Phase.CREATE)) {
 			fixture.createAndWait(namespace, configMap, null);
-			fixture.createAndWait(namespace, imageName, deployment, service, true);
+			fixture.createAndWait(namespace, deployment, service, true);
 		}
 		else {
 			fixture.deleteAndWait(namespace, configMap, null);
@@ -114,7 +113,7 @@ abstract class K8sClientReloadBase {
 
 		if (phase.equals(Phase.CREATE)) {
 			fixture.createAndWait("default", null, secret);
-			fixture.createAndWait("default", "spring-cloud-kubernetes-k8s-client-reload", deployment, service, true);
+			fixture.createAndWait("default", deployment, service, true);
 		}
 		else {
 			fixture.deleteAndWait("default", null, secret);

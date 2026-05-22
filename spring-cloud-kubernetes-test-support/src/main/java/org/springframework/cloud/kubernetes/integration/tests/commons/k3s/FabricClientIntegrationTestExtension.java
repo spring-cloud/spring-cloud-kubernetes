@@ -26,6 +26,7 @@ import org.testcontainers.k3s.K3sContainer;
 
 import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
+import org.springframework.cloud.kubernetes.integration.tests.commons.K3sImageLoader;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
 import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -58,9 +59,9 @@ public final class FabricClientIntegrationTestExtension
 		}
 
 		// 2. external image presence
-		for (String image : scenario.withImages()) {
-			Commons.validateImage(image, container);
-			Commons.loadSpringCloudKubernetesImage(image, container);
+		for (String imageNameWithoutTag : scenario.withImages()) {
+			K3sImageLoader.validateImage(imageNameWithoutTag, container);
+			K3sImageLoader.loadSpringCloudKubernetesImage(imageNameWithoutTag, container);
 		}
 
 		// 3. create busybox instances in proper namespaces
@@ -184,5 +185,4 @@ public final class FabricClientIntegrationTestExtension
 		}
 		return container;
 	}
-
 }

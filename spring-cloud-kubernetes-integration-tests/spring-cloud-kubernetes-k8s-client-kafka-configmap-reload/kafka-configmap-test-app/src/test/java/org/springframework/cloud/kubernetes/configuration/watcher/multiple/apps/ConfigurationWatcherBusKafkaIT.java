@@ -53,7 +53,7 @@ class ConfigurationWatcherBusKafkaIT {
 	void setup(NativeClientKubernetesFixture fixture) {
 		V1Deployment deployment = fixture.yaml("app/app-deployment.yaml", V1Deployment.class);
 		V1Service service = fixture.yaml("app/app-service.yaml", V1Service.class);
-		fixture.createAndWait("default", null, deployment, service, true);
+		fixture.createAndWait("default", deployment, service, true);
 	}
 
 	@AfterEach

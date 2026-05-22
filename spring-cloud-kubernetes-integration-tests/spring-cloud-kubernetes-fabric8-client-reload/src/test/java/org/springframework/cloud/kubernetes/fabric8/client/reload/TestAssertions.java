@@ -96,7 +96,7 @@ final class TestAssertions {
 
 		if (phase.equals(Phase.CREATE)) {
 			fabric8KubernetesFixture.createAndWait(namespace, configMap, null);
-			fabric8KubernetesFixture.createAndWait(namespace, null, deployment, service, true);
+			fabric8KubernetesFixture.createAndWait(namespace, deployment, service, true);
 		}
 		else {
 			fabric8KubernetesFixture.deleteAndWait(namespace, configMap, null);
