@@ -83,6 +83,9 @@ class KubernetesEnvironmentRepositoryTests {
 
 		wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/secrets.*"))
 			.willReturn(aResponse().withStatus(200).withBody(serialize(SECRET_LIST_DEFAULT_NAMESPACE))));
+
+		wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEFAULT_NAMESPACE))));
 	}
 
 	@AfterAll
@@ -148,7 +151,7 @@ class KubernetesEnvironmentRepositoryTests {
 			wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
 				.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEFAULT_NAMESPACE))));
 
-			Environment environment = testRestTemplate.getForObject("/application/default ", Environment.class);
+			Environment environment = testRestTemplate.getForObject("/application/default", Environment.class);
 
 			Map<String, Map<String, Object>> result = environment.getPropertySources()
 				.stream()
@@ -201,7 +204,7 @@ class KubernetesEnvironmentRepositoryTests {
 			wireMockServer.stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*"))
 				.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(CONFIGMAP_LIST_DEFAULT_NAMESPACE))));
 
-			Environment environment = testRestTemplate.getForObject("/stores/default ", Environment.class);
+			Environment environment = testRestTemplate.getForObject("/stores/default", Environment.class);
 
 			Map<String, Map<String, Object>> result = environment.getPropertySources()
 				.stream()
