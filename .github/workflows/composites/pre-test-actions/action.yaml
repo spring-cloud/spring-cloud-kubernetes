@@ -29,7 +29,9 @@ runs:
       with:
         jdk-version: ${{ inputs.jdk-version }}
 
-    - name: restore common images
+    # restore or download common docker test images, like: busybox, wiremock.
+    # these will be placed in /tmp/docker/images
+    - name: restore common images to /tmp/docker/images
       uses: ./.github/workflows/composites/restore-docker-images
 
     - name: build project
@@ -37,18 +39,47 @@ runs:
       run: |
         ./mvnw clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q  
 
+    # we could cache these images also, but the vast majority of time, we will
+    # be running against a SNAPSHOT version.
     - name: build controllers project
       uses: ./.github/workflows/composites/build-controllers-project
 
+    # we could cache these images also, but the vast majority of time, we will
+    # be running against a SNAPSHOT version.
     - name: build integration tests project
       uses: ./.github/workflows/composites/build-integration-tests-project
+
+    - name: put controllers and integration tests tars to /tmp/docker/images
+      shell: bash
+      run: |
+        
+        # find the version of our project from file: spring-cloud-kubernetes-integration-tests/pom.xml
+        PROJECT_VERSION="$(./mvnw -q -f spring-cloud-kubernetes-integration-tests/pom.xml help:evaluate -Dexpression=project.version -DforceStdout)"
+        
+        # get the existing docker images ( controllers and integration tests ) into the 'images' array
+        mapfile -t images < <(
+          docker image ls --format '{{.Repository}}:{{.Tag}}' \
+          | grep "^springcloud/.*:${PROJECT_VERSION}$" \
+          | sort -u
+        )
+        
+        # print what we currently have
+        for i in "${!images[@]}"; do
+          printf 'images[%s]=%s\n' "$i" "${images[$i]}"
+        done
+        
+        # look at variable 'var', if it starts with 'springcloud/', remove it, return the rest.
+        for image in "${images[@]}"; do
+          tar_name="${image#springcloud/}.tar"
+          docker save -o "/tmp/docker/images/${tar_name}" "$image"
+        done
+
+    - name: display /tmp/docker/images
+      shell: bash
+      run: ls -l /tmp/docker/images
 
     - name: download tests
       uses: actions/download-artifact@v4
       with:
         name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp
-
-
-
-

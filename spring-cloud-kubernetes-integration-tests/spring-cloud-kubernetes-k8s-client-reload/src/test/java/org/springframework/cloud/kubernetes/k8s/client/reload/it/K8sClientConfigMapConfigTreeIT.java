@@ -50,12 +50,12 @@ class K8sClientConfigMapConfigTreeIT extends K8sClientReloadBase {
 
 	@BeforeAll
 	static void beforeAllLocal(NativeClientKubernetesFixture fixture) {
-		manifests(Phase.CREATE, fixture, "default", "spring-cloud-kubernetes-k8s-client-reload");
+		manifests(Phase.CREATE, fixture, "default");
 	}
 
 	@AfterAll
 	static void afterAll(NativeClientKubernetesFixture fixture) {
-		manifests(Phase.DELETE, fixture, "default", "spring-cloud-kubernetes-k8s-client-reload");
+		manifests(Phase.DELETE, fixture, "default");
 	}
 
 	/**
