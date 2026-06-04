@@ -3,5 +3,5 @@ istio/istioctl:1.21.6
 istio/proxyv2:1.21.6
 istio/pilot:1.21.6
 confluentinc/confluent-local:7.9.0
-rabbitmq:3-management
+rabbitmq:4.2.6-management
 wiremock/wiremock:3.4.2
