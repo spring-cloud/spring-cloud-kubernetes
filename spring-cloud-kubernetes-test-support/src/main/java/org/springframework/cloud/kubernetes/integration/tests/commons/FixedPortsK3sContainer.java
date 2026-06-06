@@ -45,11 +45,14 @@ final class FixedPortsK3sContainer extends K3sContainer {
 	private static final String RANCHER_VERSION = "rancher/k3s:v1.35.4-k3s1";
 
 	/**
-	 * K3s startup command for integration tests:
-	 * <li><code>server</code> starts K3s in server mode and brings up the control plane</li>
-	 * <li><code>--disable=metric-server</code> disables the built-in metrics-server addon</li>
-	 * <li><code>--tls-san=host.docker.internal</code> adds host.docker.internal to the API server certificate SANs
-	 * so Dockerized test clients can connect without TLS hostname verification failures</li>
+	 * K3s startup command for integration tests.
+	 * <li><code>server</code> starts K3s in server mode and brings up the control
+	 * plane</li>
+	 * <li><code>--disable=metric-server</code> disables the built-in metrics-server
+	 * addon</li>
+	 * <li><code>--tls-san=host.docker.internal</code> adds host.docker.internal to the
+	 * API server certificate SANs so Dockerized test clients can connect without TLS
+	 * hostname verification failures</li>
 	 */
 	private static final String RANCHER_COMMAND = "server --disable=metric-server --tls-san=host.docker.internal";
 
