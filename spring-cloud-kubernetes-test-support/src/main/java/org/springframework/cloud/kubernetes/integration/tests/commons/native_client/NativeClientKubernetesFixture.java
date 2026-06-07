@@ -130,6 +130,10 @@ public final class NativeClientKubernetesFixture {
 				waitForDeployment(namespace, deployment);
 			}
 
+			if (!"ExternalName".equals(service.getSpec().getType())) {
+				waitUntilServiceResolves(namespace, service.getSpec().getSelector(), service.getMetadata().getName());
+			}
+
 		}
 		catch (Exception e) {
 			if (e instanceof ApiException apiException) {
@@ -566,6 +570,25 @@ public final class NativeClientKubernetesFixture {
 			deleteAndWait("default", null, service);
 		}
 
+	}
+
+	public void waitUntilServiceResolves(String namespace, Map<String, String> podLabels, String serviceName) {
+		try {
+			String podName = coreV1Api.listNamespacedPod(namespace)
+				.labelSelector(labelSelector(podLabels))
+				.execute()
+				.getItems()
+				.stream()
+				.findFirst()
+				.orElseThrow()
+				.getMetadata()
+				.getName();
+
+			Commons.waitUntilServiceResolves(container, namespace, podName, serviceName);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private String deploymentName(V1Deployment deployment) {
