@@ -97,28 +97,28 @@ public final class NativeClientIntegrationTestExtension
 			}
 		}
 
-		// 8. deploy configuration watcher.
+		// 8. deploy kafka
+		if (scenario.deployKafka()) {
+			Images.loadKafka(container);
+			nativeClientKubernetesFixture.kafka(Phase.CREATE);
+		}
+
+		// 9. deploy rabbitMq
+		if (scenario.deployRabbitMq()) {
+			Images.loadRabbitmq(container);
+			nativeClientKubernetesFixture.rabbitMq(Phase.CREATE);
+		}
+
+		// 10. deploy configuration watcher.
 		if (scenario.configurationWatcher().enabled()) {
 			nativeClientKubernetesFixture.configWatcher(Phase.CREATE, scenario.configurationWatcher().refreshDelay(),
 					scenario.configurationWatcher().reloadEnabled(), scenario.configurationWatcher().watchNamespaces(),
 					scenario.configurationWatcher().kafkaEnabled(), scenario.configurationWatcher().rabbitMqEnabled());
 		}
 
-		// 9. deploy discovery server
+		// 11. deploy discovery server
 		if (scenario.deployDiscoverServer()) {
 			nativeClientKubernetesFixture.discoveryServer(Phase.CREATE);
-		}
-
-		// 10. deploy kafka
-		if (scenario.deployKafka()) {
-			Images.loadKafka(container);
-			nativeClientKubernetesFixture.kafka(Phase.CREATE);
-		}
-
-		// 11. deploy rabbitMq
-		if (scenario.deployRabbitMq()) {
-			Images.loadRabbitmq(container);
-			nativeClientKubernetesFixture.rabbitMq(Phase.CREATE);
 		}
 	}
 
