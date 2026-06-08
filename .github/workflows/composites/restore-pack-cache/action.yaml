@@ -1,0 +1,31 @@
+name: restore pack cache
+description: Restore Paketo buildpack layer cache to avoid re-downloading JVM runtimes
+runs:
+  using: "composite"
+  steps:
+
+    - name: restore pack cache from actions cache
+      uses: actions/cache/restore@v4
+      id: pack-cache-restore
+      with:
+        path: /tmp/pack-volumes
+        key: pack-cache-${{ runner.os }}-noble-java-tiny-0.0.140
+        restore-keys: pack-cache-${{ runner.os }}-noble-java-tiny-
+
+    - name: load pack cache into docker volumes
+      shell: bash
+      if: steps.pack-cache-restore.outputs.cache-hit == 'true'
+      run: |
+        if [ -d /tmp/pack-volumes ] && [ "$(ls -A /tmp/pack-volumes/*.tar.gz 2>/dev/null)" ]; then
+          for f in /tmp/pack-volumes/*.tar.gz; do
+            vol=$(basename "$f" .tar.gz)
+            echo "Restoring pack cache volume: $vol"
+            docker volume create "$vol" 2>/dev/null || true
+            docker run --rm \
+              -v "$vol":/data \
+              -v /tmp/pack-volumes:/in \
+              alpine tar xzf "/in/$(basename "$f")" -C /data
+          done
+        else
+          echo "No pack cache volumes found to restore"
+        fi

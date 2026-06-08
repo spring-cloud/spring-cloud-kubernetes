@@ -33,10 +33,10 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<buildpacks>
-						<buildpack>docker://paketobuildpacks/java:latest</buildpack>
-					</buildpacks>
-					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
+					<image>
+						<name>docker.io/springcloud/${project.artifactId}:${project.version}</name>
+						<builder>paketobuildpacks/builder-noble-java-tiny:0.0.140</builder>
+					</image>
 				</configuration>
 				<executions>
 					<execution>

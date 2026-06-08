@@ -32,16 +32,22 @@ runs:
     - name: restore common images
       uses: ./.github/workflows/composites/restore-docker-images
 
+    - name: restore pack cache
+      uses: ./.github/workflows/composites/restore-pack-cache
+
     - name: build project
       shell: bash
       run: |
-        ./mvnw clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q  
+        ./mvnw clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q
 
     - name: build controllers project
       uses: ./.github/workflows/composites/build-controllers-project
 
     - name: build integration tests project
       uses: ./.github/workflows/composites/build-integration-tests-project
+
+    - name: save pack cache
+      uses: ./.github/workflows/composites/save-pack-cache
 
     - name: download tests
       uses: actions/download-artifact@v4

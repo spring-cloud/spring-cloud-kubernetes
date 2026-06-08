@@ -1,0 +1,28 @@
+name: save pack cache
+description: Save Paketo buildpack layer cache so JVM runtimes are not re-downloaded on subsequent runs
+runs:
+  using: "composite"
+  steps:
+
+    - name: export pack cache volumes to tar
+      shell: bash
+      run: |
+        CACHE_VOLS=$(docker volume ls --format '{{.Name}}' | grep 'pack-cache.*\.build' || true)
+        if [ -z "$CACHE_VOLS" ]; then
+          echo "No pack cache volumes found, skipping save"
+          exit 0
+        fi
+        mkdir -p /tmp/pack-volumes
+        for vol in $CACHE_VOLS; do
+          echo "Saving pack cache volume: $vol"
+          docker run --rm \
+            -v "$vol":/data \
+            -v /tmp/pack-volumes:/out \
+            alpine tar czf "/out/${vol}.tar.gz" -C /data .
+        done
+
+    - name: save pack cache to actions cache
+      uses: actions/cache/save@v4
+      with:
+        path: /tmp/pack-volumes
+        key: pack-cache-${{ runner.os }}-noble-java-tiny-0.0.140

@@ -42,12 +42,10 @@
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-maven-plugin</artifactId>
 					<configuration>
-						<buildpacks>
-							<buildpack>docker://paketobuildpacks/java:latest</buildpack>
-						</buildpacks>
 						<image>
 							<name>${env.IMAGE}</name>
 							<pullPolicy>IF_NOT_PRESENT</pullPolicy>
+							<builder>paketobuildpacks/builder-noble-java-tiny:0.0.140</builder>
 						</image>
 						<goal>build-image</goal>
 					</configuration>
