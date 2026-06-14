@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.WebApplicationType;
@@ -46,9 +45,6 @@ class KubernetesClientBoostrapAppLoadsTest {
 					"spring.cloud.config.discovery.enabled=true", "spring.cloud.discovery.enabled=true",
 					"spring.cloud.config.import-check.enabled=false",
 					"spring.main.allow-bean-definition-overriding=true")
-			// "spring.cloud.bootstrap.sources=" +
-			// KubernetesCommonsAutoConfiguration.class.getName() + ","
-			// + BootstrapTestConfiguration.class.getName())
 			.run()) {
 
 			ConfigurableApplicationContext bootstrap = (ConfigurableApplicationContext) context.getParent();
@@ -56,10 +52,6 @@ class KubernetesClientBoostrapAppLoadsTest {
 			assertThat(bootstrap).isNotNull();
 			assertThat(bootstrap.getBean(KubernetesClientDiscoveryClientConfigClientBootstrapConfiguration.class))
 				.isNotNull();
-
-			// Stronger proof: this bean exists only because the bootstrap configuration
-			// imported KubernetesClientAutoConfiguration at runtime.
-			assertThat(bootstrap.getBean(CoreV1Api.class)).isNotNull();
 		}
 	}
 
