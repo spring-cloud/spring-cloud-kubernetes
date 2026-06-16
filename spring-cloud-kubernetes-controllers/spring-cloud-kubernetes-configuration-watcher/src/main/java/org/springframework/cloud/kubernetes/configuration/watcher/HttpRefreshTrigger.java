@@ -42,6 +42,20 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 	private final KubernetesClientInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
 
+	/**
+	 * <pre>
+	 * Keep a reference to the properties bean instead of copying individual values into
+	 * final fields. The configuration watcher can be configured from a ConfigMap and can
+	 * refresh itself, so ConfigurationWatcherConfigurationProperties may be rebound at
+	 * runtime.
+	 *
+	 * RefreshScope annotation is not an option here:
+	 * - class-based refresh proxies require subclassing, but HttpRefreshTrigger is final
+	 * - interface-based refresh proxies would have to implement RefreshTrigger, but
+	 *   RefreshTrigger is sealed
+	 * For these reasons, we always read the current values from the properties bean.
+	 * </pre>
+	 */
 	private final ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
 	private final WebClient webClient;
