@@ -32,8 +32,13 @@ enum KubernetesSource {
 		}
 
 		@Override
-		String annotation() {
+		String serviceNamesAnnotation() {
 			return "spring.cloud.kubernetes.configmap.apps";
+		}
+
+		@Override
+		String serviceLabelsAnnotation() {
+			return "spring.cloud.kubernetes.configmap.labels";
 		}
 	},
 	SECRET {
@@ -43,15 +48,22 @@ enum KubernetesSource {
 		}
 
 		@Override
-		String annotation() {
+		String serviceNamesAnnotation() {
 			return "spring.cloud.kubernetes.secret.apps";
+		}
+
+		@Override
+		String serviceLabelsAnnotation() {
+			return "spring.cloud.kubernetes.secret.labels";
 		}
 
 	};
 
 	abstract String description();
 
-	abstract String annotation();
+	abstract String serviceNamesAnnotation();
+
+	abstract String serviceLabelsAnnotation();
 
 	static KubernetesSource fromK8sType(KubernetesObject kubernetesObject) {
 		if (kubernetesObject instanceof V1ConfigMap) {

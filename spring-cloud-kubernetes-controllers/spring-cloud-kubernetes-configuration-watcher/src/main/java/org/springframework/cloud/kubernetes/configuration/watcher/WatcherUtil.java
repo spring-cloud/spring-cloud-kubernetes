@@ -54,7 +54,7 @@ final class WatcherUtil {
 
 		String name = kubernetesObject.getMetadata().getName();
 
-		Set<String> apps = apps(kubernetesObject, source.annotation());
+		Set<String> apps = apps(kubernetesObject, source.serviceNamesAnnotation());
 
 		if (apps.isEmpty()) {
 			apps.add(name);
