@@ -32,7 +32,6 @@ import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfigu
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.core.env.Environment;
 
 /**
@@ -42,7 +41,6 @@ import org.springframework.core.env.Environment;
  * @author Eddú Meléndez
  * @author Tim Ysewyn
  */
-@ImportRuntimeHints(Fabric8RuntimeHints.class)
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @AutoConfigureAfter(KubernetesCommonsAutoConfiguration.class)

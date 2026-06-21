@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
@@ -36,6 +37,7 @@ public final class ConfigMapConfigProperties extends SourceConfigProperties {
 	 */
 	public static final String PREFIX = "spring.cloud.kubernetes.config";
 
+	@ConstructorBinding
 	public ConfigMapConfigProperties(@DefaultValue("true") boolean enabled, @DefaultValue List<Source> sources,
 			@DefaultValue Map<String, String> labels, String name, String namespace, boolean useNameAsPrefix,
 			@DefaultValue("true") boolean includeProfileSpecificSources, boolean failFast,

@@ -16,7 +16,13 @@
 
 package org.springframework.cloud.kubernetes.fabric8;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.impl.KubernetesClientImpl;
 
@@ -24,19 +30,24 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProperties;
+import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 
 /**
  * {@link RuntimeHintsRegistrar} for Spring Cloud Kubernetes Fabric8 native image support.
  *
- * Registers reflection, resource, and proxy hints required for GraalVM native image
- * compilation when using the Fabric8 Kubernetes client with Spring Cloud Kubernetes.
+ * <p>
+ * Registers reflection hints required for GraalVM native image compilation when using the
+ * Fabric8 Kubernetes client with Spring Cloud Kubernetes.
  *
  * @author Abu Hena Mostafa Kamal
+ * @since 5.0.3
  */
 public class Fabric8RuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+		// ===== FABRIC8 CLIENT CLASSES =====
 		// Fabric8 client impl - loaded reflectively via KubernetesClientBuilder
 		hints.reflection()
 			.registerType(TypeReference.of(KubernetesClientImpl.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
@@ -52,17 +63,48 @@ public class Fabric8RuntimeHints implements RuntimeHintsRegistrar {
 			.registerType(TypeReference.of(Config.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
 					MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.ACCESS_DECLARED_FIELDS);
 
-		// EnvironmentPostProcessor loaded via spring.factories
+		// ConfigBuilder - used in Fabric8AutoConfiguration.kubernetesClientConfig()
 		hints.reflection()
-			.registerType(TypeReference.of(Fabric8ProfileEnvironmentPostProcessor.class),
+			.registerType(TypeReference.of(ConfigBuilder.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.INVOKE_DECLARED_METHODS);
+
+		// ===== KUBERNETES RESOURCES (CRITICAL FOR CONFIGMAP READING) =====
+		// ConfigMap - the actual resource being read
+		hints.reflection()
+			.registerType(TypeReference.of(ConfigMap.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.ACCESS_DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS);
+
+		// ConfigMapList - for listing ConfigMaps
+		hints.reflection()
+			.registerType(TypeReference.of(ConfigMapList.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.ACCESS_DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS);
+
+		// ObjectMeta - metadata for all Kubernetes resources
+		hints.reflection()
+			.registerType(TypeReference.of(ObjectMeta.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.ACCESS_DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS);
+
+		// Secret - if using secrets
+		hints.reflection()
+			.registerType(TypeReference.of(Secret.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.ACCESS_DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS);
+
+		hints.reflection()
+			.registerType(TypeReference.of(SecretList.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.ACCESS_DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS);
+
+		hints.reflection()
+			.registerType(TypeReference.of(ConfigMapConfigProperties.class),
 					MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 
-		// Kubernetes service account and kubeconfig resources
-		hints.resources().registerPattern(".kube/config");
-		hints.resources().registerPattern("var/run/secrets/kubernetes.io/serviceaccount/token");
-		hints.resources().registerPattern("var/run/secrets/kubernetes.io/serviceaccount/ca.crt");
-		hints.resources().registerPattern("var/run/secrets/kubernetes.io/serviceaccount/namespace");
+		hints.reflection()
+			.registerType(TypeReference.of(SecretsConfigProperties.class), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
 
+		// ===== RESOURCE HINTS =====
+		// Kubernetes service account and Fabric8 service files
+		hints.resources().registerPattern("classpath*:META-INF/services/io.fabric8.kubernetes.client.*");
+
+		hints.resources().registerPattern("classpath*:META-INF/fabric8/*");
 	}
 
 }
