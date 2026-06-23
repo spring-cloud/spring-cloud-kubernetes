@@ -19,6 +19,9 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author wind57
+ */
 final class SecretKubernetesSource implements KubernetesSource {
 
 	static final String SECRET_SERVICE_NAMES_ANNOTATION = "spring.cloud.kubernetes.secret.apps";
@@ -37,16 +40,6 @@ final class SecretKubernetesSource implements KubernetesSource {
 	@Override
 	public String description() {
 		return "secret";
-	}
-
-	@Override
-	public String serviceNamesAnnotation() {
-		return SECRET_SERVICE_NAMES_ANNOTATION;
-	}
-
-	@Override
-	public String serviceLabelsAnnotation() {
-		return SECRET_SERVICE_LABELS_ANNOTATION;
 	}
 
 	@Override

@@ -47,15 +47,15 @@ final class WatcherUtil {
 
 		if (!source.serviceLabels().isEmpty()) {
 			LOG.info(() -> "Using service labels for discovery : " + source.serviceLabels());
+			return;
 		}
-		else {
+		if (!source.serviceNames().isEmpty()) {
 			LOG.info(() -> "Using service names for discovery : " + source.serviceNames());
 			Set<String> serviceNames = source.serviceNames();
 
 			LOG.info(() -> "will schedule remote refresh based on apps : " + serviceNames);
 			serviceNames.forEach(serviceName -> schedule(source.description(), serviceName, refreshDelay,
-				executorService, triggerRefresh, kubernetesObject));
-
+					executorService, triggerRefresh, kubernetesObject));
 		}
 	}
 

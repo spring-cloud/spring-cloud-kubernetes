@@ -19,6 +19,9 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author wind57
+ */
 final class ConfigMapKubernetesSource implements KubernetesSource {
 
 	static final String CONFIGMAP_SERVICE_NAMES_ANNOTATION = "spring.cloud.kubernetes.configmap.apps";
@@ -40,16 +43,6 @@ final class ConfigMapKubernetesSource implements KubernetesSource {
 	}
 
 	@Override
-	public String serviceNamesAnnotation() {
-		return CONFIGMAP_SERVICE_NAMES_ANNOTATION;
-	}
-
-	@Override
-	public String serviceLabelsAnnotation() {
-		return CONFIGMAP_SERVICE_LABELS_ANNOTATION;
-	}
-
-	@Override
 	public Set<String> serviceNames() {
 		return serviceNames;
 	}
@@ -58,4 +51,5 @@ final class ConfigMapKubernetesSource implements KubernetesSource {
 	public Map<String, String> serviceLabels() {
 		return serviceLabels;
 	}
+
 }

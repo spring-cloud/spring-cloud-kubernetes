@@ -19,13 +19,18 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Parsed refresh target information extracted from a changed Kubernetes resource.
+ *
+ * <p>
+ * A source is either a ConfigMap or a Secret and may target services either by explicit
+ * service names or by service labels.
+ *
+ * @author wind57
+ */
 sealed interface KubernetesSource permits ConfigMapKubernetesSource, SecretKubernetesSource {
 
 	String description();
-
-	String serviceNamesAnnotation();
-
-	String serviceLabelsAnnotation();
 
 	Set<String> serviceNames();
 
