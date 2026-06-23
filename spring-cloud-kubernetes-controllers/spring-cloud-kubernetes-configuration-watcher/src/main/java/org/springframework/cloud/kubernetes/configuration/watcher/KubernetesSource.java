@@ -16,65 +16,19 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1Secret;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * @author wind57
- */
-enum KubernetesSource {
+sealed interface KubernetesSource permits ConfigMapKubernetesSource, SecretKubernetesSource {
 
-	CONFIGMAP {
-		@Override
-		String description() {
-			return "configmap";
-		}
+	String description();
 
-		@Override
-		String serviceNamesAnnotation() {
-			return "spring.cloud.kubernetes.configmap.apps";
-		}
+	String serviceNamesAnnotation();
 
-		@Override
-		String serviceLabelsAnnotation() {
-			return "spring.cloud.kubernetes.configmap.labels";
-		}
-	},
-	SECRET {
-		@Override
-		String description() {
-			return "secret";
-		}
+	String serviceLabelsAnnotation();
 
-		@Override
-		String serviceNamesAnnotation() {
-			return "spring.cloud.kubernetes.secret.apps";
-		}
+	Set<String> serviceNames();
 
-		@Override
-		String serviceLabelsAnnotation() {
-			return "spring.cloud.kubernetes.secret.labels";
-		}
-
-	};
-
-	abstract String description();
-
-	abstract String serviceNamesAnnotation();
-
-	abstract String serviceLabelsAnnotation();
-
-	static KubernetesSource fromK8sType(KubernetesObject kubernetesObject) {
-		if (kubernetesObject instanceof V1ConfigMap) {
-			return KubernetesSource.CONFIGMAP;
-		}
-
-		if (kubernetesObject instanceof V1Secret) {
-			return KubernetesSource.SECRET;
-		}
-
-		throw new IllegalArgumentException("Unsupported: " + kubernetesObject.getClass());
-	}
+	Map<String, String> serviceLabels();
 
 }
