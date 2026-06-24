@@ -58,15 +58,15 @@ final class KubernetesSourceProvider {
 
 	static KubernetesSource kubernetesSource(KubernetesObject kubernetesObject) {
 
-		if (kubernetesObject instanceof V1ConfigMap) {
+		if (kubernetesObject instanceof V1ConfigMap v1ConfigMap) {
 			Set<String> serviceNames = serviceNames(kubernetesObject, CONFIGMAP_SERVICE_NAMES_ANNOTATION);
 			Map<String, String> serviceLabels = serviceLabels(kubernetesObject, CONFIGMAP_SERVICE_LABELS_ANNOTATION);
-			return new ConfigMapKubernetesSource(serviceNames, serviceLabels);
+			return new ConfigMapKubernetesSource(serviceNames, serviceLabels, v1ConfigMap.getMetadata().getName());
 		}
-		if (kubernetesObject instanceof V1Secret) {
+		if (kubernetesObject instanceof V1Secret v1Secret) {
 			Set<String> serviceNames = serviceNames(kubernetesObject, SECRET_SERVICE_NAMES_ANNOTATION);
 			Map<String, String> serviceLabels = serviceLabels(kubernetesObject, SECRET_SERVICE_LABELS_ANNOTATION);
-			return new SecretKubernetesSource(serviceNames, serviceLabels);
+			return new SecretKubernetesSource(serviceNames, serviceLabels, v1Secret.getMetadata().getName());
 		}
 
 		throw new IllegalArgumentException("Unsupported KubernetesObject type: " + kubernetesObject.getClass());

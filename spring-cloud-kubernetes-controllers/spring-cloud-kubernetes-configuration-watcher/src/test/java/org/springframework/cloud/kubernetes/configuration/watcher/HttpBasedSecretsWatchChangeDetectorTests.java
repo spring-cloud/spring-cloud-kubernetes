@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -27,8 +28,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.util.ClientBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -127,15 +126,14 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 
 	void triggerSecretRefresh(String endpoint, RefreshStrategy refreshStrategy) {
 		stubReactiveCall();
-		V1Secret secret = new V1Secret();
-		V1ObjectMeta objectMeta = new V1ObjectMeta();
-		objectMeta.setName("foo");
-		secret.setMetadata(objectMeta);
+
+		KubernetesSource secretSource = new SecretKubernetesSource(Set.of("foo"), Map.of("a", "b"), "foo");
+
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
 		HttpBasedSecretsWatchChangeDetector changeDetector = getHttpBasedSecretsWatchChangeDetector(refreshStrategy);
-		StepVerifier.create(changeDetector.triggerRefresh(secret, secret.getMetadata().getName())).verifyComplete();
+		StepVerifier.create(changeDetector.triggerRefresh(secretSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator" + endpoint)));
 	}
 
@@ -169,16 +167,15 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 
 	void triggerSecretRefreshWithPropertiesBasedActuatorPath(String endpoint, RefreshStrategy refreshStrategy) {
 		stubReactiveCall();
-		V1Secret secret = new V1Secret();
-		V1ObjectMeta objectMeta = new V1ObjectMeta();
-		objectMeta.setName("foo");
-		secret.setMetadata(objectMeta);
+
+		KubernetesSource secretSource = new SecretKubernetesSource(Set.of("foo"), Map.of("a", "b"), "foo");
+
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
 		HttpBasedSecretsWatchChangeDetector changeDetector = getHttpBasedSecretsWatchChangeDetector(
 				"/my/custom/actuator", refreshStrategy);
-		StepVerifier.create(changeDetector.triggerRefresh(secret, secret.getMetadata().getName())).verifyComplete();
+		StepVerifier.create(changeDetector.triggerRefresh(secretSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
 
@@ -207,15 +204,14 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false, null, null, Map.of());
 		instances.add(fooServiceInstance);
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
-		V1Secret secret = new V1Secret();
-		V1ObjectMeta objectMeta = new V1ObjectMeta();
-		objectMeta.setName("foo");
-		secret.setMetadata(objectMeta);
+
+		KubernetesSource secretSource = new SecretKubernetesSource(Set.of("foo"), Map.of("a", "b"), "foo");
+
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
 		HttpBasedSecretsWatchChangeDetector changeDetector = getHttpBasedSecretsWatchChangeDetector(
 				"/my/custom/actuator", refreshStrategy);
-		StepVerifier.create(changeDetector.triggerRefresh(secret, secret.getMetadata().getName())).verifyComplete();
+		StepVerifier.create(changeDetector.triggerRefresh(secretSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
 

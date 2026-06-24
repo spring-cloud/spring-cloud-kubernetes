@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -78,7 +79,7 @@ class SecretWatcherWithLabelsTest {
 
 	private static WireMockServer wireMockServer;
 
-	private static final List<String> OBSERVED_COLORS = new CopyOnWriteArrayList<>();
+	private static final List<Set<String>> OBSERVED_SERVICE_NAMES = new CopyOnWriteArrayList<>();
 
 	@BeforeAll
 	static void beforeAll() {
@@ -125,23 +126,24 @@ class SecretWatcherWithLabelsTest {
 	 *
 	 *          spring.cloud.kubernetes.reload.enabled=false
 	 *
-	 *      We set-up the informer to catch two calls : one where the secret has color=white ( the first one )
-	 *      and then color=blue, in the watch modified event.
+	 *      We set-up the informer to catch two calls:
+	 *      	- the initial Secret targets app-one
+	 *      	- the modified Secret targets app-two
 	 * </pre>
 	 */
 	@Test
 	void test() {
-		Awaitilities.awaitUntil(10, 1000, () -> OBSERVED_COLORS.size() == 2);
-		Assertions.assertThat(OBSERVED_COLORS).containsExactly("white", "blue");
+		Awaitilities.awaitUntil(10, 1000, () -> OBSERVED_SERVICE_NAMES.size() == 2);
+		Assertions.assertThat(OBSERVED_SERVICE_NAMES).containsExactly(Set.of("app-one"), Set.of("app-two"));
 	}
 
 	private static void stubWatcher() {
 		// ------------------------------------------------------------------------------------------------------------
 		// 0. initial request of the informer ( resourceVersion=0 )
-		// initial color is white
-
+		// initial refresh target is app-one
 		V1Secret mySecretInitial = new V1Secret()
 			.metadata(new V1ObjectMeta().namespace("default")
+				.annotations(Map.of(SecretKubernetesSource.SECRET_SERVICE_NAMES_ANNOTATION, "app-one"))
 				.labels(Map.of("spring.cloud.kubernetes.secret", "true"))
 				.name("my-secret"))
 			.data(Map.of("color", "white".getBytes(StandardCharsets.UTF_8)));
@@ -155,10 +157,10 @@ class SecretWatcherWithLabelsTest {
 
 		// ------------------------------------------------------------------------------------------------------------
 		// 1. first watch response to request with resourceVersion=1
-		// color changed to blue
-
+		// refresh target changed to app-two
 		V1Secret mySecretChanged = new V1Secret()
 			.metadata(new V1ObjectMeta().namespace("default")
+				.annotations(Map.of(SecretKubernetesSource.SECRET_SERVICE_NAMES_ANNOTATION, "app-two"))
 				.labels(Map.of("spring.cloud.kubernetes.secret", "true"))
 				.name("my-secret")
 				.resourceVersion("2"))
@@ -198,10 +200,9 @@ class SecretWatcherWithLabelsTest {
 		@Bean
 		HttpRefreshTrigger httpRefreshTrigger() {
 			HttpRefreshTrigger refreshTrigger = Mockito.mock(HttpRefreshTrigger.class);
-			Mockito.when(refreshTrigger.triggerRefresh(Mockito.any(), Mockito.anyString())).thenAnswer(invocation -> {
-				V1Secret secret = invocation.getArgument(0);
-				return Mono.fromRunnable(
-						() -> OBSERVED_COLORS.add(new String(secret.getData().get("color"), StandardCharsets.UTF_8)));
+			Mockito.when(refreshTrigger.triggerRefresh(Mockito.any())).thenAnswer(invocation -> {
+				KubernetesSource kubernetesSource = invocation.getArgument(0);
+				return Mono.fromRunnable(() -> OBSERVED_SERVICE_NAMES.add(kubernetesSource.serviceNames()));
 			});
 
 			return refreshTrigger;

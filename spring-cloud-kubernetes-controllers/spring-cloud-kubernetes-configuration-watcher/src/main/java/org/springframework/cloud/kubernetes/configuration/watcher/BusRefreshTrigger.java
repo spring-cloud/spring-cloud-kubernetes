@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.common.KubernetesObject;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.bus.event.PathDestinationFactory;
@@ -47,18 +46,19 @@ final class BusRefreshTrigger implements RefreshTrigger {
 		this.watcherConfigurationProperties = watcherConfigurationProperties;
 	}
 
-	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject configMap, String appName) {
-		applicationEventPublisher.publishEvent(createRefreshApplicationEvent(configMap, appName));
+	public Mono<Void> triggerRefresh(KubernetesSource kubernetesSource) {
+		kubernetesSource.serviceNames()
+			.forEach(serviceName -> applicationEventPublisher
+				.publishEvent(createRefreshApplicationEvent(kubernetesSource, serviceName)));
 		return Mono.empty();
 	}
 
-	private RemoteApplicationEvent createRefreshApplicationEvent(KubernetesObject configMap, String appName) {
+	private RemoteApplicationEvent createRefreshApplicationEvent(KubernetesSource kubernetesSource, String appName) {
 		if (watcherConfigurationProperties.getRefreshStrategy() == SHUTDOWN) {
-			return new ShutdownRemoteApplicationEvent(configMap, busId,
+			return new ShutdownRemoteApplicationEvent(kubernetesSource, busId,
 					new PathDestinationFactory().getDestination(appName));
 		}
-		return new RefreshRemoteApplicationEvent(configMap, busId,
+		return new RefreshRemoteApplicationEvent(kubernetesSource, busId,
 				new PathDestinationFactory().getDestination(appName));
 	}
 

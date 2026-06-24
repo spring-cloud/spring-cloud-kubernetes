@@ -16,10 +16,9 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import io.kubernetes.client.common.KubernetesObject;
 import reactor.core.publisher.Mono;
@@ -41,35 +40,30 @@ final class WatcherUtil {
 	}
 
 	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, ScheduledExecutorService executorService,
-			BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh) {
+			Function<KubernetesSource, Mono<Void>> triggerRefresh) {
 
 		KubernetesSource source = kubernetesSource(kubernetesObject);
 
 		if (!source.serviceLabels().isEmpty()) {
 			LOG.info(() -> "Using service labels for discovery : " + source.serviceLabels());
-			return;
 		}
-		if (!source.serviceNames().isEmpty()) {
+		else if (!source.serviceNames().isEmpty()) {
 			LOG.info(() -> "Using service names for discovery : " + source.serviceNames());
-			Set<String> serviceNames = source.serviceNames();
+			schedule(refreshDelay, executorService, triggerRefresh, source);
 
-			LOG.info(() -> "will schedule remote refresh based on apps : " + serviceNames);
-			serviceNames.forEach(serviceName -> schedule(source.description(), serviceName, refreshDelay,
-					executorService, triggerRefresh, kubernetesObject));
 		}
 	}
 
-	private static void schedule(String type, String appName, long refreshDelay,
-			ScheduledExecutorService executorService, BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh,
-			KubernetesObject kubernetesObject) {
-		LOG.debug(() -> "Scheduling remote refresh event to be published for " + type + ": with appName : " + appName
-				+ " to be published in " + refreshDelay + " milliseconds");
+	private static void schedule(long refreshDelay, ScheduledExecutorService executorService,
+			Function<KubernetesSource, Mono<Void>> triggerRefresh, KubernetesSource source) {
+		LOG.debug(() -> "Scheduling remote refresh event to be published for " + source.description() + " in "
+				+ refreshDelay + " milliseconds");
 		executorService.schedule(() -> {
 			try {
-				triggerRefresh.apply(kubernetesObject, appName).subscribe();
+				triggerRefresh.apply(source).subscribe();
 			}
 			catch (Throwable t) {
-				LOG.warn(t, "Error when refreshing appName " + appName);
+				LOG.warn(t, "Error when refreshing " + source.description());
 			}
 		}, refreshDelay, TimeUnit.MILLISECONDS);
 	}

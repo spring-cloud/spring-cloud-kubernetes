@@ -30,6 +30,8 @@ import java.util.Set;
  */
 sealed interface KubernetesSource permits ConfigMapKubernetesSource, SecretKubernetesSource {
 
+	String resourceName();
+
 	String description();
 
 	Set<String> serviceNames();

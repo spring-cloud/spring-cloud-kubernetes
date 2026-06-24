@@ -32,9 +32,17 @@ final class SecretKubernetesSource implements KubernetesSource {
 
 	private final Map<String, String> serviceLabels;
 
-	SecretKubernetesSource(Set<String> serviceNames, Map<String, String> serviceLabels) {
+	private final String resourceName;
+
+	SecretKubernetesSource(Set<String> serviceNames, Map<String, String> serviceLabels, String resourceName) {
 		this.serviceNames = serviceNames;
 		this.serviceLabels = serviceLabels;
+		this.resourceName = resourceName;
+	}
+
+	@Override
+	public String resourceName() {
+		return resourceName;
 	}
 
 	@Override
@@ -50,6 +58,12 @@ final class SecretKubernetesSource implements KubernetesSource {
 	@Override
 	public Map<String, String> serviceLabels() {
 		return serviceLabels;
+	}
+
+	@Override
+	public String toString() {
+		return "SecretKubernetesSource{" + "resourceName='" + resourceName + '\'' + ", serviceNames=" + serviceNames
+				+ ", serviceLabels=" + serviceLabels + '}';
 	}
 
 }

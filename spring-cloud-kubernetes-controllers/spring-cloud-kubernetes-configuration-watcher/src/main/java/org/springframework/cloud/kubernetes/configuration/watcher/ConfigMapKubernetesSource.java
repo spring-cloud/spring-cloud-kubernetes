@@ -32,9 +32,17 @@ final class ConfigMapKubernetesSource implements KubernetesSource {
 
 	private final Map<String, String> serviceLabels;
 
-	ConfigMapKubernetesSource(Set<String> serviceNames, Map<String, String> serviceLabels) {
+	private final String resourceName;
+
+	ConfigMapKubernetesSource(Set<String> serviceNames, Map<String, String> serviceLabels, String resourceName) {
 		this.serviceNames = serviceNames;
 		this.serviceLabels = serviceLabels;
+		this.resourceName = resourceName;
+	}
+
+	@Override
+	public String resourceName() {
+		return resourceName;
 	}
 
 	@Override
@@ -50,6 +58,12 @@ final class ConfigMapKubernetesSource implements KubernetesSource {
 	@Override
 	public Map<String, String> serviceLabels() {
 		return serviceLabels;
+	}
+
+	@Override
+	public String toString() {
+		return "ConfigMapKubernetesSource{" + "resourceName='" + resourceName + '\'' + ", serviceNames=" + serviceNames
+				+ ", serviceLabels=" + serviceLabels + '}';
 	}
 
 }
