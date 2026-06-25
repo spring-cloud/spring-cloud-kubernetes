@@ -16,24 +16,16 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.configuration.watcher.KubernetesSource.fromK8sType;
+import static org.springframework.cloud.kubernetes.configuration.watcher.KubernetesSourceProvider.kubernetesSource;
 
 /**
  * A common place where 'onEvent' code delegates to.
@@ -42,75 +34,36 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Kuberne
  */
 final class WatcherUtil {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(WatcherUtil.class));
+	private static final LogAccessor LOG = new LogAccessor(WatcherUtil.class);
 
 	private WatcherUtil() {
 	}
 
 	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, ScheduledExecutorService executorService,
-			BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh) {
+			Function<KubernetesSource, Mono<Void>> triggerRefresh) {
 
-		KubernetesSource source = fromK8sType(kubernetesObject);
+		KubernetesSource source = kubernetesSource(kubernetesObject);
 
-		String name = kubernetesObject.getMetadata().getName();
-
-		Set<String> apps = apps(kubernetesObject, source.serviceNamesAnnotation());
-
-		if (apps.isEmpty()) {
-			apps.add(name);
+		if (!source.serviceLabels().isEmpty()) {
+			LOG.info(() -> "Using service labels for discovery : " + source.serviceLabels());
 		}
+		else if (!source.serviceNames().isEmpty()) {
+			LOG.info(() -> "Using service names for discovery : " + source.serviceNames());
+			schedule(refreshDelay, executorService, triggerRefresh, source);
 
-		LOG.info(() -> "will schedule remote refresh based on apps : " + apps);
-		apps.forEach(appName -> schedule(source.description(), appName, refreshDelay, executorService, triggerRefresh,
-				kubernetesObject));
-
+		}
 	}
 
-	static Set<String> apps(KubernetesObject kubernetesObject, String annotationName) {
-
-		// mutable on purpose
-		Set<String> apps = new HashSet<>(1);
-		Map<String, String> annotations = annotations(kubernetesObject);
-
-		if (annotations.isEmpty()) {
-			LOG.debug(() -> annotationName + " not present (empty data)");
-			return apps;
-		}
-
-		String appsValue = annotations.get(annotationName);
-
-		if (appsValue == null) {
-			LOG.debug(() -> annotationName + " not present (missing in annotations)");
-			return apps;
-		}
-
-		if (appsValue.isBlank()) {
-			LOG.debug(() -> appsValue + " not present (blanks only)");
-			return apps;
-		}
-
-		return Arrays.stream(appsValue.split(",")).map(String::trim).collect(Collectors.toSet());
-	}
-
-	static Map<String, String> labels(KubernetesObject kubernetesObject) {
-		return Optional.ofNullable(kubernetesObject.getMetadata()).map(V1ObjectMeta::getLabels).orElse(Map.of());
-	}
-
-	static Map<String, String> annotations(KubernetesObject kubernetesObject) {
-		return Optional.ofNullable(kubernetesObject.getMetadata()).map(V1ObjectMeta::getAnnotations).orElse(Map.of());
-	}
-
-	private static void schedule(String type, String appName, long refreshDelay,
-			ScheduledExecutorService executorService, BiFunction<KubernetesObject, String, Mono<Void>> triggerRefresh,
-			KubernetesObject kubernetesObject) {
-		LOG.debug(() -> "Scheduling remote refresh event to be published for " + type + ": with appName : " + appName
-				+ " to be published in " + refreshDelay + " milliseconds");
+	private static void schedule(long refreshDelay, ScheduledExecutorService executorService,
+			Function<KubernetesSource, Mono<Void>> triggerRefresh, KubernetesSource source) {
+		LOG.debug(() -> "Scheduling remote refresh event to be published for " + source.description() + " in "
+				+ refreshDelay + " milliseconds");
 		executorService.schedule(() -> {
 			try {
-				triggerRefresh.apply(kubernetesObject, appName).subscribe();
+				triggerRefresh.apply(source).subscribe();
 			}
 			catch (Throwable t) {
-				LOG.warn(t, "Error when refreshing appName " + appName);
+				LOG.warn(t, "Error when refreshing " + source.description());
 			}
 		}, refreshDelay, TimeUnit.MILLISECONDS);
 	}

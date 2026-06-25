@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import reactor.core.publisher.Mono;
 
@@ -48,8 +47,8 @@ final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChange
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject configMap, String appName) {
-		return httpRefreshTrigger.triggerRefresh(configMap, appName);
+	public Mono<Void> triggerRefresh(KubernetesSource kubernetesSource) {
+		return httpRefreshTrigger.triggerRefresh(kubernetesSource);
 	}
 
 }

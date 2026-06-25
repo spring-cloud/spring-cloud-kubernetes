@@ -16,9 +16,10 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.util.Map;
+import java.util.Set;
+
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,20 +93,27 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		triggerRefreshWithConfigMap(RefreshStrategy.SHUTDOWN, argumentCaptor);
 	}
 
-	void triggerRefreshWithConfigMap(RefreshStrategy strategy,
+	void triggerRefreshWithConfigMap(RefreshStrategy refreshStrategy,
 			ArgumentCaptor<? extends RemoteApplicationEvent> argumentCaptor) {
-		V1ObjectMeta objectMeta = new V1ObjectMeta();
-		objectMeta.setName("foo");
-		V1ConfigMap configMap = getV1ConfigMap(objectMeta, strategy);
+
+		triggerRefresh(refreshStrategy);
+
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
-		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(configMap);
+
+		KubernetesSource kubernetesSource = (KubernetesSource) argumentCaptor.getValue().getSource();
+
+		assertThat(kubernetesSource.resourceName()).isEqualTo("foo");
+		assertThat(kubernetesSource.serviceNames()).isEqualTo(Set.of("foo"));
+		assertThat(kubernetesSource.serviceLabels()).isEqualTo(Map.of("a", "b"));
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
 		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
 	}
 
-	private V1ConfigMap getV1ConfigMap(V1ObjectMeta objectMeta, RefreshStrategy refreshStrategy) {
-		V1ConfigMap configMap = new V1ConfigMap();
-		configMap.setMetadata(objectMeta);
+	private void triggerRefresh(RefreshStrategy refreshStrategy) {
+
+		KubernetesSource configMapKubernetesSource = new ConfigMapKubernetesSource(Set.of("foo"), Map.of("a", "b"),
+				"foo");
+
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		BusEventBasedConfigMapWatcherChangeDetector changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(
@@ -113,8 +121,7 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 				configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
 				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new BusRefreshTrigger(
 						applicationEventPublisher, busProperties.getId(), configurationWatcherConfigurationProperties));
-		changeDetector.triggerRefresh(configMap, configMap.getMetadata().getName());
-		return configMap;
+		changeDetector.triggerRefresh(configMapKubernetesSource);
 	}
 
 }

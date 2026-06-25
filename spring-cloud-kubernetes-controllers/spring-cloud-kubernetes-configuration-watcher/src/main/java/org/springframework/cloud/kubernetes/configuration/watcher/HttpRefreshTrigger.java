@@ -19,8 +19,8 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.net.URI;
 import java.util.function.Consumer;
 
-import io.kubernetes.client.common.KubernetesObject;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -68,19 +68,20 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject kubernetesObject, String appName) {
-
-		return kubernetesReactiveDiscoveryClient.getInstances(appName).flatMap(si -> {
-			URI actuatorUri = getActuatorUri(si, k8SConfigurationProperties.getActuatorPath(),
-					k8SConfigurationProperties.getActuatorPort());
-			LOG.debug(() -> "Sending refresh request for " + appName + " to URI " + actuatorUri);
-			return webClient.post()
-				.uri(actuatorUri)
-				.retrieve()
-				.toBodilessEntity()
-				.doOnSuccess(onSuccess(appName, actuatorUri))
-				.doOnError(onError(appName));
-		}).then();
+	public Mono<Void> triggerRefresh(KubernetesSource kubernetesSource) {
+		return Flux.fromIterable(kubernetesSource.serviceNames())
+			.flatMap(serviceName -> kubernetesReactiveDiscoveryClient.getInstances(serviceName).flatMap(si -> {
+				URI actuatorUri = getActuatorUri(si, k8SConfigurationProperties.getActuatorPath(),
+						k8SConfigurationProperties.getActuatorPort());
+				LOG.debug(() -> "Sending refresh request for " + serviceName + " to URI " + actuatorUri);
+				return webClient.post()
+					.uri(actuatorUri)
+					.retrieve()
+					.toBodilessEntity()
+					.doOnSuccess(onSuccess(serviceName, actuatorUri))
+					.doOnError(onError(serviceName));
+			}))
+			.then();
 	}
 
 	private Consumer<ResponseEntity<Void>> onSuccess(String name, URI actuatorUri) {

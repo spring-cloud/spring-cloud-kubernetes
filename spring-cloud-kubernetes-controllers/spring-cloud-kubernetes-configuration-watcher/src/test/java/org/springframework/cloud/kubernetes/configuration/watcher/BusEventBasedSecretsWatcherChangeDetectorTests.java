@@ -16,9 +16,10 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.util.Map;
+import java.util.Set;
+
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
-import io.kubernetes.client.openapi.models.V1Secret;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.cloud.bus.event.RemoteApplicationEvent;
+import org.springframework.cloud.bus.event.ShutdownRemoteApplicationEvent;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -81,31 +83,36 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 	void triggerRefreshWithSecret() {
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 			.forClass(RefreshRemoteApplicationEvent.class);
-		triggerRefreshWithSecret(ConfigurationWatcherConfigurationProperties.RefreshStrategy.REFRESH, argumentCaptor);
+		triggerRefreshWithSecret(RefreshStrategy.REFRESH, argumentCaptor);
 	}
 
 	@Test
 	void triggerRefreshWithSecretWithShutdown() {
-		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
-			.forClass(RefreshRemoteApplicationEvent.class);
-		triggerRefreshWithSecret(ConfigurationWatcherConfigurationProperties.RefreshStrategy.REFRESH, argumentCaptor);
+		ArgumentCaptor<ShutdownRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
+			.forClass(ShutdownRemoteApplicationEvent.class);
+		triggerRefreshWithSecret(RefreshStrategy.SHUTDOWN, argumentCaptor);
 	}
 
-	void triggerRefreshWithSecret(RefreshStrategy strategy,
+	void triggerRefreshWithSecret(RefreshStrategy refreshStrategy,
 			ArgumentCaptor<? extends RemoteApplicationEvent> argumentCaptor) {
-		V1ObjectMeta objectMeta = new V1ObjectMeta();
-		objectMeta.setName("foo");
-		V1Secret secret = getV1Secret(objectMeta, strategy);
+
+		triggerRefresh(refreshStrategy);
+
 		verify(applicationEventPublisher).publishEvent(argumentCaptor.capture());
-		assertThat(argumentCaptor.getValue().getSource()).isEqualTo(secret);
+
+		KubernetesSource kubernetesSource = (KubernetesSource) argumentCaptor.getValue().getSource();
+
+		assertThat(kubernetesSource.resourceName()).isEqualTo("foo");
+		assertThat(kubernetesSource.serviceNames()).isEqualTo(Set.of("foo"));
+		assertThat(kubernetesSource.serviceLabels()).isEqualTo(Map.of("a", "b"));
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
 		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
 	}
 
-	private V1Secret getV1Secret(V1ObjectMeta objectMeta,
-			ConfigurationWatcherConfigurationProperties.RefreshStrategy refreshStrategy) {
-		V1Secret secret = new V1Secret();
-		secret.setMetadata(objectMeta);
+	private void triggerRefresh(RefreshStrategy refreshStrategy) {
+
+		KubernetesSource secretKubernetesSource = new SecretKubernetesSource(Set.of("foo"), Map.of("a", "b"), "foo");
+
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		BusEventBasedSecretsWatcherChangeDetector changeDetector = new BusEventBasedSecretsWatcherChangeDetector(
@@ -113,8 +120,7 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 				secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
 				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new BusRefreshTrigger(
 						applicationEventPublisher, busProperties.getId(), configurationWatcherConfigurationProperties));
-		changeDetector.triggerRefresh(secret, secret.getMetadata().getName());
-		return secret;
+		changeDetector.triggerRefresh(secretKubernetesSource);
 	}
 
 }
