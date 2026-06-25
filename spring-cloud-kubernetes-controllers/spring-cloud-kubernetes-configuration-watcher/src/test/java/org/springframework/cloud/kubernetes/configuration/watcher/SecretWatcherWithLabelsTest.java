@@ -122,7 +122,8 @@ class SecretWatcherWithLabelsTest {
 	 *
 	 *      The first one is needed to be able to restart apps via the actuator, for example.
 	 *      The second one is needed to reload properties of the configuration watcher itself.
-	 *      In this test, we only care about the KubernetesClientEventBasedSecretsChangeDetector, as such we will set:
+	 *      In this test, we only care about the HTTP-based watcher path that delegates to the mocked
+	 *      HttpRefreshTrigger, as such we will set:
 	 *
 	 *          spring.cloud.kubernetes.reload.enabled=false
 	 *

@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.commons.logging.LogFactory;
@@ -69,19 +70,39 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 	@Override
 	public Mono<Void> triggerRefresh(KubernetesSource kubernetesSource) {
+		if (!kubernetesSource.serviceLabels().isEmpty()) {
+			LOG.info(() -> "Using service labels for discovery : " + kubernetesSource.serviceLabels());
+			return kubernetesReactiveDiscoveryClient.getServices()
+				.flatMap(kubernetesReactiveDiscoveryClient::getInstances)
+				.filter(serviceInstance -> matchesByLabels(serviceInstance, kubernetesSource.serviceLabels()))
+				.flatMap(serviceInstance -> refresh(serviceInstance.getServiceId(), serviceInstance))
+				.then();
+		}
+
+		LOG.info(() -> "Using service names for discovery : " + kubernetesSource.serviceNames());
 		return Flux.fromIterable(kubernetesSource.serviceNames())
-			.flatMap(serviceName -> kubernetesReactiveDiscoveryClient.getInstances(serviceName).flatMap(si -> {
-				URI actuatorUri = getActuatorUri(si, k8SConfigurationProperties.getActuatorPath(),
-						k8SConfigurationProperties.getActuatorPort());
-				LOG.debug(() -> "Sending refresh request for " + serviceName + " to URI " + actuatorUri);
-				return webClient.post()
-					.uri(actuatorUri)
-					.retrieve()
-					.toBodilessEntity()
-					.doOnSuccess(onSuccess(serviceName, actuatorUri))
-					.doOnError(onError(serviceName));
-			}))
+			.flatMap(serviceName -> kubernetesReactiveDiscoveryClient.getInstances(serviceName)
+				.flatMap(serviceInstance -> refresh(serviceName, serviceInstance)))
 			.then();
+	}
+
+	private Mono<ResponseEntity<Void>> refresh(String serviceName, ServiceInstance serviceInstance) {
+		URI actuatorUri = getActuatorUri(serviceInstance, k8SConfigurationProperties.getActuatorPath(),
+			k8SConfigurationProperties.getActuatorPort());
+		LOG.debug(() -> "Sending refresh request for " + serviceName + " to URI " + actuatorUri);
+		return webClient.post()
+			.uri(actuatorUri)
+			.retrieve()
+			.toBodilessEntity()
+			.doOnSuccess(onSuccess(serviceName, actuatorUri))
+			.doOnError(onError(serviceName));
+	}
+
+	private boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> labels) {
+		Map<String, String> metadata = serviceInstance.getMetadata();
+		return labels.entrySet()
+			.stream()
+			.allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
 	}
 
 	private Consumer<ResponseEntity<Void>> onSuccess(String name, URI actuatorUri) {
