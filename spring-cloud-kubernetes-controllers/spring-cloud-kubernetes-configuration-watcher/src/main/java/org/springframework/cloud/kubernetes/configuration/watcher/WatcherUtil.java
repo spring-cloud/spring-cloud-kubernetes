@@ -45,7 +45,7 @@ final class WatcherUtil {
 		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject);
 
 		LOG.debug(() -> "Scheduling remote refresh event to be published for " + kubernetesSource.description() + " in "
-			+ refreshDelay + " milliseconds");
+				+ refreshDelay + " milliseconds");
 		executorService.schedule(() -> {
 			try {
 				triggerRefresh.apply(kubernetesSource).subscribe();

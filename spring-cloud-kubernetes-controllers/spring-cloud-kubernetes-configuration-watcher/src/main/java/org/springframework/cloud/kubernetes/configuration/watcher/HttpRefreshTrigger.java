@@ -90,17 +90,14 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 		Map<String, String> metadata = serviceInstance.getMetadata();
 
 		LOG.debug(() -> "Matching input labels : " + inputLabels + " against service instance "
-			+ serviceInstance.getServiceId() + "/" + serviceInstance.getInstanceId()
-			+ " on metadata " + metadata);
+				+ serviceInstance.getServiceId() + "/" + serviceInstance.getInstanceId() + " on metadata " + metadata);
 
-		return inputLabels.entrySet()
-			.stream()
-			.allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
+		return inputLabels.entrySet().stream().allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
 	}
 
 	private Mono<ResponseEntity<Void>> refresh(String serviceName, ServiceInstance serviceInstance) {
 		URI actuatorUri = getActuatorUri(serviceInstance, k8SConfigurationProperties.getActuatorPath(),
-			k8SConfigurationProperties.getActuatorPort());
+				k8SConfigurationProperties.getActuatorPort());
 		LOG.debug(() -> "Sending refresh request for " + serviceName + " to URI " + actuatorUri);
 		return webClient.post()
 			.uri(actuatorUri)
