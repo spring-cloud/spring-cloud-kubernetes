@@ -194,6 +194,7 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
 				"http://:" + WIRE_MOCK_SERVER.port() + "/my/custom/actuator");
+		metadata.put("a", "b");
 		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
@@ -203,6 +204,7 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 		DefaultKubernetesServiceInstance fooServiceInstance = new DefaultKubernetesServiceInstance("foo", "foo",
 				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), metadata, false, null, null, Map.of());
 		instances.add(fooServiceInstance);
+		when(reactiveDiscoveryClient.getServices()).thenReturn(Flux.just("foo"));
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 
 		KubernetesSource secretSource = new SecretKubernetesSource(Set.of("foo"), Map.of("a", "b"), "foo");
@@ -223,8 +225,9 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 		fooEndpointPort.setPort(WIRE_MOCK_SERVER.port());
 		List<ServiceInstance> instances = new ArrayList<>();
 		DefaultKubernetesServiceInstance fooServiceInstance = new DefaultKubernetesServiceInstance("foo", "foo",
-				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false, null, null, Map.of());
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), Map.of("a", "b"), false, null, null, Map.of());
 		instances.add(fooServiceInstance);
+		when(reactiveDiscoveryClient.getServices()).thenReturn(Flux.just("foo"));
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 	}
 

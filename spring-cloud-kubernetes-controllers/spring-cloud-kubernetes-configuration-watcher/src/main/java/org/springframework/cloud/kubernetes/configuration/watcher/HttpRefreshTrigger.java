@@ -86,6 +86,18 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 			.then();
 	}
 
+	private boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> inputLabels) {
+		Map<String, String> metadata = serviceInstance.getMetadata();
+
+		LOG.debug(() -> "Matching input labels : " + inputLabels + " against service instance "
+			+ serviceInstance.getServiceId() + "/" + serviceInstance.getInstanceId()
+			+ " on metadata " + metadata);
+
+		return inputLabels.entrySet()
+			.stream()
+			.allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
+	}
+
 	private Mono<ResponseEntity<Void>> refresh(String serviceName, ServiceInstance serviceInstance) {
 		URI actuatorUri = getActuatorUri(serviceInstance, k8SConfigurationProperties.getActuatorPath(),
 			k8SConfigurationProperties.getActuatorPort());
@@ -96,13 +108,6 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 			.toBodilessEntity()
 			.doOnSuccess(onSuccess(serviceName, actuatorUri))
 			.doOnError(onError(serviceName));
-	}
-
-	private boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> labels) {
-		Map<String, String> metadata = serviceInstance.getMetadata();
-		return labels.entrySet()
-			.stream()
-			.allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
 	}
 
 	private Consumer<ResponseEntity<Void>> onSuccess(String name, URI actuatorUri) {
