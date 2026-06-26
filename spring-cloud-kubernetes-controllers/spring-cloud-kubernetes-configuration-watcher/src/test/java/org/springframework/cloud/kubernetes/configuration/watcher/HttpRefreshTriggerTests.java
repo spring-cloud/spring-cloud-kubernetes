@@ -93,7 +93,7 @@ class HttpRefreshTriggerTests {
 			.willReturn(WireMock.aResponse().withStatus(200)));
 
 		Map<String, String> inputLabels = Map.of("app", "demo", "tier", "backend");
-		KubernetesSource source = new ConfigMapKubernetesSource(Set.of(), inputLabels, "my-configmap");
+		KubernetesSource source = new ConfigMapKubernetesSource(Set.of("my-configmap"), inputLabels, "my-configmap");
 
 		// subscribe and assert that it did not fail
 		StepVerifier.create(refreshTrigger.triggerRefresh(source)).verifyComplete();
@@ -149,8 +149,8 @@ class HttpRefreshTriggerTests {
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/app-one/actuator/refresh"))
 			.willReturn(WireMock.aResponse().withStatus(200)));
 
-		KubernetesSource source = new ConfigMapKubernetesSource(Set.of(), Map.of("app", "demo", "tier", "backend"),
-				"my-configmap");
+		KubernetesSource source = new ConfigMapKubernetesSource(Set.of("my-configmap"),
+				Map.of("app", "demo", "tier", "backend"), "my-configmap");
 
 		StepVerifier.create(refreshTrigger.triggerRefresh(source)).verifyComplete();
 
