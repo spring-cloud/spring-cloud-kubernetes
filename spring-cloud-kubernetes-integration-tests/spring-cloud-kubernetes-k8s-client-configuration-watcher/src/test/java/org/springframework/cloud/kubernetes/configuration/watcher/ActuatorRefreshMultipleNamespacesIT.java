@@ -74,7 +74,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 	 * </pre>
 	 */
 	@Test
-	void testConfigMapActuatorRefreshMultipleNamespaces(NativeClientKubernetesFixture fixture, K3sContainer container) {
+	void testConfigMapActuatorRefreshMultipleNamespaces(K3sContainer container) {
 
 		Commons.waitForLogStatement("ConfigMap service-wiremock was added in namespace left", container,
 				SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME);

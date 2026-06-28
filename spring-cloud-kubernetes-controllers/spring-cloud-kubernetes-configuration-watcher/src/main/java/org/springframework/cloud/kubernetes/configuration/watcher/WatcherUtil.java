@@ -42,28 +42,16 @@ final class WatcherUtil {
 	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, ScheduledExecutorService executorService,
 			Function<KubernetesSource, Mono<Void>> triggerRefresh) {
 
-		KubernetesSource source = kubernetesSource(kubernetesObject);
+		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject);
 
-		if (!source.serviceLabels().isEmpty()) {
-			LOG.info(() -> "Using service labels for discovery : " + source.serviceLabels());
-		}
-		else if (!source.serviceNames().isEmpty()) {
-			LOG.info(() -> "Using service names for discovery : " + source.serviceNames());
-			schedule(refreshDelay, executorService, triggerRefresh, source);
-
-		}
-	}
-
-	private static void schedule(long refreshDelay, ScheduledExecutorService executorService,
-			Function<KubernetesSource, Mono<Void>> triggerRefresh, KubernetesSource source) {
-		LOG.debug(() -> "Scheduling remote refresh event to be published for " + source.description() + " in "
+		LOG.debug(() -> "Scheduling remote refresh event to be published for " + kubernetesSource.description() + " in "
 				+ refreshDelay + " milliseconds");
 		executorService.schedule(() -> {
 			try {
-				triggerRefresh.apply(source).subscribe();
+				triggerRefresh.apply(kubernetesSource).subscribe();
 			}
 			catch (Throwable t) {
-				LOG.warn(t, "Error when refreshing " + source.description());
+				LOG.warn(t, "Error when refreshing " + kubernetesSource.description());
 			}
 		}, refreshDelay, TimeUnit.MILLISECONDS);
 	}

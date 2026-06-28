@@ -192,6 +192,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		int port = WIRE_MOCK_SERVER.port();
 		WireMock.configureFor("localhost", port);
 		List<ServiceInstance> instances = getServiceInstances(port);
+		when(reactiveDiscoveryClient.getServices()).thenReturn(Flux.just("foo"));
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 
 		KubernetesSource configMapKubernetesSource = new ConfigMapKubernetesSource(Set.of("foo"), Map.of("a", "b"),
@@ -214,6 +215,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		Map<String, String> metadata = new HashMap<>();
 		metadata.put(ConfigurationWatcherConfigurationProperties.ANNOTATION_KEY,
 				"http://:" + port + "/my/custom/actuator");
+		metadata.put("a", "b");
 		V1EndpointAddress fooEndpointAddress = new V1EndpointAddress();
 		fooEndpointAddress.setIp("127.0.0.1");
 		fooEndpointAddress.setHostname("localhost");
@@ -236,8 +238,9 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		List<ServiceInstance> instances = new ArrayList<>();
 		DefaultKubernetesServiceInstance fooServiceInstance = new DefaultKubernetesServiceInstance("foo", "foo",
-				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), new HashMap<>(), false, null, null, Map.of());
+				fooEndpointAddress.getIp(), fooEndpointPort.getPort(), Map.of("a", "b"), false, null, null, Map.of());
 		instances.add(fooServiceInstance);
+		when(reactiveDiscoveryClient.getServices()).thenReturn(Flux.just("foo"));
 		when(reactiveDiscoveryClient.getInstances(eq("foo"))).thenReturn(Flux.fromIterable(instances));
 	}
 
