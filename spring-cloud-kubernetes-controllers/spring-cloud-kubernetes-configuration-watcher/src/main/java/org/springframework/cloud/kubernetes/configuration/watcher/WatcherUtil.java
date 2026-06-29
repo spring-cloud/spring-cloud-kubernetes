@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -23,6 +24,7 @@ import java.util.function.Function;
 import io.kubernetes.client.common.KubernetesObject;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.KubernetesSourceProvider.kubernetesSource;
@@ -54,6 +56,15 @@ final class WatcherUtil {
 				LOG.warn(t, "Error when refreshing " + kubernetesSource.description());
 			}
 		}, refreshDelay, TimeUnit.MILLISECONDS);
+	}
+
+	static boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> inputLabels) {
+		Map<String, String> metadata = serviceInstance.getMetadata();
+
+		LOG.debug(() -> "Matching input labels : " + inputLabels + " against service instance "
+				+ serviceInstance.getServiceId() + "/" + serviceInstance.getInstanceId() + " on metadata " + metadata);
+
+		return inputLabels.entrySet().stream().allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
 	}
 
 }

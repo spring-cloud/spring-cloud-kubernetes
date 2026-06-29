@@ -27,10 +27,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.bus.BusProperties;
 import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.cloud.bus.event.RemoteApplicationEvent;
 import org.springframework.cloud.bus.event.ShutdownRemoteApplicationEvent;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -68,6 +70,9 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
 
+	@Mock
+	private ObjectProvider<ReactiveDiscoveryClient> reactiveDiscoveryClientProvider;
+
 	private BusProperties busProperties;
 
 	private MockEnvironment mockEnvironment;
@@ -80,20 +85,20 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	}
 
 	@Test
-	void triggerRefreshWithConfigMap() {
+	void triggerRefreshWithConfigMapUsingServiceNames() {
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 			.forClass(RefreshRemoteApplicationEvent.class);
-		triggerRefreshWithConfigMap(RefreshStrategy.REFRESH, argumentCaptor);
+		triggerRefreshWithConfigMapUsingServiceNames(RefreshStrategy.REFRESH, argumentCaptor);
 	}
 
 	@Test
-	void triggerRefreshWithConfigMapUsingShutdown() {
+	void triggerRefreshWithConfigMapUsingServiceNamesAndShutdown() {
 		ArgumentCaptor<ShutdownRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 			.forClass(ShutdownRemoteApplicationEvent.class);
-		triggerRefreshWithConfigMap(RefreshStrategy.SHUTDOWN, argumentCaptor);
+		triggerRefreshWithConfigMapUsingServiceNames(RefreshStrategy.SHUTDOWN, argumentCaptor);
 	}
 
-	void triggerRefreshWithConfigMap(RefreshStrategy refreshStrategy,
+	void triggerRefreshWithConfigMapUsingServiceNames(RefreshStrategy refreshStrategy,
 			ArgumentCaptor<? extends RemoteApplicationEvent> argumentCaptor) {
 
 		triggerRefresh(refreshStrategy);
@@ -104,23 +109,28 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 
 		assertThat(kubernetesSource.resourceName()).isEqualTo("foo");
 		assertThat(kubernetesSource.serviceNames()).isEqualTo(Set.of("foo"));
-		assertThat(kubernetesSource.serviceLabels()).isEqualTo(Map.of("a", "b"));
+		assertThat(kubernetesSource.serviceLabels()).isEqualTo(Map.of());
 		assertThat(argumentCaptor.getValue().getOriginService()).isEqualTo(busProperties.getId());
 		assertThat(argumentCaptor.getValue().getDestinationService()).isEqualTo("foo:**");
 	}
 
 	private void triggerRefresh(RefreshStrategy refreshStrategy) {
 
-		KubernetesSource configMapKubernetesSource = new ConfigMapKubernetesSource(Set.of("foo"), Map.of("a", "b"),
-				"foo");
+		Set<String> names = Set.of("foo");
+		// services are empty so that we test the names branching
+		Map<String, String> labels = Map.of();
+		String resourceName = "foo";
+
+		KubernetesSource configMapKubernetesSource = new ConfigMapKubernetesSource(names, labels, resourceName);
 
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		BusEventBasedConfigMapWatcherChangeDetector changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(
 				coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY,
 				configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new BusRefreshTrigger(
-						applicationEventPublisher, busProperties.getId(), configurationWatcherConfigurationProperties));
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
+				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
+						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
 		changeDetector.triggerRefresh(configMapKubernetesSource);
 	}
 
