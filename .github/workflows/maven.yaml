@@ -111,7 +111,7 @@ jobs:
 
       - name: restore test times cache if it exists
         id: restore_test_times_cache
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: /tmp/sorted.txt
           key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ env.JDK_VERSION }}-test-times-cache-${{ github.run_id }}
