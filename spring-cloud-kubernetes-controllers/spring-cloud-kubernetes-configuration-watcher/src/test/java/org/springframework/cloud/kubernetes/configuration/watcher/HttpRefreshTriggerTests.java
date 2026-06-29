@@ -72,7 +72,7 @@ class HttpRefreshTriggerTests {
 	 *     - there are two services : app-one, app-two
 	 *     - app-one has labels app=demo, tier=backend
 	 *     - app-two has labels app=demo, tier=frontend
-	 *     - we only search against "inputLabels" : { "app", "demo", "tier", "backend" }
+	 *     - we only search against "inputLabels" : { "app=demo", "tier=backend" }
 	 *     - so only one serviceInstance triggers a refresh
 	 * </pre>
 	 */
