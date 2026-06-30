@@ -47,8 +47,6 @@ final class TestUtil {
 
 	private static final int WIREMOCK_PORT = 32321;
 
-	static final String SPRING_CLOUD_K8S_CONFIG_WATCHER_APP_NAME = "spring-cloud-kubernetes-configuration-watcher";
-
 	private TestUtil() {
 
 	}

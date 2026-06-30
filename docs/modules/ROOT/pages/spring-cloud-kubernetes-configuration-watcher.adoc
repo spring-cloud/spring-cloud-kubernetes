@@ -218,6 +218,52 @@ change to a ConfigMap or Secret occurs then the HTTP implementation will use the
 instances of the application which match the name of the ConfigMap or Secret and send an HTTP POST request to the application's actuator
 `/refresh` endpoint.  By default, it will send the post request to `/actuator/refresh` using the port registered in the discovery client.
 
+You can also target applications by labels instead of by name.
+To do that, add one of these annotations:
+
+- `spring.cloud.kubernetes.configmap.labels`
+- `spring.cloud.kubernetes.secret.labels`
+
+Each annotation takes a comma-separated list of `key=value` pairs.
+
+For example:
+
+[source,yaml]
+----
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: example-configmap
+  labels:
+    spring.cloud.kubernetes.config: "true"
+  annotations:
+    spring.cloud.kubernetes.configmap.labels: "app=demo,tier=backend"
+----
+
+When one of these annotations is present, the HTTP implementation and the messaging implementation use the Spring Cloud Kubernetes Discovery Client to fetch candidate ServiceInstance entries and match the provided labels against ServiceInstance::getMetadata`.
+
+This makes labels-based targeting the labels-based alternative to:
+
+- `spring.cloud.kubernetes.configmap.apps`
+- `spring.cloud.kubernetes.secret.apps`
+
+The difference is:
+
+- `*.apps` targets discovered `ServiceInstance` entries by name
+- `*.labels` targets discovered `ServiceInstance` entries by metadata labels
+
+IMPORTANT: `spring.cloud.kubernetes.discovery.metadata.add-labels` must be enabled so that labels are present in
+`ServiceInstance::getMetadata`.
+
+If `spring.cloud.kubernetes.discovery.metadata.labels-prefix` is set, the keys used in:
+
+- `spring.cloud.kubernetes.configmap.labels`
+- `spring.cloud.kubernetes.secret.labels`
+
+must match the prefixed keys exposed in the metadata.
+
+If both `*.apps` and `*.labels` annotations are present, `*.labels` takes precedence.
+
 You can also configure the configuration watcher to call the instances `shutdown` actuator endpoint.  To do this you can set
 `spring.cloud.kubernetes.configuration.watcher.refresh-strategy=shutdown`.
 
@@ -255,6 +301,10 @@ The messaging implementation can be enabled by setting profile to either `bus-am
 application is deployed to Kubernetes.  By default, when using the messaging implementation the configuration watcher will send a `RefreshRemoteApplicationEvent` using
 Spring Cloud Bus to all application instances.  This will cause the application instances to refresh the application's configuration properties without
 restarting the instance.
+
+When `spring.cloud.kubernetes.configmap.labels` or `spring.cloud.kubernetes.secret.labels` is present, the messaging implementation also resolves
+candidate `ServiceInstance` entries from the discovery client and matches labels against `ServiceInstance::getMetadata`. For each matching
+service id, it publishes a single bus event.
 
 You can also configure the configuration to shut down the application instances in order to refresh the application's configuration properties.
 When the application shuts down, Kubernetes will restart the application instance and the new configuration properties will be loaded.  To use
