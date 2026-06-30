@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.bus.BusProperties;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -99,6 +100,18 @@ class RefreshTriggerAutoConfigurationTests {
 		});
 	}
 
+	@Test
+	void amqpOnlyWithoutReactiveDiscoveryClient() {
+		applicationContextRunner = new ApplicationContextRunner()
+			.withUserConfiguration(TestConfigWithoutReactiveDiscoveryClient.class,
+					RefreshTriggerAutoConfiguration.class)
+			.withPropertyValues("spring.main.cloud-platform=kubernetes", "spring.profiles.active=" + AMQP);
+		applicationContextRunner.run(context -> {
+			assertThat(context).hasSingleBean(BusRefreshTrigger.class);
+			assertThat(context).doesNotHaveBean(HttpRefreshTrigger.class);
+		});
+	}
+
 	private void setup(String activeProfiles) {
 		applicationContextRunner = new ApplicationContextRunner()
 			.withUserConfiguration(TestConfig.class, RefreshTriggerAutoConfiguration.class)
@@ -113,8 +126,27 @@ class RefreshTriggerAutoConfigurationTests {
 		}
 
 		@Bean
-		KubernetesClientInformerReactiveDiscoveryClient client() {
+		ReactiveDiscoveryClient reactiveDiscoveryClient() {
 			return Mockito.mock(KubernetesClientInformerReactiveDiscoveryClient.class);
+		}
+
+		@Bean
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties() {
+			return new ConfigurationWatcherConfigurationProperties();
+		}
+
+		@Bean
+		WebClient webClient() {
+			return Mockito.mock(WebClient.class);
+		}
+
+	}
+
+	static class TestConfigWithoutReactiveDiscoveryClient {
+
+		@Bean
+		private static BusProperties busProperties() {
+			return new BusProperties();
 		}
 
 		@Bean

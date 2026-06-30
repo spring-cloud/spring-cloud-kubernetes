@@ -19,12 +19,12 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.net.URI;
 import java.util.function.Consumer;
 
-import io.kubernetes.client.common.KubernetesObject;
 import org.apache.commons.logging.LogFactory;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -32,6 +32,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy.SHUTDOWN;
+import static org.springframework.cloud.kubernetes.configuration.watcher.WatcherUtil.matchesByLabels;
 
 /**
  * @author wind57
@@ -40,33 +41,61 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(HttpRefreshTrigger.class));
 
-	private final KubernetesClientInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
+	private final ReactiveDiscoveryClient reactiveDiscoveryClient;
 
+	/**
+	 * <pre>
+	 * Keep a reference to the properties bean instead of copying individual values into
+	 * final fields. The configuration watcher can be configured from a ConfigMap and can
+	 * refresh itself, so ConfigurationWatcherConfigurationProperties may be rebound at
+	 * runtime.
+	 *
+	 * RefreshScope annotation is not an option here:
+	 * - class-based refresh proxies require subclassing, but HttpRefreshTrigger is final
+	 * - interface-based refresh proxies would have to implement RefreshTrigger, but
+	 *   RefreshTrigger is sealed
+	 * For these reasons, we always read the current values from the properties bean.
+	 * </pre>
+	 */
 	private final ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
 	private final WebClient webClient;
 
-	HttpRefreshTrigger(KubernetesClientInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient,
+	HttpRefreshTrigger(ReactiveDiscoveryClient reactiveDiscoveryClient,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties, WebClient webClient) {
-		this.kubernetesReactiveDiscoveryClient = kubernetesReactiveDiscoveryClient;
+		this.reactiveDiscoveryClient = reactiveDiscoveryClient;
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 		this.webClient = webClient;
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject kubernetesObject, String appName) {
+	public Mono<Void> triggerRefresh(KubernetesSource kubernetesSource) {
+		if (!kubernetesSource.serviceLabels().isEmpty()) {
+			LOG.info(() -> "Using service labels for discovery : " + kubernetesSource.serviceLabels());
+			return reactiveDiscoveryClient.getServices()
+				.flatMap(reactiveDiscoveryClient::getInstances)
+				.filter(serviceInstance -> matchesByLabels(serviceInstance, kubernetesSource.serviceLabels()))
+				.flatMap(serviceInstance -> refresh(serviceInstance.getServiceId(), serviceInstance))
+				.then();
+		}
 
-		return kubernetesReactiveDiscoveryClient.getInstances(appName).flatMap(si -> {
-			URI actuatorUri = getActuatorUri(si, k8SConfigurationProperties.getActuatorPath(),
-					k8SConfigurationProperties.getActuatorPort());
-			LOG.debug(() -> "Sending refresh request for " + appName + " to URI " + actuatorUri);
-			return webClient.post()
-				.uri(actuatorUri)
-				.retrieve()
-				.toBodilessEntity()
-				.doOnSuccess(onSuccess(appName, actuatorUri))
-				.doOnError(onError(appName));
-		}).then();
+		LOG.info(() -> "Using service names for discovery : " + kubernetesSource.serviceNames());
+		return Flux.fromIterable(kubernetesSource.serviceNames())
+			.flatMap(serviceName -> reactiveDiscoveryClient.getInstances(serviceName)
+				.flatMap(serviceInstance -> refresh(serviceName, serviceInstance)))
+			.then();
+	}
+
+	private Mono<ResponseEntity<Void>> refresh(String serviceName, ServiceInstance serviceInstance) {
+		URI actuatorUri = getActuatorUri(serviceInstance, k8SConfigurationProperties.getActuatorPath(),
+				k8SConfigurationProperties.getActuatorPort());
+		LOG.debug(() -> "Sending refresh request for " + serviceName + " to URI " + actuatorUri);
+		return webClient.post()
+			.uri(actuatorUri)
+			.retrieve()
+			.toBodilessEntity()
+			.doOnSuccess(onSuccess(serviceName, actuatorUri))
+			.doOnError(onError(serviceName));
 	}
 
 	private Consumer<ResponseEntity<Void>> onSuccess(String name, URI actuatorUri) {
