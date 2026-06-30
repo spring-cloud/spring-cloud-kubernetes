@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import reactor.core.publisher.Mono;
 
@@ -47,8 +46,8 @@ final class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherChan
 	}
 
 	@Override
-	public Mono<Void> triggerRefresh(KubernetesObject secret, String appName) {
-		return busRefreshTrigger.triggerRefresh(secret, appName);
+	public Mono<Void> triggerRefresh(KubernetesSource kubernetesSource) {
+		return busRefreshTrigger.triggerRefresh(kubernetesSource);
 	}
 
 }

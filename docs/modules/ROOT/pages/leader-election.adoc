@@ -84,6 +84,8 @@ but this behavior can be disabled:
 spring.cloud.kubernetes.leader.election.publishEvents=false
 ----
 
+Events have been renamed in the new implementation ( to closely match the native listeners ), so they have become `NewLeaderEvent`, `StartLeadingEvent` and `StopLeadingEvent`.
+
 Several parameters control how the leader election process operates. At a high level,
 all candidate pods attempt to become the leader by trying to _acquire_ the lock. If the lock
 is already held, they will retry acquisition every

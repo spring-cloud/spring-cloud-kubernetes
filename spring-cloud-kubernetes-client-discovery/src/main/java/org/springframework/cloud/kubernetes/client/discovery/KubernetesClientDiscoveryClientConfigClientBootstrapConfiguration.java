@@ -17,13 +17,18 @@
 package org.springframework.cloud.kubernetes.client.discovery;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty("spring.cloud.config.discovery.enabled")
-@Import({ KubernetesClientAutoConfiguration.class, KubernetesClientInformerDiscoveryClientAutoConfiguration.class })
+@Import({ KubernetesClientAutoConfiguration.class, KubernetesClientInformerDiscoveryClientAutoConfiguration.class,
+		KubernetesClientDiscoveryClientSpelAutoConfiguration.class })
+@EnableConfigurationProperties({ KubernetesClientProperties.class, KubernetesDiscoveryProperties.class })
 final class KubernetesClientDiscoveryClientConfigClientBootstrapConfiguration {
 
 }
