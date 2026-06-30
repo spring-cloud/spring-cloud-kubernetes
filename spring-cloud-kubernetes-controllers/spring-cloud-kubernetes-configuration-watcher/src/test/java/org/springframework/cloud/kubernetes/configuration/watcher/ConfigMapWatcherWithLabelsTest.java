@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -76,7 +77,7 @@ class ConfigMapWatcherWithLabelsTest {
 
 	private static WireMockServer wireMockServer;
 
-	private static final List<String> OBSERVED_COLORS = new CopyOnWriteArrayList<>();
+	private static final List<Set<String>> OBSERVED_SERVICE_NAMES = new CopyOnWriteArrayList<>();
 
 	@BeforeAll
 	static void beforeAll() {
@@ -123,23 +124,24 @@ class ConfigMapWatcherWithLabelsTest {
 	 *
 	 *          spring.cloud.kubernetes.reload.enabled=false
 	 *
-	 *      We set-up the informer to catch two calls : one where the configmap has color=white ( the first one )
-	 *      and then color=blue, in the watch modified event.
+	 *      We set-up the informer to catch two calls:
+	 *      	- the initial ConfigMap targets app-one
+	 *      	- the modified ConfigMap targets app-two
 	 * </pre>
 	 */
 	@Test
 	void test() {
-		Awaitilities.awaitUntil(10, 1000, () -> OBSERVED_COLORS.size() == 2);
-		Assertions.assertThat(OBSERVED_COLORS).containsExactly("white", "blue");
+		Awaitilities.awaitUntil(10, 1000, () -> OBSERVED_SERVICE_NAMES.size() == 2);
+		Assertions.assertThat(OBSERVED_SERVICE_NAMES).containsExactly(Set.of("app-one"), Set.of("app-two"));
 	}
 
 	private static void stubWatcher() {
 		// ------------------------------------------------------------------------------------------------------------
 		// 0. initial request of the informer ( resourceVersion=0 )
-		// initial color is white
-
+		// initial refresh target is app-one
 		V1ConfigMap myConfigMapInitial = new V1ConfigMap()
 			.metadata(new V1ObjectMeta().namespace("default")
+				.annotations(Map.of(ConfigMapKubernetesSource.CONFIGMAP_SERVICE_NAMES_ANNOTATION, "app-one"))
 				.labels(Map.of("spring.cloud.kubernetes.config", "true"))
 				.name("my-configmap"))
 			.data(Map.of("color", "white"));
@@ -153,10 +155,10 @@ class ConfigMapWatcherWithLabelsTest {
 
 		// ------------------------------------------------------------------------------------------------------------
 		// 1. first watch response to request with resourceVersion=1
-		// color changed to blue
-
+		// refresh target changed to app-two
 		V1ConfigMap myConfigMapChanged = new V1ConfigMap()
 			.metadata(new V1ObjectMeta().namespace("default")
+				.annotations(Map.of(ConfigMapKubernetesSource.CONFIGMAP_SERVICE_NAMES_ANNOTATION, "app-two"))
 				.labels(Map.of("spring.cloud.kubernetes.config", "true"))
 				.name("my-configmap")
 				.resourceVersion("2"))
@@ -171,8 +173,7 @@ class ConfigMapWatcherWithLabelsTest {
 
 		// ------------------------------------------------------------------------------------------------------------
 		// 2. all future calls to informer ( any call with resourceVersion >= 2 )
-		stubFor(get(urlMatching(PATH)).atPriority(10)
-			.withQueryParam("watch", equalTo("true"))
+		stubFor(get(urlMatching(PATH)).withQueryParam("watch", equalTo("true"))
 			.withQueryParam("resourceVersion", WireMock.matching("[2-9][0-9]*"))
 			.withQueryParam("labelSelector", equalTo("spring.cloud.kubernetes.config=true"))
 			.willReturn(aResponse().withStatus(200).withBody("")));
@@ -196,9 +197,9 @@ class ConfigMapWatcherWithLabelsTest {
 		@Bean
 		HttpRefreshTrigger httpRefreshTrigger() {
 			HttpRefreshTrigger refreshTrigger = Mockito.mock(HttpRefreshTrigger.class);
-			Mockito.when(refreshTrigger.triggerRefresh(Mockito.any(), Mockito.anyString())).thenAnswer(invocation -> {
-				V1ConfigMap configMap = invocation.getArgument(0);
-				return Mono.fromRunnable(() -> OBSERVED_COLORS.add(configMap.getData().get("color")));
+			Mockito.when(refreshTrigger.triggerRefresh(Mockito.any())).thenAnswer(invocation -> {
+				KubernetesSource kubernetesSource = invocation.getArgument(0);
+				return Mono.fromRunnable(() -> OBSERVED_SERVICE_NAMES.add(kubernetesSource.serviceNames()));
 			});
 
 			return refreshTrigger;

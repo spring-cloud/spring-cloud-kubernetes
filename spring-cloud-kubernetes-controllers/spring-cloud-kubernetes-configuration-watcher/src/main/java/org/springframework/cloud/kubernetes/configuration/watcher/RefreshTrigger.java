@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.common.KubernetesObject;
 import reactor.core.publisher.Mono;
 
 /**
@@ -27,11 +26,6 @@ import reactor.core.publisher.Mono;
 sealed interface RefreshTrigger
 		permits BusRefreshTrigger, ConfigMapWatcherChangeDetector, HttpRefreshTrigger, SecretsWatcherChangeDetector {
 
-	/**
-	 * @param kubernetesObject either a config-map or secret at the moment.
-	 * @param appName which is not necessarily equal to
-	 * kubernetesObject.getMetadata().getName()
-	 */
-	Mono<Void> triggerRefresh(KubernetesObject kubernetesObject, String appName);
+	Mono<Void> triggerRefresh(KubernetesSource kubernetesSource);
 
 }
