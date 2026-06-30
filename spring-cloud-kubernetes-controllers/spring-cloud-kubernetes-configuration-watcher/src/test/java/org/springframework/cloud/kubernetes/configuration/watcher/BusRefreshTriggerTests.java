@@ -144,7 +144,7 @@ class BusRefreshTriggerTests {
 
 	private DefaultKubernetesServiceInstance serviceInstance(String serviceId, String instanceId,
 			Map<String, String> metadata) {
-		return new DefaultKubernetesServiceInstance(serviceId, instanceId, "localhost", 8080, metadata, false,
+		return new DefaultKubernetesServiceInstance(instanceId, serviceId, "localhost", 8080, metadata, false,
 				"default", null, Map.of());
 	}
 

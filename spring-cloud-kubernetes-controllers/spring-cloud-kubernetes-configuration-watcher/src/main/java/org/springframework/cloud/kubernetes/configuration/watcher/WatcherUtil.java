@@ -46,6 +46,9 @@ final class WatcherUtil {
 
 		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject);
 
+		// we need defer, because otherwise triggerRefresh.apply(kubernetesSource) is
+		// called
+		// when the pipeline is being built, not when it's run.
 		Mono.delay(Duration.ofMillis(refreshDelay), scheduler)
 			.then(Mono.defer(() -> triggerRefresh.apply(kubernetesSource)))
 			.doOnSuccess(ignored -> LOG.debug(() -> "Finished refreshing " + kubernetesSource.description()))
