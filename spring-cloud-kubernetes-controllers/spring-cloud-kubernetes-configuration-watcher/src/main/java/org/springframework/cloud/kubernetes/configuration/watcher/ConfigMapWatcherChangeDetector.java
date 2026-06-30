@@ -16,11 +16,10 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
@@ -30,6 +29,8 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
+
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
@@ -38,7 +39,7 @@ abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 		implements RefreshTrigger
 		permits BusEventBasedConfigMapWatcherChangeDetector, HttpBasedConfigMapWatchChangeDetector {
 
-	private final ScheduledExecutorService executorService;
+	private final Scheduler scheduler;
 
 	/**
 	 * <pre>
@@ -64,14 +65,14 @@ abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
-		this.executorService = Executors.newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(),
-				threadPoolTaskExecutor);
+		scheduler = Schedulers.fromExecutor(
+				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 	}
 
 	@Override
 	protected final void onEvent(KubernetesObject configMap) {
-		WatcherUtil.onEvent(configMap, k8SConfigurationProperties.getRefreshDelay().toMillis(), executorService,
+		WatcherUtil.onEvent(configMap, k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler,
 				this::triggerRefresh);
 	}
 

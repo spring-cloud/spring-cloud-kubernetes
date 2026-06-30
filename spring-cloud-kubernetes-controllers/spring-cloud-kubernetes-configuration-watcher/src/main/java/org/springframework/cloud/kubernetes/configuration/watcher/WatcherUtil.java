@@ -16,13 +16,15 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
+import java.util.Map;
 import java.util.function.Function;
 
 import io.kubernetes.client.common.KubernetesObject;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.KubernetesSourceProvider.kubernetesSource;
@@ -39,21 +41,28 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, ScheduledExecutorService executorService,
+	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, Scheduler scheduler,
 			Function<KubernetesSource, Mono<Void>> triggerRefresh) {
 
 		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject);
 
-		LOG.debug(() -> "Scheduling remote refresh event to be published for " + kubernetesSource.description() + " in "
-				+ refreshDelay + " milliseconds");
-		executorService.schedule(() -> {
-			try {
-				triggerRefresh.apply(kubernetesSource).subscribe();
-			}
-			catch (Throwable t) {
-				LOG.warn(t, "Error when refreshing " + kubernetesSource.description());
-			}
-		}, refreshDelay, TimeUnit.MILLISECONDS);
+		// we need defer, because otherwise triggerRefresh.apply(kubernetesSource) is
+		// called
+		// when the pipeline is being built, not when it's run.
+		Mono.delay(Duration.ofMillis(refreshDelay), scheduler)
+			.then(Mono.defer(() -> triggerRefresh.apply(kubernetesSource)))
+			.doOnSuccess(ignored -> LOG.debug(() -> "Finished refreshing " + kubernetesSource.description()))
+			.doOnError(t -> LOG.warn(t, "Error when refreshing " + kubernetesSource.description()))
+			.subscribe();
+	}
+
+	static boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> inputLabels) {
+		Map<String, String> metadata = serviceInstance.getMetadata();
+
+		LOG.debug(() -> "Matching input labels : " + inputLabels + " against service instance "
+				+ serviceInstance.getServiceId() + "/" + serviceInstance.getInstanceId() + " on metadata " + metadata);
+
+		return inputLabels.entrySet().stream().allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
 	}
 
 }

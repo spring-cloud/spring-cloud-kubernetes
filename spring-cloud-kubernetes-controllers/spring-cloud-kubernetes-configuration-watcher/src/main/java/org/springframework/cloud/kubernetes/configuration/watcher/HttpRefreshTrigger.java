@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.commons.logging.LogFactory;
@@ -25,7 +24,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.core.log.LogAccessor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -33,6 +32,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy.SHUTDOWN;
+import static org.springframework.cloud.kubernetes.configuration.watcher.WatcherUtil.matchesByLabels;
 
 /**
  * @author wind57
@@ -41,7 +41,7 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(HttpRefreshTrigger.class));
 
-	private final KubernetesClientInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient;
+	private final ReactiveDiscoveryClient reactiveDiscoveryClient;
 
 	/**
 	 * <pre>
@@ -61,9 +61,9 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 	private final WebClient webClient;
 
-	HttpRefreshTrigger(KubernetesClientInformerReactiveDiscoveryClient kubernetesReactiveDiscoveryClient,
+	HttpRefreshTrigger(ReactiveDiscoveryClient reactiveDiscoveryClient,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties, WebClient webClient) {
-		this.kubernetesReactiveDiscoveryClient = kubernetesReactiveDiscoveryClient;
+		this.reactiveDiscoveryClient = reactiveDiscoveryClient;
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 		this.webClient = webClient;
 	}
@@ -72,8 +72,8 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 	public Mono<Void> triggerRefresh(KubernetesSource kubernetesSource) {
 		if (!kubernetesSource.serviceLabels().isEmpty()) {
 			LOG.info(() -> "Using service labels for discovery : " + kubernetesSource.serviceLabels());
-			return kubernetesReactiveDiscoveryClient.getServices()
-				.flatMap(kubernetesReactiveDiscoveryClient::getInstances)
+			return reactiveDiscoveryClient.getServices()
+				.flatMap(reactiveDiscoveryClient::getInstances)
 				.filter(serviceInstance -> matchesByLabels(serviceInstance, kubernetesSource.serviceLabels()))
 				.flatMap(serviceInstance -> refresh(serviceInstance.getServiceId(), serviceInstance))
 				.then();
@@ -81,18 +81,9 @@ final class HttpRefreshTrigger implements RefreshTrigger {
 
 		LOG.info(() -> "Using service names for discovery : " + kubernetesSource.serviceNames());
 		return Flux.fromIterable(kubernetesSource.serviceNames())
-			.flatMap(serviceName -> kubernetesReactiveDiscoveryClient.getInstances(serviceName)
+			.flatMap(serviceName -> reactiveDiscoveryClient.getInstances(serviceName)
 				.flatMap(serviceInstance -> refresh(serviceName, serviceInstance)))
 			.then();
-	}
-
-	private boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> inputLabels) {
-		Map<String, String> metadata = serviceInstance.getMetadata();
-
-		LOG.debug(() -> "Matching input labels : " + inputLabels + " against service instance "
-				+ serviceInstance.getServiceId() + "/" + serviceInstance.getInstanceId() + " on metadata " + metadata);
-
-		return inputLabels.entrySet().stream().allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
 	}
 
 	private Mono<ResponseEntity<Void>> refresh(String serviceName, ServiceInstance serviceInstance) {

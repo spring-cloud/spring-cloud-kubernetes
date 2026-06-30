@@ -16,11 +16,12 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.bus.BusProperties;
-import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,16 +43,18 @@ class RefreshTriggerAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Profile({ AMQP, KAFKA })
 	BusRefreshTrigger busRefreshTrigger(ApplicationEventPublisher applicationEventPublisher,
-			BusProperties busProperties, ConfigurationWatcherConfigurationProperties properties) {
-		return new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(), properties);
+			BusProperties busProperties, ConfigurationWatcherConfigurationProperties properties,
+			ObjectProvider<ReactiveDiscoveryClient> reactiveDiscoveryClientProvider) {
+		return new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(), properties,
+				reactiveDiscoveryClientProvider);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	@Profile({ NOT_AMQP_NOT_KAFKA })
-	HttpRefreshTrigger httpRefreshTrigger(KubernetesClientInformerReactiveDiscoveryClient client,
+	HttpRefreshTrigger httpRefreshTrigger(ReactiveDiscoveryClient reactiveDiscoveryClient,
 			ConfigurationWatcherConfigurationProperties properties, WebClient webClient) {
-		return new HttpRefreshTrigger(client, properties, webClient);
+		return new HttpRefreshTrigger(reactiveDiscoveryClient, properties, webClient);
 	}
 
 }
