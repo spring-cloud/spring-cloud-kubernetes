@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.leader;
+package org.springframework.cloud.kubernetes.commons.leader.election;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +23,6 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.cloud.kubernetes.commons.EnvReader;
 import org.springframework.core.log.LogAccessor;
@@ -101,16 +100,6 @@ public final class LeaderUtils {
 		}
 		else {
 			return InetAddress.getLocalHost().getHostName();
-		}
-	}
-
-	public static void guarded(ReentrantLock lock, Runnable runnable) {
-		try {
-			lock.lock();
-			runnable.run();
-		}
-		finally {
-			lock.unlock();
 		}
 	}
 
