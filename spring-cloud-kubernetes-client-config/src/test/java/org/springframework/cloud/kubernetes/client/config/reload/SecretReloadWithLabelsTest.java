@@ -157,7 +157,6 @@ class SecretReloadWithLabelsTest {
 		when(namespaceProvider.getNamespace()).thenReturn("default");
 
 		// properties
-		boolean enableReloadFiltering = false;
 		boolean monitorConfigMaps = false;
 		boolean monitorSecrets = true;
 		Map<String, String> configMapsLabels = Map.of();
@@ -165,7 +164,7 @@ class SecretReloadWithLabelsTest {
 		ConfigReloadProperties properties = new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels,
 				monitorSecrets, secretsLabels, ConfigReloadProperties.ReloadStrategy.REFRESH,
 				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(),
-				enableReloadFiltering, Duration.ofSeconds(2));
+				Duration.ofSeconds(2));
 
 		// change detector
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
