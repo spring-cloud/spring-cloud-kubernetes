@@ -86,14 +86,13 @@ final class BusRefreshTrigger implements RefreshTrigger {
 				throw new IllegalStateException("Using spring.cloud.kubernetes.configmap.labels or "
 						+ "spring.cloud.kubernetes.secret.labels with bus refresh requires a ReactiveDiscoveryClient");
 			}
-			reactiveDiscoveryClient.getServices()
+			return reactiveDiscoveryClient.getServices()
 				.flatMap(reactiveDiscoveryClient::getInstances)
 				.filter(serviceInstance -> matchesByLabels(serviceInstance, kubernetesSource.serviceLabels()))
 				.map(ServiceInstance::getServiceId)
 				.distinct()
-				.toIterable()
-				.forEach(serviceName -> publishRefreshEvent(kubernetesSource, serviceName));
-			return Mono.empty();
+				.doOnNext(serviceName -> publishRefreshEvent(kubernetesSource, serviceName))
+				.then();
 		}
 
 		LOG.info(() -> "Using service names for discovery : " + kubernetesSource.serviceNames());

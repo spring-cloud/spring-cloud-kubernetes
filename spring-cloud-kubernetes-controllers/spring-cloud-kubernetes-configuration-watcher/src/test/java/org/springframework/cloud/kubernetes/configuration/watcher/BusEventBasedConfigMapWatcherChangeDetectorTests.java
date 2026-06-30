@@ -26,6 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.bus.BusProperties;
@@ -117,7 +119,7 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	private void triggerRefresh(RefreshStrategy refreshStrategy) {
 
 		Set<String> names = Set.of("foo");
-		// services are empty so that we test the names branching
+		// labels are empty so that we test the names branching
 		Map<String, String> labels = Map.of();
 		String resourceName = "foo";
 
@@ -131,7 +133,8 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
 				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
 						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
-		changeDetector.triggerRefresh(configMapKubernetesSource);
+		Mono<Void> result = changeDetector.triggerRefresh(configMapKubernetesSource);
+		StepVerifier.create(result).verifyComplete();
 	}
 
 }
