@@ -33,9 +33,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<buildpacks>
-						<buildpack>docker://paketobuildpacks/java:latest</buildpack>
-					</buildpacks>
 					<imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
 				</configuration>
 				<executions>
