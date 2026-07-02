@@ -13,4 +13,5 @@ runs:
       shell: bash
       run: |
         JAVA_RUNTIME_VERSION=$(java -XshowSettings:properties -version | grep 'java.runtime.version' | awk -F'= ' '{print $2}')
+        echo "Resolved Java runtime version: ${JAVA_RUNTIME_VERSION}"
         echo "JAVA_RUNTIME_VERSION=${JAVA_RUNTIME_VERSION}" >> $GITHUB_ENV
