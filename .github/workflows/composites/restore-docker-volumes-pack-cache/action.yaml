@@ -1,0 +1,73 @@
+name: restore pack cache
+description: Restore Paketo buildpack layer cache to avoid re-downloading JVM runtimes
+inputs:
+  jdk-version:
+    description: Java version used for the buildpack cache key
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - name: restore pack cache from actions cache
+      uses: actions/cache/restore@v4
+      id: pack-cache-restore-docker-volumes
+      with:
+        path: /tmp/restored-pack-docker-volumes
+        key: docker-pack-cache-${{ runner.os }}-${{ inputs.jdk-version }}
+
+    - name: load pack cache into docker volumes
+      shell: bash
+      if: steps.pack-cache-restore-docker-volumes.outputs.cache-hit == 'true'
+      run: |
+        if [ -d /tmp/restored-pack-docker-volumes ] && [ "$(ls /tmp/restored-pack-docker-volumes/*.tar.gz)" ]; then
+          volume_mount_args=""
+
+          # For each cached archive file we restored from the CI cache...
+          for archive_path in /tmp/restored-pack-docker-volumes/*.tar.gz; do
+
+            # Take the filename and strip the trailing ".tar.gz"
+            # Example:
+            #   /tmp/restored-pack-docker-volumes/pack-cache-123.build.tar.gz
+            # becomes:
+            #   pack-cache-123.build
+            volume_name=$(basename "$archive_path" .tar.gz)
+            echo "Restoring pack cache volume: $volume_name"
+            docker volume create "$volume_name"
+
+            # Build up the list of "-v" arguments for a later "docker run".
+            # This does NOT mount anything yet.
+            # It only prepares something like:
+            #   -v pack-cache-123.build:/out/pack-cache-123.build
+            volume_mount_args="$volume_mount_args -v $volume_name:/out/$volume_name"
+          done
+
+          # Start a temporary Alpine container just to unpack the cached archives.
+          docker run --rm \
+            # Mount the host directory that contains the restored .tar.gz files at /in
+            -v /tmp/restored-pack-docker-volumes:/in \
+            # Mount each Docker named volume at /out/<volume-name>
+            # Example:
+            #   -v pack-cache-123.build:/out/pack-cache-123.build
+            $volume_mount_args \
+            alpine sh -c '
+              for archive_path in /in/*.tar.gz; do
+
+                # Derive the volume name from the archive filename
+                # Example:
+                #   /in/pack-cache-123.build.tar.gz
+                # becomes:
+                #   pack-cache-123.build
+                volume_name=$(basename "$archive_path" .tar.gz)
+
+                # Extract the archive into the matching mounted Docker volume
+                # Example:
+                #   /in/pack-cache-123.build.tar.gz
+                # is unpacked into:
+                #   /out/pack-cache-123.build
+                tar xzf "$archive_path" -C "/out/$volume_name"
+              done
+            '
+        else
+          echo "No pack cache volumes found to restore"
+        fi
