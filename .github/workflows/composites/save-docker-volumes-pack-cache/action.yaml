@@ -32,12 +32,12 @@ runs:
         # mount all selected Docker cache volumes into one helper container
         # loop over them
         # compress each one into its own tar.gz file
-        # place those tar.gz files in pack-docker-volumes on the host
-        # each volume becomes : /tmp/saved-pack-docker-volumes/pack-cache-foo.build.tar.gz on the host 
-        mkdir -p /tmp/saved-pack-docker-volumes
+        # place those tar.gz files in paketo-docker-volumes-cache on the host
+        # each volume becomes : /tmp/paketo-docker-volumes-cache/pack-cache-foo.build.tar.gz on the host 
+        mkdir -p /tmp/paketo-docker-volumes-cache
         docker run --rm \
           $VOLUME_MOUNTS \
-          -v /tmp/saved-pack-docker-volumes:/out \
+          -v /tmp/paketo-docker-volumes-cache:/out \
           alpine sh -c '
             for dir in /in/*; do
               vol=$(basename "$dir")
@@ -48,5 +48,5 @@ runs:
     - name: save pack cache to actions cache
       uses: actions/cache/save@v4
       with:
-        path: /tmp/saved-pack-docker-volumes
-        key: docker-pack-cache-${{ runner.os }}-${{ inputs.jdk-version }}
+        path: /tmp/paketo-docker-volumes-cache
+        key: paketo-docker-volumes-cache-${{ runner.os }}-${{ inputs.jdk-version }}

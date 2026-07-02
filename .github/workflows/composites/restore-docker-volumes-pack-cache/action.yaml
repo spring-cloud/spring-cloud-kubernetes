@@ -17,18 +17,18 @@ runs:
       uses: actions/cache/restore@v4
       id: pack-cache-restore-docker-volumes
       with:
-        path: /tmp/restored-pack-docker-volumes
-        key: docker-pack-cache-${{ runner.os }}-${{ inputs.jdk-version }}
+        path: /tmp/paketo-docker-volumes-cache
+        key: paketo-docker-volumes-cache-${{ runner.os }}-${{ inputs.jdk-version }}
 
     - name: load pack cache into docker volumes
       shell: bash
       if: steps.pack-cache-restore-docker-volumes.outputs.cache-hit == 'true'
       run: |
-        if [ -d /tmp/restored-pack-docker-volumes ] && [ "$(ls /tmp/restored-pack-docker-volumes/*.tar.gz)" ]; then
+        if [ -d /tmp/paketo-docker-volumes-cache ] && [ "$(ls /tmp/paketo-docker-volumes-cache/*.tar.gz)" ]; then
           volume_mount_args=""
 
           # For each cached archive file we restored from the CI cache...
-          for archive_path in /tmp/restored-pack-docker-volumes/*.tar.gz; do
+          for archive_path in /tmp/paketo-docker-volumes-cache/*.tar.gz; do
 
             # Take the filename and strip the trailing ".tar.gz"
             # Example:
@@ -49,7 +49,7 @@ runs:
           # Start a temporary Alpine container just to unpack the cached archives.
           docker run --rm \
             # Mount the host directory that contains the restored .tar.gz files at /in
-            -v /tmp/restored-pack-docker-volumes:/in \
+            -v /tmp/paketo-docker-volumes-cache:/in \
             # Mount each Docker named volume at /out/<volume-name>
             # Example:
             #   -v pack-cache-123.build:/out/pack-cache-123.build
