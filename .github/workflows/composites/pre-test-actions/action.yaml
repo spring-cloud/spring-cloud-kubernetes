@@ -35,7 +35,7 @@ runs:
     - name: restore pack cache
       uses: ./.github/workflows/composites/restore-docker-volumes-pack-cache
       with:
-        jdk-version: ${{ env.JAVA_RUNTIME_VERSION }}
+        jdk-version: ${{ env.JDK_VERSION }}
 
     - name: build project
       shell: bash
@@ -48,9 +48,15 @@ runs:
     - name: build integration tests project
       uses: ./.github/workflows/composites/build-integration-tests-project
 
+    # archive the packeto-generated docker cache volumes as .tar.gz files
+    # save them in the github cache so they can be restored and reused in a later build
+    - name: save pack cache
+      uses: ./.github/workflows/composites/save-docker-volumes-pack-cache
+      with:
+        jdk-version: ${{ env.JDK_VERSION }}
+
     - name: download tests
       uses: actions/download-artifact@v4
       with:
         name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp
-
