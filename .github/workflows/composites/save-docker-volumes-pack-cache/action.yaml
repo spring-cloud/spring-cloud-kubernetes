@@ -1,0 +1,52 @@
+name: save pack cache
+description: Save Paketo buildpack layer cache so JVM runtimes are not re-downloaded on subsequent runs
+inputs:
+  jdk-version:
+    description: Java version used for the buildpack cache key
+    required: true
+runs:
+  using: "composite"
+  steps:
+
+    - name: export pack cache volumes to tar
+      shell: bash
+      run: |
+        # list all Docker volume names
+        # keep only buildpack cache volumes for build or launch 
+        # ( pack-cache-6180be729711.launch or pack-cache-7446ea1c1c86.build )
+        # do not fail if none are found
+        PACK_DOCKER_VOLUMES=$(docker volume ls --format '{{.Name}}' | grep -E 'pack-cache.*\.(build|launch)$' || true)
+        
+        if [ -z "$PACK_DOCKER_VOLUMES" ]; then
+          echo "No pack cache volumes found, skipping save"
+          exit 0
+        fi
+
+        # create a string of -v volume mounts for each pack cache volume
+        VOLUME_MOUNTS=""
+        for vol in $PACK_DOCKER_VOLUMES; do
+          echo "Saving pack cache volume: $vol"
+          VOLUME_MOUNTS="$VOLUME_MOUNTS -v $vol:/in/$vol"
+        done
+        
+        # mount all selected Docker cache volumes into one helper container
+        # loop over them
+        # compress each one into its own tar.gz file
+        # place those tar.gz files in paketo-docker-volumes-cache on the host
+        # each volume becomes : /tmp/paketo-docker-volumes-cache/pack-cache-foo.build.tar.gz on the host 
+        mkdir -p /tmp/paketo-docker-volumes-cache
+        docker run --rm \
+          $VOLUME_MOUNTS \
+          -v /tmp/paketo-docker-volumes-cache:/out \
+          alpine sh -c '
+            for dir in /in/*; do
+              vol=$(basename "$dir")
+              tar czf "/out/${vol}.tar.gz" -C "$dir" .
+            done
+          '
+
+    - name: save pack cache to actions cache
+      uses: actions/cache/save@v4
+      with:
+        path: /tmp/paketo-docker-volumes-cache
+        key: paketo-docker-volumes-cache-${{ runner.os }}-${{ inputs.jdk-version }}
