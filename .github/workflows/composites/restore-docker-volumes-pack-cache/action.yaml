@@ -47,28 +47,28 @@ runs:
           done
 
           # Start a temporary Alpine container just to unpack the cached archives.
+          # Mount the host directory that contains the restored .tar.gz files at /in.
+          # Mount each Docker named volume at /out/<volume-name>.
+        
+          # volume_name=$(basename "$archive_path" .tar.gz) => 
+          # Derive the volume name from the archive filename
+          # Example:
+          #   /in/pack-cache-123.build.tar.gz
+          # becomes:
+          #   pack-cache-123.build
+        
+          # tar xzf "$archive_path" -C "/out/$volume_name" =>
+          # Extract the archive into the matching mounted Docker volume
+          # Example:
+          #   /in/pack-cache-123.build.tar.gz
+          # is unpacked into:
+          #   /out/pack-cache-123.build
           docker run --rm \
-            # Mount the host directory that contains the restored .tar.gz files at /in
             -v /tmp/paketo-docker-volumes-cache:/in \
-            # Mount each Docker named volume at /out/<volume-name>
-            # Example:
-            #   -v pack-cache-123.build:/out/pack-cache-123.build
             $volume_mount_args \
             alpine sh -c '
               for archive_path in /in/*.tar.gz; do
-
-                # Derive the volume name from the archive filename
-                # Example:
-                #   /in/pack-cache-123.build.tar.gz
-                # becomes:
-                #   pack-cache-123.build
                 volume_name=$(basename "$archive_path" .tar.gz)
-
-                # Extract the archive into the matching mounted Docker volume
-                # Example:
-                #   /in/pack-cache-123.build.tar.gz
-                # is unpacked into:
-                #   /out/pack-cache-123.build
                 tar xzf "$archive_path" -C "/out/$volume_name"
               done
             '
