@@ -1,0 +1,13 @@
+# we need to build a single controller project, so that an image is build
+# this way packeto layers are generated as docker volumes.
+name: build controller project for pack cache
+description: build a single controller image to populate Paketo buildpack caches
+runs:
+  using: "composite"
+  steps:
+    - name: build controller project for pack cache
+      shell: bash
+      run: |
+        cd spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher
+        ../.././mvnw -T 1C -U clean install -DskipTests
+        cd ../..

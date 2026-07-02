@@ -88,6 +88,9 @@ jobs:
           jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
+      - name: resolve java runtime version
+        uses: ./.github/workflows/composites/resolve-java-runtime-version
+
       - name: cache local maven repository
         uses: ./.github/workflows/composites/cache
         with:
@@ -108,6 +111,28 @@ jobs:
         with:
           jdk-version: ${{ env.JDK_VERSION }}
           branch: ${{ env.BRANCH_SAFE }}
+
+      # restore the cache of docker pack volumes.
+      # this is the first restore, the second one is in each matrix instance.
+      # we need to restore here, otherwise if we build, we will re-download everything again.
+      - name: restore pack cache
+        id: restore_pack_cache
+        uses: ./.github/workflows/composites/restore-docker-volumes-pack-cache
+        with:
+          jdk-version: ${{ env.JAVA_RUNTIME_VERSION }}
+
+      # this acts as a warm-up for the pack cache, but only when the previous step
+      # did not find the cache items.
+      - name: build controller project for pack cache
+        if: steps.restore_pack_cache.outputs.cache-hit != 'true'
+        uses: ./.github/workflows/composites/build-controller-project-for-pack-cache
+
+      # save cache is also only needed if there is no previous cache
+      - name: save pack cache
+        if: steps.restore_pack_cache.outputs.cache-hit != 'true'
+        uses: ./.github/workflows/composites/save-docker-volumes-pack-cache
+        with:
+          jdk-version: ${{ env.JAVA_RUNTIME_VERSION }}
 
       - name: restore test times cache if it exists
         id: restore_test_times_cache
@@ -182,6 +207,9 @@ jobs:
           jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
 
+      - name: resolve java runtime version
+        uses: ./.github/workflows/composites/resolve-java-runtime-version
+
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions
         with:
@@ -239,6 +267,9 @@ jobs:
         with:
           jdk-version: ${{ env.JDK_VERSION }}
         if: env.BASE_BRANCH == 'main' || env.BASE_BRANCH == '3.0.x' || env.BASE_BRANCH == '3.1.x'
+
+      - name: resolve java runtime version
+        uses: ./.github/workflows/composites/resolve-java-runtime-version
 
       - name: pre-test-actions
         uses: ./.github/workflows/composites/pre-test-actions

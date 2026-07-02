@@ -4,6 +4,10 @@ inputs:
   jdk-version:
     description: Java version used for the buildpack cache key
     required: true
+outputs:
+  cache-hit:
+    description: Whether the GitHub cache entry for the requested Java runtime version was found
+    value: ${{ steps.pack-cache-restore-docker-volumes.outputs.cache-hit }}
 
 runs:
   using: "composite"
