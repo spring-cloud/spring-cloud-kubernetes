@@ -1,8 +1,8 @@
 name: restore pack cache
 description: Restore Paketo buildpack layer cache to avoid re-downloading JVM runtimes
 inputs:
-  jdk-version:
-    description: Java version used for the buildpack cache key
+  java-runtime-version:
+    description: Exact Java runtime version used for the buildpack cache key
     required: true
 outputs:
   cache-hit:
@@ -18,7 +18,7 @@ runs:
       id: pack-cache-restore-docker-volumes
       with:
         path: /tmp/paketo-docker-volumes-cache
-        key: paketo-docker-volumes-cache-${{ runner.os }}-${{ inputs.jdk-version }}
+        key: paketo-runtime-cache-${{ runner.os }}-${{ inputs.java-runtime-version }}
 
     - name: load pack cache into docker volumes
       shell: bash

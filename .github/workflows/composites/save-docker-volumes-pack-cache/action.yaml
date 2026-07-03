@@ -1,8 +1,8 @@
 name: save pack cache
 description: Save Paketo buildpack layer cache so JVM runtimes are not re-downloaded on subsequent runs
 inputs:
-  jdk-version:
-    description: Java version used for the buildpack cache key
+  java-runtime-version:
+    description: Exact Java runtime version used for the buildpack cache key
     required: true
 runs:
   using: "composite"
@@ -20,6 +20,9 @@ runs:
         if [ -z "$PACK_DOCKER_VOLUMES" ]; then
           echo "No pack cache volumes found, skipping save"
           exit 0
+        fi
+        else
+          echo "Pack cache volumes found, exporting them to actions cache"
         fi
 
         # create a string of -v volume mounts for each pack cache volume
@@ -49,4 +52,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: /tmp/paketo-docker-volumes-cache
-        key: paketo-docker-volumes-cache-${{ runner.os }}-${{ inputs.jdk-version }}
+        key: paketo-runtime-cache-${{ runner.os }}-${{ inputs.java-runtime-version }}

@@ -1,0 +1,15 @@
+# pack cache must be keyed by the exact installed Java runtime version, not
+# just by the requested major version like 17 or 21. Otherwise a cache
+# created with one runner image (for example 17.0.18) can be restored on a
+# later runner image (for example 17.0.19), and GitHub Actions will treat it
+# as a cache hit even though a fresh cache should be created for the new JVM.
+name: resolve java runtime version
+description: resolve the exact installed Java runtime version for pack cache keys
+runs:
+  using: "composite"
+  steps:
+    - name: resolve java runtime version
+      shell: bash
+      run: |
+        JAVA_RUNTIME_VERSION=$(java -XshowSettings:properties -version 2>&1 | grep 'java.runtime.version' | awk -F'= ' '{print $2}')
+        echo "JAVA_RUNTIME_VERSION=${JAVA_RUNTIME_VERSION}" >> $GITHUB_ENV

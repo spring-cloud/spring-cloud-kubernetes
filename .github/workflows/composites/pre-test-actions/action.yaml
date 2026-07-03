@@ -32,10 +32,13 @@ runs:
     - name: restore common images
       uses: ./.github/workflows/composites/restore-docker-images
 
+    - name: resolve java runtime version
+      uses: ./.github/workflows/composites/resolve-java-runtime-version
+
     - name: restore pack cache
       uses: ./.github/workflows/composites/restore-docker-volumes-pack-cache
       with:
-        jdk-version: ${{ env.JDK_VERSION }}
+        java-runtime-version: ${{ env.JAVA_RUNTIME_VERSION }}
 
     - name: build project
       shell: bash
@@ -53,7 +56,7 @@ runs:
     - name: save pack cache
       uses: ./.github/workflows/composites/save-docker-volumes-pack-cache
       with:
-        jdk-version: ${{ env.JDK_VERSION }}
+        java-runtime-version: ${{ env.JAVA_RUNTIME_VERSION }}
 
     - name: download tests
       uses: actions/download-artifact@v4
