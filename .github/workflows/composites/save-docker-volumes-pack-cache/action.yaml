@@ -20,7 +20,6 @@ runs:
         if [ -z "$PACK_DOCKER_VOLUMES" ]; then
           echo "No pack cache volumes found, skipping save"
           exit 0
-        fi
         else
           echo "Pack cache volumes found, exporting them to actions cache"
         fi
