@@ -48,9 +48,7 @@ class WatcherUtilTests {
 	}
 
 	private static V1ConfigMap configMap(Map<String, String> labels) {
-		return new V1ConfigMapBuilder()
-			.withMetadata(new V1ObjectMeta().name("my-configmap").labels(labels))
-			.build();
+		return new V1ConfigMapBuilder().withMetadata(new V1ObjectMeta().name("my-configmap").labels(labels)).build();
 	}
 
 }

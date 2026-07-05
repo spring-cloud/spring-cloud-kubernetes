@@ -82,9 +82,7 @@ final class WatcherUtil {
 	}
 
 	private static Map<String, String> labels(KubernetesObject kubernetesObject) {
-		return Optional.ofNullable(kubernetesObject.getMetadata())
-			.map(V1ObjectMeta::getLabels)
-			.orElse(Map.of());
+		return Optional.ofNullable(kubernetesObject.getMetadata()).map(V1ObjectMeta::getLabels).orElse(Map.of());
 	}
 
 }
