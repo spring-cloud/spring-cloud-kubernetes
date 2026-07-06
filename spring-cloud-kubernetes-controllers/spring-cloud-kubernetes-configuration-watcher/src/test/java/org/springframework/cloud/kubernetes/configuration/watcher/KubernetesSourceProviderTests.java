@@ -165,6 +165,8 @@ class KubernetesSourceProviderTests {
 
 		assertThat(source).isInstanceOf(ConfigMapKubernetesSource.class);
 		assertThat(source.description()).isEqualTo("configmap");
+		assertThat(source.requiredResourceLabel())
+			.isEqualTo(ConfigurationWatcherConfigurationProperties.CONFIG_MAP_LABEL);
 		assertThat(source.serviceNames()).containsExactlyInAnyOrder("app-one", "app-two");
 		assertThat(source.serviceLabels())
 			.containsExactlyInAnyOrderEntriesOf(Map.of("app", "my-app", "tier", "backend"));
@@ -183,6 +185,7 @@ class KubernetesSourceProviderTests {
 
 		assertThat(source).isInstanceOf(SecretKubernetesSource.class);
 		assertThat(source.description()).isEqualTo("secret");
+		assertThat(source.requiredResourceLabel()).isEqualTo(ConfigurationWatcherConfigurationProperties.SECRET_LABEL);
 		assertThat(source.serviceNames()).containsExactlyInAnyOrder("app-one", "app-two");
 		assertThat(source.serviceLabels())
 			.containsExactlyInAnyOrderEntriesOf(Map.of("app", "my-app", "tier", "backend"));
