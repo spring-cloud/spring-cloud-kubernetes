@@ -51,6 +51,11 @@ final class SecretKubernetesSource implements KubernetesSource {
 	}
 
 	@Override
+	public String requiredResourceLabel() {
+		return ConfigurationWatcherConfigurationProperties.SECRET_LABEL;
+	}
+
+	@Override
 	public Set<String> serviceNames() {
 		return serviceNames;
 	}

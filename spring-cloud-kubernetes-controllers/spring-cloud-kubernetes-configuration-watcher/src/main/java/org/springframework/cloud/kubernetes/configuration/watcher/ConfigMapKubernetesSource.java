@@ -51,6 +51,11 @@ final class ConfigMapKubernetesSource implements KubernetesSource {
 	}
 
 	@Override
+	public String requiredResourceLabel() {
+		return ConfigurationWatcherConfigurationProperties.CONFIG_MAP_LABEL;
+	}
+
+	@Override
 	public Set<String> serviceNames() {
 		return serviceNames;
 	}

@@ -18,9 +18,11 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 
@@ -45,15 +47,29 @@ final class WatcherUtil {
 			Function<KubernetesSource, Mono<Void>> triggerRefresh) {
 
 		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject);
+		String name = kubernetesObject.getMetadata().getName();
+		String label = kubernetesSource.requiredResourceLabel();
+
+		if (!isSpringCloudKubernetes(kubernetesObject, label)) {
+			LOG.debug(() -> "Not publishing event : " + kubernetesSource.description() + ": " + name
+					+ " does not contain the label " + label);
+			return;
+		}
 
 		// we need defer, because otherwise triggerRefresh.apply(kubernetesSource) is
-		// called
-		// when the pipeline is being built, not when it's run.
+		// called when the pipeline is being built, not when it's run.
 		Mono.delay(Duration.ofMillis(refreshDelay), scheduler)
 			.then(Mono.defer(() -> triggerRefresh.apply(kubernetesSource)))
 			.doOnSuccess(ignored -> LOG.debug(() -> "Finished refreshing " + kubernetesSource.description()))
 			.doOnError(t -> LOG.warn(t, "Error when refreshing " + kubernetesSource.description()))
 			.subscribe();
+	}
+
+	static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
+		if (kubernetesObject.getMetadata() == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(labels(kubernetesObject).getOrDefault(label, "false"));
 	}
 
 	static boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> inputLabels) {
@@ -63,6 +79,10 @@ final class WatcherUtil {
 				+ serviceInstance.getServiceId() + "/" + serviceInstance.getInstanceId() + " on metadata " + metadata);
 
 		return inputLabels.entrySet().stream().allMatch(entry -> entry.getValue().equals(metadata.get(entry.getKey())));
+	}
+
+	private static Map<String, String> labels(KubernetesObject kubernetesObject) {
+		return Optional.ofNullable(kubernetesObject.getMetadata()).map(V1ObjectMeta::getLabels).orElse(Map.of());
 	}
 
 }
