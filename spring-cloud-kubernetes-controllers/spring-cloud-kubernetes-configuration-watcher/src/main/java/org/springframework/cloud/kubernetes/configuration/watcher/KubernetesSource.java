@@ -34,6 +34,8 @@ sealed interface KubernetesSource permits ConfigMapKubernetesSource, SecretKuber
 
 	String description();
 
+	String requiredResourceLabel();
+
 	Set<String> serviceNames();
 
 	Map<String, String> serviceLabels();
