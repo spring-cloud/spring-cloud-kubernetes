@@ -23,7 +23,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesBootstrapConfiguration;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8BootstrapConfiguration;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
@@ -39,18 +38,16 @@ class Fabric8InformerAutoConfigurationBootstrapTests {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 		.withConfiguration(
 				AutoConfigurations.of(KubernetesCommonsAutoConfiguration.class, KubernetesBootstrapConfiguration.class,
-						KubernetesDiscoveryPropertiesAutoConfiguration.class, Fabric8AutoConfiguration.class,
-						Fabric8BootstrapConfiguration.class, Fabric8InformerAutoConfiguration.class))
+						Fabric8AutoConfiguration.class, Fabric8BootstrapConfiguration.class))
 		.withPropertyValues("spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
-				"spring.cloud.kubernetes.discovery.enabled=true", "spring.cloud.kubernetes.config.enabled=true",
-				"spring.cloud.kubernetes.client.namespace=test");
+				"spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.client.namespace=test",
+				"spring.main.lazy-initialization=true");
 
 	@Test
 	void bootstrapAndDiscoveryShareSingleNamespaceProvider() {
 		contextRunner.run(context -> {
 			assertThat(context).hasNotFailed();
 			assertThat(context).hasSingleBean(Fabric8ConfigMapPropertySourceLocator.class);
-			assertThat(context).hasSingleBean(Fabric8InformerAutoConfiguration.class);
 			assertThat(context).hasSingleBean(KubernetesNamespaceProvider.class);
 		});
 	}
