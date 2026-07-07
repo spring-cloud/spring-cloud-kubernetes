@@ -36,26 +36,29 @@ env:
     value: "namespace-a"
 ----
 
-This one lets watcher know where to search for secrets and configmaps. You have two options here: selective namespaces (the setting above) and a namespace chosen by xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] (this is the default option).
+This tells the watcher where to search for Secrets and ConfigMaps. You have two options here: selective namespaces (the setting above) and a namespace chosen by xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] (this is the default option).
 Keep in mind that all these options require proper RBAC rules.
 
-<<<<<<< HEAD
-Changes from configmaps/secrets will only trigger an event being fired from configuration watcher if that particular change came from a source that has a label: `spring.cloud.kubernetes.config=true` or `spring.cloud.kubernetes.secret=true`.
-
-To put it simpler, if you change a configmap (or secret), that does _not_ have the label above, configuration watcher will skip firing an event for it (if you enabled debug logging, this will be visible in logs).
-
-By default, configuration watcher will monitor all configmaps/secrets in the configured namespace(s). If you want to watch only particular sources, you can do that by choosing only sources with some labels:
+Configuration Watcher can monitor ConfigMaps and Secrets in the configured namespace(s). If you want it to react only to particular sources, configure label filters for the watched resources:
 
 [source]
 ----
 spring.cloud.kubernetes.reload.config-maps-labels[a]=b
-=======
-By default, Configuration Watcher monitors only ConfigMaps labeled:
+spring.cloud.kubernetes.reload.secrets-labels[x]=y
+----
 
-[source]
+or via environment variables in the watcher deployment:
+
+[source,yaml]
 ----
-spring.cloud.kubernetes.config: "true"
+env:
+  - name: SPRING_CLOUD_KUBERNETES_RELOAD_CONFIG_MAPS_LABELS_A
+    value: "b"
+  - name: SPRING_CLOUD_KUBERNETES_RELOAD_SECRETS_LABELS_X
+    value: "y"
 ----
+
+When such filters are configured, only ConfigMaps or Secrets matching those labels will trigger a refresh event.
 
 Secrets are not monitored by default. To enable Secret monitoring, set:
 
@@ -66,19 +69,6 @@ env:
     value: "TRUE"
 ----
 
-
-or via environment variables in the watcher Deployment:
-
-[source,yaml]
-----
-env:
-  - name: SPRING_CLOUD_KUBERNETES_RELOAD_CONFIG_MAPS_LABELS_MY_CONFIGMAP_LABEL
-    value: "my-configmap-value"
-  - name: SPRING_CLOUD_KUBERNETES_RELOAD_SECRETS_LABELS_MY_SECRET_LABEL
-    value: "my-secret-value"
-----
-
-
 One more important configuration, especially for configmaps and secrets that are mounted as volumes (via `spring.config.import`) is:
 
 [source]
@@ -87,7 +77,7 @@ One more important configuration, especially for configmaps and secrets that are
   value: "10000"
 ----
 
-This tells how many milliseconds should we wait before firing the event from configuration watcher. This is important because kubernetes documentation says:
+This tells the watcher how many milliseconds to wait before firing the refresh event. This is important because Kubernetes documentation says:
 
 > When a ConfigMap currently consumed in a volume is updated, projected keys are eventually updated as well.
 
@@ -186,13 +176,13 @@ The controller needs access to read data about ConfigMaps, Pods, Services, Endpo
 
 ## Monitoring ConfigMaps and Secrets
 
-If a change is made to a ConfigMap or Secret with valid labels (as detailed above), then Spring Cloud Kubernetes Configuration Watcher will take the name of the ConfigMap or Secret
+If a change is made to a ConfigMap or Secret that matches the configured watcher labels, then Spring Cloud Kubernetes Configuration Watcher will take the name of the ConfigMap or Secret
 and send a notification to the application with that name. This might not be enough for your use-case though, you could for example want to:
 
 - bind a config-map to multiple applications, so that a change inside a single configmap triggers a refresh for many services
 - have profile based sources trigger events for your application
 
-For that reasons there is an addition annotation you could specify:
+For those cases there are additional annotations you can specify:
 
 `spring.cloud.kubernetes.configmap.apps` or `spring.cloud.kubernetes.secret.apps`. It takes a String of apps separated by comma,
 that specifies the names of applications that will receive a notification when changes happen in this secret/configmap.
@@ -205,8 +195,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: example-configmap
-  labels:
-    spring.cloud.kubernetes.config: "true"
   annotations:
     spring.cloud.kubernetes.configmap.apps: "app-a, app-b"
 ----
@@ -234,8 +222,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: example-configmap
-  labels:
-    spring.cloud.kubernetes.config: "true"
   annotations:
     spring.cloud.kubernetes.configmap.labels: "app=demo,tier=backend"
 ----
