@@ -39,9 +39,7 @@ class Fabric8InformerAutoConfigurationBootstrapTests {
 		.withConfiguration(
 				AutoConfigurations.of(KubernetesCommonsAutoConfiguration.class, KubernetesBootstrapConfiguration.class,
 						Fabric8AutoConfiguration.class, Fabric8BootstrapConfiguration.class))
-		.withPropertyValues("spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true",
-				"spring.cloud.kubernetes.config.enabled=true", "spring.cloud.kubernetes.client.namespace=test",
-				"spring.main.lazy-initialization=true");
+		.withPropertyValues("spring.main.cloud-platform=KUBERNETES", "spring.cloud.bootstrap.enabled=true");
 
 	@Test
 	void bootstrapAndDiscoveryShareSingleNamespaceProvider() {
