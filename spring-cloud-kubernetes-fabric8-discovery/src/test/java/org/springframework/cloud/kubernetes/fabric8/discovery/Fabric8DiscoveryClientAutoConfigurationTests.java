@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.kubernetes.fabric8.discovery;
 
+import java.util.List;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +38,8 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.cloud.config.enabled=false",
-				"spring.cloud.kubernetes.discovery.use-endpoint-slices=false" })
+				"spring.cloud.kubernetes.discovery.use-endpoint-slices=false",
+				"spring.cloud.kubernetes.discovery.namespaces=a,b,c" })
 @EnableKubernetesMockClient(crud = true, https = false)
 class Fabric8DiscoveryClientAutoConfigurationTests {
 
@@ -44,6 +48,9 @@ class Fabric8DiscoveryClientAutoConfigurationTests {
 	@Autowired
 	private DiscoveryClient discoveryClient;
 
+	@Autowired
+	private ApplicationContext applicationContext;
+
 	@Test
 	void kubernetesDiscoveryClientCreated() {
 		assertThat(this.discoveryClient).isInstanceOf(CompositeDiscoveryClient.class);
@@ -51,6 +58,15 @@ class Fabric8DiscoveryClientAutoConfigurationTests {
 		CompositeDiscoveryClient composite = (CompositeDiscoveryClient) this.discoveryClient;
 		assertThat(composite.getDiscoveryClients().stream().anyMatch(dc -> dc instanceof Fabric8DiscoveryClient))
 			.isTrue();
+	}
+
+	/**
+	 * Regression test for issue 2272: <a href=
+	 * "https://github.com/spring-cloud/spring-cloud-kubernetes/issues/2272">...</a>
+	 */
+	@Test
+	void shouldIgnoreArbitraryStringBeansWhenResolvingSelectiveNamespaces() {
+		assertThat(applicationContext.getBean("serviceSharedIndexInformers", List.class)).hasSize(3);
 	}
 
 	@SpringBootApplication
@@ -66,6 +82,11 @@ class Fabric8DiscoveryClientAutoConfigurationTests {
 		@Bean
 		KubernetesClient kubernetesClient() {
 			return kubernetesClient;
+		}
+
+		@Bean
+		String anyProperty() {
+			return "d";
 		}
 
 	}

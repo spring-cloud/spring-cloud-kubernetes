@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.client.informers.cache.Lister;
 import org.assertj.core.util.Strings;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 
 import static java.util.stream.Collectors.toList;
 
@@ -46,7 +47,7 @@ abstract class Fabric8DiscoveryClientBase {
 	private final Fabric8InformerAutoConfiguration configuration = new Fabric8InformerAutoConfiguration();
 
 	Fabric8DiscoveryClient fabric8DiscoveryClient(KubernetesDiscoveryProperties properties,
-			List<String> selectiveNamespaces, KubernetesClient kubernetesClient) {
+			SelectiveNamespaces selectiveNamespaces, KubernetesClient kubernetesClient) {
 		List<SharedIndexInformer<Service>> serviceInformers = configuration
 			.serviceSharedIndexInformers(selectiveNamespaces, kubernetesClient, properties);
 		List<SharedIndexInformer<Endpoints>> endpointsInformers = configuration

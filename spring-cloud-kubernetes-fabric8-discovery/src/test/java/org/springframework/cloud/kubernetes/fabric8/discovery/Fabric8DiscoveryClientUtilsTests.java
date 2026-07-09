@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 
 import static org.springframework.cloud.kubernetes.fabric8.discovery.Fabric8DiscoveryClientUtils.endpointSubsetsPortData;
 
@@ -74,7 +75,8 @@ class Fabric8DiscoveryClientUtilsTests extends Fabric8DiscoveryClientBase {
 		createEndpoints("serviceA", "A", Map.of());
 		createEndpoints("serviceA", "B", Map.of());
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -107,7 +109,8 @@ class Fabric8DiscoveryClientUtilsTests extends Fabric8DiscoveryClientBase {
 		createEndpoints("serviceA", "B", Map.of());
 		createEndpoints("serviceA", "C", Map.of());
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("A", "B"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("A", "B")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -141,7 +144,8 @@ class Fabric8DiscoveryClientUtilsTests extends Fabric8DiscoveryClientBase {
 		createEndpoints("serviceA", "B", Map.of());
 		createEndpoints("serviceA", "C", Map.of());
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("A"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("A")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);

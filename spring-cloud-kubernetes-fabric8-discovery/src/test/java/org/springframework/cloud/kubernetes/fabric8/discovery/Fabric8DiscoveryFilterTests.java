@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -76,7 +77,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceA", "serviceA", Map.of("color", "red"));
 		endpoints("namespaceB", "serviceA", Map.of("color", "blue"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -111,7 +113,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceA", "serviceA", Map.of("color", "red"));
 		endpoints("namespaceB", "serviceA", Map.of("color", "blue"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -149,7 +152,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, spelFilter, Set.of(), labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -190,7 +194,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceB", "serviceA", Map.of("color", "blue"));
 		endpoints("namespaceC", "serviceA", Map.of("color", "purple"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -225,7 +230,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceA", "serviceA", Map.of("color", "red"));
 		endpoints("namespaceB", "serviceA", Map.of("color", "blue"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespaceA"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of("namespaceA")), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -263,8 +269,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceB", "serviceA", Map.of("color", "purple"));
 		endpoints("namespaceC", "serviceA", Map.of("color", "purple"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespaceA", "namespaceB"),
-				client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of("namespaceA", "namespaceB")), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -307,8 +313,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceB", "serviceA", Map.of("color", "purple"));
 		endpoints("namespaceC", "serviceA", Map.of("color", "purple"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespaceA", "namespaceB"),
-				client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of("namespaceA", "namespaceB")), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -347,8 +353,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceB", "serviceA", Map.of());
 		endpoints("namespaceC", "serviceA", Map.of());
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespaceA", "namespaceB"),
-				client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of("namespaceA", "namespaceB")), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(2);
@@ -389,8 +395,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceB", "serviceA", Map.of("color", "red"));
 		endpoints("namespaceC", "serviceA", Map.of("color", "purple"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespaceA", "namespaceB"),
-				client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of("namespaceA", "namespaceB")), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -432,8 +438,8 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		endpoints("namespaceB", "serviceA", Map.of("color", "purple", "cycle", "create"));
 		endpoints("namespaceC", "serviceA", Map.of("color", "purple", "number", "1"));
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("namespaceA", "namespaceB"),
-				client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of("namespaceA", "namespaceB")), client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
