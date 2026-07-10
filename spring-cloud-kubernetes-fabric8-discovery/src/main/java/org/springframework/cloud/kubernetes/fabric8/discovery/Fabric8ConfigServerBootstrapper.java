@@ -34,6 +34,7 @@ import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.KubernetesConfigServerBootstrapper;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
 
 /**
@@ -82,7 +83,7 @@ final class Fabric8ConfigServerBootstrapper extends KubernetesConfigServerBootst
 						propertyResolver.get(KubernetesNamespaceProvider.NAMESPACE_PROPERTY, String.class, null));
 
 				Fabric8InformerAutoConfiguration fabric8InformerAutoConfiguration = new Fabric8InformerAutoConfiguration();
-				List<String> selectiveNamespaces = fabric8InformerAutoConfiguration
+				SelectiveNamespaces selectiveNamespaces = fabric8InformerAutoConfiguration
 					.selectiveNamespaces(discoveryProperties, kubernetesClient, kubernetesNamespaceProvider);
 				List<SharedIndexInformer<Service>> serviceInformers = fabric8InformerAutoConfiguration
 					.serviceSharedIndexInformers(selectiveNamespaces, kubernetesClient, discoveryProperties);
