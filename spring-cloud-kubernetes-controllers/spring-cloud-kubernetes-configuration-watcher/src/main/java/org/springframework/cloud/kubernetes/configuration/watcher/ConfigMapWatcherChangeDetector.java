@@ -41,6 +41,8 @@ abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 
 	private final Scheduler scheduler;
 
+	private final ConfigReloadProperties reloadProperties;
+
 	/**
 	 * <pre>
 	 * Read refreshDelay from the properties bean when handling an event instead of
@@ -67,13 +69,14 @@ abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
+		this.reloadProperties = properties;
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 	}
 
 	@Override
 	protected final void onEvent(KubernetesObject configMap) {
-		WatcherUtil.onEvent(configMap, k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler,
-				this::triggerRefresh);
+		WatcherUtil.onEvent(configMap, reloadProperties.configMapsApps(),
+				k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler, this::triggerRefresh);
 	}
 
 }
