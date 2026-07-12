@@ -177,7 +177,7 @@ class PollingReloadSecretTest {
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, false, Map.of(), true, Map.of(),
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.POLLING,
-					Duration.ofMillis(2000), Set.of("non-default"), Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of("non-default"), Duration.ofSeconds(2), List.of(), List.of());
 		}
 
 		@Bean

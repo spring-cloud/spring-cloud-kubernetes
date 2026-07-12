@@ -282,7 +282,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		// properties
 		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, Map.of(), true, Map.of(),
 				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of(), Duration.ofSeconds(2));
+				Duration.ofMillis(15000), Set.of(), Duration.ofSeconds(2), List.of(), List.of());
 
 		// namespace provider
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);

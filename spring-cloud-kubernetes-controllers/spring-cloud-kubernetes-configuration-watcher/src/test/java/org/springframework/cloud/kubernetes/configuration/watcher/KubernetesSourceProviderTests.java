@@ -224,4 +224,76 @@ class KubernetesSourceProviderTests {
 		assertThat(source.serviceNames()).containsExactly("app-from-property");
 	}
 
+	/**
+	 * <pre>
+	 * 	- no apps are configured on the watcher itself
+	 * 	- the ConfigMap has spring.cloud.kubernetes.configmap.apps
+	 * 	- that annotation must win over the ConfigMap metadata.name fallback
+	 * </pre>
+	 */
+	@Test
+	void configMapServiceNamesAnnotationOverridesMetadataNameWhenConfiguredAppsMissing() {
+		V1ConfigMap configMap = new V1ConfigMapBuilder()
+			.withMetadata(
+					new V1ObjectMeta().name("my-configmap")
+						.annotations(Map.of(ConfigMapKubernetesSource.CONFIGMAP_SERVICE_NAMES_ANNOTATION,
+								"app-from-annotation")))
+			.build();
+
+		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(configMap, List.of());
+
+		assertThat(source.serviceNames()).containsExactly("app-from-annotation");
+	}
+
+	/**
+	 * <pre>
+	 * 	- no apps are configured on the watcher itself
+	 * 	- the Secret has spring.cloud.kubernetes.secret.apps
+	 * 	- that annotation must win over the Secret metadata.name fallback
+	 * </pre>
+	 */
+	@Test
+	void secretServiceNamesAnnotationOverridesMetadataNameWhenConfiguredAppsMissing() {
+		V1Secret secret = new V1SecretBuilder()
+			.withMetadata(new V1ObjectMeta().name("my-secret")
+				.annotations(Map.of(SecretKubernetesSource.SECRET_SERVICE_NAMES_ANNOTATION, "app-from-annotation")))
+			.build();
+
+		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(secret, List.of());
+
+		assertThat(source.serviceNames()).containsExactly("app-from-annotation");
+	}
+
+	/**
+	 * <pre>
+	 * 	- no apps are configured on the watcher itself
+	 * 	- the ConfigMap has no spring.cloud.kubernetes.configmap.apps annotation
+	 * 	- we must fall back to ConfigMap metadata.name
+	 * </pre>
+	 */
+	@Test
+	void configMapServiceNamesFallbackToMetadataNameWhenConfiguredAppsAndAnnotationMissing() {
+		V1ConfigMap configMap = new V1ConfigMapBuilder().withMetadata(new V1ObjectMeta().name("my-configmap")).build();
+
+		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(configMap, List.of());
+
+		assertThat(source.serviceNames()).containsExactly("my-configmap");
+	}
+
+	/**
+	 * <pre>
+	 * 	- no apps are configured on the watcher itself
+	 * 	- the Secret has no spring.cloud.kubernetes.secret.apps annotation
+	 * 	- we must fall back to Secret metadata.name
+	 * </pre>
+	 */
+	@Test
+	void secretServiceNamesFallbackToMetadataNameWhenConfiguredAppsAndAnnotationMissing() {
+		V1Secret secret = new V1SecretBuilder().withMetadata(new V1ObjectMeta().name("my-secret")).build();
+
+		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(secret, List.of());
+
+		assertThat(source.serviceNames()).containsExactly("my-secret");
+	}
+
 }

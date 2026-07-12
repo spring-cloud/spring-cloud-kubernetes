@@ -74,7 +74,7 @@ abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEvent
 
 	@Override
 	protected final void onEvent(KubernetesObject secret) {
-		WatcherUtil.onEvent(secret, reloadProperties.secretsApps(),
+		WatcherUtil.onEvent(secret, reloadProperties.secretApps(),
 				k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler, this::triggerRefresh);
 	}
 

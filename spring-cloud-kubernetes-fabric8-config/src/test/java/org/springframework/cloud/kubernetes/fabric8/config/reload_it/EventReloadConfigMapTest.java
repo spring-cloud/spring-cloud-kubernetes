@@ -160,7 +160,7 @@ class EventReloadConfigMapTest {
 		ConfigReloadProperties configReloadProperties() {
 			return new ConfigReloadProperties(true, true, Map.of(), false, Map.of(),
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
 		}
 
 		@Bean

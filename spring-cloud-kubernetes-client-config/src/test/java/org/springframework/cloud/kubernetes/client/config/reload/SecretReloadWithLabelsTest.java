@@ -164,7 +164,7 @@ class SecretReloadWithLabelsTest {
 		ConfigReloadProperties properties = new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels,
 				monitorSecrets, secretsLabels, ConfigReloadProperties.ReloadStrategy.REFRESH,
 				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(),
-				Duration.ofSeconds(2));
+				Duration.ofSeconds(2), List.of(), List.of());
 
 		// change detector
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(

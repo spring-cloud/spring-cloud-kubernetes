@@ -204,7 +204,7 @@ abstract class CommonAbstractFiltering {
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
 		}
 
 		@Bean
@@ -219,7 +219,7 @@ abstract class CommonAbstractFiltering {
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
 		}
 
 	}

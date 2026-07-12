@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,7 +37,7 @@ class KubernetesClientConfigUtilsTests {
 	void testNamespacesFromProperties() {
 		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, Map.of(), false, Map.of(),
 				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of("non-default"), Duration.ofSeconds(2));
+				Duration.ofMillis(15000), Set.of("non-default"), Duration.ofSeconds(2), List.of(), List.of());
 		Set<String> namespaces = KubernetesClientConfigUtils
 			.namespaces(new KubernetesNamespaceProvider(new MockEnvironment()), properties, "configmap");
 		Assertions.assertThat(1).isEqualTo(namespaces.size());

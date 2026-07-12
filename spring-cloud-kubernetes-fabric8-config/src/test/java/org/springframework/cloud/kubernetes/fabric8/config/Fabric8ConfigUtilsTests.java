@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,7 +40,7 @@ class Fabric8ConfigUtilsTests {
 		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties(false, true, Map.of(), false,
 				Map.of(), ConfigReloadProperties.ReloadStrategy.REFRESH,
 				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of("non-default"),
-				Duration.ofSeconds(2));
+				Duration.ofSeconds(2), List.of(), List.of());
 		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null,
 				new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
 		Assertions.assertThat(namespaces.size()).isEqualTo(1);

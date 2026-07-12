@@ -75,7 +75,7 @@ abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 
 	@Override
 	protected final void onEvent(KubernetesObject configMap) {
-		WatcherUtil.onEvent(configMap, reloadProperties.configMapsApps(),
+		WatcherUtil.onEvent(configMap, reloadProperties.configMapApps(),
 				k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler, this::triggerRefresh);
 	}
 

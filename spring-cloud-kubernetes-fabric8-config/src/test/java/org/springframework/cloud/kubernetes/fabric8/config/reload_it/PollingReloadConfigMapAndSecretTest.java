@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -174,7 +175,7 @@ class PollingReloadConfigMapAndSecretTest {
 	private static ConfigReloadProperties configReloadProperties() {
 		return new ConfigReloadProperties(true, true, Map.of(), true, Map.of(),
 				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.POLLING,
-				Duration.ofMillis(200), Set.of(NAMESPACE), Duration.ofSeconds(2));
+				Duration.ofMillis(200), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
 	}
 
 	@TestConfiguration

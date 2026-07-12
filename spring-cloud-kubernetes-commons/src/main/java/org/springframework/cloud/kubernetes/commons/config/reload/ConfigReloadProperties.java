@@ -42,9 +42,9 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * avoid having all instances of the same application restart at the same time. This
  * property configures the maximum of amount of wait time from the moment the signal is
  * received that a restart is needed until the moment the restart is actually triggered
- * @param configMapsApps Applications to refresh when a watched ConfigMap changes. Takes
+ * @param configMapApps Applications to refresh when a watched ConfigMap changes. Takes
  * precedence over the {@code spring.cloud.kubernetes.configmap.apps} annotation.
- * @param secretsApps Applications to refresh when a watched Secret changes. Takes
+ * @param secretApps Applications to refresh when a watched Secret changes. Takes
  * precedence over the {@code spring.cloud.kubernetes.secret.apps} annotation.
  * @author Nicola Ferraro
  */
@@ -54,7 +54,7 @@ public record ConfigReloadProperties(boolean enabled, @DefaultValue("true") bool
 		@DefaultValue Map<String, String> secretsLabels, @DefaultValue("REFRESH") ReloadStrategy strategy,
 		@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
 		@DefaultValue Set<String> namespaces, @DefaultValue("2s") Duration maxWaitForRestart,
-		@DefaultValue List<String> configMapsApps, @DefaultValue List<String> secretsApps) {
+		@DefaultValue List<String> configMapApps, @DefaultValue List<String> secretApps) {
 
 	/**
 	 * default instance.
