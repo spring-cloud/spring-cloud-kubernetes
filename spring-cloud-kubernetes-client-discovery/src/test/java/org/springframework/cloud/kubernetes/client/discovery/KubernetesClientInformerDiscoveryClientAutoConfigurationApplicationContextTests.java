@@ -612,6 +612,33 @@ class KubernetesClientInformerDiscoveryClientAutoConfigurationApplicationContext
 		});
 	}
 
+	/**
+	 * Regression test for issue 2272: <a href=
+	 * "https://github.com/spring-cloud/spring-cloud-kubernetes/issues/2272">...</a>
+	 */
+	@Test
+	void shouldIgnoreArbitraryStringBeansWhenResolvingSelectiveNamespaces() {
+
+		mockEndpointsAndServices(List.of("a", "b", "c", "d"), API_SERVER);
+
+		setup("spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.namespaces=a,b,c");
+		applicationContextRunner.withBean("anyProperty", String.class, () -> "d").run(context -> {
+			assertThat(context).hasSingleBean(KubernetesClientInformerDiscoveryClient.class);
+			assertThat(context).hasSingleBean(KubernetesClientInformerReactiveDiscoveryClient.class);
+
+			assertThat(context).getBeans(KubernetesDiscoveryClientHealthIndicatorInitializer.class).hasSize(2);
+			assertThat(context).getBeans(ReactiveDiscoveryClientHealthIndicator.class).hasSize(2);
+			// reactive is enabled and non-cacheable is the default option
+			assertThat(context).hasBean("nonCacheableReactiveDiscoveryClientHealthIndicator");
+			// from commons, not ours
+			assertThat(context).hasBean("simpleReactiveDiscoveryClientHealthIndicator");
+
+			// the unrelated String bean must not override the configured selective
+			// namespaces
+			assertInformerBeansPresent(context, 3);
+		});
+	}
+
 	private void setup(String... properties) {
 		applicationContextRunner = new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(
