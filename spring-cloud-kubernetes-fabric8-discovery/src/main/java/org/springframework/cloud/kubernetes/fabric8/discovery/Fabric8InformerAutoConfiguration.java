@@ -36,6 +36,7 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.fabric8.Fabric8AutoConfiguration;
@@ -64,27 +65,27 @@ final class Fabric8InformerAutoConfiguration {
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	List<String> selectiveNamespaces(KubernetesDiscoveryProperties properties, KubernetesClient kubernetesClient,
+	SelectiveNamespaces selectiveNamespaces(KubernetesDiscoveryProperties properties, KubernetesClient kubernetesClient,
 			KubernetesNamespaceProvider namespaceProvider) {
 
 		if (!properties.namespaces().isEmpty()) {
 			LOG.debug(() -> "discovering endpoints in namespaces : " + properties.namespaces());
-			return properties.namespaces().stream().toList();
+			return new SelectiveNamespaces(properties.namespaces().stream().toList());
 		}
 
 		if (properties.allNamespaces()) {
 			LOG.debug(() -> "discovering endpoints in all namespaces");
-			return List.of("");
+			return new SelectiveNamespaces(List.of(""));
 		}
 
 		String namespace = getApplicationNamespace(kubernetesClient, null, "fabric8 discovery", namespaceProvider);
 		LOG.debug(() -> "discovering endpoints in namespace : " + namespace);
-		return List.of(namespace);
+		return new SelectiveNamespaces(List.of(namespace));
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(value = Service.class, parameterizedContainer = { List.class, SharedIndexInformer.class })
-	List<SharedIndexInformer<Service>> serviceSharedIndexInformers(List<String> selectiveNamespaces,
+	List<SharedIndexInformer<Service>> serviceSharedIndexInformers(SelectiveNamespaces selectiveNamespaces,
 			KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
@@ -98,7 +99,7 @@ final class Fabric8InformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = Service.class, parameterizedContainer = { List.class, Lister.class })
-	List<Lister<Service>> serviceListers(List<String> selectiveNamespaces,
+	List<Lister<Service>> serviceListers(SelectiveNamespaces selectiveNamespaces,
 			List<SharedIndexInformer<Service>> serviceSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
@@ -117,7 +118,7 @@ final class Fabric8InformerAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(value = Endpoints.class,
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
-	List<SharedIndexInformer<Endpoints>> endpointsSharedIndexInformers(List<String> selectiveNamespaces,
+	List<SharedIndexInformer<Endpoints>> endpointsSharedIndexInformers(SelectiveNamespaces selectiveNamespaces,
 			KubernetesClient kubernetesClient, KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
@@ -131,7 +132,7 @@ final class Fabric8InformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = Endpoints.class, parameterizedContainer = { List.class, Lister.class })
-	List<Lister<Endpoints>> endpointsListers(List<String> selectiveNamespaces,
+	List<Lister<Endpoints>> endpointsListers(SelectiveNamespaces selectiveNamespaces,
 			List<SharedIndexInformer<Endpoints>> endpointsSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
