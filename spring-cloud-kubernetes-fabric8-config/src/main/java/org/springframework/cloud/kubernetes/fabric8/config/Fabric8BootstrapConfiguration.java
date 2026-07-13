@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesConfigEnabled;
 import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesSecretsEnabled;
@@ -54,7 +55,8 @@ import org.springframework.core.env.Environment;
 public class Fabric8BootstrapConfiguration {
 
 	@Bean
-	KubernetesNamespaceProvider provider(Environment env) {
+	@ConditionalOnMissingBean
+	KubernetesNamespaceProvider kubernetesNamespaceProvider(Environment env) {
 		return new KubernetesNamespaceProvider(env);
 	}
 

@@ -16,9 +16,46 @@ spring:
     import: "kubernetes:"
 ----
 
+=== Property source precedence
+
+Kubernetes property sources loaded with `spring.config.import` follow Spring Boot's
+Config Data precedence rules. Imported configuration has higher precedence than the
+configuration document that declares the import. For example, when the import is
+declared in `application.yaml`, a value from `kubernetes:` overrides the same value
+from that document.
+
+When multiple locations are configured in `spring.config.import`, they are processed
+in the order in which they are declared. A later import has higher precedence than an
+earlier import. For example:
+
+[source,yaml]
+----
+spring:
+  config:
+    import:
+      - "optional:configserver:"
+      - "kubernetes:"
+----
+
+In this example, Kubernetes configuration overrides Config Server configuration, and
+both override values from the configuration document that declares these imports.
+Reversing the two imports makes Config Server configuration override Kubernetes
+configuration.
+
+Higher-precedence Spring Boot property sources, such as command-line arguments, Java
+system properties, and operating system environment variables, still override values
+loaded through `spring.config.import`.
+
 If you would like to load Kubernetes ``PropertySource``s during the bootstrap phase like it worked prior to the 3.0.x release
 you can either add `spring-cloud-starter-bootstrap` to your application's classpath or set `spring.cloud.bootstrap.enabled=true`
 as an environment variable.
 
-NOTE: It is not supported to load properties during Bootstrap (using `spring-cloud-starter-bootstrap` or `spring.cloud.bootstrap.enabled=true` and load properties using `spring.config.import`.  You must use one or the other method.
+When legacy bootstrap is used, `bootstrap.yaml` configures the bootstrap context. It
+does not control the relative precedence of the remote property sources located by
+that context. Kubernetes ConfigMap and Config Server property source locators both
+have order `0`, so applications should not rely on a particular precedence between
+them. The Kubernetes Secret property source locator has order `1`. Use
+`spring.config.import` when deterministic ordering between Kubernetes and Config
+Server configuration is required.
 
+NOTE: It is not supported to load properties during Bootstrap (using `spring-cloud-starter-bootstrap` or `spring.cloud.bootstrap.enabled=true` and load properties using `spring.config.import`.  You must use one or the other method.

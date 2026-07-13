@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -146,7 +147,7 @@ abstract class KubernetesClientDiscoveryClientServiceLabelsFiltering {
 		mockEndpointsCallAllNamespacesNoLabels();
 	}
 
-	KubernetesClientInformerDiscoveryClient createAndStartListers(List<String> namespaces,
+	KubernetesClientInformerDiscoveryClient createAndStartListers(SelectiveNamespaces namespaces,
 			KubernetesDiscoveryProperties properties) {
 		List<SharedInformerFactory> sharedInformerFactories = CONFIGURATION.sharedInformerFactories(apiClient,
 				namespaces);

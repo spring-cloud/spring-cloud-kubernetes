@@ -43,6 +43,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfigura
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryPropertiesAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnBlockingOrReactiveDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.commons.discovery.conditionals.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.context.annotation.Bean;
@@ -75,27 +76,28 @@ public final class KubernetesClientInformerAutoConfiguration {
 	// we rely on the order of namespaces to enable listers, as such provide a bean of
 	// namespaces as a list, instead of the incoming Set.
 	@Bean
-	List<String> selectiveNamespace(KubernetesDiscoveryProperties properties, KubernetesNamespaceProvider provider) {
+	SelectiveNamespaces selectiveNamespace(KubernetesDiscoveryProperties properties,
+			KubernetesNamespaceProvider provider) {
 
 		if (properties.allNamespaces()) {
 			LOG.debug(() -> "serviceSharedInformer will use all-namespaces");
-			return List.of(NAMESPACE_ALL);
+			return new SelectiveNamespaces(List.of(NAMESPACE_ALL));
 		}
 
 		if (properties.namespaces() != null && !properties.namespaces().isEmpty()) {
 			List<String> selectiveNamespaces = properties.namespaces().stream().sorted().toList();
 			LOG.debug(() -> "serviceSharedInformers will use selective namespaces : " + selectiveNamespaces);
-			return selectiveNamespaces;
+			return new SelectiveNamespaces(selectiveNamespaces);
 		}
 
 		String namespace = getApplicationNamespace(null, "kubernetes client discovery", provider);
 		LOG.debug(() -> "using namespace : " + namespace);
-		return List.of(namespace);
+		return new SelectiveNamespaces(List.of(namespace));
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(value = SharedInformerFactory.class, parameterizedContainer = List.class)
-	List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, List<String> selectiveNamespaces) {
+	List<SharedInformerFactory> sharedInformerFactories(ApiClient apiClient, SelectiveNamespaces selectiveNamespaces) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
 		List<SharedInformerFactory> sharedInformerFactories = new ArrayList<>(howManyNamespaces);
@@ -109,7 +111,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 	@ConditionalOnMissingBean(value = V1Service.class,
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers(
-			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces, CoreV1Api api,
+			List<SharedInformerFactory> sharedInformerFactories, SelectiveNamespaces selectiveNamespaces, CoreV1Api api,
 			KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
@@ -128,7 +130,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Service.class, parameterizedContainer = { List.class, Lister.class })
-	List<Lister<V1Service>> serviceListers(List<String> selectiveNamespaces,
+	List<Lister<V1Service>> serviceListers(SelectiveNamespaces selectiveNamespaces,
 			List<SharedIndexInformer<V1Service>> serviceSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
@@ -148,7 +150,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 	@ConditionalOnMissingBean(value = V1Endpoints.class,
 			parameterizedContainer = { List.class, SharedIndexInformer.class })
 	List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers(
-			List<SharedInformerFactory> sharedInformerFactories, List<String> selectiveNamespaces, CoreV1Api api,
+			List<SharedInformerFactory> sharedInformerFactories, SelectiveNamespaces selectiveNamespaces, CoreV1Api api,
 			KubernetesDiscoveryProperties properties) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
@@ -167,7 +169,7 @@ public final class KubernetesClientInformerAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(value = V1Endpoints.class, parameterizedContainer = { List.class, Lister.class })
-	List<Lister<V1Endpoints>> endpointsListers(List<String> selectiveNamespaces,
+	List<Lister<V1Endpoints>> endpointsListers(SelectiveNamespaces selectiveNamespaces,
 			List<SharedIndexInformer<V1Endpoints>> endpointsSharedIndexInformers) {
 
 		int howManyNamespaces = selectiveNamespaces.size();
