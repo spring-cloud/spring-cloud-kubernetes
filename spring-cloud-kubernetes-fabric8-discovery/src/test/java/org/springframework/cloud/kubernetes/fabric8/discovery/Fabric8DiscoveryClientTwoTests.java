@@ -45,6 +45,7 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.ExternalNameKubernetesServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 
 /**
  * @author wind57
@@ -85,7 +86,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 			.build();
 		client.services().inNamespace("test").resource(service).create();
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceId");
 
 		Assertions.assertThat(result).isEmpty();
@@ -116,7 +118,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -148,7 +151,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -180,7 +184,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 
 		Assertions.assertThat(result).isEmpty();
@@ -221,7 +226,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("service-one");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -258,7 +264,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(""), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("service-one");
 		Assertions.assertThat(result.size()).isEqualTo(2);
 		Assertions.assertThat(result.stream().map(x -> x.getMetadata().get("k8s_namespace")).sorted().toList())
@@ -287,7 +294,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("serviceId");
 		Assertions.assertThat(result).isEmpty();
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
@@ -317,7 +325,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
@@ -348,7 +357,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
@@ -378,7 +388,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result).isEmpty();
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
@@ -416,7 +427,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("service-one");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
@@ -453,7 +465,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("service-one");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(result.stream().map(x -> x.getMetadata().get("k8s_namespace")).sorted().toList())
@@ -480,7 +493,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, allNamespaces, namespaces,
 				true, 60L, false, "", Set.of(), serviceLabels, "", null, 0, false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("service-one");
 		Assertions.assertThat(result).isEmpty();
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
@@ -510,7 +524,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("test")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : test");
@@ -550,7 +565,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("a"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("a")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		Assertions.assertThat(result.get(0).getMetadata())
@@ -589,7 +605,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), serviceLabels, "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
 				false, false, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("a", "b"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("a", "b")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(2);
 		Assertions.assertThat(output.getOut()).contains("discovering endpoints in namespace : a");
@@ -633,7 +650,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 				true, 60L, false, "", Set.of(), Map.of(), "", KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
 				true, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("a", "b"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("a", "b")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(3);
 	}
@@ -656,7 +674,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
 				60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("a", "b"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("a", "b")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 		Assertions.assertThat(result.size()).isEqualTo(1);
 		ExternalNameKubernetesServiceInstance externalNameServiceInstance = (ExternalNameKubernetesServiceInstance) result
@@ -708,7 +727,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, true, Set.of("a", "b"), true,
 				60L, false, "", Set.of(), Map.of(), "", metadata, 0, false, true, null);
 
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("a", "b"), client);
+		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of("a", "b")),
+				client);
 		List<ServiceInstance> result = discoveryClient.getInstances("blue-service");
 
 		Assertions.assertThat(result.size()).isEqualTo(1);
@@ -732,7 +752,8 @@ class Fabric8DiscoveryClientTwoTests extends Fabric8DiscoveryClientBase {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60L,
 				false, "", Set.of(), Map.of(), "", null, 57, false, false, null);
 
-		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of("test"), client);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of("test")), client);
 
 		Assertions.assertThat(discoveryClient.getOrder()).isEqualTo(57);
 	}

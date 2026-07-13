@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,7 +37,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceARedLabels() {
 
 		Map<String, String> labels = Map.of("color", "red");
-		List<String> namespaces = List.of("namespaceA");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceA"));
 		Set<String> namespacesAsSet = Set.of("namespaceA");
 		boolean discoveryInAllNamespaces = false;
 
@@ -58,7 +59,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceAGreenLabels() {
 
 		Map<String, String> labels = Map.of("color", "green");
-		List<String> namespaces = List.of("namespaceA");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceA"));
 		Set<String> namespacesAsSet = Set.of("namespaceA");
 		boolean discoveryInAllNamespaces = false;
 
@@ -80,7 +81,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceANoLabels() {
 
 		Map<String, String> labels = Map.of();
-		List<String> namespaces = List.of("namespaceA");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceA"));
 		Set<String> namespacesAsSet = Set.of("namespaceA");
 		boolean discoveryInAllNamespaces = false;
 
@@ -104,7 +105,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceANullLabels() {
 
 		Map<String, String> labels = null;
-		List<String> namespaces = List.of("namespaceA");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceA"));
 		Set<String> namespacesAsSet = Set.of("namespaceA");
 		boolean discoveryInAllNamespaces = false;
 
@@ -128,7 +129,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceBRedLabels() {
 
 		Map<String, String> labels = Map.of("color", "red");
-		List<String> namespaces = List.of("namespaceB");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceB"));
 		Set<String> namespacesAsSet = Set.of("namespaceB");
 		boolean discoveryInAllNamespaces = false;
 
@@ -150,7 +151,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceBGreenLabels() {
 
 		Map<String, String> labels = Map.of("color", "green");
-		List<String> namespaces = List.of("namespaceB");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceB"));
 		Set<String> namespacesAsSet = Set.of("namespaceB");
 		boolean discoveryInAllNamespaces = false;
 
@@ -172,7 +173,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceBNoLabels() {
 
 		Map<String, String> labels = Map.of();
-		List<String> namespaces = List.of("namespaceB");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceB"));
 		Set<String> namespacesAsSet = Set.of("namespaceB");
 		boolean discoveryInAllNamespaces = false;
 
@@ -196,7 +197,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceBNullLabels() {
 
 		Map<String, String> labels = null;
-		List<String> namespaces = List.of("namespaceB");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceB"));
 		Set<String> namespacesAsSet = Set.of("namespaceB");
 		boolean discoveryInAllNamespaces = false;
 
@@ -220,7 +221,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceAndBRedLabels() {
 
 		Map<String, String> labels = Map.of("color", "red");
-		List<String> namespaces = List.of("namespaceA", "namespaceB");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceA", "namespaceB"));
 		Set<String> namespacesAsSet = Set.of("namespaceA", "namespaceB");
 		boolean discoveryInAllNamespaces = false;
 
@@ -241,7 +242,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceAndBGreenLabels() {
 
 		Map<String, String> labels = Map.of("color", "green");
-		List<String> namespaces = List.of("namespaceA", "namespaceB");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceA", "namespaceB"));
 		Set<String> namespacesAsSet = Set.of("namespaceA", "namespaceB");
 		boolean discoveryInAllNamespaces = false;
 
@@ -262,7 +263,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 	void namespaceAndBNoLabels() {
 
 		Map<String, String> labels = Map.of();
-		List<String> namespaces = List.of("namespaceA", "namespaceB");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of("namespaceA", "namespaceB"));
 		Set<String> namespacesAsSet = Set.of("namespaceA", "namespaceB");
 		boolean discoveryInAllNamespaces = false;
 
@@ -293,7 +294,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 
 		Map<String, String> labels = Map.of("color", "red");
 		// this simulates NAMESPACES_ALL
-		List<String> namespaces = List.of("");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of(""));
 		Set<String> namespacesAsSet = Set.of("");
 		boolean discoveryInAllNamespaces = false;
 
@@ -320,7 +321,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 
 		Map<String, String> labels = Map.of("color", "green");
 		// this simulates NAMESPACES_ALL
-		List<String> namespaces = List.of("");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of(""));
 		Set<String> namespacesAsSet = Set.of("");
 		boolean discoveryInAllNamespaces = false;
 
@@ -347,7 +348,7 @@ class Fabric8DiscoveryClientServiceLabelsFilteringTests extends Fabric8Discovery
 
 		Map<String, String> labels = Map.of();
 		// this simulates NAMESPACES_ALL
-		List<String> namespaces = List.of("");
+		SelectiveNamespaces namespaces = new SelectiveNamespaces(List.of(""));
 		Set<String> namespacesAsSet = Set.of("");
 		boolean discoveryInAllNamespaces = false;
 

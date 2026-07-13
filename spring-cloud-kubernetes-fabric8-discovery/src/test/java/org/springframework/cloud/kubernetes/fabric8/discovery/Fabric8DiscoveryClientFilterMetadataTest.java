@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -56,8 +57,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
 				Map.of("annotation1", "ann-one"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE),
-				mockClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = fabric8DiscoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -75,8 +76,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
 				Map.of("annotation1", "ann-one"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE),
-				mockClient);
+		Fabric8DiscoveryClient fabric8DiscoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = fabric8DiscoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -96,7 +97,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 				Map.of("label1", "one", "label2", "two"), Map.of("annotation1", "ann-one"),
 				Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -115,7 +117,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -134,7 +137,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -153,7 +157,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -172,7 +177,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
 				Map.of("a1", "v1", "a2", "v2"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);
@@ -191,7 +197,8 @@ class Fabric8DiscoveryClientFilterMetadataTest extends Fabric8DiscoveryClientBas
 		setupServiceWithLabelsAndAnnotationsAndPorts(mockClient, serviceId, NAMESPACE, Map.of("label1", "one"),
 				Map.of("a1", "an1", "a2", "an2"), Map.of(80, "http", 5555, ""));
 
-		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties, List.of(NAMESPACE), mockClient);
+		Fabric8DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
+				new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 
 		List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
 		assertThat(instances).hasSize(1);

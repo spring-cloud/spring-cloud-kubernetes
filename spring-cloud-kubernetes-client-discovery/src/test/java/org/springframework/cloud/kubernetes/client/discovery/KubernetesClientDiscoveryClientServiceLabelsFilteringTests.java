@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,8 +46,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
 		// only the service with { namespace=a } is returned
 		assertThat(serviceInstances).hasSize(1);
@@ -68,8 +69,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceXX");
 		// only the service with { namespace=a } is returned
 		assertThat(serviceInstances).hasSize(1);
@@ -91,8 +92,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstancesA = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesA).hasSize(1);
 		assertThat(serviceInstancesA.get(0).getMetadata().get("color")).isEqualTo("red");
@@ -116,8 +117,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstancesX = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesX).hasSize(1);
 		assertThat(serviceInstancesX.get(0).getMetadata().get("color")).isEqualTo("red");
@@ -141,8 +142,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
 		// only the service with { namespace=b } is returned
 		assertThat(serviceInstances).hasSize(1);
@@ -164,8 +165,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceXX");
 		// only the service with { namespace=b } is returned
 		assertThat(serviceInstances).hasSize(1);
@@ -187,8 +188,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstancesX = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesX).hasSize(1);
 		assertThat(serviceInstancesX.get(0).getMetadata().get("color")).isEqualTo("red");
@@ -212,8 +213,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstancesX = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesX).hasSize(1);
 		assertThat(serviceInstancesX.get(0).getMetadata().get("color")).isEqualTo("red");
@@ -237,8 +238,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstances).hasSize(2);
 		assertThat(serviceInstances.get(0).getMetadata().get("color")).isEqualTo("red");
@@ -259,8 +260,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 		List<ServiceInstance> serviceInstances = discoveryClient.getInstances("serviceXX");
 		assertThat(serviceInstances).hasSize(2);
 		assertThat(serviceInstances.get(0).getMetadata().get("color")).isEqualTo("green");
@@ -281,8 +282,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 
 		List<ServiceInstance> serviceInstancesX = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesX).hasSize(2);
@@ -313,8 +314,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 
 		List<ServiceInstance> serviceInstancesX = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesX).hasSize(2);
@@ -341,8 +342,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 
 		List<ServiceInstance> serviceInstancesX = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesX).hasSize(0);
@@ -369,8 +370,8 @@ class KubernetesClientDiscoveryClientServiceLabelsFilteringTests
 				discoveryInAllNamespaces, namespacesAsSet, true, 60L, false, null, Set.of(), labels, null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null);
 
-		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(namespaces,
-				discoveryProperties);
+		KubernetesClientInformerDiscoveryClient discoveryClient = createAndStartListers(
+				new SelectiveNamespaces(namespaces), discoveryProperties);
 
 		List<ServiceInstance> serviceInstancesX = discoveryClient.getInstances("serviceX");
 		assertThat(serviceInstancesX).hasSize(2);

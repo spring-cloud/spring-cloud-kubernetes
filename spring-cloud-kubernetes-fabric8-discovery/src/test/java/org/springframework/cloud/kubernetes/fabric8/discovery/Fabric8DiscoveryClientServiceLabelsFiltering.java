@@ -43,6 +43,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
+import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 
 /**
@@ -126,7 +127,8 @@ abstract class Fabric8DiscoveryClientServiceLabelsFiltering {
 		mockEndpointsCallAllNamespacesNoLabels();
 	}
 
-	Fabric8DiscoveryClient createAndStartListers(List<String> namespaces, KubernetesDiscoveryProperties properties) {
+	Fabric8DiscoveryClient createAndStartListers(SelectiveNamespaces namespaces,
+			KubernetesDiscoveryProperties properties) {
 
 		List<SharedIndexInformer<Service>> serviceSharedIndexInformers = CONFIGURATION
 			.serviceSharedIndexInformers(namespaces, kubernetesClient, properties);
