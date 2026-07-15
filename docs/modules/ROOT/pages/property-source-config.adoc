@@ -16,7 +16,7 @@ spring:
     import: "kubernetes:"
 ----
 
-=== Property source precedence
+== Property source precedence
 
 Kubernetes property sources loaded with `spring.config.import` follow Spring Boot's
 Config Data precedence rules. Imported configuration has higher precedence than the
