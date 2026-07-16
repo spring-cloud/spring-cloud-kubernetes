@@ -9,4 +9,4 @@ runs:
         echo 'testcontainers.reuse.enable=true' > ~/.testcontainers.properties
     - name: Test Release
       shell: bash
-      run: ./mvnw --no-transfer-progress --batch-mode --settings release-train-settings.xml clean verify --activate-profiles releaseTrain -Dspring-boot.build-image.skip=true -DskipITs
+      run: ./mvnw --batch-mode --settings release-train-settings.xml clean verify --activate-profiles releaseTrain -Dspring-boot.build-image.skip=true -DskipITs
