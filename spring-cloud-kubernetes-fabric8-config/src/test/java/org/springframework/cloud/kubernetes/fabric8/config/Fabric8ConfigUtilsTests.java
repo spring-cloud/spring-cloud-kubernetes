@@ -17,6 +17,8 @@
 package org.springframework.cloud.kubernetes.fabric8.config;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -35,9 +37,10 @@ class Fabric8ConfigUtilsTests {
 
 	@Test
 	void testNamespacesFromProperties() {
-		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties(false, true, false,
-				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of("non-default"), false, Duration.ofSeconds(2));
+		ConfigReloadProperties configReloadProperties = new ConfigReloadProperties(false, true, Map.of(), false,
+				Map.of(), ConfigReloadProperties.ReloadStrategy.REFRESH,
+				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of("non-default"),
+				Duration.ofSeconds(2), List.of(), List.of());
 		Set<String> namespaces = Fabric8ConfigUtils.namespaces(null,
 				new KubernetesNamespaceProvider(new MockEnvironment()), configReloadProperties, "configmap");
 		Assertions.assertThat(namespaces.size()).isEqualTo(1);

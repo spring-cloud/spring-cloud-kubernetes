@@ -42,7 +42,6 @@ class SecretReloadWithLabelsTest extends CommonAbstractFiltering {
 	@Test
 	void test() {
 		Secret secret = secret(SECRET_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
-
 		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
 		Awaitilities.awaitUntil(10, 1000, reloadProbe::isCalled);
 	}

@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -43,18 +44,10 @@ final class WatcherUtil {
 	private WatcherUtil() {
 	}
 
-	static void onEvent(KubernetesObject kubernetesObject, long refreshDelay, Scheduler scheduler,
-			Function<KubernetesSource, Mono<Void>> triggerRefresh) {
+	static void onEvent(KubernetesObject kubernetesObject, List<String> configuredApps, long refreshDelay,
+			Scheduler scheduler, Function<KubernetesSource, Mono<Void>> triggerRefresh) {
 
-		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject);
-		String name = kubernetesObject.getMetadata().getName();
-		String label = kubernetesSource.requiredResourceLabel();
-
-		if (!isSpringCloudKubernetes(kubernetesObject, label)) {
-			LOG.debug(() -> "Not publishing event : " + kubernetesSource.description() + ": " + name
-					+ " does not contain the label " + label);
-			return;
-		}
+		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject, configuredApps);
 
 		// we need defer, because otherwise triggerRefresh.apply(kubernetesSource) is
 		// called when the pipeline is being built, not when it's run.
@@ -63,13 +56,6 @@ final class WatcherUtil {
 			.doOnSuccess(ignored -> LOG.debug(() -> "Finished refreshing " + kubernetesSource.description()))
 			.doOnError(t -> LOG.warn(t, "Error when refreshing " + kubernetesSource.description()))
 			.subscribe();
-	}
-
-	static boolean isSpringCloudKubernetes(KubernetesObject kubernetesObject, String label) {
-		if (kubernetesObject.getMetadata() == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(labels(kubernetesObject).getOrDefault(label, "false"));
 	}
 
 	static boolean matchesByLabels(ServiceInstance serviceInstance, Map<String, String> inputLabels) {

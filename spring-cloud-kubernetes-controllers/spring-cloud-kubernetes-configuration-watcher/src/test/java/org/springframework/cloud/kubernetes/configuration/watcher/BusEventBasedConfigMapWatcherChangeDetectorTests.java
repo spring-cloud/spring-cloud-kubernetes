@@ -16,10 +16,15 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +49,8 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
@@ -66,8 +73,7 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	@Mock
 	private KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator;
 
-	@Mock
-	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+	private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor();
 
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
@@ -86,6 +92,11 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		busProperties = new BusProperties();
 	}
 
+	@BeforeAll
+	static void beforeAll() {
+		THREAD_POOL_TASK_EXECUTOR.setDaemon(true);
+	}
+
 	@Test
 	void triggerRefreshWithConfigMapUsingServiceNames() {
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
@@ -98,6 +109,48 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		ArgumentCaptor<ShutdownRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 			.forClass(ShutdownRemoteApplicationEvent.class);
 		triggerRefreshWithConfigMapUsingServiceNames(RefreshStrategy.SHUTDOWN, argumentCaptor);
+	}
+
+	/**
+	 * <pre>
+	 * 	- watcher-level configMapApps is configured
+	 * 	- configMap also has spring.cloud.kubernetes.configmap.apps
+	 * 	- watcher-level configured apps must win when onEvent builds the KubernetesSource
+	 * 	  ( meaning properties that are configured in the watcher itself take precedence
+	 * 	    over the ones coming from the configmap )
+	 * </pre>
+	 */
+	@Test
+	void onEventUsesConfiguredConfigMapAppsInsteadOfAnnotationApps() {
+
+		List<String> configmapApps = List.of("app-from-property");
+		List<String> secretApps = List.of();
+
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		configurationWatcherConfigurationProperties.setRefreshDelay(Duration.ZERO);
+
+		BusEventBasedConfigMapWatcherChangeDetector changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(
+				coreV1Api, mockEnvironment, configReloadProperties(configmapApps, secretApps), UPDATE_STRATEGY,
+				configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
+				configurationWatcherConfigurationProperties, THREAD_POOL_TASK_EXECUTOR,
+				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
+						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
+
+		changeDetector.onEvent(
+				new V1ConfigMapBuilder()
+					.withMetadata(new V1ObjectMeta().name("my-configmap")
+						.annotations(Map.of(ConfigMapKubernetesSource.CONFIGMAP_SERVICE_NAMES_ANNOTATION,
+								"app-from-annotation")))
+					.build());
+
+		verify(applicationEventPublisher, timeout(1000)).publishEvent(argThat(event -> {
+			if (!(event instanceof RefreshRemoteApplicationEvent refreshRemoteApplicationEvent)) {
+				return false;
+			}
+			KubernetesSource kubernetesSource = (KubernetesSource) refreshRemoteApplicationEvent.getSource();
+			return kubernetesSource.serviceNames().equals(Set.of("app-from-property"))
+					&& refreshRemoteApplicationEvent.getDestinationService().equals("app-from-property:**");
+		}));
 	}
 
 	void triggerRefreshWithConfigMapUsingServiceNames(RefreshStrategy refreshStrategy,
@@ -130,11 +183,18 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		BusEventBasedConfigMapWatcherChangeDetector changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(
 				coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY,
 				configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
+				configurationWatcherConfigurationProperties, THREAD_POOL_TASK_EXECUTOR,
 				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
 						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
 		Mono<Void> result = changeDetector.triggerRefresh(configMapKubernetesSource);
 		StepVerifier.create(result).verifyComplete();
+	}
+
+	private ConfigReloadProperties configReloadProperties(List<String> configMapApps, List<String> secretApps) {
+		return new ConfigReloadProperties(true, true, Map.of(), false, Map.of(),
+				ConfigReloadProperties.DEFAULT.strategy(), ConfigReloadProperties.DEFAULT.mode(),
+				ConfigReloadProperties.DEFAULT.period(), ConfigReloadProperties.DEFAULT.namespaces(),
+				ConfigReloadProperties.DEFAULT.maxWaitForRestart(), configMapApps, secretApps);
 	}
 
 }
