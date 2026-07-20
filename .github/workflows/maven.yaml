@@ -67,7 +67,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.branch || github.ref }}
 
@@ -166,7 +166,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.branch || github.ref }}
 
@@ -224,7 +224,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.branch || github.ref }}
 
@@ -276,7 +276,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.branch || github.ref }}
 
@@ -298,7 +298,7 @@ jobs:
     steps:
 
       - name: checkout project
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.branch || github.ref }}
 
