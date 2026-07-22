@@ -47,14 +47,6 @@ final class WatcherUtil {
 			Function<KubernetesSource, Mono<Void>> triggerRefresh) {
 
 		KubernetesSource kubernetesSource = kubernetesSource(kubernetesObject);
-		String name = kubernetesObject.getMetadata().getName();
-		String label = kubernetesSource.requiredResourceLabel();
-
-		if (!isSpringCloudKubernetes(kubernetesObject, label)) {
-			LOG.debug(() -> "Not publishing event : " + kubernetesSource.description() + ": " + name
-					+ " does not contain the label " + label);
-			return;
-		}
 
 		// we need defer, because otherwise triggerRefresh.apply(kubernetesSource) is
 		// called when the pipeline is being built, not when it's run.
