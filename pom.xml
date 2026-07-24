@@ -257,7 +257,21 @@
 						<configuration>
 							<excludeArtifacts>
 								<artifact>spring-cloud-kubernetes-examples</artifact>
+								<artifact>kubernetes-leader-election-example</artifact>
 								<artifact>spring-cloud-kubernetes-integration-tests</artifact>
+								<artifact>spring-cloud-kubernetes-fabric8-client-catalog-watcher</artifact>
+								<artifact>spring-cloud-kubernetes-fabric8-client-discovery</artifact>
+								<artifact>spring-cloud-kubernetes-fabric8-client-istio</artifact>
+								<artifact>spring-cloud-kubernetes-fabric8-client-reload</artifact>
+								<artifact>spring-cloud-kubernetes-fabric8-leader-election</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-catalog-watcher</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-configuration-watcher</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-discovery-server</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-discovery</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-leader-election</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-rabbitmq-secret-reload</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-reload</artifact>
 							</excludeArtifacts>
 						</configuration>
 					</plugin>
