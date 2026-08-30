@@ -33,3 +33,27 @@ Notice this line:
     <imageName>docker.io/springcloud/${project.artifactId}:${project.version}</imageName>
 
 You must follow the same convention.
+
+
+Running the integration tests locally with a VM based Docker runtime
+--------------------------------------------------------------------
+
+Integration tests build a docker image locally, save it as a tar file and bind mount the
+directory holding that tar into the k3s container, so that it can be imported with
+'ctr i import'.
+
+By default that directory is 'java.io.tmpdir'. Docker runtimes that run inside a virtual
+machine (colima, Rancher Desktop, ...) only share a subset of the host filesystem with
+that virtual machine, and on macOS 'java.io.tmpdir' ('/var/folders/...') is usually not
+shared. The bind mount then resolves to an empty directory inside the virtual machine and
+the tests fail with:
+
+    ctr: open /var/folders/.../<image-name>.tar: no such file or directory
+
+To fix this, point the tests to a directory that the virtual machine does share, for
+example one under the user home:
+
+    -Dspring.cloud.kubernetes.integration.tests.image-tars-dir=${HOME}/.spring-cloud-kubernetes-image-tars
+
+The same value can be provided via the SPRING_CLOUD_KUBERNETES_IMAGE_TARS_DIR environment
+variable.
