@@ -16,10 +16,15 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1SecretBuilder;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +49,8 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
@@ -66,8 +73,7 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 	@Mock
 	private KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator;
 
-	@Mock
-	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+	private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor();
 
 	@Mock
 	private ApplicationEventPublisher applicationEventPublisher;
@@ -86,6 +92,11 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 		busProperties = new BusProperties();
 	}
 
+	@BeforeAll
+	static void beforeAll() {
+		THREAD_POOL_TASK_EXECUTOR.setDaemon(true);
+	}
+
 	@Test
 	void triggerRefreshWithSecretUsingServiceNames() {
 		ArgumentCaptor<RefreshRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
@@ -98,6 +109,49 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 		ArgumentCaptor<ShutdownRemoteApplicationEvent> argumentCaptor = ArgumentCaptor
 			.forClass(ShutdownRemoteApplicationEvent.class);
 		triggerRefreshWithSecretUsingServiceNames(RefreshStrategy.SHUTDOWN, argumentCaptor);
+	}
+
+	/**
+	 * <pre>
+	 * 	- watcher-level secretApps property is configured
+	 * 	- secret also has spring.cloud.kubernetes.secret.apps
+	 * 	- watcher-level configured apps must win when onEvent builds the KubernetesSource
+	 * 	  ( meaning properties that are configured in the watcher itself take precedence
+	 * 	    over the ones coming from the secret )
+	 * </pre>
+	 */
+	@Test
+	void onEventUsesConfiguredSecretAppsInsteadOfAnnotationApps() {
+
+		List<String> configmapApps = List.of();
+		List<String> secretApps = List.of("app-from-property");
+
+		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
+		configurationWatcherConfigurationProperties.setRefreshDelay(Duration.ZERO);
+		BusEventBasedSecretsWatcherChangeDetector changeDetector = new BusEventBasedSecretsWatcherChangeDetector(
+				coreV1Api, mockEnvironment, configReloadProperties(configmapApps, secretApps), UPDATE_STRATEGY,
+				secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
+				configurationWatcherConfigurationProperties, THREAD_POOL_TASK_EXECUTOR,
+				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
+						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
+
+		changeDetector.onEvent(
+				new V1SecretBuilder()
+					.withMetadata(
+							new V1ObjectMeta()
+								.name("my-secret")
+								.annotations(Map.of(SecretKubernetesSource.SECRET_SERVICE_NAMES_ANNOTATION,
+										"app-from-annotation")))
+					.build());
+
+		verify(applicationEventPublisher, timeout(1000)).publishEvent(argThat(event -> {
+			if (!(event instanceof RefreshRemoteApplicationEvent refreshRemoteApplicationEvent)) {
+				return false;
+			}
+			KubernetesSource kubernetesSource = (KubernetesSource) refreshRemoteApplicationEvent.getSource();
+			return kubernetesSource.serviceNames().equals(Set.of("app-from-property"))
+					&& refreshRemoteApplicationEvent.getDestinationService().equals("app-from-property:**");
+		}));
 	}
 
 	void triggerRefreshWithSecretUsingServiceNames(RefreshStrategy refreshStrategy,
@@ -130,11 +184,18 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 		BusEventBasedSecretsWatcherChangeDetector changeDetector = new BusEventBasedSecretsWatcherChangeDetector(
 				coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY,
 				secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
+				configurationWatcherConfigurationProperties, THREAD_POOL_TASK_EXECUTOR,
 				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
 						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
 		Mono<Void> result = changeDetector.triggerRefresh(secretKubernetesSource);
 		StepVerifier.create(result).verifyComplete();
+	}
+
+	private ConfigReloadProperties configReloadProperties(List<String> configMapApps, List<String> secretApps) {
+		return new ConfigReloadProperties(true, true, Map.of(), false, Map.of(),
+				ConfigReloadProperties.DEFAULT.strategy(), ConfigReloadProperties.DEFAULT.mode(),
+				ConfigReloadProperties.DEFAULT.period(), ConfigReloadProperties.DEFAULT.namespaces(),
+				ConfigReloadProperties.DEFAULT.maxWaitForRestart(), configMapApps, secretApps);
 	}
 
 }

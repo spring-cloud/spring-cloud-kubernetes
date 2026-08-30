@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -56,15 +57,16 @@ final class KubernetesSourceProvider {
 
 	}
 
-	static KubernetesSource kubernetesSource(KubernetesObject kubernetesObject) {
+	static KubernetesSource kubernetesSource(KubernetesObject kubernetesObject, List<String> configuredApps) {
 
 		if (kubernetesObject instanceof V1ConfigMap v1ConfigMap) {
-			Set<String> serviceNames = serviceNames(kubernetesObject, CONFIGMAP_SERVICE_NAMES_ANNOTATION);
+			Set<String> serviceNames = serviceNames(kubernetesObject, CONFIGMAP_SERVICE_NAMES_ANNOTATION,
+					configuredApps);
 			Map<String, String> serviceLabels = serviceLabels(kubernetesObject, CONFIGMAP_SERVICE_LABELS_ANNOTATION);
 			return new ConfigMapKubernetesSource(serviceNames, serviceLabels, v1ConfigMap.getMetadata().getName());
 		}
 		if (kubernetesObject instanceof V1Secret v1Secret) {
-			Set<String> serviceNames = serviceNames(kubernetesObject, SECRET_SERVICE_NAMES_ANNOTATION);
+			Set<String> serviceNames = serviceNames(kubernetesObject, SECRET_SERVICE_NAMES_ANNOTATION, configuredApps);
 			Map<String, String> serviceLabels = serviceLabels(kubernetesObject, SECRET_SERVICE_LABELS_ANNOTATION);
 			return new SecretKubernetesSource(serviceNames, serviceLabels, v1Secret.getMetadata().getName());
 		}
@@ -117,10 +119,19 @@ final class KubernetesSourceProvider {
 	 * example {@code app-one,app-two}.
 	 *
 	 * <p>
+	 * When configured apps are present, they take precedence over the annotation.
+	 *
+	 * <p>
 	 * If the annotation is not present or contains only blanks, the Kubernetes resource
 	 * name ({@code .metadata.name}) is used as the default target.
 	 */
-	static Set<String> serviceNames(KubernetesObject kubernetesObject, String annotationName) {
+	static Set<String> serviceNames(KubernetesObject kubernetesObject, String annotationName,
+			List<String> configuredApps) {
+
+		if (!configuredApps.isEmpty()) {
+			LOG.debug(() -> "using configured apps instead of " + annotationName + " : " + configuredApps);
+			return Set.copyOf(configuredApps);
+		}
 
 		String metadataName = kubernetesObject.getMetadata().getName();
 		Map<String, String> annotations = annotations(kubernetesObject);

@@ -17,11 +17,11 @@
 package org.springframework.cloud.kubernetes.commons.config.reload;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
@@ -37,66 +37,31 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param period Sets the polling period to use when the detection mode is POLLING.
  * @param namespaces namespaces where an informer will be set-up. this property is only
  * relevant for event based reloading.
- * @param enableReloadFiltering create an informer only for sources that have
- * 'spring.cloud.kubernetes.config.informer.enabled=true' label. This property is only
- * relevant for event based reloading.
  * @param maxWaitForRestart Restart or Shutdown strategies are used, Spring Cloud
  * Kubernetes waits a random amount of time before restarting. This is done in order to
  * avoid having all instances of the same application restart at the same time. This
  * property configures the maximum of amount of wait time from the moment the signal is
  * received that a restart is needed until the moment the restart is actually triggered
+ * @param configMapApps Applications to refresh when a watched ConfigMap changes. Takes
+ * precedence over the {@code spring.cloud.kubernetes.configmap.apps} annotation.
+ * @param secretApps Applications to refresh when a watched Secret changes. Takes
+ * precedence over the {@code spring.cloud.kubernetes.secret.apps} annotation.
  * @author Nicola Ferraro
  */
 @ConfigurationProperties(prefix = "spring.cloud.kubernetes.reload")
-public record ConfigReloadProperties(boolean enabled, boolean monitoringConfigMaps,
-		Map<String, String> configMapsLabels, boolean monitoringSecrets, Map<String, String> secretsLabels,
-		ReloadStrategy strategy, ReloadDetectionMode mode, Duration period, Set<String> namespaces,
-		boolean enableReloadFiltering, Duration maxWaitForRestart) {
-
-	@ConstructorBinding
-	public ConfigReloadProperties(boolean enabled, @DefaultValue("true") boolean monitoringConfigMaps,
-			@DefaultValue Map<String, String> configMapsLabels, boolean monitoringSecrets,
-			@DefaultValue Map<String, String> secretsLabels, @DefaultValue("REFRESH") ReloadStrategy strategy,
-			@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
-			@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
-			@DefaultValue("2s") Duration maxWaitForRestart) {
-
-		this.enabled = enabled;
-		this.monitoringConfigMaps = monitoringConfigMaps;
-		this.configMapsLabels = configMapsLabels;
-		this.monitoringSecrets = monitoringSecrets;
-		this.secretsLabels = secretsLabels;
-		this.strategy = strategy;
-		this.mode = mode;
-		this.period = period;
-		this.namespaces = namespaces;
-		this.enableReloadFiltering = enableReloadFiltering;
-		this.maxWaitForRestart = maxWaitForRestart;
-	}
-
-	@Deprecated(forRemoval = true)
-	public ConfigReloadProperties(boolean enabled, @DefaultValue("true") boolean monitoringConfigMaps,
-			boolean monitoringSecrets, @DefaultValue("REFRESH") ReloadStrategy strategy,
-			@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
-			@DefaultValue Set<String> namespaces, boolean enableReloadFiltering,
-			@DefaultValue("2s") Duration maxWaitForRestart) {
-
-		this(enabled, monitoringConfigMaps, Map.of(), monitoringSecrets, Map.of(), strategy, mode, period, namespaces,
-				enableReloadFiltering, maxWaitForRestart);
-	}
+public record ConfigReloadProperties(boolean enabled, @DefaultValue("true") boolean monitoringConfigMaps,
+		@DefaultValue Map<String, String> configMapsLabels, boolean monitoringSecrets,
+		@DefaultValue Map<String, String> secretsLabels, @DefaultValue("REFRESH") ReloadStrategy strategy,
+		@DefaultValue("EVENT") ReloadDetectionMode mode, @DefaultValue("15000ms") Duration period,
+		@DefaultValue Set<String> namespaces, @DefaultValue("2s") Duration maxWaitForRestart,
+		@DefaultValue List<String> configMapApps, @DefaultValue List<String> secretApps) {
 
 	/**
 	 * default instance.
 	 */
 	public static final ConfigReloadProperties DEFAULT = new ConfigReloadProperties(false, true, Map.of(), false,
-			Map.of(), ReloadStrategy.REFRESH, ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(), false,
-			Duration.ofSeconds(2));
-
-	/**
-	 * label for filtering sources.
-	 */
-	@Deprecated(forRemoval = true)
-	public static final String RELOAD_LABEL_FILTER = "spring.cloud.kubernetes.config.informer.enabled";
+			Map.of(), ReloadStrategy.REFRESH, ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(),
+			Duration.ofSeconds(2), List.of(), List.of());
 
 	/**
 	 * Reload strategies.

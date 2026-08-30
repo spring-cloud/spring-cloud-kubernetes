@@ -40,6 +40,8 @@ abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEvent
 
 	private final Scheduler scheduler;
 
+	private final ConfigReloadProperties reloadProperties;
+
 	/**
 	 * <pre>
 	 * Read refreshDelay from the properties bean when handling an event instead of
@@ -66,13 +68,14 @@ abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEvent
 		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
+		this.reloadProperties = properties;
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 	}
 
 	@Override
 	protected final void onEvent(KubernetesObject secret) {
-		WatcherUtil.onEvent(secret, k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler,
-				this::triggerRefresh);
+		WatcherUtil.onEvent(secret, reloadProperties.secretApps(),
+				k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler, this::triggerRefresh);
 	}
 
 }

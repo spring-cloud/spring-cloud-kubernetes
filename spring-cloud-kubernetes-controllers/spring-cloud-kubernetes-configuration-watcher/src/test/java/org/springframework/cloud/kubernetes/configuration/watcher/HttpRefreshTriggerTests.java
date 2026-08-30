@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -182,7 +183,7 @@ class HttpRefreshTriggerTests {
 		V1ConfigMap configMap = new V1ConfigMapBuilder().withMetadata(new V1ObjectMeta().name("service-wiremock"))
 			.build();
 
-		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(configMap);
+		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(configMap, List.of());
 
 		StepVerifier.create(refreshTrigger.triggerRefresh(source)).verifyComplete();
 
@@ -226,7 +227,7 @@ class HttpRefreshTriggerTests {
 								"app=demo,tier=backend")))
 			.build();
 
-		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(configMap);
+		KubernetesSource source = KubernetesSourceProvider.kubernetesSource(configMap, List.of());
 
 		StepVerifier.create(refreshTrigger.triggerRefresh(source)).verifyComplete();
 
