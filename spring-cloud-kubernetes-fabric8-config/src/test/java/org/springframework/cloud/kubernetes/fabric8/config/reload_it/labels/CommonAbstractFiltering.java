@@ -194,50 +194,17 @@ abstract class CommonAbstractFiltering {
 
 		@Bean
 		@Primary
-		@ConditionalOnProperty(value = "configmaps.reload.filtering", havingValue = "true", matchIfMissing = false)
-		ConfigReloadProperties configReloadPropertiesA() {
-
-			boolean monitorConfigMaps = true;
-			boolean monitorSecrets = false;
-			boolean enableReloadFiltering = true;
-			Map<String, String> configMapsLabels = Map.of();
-			Map<String, String> secretsLabels = Map.of();
-
-			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
-					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
-		}
-
-		@Bean
-		@Primary
 		@ConditionalOnProperty(value = "configmaps.labels.filtering", havingValue = "true", matchIfMissing = false)
 		ConfigReloadProperties configReloadPropertiesB() {
 
 			boolean monitorConfigMaps = true;
 			boolean monitorSecrets = false;
-			boolean enableReloadFiltering = false;
 			Map<String, String> configMapsLabels = Map.of("only-shape", "round");
 			Map<String, String> secretsLabels = Map.of();
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
-		}
-
-		@Bean
-		@Primary
-		@ConditionalOnProperty(value = "secrets.reload.filtering", havingValue = "true", matchIfMissing = false)
-		ConfigReloadProperties configReloadPropertiesC() {
-
-			boolean monitorConfigMaps = false;
-			boolean monitorSecrets = true;
-			boolean enableReloadFiltering = true;
-			Map<String, String> configMapsLabels = Map.of();
-			Map<String, String> secretsLabels = Map.of();
-
-			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
-					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
 		}
 
 		@Bean
@@ -247,13 +214,12 @@ abstract class CommonAbstractFiltering {
 
 			boolean monitorConfigMaps = false;
 			boolean monitorSecrets = true;
-			boolean enableReloadFiltering = false;
 			Map<String, String> configMapsLabels = Map.of();
 			Map<String, String> secretsLabels = Map.of("only-shape", "round");
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
 		}
 
 	}
