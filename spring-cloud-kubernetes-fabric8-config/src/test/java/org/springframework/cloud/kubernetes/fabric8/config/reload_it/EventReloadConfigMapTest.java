@@ -158,9 +158,9 @@ class EventReloadConfigMapTest {
 		@Bean
 		@Primary
 		ConfigReloadProperties configReloadProperties() {
-			return new ConfigReloadProperties(true, true, false, ConfigReloadProperties.ReloadStrategy.REFRESH,
-					ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(2000), Set.of(NAMESPACE), false,
-					Duration.ofSeconds(2));
+			return new ConfigReloadProperties(true, true, Map.of(), false, Map.of(),
+					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
 		}
 
 		@Bean

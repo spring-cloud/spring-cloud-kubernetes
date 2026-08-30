@@ -159,7 +159,6 @@ class ConfigMapReloadWithLabelsTest {
 		when(namespaceProvider.getNamespace()).thenReturn("default");
 
 		// properties
-		boolean enableReloadFiltering = false;
 		boolean monitorConfigMaps = true;
 		boolean monitorSecrets = false;
 		Map<String, String> configMapsLabels = Map.of("only-shape", "round");
@@ -167,7 +166,7 @@ class ConfigMapReloadWithLabelsTest {
 		ConfigReloadProperties properties = new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels,
 				monitorSecrets, secretsLabels, ConfigReloadProperties.ReloadStrategy.REFRESH,
 				ConfigReloadProperties.ReloadDetectionMode.EVENT, Duration.ofMillis(15000), Set.of(),
-				enableReloadFiltering, Duration.ofSeconds(2));
+				Duration.ofSeconds(2));
 
 		// change detector
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
