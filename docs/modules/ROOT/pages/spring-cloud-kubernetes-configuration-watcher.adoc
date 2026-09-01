@@ -98,6 +98,74 @@ This tells how many milliseconds should we wait before firing the event from con
 
 You need to "match" this _eventually_ part to that value in milliseconds on your cluster.
 
+## High Availability
+
+The Configuration Watcher can run with multiple replicas, with only one replica actively
+watching ConfigMaps and Secrets at a time. High availability is disabled by default. Enable
+both the native Kubernetes leader election and Configuration Watcher HA:
+
+[source,yaml]
+----
+spring:
+  cloud:
+    kubernetes:
+      leader:
+        election:
+          enabled: true
+      configuration:
+        watcher:
+          ha:
+            enabled: true
+----
+
+The two settings have different responsibilities:
+
+* `spring.cloud.kubernetes.leader.election.enabled` enables the native Kubernetes leader
+  election used to choose the active watcher replica.
+* `spring.cloud.kubernetes.configuration.watcher.ha.enabled` makes the Configuration Watcher
+  start its ConfigMap and Secret informers only after it becomes the leader, and stop them when
+  it loses leadership.
+
+The leader-election lock and the Configuration Watcher HA state are stored separately. The
+Configuration Watcher state is persisted in a Kubernetes `Lease`. Its defaults are:
+
+* `spring.cloud.kubernetes.configuration.watcher.ha.lease-name`: `configuration-watcher-ha`
+* `spring.cloud.kubernetes.configuration.watcher.ha.lease-namespace`: `default`
+
+The state lease stores the last processed informer resource version separately for each watched
+namespace and resource type. When a new replica becomes the leader, it reads those checkpoints
+and starts each informer from its stored resource version. This allows changes observed while no
+watcher was leader to be delivered to the new leader. The watcher does not refresh every resource
+after a leadership change; it only replays events for the configured ConfigMap and Secret
+informers.
+
+Processing is at least once. If a watcher loses leadership after an event was delivered but before
+its checkpoint was persisted, the replacement leader may process that event again. Refresh targets
+must therefore tolerate repeated refresh notifications.
+
+The service account used by the Configuration Watcher needs permission to read and update the HA
+state lease in the configured lease namespace. Add the following rule to the Role in that
+namespace:
+
+[source,yaml]
+----
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "create", "update"]
+----
+
+The HA state lease defaults to the `default` namespace even when the Configuration Watcher runs
+in another namespace. If you configure a different `lease-namespace`, create the corresponding
+Role and RoleBinding there, or grant equivalent cluster-scoped permissions.
+
+Configure at least two replicas in the Configuration Watcher Deployment to enable failover:
+
+[source,yaml]
+----
+spec:
+  replicas: 2
+----
+
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
 1.  Over HTTP, in which case the application being notified, must have the `/refresh` actuator endpoint exposed and accessible from within the cluster
@@ -155,6 +223,9 @@ items:
       - apiGroups: ["", "extensions", "apps"]
         resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
         verbs: ["get", "list", "watch"]
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["get", "create", "update"]
   - apiVersion: apps/v1
     kind: Deployment
     metadata:

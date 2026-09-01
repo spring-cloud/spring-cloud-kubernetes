@@ -63,7 +63,8 @@ abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEvent
 			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
+				k8SConfigurationProperties.getHa().isEnabled());
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
 		this.k8SConfigurationProperties = k8SConfigurationProperties;

@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +50,10 @@ import org.springframework.mock.env.MockPropertySource;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.kubernetes.client.informer.EventType.ADDED;
 import static io.kubernetes.client.informer.EventType.DELETED;
@@ -146,7 +149,143 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		// ------------------------------------------------------------------------------------------------------------
 		// 4. assertions
 
-		changeDetectorAssert();
+		changeDetectorAssert(false);
+	}
+
+	/**
+	 * <pre>
+	 *     - HA mode is enabled, so inform() does not start the informer.
+	 *     - an explicit start() starts the informer and it processes the events.
+	 * </pre>
+	 */
+	@Test
+	void watchStartsOnlyAfterExplicitStartInHaMode() {
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 0. initial request of the informer ( resourceVersion=0 )
+
+		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password").resourceVersion("1"))
+			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd".getBytes()))
+			.putDataItem("password", Base64.getEncoder().encode("p455w0rd".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("1"))
+			.items(List.of(dbPassword));
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("false"))
+			.withQueryParam("resourceVersion", equalTo("0"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 1. first watch response to request with resourceVersion=1
+
+		V1Secret dbPasswordUpdated = new V1Secret()
+			.metadata(new V1ObjectMeta().name("db-password").resourceVersion("2"))
+			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
+			.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+
+		Response<V1Secret> watchResponse = new Response<>(MODIFIED.name(), dbPasswordUpdated);
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("1"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 2. second watch response to request with resourceVersion=2
+
+		V1Secret rabbitPasswordAdded = new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+			.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()));
+
+		Response<V1Secret> rabbitPasswordAddedResponse = new Response<>(ADDED.name(), rabbitPasswordAdded);
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("2"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordAddedResponse))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 3. third watch response to request with resourceVersion=3
+
+		V1Secret rabbitPasswordDeleted = new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+			.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()));
+
+		Response<V1Secret> rabbitPasswordDeletedResponse = new Response<>(DELETED.name(), rabbitPasswordDeleted);
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("3"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordDeletedResponse))));
+
+		changeDetectorAssert(true);
+	}
+
+	/**
+	 * <pre>
+	 *     - HA mode starts the informer from the persisted resource version for the namespace.
+	 *     - after the initial list, the informer uses the resource version returned by Kubernetes.
+	 * </pre>
+	 */
+	@Test
+	void watchStartsFromStoredResourceVersionAndThenUsesInformerResourceVersion() {
+
+		// 1. initial request with 'watch=false' and 'resourceVersion=17'
+		// returns nothing really ( just a dummy list with resourceVersion = 42 )
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("42")).items(List.of());
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("false"))
+			.withQueryParam("resourceVersion", equalTo("17"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
+
+		// 2. next request is with 'watch=true' and 'resourceVersion=42', so it's a
+		// follow-up of
+		// the next watcher request, it returns a secret with resourceVersion=43
+		V1Secret secret = new V1Secret()
+			.metadata(new V1ObjectMeta().namespace("default").name("db-password").resourceVersion("43"))
+			.data(Map.of());
+		Response<V1Secret> watchResponse = new Response<>(MODIFIED.name(), secret);
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("42"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse))));
+
+		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
+		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
+		int[] onEventCalls = new int[1];
+
+		KubernetesMockEnvironment environment = new KubernetesMockEnvironment(
+				mock(KubernetesClientSecretsPropertySource.class));
+		KubernetesClientSecretsPropertySourceLocator locator = mock(KubernetesClientSecretsPropertySourceLocator.class);
+
+		// .withProperty("debug", "false") is needed so that ConfigReloadUtil::reload
+		// detects a change
+		when(locator.locate(environment)).thenAnswer(x -> new MockPropertySource().withProperty("debug", "false"));
+
+		// ConfigReloadUtil calls the 'reloadProcedure' from below and we assert its
+		// invocation
+		ConfigurationUpdateStrategy strategy = new ConfigurationUpdateStrategy("strategy", () -> ++onEventCalls[0]);
+		List<NamespaceAndResourceVersion> writtenResourceVersions = new ArrayList<>();
+
+		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
+		KubernetesNamespaceProvider namespaceProvider = mock(KubernetesNamespaceProvider.class);
+		when(namespaceProvider.getNamespace()).thenReturn("default");
+
+		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
+				coreV1Api, environment, properties, strategy, locator, namespaceProvider, true);
+
+		changeDetector.start(Map.of("default", "17"), writtenResourceVersions::add);
+
+		Awaitilities.awaitUntil(10, 1000, () -> onEventCalls[0] == 1 && writtenResourceVersions.size() == 1);
+		Assertions.assertThat(writtenResourceVersions)
+			.containsExactly(new NamespaceAndResourceVersion("default", "43"));
+		verify(getRequestedFor(urlMatching("/api/v1/namespaces/default/secrets.*"))
+			.withQueryParam("watch", equalTo("false"))
+			.withQueryParam("resourceVersion", equalTo("17")));
+		verify(getRequestedFor(urlMatching("/api/v1/namespaces/default/secrets.*"))
+			.withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("42")));
+
+		changeDetector.shutdown();
 	}
 
 	/**
@@ -259,7 +398,7 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		Assertions.assertThat(result).isFalse();
 	}
 
-	private void changeDetectorAssert() {
+	private void changeDetectorAssert(boolean haEnabled) {
 
 		// coreV1Api
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
@@ -290,9 +429,14 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 
 		// change detector
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
+				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider, haEnabled);
 
 		changeDetector.inform();
+
+		if (haEnabled) {
+			Assertions.assertThat(onEventCalls[0]).isZero();
+			changeDetector.start(Map.of(), null);
+		}
 
 		// all 4 events are caught
 		Awaitilities.awaitUntil(10, 1000, () -> onEventCalls[0] >= 4);

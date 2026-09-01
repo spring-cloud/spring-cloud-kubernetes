@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -31,6 +32,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
@@ -77,12 +79,23 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	private final Map<String, String> secretsLabels;
 
-	private final SecretResourceEventHandler handler = new SecretResourceEventHandler(LOG, this::onEvent);
+	// HA enabled for configuration watcher
+	private final boolean haEnabled;
+
+	// informers already running (skip starting more informers)
+	private volatile boolean running;
 
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		this(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider, false);
+	}
+
+	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, boolean haEnabled) {
 		super(strategy);
 		this.environment = environment;
 		this.propertySourceLocator = propertySourceLocator;
@@ -91,11 +104,31 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitoringSecrets = properties.monitoringSecrets();
 		this.secretsLabels = properties.secretsLabels();
+		this.haEnabled = haEnabled;
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 
 	@PostConstruct
 	void inform() {
+		// In HA mode, defer informer startup until this instance acquires leadership.
+		// The leader callback restores the persisted state and then starts the informers.
+		if (!haEnabled) {
+			LOG.info(() -> "config watcher HA is disabled : starting secret informers immediately");
+			start(Map.of(), null);
+		}
+		else {
+			LOG.info(() -> "config watcher HA is enabled : deferring secret informer startup "
+					+ "until leadership is acquired");
+		}
+	}
+
+	public final void start(Map<String, String> storedResourceVersions,
+			@Nullable Consumer<NamespaceAndResourceVersion> resourceVersionWriter) {
+		if (running || !monitoringSecrets) {
+			return;
+		}
+		InformerResourceVersionResolver resourceVersionResolver = new InformerResourceVersionResolver(
+				storedResourceVersions, haEnabled);
 		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
 		Map<String, String> labelSelector;
@@ -113,34 +146,55 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			labelSelector = secretsLabels;
 		}
 
-		if (monitoringSecrets) {
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1Secret> informer;
+		SecretResourceEventHandler handler = new SecretResourceEventHandler(this::onEvent, resourceVersionWriter);
+		namespaces.forEach(namespace -> {
+			SharedIndexInformer<V1Secret> informer;
+			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
+			factories.add(factory);
+			informer = factory.sharedIndexInformerFor((CallGeneratorParams params) -> {
 
-				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
-				factories.add(factory);
-				informer = factory
-					.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedSecret(namespace)
-						.timeoutSeconds(params.timeoutSeconds)
-						.resourceVersion(params.resourceVersion)
-						.watch(params.watch)
-						.labelSelector(labelSelector(labelSelector))
-						.buildCall(null), V1Secret.class, V1SecretList.class);
+				String resourceVersion = resourceVersionResolver.resolve(namespace, params.resourceVersion);
+				var request = coreV1Api.listNamespacedSecret(namespace)
+					.timeoutSeconds(params.timeoutSeconds)
+					.resourceVersion(resourceVersion)
+					.watch(params.watch)
+					.labelSelector(labelSelector(labelSelector));
 
-				LOG.debug(() -> "secret informer for namespace : " + namespace + " with filter : " + secretsLabels);
+				// The stored resource version is the last checkpoint processed by the
+				// previous leader. Restore the informer from exactly that snapshot so its
+				// following WATCH requests start at the same version and can deliver
+				// every change after the checkpoint.
+				// we do not need haEnabled check here, but it short-circuits fast
+				if (haEnabled && !params.watch && params.resourceVersion == null && resourceVersion != null) {
+					request.resourceVersionMatch("Exact");
+				}
+				return request.buildCall(null);
+			}, V1Secret.class, V1SecretList.class);
 
-				informer.addEventHandler(handler);
-				informers.add(informer);
-				factory.startAllRegisteredInformers();
-			});
-		}
+			LOG.debug(() -> "secret informer for namespace : " + namespace + " with filter : " + secretsLabels);
+
+			informer.addEventHandler(handler);
+			informers.add(informer);
+			factory.startAllRegisteredInformers();
+		});
+		running = true;
 
 	}
 
 	@PreDestroy
 	void shutdown() {
+		stop();
+	}
+
+	public final void stop() {
+		if (!running) {
+			return;
+		}
 		informers.forEach(SharedIndexInformer::stop);
 		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
+		informers.clear();
+		factories.clear();
+		running = false;
 	}
 
 	protected void onEvent(KubernetesObject secret) {

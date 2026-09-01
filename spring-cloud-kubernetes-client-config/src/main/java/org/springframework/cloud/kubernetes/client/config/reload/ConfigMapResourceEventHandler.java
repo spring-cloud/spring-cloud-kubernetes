@@ -21,7 +21,8 @@ import java.util.function.Consumer;
 
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
-import org.apache.commons.logging.LogFactory;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import jakarta.annotation.Nullable;
 
 import org.springframework.core.log.LogAccessor;
 
@@ -30,12 +31,17 @@ import org.springframework.core.log.LogAccessor;
  */
 final class ConfigMapResourceEventHandler implements ResourceEventHandler<V1ConfigMap> {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ConfigMapResourceEventHandler.class));
+	private static final LogAccessor LOG = new LogAccessor(ConfigMapResourceEventHandler.class);
 
 	private final Consumer<V1ConfigMap> onEvent;
 
-	ConfigMapResourceEventHandler(Consumer<V1ConfigMap> onEvent) {
+	@Nullable
+	private final Consumer<NamespaceAndResourceVersion> resourceVersionWriter;
+
+	ConfigMapResourceEventHandler(Consumer<V1ConfigMap> onEvent,
+			@Nullable Consumer<NamespaceAndResourceVersion> resourceVersionWriter) {
 		this.onEvent = onEvent;
+		this.resourceVersionWriter = resourceVersionWriter;
 	}
 
 	@Override
@@ -43,6 +49,7 @@ final class ConfigMapResourceEventHandler implements ResourceEventHandler<V1Conf
 		LOG.debug(() -> "ConfigMap " + configMap.getMetadata().getName() + " was added in namespace "
 				+ configMap.getMetadata().getNamespace());
 		onEvent.accept(configMap);
+		writeResourceVersion(configMap);
 	}
 
 	@Override
@@ -55,6 +62,7 @@ final class ConfigMapResourceEventHandler implements ResourceEventHandler<V1Conf
 		else {
 			onEvent.accept(newConfigMap);
 		}
+		writeResourceVersion(newConfigMap);
 	}
 
 	@Override
@@ -62,6 +70,15 @@ final class ConfigMapResourceEventHandler implements ResourceEventHandler<V1Conf
 		LOG.debug(() -> "ConfigMap " + configMap.getMetadata().getName() + " was deleted in namespace "
 				+ configMap.getMetadata().getNamespace());
 		onEvent.accept(configMap);
+		writeResourceVersion(configMap);
+	}
+
+	private void writeResourceVersion(V1ConfigMap configMap) {
+		if (resourceVersionWriter != null) {
+			V1ObjectMeta metadata = configMap.getMetadata();
+			resourceVersionWriter
+				.accept(new NamespaceAndResourceVersion(metadata.getNamespace(), metadata.getResourceVersion()));
+		}
 	}
 
 }
