@@ -16,14 +16,11 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.openapi.ApiClient;
@@ -32,15 +29,12 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
@@ -52,24 +46,16 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientEventBasedSecretsChangeDetector.class));
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
-
 	private final ApiClient apiClient;
 
-	private final List<SharedIndexInformer<V1Secret>> informers = new ArrayList<>();
-
-	private final List<SharedInformerFactory> factories = new ArrayList<>();
-
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean enableReloadFiltering;
 
@@ -84,9 +70,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy);
-		this.environment = environment;
-		this.propertySourceLocator = propertySourceLocator;
+		super(strategy, propertySourceLocator, environment, KubernetesClientSecretsPropertySource.class);
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
@@ -99,20 +83,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 	void inform() {
 		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
-		Map<String, String> labelSelector;
-
-		if (enableReloadFiltering) {
-			LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-			LOG.warn(() -> "use spring.cloud.kubernetes.reload.secrets-labels instead");
-			if (!secretsLabels.isEmpty()) {
-				LOG.warn(() -> "spring.cloud.kubernetes.reload.secrets-labels is not empty, but "
-						+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
-			}
-			labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
-		}
-		else {
-			labelSelector = secretsLabels;
-		}
+		Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
+				"spring.cloud.kubernetes.reload.secrets-labels");
 
 		if (monitoringSecrets) {
 			namespaces.forEach(namespace -> {
@@ -136,20 +108,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			});
 		}
 
-	}
-
-	@PreDestroy
-	void shutdown() {
-		informers.forEach(SharedIndexInformer::stop);
-		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
-	}
-
-	protected void onEvent(KubernetesObject secret) {
-		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), propertySourceLocator, environment,
-				KubernetesClientSecretsPropertySource.class);
-		if (reload) {
-			reloadProperties();
-		}
 	}
 
 	static boolean equals(Map<String, byte[]> left, Map<String, byte[]> right) {
