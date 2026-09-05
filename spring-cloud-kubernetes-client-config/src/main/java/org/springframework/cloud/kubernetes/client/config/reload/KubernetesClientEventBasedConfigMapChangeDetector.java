@@ -16,13 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.openapi.ApiClient;
@@ -31,15 +28,12 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
@@ -51,24 +45,16 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedConfigMapChangeDetector extends ConfigurationChangeDetector {
+public class KubernetesClientEventBasedConfigMapChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(KubernetesClientEventBasedConfigMapChangeDetector.class));
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientConfigMapPropertySourceLocator propertySourceLocator;
-
 	private final ApiClient apiClient;
 
-	private final List<SharedIndexInformer<V1ConfigMap>> informers = new ArrayList<>();
-
-	private final List<SharedInformerFactory> factories = new ArrayList<>();
-
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean enableReloadFiltering;
 
@@ -83,9 +69,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy);
-		this.environment = environment;
-		this.propertySourceLocator = propertySourceLocator;
+		super(strategy, propertySourceLocator, environment, KubernetesClientConfigMapPropertySource.class);
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
@@ -99,20 +83,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 		if (monitoringConfigMaps) {
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
-			Map<String, String> labelSelector;
-
-			if (enableReloadFiltering) {
-				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-				LOG.warn(() -> "use spring.cloud.kubernetes.reload.config-maps-labels instead");
-				if (!configMapsLabels.isEmpty()) {
-					LOG.warn(() -> "spring.cloud.kubernetes.reload.config-maps-labels is not empty, but "
-							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
-				}
-				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
-			}
-			else {
-				labelSelector = configMapsLabels;
-			}
+			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
+					"spring.cloud.kubernetes.reload.config-maps-labels");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
@@ -134,21 +106,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Configura
 				informers.add(informer);
 				factory.startAllRegisteredInformers();
 			});
-		}
-
-	}
-
-	@PreDestroy
-	void shutdown() {
-		informers.forEach(SharedIndexInformer::stop);
-		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
-	}
-
-	protected void onEvent(KubernetesObject configMap) {
-		boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(), propertySourceLocator, environment,
-				KubernetesClientConfigMapPropertySource.class);
-		if (reload) {
-			reloadProperties();
 		}
 
 	}
