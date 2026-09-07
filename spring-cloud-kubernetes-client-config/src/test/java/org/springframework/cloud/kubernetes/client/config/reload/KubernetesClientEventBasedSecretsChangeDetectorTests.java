@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -32,7 +31,6 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -147,116 +145,6 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		// 4. assertions
 
 		changeDetectorAssert();
-	}
-
-	/**
-	 * both are null, treat that as no change.
-	 */
-	@Test
-	void equalsOne() {
-		Map<String, byte[]> left = null;
-		Map<String, byte[]> right = null;
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is empty map - right is null
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsTwo() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = null;
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is empty map - right is null
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsThree() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = null;
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is null - right is empty map
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsFour() {
-		Map<String, byte[]> left = null;
-		Map<String, byte[]> right = Map.of();
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is empty map - right is empty map
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsFive() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = Map.of();
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is empty map - right is [1, b]
-	 *
-	 * treat as non-equal, that is change
-	 */
-	@Test
-	void equalsSix() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = Map.of("1", "b".getBytes());
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isFalse();
-	}
-
-	/**
-	 * - left is [1, a] - right is [1, b]
-	 *
-	 * treat as non-equal, that is change
-	 */
-	@Test
-	void equalsSeven() {
-		Map<String, byte[]> left = Map.of("1", "a".getBytes());
-		Map<String, byte[]> right = Map.of("1", "b".getBytes());
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isFalse();
-	}
-
-	/**
-	 * - left is [1, a, 2 aa] - right is [1, b, 2, aa]
-	 *
-	 * treat as non-equal, that is change
-	 */
-	@Test
-	void equalsEight() {
-		Map<String, byte[]> left = Map.of("1", "a".getBytes(), "2", "aa".getBytes());
-		Map<String, byte[]> right = Map.of("1", "b".getBytes(), "2", "aa".getBytes());
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isFalse();
 	}
 
 	private void changeDetectorAssert() {

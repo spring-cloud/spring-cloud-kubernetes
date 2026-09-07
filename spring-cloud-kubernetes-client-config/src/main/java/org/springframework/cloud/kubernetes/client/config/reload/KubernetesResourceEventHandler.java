@@ -16,11 +16,16 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.function.BiPredicate;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.ResourceEventHandler;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1Secret;
 
 import org.springframework.core.log.LogAccessor;
 
@@ -32,12 +37,9 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 
 	private static final LogAccessor LOG = new LogAccessor(KubernetesResourceEventHandler.class);
 
-	private final BiPredicate<T, T> dataEquals;
-
 	private final Consumer<T> onEvent;
 
-	KubernetesResourceEventHandler(BiPredicate<T, T> dataEquals, Consumer<T> onEvent) {
-		this.dataEquals = dataEquals;
+	KubernetesResourceEventHandler(Consumer<T> onEvent) {
 		this.onEvent = onEvent;
 	}
 
@@ -52,12 +54,29 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 	public void onUpdate(T oldResource, T newResource) {
 		LOG.debug(() -> newResource.getKind() + " " + newResource.getMetadata().getName() + " was updated in namespace "
 				+ newResource.getMetadata().getNamespace());
-		if (dataEquals.test(oldResource, newResource)) {
-			LOG.debug(() -> "data in " + newResource.getKind() + " has not changed, will not reload");
+
+		if (oldResource instanceof V1ConfigMap oldConfigMap && newResource instanceof V1ConfigMap newConfigMap) {
+			Map<String, String> oldData = oldConfigMap.getData();
+			Map<String, String> newData = newConfigMap.getData();
+			boolean configMapDataEquals = configMapDataEquals(oldData, newData);
+			if (configMapDataEquals) {
+				LOG.debug(() -> "data in ConfigMap has not changed, will not reload");
+				return;
+			}
 		}
-		else {
-			onEvent.accept(newResource);
+
+		if (oldResource instanceof V1Secret oldSecret && newResource instanceof V1Secret newSecret) {
+			Map<String, byte[]> oldData = oldSecret.getData();
+			Map<String, byte[]> newData = newSecret.getData();
+			boolean secretDataEquals = secretDataEquals(oldData, newData);
+			if (secretDataEquals) {
+				LOG.debug(() -> "data in Secret has not changed, will not reload");
+				return;
+			}
 		}
+
+		onEvent.accept(newResource);
+
 	}
 
 	@Override
@@ -65,6 +84,28 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 		LOG.debug(() -> resource.getKind() + " " + resource.getMetadata().getName() + " was deleted in namespace "
 				+ resource.getMetadata().getNamespace());
 		onEvent.accept(resource);
+	}
+
+	boolean configMapDataEquals(Map<String, String> oldData, Map<String, String> newData) {
+		return Objects.equals(oldData, newData);
+	}
+
+	boolean secretDataEquals(Map<String, byte[]> left, Map<String, byte[]> right) {
+		Map<String, byte[]> innerLeft = Optional.ofNullable(left).orElse(Map.of());
+		Map<String, byte[]> innerRight = Optional.ofNullable(right).orElse(Map.of());
+
+		if (innerLeft.size() != innerRight.size()) {
+			return false;
+		}
+
+		for (Map.Entry<String, byte[]> entry : innerLeft.entrySet()) {
+			String key = entry.getKey();
+			byte[] value = entry.getValue();
+			if (!Arrays.equals(value, innerRight.get(key))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

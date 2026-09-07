@@ -16,9 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.Arrays;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -29,7 +27,6 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
@@ -48,8 +45,7 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  */
 public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientEventBasedSecretsChangeDetector.class));
+	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedSecretsChangeDetector.class);
 
 	private final CoreV1Api coreV1Api;
 
@@ -64,7 +60,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 	private final Map<String, String> secretsLabels;
 
 	private final KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
-			(left, right) -> equals(left.getData(), right.getData()), this::onEvent);
+			this::onEvent);
 
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -108,24 +104,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 			});
 		}
 
-	}
-
-	static boolean equals(Map<String, byte[]> left, Map<String, byte[]> right) {
-		Map<String, byte[]> innerLeft = Optional.ofNullable(left).orElse(Map.of());
-		Map<String, byte[]> innerRight = Optional.ofNullable(right).orElse(Map.of());
-
-		if (innerLeft.size() != innerRight.size()) {
-			return false;
-		}
-
-		for (Map.Entry<String, byte[]> entry : innerLeft.entrySet()) {
-			String key = entry.getKey();
-			byte[] value = entry.getValue();
-			if (!Arrays.equals(value, innerRight.get(key))) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 }

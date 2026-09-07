@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
@@ -28,7 +27,6 @@ import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
@@ -47,8 +45,7 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
  */
 public class KubernetesClientEventBasedConfigMapChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientEventBasedConfigMapChangeDetector.class));
+	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedConfigMapChangeDetector.class);
 
 	private final CoreV1Api coreV1Api;
 
@@ -63,7 +60,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 	private final Map<String, String> configMapsLabels;
 
 	private final KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-			(left, right) -> Objects.equals(left.getData(), right.getData()), this::onEvent);
+			this::onEvent);
 
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
