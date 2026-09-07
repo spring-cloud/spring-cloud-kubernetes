@@ -78,6 +78,24 @@
 
 	<profiles>
 		<profile>
+			<id>native</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<image>
+								<env>
+			<BP_NATIVE_IMAGE_BUILD_ARGUMENTS>--initialize-at-run-time=io.netty.channel.ChannelHandlerMask,io.netty.channel.nio.AbstractNioChannel,io.netty.util.internal.SystemPropertyUtil,io.netty.channel.socket.nio.SelectorProviderUtil,io.netty.util.concurrent.FastThreadLocalThread,io.netty.channel.AbstractChannel,io.netty.util.NetUtilInitializations,io.netty.resolver.HostsFileEntriesProvider$ParserImpl,io.netty.resolver.AddressResolverGroup,io.netty.util.internal.NativeLibraryLoader,io.netty.util.concurrent.DefaultPromise,io.netty.resolver.dns.UnixResolverDnsServerAddressStreamProvider,io.netty.util.concurrent.SingleThreadEventExecutor,io.netty.channel.nio.NioIoHandler,io.netty.util.concurrent.AbstractEventExecutor,io.netty.resolver.dns.DirContextUtils,io.netty.util.concurrent.PromiseNotifier,io.netty.util.ResourceLeakDetector,io.netty.handler.codec.http2.Http2CodecUtil,io.netty.util.LeakPresenceDetector,io.netty.buffer.AbstractByteBuf,io.netty.util.ResourceLeakDetectorFactory,io.netty.channel.DefaultChannelPipeline,io.netty.channel.ChannelInitializer,io.netty.channel.AbstractChannelHandlerContext,io.netty.channel.socket.DefaultDatagramChannelConfig,io.netty.channel.ChannelOutboundBuffer,io.netty.handler.ssl.ApplicationProtocolNegotiationHandler,io.netty.buffer.PoolThreadCache,io.netty.channel.CombinedChannelDuplexHandler,io.netty.handler.codec.http2.CleartextHttp2ServerUpgradeHandler,io.netty.util.ReferenceCountUtil,io.netty.handler.codec.http2.Http2MaxRstFrameLimitEncoder,io.netty.handler.codec.http2.DefaultHttp2Connection,io.netty.handler.codec.http2.Http2ServerUpgradeCodec,io.netty.handler.codec.http2.Http2ControlFrameLimitEncoder,io.netty.handler.codec.http.cookie.ClientCookieDecoder,io.netty.handler.codec.http.HttpObjectAggregator,io.netty.handler.codec.http.cookie.ServerCookieDecoder,io.netty.handler.codec.http2.DefaultHttp2RemoteFlowController,io.netty.handler.codec.http2.Http2MaxRstFrameListener,io.netty.channel.DelegatingChannelPromiseNotifier,io.netty.channel.AbstractCoalescingBufferQueue,io.netty.handler.codec.http2.DefaultHttp2ConnectionDecoder,io.netty.handler.codec.http2.AbstractHttp2StreamChannel,io.netty.handler.stream.ChunkedWriteHandler,io.netty.handler.codec.http.websocketx.WebSocket08FrameEncoder,io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker,io.netty.handler.codec.http.websocketx.WebSocket08FrameDecoder,io.netty.handler.ssl.SslClientHelloHandler,io.netty.handler.ssl.SslHandler,io.netty.handler.codec.http3.Http3RequestStreamInboundHandler,io.netty.channel.PendingWriteQueue,io.netty.handler.codec.http3.QpackDecoder</BP_NATIVE_IMAGE_BUILD_ARGUMENTS>
+								</env>
+							</image>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>dockerpush</id>
 			<build>
 				<plugins>

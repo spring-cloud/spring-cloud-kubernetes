@@ -272,7 +272,43 @@
 		</plugins>
 	</reporting>
 
+	<!-- profile needed for the native image build -->
 	<profiles>
+		<profile>
+			<id>native</id>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.springframework.boot</groupId>
+							<artifactId>spring-boot-maven-plugin</artifactId>
+							<configuration>
+								<image>
+									<env>
+										<BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+									</env>
+								</image>
+							</configuration>
+							<executions>
+								<execution>
+									<id>process-aot</id>
+									<configuration>
+										<systemPropertyVariables>
+											<spring.main.cloud-platform>KUBERNETES</spring.main.cloud-platform>
+											<spring.cloud.kubernetes.client.namespace>default</spring.cloud.kubernetes.client.namespace>
+										</systemPropertyVariables>
+									</configuration>
+									<goals>
+										<goal>process-aot</goal>
+									</goals>
+								</execution>
+							</executions>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+
 		<profile>
 			<id>central</id>
 			<build>
