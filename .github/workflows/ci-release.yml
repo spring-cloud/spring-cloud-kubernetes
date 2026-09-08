@@ -26,7 +26,7 @@ on:
         type: string
   push:
     branches:
-      - 5.0.x-internal
+      - 5.1.x-internal
 
 permissions:
   actions: write
