@@ -22,7 +22,7 @@ on:
       branches:
         description: "Which branch should be built (can be a comma-separated list of branches)"
         required: true
-        default: '5.0.x-internal'
+        default: '5.1.x-internal'
         type: string
   push:
     branches:
