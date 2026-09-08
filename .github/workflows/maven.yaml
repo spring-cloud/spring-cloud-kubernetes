@@ -237,6 +237,7 @@ jobs:
         run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: run and save test times when cache is present
+        timeout-minutes: 90
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-present
         with:
           jdk-version: ${{ env.JDK_VERSION }}
@@ -314,6 +315,7 @@ jobs:
         run: echo "testcontainers.reuse.enable=true" > ~/.testcontainers.properties
 
       - name: run and save individual test times
+        timeout-minutes: 90
         uses: ./.github/workflows/composites/run-and-save-test-times-when-cache-missing
         with:
           jdk-version: ${{ env.JDK_VERSION }}
