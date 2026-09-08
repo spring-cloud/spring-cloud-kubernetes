@@ -36,7 +36,7 @@ jobs:
   build-and-test:
     uses: ./.github/workflows/maven.yaml
     with:
-      branch: 5.0.x-internal
+      branch: 5.1.x-internal
       jdk-version: '17'
       should-deploy: true
       runs-on: ubuntu22-2-8
