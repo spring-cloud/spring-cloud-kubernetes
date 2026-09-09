@@ -19,12 +19,10 @@ package org.springframework.cloud.kubernetes.fabric8.config.reload;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -120,7 +118,7 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 				informer = kubernetesClient.secrets().inNamespace(namespace).withLabels(labelSelector).inform();
 				LOG.debug("added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
 
-				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
+				informer.addEventHandler(new Fabric8ResourceEventHandler<>(informer, this::onEvent));
 				informers.add(informer);
 			});
 		}
@@ -135,49 +133,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		if (reload) {
 			reloadProperties();
 		}
-	}
-
-	private final class SecretInformerAwareEventHandler implements ResourceEventHandler<Secret> {
-
-		private final SharedIndexInformer<Secret> informer;
-
-		private SecretInformerAwareEventHandler(SharedIndexInformer<Secret> informer) {
-			this.informer = informer;
-		}
-
-		@Override
-		public void onAdd(Secret secret) {
-			LOG.debug("Secret " + secret.getMetadata().getName() + " was added in namespace "
-					+ secret.getMetadata().getNamespace());
-			onEvent(secret);
-		}
-
-		@Override
-		public void onUpdate(Secret oldSecret, Secret newSecret) {
-			LOG.debug("Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
-					+ newSecret.getMetadata().getNamespace());
-			if (Objects.equals(oldSecret.getData(), newSecret.getData())) {
-				LOG.debug(() -> "data in secret has not changed, will not reload");
-			}
-			else {
-				onEvent(newSecret);
-			}
-		}
-
-		@Override
-		public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
-			LOG.debug("Secret " + secret.getMetadata().getName() + " was deleted in namespace "
-					+ secret.getMetadata().getNamespace());
-			onEvent(secret);
-		}
-
-		@Override
-		public void onNothing() {
-			List<Secret> store = informer.getStore().list();
-			LOG.info("onNothing called with a store of size : " + store.size());
-			LOG.info("this might be an indication of a HTTP_GONE code");
-		}
-
 	}
 
 }

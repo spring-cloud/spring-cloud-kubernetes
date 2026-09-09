@@ -19,12 +19,10 @@ package org.springframework.cloud.kubernetes.fabric8.config.reload;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -112,7 +110,7 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 				informer = kubernetesClient.configMaps().inNamespace(namespace).withLabels(labelSelector).inform();
 				LOG.debug("added configmap informer for namespace : " + namespace + " with labels : " + labelSelector);
 
-				informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
+				informer.addEventHandler(new Fabric8ResourceEventHandler<>(informer, this::onEvent));
 				informers.add(informer);
 			});
 		}
@@ -136,49 +134,6 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 		if (reload) {
 			reloadProperties();
 		}
-	}
-
-	private final class ConfigMapInformerAwareEventHandler implements ResourceEventHandler<ConfigMap> {
-
-		private final SharedIndexInformer<ConfigMap> informer;
-
-		private ConfigMapInformerAwareEventHandler(SharedIndexInformer<ConfigMap> informer) {
-			this.informer = informer;
-		}
-
-		@Override
-		public void onAdd(ConfigMap configMap) {
-			LOG.debug("ConfigMap " + configMap.getMetadata().getName() + " was added in namespace "
-					+ configMap.getMetadata().getNamespace());
-			onEvent(configMap);
-		}
-
-		@Override
-		public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
-			LOG.debug("ConfigMap " + newConfigMap.getMetadata().getName() + " was updated in namespace "
-					+ newConfigMap.getMetadata().getNamespace());
-			if (Objects.equals(oldConfigMap.getData(), newConfigMap.getData())) {
-				LOG.debug(() -> "data in configmap has not changed, will not reload");
-			}
-			else {
-				onEvent(newConfigMap);
-			}
-		}
-
-		@Override
-		public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
-			LOG.debug("ConfigMap " + configMap.getMetadata().getName() + " was deleted in namespace "
-					+ configMap.getMetadata().getNamespace());
-			onEvent(configMap);
-		}
-
-		@Override
-		public void onNothing() {
-			List<ConfigMap> store = informer.getStore().list();
-			LOG.info("onNothing called with a store of size : " + store.size());
-			LOG.info("this might be an indication of a HTTP_GONE code");
-		}
-
 	}
 
 }
