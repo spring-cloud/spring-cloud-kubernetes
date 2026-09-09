@@ -220,6 +220,13 @@ jobs:
           # how many extra times a shard re-runs the test classes that failed.
           # 0 disables retries, 2 means up to three maven runs, and so on.
           TEST_RETRY_COUNT: 1
+      - name: upload test output
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-${{ env.BRANCH_SAFE }}-jdk${{ env.JDK_VERSION }}-${{ matrix.current_index }}
+          path: /tmp/test_output_${{ matrix.current_index }}.log
+          if-no-files-found: warn
   test_when_cache_missing:
     name: Test without cache (runner ${{ matrix.current_index }})
     needs: [build]
@@ -285,6 +292,13 @@ jobs:
           # how many extra times a shard re-runs the test classes that failed.
           # 0 disables retries, 2 means up to three maven runs, and so on.
           TEST_RETRY_COUNT: 1
+      - name: upload test output
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-${{ env.BRANCH_SAFE }}-jdk${{ env.JDK_VERSION }}-${{ matrix.current_index }}
+          path: /tmp/test_output_${{ matrix.current_index }}.log
+          if-no-files-found: warn
   save_test_times_when_cache_missing:
     name: Save test times
     runs-on: ubuntu-latest
