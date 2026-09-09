@@ -41,17 +41,6 @@ class ConfigMapReloadWithoutLabelsTest extends CommonAbstractFiltering {
 
 	private static KubernetesClient mockKubernetesClient;
 
-	@TestConfiguration
-	static class KubernetesClientConfiguration {
-
-		@Bean
-		@Primary
-		KubernetesClient kubernetesClient() {
-			return mockKubernetesClient;
-		}
-
-	}
-
 	/**
 	 * <pre>
 	 *     - we only watch configmaps with labels: { only-shape:round }
@@ -69,6 +58,17 @@ class ConfigMapReloadWithoutLabelsTest extends CommonAbstractFiltering {
 			.atMost(Duration.ofSeconds(4))
 			.pollInterval(Duration.ofMillis(100))
 			.until(reloadProbe::isNotCalled);
+	}
+
+	@TestConfiguration
+	static class KubernetesClientConfiguration {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return mockKubernetesClient;
+		}
+
 	}
 
 }

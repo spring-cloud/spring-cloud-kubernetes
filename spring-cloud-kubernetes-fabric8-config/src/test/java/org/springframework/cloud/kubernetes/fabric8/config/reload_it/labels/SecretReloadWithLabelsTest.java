@@ -23,8 +23,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -39,17 +39,6 @@ class SecretReloadWithLabelsTest extends CommonAbstractFiltering {
 
 	private static KubernetesClient mockKubernetesClient;
 
-	@TestConfiguration
-	static class KubernetesClientConfiguration {
-
-		@Bean
-		@Primary
-		KubernetesClient kubernetesClient() {
-			return mockKubernetesClient;
-		}
-
-	}
-
 	/**
 	 * <pre>
 	 *     - we only watch secrets with labels: { only-shape:round }
@@ -61,6 +50,17 @@ class SecretReloadWithLabelsTest extends CommonAbstractFiltering {
 
 		kubernetesClient().secrets().inNamespace(NAMESPACE).resource(secret).create();
 		Awaitilities.awaitUntil(10, 1000, reloadProbe::isCalled);
+	}
+
+	@TestConfiguration
+	static class KubernetesClientConfiguration {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return mockKubernetesClient;
+		}
+
 	}
 
 }

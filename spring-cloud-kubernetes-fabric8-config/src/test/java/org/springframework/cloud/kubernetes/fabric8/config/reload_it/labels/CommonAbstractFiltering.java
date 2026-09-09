@@ -198,8 +198,8 @@ abstract class CommonAbstractFiltering {
 		 * This cannot be an ApplicationContextInitializer because that runs before the
 		 * per-test KubernetesClient bean exists. InitializingBean lets us access the
 		 * client injected by Spring and add the initial property sources once the test
-		 * configuration is initialized. This is test-only wiring and is not intended
-		 * to control the initialization order of other beans.
+		 * configuration is initialized. This is test-only wiring and is not intended to
+		 * control the initialization order of other beans.
 		 */
 		@Bean
 		InitializingBean kubernetesPropertySourcesInitializer(ConfigurableEnvironment environment,
@@ -207,9 +207,11 @@ abstract class CommonAbstractFiltering {
 				KubernetesNamespaceProvider namespaceProvider, KubernetesClient kubernetesClient) {
 			return () -> {
 				PropertySource<?> configMapPropertySource = new VisibleFabric8ConfigMapPropertySourceLocator(
-						kubernetesClient, configMapConfigProperties, namespaceProvider).locate(environment);
-				PropertySource<?> secretsPropertySource = new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient,
-						secretsConfigProperties, namespaceProvider).locate(environment);
+						kubernetesClient, configMapConfigProperties, namespaceProvider)
+					.locate(environment);
+				PropertySource<?> secretsPropertySource = new VisibleFabric8SecretsPropertySourceLocator(
+						kubernetesClient, secretsConfigProperties, namespaceProvider)
+					.locate(environment);
 
 				environment.getPropertySources().addFirst(configMapPropertySource);
 				environment.getPropertySources().addFirst(secretsPropertySource);

@@ -41,17 +41,6 @@ class ConfigMapReloadWithoutFilterTest extends CommonAbstractFiltering {
 
 	private static KubernetesClient mockKubernetesClient;
 
-	@TestConfiguration
-	static class KubernetesClientConfiguration {
-
-		@Bean
-		@Primary
-		KubernetesClient kubernetesClient() {
-			return mockKubernetesClient;
-		}
-
-	}
-
 	/**
 	 * <pre>
 	 * 	- informers are created with 'spring.cloud.kubernetes.reload.enable-reload-filtering',
@@ -69,6 +58,17 @@ class ConfigMapReloadWithoutFilterTest extends CommonAbstractFiltering {
 			.atMost(Duration.ofSeconds(4))
 			.pollInterval(Duration.ofMillis(100))
 			.until(reloadProbe::isNotCalled);
+
+	}
+
+	@TestConfiguration
+	static class KubernetesClientConfiguration {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return mockKubernetesClient;
+		}
 
 	}
 
