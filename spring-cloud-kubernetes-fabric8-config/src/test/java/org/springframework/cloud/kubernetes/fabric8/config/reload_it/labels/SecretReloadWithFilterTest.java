@@ -19,10 +19,13 @@ package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
@@ -30,10 +33,23 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  * @author wind57
  */
 @SpringBootTest(properties = { "spring.main.allow-bean-definition-overriding=true", "secrets.reload.filtering=true" },
-		classes = { CommonAbstractFiltering.TestConfig.class,
+		classes = { SecretReloadWithFilterTest.KubernetesClientConfiguration.class,
+				CommonAbstractFiltering.TestConfig.class,
 				CommonAbstractFiltering.ConfigReloadPropertiesConfiguration.class })
-@ContextConfiguration(initializers = CommonAbstractFiltering.Initializer.class)
 class SecretReloadWithFilterTest extends CommonAbstractFiltering {
+
+	private static KubernetesClient mockKubernetesClient;
+
+	@TestConfiguration
+	static class KubernetesClientConfiguration {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return mockKubernetesClient;
+		}
+
+	}
 
 	/**
 	 * <pre>
@@ -48,7 +64,7 @@ class SecretReloadWithFilterTest extends CommonAbstractFiltering {
 		Secret secret = secret(SECRET_NAME, Map.of("a", "b"),
 				Map.of("spring.cloud.kubernetes.config.informer.enabled", "true"));
 
-		kubernetesClient.secrets().inNamespace(NAMESPACE).resource(secret).create();
+		kubernetesClient().secrets().inNamespace(NAMESPACE).resource(secret).create();
 		awaitUntil(10, 1000, reloadProbe::isCalled);
 	}
 
