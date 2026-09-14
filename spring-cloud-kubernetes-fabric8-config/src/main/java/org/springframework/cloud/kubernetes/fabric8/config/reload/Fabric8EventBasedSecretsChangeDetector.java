@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,18 +26,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.namespaces;
@@ -51,20 +46,12 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author Haytham Mohamed
  * @author Kris Iyer
  */
-public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+public class Fabric8EventBasedSecretsChangeDetector extends Fabric8EventBasedChangeDetector<Secret> {
 
 	private static final LogAccessor LOG = new LogAccessor(
 			LogFactory.getLog(Fabric8EventBasedSecretsChangeDetector.class));
 
-	private final Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
-
-	private final KubernetesClient kubernetesClient;
-
-	private final List<SharedIndexInformer<Secret>> informers = new ArrayList<>();
-
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean enableReloadFiltering;
 
@@ -76,22 +63,12 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider) {
-		super(strategy);
-		this.environment = environment;
-		this.kubernetesClient = kubernetesClient;
-		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
+		super(environment, kubernetesClient, strategy, fabric8SecretsPropertySourceLocator,
+				Fabric8SecretsPropertySource.class);
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitorSecrets = properties.monitoringSecrets();
 		secretsLabels = properties.secretsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
-	}
-
-	@PreDestroy
-	private void shutdown() {
-		informers.forEach(SharedIndexInformer::close);
-		// Ensure the kubernetes client is cleaned up from spare threads when shutting
-		// down
-		kubernetesClient.close();
 	}
 
 	@PostConstruct
@@ -100,20 +77,8 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 
 			LOG.info("Kubernetes event-based secrets change detector activated");
 
-			Map<String, String> labelSelector;
-
-			if (enableReloadFiltering) {
-				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-				LOG.warn(() -> "use spring.cloud.kubernetes.reload.secrets-labels instead");
-				if (!secretsLabels.isEmpty()) {
-					LOG.warn(() -> "spring.cloud.kubernetes.reload.secrets-labels is not empty, but "
-							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
-				}
-				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
-			}
-			else {
-				labelSelector = secretsLabels;
-			}
+			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
+				"spring.cloud.kubernetes.reload.secrets-labels");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<Secret> informer;
@@ -126,14 +91,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 		}
 		else {
 			LOG.debug("Kubernetes event-based secrets change detector deactivated");
-		}
-	}
-
-	private void onEvent(Secret secret) {
-		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
-				environment, Fabric8SecretsPropertySource.class);
-		if (reload) {
-			reloadProperties();
 		}
 	}
 
