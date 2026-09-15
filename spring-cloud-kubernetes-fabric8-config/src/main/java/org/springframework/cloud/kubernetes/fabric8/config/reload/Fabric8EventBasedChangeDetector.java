@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PreDestroy;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -44,8 +43,7 @@ import org.springframework.core.log.LogAccessor;
  */
 abstract class Fabric8EventBasedChangeDetector<T extends HasMetadata> extends ConfigurationChangeDetector {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(Fabric8EventBasedChangeDetector.class));
+	private static final LogAccessor LOG = new LogAccessor(Fabric8EventBasedChangeDetector.class);
 
 	private final PropertySourceLocator propertySourceLocator;
 
