@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,18 +23,13 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.namespaces;
@@ -49,20 +42,11 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author Haytham Mohamed
  * @author Kris Iyer
  */
-public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChangeDetector {
+public class Fabric8EventBasedConfigMapChangeDetector extends Fabric8EventBasedChangeDetector<ConfigMap> {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(Fabric8EventBasedConfigMapChangeDetector.class));
-
-	private final Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
-
-	private final KubernetesClient kubernetesClient;
-
-	private final List<SharedIndexInformer<ConfigMap>> informers = new ArrayList<>();
+	private static final LogAccessor LOG = new LogAccessor(Fabric8EventBasedConfigMapChangeDetector.class);
 
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean enableReloadFiltering;
 
@@ -74,10 +58,8 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider) {
-		super(strategy);
-		this.environment = environment;
-		this.kubernetesClient = kubernetesClient;
-		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
+		super(environment, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
+				Fabric8ConfigMapPropertySource.class);
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitorConfigMaps = properties.monitoringConfigMaps();
 		this.configMapsLabels = properties.configMapsLabels();
@@ -90,20 +72,8 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 
 			LOG.info("Kubernetes event-based configMap change detector activated");
 
-			Map<String, String> labelSelector;
-
-			if (enableReloadFiltering) {
-				LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-				LOG.warn(() -> "use spring.cloud.kubernetes.reload.config-maps-labels instead");
-				if (!configMapsLabels.isEmpty()) {
-					LOG.warn(() -> "spring.cloud.kubernetes.reload.config-maps-labels is not empty, but "
-							+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
-				}
-				labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
-			}
-			else {
-				labelSelector = configMapsLabels;
-			}
+			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
+					"spring.cloud.kubernetes.reload.config-maps-labels");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<ConfigMap> informer;
@@ -118,22 +88,6 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 			LOG.info("Kubernetes event-based configMap change detector disabled");
 		}
 
-	}
-
-	@PreDestroy
-	private void shutdown() {
-		informers.forEach(SharedIndexInformer::close);
-		// Ensure the kubernetes client is cleaned up from spare threads when shutting
-		// down
-		kubernetesClient.close();
-	}
-
-	private void onEvent(ConfigMap configMap) {
-		boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(),
-				fabric8ConfigMapPropertySourceLocator, environment, Fabric8ConfigMapPropertySource.class);
-		if (reload) {
-			reloadProperties();
-		}
 	}
 
 }
