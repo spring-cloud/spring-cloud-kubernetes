@@ -26,7 +26,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.log.LogAccessor;
 
@@ -38,7 +37,7 @@ import org.springframework.core.log.LogAccessor;
  */
 final class Fabric8ResourceEventHandler<T extends HasMetadata> implements ResourceEventHandler<T> {
 
-	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(Fabric8ResourceEventHandler.class));
+	private static final LogAccessor LOG = new LogAccessor(Fabric8ResourceEventHandler.class);
 
 	private final SharedIndexInformer<T> informer;
 
