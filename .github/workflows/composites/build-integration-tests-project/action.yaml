@@ -6,12 +6,16 @@ runs:
     - name: build integration tests project without tests
       shell: bash
       run: |
-        
+
+        # both of these reach out to the network, the second one to build the docker images
+        # via the paketo buildpacks, so retry them, see the script.
+        RETRY="${GITHUB_WORKSPACE}/.github/workflows/composites/scripts/retry-command.sh"
+
         cd spring-cloud-kubernetes-test-support
-        .././mvnw clean install -U
+        "${RETRY}" .././mvnw $MAVEN_SETTINGS clean install -U
         cd ..
-        
+
         cd spring-cloud-kubernetes-integration-tests
         # build the images, but dont run the tests
-        .././mvnw -T 1C clean install -DskipTests
+        "${RETRY}" .././mvnw $MAVEN_SETTINGS -T 1C clean install -DskipTests
         cd ..

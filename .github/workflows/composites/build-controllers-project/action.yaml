@@ -8,6 +8,11 @@ runs:
       env:
         CURRENT_INDEX: ${{ matrix.current_index }}
       run: |
+        # this builds the controller docker images via the paketo buildpacks, which pull a
+        # JRE and the buildpack images over the network, so it fails for transient reasons
+        # that have nothing to do with the build. retry it, see the script.
+        RETRY="${GITHUB_WORKSPACE}/.github/workflows/composites/scripts/retry-command.sh"
+
         cd spring-cloud-kubernetes-controllers
-        .././mvnw -DCURRENT_INSTANCE=${CURRENT_INDEX} -T 1C -U clean install
+        "${RETRY}" .././mvnw $MAVEN_SETTINGS -DCURRENT_INSTANCE=${CURRENT_INDEX} -T 1C -U clean install
         cd ..
