@@ -16,29 +16,20 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigMapPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.namespaces;
@@ -51,20 +42,11 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author Haytham Mohamed
  * @author Kris Iyer
  */
-public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChangeDetector {
+public class Fabric8EventBasedConfigMapChangeDetector extends Fabric8EventBasedChangeDetector<ConfigMap> {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(Fabric8EventBasedConfigMapChangeDetector.class));
-
-	private final Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator;
-
-	private final KubernetesClient kubernetesClient;
-
-	private final List<SharedIndexInformer<ConfigMap>> informers = new ArrayList<>();
+	private static final LogAccessor LOG = new LogAccessor(Fabric8EventBasedConfigMapChangeDetector.class);
 
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean monitorConfigMaps;
 
@@ -74,10 +56,8 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider) {
-		super(strategy);
-		this.environment = environment;
-		this.kubernetesClient = kubernetesClient;
-		this.fabric8ConfigMapPropertySourceLocator = fabric8ConfigMapPropertySourceLocator;
+		super(environment, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
+				Fabric8ConfigMapPropertySource.class);
 		this.monitorConfigMaps = properties.monitoringConfigMaps();
 		this.configMapsLabels = properties.configMapsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "configmap");
@@ -95,71 +75,12 @@ public class Fabric8EventBasedConfigMapChangeDetector extends ConfigurationChang
 				LOG.debug(
 						"added configmap informer for namespace : " + namespace + " with labels : " + configMapsLabels);
 
-				informer.addEventHandler(new ConfigMapInformerAwareEventHandler(informer));
+				informer.addEventHandler(new Fabric8ResourceEventHandler<>(informer, this::onEvent));
 				informers.add(informer);
 			});
 		}
 		else {
 			LOG.info("Kubernetes event-based configMap change detector disabled");
-		}
-
-	}
-
-	@PreDestroy
-	private void shutdown() {
-		informers.forEach(SharedIndexInformer::close);
-		// Ensure the kubernetes client is cleaned up from spare threads when shutting
-		// down
-		kubernetesClient.close();
-	}
-
-	private void onEvent(ConfigMap configMap) {
-		boolean reload = ConfigReloadUtil.reload("config-map", configMap.toString(),
-				fabric8ConfigMapPropertySourceLocator, environment, Fabric8ConfigMapPropertySource.class);
-		if (reload) {
-			reloadProperties();
-		}
-	}
-
-	private final class ConfigMapInformerAwareEventHandler implements ResourceEventHandler<ConfigMap> {
-
-		private final SharedIndexInformer<ConfigMap> informer;
-
-		private ConfigMapInformerAwareEventHandler(SharedIndexInformer<ConfigMap> informer) {
-			this.informer = informer;
-		}
-
-		@Override
-		public void onAdd(ConfigMap configMap) {
-			LOG.debug("ConfigMap " + configMap.getMetadata().getName() + " was added in namespace "
-					+ configMap.getMetadata().getNamespace());
-			onEvent(configMap);
-		}
-
-		@Override
-		public void onUpdate(ConfigMap oldConfigMap, ConfigMap newConfigMap) {
-			LOG.debug("ConfigMap " + newConfigMap.getMetadata().getName() + " was updated in namespace "
-					+ newConfigMap.getMetadata().getNamespace());
-			if (Objects.equals(oldConfigMap.getData(), newConfigMap.getData())) {
-				LOG.debug(() -> "data in configmap has not changed, will not reload");
-			}
-			else {
-				onEvent(newConfigMap);
-			}
-		}
-
-		@Override
-		public void onDelete(ConfigMap configMap, boolean deletedFinalStateUnknown) {
-			LOG.debug("ConfigMap " + configMap.getMetadata().getName() + " was deleted in namespace "
-					+ configMap.getMetadata().getNamespace());
-			onEvent(configMap);
-		}
-
-		@Override
-		public void onNothing() {
-			List<ConfigMap> store = informer.getStore().list();
-			LOG.info("onNothing called with a store of size : " + store.size());
-			LOG.info("this might be an indication of a HTTP_GONE code");
 		}
 
 	}
