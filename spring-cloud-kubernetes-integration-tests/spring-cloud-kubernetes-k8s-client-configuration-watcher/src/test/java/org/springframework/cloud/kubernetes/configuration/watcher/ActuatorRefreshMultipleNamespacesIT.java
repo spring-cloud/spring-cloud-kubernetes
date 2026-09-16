@@ -45,7 +45,7 @@ class ActuatorRefreshMultipleNamespacesIT {
 
 	@BeforeAll
 	static void beforeAll(NativeClientKubernetesFixture fixture) {
-		configureWireMock();
+		configureWireMock(fixture);
 
 		createConfigMap(fixture, "left");
 		createConfigMap(fixture, "right");

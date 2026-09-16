@@ -9,7 +9,6 @@ spec:
     - name: http
       port: 32321
       targetPort: 32321
-      nodePort: 32321
   selector:
     app: spring-cloud-kubernetes-discoveryserver
   type: NodePort
