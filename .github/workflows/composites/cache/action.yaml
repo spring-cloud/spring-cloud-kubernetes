@@ -13,8 +13,11 @@ runs:
       with:
         attempt_limit: 3
         action: buildjet/cache@v3
+        # '~/.m2/wrapper' holds the maven distribution that ./mvnw downloads for itself.
         with: |
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-cache-jdk${{ inputs.jdk-version }}-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-cache-jdk${{ inputs.jdk-version }}-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
+          path: |
+            ~/.m2/repository
+            ~/.m2/wrapper
+          key: ${{ runner.os }}-cache-v2-jdk${{ inputs.jdk-version }}-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-cache-v2-jdk${{ inputs.jdk-version }}-${{ env.BRANCH_NAME }}-${{ hashFiles('**/pom.xml') }}
         

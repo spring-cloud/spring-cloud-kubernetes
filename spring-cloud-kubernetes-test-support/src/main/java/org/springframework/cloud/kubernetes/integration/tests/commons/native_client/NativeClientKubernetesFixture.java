@@ -582,7 +582,7 @@ public final class NativeClientKubernetesFixture {
 
 	private void waitForDeployment(String namespace, V1Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		Awaitilities.awaitUntil(6000, 1000, () -> {
+		Awaitilities.awaitUntil(600, 1000, () -> {
 			try {
 				return isDeploymentReady(deploymentName, namespace);
 			}

@@ -21,3 +21,60 @@ runs:
         
         echo "BRANCH_NAME=$(echo $GITHUB_HEAD_REF)" >> $GITHUB_ENV
         echo "BASE_BRANCH_NAME=$(echo $GITHUB_BASE_REF)" >> $GITHUB_ENV
+
+        # Maven settings file for this branch, exported as MAVEN_SETTINGS and used by
+        # every ./mvnw invocation in the workflows and composites.
+        #
+        # When performing GA releases we use release-ci-settings.xml.
+        # When running CI builds we use .settings.xml committed at the repo root.
+        #
+        # The path is absolute because several composites invoke Maven from a subdirectory
+        # (.././mvnw), where a relative -s path would not resolve.
+        if [[ -f "$GITHUB_WORKSPACE/release-ci-settings.xml" ]]; then
+          echo "MAVEN_SETTINGS=-s $GITHUB_WORKSPACE/release-ci-settings.xml" >> $GITHUB_ENV
+          echo "Maven settings: release-ci-settings.xml (commercial release branch)"
+        elif [[ -f "$GITHUB_WORKSPACE/.settings.xml" ]]; then
+          echo "MAVEN_SETTINGS=-s $GITHUB_WORKSPACE/.settings.xml" >> $GITHUB_ENV
+          echo "Maven settings: .settings.xml"
+        else
+          echo "MAVEN_SETTINGS=" >> $GITHUB_ENV
+          echo "Maven settings: none found, using Maven defaults"
+        fi
+
+        # Artifactory credentials for the settings file selected above.
+        #
+        # release-ci-settings.xml resolves its <server> entries from
+        # ${env.COMMERCIAL_ARTIFACTORY_USERNAME} / ${env.COMMERCIAL_ARTIFACTORY_PASSWORD},
+        # so those must exist in the environment or every request to commercial
+        # Artifactory is unauthenticated and fails with a 401.
+        #
+        # PASSWORD/USERNAME are the read-write commercial secrets and are empty on pull
+        # requests (and in OSS repos, where the secrets do not exist), in which case the
+        # read-only secrets are used instead. Resolving dependencies only needs read
+        # access, so a PR build still works.
+        #
+        # This composite is invoked more than once per job: the workflow calls it, and so
+        # does pre-test-actions. Only the workflow's call receives the credentials, so the
+        # nested call must not overwrite what the first one established - doing so replaces
+        # the read-write credentials with the read-only ones and every subsequent request to
+        # commercial Artifactory fails with a 401. Hence values already in the environment
+        # are preserved, and the read-only fallback applies only when nothing is set yet.
+        if [[ -n $PASSWORD ]]; then
+          echo "COMMERCIAL_ARTIFACTORY_PASSWORD is set"
+          echo "COMMERCIAL_ARTIFACTORY_PASSWORD=${PASSWORD}" >> $GITHUB_ENV
+        elif [[ -n $COMMERCIAL_ARTIFACTORY_PASSWORD ]]; then
+          echo "COMMERCIAL_ARTIFACTORY_PASSWORD already set earlier in this job, keeping it"
+        else
+          echo "COMMERCIAL_ARTIFACTORY_PASSWORD is not set, using the read only secret"
+          echo "COMMERCIAL_ARTIFACTORY_PASSWORD=${RO_PASSWORD}" >> $GITHUB_ENV
+        fi
+
+        if [[ -n $USERNAME ]]; then
+          echo "COMMERCIAL_ARTIFACTORY_USERNAME is set"
+          echo "COMMERCIAL_ARTIFACTORY_USERNAME=${USERNAME}" >> $GITHUB_ENV
+        elif [[ -n $COMMERCIAL_ARTIFACTORY_USERNAME ]]; then
+          echo "COMMERCIAL_ARTIFACTORY_USERNAME already set earlier in this job, keeping it"
+        else
+          echo "COMMERCIAL_ARTIFACTORY_USERNAME is not set, using the read only secret"
+          echo "COMMERCIAL_ARTIFACTORY_USERNAME=${RO_USERNAME}" >> $GITHUB_ENV
+        fi

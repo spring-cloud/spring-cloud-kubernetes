@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-kubernetes</artifactId>
-		<version>5.0.3-SNAPSHOT</version>
+		<version>5.1.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes-integration-tests</artifactId>
@@ -32,24 +32,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<image>
-						<env>
-							<BP_SPRING_CLOUD_BINDINGS_DISABLED>true</BP_SPRING_CLOUD_BINDINGS_DISABLED>
-							<BP_LOG_LEVEL>DEBUG</BP_LOG_LEVEL>
-						</env>
-						<name>docker.io/springcloud/${project.artifactId}:${project.version}</name>
-					</image>
-				</configuration>
-				<executions>
-					<execution>
-						<id>build-image</id>
-						<phase>package</phase>
-						<goals>
-							<goal>build-image-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 
 			<!-- ignore plain tests (in the 'test' phase), so that we could build the image first, see above -->
