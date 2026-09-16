@@ -329,6 +329,36 @@ public final class Fabric8ClientKubernetesFixture {
 		}
 	}
 
+	/**
+	 * Returns the NodePort assigned by Kubernetes for an existing NodePort service. The
+	 * service manifest does not set spec.ports[].nodePort, so this waits until Kubernetes
+	 * fills that value during service creation.
+	 */
+	public int nodePort(String namespace, String serviceName) {
+		int[] nodePort = new int[1];
+		Awaitilities.awaitUntil(60, 1000, () -> {
+			Integer portFromService = readNodePort(namespace, serviceName);
+			if (portFromService != null) {
+				nodePort[0] = portFromService;
+				return true;
+			}
+
+			return false;
+		});
+		return nodePort[0];
+	}
+
+	private Integer readNodePort(String namespace, String serviceName) {
+		return client.services()
+			.inNamespace(namespace)
+			.withName(serviceName)
+			.get()
+			.getSpec()
+			.getPorts()
+			.get(0)
+			.getNodePort();
+	}
+
 	private void waitForSecret(String namespace, Secret secret, Phase phase) {
 		String secretName = secretName(secret);
 		Awaitilities.awaitUntil(600, 1000, () -> {
