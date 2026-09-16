@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
