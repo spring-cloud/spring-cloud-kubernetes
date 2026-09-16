@@ -45,19 +45,20 @@ final class TestUtil {
 
 	private static final String WIREMOCK_HOST = "localhost";
 
-	private static final int WIREMOCK_PORT = 32321;
-
 	private TestUtil() {
 
 	}
 
-	static void configureWireMock() {
-		WireMock.configureFor(WIREMOCK_HOST, WIREMOCK_PORT);
+	static void configureWireMock(NativeClientKubernetesFixture fixture) {
+		String namespace = "default";
+		String serviceName = "service-wiremock";
+		int nodePort = fixture.nodePort(namespace, serviceName);
+		WireMock.configureFor(WIREMOCK_HOST, nodePort);
 		// the above statement configures the client, but we need to make sure the cluster
 		// is ready to take a request via 'Wiremock::stubFor' (because sometimes it fails)
 		// As such, get the existing mappings and retrySpec() makes sure we retry until
 		// we get a response back.
-		WebClient client = builder().baseUrl("http://localhost:32321/__admin/mappings").build();
+		WebClient client = builder().baseUrl("http://localhost:" + nodePort + "/__admin/mappings").build();
 		client.method(HttpMethod.GET).retrieve().bodyToMono(String.class).retryWhen(retrySpec()).block();
 
 		StubMapping stubMapping = WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/actuator/refresh"))
