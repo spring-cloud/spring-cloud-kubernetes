@@ -53,7 +53,14 @@ abstract class DiscoveryServerClientBase {
 		KubernetesDiscoveryProperties.Metadata metadata = new KubernetesDiscoveryProperties.Metadata(true, null, true,
 				null, true, "port.", true, true);
 		return new KubernetesDiscoveryProperties(true, false, namespaces, true, 60, false, null, Set.of(443, 8443),
-				Map.of(), null, metadata, 0, false, true, "http://localhost:32321");
+				Map.of(), null, metadata, 0, false, true, discoveryServerUrl());
+	}
+
+	private static String discoveryServerUrl() {
+		String namespace = "default";
+		String serviceName = "spring-cloud-kubernetes-discoveryserver";
+		int nodePort = k8sNativeKubernetesFixture.nodePort(namespace, serviceName);
+		return "http://localhost:" + nodePort;
 	}
 
 	protected static void testHeartBeat(HeartbeatListener heartbeatListener, CapturedOutput output) {
