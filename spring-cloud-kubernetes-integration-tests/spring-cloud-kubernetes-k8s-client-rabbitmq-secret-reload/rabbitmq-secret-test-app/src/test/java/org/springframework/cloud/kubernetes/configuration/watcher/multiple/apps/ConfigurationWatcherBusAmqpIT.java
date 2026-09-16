@@ -75,7 +75,10 @@ class ConfigurationWatcherBusAmqpIT {
 		fixture.createAndWait("default", null, secret);
 
 		WebClient.Builder builder = builder();
-		WebClient serviceClient = builder.baseUrl("http://localhost:32321/app").build();
+		String namespace = "default";
+		String serviceName = "app";
+		int nodePort = fixture.nodePort(namespace, serviceName);
+		WebClient serviceClient = builder.baseUrl("http://localhost:" + nodePort + "/app").build();
 
 		Boolean[] value = new Boolean[1];
 		Awaitilities.awaitUntil(240, 1000, () -> {
