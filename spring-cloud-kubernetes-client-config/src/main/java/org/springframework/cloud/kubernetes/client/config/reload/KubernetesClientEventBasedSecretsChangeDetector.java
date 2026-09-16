@@ -16,15 +16,9 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
-import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.openapi.ApiClient;
@@ -33,15 +27,11 @@ import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
@@ -53,66 +43,28 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientEventBasedSecretsChangeDetector.class));
+	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedSecretsChangeDetector.class);
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
-
 	private final ApiClient apiClient;
 
-	private final List<SharedIndexInformer<V1Secret>> informers = new ArrayList<>();
-
-	private final List<SharedInformerFactory> factories = new ArrayList<>();
-
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean monitoringSecrets;
 
 	private final Map<String, String> secretsLabels;
 
-	private final ResourceEventHandler<V1Secret> handler = new ResourceEventHandler<>() {
-
-		@Override
-		public void onAdd(V1Secret secret) {
-			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was added in namespace "
-					+ secret.getMetadata().getNamespace());
-			onEvent(secret);
-		}
-
-		@Override
-		public void onUpdate(V1Secret oldSecret, V1Secret newSecret) {
-			LOG.debug(() -> "Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
-					+ newSecret.getMetadata().getNamespace());
-
-			if (KubernetesClientEventBasedSecretsChangeDetector.equals(oldSecret.getData(), newSecret.getData())) {
-				LOG.debug(() -> "data in secret has not changed, will not reload");
-			}
-			else {
-				onEvent(newSecret);
-			}
-		}
-
-		@Override
-		public void onDelete(V1Secret secret, boolean deletedFinalStateUnknown) {
-			LOG.debug(() -> "Secret " + secret.getMetadata().getName() + " was deleted in namespace "
-					+ secret.getMetadata().getNamespace());
-			onEvent(secret);
-		}
-	};
+	private final KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
+			this::onEvent);
 
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy);
-		this.environment = environment;
-		this.propertySourceLocator = propertySourceLocator;
+		super(strategy, propertySourceLocator, environment, KubernetesClientSecretsPropertySource.class);
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.monitoringSecrets = properties.monitoringSecrets();
@@ -146,38 +98,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			});
 		}
 
-	}
-
-	@PreDestroy
-	void shutdown() {
-		informers.forEach(SharedIndexInformer::stop);
-		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
-	}
-
-	protected void onEvent(KubernetesObject secret) {
-		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), propertySourceLocator, environment,
-				KubernetesClientSecretsPropertySource.class);
-		if (reload) {
-			reloadProperties();
-		}
-	}
-
-	static boolean equals(Map<String, byte[]> left, Map<String, byte[]> right) {
-		Map<String, byte[]> innerLeft = Optional.ofNullable(left).orElse(Map.of());
-		Map<String, byte[]> innerRight = Optional.ofNullable(right).orElse(Map.of());
-
-		if (innerLeft.size() != innerRight.size()) {
-			return false;
-		}
-
-		for (Map.Entry<String, byte[]> entry : innerLeft.entrySet()) {
-			String key = entry.getKey();
-			byte[] value = entry.getValue();
-			if (!Arrays.equals(value, innerRight.get(key))) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 }

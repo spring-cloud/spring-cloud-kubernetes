@@ -16,29 +16,20 @@
 
 package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySource;
 import org.springframework.cloud.kubernetes.fabric8.config.Fabric8SecretsPropertySourceLocator;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigUtils.namespaces;
@@ -51,20 +42,11 @@ import static org.springframework.cloud.kubernetes.fabric8.config.Fabric8ConfigU
  * @author Haytham Mohamed
  * @author Kris Iyer
  */
-public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+public class Fabric8EventBasedSecretsChangeDetector extends Fabric8EventBasedChangeDetector<Secret> {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(Fabric8EventBasedSecretsChangeDetector.class));
-
-	private final Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator;
-
-	private final KubernetesClient kubernetesClient;
-
-	private final List<SharedIndexInformer<Secret>> informers = new ArrayList<>();
+	private static final LogAccessor LOG = new LogAccessor(Fabric8EventBasedSecretsChangeDetector.class);
 
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean monitorSecrets;
 
@@ -74,21 +56,11 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 			KubernetesClient kubernetesClient, ConfigurationUpdateStrategy strategy,
 			Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider) {
-		super(strategy);
-		this.environment = environment;
-		this.kubernetesClient = kubernetesClient;
-		this.fabric8SecretsPropertySourceLocator = fabric8SecretsPropertySourceLocator;
+		super(environment, kubernetesClient, strategy, fabric8SecretsPropertySourceLocator,
+				Fabric8SecretsPropertySource.class);
 		this.monitorSecrets = properties.monitoringSecrets();
 		secretsLabels = properties.secretsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
-	}
-
-	@PreDestroy
-	private void shutdown() {
-		informers.forEach(SharedIndexInformer::close);
-		// Ensure the kubernetes client is cleaned up from spare threads when shutting
-		// down
-		kubernetesClient.close();
 	}
 
 	@PostConstruct
@@ -102,64 +74,13 @@ public class Fabric8EventBasedSecretsChangeDetector extends ConfigurationChangeD
 				informer = kubernetesClient.secrets().inNamespace(namespace).withLabels(secretsLabels).inform();
 				LOG.debug("added secret informer for namespace : " + namespace + " with labels : " + secretsLabels);
 
-				informer.addEventHandler(new SecretInformerAwareEventHandler(informer));
+				informer.addEventHandler(new Fabric8ResourceEventHandler<>(informer, this::onEvent));
 				informers.add(informer);
 			});
 		}
 		else {
 			LOG.debug("Kubernetes event-based secrets change detector deactivated");
 		}
-	}
-
-	private void onEvent(Secret secret) {
-		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), fabric8SecretsPropertySourceLocator,
-				environment, Fabric8SecretsPropertySource.class);
-		if (reload) {
-			reloadProperties();
-		}
-	}
-
-	private final class SecretInformerAwareEventHandler implements ResourceEventHandler<Secret> {
-
-		private final SharedIndexInformer<Secret> informer;
-
-		private SecretInformerAwareEventHandler(SharedIndexInformer<Secret> informer) {
-			this.informer = informer;
-		}
-
-		@Override
-		public void onAdd(Secret secret) {
-			LOG.debug("Secret " + secret.getMetadata().getName() + " was added in namespace "
-					+ secret.getMetadata().getNamespace());
-			onEvent(secret);
-		}
-
-		@Override
-		public void onUpdate(Secret oldSecret, Secret newSecret) {
-			LOG.debug("Secret " + newSecret.getMetadata().getName() + " was updated in namespace "
-					+ newSecret.getMetadata().getNamespace());
-			if (Objects.equals(oldSecret.getData(), newSecret.getData())) {
-				LOG.debug(() -> "data in secret has not changed, will not reload");
-			}
-			else {
-				onEvent(newSecret);
-			}
-		}
-
-		@Override
-		public void onDelete(Secret secret, boolean deletedFinalStateUnknown) {
-			LOG.debug("Secret " + secret.getMetadata().getName() + " was deleted in namespace "
-					+ secret.getMetadata().getNamespace());
-			onEvent(secret);
-		}
-
-		@Override
-		public void onNothing() {
-			List<Secret> store = informer.getStore().list();
-			LOG.info("onNothing called with a store of size : " + store.size());
-			LOG.info("this might be an indication of a HTTP_GONE code");
-		}
-
 	}
 
 }

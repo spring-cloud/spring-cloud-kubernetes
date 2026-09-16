@@ -46,19 +46,10 @@ runs:
         TEST_ARG=$(echo ${sliced_array[@]} | sed 's/ /,/g')
         echo "$TEST_ARG"
         
-        ./mvnw -s .settings.xml \
-            -DtestsToRun=${TEST_ARG[@]} \
-            -DCURRENT_INSTANCE=${CURRENT_INDEX} \
-            -e clean install \
-            -P sonar -nsu --batch-mode \
-            -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-            -Dhttp.keepAlive=false \
-            -Dmaven.wagon.http.pool=false \
-            -Dmaven.wagon.http.retryHandler.class=standard \
-            -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-            -Dmaven.wagon.http.retryHandler.count=3 \
-            -Dmaven.resolver.transport=wagon \
-            -Dspring-boot.build-image.skip=true          
+        # runs the tests, then re-runs only the classes that failed, see the script
+        ./.github/workflows/composites/scripts/run-tests-with-retry.sh \
+            "${TEST_ARG}" \
+            -DCURRENT_INSTANCE=${CURRENT_INDEX}
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         
