@@ -154,20 +154,11 @@ runs:
         
         echo "will run tests : $tests_to_run_in_current_index"
         
-        ./mvnw -s .settings.xml \
-              -DtestsToRun=${tests_to_run_in_current_index} \
+        # runs the tests, then re-runs only the classes that failed, see the script
+        ./.github/workflows/composites/scripts/run-tests-with-retry.sh \
+              "${tests_to_run_in_current_index}" \
               -Dsurefire-reports-directory=surefire-reports/${CURRENT_INDEX} \
-              -Dfailsafe-reports-directory=failsafe-reports/${CURRENT_INDEX} \
-              -e clean install \
-              -P sonar -nsu --batch-mode \
-              -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn \
-              -Dhttp.keepAlive=false \
-              -Dmaven.wagon.http.pool=false \
-              -Dmaven.wagon.http.retryHandler.class=standard \
-              -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 \
-              -Dmaven.wagon.http.retryHandler.count=3 \
-              -Dmaven.resolver.transport=wagon \
-              -Dspring-boot.build-image.skip=true
+              -Dfailsafe-reports-directory=failsafe-reports/${CURRENT_INDEX}
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         

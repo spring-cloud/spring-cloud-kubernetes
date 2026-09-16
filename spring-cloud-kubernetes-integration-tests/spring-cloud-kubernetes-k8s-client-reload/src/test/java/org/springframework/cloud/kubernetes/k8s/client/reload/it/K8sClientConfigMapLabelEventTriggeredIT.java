@@ -139,7 +139,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 		replaceConfigMap(coreV1Api, rightWithLabelConfigMap);
 
 		Awaitilities.awaitUntil(60, 1000,
-				() -> output.getOut().contains("data in configmap has not changed, will not reload"));
+				() -> output.getOut().contains("data in ConfigMap has not changed, will not reload"));
 		Awaitilities.awaitUntil(60, 1000,
 				() -> rightWithLabelsProperties.getValue().equals("right-with-label-initial"));
 

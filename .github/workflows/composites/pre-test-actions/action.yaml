@@ -20,10 +20,6 @@ runs:
     - name: set env variables
       uses: ./.github/workflows/composites/env-variables
 
-    - name: setup project jdk-17
-      uses: ./.github/workflows/composites/setup-jdk17
-      if: env.BASE_BRANCH == 'main'
-
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
       with:
@@ -37,7 +33,14 @@ runs:
     - name: build project
       shell: bash
       run: |
-        ./mvnw clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q  
+        # this is the first ./mvnw of the job, so it is also the one that makes the maven
+        # wrapper download maven itself. Only ~/.m2/repository is cached, not
+        # ~/.m2/wrapper, so every shard downloads apache-maven-<version>-bin.zip from
+        # maven central at the same moment and central answers some of them with
+        # 'HTTP response code: 429'. Retry it, see the script.
+        RETRY="${GITHUB_WORKSPACE}/.github/workflows/composites/scripts/retry-command.sh"
+
+        "${RETRY}" ./mvnw $MAVEN_SETTINGS clean install -Dspring-boot.build-image.skip=true -DskipITs -DskipTests -T1C -U -B -q
 
     # we could cache these images also, but the vast majority of time, we will
     # be running against a SNAPSHOT version.
@@ -54,7 +57,7 @@ runs:
       run: |
         
         # find the version of our project from file: spring-cloud-kubernetes-integration-tests/pom.xml
-        PROJECT_VERSION="$(./mvnw -q -f spring-cloud-kubernetes-integration-tests/pom.xml help:evaluate -Dexpression=project.version -DforceStdout)"
+        PROJECT_VERSION="$(./mvnw $MAVEN_SETTINGS -q -f spring-cloud-kubernetes-integration-tests/pom.xml help:evaluate -Dexpression=project.version -DforceStdout)"
         
         # get the existing docker images ( controllers and integration tests ) into the 'images' array
         mapfile -t images < <(
