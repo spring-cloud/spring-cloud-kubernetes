@@ -64,9 +64,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 	// HA enabled for configuration watcher
 	private final boolean haEnabled;
 
-	private final KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent);
-
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
@@ -107,6 +104,10 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 		if (running || !monitoringSecrets) {
 			return;
 		}
+
+		KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
+			this::onEvent, resourceVersionWriter);
+
 		InformerResourceVersionResolver resourceVersionResolver = new InformerResourceVersionResolver(
 				storedResourceVersions, haEnabled);
 		LOG.info(() -> "Kubernetes event-based secrets change detector activated");

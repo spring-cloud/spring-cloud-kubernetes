@@ -64,9 +64,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 	// HA enabled for configuration watcher
 	private final boolean haEnabled;
 
-	private final KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent);
-
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
@@ -107,6 +104,10 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 		if (running || !monitoringConfigMaps) {
 			return;
 		}
+
+		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
+			this::onEvent, resourceVersionWriter);
+
 		InformerResourceVersionResolver resourceVersionResolver = new InformerResourceVersionResolver(
 				storedResourceVersions, haEnabled);
 

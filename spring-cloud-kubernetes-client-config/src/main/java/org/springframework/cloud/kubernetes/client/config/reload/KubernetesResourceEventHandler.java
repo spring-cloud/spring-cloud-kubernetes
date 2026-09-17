@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.ResourceEventHandler;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Secret;
 
 import org.springframework.core.log.LogAccessor;
@@ -39,8 +40,11 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 
 	private final Consumer<T> onEvent;
 
-	KubernetesResourceEventHandler(Consumer<T> onEvent) {
+	private final Consumer<NamespaceAndResourceVersion> resourceVersionWriter;
+
+	KubernetesResourceEventHandler(Consumer<T> onEvent, Consumer<NamespaceAndResourceVersion> resourceVersionWriter) {
 		this.onEvent = onEvent;
+		this.resourceVersionWriter = resourceVersionWriter;
 	}
 
 	@Override
@@ -48,6 +52,7 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 		LOG.debug(() -> resource.getKind() + " " + resource.getMetadata().getName() + " was added in namespace "
 				+ resource.getMetadata().getNamespace());
 		onEvent.accept(resource);
+		writeResourceVersion(resource);
 	}
 
 	@Override
@@ -76,6 +81,7 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 		}
 
 		onEvent.accept(newResource);
+		writeResourceVersion(newResource);
 
 	}
 
@@ -84,6 +90,7 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 		LOG.debug(() -> resource.getKind() + " " + resource.getMetadata().getName() + " was deleted in namespace "
 				+ resource.getMetadata().getNamespace());
 		onEvent.accept(resource);
+		writeResourceVersion(resource);
 	}
 
 	boolean configMapDataEquals(Map<String, String> oldData, Map<String, String> newData) {
@@ -106,6 +113,14 @@ final class KubernetesResourceEventHandler<T extends KubernetesObject> implement
 			}
 		}
 		return true;
+	}
+
+	private void writeResourceVersion(T resource) {
+		if (resourceVersionWriter != null) {
+			V1ObjectMeta metadata = resource.getMetadata();
+			resourceVersionWriter
+				.accept(new NamespaceAndResourceVersion(metadata.getNamespace(), metadata.getResourceVersion()));
+		}
 	}
 
 }
