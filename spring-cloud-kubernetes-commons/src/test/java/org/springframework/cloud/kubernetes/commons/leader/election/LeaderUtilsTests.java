@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.leader;
+package org.springframework.cloud.kubernetes.commons.leader.election;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
