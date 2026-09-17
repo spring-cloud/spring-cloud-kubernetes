@@ -22,7 +22,6 @@ import java.util.Map;
 
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.SharedIndexInformer;
-import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import jakarta.annotation.PreDestroy;
 

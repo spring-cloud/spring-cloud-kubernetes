@@ -288,7 +288,6 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		changeDetector.shutdown();
 	}
 
-
 	private void changeDetectorAssert(boolean haEnabled) {
 
 		// coreV1Api
