@@ -38,18 +38,6 @@ public final class Images {
 
 	private static final String WIREMOCK_TAR = WIREMOCK.replace('/', '-') + ":" + wiremockVersion();
 
-	private static final String ISTIOCTL = "istio/istioctl";
-
-	private static final String ISTIOCTL_TAR = ISTIOCTL.replace('/', '-') + ":" + istioVersion();
-
-	private static final String ISTIO_PROXY_V2 = "istio/proxyv2";
-
-	private static final String ISTIO_PROXY_V2_TAR = ISTIO_PROXY_V2.replace('/', '-') + ":" + istioVersion();
-
-	private static final String ISTIO_PILOT = "istio/pilot";
-
-	private static final String ISTIO_PILOT_TAR = ISTIO_PILOT.replace('/', '-') + ":" + istioVersion();
-
 	private static final String KAFKA = "confluentinc/confluent-local";
 
 	private static final String KAFKA_TAR = KAFKA.replace('/', '-') + ":" + kafkaVersion();
@@ -64,10 +52,6 @@ public final class Images {
 
 	public static String busyboxVersion() {
 		return imageVersion(BUSYBOX);
-	}
-
-	public static String istioVersion() {
-		return imageVersion(ISTIOCTL);
 	}
 
 	public static String kafkaVersion() {
@@ -92,18 +76,6 @@ public final class Images {
 		if (!imageAlreadyInK3s(container, WIREMOCK_TAR)) {
 			K3sImageLoader.loadOrPullCommonTestImages(container, WIREMOCK_TAR, WIREMOCK, wiremockVersion());
 		}
-	}
-
-	public static void loadIstioCtl(K3sContainer container) {
-		K3sImageLoader.loadOrPullCommonTestImages(container, ISTIOCTL_TAR, ISTIOCTL, istioVersion());
-	}
-
-	public static void loadIstioProxyV2(K3sContainer container) {
-		K3sImageLoader.loadOrPullCommonTestImages(container, ISTIO_PROXY_V2_TAR, ISTIO_PROXY_V2, istioVersion());
-	}
-
-	public static void loadIstioPilot(K3sContainer container) {
-		K3sImageLoader.loadOrPullCommonTestImages(container, ISTIO_PILOT_TAR, ISTIO_PILOT, istioVersion());
 	}
 
 	public static void loadKafka(K3sContainer container) {
