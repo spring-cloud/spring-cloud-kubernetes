@@ -105,8 +105,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 			return;
 		}
 
-		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent, resourceVersionWriter);
+		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(this::onEvent,
+				resourceVersionWriter);
 
 		InformerResourceVersionResolver resourceVersionResolver = new InformerResourceVersionResolver(
 				storedResourceVersions, haEnabled);

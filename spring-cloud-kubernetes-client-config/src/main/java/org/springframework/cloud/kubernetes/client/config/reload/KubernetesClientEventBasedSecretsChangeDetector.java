@@ -105,8 +105,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 			return;
 		}
 
-		KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent, resourceVersionWriter);
+		KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(this::onEvent,
+				resourceVersionWriter);
 
 		InformerResourceVersionResolver resourceVersionResolver = new InformerResourceVersionResolver(
 				storedResourceVersions, haEnabled);

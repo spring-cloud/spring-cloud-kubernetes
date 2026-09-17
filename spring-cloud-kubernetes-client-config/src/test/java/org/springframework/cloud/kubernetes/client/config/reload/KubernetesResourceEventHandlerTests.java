@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
@@ -33,16 +34,20 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class KubernetesResourceEventHandlerTests {
 
+	private static final Consumer<NamespaceAndResourceVersion> NO_OP_RESOURCE_VERSION_WRITER = x -> {
+
+	};
+
 	private static final KubernetesResourceEventHandler<?> NOOP_RESOURCE_HANDLER = new KubernetesResourceEventHandler<>(
 			x -> {
 
-			}, x -> {});
+			}, NO_OP_RESOURCE_VERSION_WRITER);
 
 	@Test
 	void onAddPassesResourceToConsumer() {
 		List<V1ConfigMap> configMapEvents = new ArrayList<>();
-		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-				configMapEvents::add, x -> {});
+		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(configMapEvents::add,
+				NO_OP_RESOURCE_VERSION_WRITER);
 		V1ConfigMap configMap = configMap(Map.of("one", "1"));
 
 		handler.onAdd(configMap);
@@ -53,8 +58,8 @@ class KubernetesResourceEventHandlerTests {
 	@Test
 	void onUpdatePassesNewResourceToConsumerWhenDataChanged() {
 		List<V1ConfigMap> configMapEvents = new ArrayList<>();
-		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-				configMapEvents::add, x -> {});
+		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(configMapEvents::add,
+				NO_OP_RESOURCE_VERSION_WRITER);
 		V1ConfigMap oldConfigMap = configMap(Map.of("one", "1"));
 		V1ConfigMap newConfigMap = configMap(Map.of("one", "2"));
 
@@ -66,8 +71,8 @@ class KubernetesResourceEventHandlerTests {
 	@Test
 	void onUpdateDoesNotPassResourceToConsumerWhenDataDidNotChange() {
 		List<V1ConfigMap> configMapEvents = new ArrayList<>();
-		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-				configMapEvents::add, x -> {});
+		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(configMapEvents::add,
+				NO_OP_RESOURCE_VERSION_WRITER);
 		V1ConfigMap oldConfigMap = configMap(Map.of("one", "1"));
 		V1ConfigMap newConfigMap = configMap(Map.of("one", "1"));
 
@@ -79,8 +84,8 @@ class KubernetesResourceEventHandlerTests {
 	@Test
 	void onUpdatePassesNewSecretToConsumerWhenDataChanged() {
 		List<V1Secret> secretEvents = new ArrayList<>();
-		KubernetesResourceEventHandler<V1Secret> secretHandler = new KubernetesResourceEventHandler<>(
-				secretEvents::add, x -> {});
+		KubernetesResourceEventHandler<V1Secret> secretHandler = new KubernetesResourceEventHandler<>(secretEvents::add,
+				NO_OP_RESOURCE_VERSION_WRITER);
 		V1Secret oldSecret = secret(Map.of("one", "1".getBytes(StandardCharsets.UTF_8)));
 		V1Secret newSecret = secret(Map.of("one", "2".getBytes(StandardCharsets.UTF_8)));
 
@@ -92,8 +97,8 @@ class KubernetesResourceEventHandlerTests {
 	@Test
 	void onUpdateDoesNotPassSecretToConsumerWhenByteArrayContentDidNotChange() {
 		List<V1Secret> secretEvents = new ArrayList<>();
-		KubernetesResourceEventHandler<V1Secret> secretHandler = new KubernetesResourceEventHandler<>(
-				secretEvents::add, x -> {});
+		KubernetesResourceEventHandler<V1Secret> secretHandler = new KubernetesResourceEventHandler<>(secretEvents::add,
+				NO_OP_RESOURCE_VERSION_WRITER);
 		V1Secret oldSecret = secret(Map.of("one", "1".getBytes(StandardCharsets.UTF_8)));
 		V1Secret newSecret = secret(Map.of("one", "1".getBytes(StandardCharsets.UTF_8)));
 
@@ -105,8 +110,8 @@ class KubernetesResourceEventHandlerTests {
 	@Test
 	void onDeletePassesResourceToConsumer() {
 		List<V1ConfigMap> configMapEvents = new ArrayList<>();
-		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-				configMapEvents::add, x -> {});
+		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(configMapEvents::add,
+				NO_OP_RESOURCE_VERSION_WRITER);
 		V1ConfigMap configMap = configMap(Map.of("one", "1"));
 
 		handler.onDelete(configMap, false);
