@@ -574,6 +574,39 @@ public final class NativeClientKubernetesFixture {
 
 	}
 
+	/**
+	 * Returns the NodePort assigned by Kubernetes for an existing NodePort service. The
+	 * service manifest does not set spec.ports[].nodePort, so this waits until Kubernetes
+	 * fills that value during service creation.
+	 */
+	public int nodePort(String namespace, String serviceName) {
+		int[] nodePort = new int[1];
+		Awaitilities.awaitUntil(60, 1000, () -> {
+			Integer portFromService = readNodePort(namespace, serviceName);
+			if (portFromService != null) {
+				nodePort[0] = portFromService;
+				return true;
+			}
+
+			return false;
+		});
+		return nodePort[0];
+	}
+
+	private Integer readNodePort(String namespace, String serviceName) {
+		try {
+			return coreV1Api.readNamespacedService(serviceName, namespace)
+				.execute()
+				.getSpec()
+				.getPorts()
+				.get(0)
+				.getNodePort();
+		}
+		catch (ApiException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	private String deploymentName(V1Deployment deployment) {
 		return deployment.getMetadata().getName();
 	}

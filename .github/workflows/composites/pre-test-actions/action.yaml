@@ -20,10 +20,6 @@ runs:
     - name: set env variables
       uses: ./.github/workflows/composites/env-variables
 
-    - name: setup project jdk-17
-      uses: ./.github/workflows/composites/setup-jdk17
-      if: env.BASE_BRANCH == 'main'
-
     - name: cache local maven repository
       uses: ./.github/workflows/composites/cache
       with:

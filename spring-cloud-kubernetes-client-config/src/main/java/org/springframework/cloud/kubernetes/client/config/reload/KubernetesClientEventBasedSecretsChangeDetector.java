@@ -16,15 +16,10 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.openapi.ApiClient;
@@ -34,15 +29,11 @@ import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
@@ -54,24 +45,15 @@ import static org.springframework.cloud.kubernetes.client.config.KubernetesClien
 /**
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedSecretsChangeDetector extends ConfigurationChangeDetector {
+public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
-	private static final LogAccessor LOG = new LogAccessor(
-			LogFactory.getLog(KubernetesClientEventBasedSecretsChangeDetector.class));
+	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedSecretsChangeDetector.class);
 
 	private final CoreV1Api coreV1Api;
 
-	private final KubernetesClientSecretsPropertySourceLocator propertySourceLocator;
-
 	private final ApiClient apiClient;
 
-	private final List<SharedIndexInformer<V1Secret>> informers = new ArrayList<>();
-
-	private final List<SharedInformerFactory> factories = new ArrayList<>();
-
 	private final Set<String> namespaces;
-
-	private final ConfigurableEnvironment environment;
 
 	private final boolean enableReloadFiltering;
 
@@ -81,9 +63,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 
 	// HA enabled for configuration watcher
 	private final boolean haEnabled;
-
-	// informers already running (skip starting more informers)
-	private volatile boolean running;
 
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
@@ -96,9 +75,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider, boolean haEnabled) {
-		super(strategy);
-		this.environment = environment;
-		this.propertySourceLocator = propertySourceLocator;
+		super(strategy, propertySourceLocator, environment, KubernetesClientSecretsPropertySource.class);
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
@@ -131,20 +108,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 				storedResourceVersions, haEnabled);
 		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
-		Map<String, String> labelSelector;
-
-		if (enableReloadFiltering) {
-			LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-			LOG.warn(() -> "use spring.cloud.kubernetes.reload.secrets-labels instead");
-			if (!secretsLabels.isEmpty()) {
-				LOG.warn(() -> "spring.cloud.kubernetes.reload.secrets-labels is not empty, but "
-						+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override the former");
-			}
-			labelSelector = Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
-		}
-		else {
-			labelSelector = secretsLabels;
-		}
+		Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
+			"spring.cloud.kubernetes.reload.secrets-labels");
 
 		SecretResourceEventHandler handler = new SecretResourceEventHandler(this::onEvent, resourceVersionWriter);
 		namespaces.forEach(namespace -> {
@@ -170,8 +135,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 				}
 				return request.buildCall(null);
 			}, V1Secret.class, V1SecretList.class);
-
-			LOG.debug(() -> "secret informer for namespace : " + namespace + " with filter : " + secretsLabels);
+				LOG.debug(() -> "added secret informer for namespace : " + namespace +
+					" with labels : " + labelSelector);
 
 			informer.addEventHandler(handler);
 			informers.add(informer);
@@ -180,47 +145,4 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends Configurati
 		running = true;
 
 	}
-
-	@PreDestroy
-	void shutdown() {
-		stop();
-	}
-
-	public final void stop() {
-		if (!running) {
-			return;
-		}
-		informers.forEach(SharedIndexInformer::stop);
-		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
-		informers.clear();
-		factories.clear();
-		running = false;
-	}
-
-	protected void onEvent(KubernetesObject secret) {
-		boolean reload = ConfigReloadUtil.reload("secrets", secret.toString(), propertySourceLocator, environment,
-				KubernetesClientSecretsPropertySource.class);
-		if (reload) {
-			reloadProperties();
-		}
-	}
-
-	static boolean equals(Map<String, byte[]> left, Map<String, byte[]> right) {
-		Map<String, byte[]> innerLeft = Optional.ofNullable(left).orElse(Map.of());
-		Map<String, byte[]> innerRight = Optional.ofNullable(right).orElse(Map.of());
-
-		if (innerLeft.size() != innerRight.size()) {
-			return false;
-		}
-
-		for (Map.Entry<String, byte[]> entry : innerLeft.entrySet()) {
-			String key = entry.getKey();
-			byte[] value = entry.getValue();
-			if (!Arrays.equals(value, innerRight.get(key))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 }

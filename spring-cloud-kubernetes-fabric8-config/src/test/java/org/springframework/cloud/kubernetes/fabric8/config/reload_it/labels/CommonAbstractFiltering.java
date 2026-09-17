@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.AfterEach;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -48,8 +49,7 @@ import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8ConfigM
 import org.springframework.cloud.kubernetes.fabric8.config.VisibleFabric8SecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.fabric8.config.reload.Fabric8EventBasedSecretsChangeDetector;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.AbstractEnvironment;
@@ -67,7 +67,12 @@ abstract class CommonAbstractFiltering {
 	@Autowired
 	protected ReloadProbe reloadProbe;
 
-	protected static KubernetesClient kubernetesClient;
+	@Autowired
+	protected ApplicationContext applicationContext;
+
+	protected KubernetesClient kubernetesClient() {
+		return applicationContext.getBean(KubernetesClient.class);
+	}
 
 	protected static final String CONFIG_MAP_NAME = "configmap-reload";
 
@@ -79,13 +84,13 @@ abstract class CommonAbstractFiltering {
 
 	@AfterEach
 	protected void afterEach() {
-		kubernetesClient.configMaps().inAnyNamespace().delete();
-		kubernetesClient.secrets().inAnyNamespace().delete();
+		kubernetesClient().configMaps().inAnyNamespace().delete();
+		kubernetesClient().secrets().inAnyNamespace().delete();
 
 		awaitUntil(10, 1000,
-				() -> kubernetesClient.configMaps().inNamespace(NAMESPACE).withName(CONFIG_MAP_NAME).get() == null);
+				() -> kubernetesClient().configMaps().inNamespace(NAMESPACE).withName(CONFIG_MAP_NAME).get() == null);
 		awaitUntil(10, 1000,
-				() -> kubernetesClient.secrets().inNamespace(NAMESPACE).withName(SECRET_NAME).get() == null);
+				() -> kubernetesClient().secrets().inNamespace(NAMESPACE).withName(SECRET_NAME).get() == null);
 
 		reloadProbe.reset();
 	}
@@ -122,7 +127,7 @@ abstract class CommonAbstractFiltering {
 				AbstractEnvironment environment, ConfigReloadProperties configReloadProperties,
 				ConfigurationUpdateStrategy configurationUpdateStrategy,
 				Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator,
-				KubernetesNamespaceProvider namespaceProvider) {
+				KubernetesNamespaceProvider namespaceProvider, KubernetesClient kubernetesClient) {
 			return new Fabric8EventBasedConfigMapChangeDetector(environment, configReloadProperties, kubernetesClient,
 					configurationUpdateStrategy, fabric8ConfigMapPropertySourceLocator, namespaceProvider);
 		}
@@ -133,7 +138,7 @@ abstract class CommonAbstractFiltering {
 				AbstractEnvironment environment, ConfigReloadProperties configReloadProperties,
 				ConfigurationUpdateStrategy configurationUpdateStrategy,
 				Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator,
-				KubernetesNamespaceProvider namespaceProvider) {
+				KubernetesNamespaceProvider namespaceProvider, KubernetesClient kubernetesClient) {
 			return new Fabric8EventBasedSecretsChangeDetector(environment, configReloadProperties, kubernetesClient,
 					configurationUpdateStrategy, fabric8SecretsPropertySourceLocator, namespaceProvider);
 		}
@@ -174,7 +179,8 @@ abstract class CommonAbstractFiltering {
 		@Bean
 		@Primary
 		Fabric8ConfigMapPropertySourceLocator fabric8ConfigMapPropertySourceLocator(
-				ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
+				ConfigMapConfigProperties configMapConfigProperties, KubernetesNamespaceProvider namespaceProvider,
+				KubernetesClient kubernetesClient) {
 			return new VisibleFabric8ConfigMapPropertySourceLocator(kubernetesClient, configMapConfigProperties,
 					namespaceProvider);
 		}
@@ -182,9 +188,34 @@ abstract class CommonAbstractFiltering {
 		@Bean
 		@Primary
 		Fabric8SecretsPropertySourceLocator fabric8SecretsPropertySourceLocator(
-				SecretsConfigProperties secretsConfigProperties, KubernetesNamespaceProvider namespaceProvider) {
+				SecretsConfigProperties secretsConfigProperties, KubernetesNamespaceProvider namespaceProvider,
+				KubernetesClient kubernetesClient) {
 			return new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient, secretsConfigProperties,
 					namespaceProvider);
+		}
+
+		/*
+		 * This cannot be an ApplicationContextInitializer because that runs before the
+		 * per-test KubernetesClient bean exists. InitializingBean lets us access the
+		 * client injected by Spring and add the initial property sources once the test
+		 * configuration is initialized. This is test-only wiring and is not intended to
+		 * control the initialization order of other beans.
+		 */
+		@Bean
+		InitializingBean kubernetesPropertySourcesInitializer(ConfigurableEnvironment environment,
+				ConfigMapConfigProperties configMapConfigProperties, SecretsConfigProperties secretsConfigProperties,
+				KubernetesNamespaceProvider namespaceProvider, KubernetesClient kubernetesClient) {
+			return () -> {
+				PropertySource<?> configMapPropertySource = new VisibleFabric8ConfigMapPropertySourceLocator(
+						kubernetesClient, configMapConfigProperties, namespaceProvider)
+					.locate(environment);
+				PropertySource<?> secretsPropertySource = new VisibleFabric8SecretsPropertySourceLocator(
+						kubernetesClient, secretsConfigProperties, namespaceProvider)
+					.locate(environment);
+
+				environment.getPropertySources().addFirst(configMapPropertySource);
+				environment.getPropertySources().addFirst(secretsPropertySource);
+			};
 		}
 
 	}
@@ -254,32 +285,6 @@ abstract class CommonAbstractFiltering {
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
 					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
-		}
-
-	}
-
-	static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-		@Override
-		public void initialize(ConfigurableApplicationContext context) {
-			ConfigurableEnvironment environment = context.getEnvironment();
-
-			ConfigMapConfigProperties configMapConfigProperties = new ConfigMapConfigProperties(true, List.of(),
-					Map.of(), CONFIG_MAP_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.SINGLE);
-			SecretsConfigProperties secretsConfigProperties = new SecretsConfigProperties(true, List.of(), Map.of(),
-					SECRET_NAME, NAMESPACE, false, true, true, RetryProperties.DEFAULT, ReadType.BATCH);
-
-			KubernetesNamespaceProvider namespaceProvider = new KubernetesNamespaceProvider(environment);
-
-			PropertySource<?> configMapPropertySource = new VisibleFabric8ConfigMapPropertySourceLocator(
-					kubernetesClient, configMapConfigProperties, namespaceProvider)
-				.locate(environment);
-			PropertySource<?> secretsPropertySource = new VisibleFabric8SecretsPropertySourceLocator(kubernetesClient,
-					secretsConfigProperties, namespaceProvider)
-				.locate(environment);
-
-			environment.getPropertySources().addFirst(configMapPropertySource);
-			environment.getPropertySources().addFirst(secretsPropertySource);
 		}
 
 	}
