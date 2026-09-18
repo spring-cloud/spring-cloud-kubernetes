@@ -253,6 +253,36 @@ abstract class CommonAbstractFiltering {
 					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
 		}
 
+		@Bean
+		@Primary
+		@ConditionalOnProperty(value = "configmaps.reload.filtering", havingValue = "true", matchIfMissing = false)
+		ConfigReloadProperties configReloadPropertiesC() {
+
+			boolean monitorConfigMaps = true;
+			boolean monitorSecrets = false;
+			Map<String, String> configMapsLabels = Map.of("spring.cloud.kubernetes.config.informer.enabled", "true");
+			Map<String, String> secretsLabels = Map.of();
+
+			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
+		}
+
+		@Bean
+		@Primary
+		@ConditionalOnProperty(value = "secrets.reload.filtering", havingValue = "true", matchIfMissing = false)
+		ConfigReloadProperties configReloadPropertiesD() {
+
+			boolean monitorConfigMaps = false;
+			boolean monitorSecrets = true;
+			Map<String, String> configMapsLabels = Map.of();
+			Map<String, String> secretsLabels = Map.of("spring.cloud.kubernetes.config.informer.enabled", "true");
+
+			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
+		}
+
 	}
 
 	/**
