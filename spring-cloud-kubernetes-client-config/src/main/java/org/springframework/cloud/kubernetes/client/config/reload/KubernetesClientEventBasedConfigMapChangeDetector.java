@@ -53,8 +53,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 
 	private final Set<String> namespaces;
 
-	private final boolean enableReloadFiltering;
-
 	private final boolean monitoringConfigMaps;
 
 	private final Map<String, String> configMapsLabels;
@@ -69,7 +67,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 		super(strategy, propertySourceLocator, environment, KubernetesClientConfigMapPropertySource.class);
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
-		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitoringConfigMaps = properties.monitoringConfigMaps();
 		this.configMapsLabels = properties.configMapsLabels();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
@@ -79,9 +76,6 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 	void inform() {
 		if (monitoringConfigMaps) {
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
-
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
-					"spring.cloud.kubernetes.reload.config-maps-labels");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
@@ -93,11 +87,11 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
-						.labelSelector(labelSelector(labelSelector))
+						.labelSelector(labelSelector(configMapsLabels))
 						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
 
 				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with labels : "
-						+ labelSelector);
+						+ configMapsLabels);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);

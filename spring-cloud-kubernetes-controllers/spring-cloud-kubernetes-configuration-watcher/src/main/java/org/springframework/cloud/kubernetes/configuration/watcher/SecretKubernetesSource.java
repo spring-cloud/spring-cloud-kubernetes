@@ -35,11 +35,6 @@ record SecretKubernetesSource(Set<String> serviceNames, Map<String, String> serv
 	}
 
 	@Override
-	public String requiredResourceLabel() {
-		return ConfigurationWatcherConfigurationProperties.SECRET_LABEL;
-	}
-
-	@Override
 	public String toString() {
 		return "SecretKubernetesSource{" + "resourceName='" + resourceName + '\'' + ", serviceNames=" + serviceNames
 				+ ", serviceLabels=" + serviceLabels + '}';
