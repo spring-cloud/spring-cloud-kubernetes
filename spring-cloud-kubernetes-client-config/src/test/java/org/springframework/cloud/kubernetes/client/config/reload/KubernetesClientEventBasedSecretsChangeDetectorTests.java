@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -168,9 +169,9 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 			.thenAnswer(ignoreMe -> new MockPropertySource().withProperty("db-password", "p455w0rd2"));
 
 		// properties
-		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, true,
+		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, Map.of(), true, Map.of(),
 				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of(), false, Duration.ofSeconds(2));
+				Duration.ofMillis(15000), Set.of(), Duration.ofSeconds(2), List.of(), List.of());
 
 		// namespace provider
 		KubernetesNamespaceProvider kubernetesNamespaceProvider = mock(KubernetesNamespaceProvider.class);

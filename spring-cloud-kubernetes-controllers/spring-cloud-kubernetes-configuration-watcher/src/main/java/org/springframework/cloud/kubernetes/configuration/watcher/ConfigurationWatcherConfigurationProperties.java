@@ -44,30 +44,6 @@ public class ConfigurationWatcherConfigurationProperties {
 	static final String NOT_AMQP_NOT_KAFKA = "!" + AMQP + " & !" + KAFKA;
 
 	/**
-	 * label to enable refresh/restart when using configmaps.
-	 */
-	@Deprecated(forRemoval = true)
-	public static final String CONFIG_MAP_LABEL = "spring.cloud.kubernetes.config";
-
-	/**
-	 * label to enable refresh/restart when using secrets.
-	 */
-	@Deprecated(forRemoval = true)
-	public static final String SECRET_LABEL = "spring.cloud.kubernetes.secret";
-
-	/**
-	 * annotation name to enable refresh/restart for specific apps when using configmaps.
-	 */
-	@Deprecated(forRemoval = true)
-	public static final String CONFIG_MAP_APPS_ANNOTATION = "spring.cloud.kubernetes.configmap.apps";
-
-	/**
-	 * annotation name to enable refresh/restart for specific apps when using secrets.
-	 */
-	@Deprecated(forRemoval = true)
-	public static final String SECRET_APPS_ANNOTATION = "spring.cloud.kubernetes.secret.apps";
-
-	/**
 	 * Annotation key for actuator port and path.
 	 */
 	public static final String ANNOTATION_KEY = "boot.spring.io/actuator";

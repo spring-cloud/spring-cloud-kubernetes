@@ -35,11 +35,6 @@ record ConfigMapKubernetesSource(Set<String> serviceNames, Map<String, String> s
 	}
 
 	@Override
-	public String requiredResourceLabel() {
-		return ConfigurationWatcherConfigurationProperties.CONFIG_MAP_LABEL;
-	}
-
-	@Override
 	public String toString() {
 		return "ConfigMapKubernetesSource{" + "resourceName='" + resourceName + '\'' + ", serviceNames=" + serviceNames
 				+ ", serviceLabels=" + serviceLabels + '}';

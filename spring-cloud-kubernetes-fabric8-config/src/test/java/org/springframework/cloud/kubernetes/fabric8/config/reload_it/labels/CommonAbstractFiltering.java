@@ -225,18 +225,17 @@ abstract class CommonAbstractFiltering {
 
 		@Bean
 		@Primary
-		@ConditionalOnProperty(value = "configmaps.reload.filtering", havingValue = "true", matchIfMissing = false)
-		ConfigReloadProperties configReloadPropertiesA() {
+		@ConditionalOnProperty(value = "secrets.labels.filtering", havingValue = "true", matchIfMissing = false)
+		ConfigReloadProperties configReloadProperties() {
 
-			boolean monitorConfigMaps = true;
-			boolean monitorSecrets = false;
-			boolean enableReloadFiltering = true;
+			boolean monitorConfigMaps = false;
+			boolean monitorSecrets = true;
 			Map<String, String> configMapsLabels = Map.of();
-			Map<String, String> secretsLabels = Map.of();
+			Map<String, String> secretsLabels = Map.of("only-shape", "round");
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
-					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
 		}
 
 		@Bean
@@ -246,45 +245,42 @@ abstract class CommonAbstractFiltering {
 
 			boolean monitorConfigMaps = true;
 			boolean monitorSecrets = false;
-			boolean enableReloadFiltering = false;
 			Map<String, String> configMapsLabels = Map.of("only-shape", "round");
 			Map<String, String> secretsLabels = Map.of();
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
+		}
+
+		@Bean
+		@Primary
+		@ConditionalOnProperty(value = "configmaps.reload.filtering", havingValue = "true", matchIfMissing = false)
+		ConfigReloadProperties configReloadPropertiesC() {
+
+			boolean monitorConfigMaps = true;
+			boolean monitorSecrets = false;
+			Map<String, String> configMapsLabels = Map.of("spring.cloud.kubernetes.config.informer.enabled", "true");
+			Map<String, String> secretsLabels = Map.of();
+
+			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
 		}
 
 		@Bean
 		@Primary
 		@ConditionalOnProperty(value = "secrets.reload.filtering", havingValue = "true", matchIfMissing = false)
-		ConfigReloadProperties configReloadPropertiesC() {
+		ConfigReloadProperties configReloadPropertiesD() {
 
 			boolean monitorConfigMaps = false;
 			boolean monitorSecrets = true;
-			boolean enableReloadFiltering = true;
 			Map<String, String> configMapsLabels = Map.of();
-			Map<String, String> secretsLabels = Map.of();
+			Map<String, String> secretsLabels = Map.of("spring.cloud.kubernetes.config.informer.enabled", "true");
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
-		}
-
-		@Bean
-		@Primary
-		@ConditionalOnProperty(value = "secrets.labels.filtering", havingValue = "true", matchIfMissing = false)
-		ConfigReloadProperties configReloadProperties() {
-
-			boolean monitorConfigMaps = false;
-			boolean monitorSecrets = true;
-			boolean enableReloadFiltering = false;
-			Map<String, String> configMapsLabels = Map.of();
-			Map<String, String> secretsLabels = Map.of("only-shape", "round");
-
-			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
-					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), enableReloadFiltering, Duration.ofSeconds(2));
+					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2), List.of(), List.of());
 		}
 
 	}
