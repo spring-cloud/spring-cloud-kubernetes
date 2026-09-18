@@ -48,8 +48,6 @@ public class Fabric8EventBasedConfigMapChangeDetector extends Fabric8EventBasedC
 
 	private final Set<String> namespaces;
 
-	private final boolean enableReloadFiltering;
-
 	private final boolean monitorConfigMaps;
 
 	private final Map<String, String> configMapsLabels;
@@ -60,7 +58,6 @@ public class Fabric8EventBasedConfigMapChangeDetector extends Fabric8EventBasedC
 			KubernetesNamespaceProvider namespaceProvider) {
 		super(environment, kubernetesClient, strategy, fabric8ConfigMapPropertySourceLocator,
 				Fabric8ConfigMapPropertySource.class);
-		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitorConfigMaps = properties.monitoringConfigMaps();
 		this.configMapsLabels = properties.configMapsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "configmap");
@@ -72,13 +69,11 @@ public class Fabric8EventBasedConfigMapChangeDetector extends Fabric8EventBasedC
 
 			LOG.info("Kubernetes event-based configMap change detector activated");
 
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
-					"spring.cloud.kubernetes.reload.config-maps-labels");
-
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<ConfigMap> informer;
-				informer = kubernetesClient.configMaps().inNamespace(namespace).withLabels(labelSelector).inform();
-				LOG.debug("added configmap informer for namespace : " + namespace + " with labels : " + labelSelector);
+				informer = kubernetesClient.configMaps().inNamespace(namespace).withLabels(configMapsLabels).inform();
+				LOG.debug(
+						"added configmap informer for namespace : " + namespace + " with labels : " + configMapsLabels);
 
 				informer.addEventHandler(new Fabric8ResourceEventHandler<>(informer, this::onEvent));
 				informers.add(informer);
