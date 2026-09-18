@@ -225,21 +225,6 @@ abstract class CommonAbstractFiltering {
 
 		@Bean
 		@Primary
-		@ConditionalOnProperty(value = "configmaps.labels.filtering", havingValue = "true", matchIfMissing = false)
-		ConfigReloadProperties configReloadPropertiesB() {
-
-			boolean monitorConfigMaps = true;
-			boolean monitorSecrets = false;
-			Map<String, String> configMapsLabels = Map.of("only-shape", "round");
-			Map<String, String> secretsLabels = Map.of();
-
-			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
-					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-					Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
-		}
-
-		@Bean
-		@Primary
 		@ConditionalOnProperty(value = "secrets.labels.filtering", havingValue = "true", matchIfMissing = false)
 		ConfigReloadProperties configReloadProperties() {
 
@@ -247,6 +232,21 @@ abstract class CommonAbstractFiltering {
 			boolean monitorSecrets = true;
 			Map<String, String> configMapsLabels = Map.of();
 			Map<String, String> secretsLabels = Map.of("only-shape", "round");
+
+			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
+				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
+				Duration.ofMillis(2000), Set.of(NAMESPACE), Duration.ofSeconds(2));
+		}
+
+		@Bean
+		@Primary
+		@ConditionalOnProperty(value = "configmaps.labels.filtering", havingValue = "true", matchIfMissing = false)
+		ConfigReloadProperties configReloadPropertiesB() {
+
+			boolean monitorConfigMaps = true;
+			boolean monitorSecrets = false;
+			Map<String, String> configMapsLabels = Map.of("only-shape", "round");
+			Map<String, String> secretsLabels = Map.of();
 
 			return new ConfigReloadProperties(true, monitorConfigMaps, configMapsLabels, monitorSecrets, secretsLabels,
 					ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
