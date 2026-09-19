@@ -35,23 +35,13 @@ import static org.mockito.Mockito.mock;
 class ConfigurationWatcherHAAutoConfigurationTests {
 
 	@Test
-	void createsCoordinatorWhenHaAndLeaderElectionAreEnabled() {
-		applicationContextRunner()
-			.withPropertyValues("spring.cloud.kubernetes.configuration.watcher.ha.enabled=true",
-					"spring.cloud.kubernetes.leader.election.enabled=true")
+	void createsCoordinatorWhenHaIsEnabled() {
+		applicationContextRunner().withPropertyValues("spring.cloud.kubernetes.configuration.watcher.ha.enabled=true")
 			.run(context -> assertThat(context).hasSingleBean(ConfigurationWatcherHACoordinator.class));
 	}
 
 	@Test
-	void doesNotCreateCoordinatorWhenLeaderElectionIsDisabled() {
-		applicationContextRunner()
-			.withPropertyValues("spring.cloud.kubernetes.configuration.watcher.ha.enabled=true",
-					"spring.cloud.kubernetes.leader.election.enabled=false")
-			.run(context -> assertThat(context).doesNotHaveBean(ConfigurationWatcherHACoordinator.class));
-	}
-
-	@Test
-	void doesNotCreateCoordinatorWhenHaIsDisabled() {
+	void doesNotCreateCoordinatorWhenHaIsDisabledEvenWhenLeaderElectionIsEnabled() {
 		applicationContextRunner()
 			.withPropertyValues("spring.cloud.kubernetes.configuration.watcher.ha.enabled=false",
 					"spring.cloud.kubernetes.leader.election.enabled=true")

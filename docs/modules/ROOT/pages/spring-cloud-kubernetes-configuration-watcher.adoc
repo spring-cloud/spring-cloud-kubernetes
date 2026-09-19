@@ -102,29 +102,26 @@ You need to "match" this _eventually_ part to that value in milliseconds on your
 
 The Configuration Watcher can run with multiple replicas, with only one replica actively
 watching ConfigMaps and Secrets at a time. High availability is disabled by default. Enable
-both the native Kubernetes leader election and Configuration Watcher HA:
+Configuration Watcher HA:
 
 [source,yaml]
 ----
 spring:
   cloud:
     kubernetes:
-      leader:
-        election:
-          enabled: true
       configuration:
         watcher:
           ha:
             enabled: true
 ----
 
-The two settings have different responsibilities:
+Setting `spring.cloud.kubernetes.configuration.watcher.ha.enabled=true` also enables the native
+Kubernetes leader election used to choose the active watcher replica. Setting
+`spring.cloud.kubernetes.leader.election.enabled=true` without enabling Configuration Watcher HA
+does not enable HA for the watcher.
 
-* `spring.cloud.kubernetes.leader.election.enabled` enables the native Kubernetes leader
-  election used to choose the active watcher replica.
-* `spring.cloud.kubernetes.configuration.watcher.ha.enabled` makes the Configuration Watcher
-  start its ConfigMap and Secret informers only after it becomes the leader, and stop them when
-  it loses leadership.
+When HA is enabled, the Configuration Watcher starts its ConfigMap and Secret informers only after
+it becomes the leader, and stops them when it loses leadership.
 
 The leader-election lock and the Configuration Watcher HA state are stored separately. The
 Configuration Watcher state is persisted in a Kubernetes `Lease`. Its defaults are:

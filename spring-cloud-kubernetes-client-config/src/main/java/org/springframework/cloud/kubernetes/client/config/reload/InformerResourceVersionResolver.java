@@ -60,8 +60,8 @@ final class InformerResourceVersionResolver {
 		}
 
 		String checkpointResourceVersion = checkpointResourceVersions.get(namespace);
-		// there is no previous checkpoint ( maybe it's the first time app is started in
-		// HA mode)
+		// there is no previous checkpoint
+		// ( maybe it's the first time app is started in HA mode)
 		if (checkpointResourceVersion == null) {
 			return informerResourceVersion;
 		}

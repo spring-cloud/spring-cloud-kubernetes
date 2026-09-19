@@ -101,6 +101,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 
 	public final void start(Map<String, String> storedResourceVersions,
 			@Nullable Consumer<NamespaceAndResourceVersion> resourceVersionWriter) {
+
 		if (running || !monitoringConfigMaps) {
 			return;
 		}

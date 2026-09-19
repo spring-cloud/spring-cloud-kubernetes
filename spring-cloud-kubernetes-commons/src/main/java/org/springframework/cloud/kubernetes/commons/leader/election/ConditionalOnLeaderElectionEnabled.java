@@ -23,13 +23,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEADER_ELECTION_ENABLED_PROPERTY;
+import org.springframework.context.annotation.Conditional;
 
 /**
- * Provides a more succinct conditional for:
- * <code>spring.cloud.kubernetes.leader.election.enabled</code>.
+ * Enables leader-election infrastructure when leader election is explicitly enabled or
+ * Configuration Watcher HA is enabled.
  *
  * @author wind57
  */
@@ -37,7 +35,7 @@ import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LE
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@ConditionalOnProperty(value = LEADER_ELECTION_ENABLED_PROPERTY, havingValue = "true", matchIfMissing = false)
+@Conditional(LeaderElectionEnabledCondition.class)
 public @interface ConditionalOnLeaderElectionEnabled {
 
 }
