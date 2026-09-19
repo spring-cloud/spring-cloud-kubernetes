@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -26,6 +27,7 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.util.CallGeneratorParams;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
@@ -59,51 +61,94 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 
 	private final Map<String, String> configMapsLabels;
 
-	private final KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent);
+	// HA enabled for configuration watcher
+	private final boolean haEnabled;
 
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+		this(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider, false);
+	}
+
+	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider, boolean haEnabled) {
 		super(strategy, propertySourceLocator, environment, KubernetesClientConfigMapPropertySource.class);
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitoringConfigMaps = properties.monitoringConfigMaps();
 		this.configMapsLabels = properties.configMapsLabels();
+		this.haEnabled = haEnabled;
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 
 	@PostConstruct
 	void inform() {
-		if (monitoringConfigMaps) {
-			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
-
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
-					"spring.cloud.kubernetes.reload.config-maps-labels");
-
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1ConfigMap> informer;
-
-				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
-				factories.add(factory);
-				informer = factory
-					.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
-						.timeoutSeconds(params.timeoutSeconds)
-						.resourceVersion(params.resourceVersion)
-						.watch(params.watch)
-						.labelSelector(labelSelector(labelSelector))
-						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
-
-				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with labels : "
-						+ labelSelector);
-
-				informer.addEventHandler(handler);
-				informers.add(informer);
-				factory.startAllRegisteredInformers();
-			});
+		// In HA mode, defer informer startup until this instance acquires leadership.
+		// The leader callback restores the persisted state and then starts the informers.
+		if (!haEnabled) {
+			LOG.info(() -> "config watcher HA is disabled : starting configmap informers immediately");
+			start(Map.of(), null);
 		}
+		else {
+			LOG.info(() -> "config watcher HA is enabled : deferring configmap informer startup "
+					+ "until leadership is acquired");
+		}
+	}
+
+	public final void start(Map<String, String> storedResourceVersions,
+			@Nullable Consumer<NamespaceAndResourceVersion> resourceVersionWriter) {
+
+		if (running || !monitoringConfigMaps) {
+			return;
+		}
+
+		KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(this::onEvent,
+				resourceVersionWriter);
+
+		InformerResourceVersionResolver resourceVersionResolver = new InformerResourceVersionResolver(
+				storedResourceVersions, haEnabled);
+
+		LOG.info(() -> "Kubernetes event-based configMap change detector activated");
+
+		Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
+				"spring.cloud.kubernetes.reload.config-maps-labels");
+
+		namespaces.forEach(namespace -> {
+			SharedIndexInformer<V1ConfigMap> informer;
+			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
+			factories.add(factory);
+			informer = factory.sharedIndexInformerFor((CallGeneratorParams params) -> {
+
+				String resourceVersion = resourceVersionResolver.resolve(namespace, params.resourceVersion);
+				var request = coreV1Api.listNamespacedConfigMap(namespace)
+					.timeoutSeconds(params.timeoutSeconds)
+					.resourceVersion(resourceVersion)
+					.watch(params.watch)
+					.labelSelector(labelSelector(labelSelector));
+
+				// The stored resource version is the last checkpoint processed by the
+				// previous leader. Restore the informer from exactly that snapshot so its
+				// following WATCH requests start at the same version and can deliver
+				// every change after the checkpoint.
+				// we do not need haEnabled check here, but it short-circuits fast
+				if (haEnabled && !params.watch && params.resourceVersion == null && resourceVersion != null) {
+					request.resourceVersionMatch("Exact");
+				}
+
+				return request.buildCall(null);
+			}, V1ConfigMap.class, V1ConfigMapList.class);
+
+			LOG.debug(() -> "add configmap informer for namespace : " + namespace + " with labels : " + labelSelector);
+
+			informer.addEventHandler(handler);
+			informers.add(informer);
+			factory.startAllRegisteredInformers();
+		});
+		running = true;
 
 	}
 
