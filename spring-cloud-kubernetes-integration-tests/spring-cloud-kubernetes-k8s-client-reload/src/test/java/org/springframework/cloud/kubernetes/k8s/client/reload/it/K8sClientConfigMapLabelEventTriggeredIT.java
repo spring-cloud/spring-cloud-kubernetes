@@ -104,7 +104,7 @@ class K8sClientConfigMapLabelEventTriggeredIT extends K8sClientReloadBase {
 	void test(CapturedOutput output) {
 
 		assertReloadLogStatements(
-				"add configmap informer for namespace : "
+				"added configmap informer for namespace : "
 						+ "right with labels : {spring.cloud.kubernetes.config.informer.enabled=true}",
 				"added secret informer for namespace", output);
 
