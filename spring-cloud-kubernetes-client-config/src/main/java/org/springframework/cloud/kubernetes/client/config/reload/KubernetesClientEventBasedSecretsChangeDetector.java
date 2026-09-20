@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -27,7 +26,6 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
-import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
@@ -61,6 +59,9 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 
 	private final Map<String, String> secretsLabels;
 
+	private final KubernetesResourceEventHandler<V1Secret> handler =
+		new KubernetesResourceEventHandler<>(this::onEvent);
+
 	// HA enabled for configuration watcher
 	private final boolean haEnabled;
 
@@ -88,10 +89,10 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 	@PostConstruct
 	void inform() {
 		// In HA mode, defer informer startup until this instance acquires leadership.
-		// The leader callback restores the persisted state and then starts the informers.
+		// The leader callback starts the informers when HA is enabled.
 		if (!haEnabled) {
 			LOG.info(() -> "config watcher HA is disabled : starting secret informers immediately");
-			start(Map.of(), null);
+			start();
 		}
 		else {
 			LOG.info(() -> "config watcher HA is enabled : deferring secret informer startup "
@@ -99,52 +100,36 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 		}
 	}
 
-	public final void start(Map<String, String> storedResourceVersions,
-			@Nullable Consumer<NamespaceAndResourceVersion> resourceVersionWriter) {
-		if (running || !monitoringSecrets) {
-			return;
-		}
+	public final void start() {
 
-		KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(this::onEvent,
-				resourceVersionWriter);
+		if (monitoringSecrets) {
 
-		InformerResourceVersionResolver resourceVersionResolver = new InformerResourceVersionResolver(
-				storedResourceVersions, haEnabled);
-		LOG.info(() -> "Kubernetes event-based secrets change detector activated");
+			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
-		Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
+			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
 				"spring.cloud.kubernetes.reload.secrets-labels");
 
-		namespaces.forEach(namespace -> {
-			SharedIndexInformer<V1Secret> informer;
-			SharedInformerFactory factory = new SharedInformerFactory(apiClient);
-			factories.add(factory);
-			informer = factory.sharedIndexInformerFor((CallGeneratorParams params) -> {
+			namespaces.forEach(namespace -> {
+				SharedIndexInformer<V1Secret> informer;
+				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
+				factories.add(factory);
+				informer = factory.sharedIndexInformerFor((CallGeneratorParams params) -> {
 
-				String resourceVersion = resourceVersionResolver.resolve(namespace, params.resourceVersion);
-				var request = coreV1Api.listNamespacedSecret(namespace)
-					.timeoutSeconds(params.timeoutSeconds)
-					.resourceVersion(resourceVersion)
-					.watch(params.watch)
-					.labelSelector(labelSelector(labelSelector));
+					var request = coreV1Api.listNamespacedSecret(namespace)
+						.timeoutSeconds(params.timeoutSeconds)
+						.resourceVersion(params.resourceVersion)
+						.watch(params.watch)
+						.labelSelector(labelSelector(labelSelector));
+					return request.buildCall(null);
+				}, V1Secret.class, V1SecretList.class);
+				LOG.debug(() -> "added secret informer for namespace : " + namespace +
+					" with labels : " + labelSelector);
 
-				// The stored resource version is the last checkpoint processed by the
-				// previous leader. Restore the informer from exactly that snapshot so its
-				// following WATCH requests start at the same version and can deliver
-				// every change after the checkpoint.
-				// we do not need haEnabled check here, but it short-circuits fast
-				if (haEnabled && !params.watch && params.resourceVersion == null && resourceVersion != null) {
-					request.resourceVersionMatch("Exact");
-				}
-				return request.buildCall(null);
-			}, V1Secret.class, V1SecretList.class);
-			LOG.debug(() -> "added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
-
-			informer.addEventHandler(handler);
-			informers.add(informer);
-			factory.startAllRegisteredInformers();
-		});
-		running = true;
+				informer.addEventHandler(handler);
+				informers.add(informer);
+				factory.startAllRegisteredInformers();
+			});
+		}
 
 	}
 

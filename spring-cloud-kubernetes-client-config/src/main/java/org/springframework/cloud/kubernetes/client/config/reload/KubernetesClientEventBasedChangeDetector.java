@@ -51,8 +51,6 @@ abstract class KubernetesClientEventBasedChangeDetector extends ConfigurationCha
 
 	protected final List<SharedInformerFactory> factories = new ArrayList<>();
 
-	protected volatile boolean running;
-
 	protected KubernetesClientEventBasedChangeDetector(ConfigurationUpdateStrategy strategy,
 			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment,
 			Class<? extends MapPropertySource> existingSourcesType) {
@@ -94,14 +92,10 @@ abstract class KubernetesClientEventBasedChangeDetector extends ConfigurationCha
 	}
 
 	public final void stop() {
-		if (!running) {
-			return;
-		}
 		informers.forEach(SharedIndexInformer::stop);
 		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
 		informers.clear();
 		factories.clear();
-		running = false;
 	}
 
 }

@@ -17,7 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher.ha;
 
 /**
- * Properties for watcher HA state persisted in a Lease.
+ * Properties controlling configuration watcher high availability.
  *
  * @author wind57
  */
@@ -25,32 +25,12 @@ public class ConfigurationWatcherHaProperties {
 
 	private boolean enabled;
 
-	private String leaseName = "configuration-watcher-ha";
-
-	private String leaseNamespace = "default";
-
 	public boolean isEnabled() {
 		return enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
-	}
-
-	public String getLeaseName() {
-		return leaseName;
-	}
-
-	public void setLeaseName(String leaseName) {
-		this.leaseName = leaseName;
-	}
-
-	public String getLeaseNamespace() {
-		return leaseNamespace;
-	}
-
-	public void setLeaseNamespace(String leaseNamespace) {
-		this.leaseNamespace = leaseNamespace;
 	}
 
 }

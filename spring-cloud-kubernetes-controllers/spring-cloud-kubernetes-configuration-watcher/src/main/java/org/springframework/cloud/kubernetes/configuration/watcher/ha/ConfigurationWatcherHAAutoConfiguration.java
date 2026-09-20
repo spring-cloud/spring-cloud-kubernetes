@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configuration.watcher.ha;
 
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.CoordinationV1Api;
 import org.jspecify.annotations.NonNull;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -31,7 +30,6 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfigura
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionCallbacksAutoConfiguration;
-import org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,8 +37,7 @@ import org.springframework.context.annotation.Configuration;
  * Configures the components required for configuration watcher HA.
  *
  * <p>
- * Creates the persistent state store and the coordinator that starts and stops the
- * watchers when leadership changes.
+ * Creates the coordinator that starts and stops the watchers when leadership changes.
  *
  * @author wind57
  */
@@ -54,18 +51,10 @@ class ConfigurationWatcherHAAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	ConfigurationWatcherStateStore configurationWatcherStateStore(ApiClient apiClient,
-			ConfigurationWatcherConfigurationProperties properties) {
-		return new LeaseConfigurationWatcherStateStore(new CoordinationV1Api(apiClient), properties.getHa());
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
 	ConfigurationWatcherHACoordinator configurationWatcherHACoordinator(
 			ObjectProvider<@NonNull KubernetesClientEventBasedConfigMapChangeDetector> configMapDetector,
-			ObjectProvider<@NonNull KubernetesClientEventBasedSecretsChangeDetector> secretsDetector,
-			ConfigurationWatcherStateStore stateStore) {
-		return new ConfigurationWatcherHACoordinator(configMapDetector, secretsDetector, stateStore);
+			ObjectProvider<@NonNull KubernetesClientEventBasedSecretsChangeDetector> secretsDetector) {
+		return new ConfigurationWatcherHACoordinator(configMapDetector, secretsDetector);
 	}
 
 }

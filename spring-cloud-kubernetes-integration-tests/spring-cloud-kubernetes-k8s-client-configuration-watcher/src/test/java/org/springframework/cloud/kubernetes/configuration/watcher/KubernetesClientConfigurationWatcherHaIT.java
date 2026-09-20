@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.AfterAll;
@@ -60,18 +59,16 @@ class KubernetesClientConfigurationWatcherHaIT {
 	 *     - start two configuration watcher replicas with HA enabled
 	 *     - wait until both replicas are running
 	 *     - verify that exactly one replica holds the leader-election lease
-	 *     - wait until the initial ConfigMap resource version is stored in the HA Lease
 	 *     - update the ConfigMap once
 	 *     - verify that the change triggers exactly one actuator refresh
-	 *     - verify that the updated resource version is stored in the HA Lease
 	 *     - delete the current leader
 	 *     - update the ConfigMap while no watcher is leading
 	 *     - verify that no actuator refresh is sent before leadership changes
-	 *     - verify that the new leader replays the missed event
+	 *     - verify that the replacement leader refreshes the latest ConfigMap value
 	 * </pre>
 	 */
 	@Test
-	void persistsResourceVersionAndReplaysChangeAfterLeaderLoss(K3sContainer container) {
+	void refreshesConfigMapAfterLeaderLoss(K3sContainer container) {
 
 		// 1. we have two replicas running
 		// 2. only one is the HA leader
@@ -90,17 +87,10 @@ class KubernetesClientConfigurationWatcherHaIT {
 			}
 		});
 
-		// 3. resource version of the configmap is present in our store
+		// 3. capture the current resource version before the first update
 		String firstResourceVersion = configMapResourceVersion(container);
-		Awaitilities.awaitUntilAsserted(120, 1000, () -> {
-			Optional<String> resourceVersionInStateLease = configMapResourceVersionInStateLease(container);
-			assertThat(resourceVersionInStateLease).isPresent();
-			assertThat(resourceVersionInStateLease.get()).isEqualTo(firstResourceVersion);
-		});
 
-		// 4. once we update the configmap, resourceVersion changes, and we have it in our
-		// store.
-		// Wait for the initial onAdd refresh to complete.
+		// 4. wait for the initial onAdd refresh to complete.
 		Awaitilities.awaitUntilAsserted(120, 1000, () -> TestUtil.verifyActuatorCalled(1));
 		// ignore initial onAdd refresh
 		WireMock.resetAllRequests();
@@ -108,18 +98,12 @@ class KubernetesClientConfigurationWatcherHaIT {
 		patchConfigMap(container, "updated");
 		String secondResourceVersion = configMapResourceVersion(container);
 
-		// 5. because of the update in the configmap, watcher caught that and sent a
+		// 5. because of the update in the configmap, the watcher catches it and sends a
 		// refresh call to the actuator ( wiremock in our test )
 		Awaitilities.awaitUntilAsserted(120, 1000, () -> TestUtil.verifyActuatorCalled(1));
 
-		// 6. the new resourceVersion is not equal to the previous one
-		// 7. we have the latest resourceVersion in our store
-		Awaitilities.awaitUntilAsserted(120, 1000, () -> {
-			Optional<String> afterPatchResourceVersion = configMapResourceVersionInStateLease(container);
-			assertThat(afterPatchResourceVersion).isPresent();
-			assertThat(afterPatchResourceVersion.get()).isNotEqualTo(firstResourceVersion);
-			assertThat(afterPatchResourceVersion.get()).isEqualTo(secondResourceVersion);
-		});
+		// 6. Kubernetes assigned a new resource version to the updated ConfigMap.
+		assertThat(secondResourceVersion).isNotEqualTo(firstResourceVersion);
 
 		// 8. delete the current leader and wait until it is gone.
 		String firstLeader = currentLeaderAccordingToLeaderLease(container);
@@ -136,8 +120,8 @@ class KubernetesClientConfigurationWatcherHaIT {
 		// within this time we need to patch configmap and make a few assertions
 		// before a new leader is established
 
-		// 9. update configmap while there is no actual leader established
-		// resourceVersion is incremented in k8s, but we do not store it
+		// 9. update the ConfigMap while the old leader is gone and the lease has not
+		// expired yet
 		// also there is no leader to react to the patch in the configmap, so no actuator
 		// call
 		WireMock.resetAllRequests();
@@ -146,15 +130,12 @@ class KubernetesClientConfigurationWatcherHaIT {
 
 		// resourceVersion has incremented in k8s
 		assertThat(thirdResourceVersion).isNotEqualTo(secondResourceVersion);
-		// but it stays the previous one in the state store
-		assertThat(configMapResourceVersionInStateLease(container)).contains(secondResourceVersion);
 
 		// no leader was active, so this update must not have triggered an actuator call
 		WireMock.verify(WireMock.exactly(0), WireMock.postRequestedFor(WireMock.urlEqualTo("/actuator/refresh")));
 
-		// 10. leadership is again established, the resourceVersion that we missed is
-		// delivered to us
-		// and the refresh is triggered
+		// 10. leadership is established again and the replacement leader observes the
+		// current ConfigMap state and triggers a refresh
 		Awaitilities.awaitUntilAsserted(120, 1000, () -> {
 			String secondLeader = currentLeaderAccordingToLeaderLease(container);
 			assertThat(secondLeader).isNotBlank().isNotEqualTo(firstLeader);
@@ -162,10 +143,6 @@ class KubernetesClientConfigurationWatcherHaIT {
 		});
 
 		Awaitilities.awaitUntilAsserted(120, 1000, () -> TestUtil.verifyActuatorCalled(1));
-
-		// 11. the resource version from the replayed event is stored in the HA Lease.
-		Awaitilities.awaitUntilAsserted(120, 1000,
-				() -> assertThat(configMapResourceVersionInStateLease(container)).contains(thirdResourceVersion));
 	}
 
 	private String currentLeaderAccordingToLeaderLease(K3sContainer container) {
@@ -216,31 +193,6 @@ class KubernetesClientConfigurationWatcherHaIT {
 
 		try {
 			return container.execInContainer("sh", "-c", exec).getStdout().trim();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private Optional<String> configMapResourceVersionInStateLease(K3sContainer container) {
-
-		String exec = """
-				kubectl get lease -n default configuration-watcher-ha \\
-					-o "jsonpath={.metadata.annotations['spring\\.cloud\\.kubernetes\\.configuration\\.watcher/configmap-resource-version']}"
-				""";
-
-		try {
-
-			// default=123
-			String storedResourceVersion = container.execInContainer("sh", "-c", exec).getStdout().trim();
-			// get only the 123 part
-
-			if (!storedResourceVersion.trim().isEmpty()) {
-				return Optional.of(storedResourceVersion.substring("default=".length()));
-			}
-
-			return Optional.empty();
-
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);

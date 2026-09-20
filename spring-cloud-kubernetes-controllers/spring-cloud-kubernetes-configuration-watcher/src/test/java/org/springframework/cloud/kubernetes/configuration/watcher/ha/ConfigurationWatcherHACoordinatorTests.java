@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher.ha;
 
-import java.util.Map;
 import java.util.function.Consumer;
 
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,6 @@ import org.springframework.cloud.kubernetes.commons.leader.election.events.StopL
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,17 +65,13 @@ class ConfigurationWatcherHACoordinatorTests {
 			return null;
 		}).when(secretsProvider).ifAvailable(any());
 
-		ConfigurationWatcherStateStore stateStore = mock(LeaseConfigurationWatcherStateStore.class);
-		when(stateStore.readOrCreate()).thenReturn(
-				new ConfigurationWatcherState(Map.of("default", "config-map-rv"), Map.of("default", "secret-rv")));
-
 		ConfigurationWatcherHACoordinator coordinator = new ConfigurationWatcherHACoordinator(configMapProvider,
-				secretsProvider, stateStore);
+				secretsProvider);
 
 		coordinator.onStartLeading(new StartLeadingEvent("candidate"));
 
-		verify(configMapDetector).start(eq(Map.of("default", "config-map-rv")), any());
-		verify(secretsDetector).start(eq(Map.of("default", "secret-rv")), any());
+		verify(configMapDetector).start();
+		verify(secretsDetector).start();
 	}
 
 	@Test
@@ -107,10 +101,8 @@ class ConfigurationWatcherHACoordinatorTests {
 			return null;
 		}).when(secretsProvider).ifAvailable(any());
 
-		ConfigurationWatcherStateStore stateStore = mock(LeaseConfigurationWatcherStateStore.class);
-
 		ConfigurationWatcherHACoordinator coordinator = new ConfigurationWatcherHACoordinator(configMapProvider,
-				secretsProvider, stateStore);
+				secretsProvider);
 
 		coordinator.onStopLeading(new StopLeadingEvent("candidate"));
 
@@ -125,9 +117,7 @@ class ConfigurationWatcherHACoordinatorTests {
 		when(configMapProvider.getIfAvailable()).thenReturn(null);
 		ObjectProvider<KubernetesClientEventBasedSecretsChangeDetector> secretsProvider = mock(ObjectProvider.class);
 		when(secretsProvider.getIfAvailable()).thenReturn(null);
-		ConfigurationWatcherStateStore stateStore = mock(LeaseConfigurationWatcherStateStore.class);
-
-		assertThatThrownBy(() -> new ConfigurationWatcherHACoordinator(configMapProvider, secretsProvider, stateStore))
+		assertThatThrownBy(() -> new ConfigurationWatcherHACoordinator(configMapProvider, secretsProvider))
 			.isInstanceOf(IllegalStateException.class)
 			.hasMessage("Configuration watcher HA is enabled, but neither ConfigMap nor Secret watching is enabled");
 	}

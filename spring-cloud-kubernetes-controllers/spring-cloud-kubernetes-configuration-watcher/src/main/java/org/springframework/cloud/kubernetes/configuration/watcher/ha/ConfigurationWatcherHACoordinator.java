@@ -23,7 +23,6 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
-import org.springframework.cloud.kubernetes.client.config.reload.NamespaceAndResourceVersion;
 import org.springframework.cloud.kubernetes.commons.leader.election.events.StartLeadingEvent;
 import org.springframework.cloud.kubernetes.commons.leader.election.events.StopLeadingEvent;
 import org.springframework.context.ApplicationEvent;
@@ -43,19 +42,15 @@ final class ConfigurationWatcherHACoordinator implements ApplicationListener<@No
 
 	private final ObjectProvider<@NonNull KubernetesClientEventBasedSecretsChangeDetector> secretsDetector;
 
-	private final ConfigurationWatcherStateStore stateStore;
-
 	ConfigurationWatcherHACoordinator(
 			ObjectProvider<@NonNull KubernetesClientEventBasedConfigMapChangeDetector> configMapDetector,
-			ObjectProvider<@NonNull KubernetesClientEventBasedSecretsChangeDetector> secretsDetector,
-			ConfigurationWatcherStateStore stateStore) {
+			ObjectProvider<@NonNull KubernetesClientEventBasedSecretsChangeDetector> secretsDetector) {
 		if (configMapDetector.getIfAvailable() == null && secretsDetector.getIfAvailable() == null) {
 			throw new IllegalStateException(
 					"Configuration watcher HA is enabled, but neither ConfigMap nor Secret " + "watching is enabled");
 		}
 		this.configMapDetector = configMapDetector;
 		this.secretsDetector = secretsDetector;
-		this.stateStore = stateStore;
 	}
 
 	@Override
@@ -71,11 +66,8 @@ final class ConfigurationWatcherHACoordinator implements ApplicationListener<@No
 	void onStartLeading(StartLeadingEvent event) {
 		LOG.info(() -> "configuration watcher with identity : " + event.candidateIdentity() + " became leader at : "
 				+ Instant.ofEpochMilli(event.getTimestamp()));
-		ConfigurationWatcherState state = stateStore.readOrCreate();
-		configMapDetector.ifAvailable(
-				detector -> detector.start(state.configMapResourceVersions(), this::writeConfigMapResourceVersion));
-		secretsDetector
-			.ifAvailable(detector -> detector.start(state.secretResourceVersions(), this::writeSecretResourceVersion));
+		configMapDetector.ifAvailable(KubernetesClientEventBasedConfigMapChangeDetector::start);
+		secretsDetector.ifAvailable(KubernetesClientEventBasedSecretsChangeDetector::start);
 	}
 
 	void onStopLeading(StopLeadingEvent event) {
@@ -83,14 +75,6 @@ final class ConfigurationWatcherHACoordinator implements ApplicationListener<@No
 				+ " stopped being a leader at : " + Instant.ofEpochMilli(event.getTimestamp()));
 		secretsDetector.ifAvailable(KubernetesClientEventBasedSecretsChangeDetector::stop);
 		configMapDetector.ifAvailable(KubernetesClientEventBasedConfigMapChangeDetector::stop);
-	}
-
-	private void writeConfigMapResourceVersion(NamespaceAndResourceVersion resourceVersion) {
-		stateStore.writeConfigMapResourceVersion(resourceVersion.namespace(), resourceVersion.resourceVersion());
-	}
-
-	private void writeSecretResourceVersion(NamespaceAndResourceVersion resourceVersion) {
-		stateStore.writeSecretResourceVersion(resourceVersion.namespace(), resourceVersion.resourceVersion());
 	}
 
 }

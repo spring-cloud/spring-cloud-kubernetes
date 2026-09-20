@@ -121,28 +121,11 @@ Kubernetes leader election used to choose the active watcher replica. Setting
 does not enable HA for the watcher.
 
 When HA is enabled, the Configuration Watcher starts its ConfigMap and Secret informers only after
-it becomes the leader, and stops them when it loses leadership.
+it becomes the leader, and stops them when it loses leadership. A replacement leader starts from
+the current Kubernetes state; the watcher does not persist informer resource-version checkpoints.
 
-The leader-election lock and the Configuration Watcher HA state are stored separately. The
-Configuration Watcher state is persisted in a Kubernetes `Lease`. Its defaults are:
-
-* `spring.cloud.kubernetes.configuration.watcher.ha.lease-name`: `configuration-watcher-ha`
-* `spring.cloud.kubernetes.configuration.watcher.ha.lease-namespace`: `default`
-
-The state lease stores the last processed informer resource version separately for each watched
-namespace and resource type. When a new replica becomes the leader, it reads those checkpoints
-and starts each informer from its stored resource version. This allows changes observed while no
-watcher was leader to be delivered to the new leader. The watcher does not refresh every resource
-after a leadership change; it only replays events for the configured ConfigMap and Secret
-informers.
-
-Processing is at least once. If a watcher loses leadership after an event was delivered but before
-its checkpoint was persisted, the replacement leader may process that event again. Refresh targets
-must therefore tolerate repeated refresh notifications.
-
-The service account used by the Configuration Watcher needs permission to read and update the HA
-state lease in the configured lease namespace. Add the following rule to the Role in that
-namespace:
+The service account used by the Configuration Watcher needs permission to read and update the
+leader-election `Lease`. Add the following rule to the Role:
 
 [source,yaml]
 ----
@@ -150,10 +133,6 @@ namespace:
   resources: ["leases"]
   verbs: ["get", "create", "update"]
 ----
-
-The HA state lease defaults to the `default` namespace even when the Configuration Watcher runs
-in another namespace. If you configure a different `lease-namespace`, create the corresponding
-Role and RoleBinding there, or grant equivalent cluster-scoped permissions.
 
 Configure at least two replicas in the Configuration Watcher Deployment to enable failover:
 
