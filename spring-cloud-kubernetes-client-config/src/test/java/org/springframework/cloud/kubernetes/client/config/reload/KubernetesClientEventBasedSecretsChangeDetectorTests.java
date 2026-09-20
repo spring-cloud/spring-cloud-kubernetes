@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -49,10 +48,8 @@ import org.springframework.mock.env.MockPropertySource;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.kubernetes.client.informer.EventType.ADDED;
 import static io.kubernetes.client.informer.EventType.DELETED;

@@ -59,8 +59,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 
 	private final Map<String, String> secretsLabels;
 
-	private final KubernetesResourceEventHandler<V1Secret> handler =
-		new KubernetesResourceEventHandler<>(this::onEvent);
+	private final KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
+			this::onEvent);
 
 	// HA enabled for configuration watcher
 	private final boolean haEnabled;
@@ -107,7 +107,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
 			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
-				"spring.cloud.kubernetes.reload.secrets-labels");
+					"spring.cloud.kubernetes.reload.secrets-labels");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1Secret> informer;
@@ -122,8 +122,8 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 						.labelSelector(labelSelector(labelSelector));
 					return request.buildCall(null);
 				}, V1Secret.class, V1SecretList.class);
-				LOG.debug(() -> "added secret informer for namespace : " + namespace +
-					" with labels : " + labelSelector);
+				LOG.debug(
+						() -> "added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);

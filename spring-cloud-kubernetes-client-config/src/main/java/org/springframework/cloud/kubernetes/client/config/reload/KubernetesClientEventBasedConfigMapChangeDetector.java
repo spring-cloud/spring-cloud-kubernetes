@@ -59,8 +59,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 
 	private final Map<String, String> configMapsLabels;
 
-	private final KubernetesResourceEventHandler<V1ConfigMap> handler =
-		new KubernetesResourceEventHandler<>(this::onEvent);
+	private final KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
+			this::onEvent);
 
 	// HA enabled for configuration watcher
 	private final boolean haEnabled;
@@ -107,7 +107,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
 			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
-				"spring.cloud.kubernetes.reload.config-maps-labels");
+					"spring.cloud.kubernetes.reload.config-maps-labels");
 
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<V1ConfigMap> informer;
@@ -124,8 +124,8 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 					return request.buildCall(null);
 				}, V1ConfigMap.class, V1ConfigMapList.class);
 
-				LOG.debug(() -> "added configmap informer for namespace : " + namespace +
-					" with labels : " + labelSelector);
+				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with labels : "
+						+ labelSelector);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
