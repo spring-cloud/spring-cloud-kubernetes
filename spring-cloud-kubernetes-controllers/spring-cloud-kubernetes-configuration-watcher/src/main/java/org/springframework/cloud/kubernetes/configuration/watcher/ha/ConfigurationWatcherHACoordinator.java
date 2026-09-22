@@ -32,6 +32,12 @@ import org.springframework.core.log.LogAccessor;
 /**
  * Coordinates the lifecycle of the ConfigMap and Secret watchers.
  *
+ * <p>This class implements {@link ApplicationListener} instead of using
+ * {@code @EventListener}. Leader-election events can be published during
+ * application startup, before Spring has registered {@code @EventListener}
+ * methods, which could cause the coordinator to miss the event.
+ *
+ *
  * @author wind57
  */
 final class ConfigurationWatcherHACoordinator implements ApplicationListener<@NonNull ApplicationEvent> {
