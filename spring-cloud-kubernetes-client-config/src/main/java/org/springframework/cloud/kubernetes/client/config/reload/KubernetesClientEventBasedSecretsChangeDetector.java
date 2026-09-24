@@ -16,16 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.Map;
-import java.util.Set;
-
-import io.kubernetes.client.informer.SharedIndexInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1Secret;
-import io.kubernetes.client.openapi.models.V1SecretList;
-import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
@@ -36,101 +27,28 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
-import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.labelSelector;
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
-
 /**
+ * Non-HA Secret change detector. Its informers are started during bean initialization.
+ *
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesClientEventBasedChangeDetector {
+public class KubernetesClientEventBasedSecretsChangeDetector
+		extends KubernetesClientEventBasedSecretsBaseChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedSecretsChangeDetector.class);
-
-	private final CoreV1Api coreV1Api;
-
-	private final ApiClient apiClient;
-
-	private final Set<String> namespaces;
-
-	private final boolean enableReloadFiltering;
-
-	private final boolean monitoringSecrets;
-
-	private final Map<String, String> secretsLabels;
-
-	private final KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent);
-
-	// HA enabled for configuration watcher
-	private final boolean haEnabled;
 
 	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		this(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider, false);
-	}
-
-	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider, boolean haEnabled) {
-		super(strategy, propertySourceLocator, environment, KubernetesClientSecretsPropertySource.class);
-		this.coreV1Api = coreV1Api;
-		this.apiClient = createApiClientForInformerClient();
-		this.enableReloadFiltering = properties.enableReloadFiltering();
-		this.monitoringSecrets = properties.monitoringSecrets();
-		this.secretsLabels = properties.secretsLabels();
-		this.haEnabled = haEnabled;
-		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
+		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
+			KubernetesClientSecretsPropertySource.class);
 	}
 
 	@PostConstruct
 	void inform() {
-		// In HA mode, defer informer startup until this instance acquires leadership.
-		// The leader callback starts the informers when HA is enabled.
-		if (!haEnabled) {
-			LOG.info(() -> "config watcher HA is disabled : starting secret informers immediately");
-			start();
-		}
-		else {
-			LOG.info(() -> "config watcher HA is enabled : deferring secret informer startup "
-					+ "until leadership is acquired");
-		}
-	}
-
-	public final void start() {
-
-		if (monitoringSecrets) {
-
-			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
-
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
-					"spring.cloud.kubernetes.reload.secrets-labels");
-
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1Secret> informer;
-				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
-				factories.add(factory);
-				informer = factory.sharedIndexInformerFor((CallGeneratorParams params) -> {
-
-					var request = coreV1Api.listNamespacedSecret(namespace)
-						.timeoutSeconds(params.timeoutSeconds)
-						.resourceVersion(params.resourceVersion)
-						.watch(params.watch)
-						.labelSelector(labelSelector(labelSelector));
-					return request.buildCall(null);
-				}, V1Secret.class, V1SecretList.class);
-				LOG.debug(
-						() -> "added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
-
-				informer.addEventHandler(handler);
-				informers.add(informer);
-				factory.startAllRegisteredInformers();
-			});
-		}
-
+		LOG.info(() -> "config watcher HA is disabled : starting secret informers immediately");
+		start();
 	}
 
 }

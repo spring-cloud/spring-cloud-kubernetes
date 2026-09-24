@@ -17,38 +17,29 @@
 package org.springframework.cloud.kubernetes.client.config.reload;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import jakarta.annotation.PostConstruct;
 
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.log.LogAccessor;
+import org.springframework.core.env.MapPropertySource;
 
 /**
- * Non-HA ConfigMap change detector. Its informers are started during bean initialization.
+ * HA Secret change detector. Its informers are started by the HA coordinator after
+ * leadership is acquired.
  *
- * @author Ryan Baxter
+ * @author wind57
  */
-public class KubernetesClientEventBasedConfigMapChangeDetector
-		extends KubernetesClientEventBasedConfigMapBaseChangeDetector {
+public final class KubernetesClientEventBasedHASecretsChangeDetector
+		extends KubernetesClientEventBasedSecretsBaseChangeDetector {
 
-	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedConfigMapChangeDetector.class);
-
-	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
+	KubernetesClientEventBasedHASecretsChangeDetector(ConfigurationUpdateStrategy strategy,
+			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment, CoreV1Api coreV1Api,
+			ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
+			Class<? extends MapPropertySource> existingSourcesType) {
 		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
-			KubernetesClientConfigMapPropertySource.class);
-	}
-
-	@PostConstruct
-	void inform() {
-		LOG.info(() -> "config watcher HA is disabled : starting configmap informers immediately");
-		start();
+				existingSourcesType);
 	}
 
 }
