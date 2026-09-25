@@ -315,6 +315,12 @@ You can also configure the configuration to shut down the application instances 
 When the application shuts down, Kubernetes will restart the application instance and the new configuration properties will be loaded.  To use
 this strategy set `spring.cloud.kubernetes.configuration.watcher.refresh-strategy=shutdown`.
 
+NOTE: Any pod connected to the messaging broker and using Spring Cloud Bus has the potential for a
+refresh event being sent to it.  This means if a pod in another Kubernetes namespace is connected to
+the broker and uses Spring Cloud Bus it could be refreshed.  If admins should be mindful of
+the pods that are connected to the broker if they want to prevent them from receiving refresh
+events.
+
 ## Configuring RabbitMQ
 
 When the `bus-amqp` profile is enabled you will need to configure Spring RabbitMQ to point it to the location of the RabbitMQ
