@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
 
 import static org.springframework.beans.factory.config.YamlProcessor.DocumentMatcher;
 import static org.springframework.beans.factory.config.YamlProcessor.MatchStatus;
+import static org.springframework.cloud.kubernetes.commons.KubernetesYamlProcessor.getYaml;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRING_CONFIG_ACTIVATE_ON_PROFILE;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.SPRING_PROFILES;
 
@@ -87,7 +88,7 @@ final class ProfileActivationAwareYamlPropertiesFactoryBean {
 
 	Map<String, Object> createProperties(String source) {
 		LinkedHashMap<String, Object> finalMap = new LinkedHashMap<>();
-		Yaml yaml = new Yaml();
+		Yaml yaml = getYaml();
 
 		Resource resource = new ByteArrayResource(source.getBytes(StandardCharsets.UTF_8));
 		try (Reader reader = new UnicodeReader(resource.getInputStream())) {
