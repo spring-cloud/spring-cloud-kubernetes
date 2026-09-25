@@ -32,9 +32,9 @@ import org.springframework.core.env.MapPropertySource;
  * @author wind57
  */
 public final class KubernetesClientEventBasedHASecretsChangeDetector
-		extends KubernetesClientEventBasedSecretsBaseChangeDetector {
+		extends KubernetesClientAbstractSecretsChangeDetector {
 
-	KubernetesClientEventBasedHASecretsChangeDetector(ConfigurationUpdateStrategy strategy,
+	public KubernetesClientEventBasedHASecretsChangeDetector(ConfigurationUpdateStrategy strategy,
 			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment, CoreV1Api coreV1Api,
 			ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			Class<? extends MapPropertySource> existingSourcesType) {

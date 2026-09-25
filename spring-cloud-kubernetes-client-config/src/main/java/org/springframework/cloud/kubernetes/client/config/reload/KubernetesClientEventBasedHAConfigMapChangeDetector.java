@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.config.reload;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
@@ -31,13 +32,14 @@ import org.springframework.core.env.MapPropertySource;
  * @author wind57
  */
 public final class KubernetesClientEventBasedHAConfigMapChangeDetector
-	extends KubernetesClientEventBasedConfigMapBaseChangeDetector {
+		extends KubernetesClientAbstractConfigMapChangeDetector {
 
-	KubernetesClientEventBasedHAConfigMapChangeDetector(ConfigurationUpdateStrategy strategy,
-			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment,
-			CoreV1Api coreV1Api, ConfigReloadProperties properties,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider,
+	public KubernetesClientEventBasedHAConfigMapChangeDetector(ConfigurationUpdateStrategy strategy,
+			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment, CoreV1Api coreV1Api,
+			ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			Class<? extends MapPropertySource> existingSourcesType) {
-		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider, existingSourcesType);
+		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
+				existingSourcesType);
 	}
+
 }

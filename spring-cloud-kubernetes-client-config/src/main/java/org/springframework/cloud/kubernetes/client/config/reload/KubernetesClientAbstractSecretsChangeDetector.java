@@ -18,13 +18,14 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.openapi.models.V1Secret;
+import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
@@ -40,15 +41,11 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
 
 /**
- * @author wind57
+ * @author Ryan Baxter
  */
-abstract class KubernetesClientEventBasedConfigMapBaseChangeDetector
-		extends KubernetesClientEventBasedChangeDetector {
+public abstract class KubernetesClientAbstractSecretsChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
-	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedConfigMapBaseChangeDetector.class);
-
-	private final KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-		this::onEvent);
+	private static final LogAccessor LOG = new LogAccessor(KubernetesClientAbstractSecretsChangeDetector.class);
 
 	private final CoreV1Api coreV1Api;
 
@@ -58,11 +55,11 @@ abstract class KubernetesClientEventBasedConfigMapBaseChangeDetector
 
 	private final boolean enableReloadFiltering;
 
-	private final boolean monitoringConfigMaps;
+	private final boolean monitoringSecrets;
 
-	private final Map<String, String> configMapsLabels;
+	private final Map<String, String> secretsLabels;
 
-	protected KubernetesClientEventBasedConfigMapBaseChangeDetector(ConfigurationUpdateStrategy strategy,
+	public KubernetesClientAbstractSecretsChangeDetector(ConfigurationUpdateStrategy strategy,
 			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment, CoreV1Api coreV1Api,
 			ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			Class<? extends MapPropertySource> existingSourcesType) {
@@ -71,43 +68,44 @@ abstract class KubernetesClientEventBasedConfigMapBaseChangeDetector
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
-		this.monitoringConfigMaps = properties.monitoringConfigMaps();
-		this.configMapsLabels = properties.configMapsLabels();
-
-		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
+		this.monitoringSecrets = properties.monitoringSecrets();
+		this.secretsLabels = properties.secretsLabels();
+		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 
-	public final void start() {
+	public final void start(Consumer<V1Secret> onEventHandler) {
 
-		if (monitoringConfigMaps) {
+		if (monitoringSecrets) {
 
-			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
+			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
-				"spring.cloud.kubernetes.reload.config-maps-labels");
+			KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(onEventHandler);
+
+			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
+					"spring.cloud.kubernetes.reload.secrets-labels");
 
 			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1ConfigMap> informer;
+				SharedIndexInformer<V1Secret> informer;
 				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 				factories.add(factory);
 				informer = factory.sharedIndexInformerFor((CallGeneratorParams params) -> {
 
-					var request = coreV1Api.listNamespacedConfigMap(namespace)
+					var request = coreV1Api.listNamespacedSecret(namespace)
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
 						.labelSelector(labelSelector(labelSelector));
-
 					return request.buildCall(null);
-				}, V1ConfigMap.class, V1ConfigMapList.class);
-
-				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with labels : "
-					+ labelSelector);
+				}, V1Secret.class, V1SecretList.class);
+				LOG.debug(
+						() -> "added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
 				factory.startAllRegisteredInformers();
 			});
 		}
+
 	}
+
 }

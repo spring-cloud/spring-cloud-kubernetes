@@ -32,8 +32,7 @@ import org.springframework.core.log.LogAccessor;
  *
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedSecretsChangeDetector
-		extends KubernetesClientEventBasedSecretsBaseChangeDetector {
+public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesClientAbstractSecretsChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedSecretsChangeDetector.class);
 
@@ -42,13 +41,13 @@ public class KubernetesClientEventBasedSecretsChangeDetector
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
-			KubernetesClientSecretsPropertySource.class);
+				KubernetesClientSecretsPropertySource.class);
 	}
 
 	@PostConstruct
 	void inform() {
 		LOG.info(() -> "config watcher HA is disabled : starting secret informers immediately");
-		start();
+		start(this::onEvent);
 	}
 
 }

@@ -244,15 +244,20 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 
 		// change detector
-		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
-				coreV1Api, environment, ConfigReloadProperties.DEFAULT, strategy, locator, kubernetesNamespaceProvider,
-				haEnabled);
-
-		changeDetector.inform();
-
+		KubernetesClientAbstractConfigMapChangeDetector changeDetector;
 		if (haEnabled) {
+			changeDetector = new KubernetesClientEventBasedHAConfigMapChangeDetector(strategy, locator, environment,
+					coreV1Api, ConfigReloadProperties.DEFAULT, kubernetesNamespaceProvider,
+					KubernetesClientConfigMapPropertySource.class);
 			assertThat(onEventCalls[0]).isZero();
-			changeDetector.start();
+			changeDetector.start(changeDetector::onEvent);
+		}
+		else {
+			KubernetesClientEventBasedConfigMapChangeDetector nonHaChangeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
+					coreV1Api, environment, ConfigReloadProperties.DEFAULT, strategy, locator,
+					kubernetesNamespaceProvider);
+			changeDetector = nonHaChangeDetector;
+			nonHaChangeDetector.inform();
 		}
 
 		// all 4 events are caught

@@ -32,8 +32,7 @@ import org.springframework.core.log.LogAccessor;
  *
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedConfigMapChangeDetector
-		extends KubernetesClientEventBasedConfigMapBaseChangeDetector {
+public class KubernetesClientEventBasedConfigMapChangeDetector extends KubernetesClientAbstractConfigMapChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedConfigMapChangeDetector.class);
 
@@ -42,13 +41,13 @@ public class KubernetesClientEventBasedConfigMapChangeDetector
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
-			KubernetesClientConfigMapPropertySource.class);
+				KubernetesClientConfigMapPropertySource.class);
 	}
 
 	@PostConstruct
 	void inform() {
 		LOG.info(() -> "config watcher HA is disabled : starting configmap informers immediately");
-		start();
+		start(this::onEvent);
 	}
 
 }
