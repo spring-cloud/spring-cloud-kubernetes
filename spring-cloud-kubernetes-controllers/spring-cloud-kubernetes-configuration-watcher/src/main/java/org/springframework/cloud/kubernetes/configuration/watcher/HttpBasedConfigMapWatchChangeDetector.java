@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.kubernetes.client.openapi.apis.CoreV1Api;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientAbstractConfigMapChangeDetector;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
@@ -30,19 +31,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChangeDetector {
+public final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChangeDetector {
 
 	private final HttpRefreshTrigger httpRefreshTrigger;
 
-	HttpBasedConfigMapWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider,
+	public HttpBasedConfigMapWatchChangeDetector(HttpRefreshTrigger httpRefreshTrigger,
+			KubernetesClientAbstractConfigMapChangeDetector baseChangeDetector,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadPoolTaskExecutor, HttpRefreshTrigger httpRefreshTrigger) {
-		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
-				k8SConfigurationProperties, threadPoolTaskExecutor);
-
+			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+		super(baseChangeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.httpRefreshTrigger = httpRefreshTrigger;
 	}
 
