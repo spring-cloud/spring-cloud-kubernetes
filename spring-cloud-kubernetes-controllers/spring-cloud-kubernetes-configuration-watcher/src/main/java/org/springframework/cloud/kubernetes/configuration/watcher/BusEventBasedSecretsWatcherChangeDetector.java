@@ -16,32 +16,24 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientAbstractSecretsChangeDetector;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-final class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherChangeDetector {
+public final class BusEventBasedSecretsWatcherChangeDetector extends SecretsWatcherChangeDetector {
 
 	private final BusRefreshTrigger busRefreshTrigger;
 
-	BusEventBasedSecretsWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider,
+	public BusEventBasedSecretsWatcherChangeDetector(
+			KubernetesClientAbstractSecretsChangeDetector baseChangeDetector,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor, BusRefreshTrigger busRefreshTrigger) {
-		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
-				k8SConfigurationProperties, threadPoolTaskExecutor);
+		super(baseChangeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.busRefreshTrigger = busRefreshTrigger;
 	}
 
