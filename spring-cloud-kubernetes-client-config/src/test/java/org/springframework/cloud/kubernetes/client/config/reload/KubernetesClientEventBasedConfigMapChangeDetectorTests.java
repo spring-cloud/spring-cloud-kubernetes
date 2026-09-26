@@ -52,6 +52,7 @@ import static io.kubernetes.client.informer.EventType.ADDED;
 import static io.kubernetes.client.informer.EventType.DELETED;
 import static io.kubernetes.client.informer.EventType.MODIFIED;
 import static io.kubernetes.client.util.Watch.Response;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.config.Constants.APPLICATION_PROPERTIES;
@@ -143,13 +144,82 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 			.withQueryParam("resourceVersion", equalTo("3"))
 			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponseThree))));
 
-		// ------------------------------------------------------------------------------------------------------------
 		// 4. assertions
-
-		changeDetectorAssert();
+		changeDetectorAssert(false);
 	}
 
-	private void changeDetectorAssert() {
+	/**
+	 * <pre>
+	 *     - HA mode is enabled, so inform() does not start the informer.
+	 *     - an explicit start() starts the informer and it processes the events.
+	 * </pre>
+	 */
+	@Test
+	void watchStartsOnlyAfterExplicitStartInHaMode() {
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 0. initial request of the informer ( resourceVersion=0 )
+		Map<String, String> myConfigInitial = Map.of(APPLICATION_PROPERTIES,
+				"spring.cloud.kubernetes.configuration.watcher.refreshDelay=0");
+
+		V1ConfigMap myConfigMapInitial = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("my-configmap"))
+			.data(myConfigInitial);
+		V1ConfigMapList myConfigMapListInitial = new V1ConfigMapList().metadata(new V1ListMeta().resourceVersion("1"))
+			.items(List.of(myConfigMapInitial));
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("false"))
+			.withQueryParam("resourceVersion", equalTo("0"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(myConfigMapListInitial))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 1. first watch response to request with resourceVersion=1
+		Map<String, String> myConfigChanged = Map.of(APPLICATION_PROPERTIES,
+				"spring.cloud.kubernetes.configuration.watcher.refreshDelay=1");
+
+		V1ConfigMap myConfigMapChanged = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("my-configmap").resourceVersion("2"))
+			.data(myConfigChanged);
+
+		Response<V1ConfigMap> watchResponseOne = new Response<>(MODIFIED.name(), myConfigMapChanged);
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("1"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponseOne))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 2. second watch response to request with resourceVersion=2
+		Map<String, String> newConfigAdded = Map.of(APPLICATION_PROPERTIES, "debug=true");
+
+		V1ConfigMap newConfigMapAdded = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("new-configmap").resourceVersion("3"))
+			.data(newConfigAdded);
+
+		Response<V1ConfigMap> watchResponseTwo = new Response<>(ADDED.name(), newConfigMapAdded);
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("2"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponseTwo))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 3. third watch response to request with resourceVersion=3
+		Map<String, String> newConfigDeleted = Map.of(APPLICATION_PROPERTIES, "debug=true");
+
+		V1ConfigMap newConfigMapDeleted = new V1ConfigMap()
+			.metadata(new V1ObjectMeta().namespace("default").name("new-configmap").resourceVersion("4"))
+			.data(newConfigDeleted);
+
+		Response<V1ConfigMap> watchResponseThree = new Response<>(DELETED.name(), newConfigMapDeleted);
+
+		stubFor(get(urlMatching("^/api/v1/namespaces/default/configmaps.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("3"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponseThree))));
+
+		// 4. assertions
+		changeDetectorAssert(true);
+	}
+
+	private void changeDetectorAssert(boolean haEnabled) {
 
 		// coreV1Api
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
@@ -174,10 +244,21 @@ class KubernetesClientEventBasedConfigMapChangeDetectorTests {
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 
 		// change detector
-		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
-				coreV1Api, environment, ConfigReloadProperties.DEFAULT, strategy, locator, kubernetesNamespaceProvider);
-
-		changeDetector.inform();
+		KubernetesClientAbstractConfigMapChangeDetector changeDetector;
+		if (haEnabled) {
+			changeDetector = new KubernetesClientEventBasedHAConfigMapChangeDetector(strategy, locator, environment,
+					coreV1Api, ConfigReloadProperties.DEFAULT, kubernetesNamespaceProvider,
+					KubernetesClientConfigMapPropertySource.class);
+			assertThat(onEventCalls[0]).isZero();
+			changeDetector.start(changeDetector::onEvent);
+		}
+		else {
+			KubernetesClientEventBasedConfigMapChangeDetector nonHaChangeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
+					coreV1Api, environment, ConfigReloadProperties.DEFAULT, strategy, locator,
+					kubernetesNamespaceProvider);
+			changeDetector = nonHaChangeDetector;
+			nonHaChangeDetector.inform();
+		}
 
 		// all 4 events are caught
 		Awaitilities.awaitUntil(10, 1000, () -> onEventCalls[0] == 4);

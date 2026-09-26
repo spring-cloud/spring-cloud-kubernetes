@@ -16,16 +16,7 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import java.util.Map;
-import java.util.Set;
-
-import io.kubernetes.client.informer.SharedIndexInformer;
-import io.kubernetes.client.informer.SharedInformerFactory;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.V1ConfigMap;
-import io.kubernetes.client.openapi.models.V1ConfigMapList;
-import io.kubernetes.client.util.CallGeneratorParams;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
@@ -36,75 +27,27 @@ import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationU
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
-import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.labelSelector;
-import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
-
 /**
+ * Non-HA ConfigMap change detector. Its informers are started during bean initialization.
+ *
  * @author Ryan Baxter
  */
-public class KubernetesClientEventBasedConfigMapChangeDetector extends KubernetesClientEventBasedChangeDetector {
+public class KubernetesClientEventBasedConfigMapChangeDetector extends KubernetesClientAbstractConfigMapChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedConfigMapChangeDetector.class);
-
-	private final CoreV1Api coreV1Api;
-
-	private final ApiClient apiClient;
-
-	private final Set<String> namespaces;
-
-	private final boolean enableReloadFiltering;
-
-	private final boolean monitoringConfigMaps;
-
-	private final Map<String, String> configMapsLabels;
-
-	private final KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent);
 
 	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
 			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy, propertySourceLocator, environment, KubernetesClientConfigMapPropertySource.class);
-		this.coreV1Api = coreV1Api;
-		this.apiClient = createApiClientForInformerClient();
-		this.enableReloadFiltering = properties.enableReloadFiltering();
-		this.monitoringConfigMaps = properties.monitoringConfigMaps();
-		this.configMapsLabels = properties.configMapsLabels();
-		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
+		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
+				KubernetesClientConfigMapPropertySource.class);
 	}
 
 	@PostConstruct
 	void inform() {
-		if (monitoringConfigMaps) {
-			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
-
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
-					"spring.cloud.kubernetes.reload.config-maps-labels");
-
-			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1ConfigMap> informer;
-
-				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
-				factories.add(factory);
-				informer = factory
-					.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
-						.timeoutSeconds(params.timeoutSeconds)
-						.resourceVersion(params.resourceVersion)
-						.watch(params.watch)
-						.labelSelector(labelSelector(labelSelector))
-						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
-
-				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with labels : "
-						+ labelSelector);
-
-				informer.addEventHandler(handler);
-				informers.add(informer);
-				factory.startAllRegisteredInformers();
-			});
-		}
-
+		LOG.info(() -> "config watcher HA is disabled : starting configmap informers immediately");
+		start(this::onEvent);
 	}
 
 }

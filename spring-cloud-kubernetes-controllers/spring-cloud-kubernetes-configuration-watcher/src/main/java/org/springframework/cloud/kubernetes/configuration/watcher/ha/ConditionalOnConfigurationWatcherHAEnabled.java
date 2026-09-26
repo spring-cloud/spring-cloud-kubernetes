@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.kubernetes.commons.leader.election;
+package org.springframework.cloud.kubernetes.configuration.watcher.ha;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,11 +23,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.context.annotation.Conditional;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
- * Enables leader-election infrastructure when leader election is explicitly enabled or
- * Configuration Watcher HA is enabled.
+ * Provides a succinct conditional for enabling configuration watcher HA support.
  *
  * @author wind57
  */
@@ -35,7 +34,8 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(LeaderElectionEnabledCondition.class)
-public @interface ConditionalOnLeaderElectionEnabled {
+@ConditionalOnProperty(prefix = "spring.cloud.kubernetes.configuration.watcher.ha", name = "enabled",
+		havingValue = "true")
+public @interface ConditionalOnConfigurationWatcherHAEnabled {
 
 }
