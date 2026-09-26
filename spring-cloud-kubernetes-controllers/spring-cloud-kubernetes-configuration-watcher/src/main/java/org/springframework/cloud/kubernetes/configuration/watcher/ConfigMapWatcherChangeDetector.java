@@ -17,16 +17,10 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientAbstractConfigMapChangeDetector;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -35,11 +29,12 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEventBasedConfigMapChangeDetector
-		implements RefreshTrigger
+public abstract sealed class ConfigMapWatcherChangeDetector implements RefreshTrigger
 		permits BusEventBasedConfigMapWatcherChangeDetector, HttpBasedConfigMapWatchChangeDetector {
 
 	private final Scheduler scheduler;
+
+	private final KubernetesClientAbstractConfigMapChangeDetector baseChangeDetector;
 
 	/**
 	 * <pre>
@@ -58,21 +53,25 @@ abstract sealed class ConfigMapWatcherChangeDetector extends KubernetesClientEve
 	 */
 	private final ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
-	ConfigMapWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider,
+	ConfigMapWatcherChangeDetector(
+			KubernetesClientAbstractConfigMapChangeDetector baseChangeDetector,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
-				k8SConfigurationProperties.getHa().isEnabled());
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
+		this.baseChangeDetector = baseChangeDetector;
 	}
 
-	@Override
-	protected final void onEvent(KubernetesObject configMap) {
+	public void start() {
+		baseChangeDetector.start(this::onEvent);
+	}
+
+	public void stop() {
+		baseChangeDetector.stop();
+	}
+
+	private void onEvent(KubernetesObject configMap) {
 		WatcherUtil.onEvent(configMap, k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler,
 				this::triggerRefresh);
 	}
