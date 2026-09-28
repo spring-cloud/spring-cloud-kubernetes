@@ -20,7 +20,7 @@ import io.kubernetes.client.common.KubernetesObject;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientAbstractSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -51,23 +51,23 @@ public abstract sealed class SecretsWatcherChangeDetector implements RefreshTrig
 	 */
 	private final ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
-	private final KubernetesClientAbstractSecretsChangeDetector baseChangeDetector;
+	private final KubernetesClientEventBasedSecretsChangeDetector changeDetector;
 
-	SecretsWatcherChangeDetector(KubernetesClientAbstractSecretsChangeDetector baseChangeDetector,
+	SecretsWatcherChangeDetector(KubernetesClientEventBasedSecretsChangeDetector changeDetector,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
-		this.baseChangeDetector = baseChangeDetector;
+		this.changeDetector = changeDetector;
 	}
 
 	public void start() {
-		baseChangeDetector.start(this::onEvent);
+		changeDetector.start(this::onEvent);
 	}
 
 	public void stop() {
-		baseChangeDetector.stop();
+		changeDetector.stop();
 	}
 
 	private void onEvent(KubernetesObject secret) {

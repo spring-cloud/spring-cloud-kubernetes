@@ -21,10 +21,10 @@ import java.time.Instant;
 import org.jspecify.annotations.NonNull;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.commons.leader.election.events.StartLeadingEvent;
 import org.springframework.cloud.kubernetes.commons.leader.election.events.StopLeadingEvent;
+import org.springframework.cloud.kubernetes.configuration.watcher.ConfigMapWatcherChangeDetector;
+import org.springframework.cloud.kubernetes.configuration.watcher.SecretsWatcherChangeDetector;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.log.LogAccessor;
@@ -32,11 +32,11 @@ import org.springframework.core.log.LogAccessor;
 /**
  * Coordinates the lifecycle of the ConfigMap and Secret watchers.
  *
- * <p>This class implements {@link ApplicationListener} instead of using
- * {@code @EventListener}. Leader-election events can be published during
- * application startup, before Spring has registered {@code @EventListener}
- * methods, which could cause the coordinator to miss the event.
- *
+ * <p>
+ * This class implements {@link ApplicationListener} instead of using
+ * {@code @EventListener}. Leader-election events can be published during application
+ * startup, before Spring has registered {@code @EventListener} methods, which could cause
+ * the coordinator to miss the event.
  *
  * @author wind57
  */
@@ -44,13 +44,12 @@ final class ConfigurationWatcherHACoordinator implements ApplicationListener<@No
 
 	private static final LogAccessor LOG = new LogAccessor(ConfigurationWatcherHACoordinator.class);
 
-	private final ObjectProvider<@NonNull KubernetesClientEventBasedConfigMapChangeDetector> configMapDetector;
+	private final ObjectProvider<@NonNull ConfigMapWatcherChangeDetector> configMapDetector;
 
-	private final ObjectProvider<@NonNull KubernetesClientEventBasedSecretsChangeDetector> secretsDetector;
+	private final ObjectProvider<@NonNull SecretsWatcherChangeDetector> secretsDetector;
 
-	ConfigurationWatcherHACoordinator(
-			ObjectProvider<@NonNull KubernetesClientEventBasedConfigMapChangeDetector> configMapDetector,
-			ObjectProvider<@NonNull KubernetesClientEventBasedSecretsChangeDetector> secretsDetector) {
+	ConfigurationWatcherHACoordinator(ObjectProvider<@NonNull ConfigMapWatcherChangeDetector> configMapDetector,
+			ObjectProvider<@NonNull SecretsWatcherChangeDetector> secretsDetector) {
 		if (configMapDetector.getIfAvailable() == null && secretsDetector.getIfAvailable() == null) {
 			throw new IllegalStateException(
 					"Configuration watcher HA is enabled, but neither ConfigMap nor Secret " + "watching is enabled");
@@ -72,15 +71,15 @@ final class ConfigurationWatcherHACoordinator implements ApplicationListener<@No
 	void onStartLeading(StartLeadingEvent event) {
 		LOG.info(() -> "configuration watcher with identity : " + event.candidateIdentity() + " became leader at : "
 				+ Instant.ofEpochMilli(event.getTimestamp()));
-		configMapDetector.ifAvailable(KubernetesClientEventBasedConfigMapChangeDetector::start);
-		secretsDetector.ifAvailable(KubernetesClientEventBasedSecretsChangeDetector::start);
+		configMapDetector.ifAvailable(ConfigMapWatcherChangeDetector::start);
+		secretsDetector.ifAvailable(SecretsWatcherChangeDetector::start);
 	}
 
 	void onStopLeading(StopLeadingEvent event) {
 		LOG.info(() -> "configuration watcher with identity : " + event.candidateIdentity()
 				+ " stopped being a leader at : " + Instant.ofEpochMilli(event.getTimestamp()));
-		secretsDetector.ifAvailable(KubernetesClientEventBasedSecretsChangeDetector::stop);
-		configMapDetector.ifAvailable(KubernetesClientEventBasedConfigMapChangeDetector::stop);
+		secretsDetector.ifAvailable(SecretsWatcherChangeDetector::stop);
+		configMapDetector.ifAvailable(ConfigMapWatcherChangeDetector::stop);
 	}
 
 }

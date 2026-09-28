@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
- * Provides a succinct conditional for enabling configuration watcher HA support.
+ * Provides a succinct conditional for disabling configuration watcher HA support.
  *
  * @author wind57
  */
@@ -35,7 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Documented
 @Inherited
 @ConditionalOnProperty(prefix = "spring.cloud.kubernetes.configuration.watcher.ha", name = "enabled",
-		havingValue = "true", matchIfMissing = false)
-public @interface ConditionalOnConfigurationWatcherHAEnabled {
+		havingValue = "false", matchIfMissing = true)
+public @interface ConditionalOnConfigurationWatcherHANotEnabled {
 
 }

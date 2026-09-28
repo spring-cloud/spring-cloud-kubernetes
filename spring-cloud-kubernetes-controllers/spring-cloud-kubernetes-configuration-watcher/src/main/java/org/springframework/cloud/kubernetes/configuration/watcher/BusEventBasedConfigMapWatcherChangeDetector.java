@@ -18,7 +18,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientAbstractConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -29,11 +29,11 @@ public final class BusEventBasedConfigMapWatcherChangeDetector extends ConfigMap
 
 	private final BusRefreshTrigger busRefreshTrigger;
 
-	public BusEventBasedConfigMapWatcherChangeDetector(
-			KubernetesClientAbstractConfigMapChangeDetector baseChangeDetector,
+	public BusEventBasedConfigMapWatcherChangeDetector(BusRefreshTrigger busRefreshTrigger,
+			KubernetesClientEventBasedConfigMapChangeDetector changeDetector,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadPoolTaskExecutor, BusRefreshTrigger busRefreshTrigger) {
-		super(baseChangeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
+			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+		super(changeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.busRefreshTrigger = busRefreshTrigger;
 	}
 

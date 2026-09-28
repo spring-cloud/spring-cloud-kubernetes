@@ -17,10 +17,10 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.kubernetes.client.common.KubernetesObject;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientAbstractConfigMapChangeDetector;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -34,7 +34,7 @@ public abstract sealed class ConfigMapWatcherChangeDetector implements RefreshTr
 
 	private final Scheduler scheduler;
 
-	private final KubernetesClientAbstractConfigMapChangeDetector baseChangeDetector;
+	private final KubernetesClientEventBasedConfigMapChangeDetector changeDetector;
 
 	/**
 	 * <pre>
@@ -53,22 +53,21 @@ public abstract sealed class ConfigMapWatcherChangeDetector implements RefreshTr
 	 */
 	private final ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
-	ConfigMapWatcherChangeDetector(
-			KubernetesClientAbstractConfigMapChangeDetector baseChangeDetector,
+	ConfigMapWatcherChangeDetector(KubernetesClientEventBasedConfigMapChangeDetector changeDetector,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
-		this.baseChangeDetector = baseChangeDetector;
+		this.changeDetector = changeDetector;
 	}
 
 	public void start() {
-		baseChangeDetector.start(this::onEvent);
+		changeDetector.start(this::onEvent);
 	}
 
 	public void stop() {
-		baseChangeDetector.stop();
+		changeDetector.stop();
 	}
 
 	private void onEvent(KubernetesObject configMap) {

@@ -42,7 +42,7 @@ public class ConfigurationWatcherConfigurationProperties {
 	/**
 	 * not AMQP or KAFKA profile name.
 	 */
-	static final String NOT_AMQP_NOT_KAFKA = "!" + AMQP + " & !" + KAFKA;
+	public static final String NOT_AMQP_NOT_KAFKA = "!" + AMQP + " & !" + KAFKA;
 
 	/**
 	 * label to enable refresh/restart when using configmaps.

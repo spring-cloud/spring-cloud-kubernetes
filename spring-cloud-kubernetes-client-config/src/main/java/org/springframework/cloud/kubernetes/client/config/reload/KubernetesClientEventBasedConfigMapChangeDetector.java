@@ -16,38 +16,95 @@
 
 package org.springframework.cloud.kubernetes.client.config.reload;
 
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import jakarta.annotation.PostConstruct;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.informer.SharedInformerFactory;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import io.kubernetes.client.openapi.models.V1ConfigMap;
+import io.kubernetes.client.openapi.models.V1ConfigMapList;
+import io.kubernetes.client.util.CallGeneratorParams;
+
+import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.log.LogAccessor;
 
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
+import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.labelSelector;
+import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
+
 /**
- * Non-HA ConfigMap change detector. Its informers are started during bean initialization.
+ * Event-based ConfigMap change detector used by both the regular reload flow and the
+ * configuration watcher. The caller controls when the informers are started.
  *
- * @author Ryan Baxter
+ * @author wind57
  */
-public class KubernetesClientEventBasedConfigMapChangeDetector extends KubernetesClientAbstractConfigMapChangeDetector {
+public class KubernetesClientEventBasedConfigMapChangeDetector extends KubernetesClientEventBasedChangeDetector {
 
 	private static final LogAccessor LOG = new LogAccessor(KubernetesClientEventBasedConfigMapChangeDetector.class);
 
-	public KubernetesClientEventBasedConfigMapChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
-				KubernetesClientConfigMapPropertySource.class);
+	private final CoreV1Api coreV1Api;
+
+	private final ApiClient apiClient;
+
+	private final Set<String> namespaces;
+
+	private final boolean enableReloadFiltering;
+
+	private final boolean monitoringConfigMaps;
+
+	private final Map<String, String> configMapsLabels;
+
+	public KubernetesClientEventBasedConfigMapChangeDetector(ConfigurationUpdateStrategy strategy,
+			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment, CoreV1Api coreV1Api,
+			ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
+			Class<? extends MapPropertySource> existingSourcesType) {
+		super(strategy, propertySourceLocator, environment, existingSourcesType);
+
+		this.coreV1Api = coreV1Api;
+		this.apiClient = createApiClientForInformerClient();
+		this.enableReloadFiltering = properties.enableReloadFiltering();
+		this.monitoringConfigMaps = properties.monitoringConfigMaps();
+		this.configMapsLabels = properties.configMapsLabels();
+
+		namespaces = namespaces(kubernetesNamespaceProvider, properties, "configmap");
 	}
 
-	@PostConstruct
-	void inform() {
-		LOG.info(() -> "config watcher HA is disabled : starting configmap informers immediately");
-		start(this::onEvent);
+	public final void start(Consumer<V1ConfigMap> onEventHandler) {
+		if (monitoringConfigMaps) {
+			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
+
+			KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(onEventHandler);
+
+			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, configMapsLabels,
+					"spring.cloud.kubernetes.reload.config-maps-labels");
+
+			namespaces.forEach(namespace -> {
+				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
+				factories.add(factory);
+				SharedIndexInformer<V1ConfigMap> informer = factory
+					.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedConfigMap(namespace)
+						.timeoutSeconds(params.timeoutSeconds)
+						.resourceVersion(params.resourceVersion)
+						.watch(params.watch)
+						.labelSelector(labelSelector(labelSelector))
+						.buildCall(null), V1ConfigMap.class, V1ConfigMapList.class);
+
+				LOG.debug(() -> "added configmap informer for namespace : " + namespace + " with labels : "
+						+ labelSelector);
+
+				informer.addEventHandler(handler);
+				informers.add(informer);
+				factory.startAllRegisteredInformers();
+			});
+		}
 	}
 
 }

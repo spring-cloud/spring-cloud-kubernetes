@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.util.Map;
 import java.util.Set;
 
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,10 +34,7 @@ import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.cloud.bus.event.RemoteApplicationEvent;
 import org.springframework.cloud.bus.event.ShutdownRemoteApplicationEvent;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -55,17 +51,6 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 @ExtendWith(MockitoExtension.class)
 class BusEventBasedSecretsWatcherChangeDetectorTests {
 
-	private static final ConfigurationUpdateStrategy UPDATE_STRATEGY = new ConfigurationUpdateStrategy("strategy",
-			() -> {
-
-			});
-
-	@Mock
-	private CoreV1Api coreV1Api;
-
-	@Mock
-	private KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator;
-
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
@@ -75,13 +60,14 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 	@Mock
 	private ObjectProvider<ReactiveDiscoveryClient> reactiveDiscoveryClientProvider;
 
-	private BusProperties busProperties;
+	@Mock
+	private KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector;
 
-	private MockEnvironment mockEnvironment;
+	private BusProperties busProperties;
 
 	@BeforeEach
 	void setup() {
-		mockEnvironment = new MockEnvironment();
+		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		busProperties = new BusProperties();
 	}
@@ -128,9 +114,7 @@ class BusEventBasedSecretsWatcherChangeDetectorTests {
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		BusEventBasedSecretsWatcherChangeDetector changeDetector = new BusEventBasedSecretsWatcherChangeDetector(
-				coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY,
-				secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
+				secretsChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
 				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
 						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
 		Mono<Void> result = changeDetector.triggerRefresh(secretKubernetesSource);

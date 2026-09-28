@@ -246,18 +246,17 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 
 		// change detector
-		KubernetesClientAbstractSecretsChangeDetector changeDetector;
+		KubernetesClientEventBasedSecretsChangeDetector changeDetector;
 		if (haEnabled) {
-			changeDetector = new KubernetesClientEventBasedHASecretsChangeDetector(strategy, locator, environment,
+			changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(strategy, locator, environment,
 					coreV1Api, properties, kubernetesNamespaceProvider, KubernetesClientSecretsPropertySource.class);
 			Assertions.assertThat(onEventCalls[0]).isZero();
 			changeDetector.start(changeDetector::onEvent);
 		}
 		else {
-			KubernetesClientEventBasedSecretsChangeDetector nonHaChangeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-					coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
-			changeDetector = nonHaChangeDetector;
-			nonHaChangeDetector.inform();
+			changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(strategy, locator, environment,
+					coreV1Api, properties, kubernetesNamespaceProvider, KubernetesClientSecretsPropertySource.class);
+			changeDetector.start(changeDetector::onEvent);
 		}
 
 		// all 4 events are caught

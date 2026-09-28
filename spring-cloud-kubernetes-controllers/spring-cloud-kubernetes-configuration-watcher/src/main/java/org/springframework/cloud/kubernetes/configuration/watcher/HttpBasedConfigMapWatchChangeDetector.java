@@ -16,15 +16,9 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientAbstractConfigMapChangeDetector;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -36,10 +30,10 @@ public final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatche
 	private final HttpRefreshTrigger httpRefreshTrigger;
 
 	public HttpBasedConfigMapWatchChangeDetector(HttpRefreshTrigger httpRefreshTrigger,
-			KubernetesClientAbstractConfigMapChangeDetector baseChangeDetector,
+			KubernetesClientEventBasedConfigMapChangeDetector changeDetector,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(baseChangeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
+		super(changeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
 		this.httpRefreshTrigger = httpRefreshTrigger;
 	}
 

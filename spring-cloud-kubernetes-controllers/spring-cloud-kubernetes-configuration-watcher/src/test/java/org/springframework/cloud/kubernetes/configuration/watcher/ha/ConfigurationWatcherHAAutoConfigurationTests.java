@@ -20,10 +20,13 @@ import io.kubernetes.client.openapi.ApiClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.configuration.watcher.ConfigMapWatcherChangeDetector;
+import org.springframework.cloud.kubernetes.configuration.watcher.HttpBasedConfigMapWatchChangeDetector;
+import org.springframework.cloud.kubernetes.configuration.watcher.HttpBasedSecretsWatchChangeDetector;
+import org.springframework.cloud.kubernetes.configuration.watcher.SecretsWatcherChangeDetector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -57,18 +60,23 @@ class ConfigurationWatcherHAAutoConfigurationTests {
 	static class TestConfiguration {
 
 		@Bean
+		WebClient.Builder webClientBuilder() {
+			return WebClient.builder();
+		}
+
+		@Bean
 		ApiClient apiClient() {
 			return mock(ApiClient.class);
 		}
 
 		@Bean
-		KubernetesClientEventBasedConfigMapChangeDetector configMapDetector() {
-			return mock(KubernetesClientEventBasedConfigMapChangeDetector.class);
+		ConfigMapWatcherChangeDetector configMapDetector() {
+			return mock(HttpBasedConfigMapWatchChangeDetector.class);
 		}
 
 		@Bean
-		KubernetesClientEventBasedSecretsChangeDetector secretsDetector() {
-			return mock(KubernetesClientEventBasedSecretsChangeDetector.class);
+		SecretsWatcherChangeDetector secretsDetector() {
+			return mock(HttpBasedSecretsWatchChangeDetector.class);
 		}
 
 	}
