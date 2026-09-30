@@ -45,7 +45,10 @@ import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadB
 		"spring.main.cloud-platform=KUBERNETES", "spring.cloud.kubernetes.discovery.all-namespaces=false",
 		"spring.cloud.kubernetes.client.namespace=a", "spring.cloud.loadbalancer.cache.enabled=false",
 		"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS",
-		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" }, classes = App.class)
+		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value",
+		// disabled because its scheduled catalog watch fires immediately on startup
+		// and races with the mocked call counts this test asserts on
+		"spring.cloud.kubernetes.discovery.enabled=false" }, classes = App.class)
 @EnableKubernetesMockClient
 class CacheDisabledTest {
 
