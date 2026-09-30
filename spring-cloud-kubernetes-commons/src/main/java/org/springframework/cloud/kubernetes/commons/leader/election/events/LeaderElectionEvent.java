@@ -26,7 +26,12 @@ abstract class LeaderElectionEvent extends ApplicationEvent {
 	private final String candidateIdentity;
 
 	LeaderElectionEvent(Object source) {
-		super(source);
+		// ApplicationEvent (EventObject) does not allow a null source, but a
+		// NewLeaderEvent can legitimately carry a null candidateIdentity (e.g. when
+		// leadership is released and there is no new leader yet). Fall back to a
+		// non-null placeholder for the event's source while keeping the real,
+		// possibly-null value available via candidateIdentity().
+		super(source == null ? "" : source);
 		candidateIdentity = (String) source;
 	}
 
