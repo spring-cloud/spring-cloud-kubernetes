@@ -236,6 +236,8 @@
 				<inherited>true</inherited>
 				<configuration>
 					<parallel>all</parallel>
+					<threadCount>4</threadCount>
+					<perCoreThreadCount>false</perCoreThreadCount>
 					<reuseForks>false</reuseForks>
 					<includes>
 						<include>${testsToRun}</include>
@@ -432,6 +434,8 @@
 						<artifactId>maven-surefire-plugin</artifactId>
 						<configuration>
 							<parallel>all</parallel>
+							<threadCount>4</threadCount>
+							<perCoreThreadCount>false</perCoreThreadCount>
 							<reuseForks>false</reuseForks>
 						</configuration>
 					</plugin>
