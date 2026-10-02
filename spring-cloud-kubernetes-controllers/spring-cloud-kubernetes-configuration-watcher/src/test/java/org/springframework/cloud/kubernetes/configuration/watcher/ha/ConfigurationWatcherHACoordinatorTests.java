@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 class ConfigurationWatcherHACoordinatorTests {
 
 	@Test
-	void onStartLeadingStartsBothDetectors() {
+	void startLeadingEventStartsBothDetectors() {
 		ConfigMapWatcherChangeDetector configMapDetector = mock(HttpBasedConfigMapWatchChangeDetector.class);
 
 		SecretsWatcherChangeDetector secretsDetector = mock(HttpBasedSecretsWatchChangeDetector.class);
@@ -67,14 +67,14 @@ class ConfigurationWatcherHACoordinatorTests {
 		ConfigurationWatcherHACoordinator coordinator = new ConfigurationWatcherHACoordinator(configMapProvider,
 				secretsProvider);
 
-		coordinator.onStartLeading(new StartLeadingEvent("candidate"));
+		coordinator.onApplicationEvent(new StartLeadingEvent("candidate"));
 
 		verify(configMapDetector).start();
 		verify(secretsDetector).start();
 	}
 
 	@Test
-	void onStopLeadingStopsBothDetectors() {
+	void stopLeadingEventStopsBothDetectors() {
 		ConfigMapWatcherChangeDetector configMapDetector = mock(HttpBasedConfigMapWatchChangeDetector.class);
 
 		SecretsWatcherChangeDetector secretsDetector = mock(HttpBasedSecretsWatchChangeDetector.class);
@@ -100,9 +100,58 @@ class ConfigurationWatcherHACoordinatorTests {
 		ConfigurationWatcherHACoordinator coordinator = new ConfigurationWatcherHACoordinator(configMapProvider,
 				secretsProvider);
 
-		coordinator.onStopLeading(new StopLeadingEvent("candidate"));
+		coordinator.onApplicationEvent(new StopLeadingEvent("candidate"));
 
 		verify(configMapDetector).stop();
+		verify(secretsDetector).stop();
+	}
+
+	@Test
+	void startAndStopLeadingEventsHandleOnlyConfigMapDetector() {
+		ConfigMapWatcherChangeDetector configMapDetector = mock(HttpBasedConfigMapWatchChangeDetector.class);
+
+		ObjectProvider<ConfigMapWatcherChangeDetector> configMapProvider = mock(ObjectProvider.class);
+		when(configMapProvider.getIfAvailable()).thenReturn(configMapDetector);
+		doAnswer(invocation -> {
+			Consumer<ConfigMapWatcherChangeDetector> consumer = invocation.getArgument(0);
+			consumer.accept(configMapDetector);
+			return null;
+		}).when(configMapProvider).ifAvailable(any());
+
+		ObjectProvider<SecretsWatcherChangeDetector> secretsProvider = mock(ObjectProvider.class);
+		when(secretsProvider.getIfAvailable()).thenReturn(null);
+
+		ConfigurationWatcherHACoordinator coordinator = new ConfigurationWatcherHACoordinator(configMapProvider,
+				secretsProvider);
+
+		coordinator.onApplicationEvent(new StartLeadingEvent("candidate"));
+		coordinator.onApplicationEvent(new StopLeadingEvent("candidate"));
+
+		verify(configMapDetector).start();
+		verify(configMapDetector).stop();
+	}
+
+	@Test
+	void startAndStopLeadingEventsHandleOnlySecretDetector() {
+		ObjectProvider<ConfigMapWatcherChangeDetector> configMapProvider = mock(ObjectProvider.class);
+		when(configMapProvider.getIfAvailable()).thenReturn(null);
+
+		SecretsWatcherChangeDetector secretsDetector = mock(HttpBasedSecretsWatchChangeDetector.class);
+		ObjectProvider<SecretsWatcherChangeDetector> secretsProvider = mock(ObjectProvider.class);
+		when(secretsProvider.getIfAvailable()).thenReturn(secretsDetector);
+		doAnswer(invocation -> {
+			Consumer<SecretsWatcherChangeDetector> consumer = invocation.getArgument(0);
+			consumer.accept(secretsDetector);
+			return null;
+		}).when(secretsProvider).ifAvailable(any());
+
+		ConfigurationWatcherHACoordinator coordinator = new ConfigurationWatcherHACoordinator(configMapProvider,
+				secretsProvider);
+
+		coordinator.onApplicationEvent(new StartLeadingEvent("candidate"));
+		coordinator.onApplicationEvent(new StopLeadingEvent("candidate"));
+
+		verify(secretsDetector).start();
 		verify(secretsDetector).stop();
 	}
 

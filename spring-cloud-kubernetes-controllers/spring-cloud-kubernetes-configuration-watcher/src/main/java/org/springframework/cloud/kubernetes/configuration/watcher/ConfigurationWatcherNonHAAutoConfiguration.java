@@ -16,35 +16,23 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.rabbitmq.autoconfigure.health.RabbitHealthContributorAutoConfiguration;
 import org.springframework.cloud.bus.BusStreamAutoConfiguration;
-import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.configuration.watcher.ha.ConditionalOnConfigurationWatcherHANotEnabled;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.AMQP;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
@@ -60,29 +48,10 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnConfigurationWatcherHANotEnabled
-@EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
+@Import(ConfigurationWatcherCommonConfiguration.class)
 @AutoConfigureAfter(RefreshTriggerAutoConfiguration.class)
 @AutoConfigureBefore(BusStreamAutoConfiguration.class)
 class ConfigurationWatcherNonHAAutoConfiguration {
-
-	@Bean
-	@ConditionalOnMissingBean
-	WebClient webClient(WebClient.Builder webClientBuilder) {
-		return webClientBuilder.build();
-	}
-
-	// only needed as a bean to the methods below
-	// same one is used for HA and non-HA implementations
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
-	KubernetesClientEventBasedConfigMapChangeDetector configMapWatcherInformer(CoreV1Api coreV1Api,
-			AbstractEnvironment environment, ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider namespaceProvider) {
-		return new KubernetesClientEventBasedConfigMapChangeDetector(strategy, propertySourceLocator, environment,
-				coreV1Api, properties, namespaceProvider, KubernetesClientConfigMapPropertySource.class);
-	}
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -115,17 +84,19 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 		return detector;
 	}
 
-	// only needed as a bean to the methods below
-	// same one is used for HA and non-HA implementations
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-	KubernetesClientEventBasedSecretsChangeDetector secretsWatcherInformer(CoreV1Api coreV1Api,
-			AbstractEnvironment environment, ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider namespaceProvider) {
-		return new KubernetesClientEventBasedSecretsChangeDetector(strategy, propertySourceLocator, environment,
-				coreV1Api, properties, namespaceProvider, KubernetesClientSecretsPropertySource.class);
+	@Profile({ AMQP, KAFKA })
+	SecretsWatcherChangeDetector busSecretsWatchChangeDetector(ConfigurationWatcherConfigurationProperties properties,
+			ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger,
+			KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
+		SecretsWatcherChangeDetector detector = new BusEventBasedSecretsWatcherChangeDetector(changeDetector,
+				properties, threadFactory, busRefreshTrigger);
+
+		detector.start();
+
+		return detector;
 	}
 
 	@Bean
@@ -142,35 +113,6 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 		detector.start();
 
 		return detector;
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-	@Profile({ AMQP, KAFKA })
-	SecretsWatcherChangeDetector busSecretsWatchChangeDetector(ConfigurationWatcherConfigurationProperties properties,
-			ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger,
-			KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
-		SecretsWatcherChangeDetector detector = new BusEventBasedSecretsWatcherChangeDetector(changeDetector,
-				properties, threadFactory, busRefreshTrigger);
-
-		detector.start();
-
-		return detector;
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@Profile(KAFKA)
-	@Import(ContextFunctionCatalogAutoConfiguration.class)
-	static class KafkaConfiguration {
-
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@Profile(AMQP)
-	@Import({ ContextFunctionCatalogAutoConfiguration.class, RabbitHealthContributorAutoConfiguration.class })
-	static class RabbitConfiguration {
-
 	}
 
 }

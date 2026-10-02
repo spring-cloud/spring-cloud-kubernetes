@@ -50,8 +50,10 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
@@ -100,6 +102,28 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		webClient = WebClient.builder().build();
+	}
+
+	/**
+	 * Test set-up. <pre>
+	 * - start the HTTP ConfigMap watcher
+	 * - verify that starting the wrapper starts the underlying Kubernetes detector
+	 * - stop the HTTP ConfigMap watcher
+	 * - verify that stopping the wrapper stops the underlying Kubernetes detector
+	 * </pre>
+	 */
+	@Test
+	void startAndStopDelegateToConfigMapChangeDetector() {
+		ConfigurationWatcherConfigurationProperties properties = new ConfigurationWatcherConfigurationProperties();
+		HttpBasedConfigMapWatchChangeDetector detector = new HttpBasedConfigMapWatchChangeDetector(
+				new HttpRefreshTrigger(reactiveDiscoveryClient, properties, webClient), configMapChangeDetector,
+				properties, threadPoolTaskExecutor);
+
+		detector.start();
+		detector.stop();
+
+		verify(configMapChangeDetector).start(any());
+		verify(configMapChangeDetector).stop();
 	}
 
 	@Test

@@ -17,7 +17,6 @@
 package org.springframework.cloud.kubernetes.configuration.watcher.ha;
 
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.jspecify.annotations.NonNull;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -27,22 +26,17 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionCallbacksAutoConfiguration;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusEventBasedConfigMapWatcherChangeDetector;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusEventBasedSecretsWatcherChangeDetector;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusRefreshTrigger;
 import org.springframework.cloud.kubernetes.configuration.watcher.ConfigMapWatcherChangeDetector;
+import org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherCommonConfiguration;
 import org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties;
 import org.springframework.cloud.kubernetes.configuration.watcher.HttpBasedConfigMapWatchChangeDetector;
 import org.springframework.cloud.kubernetes.configuration.watcher.HttpBasedSecretsWatchChangeDetector;
@@ -50,10 +44,9 @@ import org.springframework.cloud.kubernetes.configuration.watcher.HttpRefreshTri
 import org.springframework.cloud.kubernetes.configuration.watcher.SecretsWatcherChangeDetector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.AMQP;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
@@ -68,16 +61,10 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 @ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 @ConditionalOnConfigurationWatcherHAEnabled
 @ConditionalOnBean(ApiClient.class)
-@EnableConfigurationProperties({ ConfigurationWatcherConfigurationProperties.class })
+@Import(ConfigurationWatcherCommonConfiguration.class)
 @AutoConfigureAfter(KubernetesClientAutoConfiguration.class)
 @AutoConfigureBefore(KubernetesClientLeaderElectionCallbacksAutoConfiguration.class)
 class ConfigurationWatcherHAAutoConfiguration {
-
-	@Bean
-	@ConditionalOnMissingBean
-	WebClient webClient(WebClient.Builder webClientBuilder) {
-		return webClientBuilder.build();
-	}
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -85,19 +72,6 @@ class ConfigurationWatcherHAAutoConfiguration {
 			ObjectProvider<@NonNull ConfigMapWatcherChangeDetector> configMapDetector,
 			ObjectProvider<@NonNull SecretsWatcherChangeDetector> secretsDetector) {
 		return new ConfigurationWatcherHACoordinator(configMapDetector, secretsDetector);
-	}
-
-	// only needed as a bean to the methods below
-	// same one is used for HA and non-HA implementations
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
-	KubernetesClientEventBasedConfigMapChangeDetector configMapChangeDetector(CoreV1Api coreV1Api,
-			AbstractEnvironment environment, ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider namespaceProvider) {
-		return new KubernetesClientEventBasedConfigMapChangeDetector(strategy, propertySourceLocator, environment,
-				coreV1Api, properties, namespaceProvider, KubernetesClientConfigMapPropertySource.class);
 	}
 
 	@Bean
@@ -124,17 +98,16 @@ class ConfigurationWatcherHAAutoConfiguration {
 				threadFactory);
 	}
 
-	// only needed as a bean to the methods below
-	// same one is used for HA and non-HA implementations
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-	KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector(CoreV1Api coreV1Api,
-			AbstractEnvironment environment, ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider namespaceProvider) {
-		return new KubernetesClientEventBasedSecretsChangeDetector(strategy, propertySourceLocator, environment,
-				coreV1Api, properties, namespaceProvider, KubernetesClientSecretsPropertySource.class);
+	@Profile({ AMQP, KAFKA })
+	SecretsWatcherChangeDetector busSecretsWatchChangeDetector(
+			KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector,
+			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
+			BusRefreshTrigger busRefreshTrigger) {
+		return new BusEventBasedSecretsWatcherChangeDetector(secretsChangeDetector, properties, threadFactory,
+				busRefreshTrigger);
 	}
 
 	@Bean
@@ -147,18 +120,6 @@ class ConfigurationWatcherHAAutoConfiguration {
 			HttpRefreshTrigger httpRefreshTrigger) {
 		return new HttpBasedSecretsWatchChangeDetector(httpRefreshTrigger, secretsChangeDetector, properties,
 				threadFactory);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-	@Profile({ AMQP, KAFKA })
-	SecretsWatcherChangeDetector busSecretsWatchChangeDetector(
-			KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector,
-			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
-			BusRefreshTrigger busRefreshTrigger) {
-		return new BusEventBasedSecretsWatcherChangeDetector(secretsChangeDetector, properties, threadFactory,
-				busRefreshTrigger);
 	}
 
 }

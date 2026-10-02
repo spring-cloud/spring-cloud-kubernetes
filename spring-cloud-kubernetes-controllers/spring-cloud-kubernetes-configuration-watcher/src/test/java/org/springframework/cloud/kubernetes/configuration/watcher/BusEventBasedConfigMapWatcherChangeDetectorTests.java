@@ -40,6 +40,7 @@ import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
@@ -70,6 +71,29 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		busProperties = new BusProperties();
+	}
+
+	/**
+	 * Test set-up. <pre>
+	 * - start the bus ConfigMap watcher
+	 * - verify that starting the wrapper starts the underlying Kubernetes detector
+	 * - stop the bus ConfigMap watcher
+	 * - verify that stopping the wrapper stops the underlying Kubernetes detector
+	 * </pre>
+	 */
+	@Test
+	void startAndStopDelegateToConfigMapChangeDetector() {
+		ConfigurationWatcherConfigurationProperties properties = new ConfigurationWatcherConfigurationProperties();
+		BusRefreshTrigger refreshTrigger = new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
+				properties, reactiveDiscoveryClientProvider);
+		BusEventBasedConfigMapWatcherChangeDetector detector = new BusEventBasedConfigMapWatcherChangeDetector(
+				refreshTrigger, configMapChangeDetector, properties, threadPoolTaskExecutor);
+
+		detector.start();
+		detector.stop();
+
+		verify(configMapChangeDetector).start(any());
+		verify(configMapChangeDetector).stop();
 	}
 
 	@Test
