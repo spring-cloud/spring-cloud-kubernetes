@@ -62,11 +62,11 @@ public abstract sealed class SecretsWatcherChangeDetector implements RefreshTrig
 		this.changeDetector = changeDetector;
 	}
 
-	public void start() {
+	public final void start() {
 		changeDetector.start(this::onEvent);
 	}
 
-	public void stop() {
+	public final void stop() {
 		changeDetector.stop();
 	}
 
