@@ -4,7 +4,7 @@ antora:
       root_component_name: 'cloud-kubernetes'
 site:
   title: Spring Cloud Kubernetes
-  url: https://enterprise.spring.io/spring-cloud-kubernetes/reference
+  url: https://docs.spring.io/spring-cloud-kubernetes/reference
   robots: allow
 git:
   ensure_git_suffix: false
