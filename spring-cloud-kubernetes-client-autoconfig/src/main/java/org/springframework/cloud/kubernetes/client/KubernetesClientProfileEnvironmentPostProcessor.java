@@ -31,10 +31,14 @@ final class KubernetesClientProfileEnvironmentPostProcessor extends AbstractKube
 
 	@Override
 	protected boolean isInsideKubernetes(Environment environment) {
+		if (environment.containsProperty(ENV_SERVICE_HOST)) {
+			return true;
+		}
+
 		CoreV1Api api = new CoreV1Api();
 		KubernetesClientPodUtils utils = new KubernetesClientPodUtils(api, environment.getProperty(NAMESPACE_PROPERTY),
 				false);
-		return environment.containsProperty(ENV_SERVICE_HOST) || utils.isInsideKubernetes();
+		return utils.isInsideKubernetes();
 	}
 
 }
