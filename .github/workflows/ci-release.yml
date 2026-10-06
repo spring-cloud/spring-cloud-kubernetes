@@ -22,11 +22,11 @@ on:
       branches:
         description: "Which branch should be built (can be a comma-separated list of branches)"
         required: true
-        default: '5.0.x-internal'
+        default: 'release/5.0.4'
         type: string
   push:
     branches:
-      - 5.0.x-internal
+      - release/5.0.4
 
 permissions:
   actions: write
@@ -36,7 +36,7 @@ jobs:
   build-and-test:
     uses: ./.github/workflows/maven.yaml
     with:
-      branch: 5.0.x-internal
+      branch: release/5.0.4
       jdk-version: '17'
       should-deploy: true
       runs-on: ubuntu22-2-8
