@@ -18,6 +18,7 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
@@ -26,14 +27,13 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.CallGeneratorParams;
-import jakarta.annotation.PostConstruct;
 
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySource;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.log.LogAccessor;
 
 import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.createApiClientForInformerClient;
@@ -41,6 +41,9 @@ import static org.springframework.cloud.kubernetes.client.KubernetesClientUtils.
 import static org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigUtils.namespaces;
 
 /**
+ * Event-based Secret change detector used by both the regular reload flow and the
+ * configuration watcher. The caller controls when the informers are started.
+ *
  * @author Ryan Baxter
  */
 public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesClientEventBasedChangeDetector {
@@ -59,14 +62,12 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 
 	private final Map<String, String> secretsLabels;
 
-	private final KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(
-			this::onEvent);
+	public KubernetesClientEventBasedSecretsChangeDetector(ConfigurationUpdateStrategy strategy,
+			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment, CoreV1Api coreV1Api,
+			ConfigReloadProperties properties, KubernetesNamespaceProvider kubernetesNamespaceProvider,
+			Class<? extends MapPropertySource> existingSourcesType) {
+		super(strategy, propertySourceLocator, environment, existingSourcesType);
 
-	public KubernetesClientEventBasedSecretsChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy, propertySourceLocator, environment, KubernetesClientSecretsPropertySource.class);
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
 		this.enableReloadFiltering = properties.enableReloadFiltering();
@@ -75,20 +76,19 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
 	}
 
-	@PostConstruct
-	void inform() {
+	public final void start(Consumer<V1Secret> onEventHandler) {
 		if (monitoringSecrets) {
 			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
+
+			KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(onEventHandler);
 
 			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
 					"spring.cloud.kubernetes.reload.secrets-labels");
 
 			namespaces.forEach(namespace -> {
-				SharedIndexInformer<V1Secret> informer;
-
 				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 				factories.add(factory);
-				informer = factory
+				SharedIndexInformer<V1Secret> informer = factory
 					.sharedIndexInformerFor((CallGeneratorParams params) -> coreV1Api.listNamespacedSecret(namespace)
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
@@ -104,7 +104,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 				factory.startAllRegisteredInformers();
 			});
 		}
-
 	}
 
 }

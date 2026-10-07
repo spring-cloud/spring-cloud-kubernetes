@@ -25,7 +25,6 @@ import java.util.Set;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.util.ClientBuilder;
@@ -44,18 +43,17 @@ import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
@@ -73,22 +71,15 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 			WireMockConfiguration.options().dynamicPort());
 
 	@Mock
-	private CoreV1Api coreV1Api;
-
-	@Mock
-	private KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator;
-
-	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
 	@Mock
 	private KubernetesClientInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	private MockEnvironment mockEnvironment;
+	@Mock
+	private KubernetesClientEventBasedConfigMapChangeDetector configMapChangeDetector;
 
 	private WebClient webClient;
-
-	private ConfigurationUpdateStrategy strategy;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -108,12 +99,31 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 	@BeforeEach
 	void setup() {
-		mockEnvironment = new MockEnvironment();
+		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		webClient = WebClient.builder().build();
-		strategy = new ConfigurationUpdateStrategy("refresh", () -> {
+	}
 
-		});
+	/**
+	 * Test set-up. <pre>
+	 * - start the HTTP ConfigMap watcher
+	 * - verify that starting the wrapper starts the underlying Kubernetes detector
+	 * - stop the HTTP ConfigMap watcher
+	 * - verify that stopping the wrapper stops the underlying Kubernetes detector
+	 * </pre>
+	 */
+	@Test
+	void startAndStopDelegateToConfigMapChangeDetector() {
+		ConfigurationWatcherConfigurationProperties properties = new ConfigurationWatcherConfigurationProperties();
+		HttpBasedConfigMapWatchChangeDetector detector = new HttpBasedConfigMapWatchChangeDetector(
+				new HttpRefreshTrigger(reactiveDiscoveryClient, properties, webClient), configMapChangeDetector,
+				properties, threadPoolTaskExecutor);
+
+		detector.start();
+		detector.stop();
+
+		verify(configMapChangeDetector).start(any());
+		verify(configMapChangeDetector).stop();
 	}
 
 	@Test
@@ -138,11 +148,9 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
-		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api,
-				mockEnvironment, ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
-						configurationWatcherConfigurationProperties, webClient));
+		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(
+				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
+				configMapChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		StepVerifier.create(changeDetector.triggerRefresh(configMapKubernetesSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo(actuatorPath)));
 	}
@@ -169,11 +177,9 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		WireMock.configureFor("localhost", WIRE_MOCK_SERVER.port());
 		WireMock.stubFor(WireMock.post(WireMock.urlEqualTo("/my/custom/actuator" + endpoint))
 			.willReturn(WireMock.aResponse().withStatus(200)));
-		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api,
-				mockEnvironment, ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
-						configurationWatcherConfigurationProperties, webClient));
+		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(
+				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
+				configMapChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		StepVerifier.create(changeDetector.triggerRefresh(configMapKubernetesSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
@@ -202,11 +208,9 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 			.willReturn(WireMock.aResponse().withStatus(200)));
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
-		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(coreV1Api,
-				mockEnvironment, ConfigReloadProperties.DEFAULT, strategy, configMapPropertySourceLocator,
-				new KubernetesNamespaceProvider(mockEnvironment), configurationWatcherConfigurationProperties,
-				threadPoolTaskExecutor, new HttpRefreshTrigger(reactiveDiscoveryClient,
-						configurationWatcherConfigurationProperties, webClient));
+		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(
+				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
+				configMapChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 		StepVerifier.create(changeDetector.triggerRefresh(configMapKubernetesSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}

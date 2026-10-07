@@ -137,6 +137,33 @@ class KubernetesClientLeaderElectionAutoConfigurationTests {
 
 	/**
 	 * <pre>
+	 *     - spring.cloud.kubernetes.configuration.watcher.ha.enabled = true
+	 *     - spring.cloud.kubernetes.leader.election.enabled is not present
+	 *
+	 *     As such:
+	 *
+	 *     - KubernetesClientLeaderElectionAutoConfiguration          is present
+	 *     - KubernetesClientLeaderElectionCallbacksAutoConfiguration is present
+	 * </pre>
+	 */
+	@Test
+	void leaderElectionEnabledByConfigurationWatcherHa() {
+		new ApplicationContextRunner().withAllowBeanDefinitionOverriding(true)
+			.withUserConfiguration(ApiClientConfiguration.class)
+			.withConfiguration(AutoConfigurations.of(KubernetesCommonsAutoConfiguration.class,
+					KubernetesClientAutoConfiguration.class, KubernetesClientLeaderElectionAutoConfiguration.class,
+					KubernetesClientLeaderElectionCallbacksAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.kubernetes.configuration.watcher.ha.enabled=true",
+					"spring.main.cloud-platform=kubernetes")
+			.run(context -> {
+				Assertions.assertThat(context).hasSingleBean(KubernetesClientLeaderElectionAutoConfiguration.class);
+				Assertions.assertThat(context)
+					.hasSingleBean(KubernetesClientLeaderElectionCallbacksAutoConfiguration.class);
+			});
+	}
+
+	/**
+	 * <pre>
 	 *     - spring.cloud.kubernetes.leader.election = true
 	 *     - management.info.leader.election.enabled = true
 	 *
