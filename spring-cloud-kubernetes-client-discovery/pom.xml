@@ -47,6 +47,10 @@
 			<artifactId>spring-cloud-config-client</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>io.kubernetes</groupId>
+			<artifactId>client-java-api</artifactId>
+		</dependency>
 
 		<!-- Testing Dependencies -->
 		<dependency>
