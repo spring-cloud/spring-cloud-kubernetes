@@ -77,7 +77,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 	}
 
 	public final void start(Consumer<V1Secret> onEventHandler) {
-		if (monitoringSecrets) {
+		if (monitoringSecrets && !started) {
 			LOG.info(() -> "Kubernetes event-based secrets change detector activated");
 
 			KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(onEventHandler);
@@ -103,6 +103,7 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 				informers.add(informer);
 				factory.startAllRegisteredInformers();
 			});
+			started = true;
 		}
 	}
 

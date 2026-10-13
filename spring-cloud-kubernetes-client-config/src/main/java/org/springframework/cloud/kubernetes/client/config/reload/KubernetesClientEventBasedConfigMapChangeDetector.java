@@ -78,7 +78,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 	}
 
 	public final void start(Consumer<V1ConfigMap> onEventHandler) {
-		if (monitoringConfigMaps) {
+		if (monitoringConfigMaps && !started) {
 			LOG.info(() -> "Kubernetes event-based configMap change detector activated");
 
 			KubernetesResourceEventHandler<V1ConfigMap> handler = new KubernetesResourceEventHandler<>(onEventHandler);
@@ -104,6 +104,7 @@ public class KubernetesClientEventBasedConfigMapChangeDetector extends Kubernete
 				informers.add(informer);
 				factory.startAllRegisteredInformers();
 			});
+			started = true;
 		}
 	}
 
