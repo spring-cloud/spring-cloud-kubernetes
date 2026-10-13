@@ -23,6 +23,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
 import org.springframework.context.annotation.Conditional;
 
 /**
@@ -35,7 +38,27 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(LeaderElectionEnabledCondition.class)
+@Conditional(ConditionalOnLeaderElectionEnabled.OnLeaderElectionEnabled.class)
 public @interface ConditionalOnLeaderElectionEnabled {
+
+	class OnLeaderElectionEnabled extends AnyNestedCondition {
+
+		OnLeaderElectionEnabled() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnProperty(prefix = LeaderUtils.LEADER_ELECTION_PROPERTY_PREFIX, name = "enabled",
+				havingValue = "true")
+		static class OnLeaderElectionPropertyEnabled {
+
+		}
+
+		@ConditionalOnProperty(prefix = "spring.cloud.kubernetes.configuration.watcher.ha", name = "enabled",
+				havingValue = "true")
+		static class OnConfigurationWatcherHaEnabled {
+
+		}
+
+	}
 
 }

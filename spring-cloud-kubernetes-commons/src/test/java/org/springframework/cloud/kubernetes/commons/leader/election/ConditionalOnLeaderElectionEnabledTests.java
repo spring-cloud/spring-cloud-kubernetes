@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 /**
  * @author wind57
  */
-class LeaderElectionEnabledConditionTests {
+class ConditionalOnLeaderElectionEnabledTests {
 
 	@Test
 	void leaderElectionEnabledTest() {

@@ -168,12 +168,12 @@ class ConfigurationWatcherHAAutoConfigurationTests {
 		}
 
 		@Bean
-		KubernetesClientEventBasedConfigMapChangeDetector configMapChangeDetector() {
+		KubernetesClientEventBasedConfigMapChangeDetector configurationWatcherConfigMapChangeDetector() {
 			return mock(KubernetesClientEventBasedConfigMapChangeDetector.class);
 		}
 
 		@Bean
-		KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector() {
+		KubernetesClientEventBasedSecretsChangeDetector configurationWatcherSecretsChangeDetector() {
 			return mock(KubernetesClientEventBasedSecretsChangeDetector.class);
 		}
 

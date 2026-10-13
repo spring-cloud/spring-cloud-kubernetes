@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -59,7 +60,8 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	@Profile({ AMQP, KAFKA })
 	ConfigMapWatcherChangeDetector busConfigMapWatchChangeDetector(
 			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
-			BusRefreshTrigger busRefreshTrigger, KubernetesClientEventBasedConfigMapChangeDetector changeDetector) {
+			BusRefreshTrigger busRefreshTrigger,
+			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector changeDetector) {
 		ConfigMapWatcherChangeDetector detector = new BusEventBasedConfigMapWatcherChangeDetector(busRefreshTrigger,
 				changeDetector, properties, threadFactory);
 
@@ -75,7 +77,7 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadFactory, HttpRefreshTrigger httpRefreshTrigger,
-			KubernetesClientEventBasedConfigMapChangeDetector changeDetector) {
+			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector changeDetector) {
 		ConfigMapWatcherChangeDetector detector = new HttpBasedConfigMapWatchChangeDetector(httpRefreshTrigger,
 				changeDetector, k8SConfigurationProperties, threadFactory);
 
@@ -90,7 +92,7 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	@Profile({ AMQP, KAFKA })
 	SecretsWatcherChangeDetector busSecretsWatchChangeDetector(ConfigurationWatcherConfigurationProperties properties,
 			ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger,
-			KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
+			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
 		SecretsWatcherChangeDetector detector = new BusEventBasedSecretsWatcherChangeDetector(changeDetector,
 				properties, threadFactory, busRefreshTrigger);
 
@@ -106,7 +108,7 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadFactory, HttpRefreshTrigger httpRefreshTrigger,
-			KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
+			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
 		SecretsWatcherChangeDetector detector = new HttpBasedSecretsWatchChangeDetector(httpRefreshTrigger,
 				changeDetector, k8SConfigurationProperties, threadFactory);
 

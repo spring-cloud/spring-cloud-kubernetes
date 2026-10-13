@@ -58,9 +58,8 @@ public class ConfigurationWatcherCommonConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientConfigMapPropertySourceLocator.class)
-	KubernetesClientEventBasedConfigMapChangeDetector configMapChangeDetector(CoreV1Api coreV1Api,
+	KubernetesClientEventBasedConfigMapChangeDetector configurationWatcherConfigMapChangeDetector(CoreV1Api coreV1Api,
 			AbstractEnvironment environment, ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider) {
@@ -69,9 +68,8 @@ public class ConfigurationWatcherCommonConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
 	@ConditionalOnBean(KubernetesClientSecretsPropertySourceLocator.class)
-	KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector(CoreV1Api coreV1Api,
+	KubernetesClientEventBasedSecretsChangeDetector configurationWatcherSecretsChangeDetector(CoreV1Api coreV1Api,
 			AbstractEnvironment environment, ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider namespaceProvider) {
