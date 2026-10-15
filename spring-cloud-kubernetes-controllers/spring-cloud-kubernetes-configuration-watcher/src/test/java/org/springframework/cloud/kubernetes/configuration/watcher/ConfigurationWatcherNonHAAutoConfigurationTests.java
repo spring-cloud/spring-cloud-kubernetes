@@ -24,6 +24,7 @@ import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
@@ -34,7 +35,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.AMQP;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
 
@@ -98,6 +101,37 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 			assertThat(context).doesNotHaveBean(HttpBasedSecretsWatchChangeDetector.class);
 			assertThat(context).hasSingleBean(FunctionCatalog.class);
 		});
+	}
+
+	@Test
+	void startsEachWatcherWhenCreatingIt() {
+		ConfigurationWatcherConfigurationProperties properties = new ConfigurationWatcherConfigurationProperties();
+		ThreadPoolTaskExecutor threadPoolTaskExecutor = mock(ThreadPoolTaskExecutor.class);
+		HttpRefreshTrigger httpRefreshTrigger = mock(HttpRefreshTrigger.class);
+		BusRefreshTrigger busRefreshTrigger = mock(BusRefreshTrigger.class);
+		KubernetesClientEventBasedConfigMapChangeDetector httpConfigMapDetector = mock(
+				KubernetesClientEventBasedConfigMapChangeDetector.class);
+		KubernetesClientEventBasedConfigMapChangeDetector busConfigMapDetector = mock(
+				KubernetesClientEventBasedConfigMapChangeDetector.class);
+		KubernetesClientEventBasedSecretsChangeDetector httpSecretsDetector = mock(
+				KubernetesClientEventBasedSecretsChangeDetector.class);
+		KubernetesClientEventBasedSecretsChangeDetector busSecretsDetector = mock(
+				KubernetesClientEventBasedSecretsChangeDetector.class);
+		ConfigurationWatcherNonHAAutoConfiguration configuration = new ConfigurationWatcherNonHAAutoConfiguration();
+
+		configuration.httpBasedConfigMapWatchChangeDetector(properties, threadPoolTaskExecutor, httpRefreshTrigger,
+				httpConfigMapDetector);
+		configuration.busConfigMapWatchChangeDetector(properties, threadPoolTaskExecutor, busRefreshTrigger,
+				busConfigMapDetector);
+		configuration.httpBasedSecretsWatchChangeDetector(properties, threadPoolTaskExecutor, httpRefreshTrigger,
+				httpSecretsDetector);
+		configuration.busSecretsWatchChangeDetector(properties, threadPoolTaskExecutor, busRefreshTrigger,
+				busSecretsDetector);
+
+		verify(httpConfigMapDetector).start(any());
+		verify(busConfigMapDetector).start(any());
+		verify(httpSecretsDetector).start(any());
+		verify(busSecretsDetector).start(any());
 	}
 
 	@Test
