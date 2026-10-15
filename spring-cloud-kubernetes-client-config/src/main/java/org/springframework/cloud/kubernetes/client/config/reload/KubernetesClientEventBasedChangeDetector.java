@@ -22,7 +22,6 @@ import java.util.Map;
 
 import io.kubernetes.client.common.KubernetesObject;
 import io.kubernetes.client.informer.SharedIndexInformer;
-import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import jakarta.annotation.PreDestroy;
 
@@ -51,6 +50,8 @@ abstract class KubernetesClientEventBasedChangeDetector extends ConfigurationCha
 	protected final List<SharedIndexInformer<?>> informers = new ArrayList<>();
 
 	protected final List<SharedInformerFactory> factories = new ArrayList<>();
+
+	protected volatile boolean started;
 
 	protected KubernetesClientEventBasedChangeDetector(ConfigurationUpdateStrategy strategy,
 			PropertySourceLocator propertySourceLocator, ConfigurableEnvironment environment,
@@ -88,9 +89,16 @@ abstract class KubernetesClientEventBasedChangeDetector extends ConfigurationCha
 	}
 
 	@PreDestroy
-	protected void shutdown() {
-		informers.forEach(SharedInformer::stop);
+	void shutdown() {
+		stop();
+	}
+
+	public final void stop() {
+		informers.forEach(SharedIndexInformer::stop);
 		factories.forEach(SharedInformerFactory::stopAllRegisteredInformers);
+		informers.clear();
+		factories.clear();
+		started = false;
 	}
 
 }

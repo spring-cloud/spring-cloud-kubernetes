@@ -25,7 +25,6 @@ import java.util.Set;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.CoreV1EndpointPort;
 import io.kubernetes.client.openapi.models.V1EndpointAddress;
 import io.kubernetes.client.util.ClientBuilder;
@@ -43,19 +42,18 @@ import reactor.test.StepVerifier;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
@@ -73,29 +71,40 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 			WireMockConfiguration.options().dynamicPort());
 
 	@Mock
-	private CoreV1Api coreV1Api;
-
-	@Mock
-	private ConfigurationUpdateStrategy updateStrategy;
-
-	@Mock
-	private KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator;
-
-	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
 	@Mock
 	private KubernetesClientInformerReactiveDiscoveryClient reactiveDiscoveryClient;
 
-	private MockEnvironment mockEnvironment;
+	@Mock
+	private KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector;
 
 	private WebClient webClient;
 
 	@BeforeEach
 	void setup() {
-		mockEnvironment = new MockEnvironment();
+		MockEnvironment mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		webClient = WebClient.builder().build();
+	}
+
+	/**
+	 * Test set-up. <pre>
+	 * - start the HTTP Secret watcher
+	 * - verify that starting the wrapper starts the underlying Kubernetes detector
+	 * - stop the HTTP Secret watcher
+	 * - verify that stopping the wrapper stops the underlying Kubernetes detector
+	 * </pre>
+	 */
+	@Test
+	void startAndStopDelegateToSecretsChangeDetector() {
+		HttpBasedSecretsWatchChangeDetector detector = getHttpBasedSecretsWatchChangeDetector(RefreshStrategy.REFRESH);
+
+		detector.start();
+		detector.stop();
+
+		verify(secretsChangeDetector).start(any());
+		verify(secretsChangeDetector).stop();
 	}
 
 	@BeforeAll
@@ -149,10 +158,9 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 			configurationWatcherConfigurationProperties.setActuatorPath(actuatorPath);
 		}
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
-		return new HttpBasedSecretsWatchChangeDetector(coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT,
-				updateStrategy, secretsPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
-				configurationWatcherConfigurationProperties, threadPoolTaskExecutor, new HttpRefreshTrigger(
-						reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient));
+		return new HttpBasedSecretsWatchChangeDetector(
+				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
+				secretsChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
 	}
 
 	@Test

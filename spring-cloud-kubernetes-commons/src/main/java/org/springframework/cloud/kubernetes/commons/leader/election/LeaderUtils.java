@@ -55,11 +55,6 @@ public final class LeaderUtils {
 	 */
 	public static final String LEADER_ELECTION_PROPERTY_PREFIX = "spring.cloud.kubernetes.leader.election";
 
-	/**
-	 * Property that controls whether leader election is enabled.
-	 */
-	public static final String LEADER_ELECTION_ENABLED_PROPERTY = LEADER_ELECTION_PROPERTY_PREFIX + ".enabled";
-
 	private static final String POD_NAMESPACE = "POD_NAMESPACE";
 
 	private static final LogAccessor LOG = new LogAccessor(LeaderUtils.class);
