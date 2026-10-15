@@ -33,6 +33,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecret
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionCallbacksAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusEventBasedConfigMapWatcherChangeDetector;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusEventBasedSecretsWatcherChangeDetector;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusRefreshTrigger;
@@ -71,7 +72,12 @@ class ConfigurationWatcherHAAutoConfiguration {
 	@ConditionalOnMissingBean
 	ConfigurationWatcherHACoordinator configurationWatcherHACoordinator(
 			ObjectProvider<@NonNull ConfigMapWatcherChangeDetector> configMapDetector,
-			ObjectProvider<@NonNull SecretsWatcherChangeDetector> secretsDetector) {
+			ObjectProvider<@NonNull SecretsWatcherChangeDetector> secretsDetector,
+			LeaderElectionProperties leaderElectionProperties) {
+		if (!leaderElectionProperties.publishEvents()) {
+			throw new IllegalStateException("Configuration watcher HA requires leader-election events. Set "
+					+ "'spring.cloud.kubernetes.leader.election.publish-events=true'.");
+		}
 		return new ConfigurationWatcherHACoordinator(configMapDetector, secretsDetector);
 	}
 
