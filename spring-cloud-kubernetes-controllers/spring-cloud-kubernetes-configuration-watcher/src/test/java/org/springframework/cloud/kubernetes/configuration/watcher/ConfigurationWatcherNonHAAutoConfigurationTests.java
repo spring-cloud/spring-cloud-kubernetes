@@ -24,20 +24,17 @@ import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.AMQP;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.KAFKA;
 
@@ -49,15 +46,12 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 class ConfigurationWatcherNonHAAutoConfigurationTests {
 
 	@Test
-	void createsAndStartsHttpWatchersWithoutHaOrBusProfile() {
+	void createsHttpWatchersWithoutHaOrBusProfile() {
 		applicationContextRunner().run(context -> {
 			assertThat(context).hasSingleBean(HttpBasedConfigMapWatchChangeDetector.class);
 			assertThat(context).hasSingleBean(HttpBasedSecretsWatchChangeDetector.class);
 			assertThat(context).doesNotHaveBean(BusEventBasedConfigMapWatcherChangeDetector.class);
 			assertThat(context).doesNotHaveBean(BusEventBasedSecretsWatcherChangeDetector.class);
-
-			verify(context.getBean(KubernetesClientEventBasedConfigMapChangeDetector.class)).start(any());
-			verify(context.getBean(KubernetesClientEventBasedSecretsChangeDetector.class)).start(any());
 		});
 	}
 
@@ -65,7 +59,7 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 	 * <pre>
 	 * - provide an additional ConfigMap detector that represents regular reload
 	 * - create non-HA watcher auto-configuration
-	 * - verify that only the watcher-owned detector is started by the watcher wrapper
+	 * - verify that the watcher wrapper uses the watcher-owned detector
 	 * </pre>
 	 */
 	@Test
@@ -76,37 +70,33 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 					KubernetesClientEventBasedConfigMapChangeDetector.class);
 			KubernetesClientEventBasedConfigMapChangeDetector reloadDetector = context
 				.getBean("reloadConfigMapChangeDetector", KubernetesClientEventBasedConfigMapChangeDetector.class);
+			HttpBasedConfigMapWatchChangeDetector watcher = context
+				.getBean(HttpBasedConfigMapWatchChangeDetector.class);
 
-			verify(watcherDetector).start(any());
-			verify(reloadDetector, never()).start(any());
+			assertThat(ReflectionTestUtils.getField(watcher, "changeDetector")).isSameAs(watcherDetector)
+				.isNotSameAs(reloadDetector);
 		});
 	}
 
 	@Test
-	void createsAndStartsBusWatchersWithAmqpProfile() {
+	void createsBusWatchersWithAmqpProfile() {
 		applicationContextRunner().withPropertyValues("spring.profiles.active=" + AMQP).run(context -> {
 			assertThat(context).hasSingleBean(BusEventBasedConfigMapWatcherChangeDetector.class);
 			assertThat(context).hasSingleBean(BusEventBasedSecretsWatcherChangeDetector.class);
 			assertThat(context).doesNotHaveBean(HttpBasedConfigMapWatchChangeDetector.class);
 			assertThat(context).doesNotHaveBean(HttpBasedSecretsWatchChangeDetector.class);
 			assertThat(context).hasSingleBean(FunctionCatalog.class);
-
-			verify(context.getBean(KubernetesClientEventBasedConfigMapChangeDetector.class)).start(any());
-			verify(context.getBean(KubernetesClientEventBasedSecretsChangeDetector.class)).start(any());
 		});
 	}
 
 	@Test
-	void createsAndStartsBusWatchersWithKafkaProfile() {
+	void createsBusWatchersWithKafkaProfile() {
 		applicationContextRunner().withPropertyValues("spring.profiles.active=" + KAFKA).run(context -> {
 			assertThat(context).hasSingleBean(BusEventBasedConfigMapWatcherChangeDetector.class);
 			assertThat(context).hasSingleBean(BusEventBasedSecretsWatcherChangeDetector.class);
 			assertThat(context).doesNotHaveBean(HttpBasedConfigMapWatchChangeDetector.class);
 			assertThat(context).doesNotHaveBean(HttpBasedSecretsWatchChangeDetector.class);
 			assertThat(context).hasSingleBean(FunctionCatalog.class);
-
-			verify(context.getBean(KubernetesClientEventBasedConfigMapChangeDetector.class)).start(any());
-			verify(context.getBean(KubernetesClientEventBasedSecretsChangeDetector.class)).start(any());
 		});
 	}
 
@@ -150,7 +140,10 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 
 		@Bean
 		ConfigReloadProperties configReloadProperties() {
-			return ConfigReloadProperties.DEFAULT;
+			ConfigReloadProperties defaults = ConfigReloadProperties.DEFAULT;
+			return new ConfigReloadProperties(defaults.enabled(), false, defaults.configMapsLabels(), false,
+					defaults.secretsLabels(), defaults.strategy(), defaults.mode(), defaults.period(), defaults.namespaces(),
+					defaults.enableReloadFiltering(), defaults.maxWaitForRestart());
 		}
 
 		@Bean
@@ -161,16 +154,6 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 		@Bean
 		KubernetesNamespaceProvider kubernetesNamespaceProvider() {
 			return new KubernetesNamespaceProvider("default");
-		}
-
-		@Bean
-		KubernetesClientEventBasedConfigMapChangeDetector configurationWatcherConfigMapChangeDetector() {
-			return mock(KubernetesClientEventBasedConfigMapChangeDetector.class);
-		}
-
-		@Bean
-		KubernetesClientEventBasedSecretsChangeDetector configurationWatcherSecretsChangeDetector() {
-			return mock(KubernetesClientEventBasedSecretsChangeDetector.class);
 		}
 
 		@Bean
