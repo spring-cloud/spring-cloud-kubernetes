@@ -98,6 +98,50 @@ This tells how many milliseconds should we wait before firing the event from con
 
 You need to "match" this _eventually_ part to that value in milliseconds on your cluster.
 
+## High Availability
+
+The Configuration Watcher can run with multiple replicas, with only one replica actively
+watching ConfigMaps and Secrets at a time. High availability is disabled by default. Enable
+Configuration Watcher HA:
+
+[source,yaml]
+----
+spring:
+  cloud:
+    kubernetes:
+      configuration:
+        watcher:
+          ha:
+            enabled: true
+----
+
+Setting `spring.cloud.kubernetes.configuration.watcher.ha.enabled=true` also enables the native
+Kubernetes leader election used to choose the active watcher replica. Setting
+`spring.cloud.kubernetes.leader.election.enabled=true` without enabling Configuration Watcher HA
+does not enable HA for the watcher.
+
+When HA is enabled, the Configuration Watcher starts its ConfigMap and Secret informers only after
+it becomes the leader, and stops them when it loses leadership. A replacement leader starts from
+the current Kubernetes state; the watcher does not persist informer resource-version checkpoints.
+
+The service account used by the Configuration Watcher needs permission to read and update the
+leader-election `Lease`. Add the following rule to the Role:
+
+[source,yaml]
+----
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "create", "update"]
+----
+
+Configure at least two replicas in the Configuration Watcher Deployment to enable failover:
+
+[source,yaml]
+----
+spec:
+  replicas: 2
+----
+
 Spring Cloud Kubernetes Configuration Watcher can send refresh notifications to applications in two ways.
 
 1.  Over HTTP, in which case the application being notified, must have the `/refresh` actuator endpoint exposed and accessible from within the cluster
@@ -155,6 +199,9 @@ items:
       - apiGroups: ["", "extensions", "apps"]
         resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
         verbs: ["get", "list", "watch"]
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["get", "create", "update"]
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
