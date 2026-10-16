@@ -28,8 +28,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Conditional;
 
 /**
- * Enables leader-election infrastructure when leader election is explicitly enabled or
- * Configuration Watcher HA is enabled.
+ * Enables leader-election infrastructure by default, or when Configuration Watcher HA is
+ * enabled.
  *
  * @author wind57
  */
@@ -47,7 +47,7 @@ public @interface ConditionalOnLeaderElectionEnabled {
 		}
 
 		@ConditionalOnProperty(prefix = LeaderUtils.LEADER_ELECTION_PROPERTY_PREFIX, name = "enabled",
-				havingValue = "true")
+				havingValue = "true", matchIfMissing = true)
 		static class OnLeaderElectionPropertyEnabled {
 
 		}
