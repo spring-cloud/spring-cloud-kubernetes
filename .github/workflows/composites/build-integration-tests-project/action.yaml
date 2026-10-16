@@ -17,5 +17,5 @@ runs:
 
         cd spring-cloud-kubernetes-integration-tests
         # build the images, but dont run the tests
-        "${RETRY}" .././mvnw $MAVEN_SETTINGS -T 1C clean install -DskipTests
+        "${RETRY}" .././mvnw $MAVEN_SETTINGS -T 1C clean install -DskipTests -DskipITs
         cd ..
