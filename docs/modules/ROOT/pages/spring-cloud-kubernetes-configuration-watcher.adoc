@@ -39,6 +39,17 @@ env:
 This one lets watcher know where to search for secrets and configmaps. You have two options here: selective namespaces (the setting above) and a namespace chosen by xref:property-source-config.adoc#namespace-resolution[Namespace Resolution] (this is the default option).
 Keep in mind that all these options require proper RBAC rules.
 
+<<<<<<< HEAD
+Changes from configmaps/secrets will only trigger an event being fired from configuration watcher if that particular change came from a source that has a label: `spring.cloud.kubernetes.config=true` or `spring.cloud.kubernetes.secret=true`.
+
+To put it simpler, if you change a configmap (or secret), that does _not_ have the label above, configuration watcher will skip firing an event for it (if you enabled debug logging, this will be visible in logs).
+
+By default, configuration watcher will monitor all configmaps/secrets in the configured namespace(s). If you want to watch only particular sources, you can do that by choosing only sources with some labels:
+
+[source]
+----
+spring.cloud.kubernetes.reload.config-maps-labels[a]=b
+=======
 By default, Configuration Watcher monitors only ConfigMaps labeled:
 
 [source]
@@ -53,22 +64,6 @@ Secrets are not monitored by default. To enable Secret monitoring, set:
 env:
   - name: SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED
     value: "TRUE"
-----
-
-Once enabled, only Secrets labeled: `spring.cloud.kubernetes.secret: "true"` are monitored.
-
-You can customize these label selectors in the Configuration Watcher application itself:
-
-[source,yaml]
-----
-spring:
-  cloud:
-    kubernetes:
-      reload:
-        config-maps-labels:
-          my-configmap-label: "my-configmap-value"
-        secrets-labels:
-          my-secret-label: "my-secret-value"
 ----
 
 
