@@ -49,7 +49,8 @@ runs:
         # runs the tests, then re-runs only the classes that failed, see the script
         ./.github/workflows/composites/scripts/run-tests-with-retry.sh \
             "${TEST_ARG}" \
-            -DCURRENT_INSTANCE=${CURRENT_INDEX}
+            -DCURRENT_INSTANCE=${CURRENT_INDEX} \
+            2>&1 | tee /tmp/test_output_${CURRENT_INDEX}.log
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         
@@ -72,5 +73,3 @@ runs:
       with:
         name: test_times_${{ inputs.branch }}_jdk${{ inputs.jdk-version }}_${{ env.CURRENT_INDEX }}.txt
         path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
-
-
