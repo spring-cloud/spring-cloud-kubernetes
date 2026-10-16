@@ -65,26 +65,26 @@ public abstract class AbstractKubernetesProfileEnvironmentPostProcessor implemen
 		}
 	}
 
+	@Override
+	public int getOrder() {
+		return ORDER;
+	}
+
 	protected abstract boolean isInsideKubernetes(Environment environment);
 
 	private boolean hasKubernetesProfile(Environment environment) {
 		return Arrays.stream(environment.getActiveProfiles()).anyMatch(KUBERNETES_PROFILE::equalsIgnoreCase);
 	}
 
-	@Override
-	public int getOrder() {
-		return ORDER;
-	}
-
 	private void addKubernetesProfileIfMissing(ConfigurableEnvironment environment) {
+		if (hasKubernetesProfile(environment)) {
+			LOG.debug("'kubernetes' already in list of active profiles");
+			return;
+		}
+
 		if (isInsideKubernetes(environment)) {
-			if (hasKubernetesProfile(environment)) {
-				LOG.debug("'kubernetes' already in list of active profiles");
-			}
-			else {
-				LOG.debug("Adding 'kubernetes' to list of active profiles");
-				environment.addActiveProfile(KUBERNETES_PROFILE);
-			}
+			LOG.debug("Adding 'kubernetes' to list of active profiles");
+			environment.addActiveProfile(KUBERNETES_PROFILE);
 		}
 		else {
 			LOG.warn("Not running inside kubernetes. Skipping 'kubernetes' profile activation.");

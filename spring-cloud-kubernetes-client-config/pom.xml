@@ -23,6 +23,10 @@
 		</dependency>
 		<dependency>
 			<groupId>io.kubernetes</groupId>
+			<artifactId>client-java-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.kubernetes</groupId>
 			<artifactId>client-java</artifactId>
 		</dependency>
 		<dependency>
@@ -90,12 +94,6 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -107,11 +105,6 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-kubernetes-test-support</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

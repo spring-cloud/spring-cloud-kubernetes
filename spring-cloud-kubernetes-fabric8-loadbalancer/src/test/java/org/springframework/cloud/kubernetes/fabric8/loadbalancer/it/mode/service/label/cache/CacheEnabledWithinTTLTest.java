@@ -47,7 +47,10 @@ import static org.springframework.cloud.kubernetes.fabric8.loadbalancer.it.LoadB
 		"spring.cloud.kubernetes.discovery.namespaces[0]=a", "spring.cloud.loadbalancer.cache.enabled=true",
 		"spring.cloud.loadbalancer.cache.ttl=2s",
 		"spring.cloud.kubernetes.loadbalancer.service-matching-strategy=LABELS",
-		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value" }, classes = App.class)
+		"spring.cloud.kubernetes.discovery.serviceLabels.same-key=same-value",
+		// disabled because its scheduled catalog watch fires immediately on startup
+		// and races with the TTL timing this test asserts on
+		"spring.cloud.kubernetes.discovery.enabled=false" }, classes = App.class)
 @DirtiesContext
 @EnableKubernetesMockClient
 class CacheEnabledWithinTTLTest {
