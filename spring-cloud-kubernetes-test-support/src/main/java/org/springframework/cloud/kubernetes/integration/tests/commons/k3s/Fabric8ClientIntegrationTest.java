@@ -69,11 +69,6 @@ public @interface Fabric8ClientIntegrationTest {
 	boolean deployExternalNameService() default false;
 
 	/**
-	 * deploy istio.
-	 */
-	boolean deployIstio() default false;
-
-	/**
 	 * deploy or not configuration watcher.
 	 */
 	boolean deployConfigurationWatcher() default false;
