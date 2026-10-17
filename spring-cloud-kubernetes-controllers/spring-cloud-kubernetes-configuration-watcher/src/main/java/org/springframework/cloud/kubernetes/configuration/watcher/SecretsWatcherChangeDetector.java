@@ -21,6 +21,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -33,6 +34,8 @@ public abstract sealed class SecretsWatcherChangeDetector implements RefreshTrig
 		permits BusEventBasedSecretsWatcherChangeDetector, HttpBasedSecretsWatchChangeDetector {
 
 	private final Scheduler scheduler;
+
+	private final ConfigReloadProperties reloadProperties;
 
 	/**
 	 * <pre>
@@ -54,10 +57,12 @@ public abstract sealed class SecretsWatcherChangeDetector implements RefreshTrig
 	private final KubernetesClientEventBasedSecretsChangeDetector changeDetector;
 
 	SecretsWatcherChangeDetector(KubernetesClientEventBasedSecretsChangeDetector changeDetector,
+			ConfigReloadProperties reloadProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
+		this.reloadProperties = reloadProperties;
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
 		this.changeDetector = changeDetector;
 	}
@@ -71,8 +76,8 @@ public abstract sealed class SecretsWatcherChangeDetector implements RefreshTrig
 	}
 
 	private void onEvent(KubernetesObject secret) {
-		WatcherUtil.onEvent(secret, k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler,
-				this::triggerRefresh);
+		WatcherUtil.onEvent(secret, reloadProperties.secretApps(),
+				k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler, this::triggerRefresh);
 	}
 
 }

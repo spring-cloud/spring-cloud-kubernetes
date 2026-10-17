@@ -120,13 +120,13 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 		ConfigurationWatcherNonHAAutoConfiguration configuration = new ConfigurationWatcherNonHAAutoConfiguration();
 
 		configuration.httpBasedConfigMapWatchChangeDetector(properties, threadPoolTaskExecutor, httpRefreshTrigger,
-				httpConfigMapDetector);
+				httpConfigMapDetector, ConfigReloadProperties.DEFAULT);
 		configuration.busConfigMapWatchChangeDetector(properties, threadPoolTaskExecutor, busRefreshTrigger,
-				busConfigMapDetector);
+				busConfigMapDetector, ConfigReloadProperties.DEFAULT);
 		configuration.httpBasedSecretsWatchChangeDetector(properties, threadPoolTaskExecutor, httpRefreshTrigger,
-				httpSecretsDetector);
+				httpSecretsDetector, ConfigReloadProperties.DEFAULT);
 		configuration.busSecretsWatchChangeDetector(properties, threadPoolTaskExecutor, busRefreshTrigger,
-				busSecretsDetector);
+				busSecretsDetector, ConfigReloadProperties.DEFAULT);
 
 		verify(httpConfigMapDetector).start(any());
 		verify(busConfigMapDetector).start(any());
@@ -176,8 +176,9 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 		ConfigReloadProperties configReloadProperties() {
 			ConfigReloadProperties defaults = ConfigReloadProperties.DEFAULT;
 			return new ConfigReloadProperties(defaults.enabled(), false, defaults.configMapsLabels(), false,
-					defaults.secretsLabels(), defaults.strategy(), defaults.mode(), defaults.period(), defaults.namespaces(),
-					defaults.enableReloadFiltering(), defaults.maxWaitForRestart());
+					defaults.secretsLabels(), defaults.strategy(), defaults.mode(), defaults.period(),
+					defaults.namespaces(), defaults.maxWaitForRestart(), defaults.configMapApps(),
+					defaults.secretApps());
 		}
 
 		@Bean

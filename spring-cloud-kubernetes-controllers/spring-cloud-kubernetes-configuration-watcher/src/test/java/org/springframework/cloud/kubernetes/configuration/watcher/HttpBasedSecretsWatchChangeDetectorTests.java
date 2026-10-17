@@ -44,6 +44,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -160,7 +161,8 @@ class HttpBasedSecretsWatchChangeDetectorTests {
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		return new HttpBasedSecretsWatchChangeDetector(
 				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
-				secretsChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
+				secretsChangeDetector, ConfigReloadProperties.DEFAULT, configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor);
 	}
 
 	@Test

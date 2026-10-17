@@ -33,6 +33,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecret
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
 import org.springframework.cloud.kubernetes.client.leader.election.KubernetesClientLeaderElectionCallbacksAutoConfiguration;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.leader.election.LeaderElectionProperties;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusEventBasedConfigMapWatcherChangeDetector;
 import org.springframework.cloud.kubernetes.configuration.watcher.BusEventBasedSecretsWatcherChangeDetector;
@@ -87,10 +88,10 @@ class ConfigurationWatcherHAAutoConfiguration {
 	@Profile(NOT_AMQP_NOT_KAFKA)
 	ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(
 			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector configMapChangeDetector,
-			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
-			HttpRefreshTrigger httpRefreshTrigger) {
-		return new HttpBasedConfigMapWatchChangeDetector(httpRefreshTrigger, configMapChangeDetector, properties,
-				threadFactory);
+			ConfigurationWatcherConfigurationProperties properties, ConfigReloadProperties configReloadProperties,
+			ThreadPoolTaskExecutor threadFactory, HttpRefreshTrigger httpRefreshTrigger) {
+		return new HttpBasedConfigMapWatchChangeDetector(httpRefreshTrigger, configMapChangeDetector,
+				configReloadProperties, properties, threadFactory);
 	}
 
 	@Bean
@@ -99,10 +100,10 @@ class ConfigurationWatcherHAAutoConfiguration {
 	@Profile({ AMQP, KAFKA })
 	ConfigMapWatcherChangeDetector busConfigMapWatchChangeDetector(
 			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector configMapChangeDetector,
-			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
-			BusRefreshTrigger busRefreshTrigger) {
-		return new BusEventBasedConfigMapWatcherChangeDetector(busRefreshTrigger, configMapChangeDetector, properties,
-				threadFactory);
+			ConfigurationWatcherConfigurationProperties properties, ConfigReloadProperties configReloadProperties,
+			ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger) {
+		return new BusEventBasedConfigMapWatcherChangeDetector(busRefreshTrigger, configMapChangeDetector,
+				configReloadProperties, properties, threadFactory);
 	}
 
 	@Bean
@@ -111,10 +112,10 @@ class ConfigurationWatcherHAAutoConfiguration {
 	@Profile({ AMQP, KAFKA })
 	SecretsWatcherChangeDetector busSecretsWatchChangeDetector(
 			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector,
-			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
-			BusRefreshTrigger busRefreshTrigger) {
-		return new BusEventBasedSecretsWatcherChangeDetector(secretsChangeDetector, properties, threadFactory,
-				busRefreshTrigger);
+			ConfigurationWatcherConfigurationProperties properties, ConfigReloadProperties configReloadProperties,
+			ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger) {
+		return new BusEventBasedSecretsWatcherChangeDetector(secretsChangeDetector, configReloadProperties, properties,
+				threadFactory, busRefreshTrigger);
 	}
 
 	@Bean
@@ -123,10 +124,10 @@ class ConfigurationWatcherHAAutoConfiguration {
 	@Profile(NOT_AMQP_NOT_KAFKA)
 	SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(
 			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector secretsChangeDetector,
-			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
-			HttpRefreshTrigger httpRefreshTrigger) {
-		return new HttpBasedSecretsWatchChangeDetector(httpRefreshTrigger, secretsChangeDetector, properties,
-				threadFactory);
+			ConfigurationWatcherConfigurationProperties properties, ConfigReloadProperties configReloadProperties,
+			ThreadPoolTaskExecutor threadFactory, HttpRefreshTrigger httpRefreshTrigger) {
+		return new HttpBasedSecretsWatchChangeDetector(httpRefreshTrigger, secretsChangeDetector,
+				configReloadProperties, properties, threadFactory);
 	}
 
 }

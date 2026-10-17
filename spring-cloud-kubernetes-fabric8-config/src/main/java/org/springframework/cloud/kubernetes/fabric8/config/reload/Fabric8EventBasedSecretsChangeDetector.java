@@ -48,8 +48,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends Fabric8EventBasedCha
 
 	private final Set<String> namespaces;
 
-	private final boolean enableReloadFiltering;
-
 	private final boolean monitorSecrets;
 
 	private final Map<String, String> secretsLabels;
@@ -60,7 +58,6 @@ public class Fabric8EventBasedSecretsChangeDetector extends Fabric8EventBasedCha
 			KubernetesNamespaceProvider namespaceProvider) {
 		super(environment, kubernetesClient, strategy, fabric8SecretsPropertySourceLocator,
 				Fabric8SecretsPropertySource.class);
-		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitorSecrets = properties.monitoringSecrets();
 		secretsLabels = properties.secretsLabels();
 		namespaces = namespaces(kubernetesClient, namespaceProvider, properties, "secrets");
@@ -72,13 +69,10 @@ public class Fabric8EventBasedSecretsChangeDetector extends Fabric8EventBasedCha
 
 			LOG.info("Kubernetes event-based secrets change detector activated");
 
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
-					"spring.cloud.kubernetes.reload.secrets-labels");
-
 			namespaces.forEach(namespace -> {
 				SharedIndexInformer<Secret> informer;
-				informer = kubernetesClient.secrets().inNamespace(namespace).withLabels(labelSelector).inform();
-				LOG.debug("added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
+				informer = kubernetesClient.secrets().inNamespace(namespace).withLabels(secretsLabels).inform();
+				LOG.debug("added secret informer for namespace : " + namespace + " with labels : " + secretsLabels);
 
 				informer.addEventHandler(new Fabric8ResourceEventHandler<>(informer, this::onEvent));
 				informers.add(informer);

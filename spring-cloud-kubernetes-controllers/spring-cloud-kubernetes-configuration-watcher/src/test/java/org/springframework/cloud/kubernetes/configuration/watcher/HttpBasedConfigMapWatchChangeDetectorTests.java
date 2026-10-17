@@ -45,6 +45,7 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesClientInformerReactiveDiscoveryClient;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -117,7 +118,7 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		ConfigurationWatcherConfigurationProperties properties = new ConfigurationWatcherConfigurationProperties();
 		HttpBasedConfigMapWatchChangeDetector detector = new HttpBasedConfigMapWatchChangeDetector(
 				new HttpRefreshTrigger(reactiveDiscoveryClient, properties, webClient), configMapChangeDetector,
-				properties, threadPoolTaskExecutor);
+				ConfigReloadProperties.DEFAULT, properties, threadPoolTaskExecutor);
 
 		detector.start();
 		detector.stop();
@@ -150,7 +151,8 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(
 				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
-				configMapChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
+				configMapChangeDetector, ConfigReloadProperties.DEFAULT, configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor);
 		StepVerifier.create(changeDetector.triggerRefresh(configMapKubernetesSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo(actuatorPath)));
 	}
@@ -179,7 +181,8 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 			.willReturn(WireMock.aResponse().withStatus(200)));
 		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(
 				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
-				configMapChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
+				configMapChangeDetector, ConfigReloadProperties.DEFAULT, configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor);
 		StepVerifier.create(changeDetector.triggerRefresh(configMapKubernetesSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
@@ -210,7 +213,8 @@ class HttpBasedConfigMapWatchChangeDetectorTests {
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		HttpBasedConfigMapWatchChangeDetector changeDetector = new HttpBasedConfigMapWatchChangeDetector(
 				new HttpRefreshTrigger(reactiveDiscoveryClient, configurationWatcherConfigurationProperties, webClient),
-				configMapChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
+				configMapChangeDetector, ConfigReloadProperties.DEFAULT, configurationWatcherConfigurationProperties,
+				threadPoolTaskExecutor);
 		StepVerifier.create(changeDetector.triggerRefresh(configMapKubernetesSource)).verifyComplete();
 		WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/my/custom/actuator" + endpoint)));
 	}
