@@ -17,16 +17,11 @@
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
-import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
@@ -35,8 +30,8 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEventBasedSecretsChangeDetector implements
-		RefreshTrigger permits BusEventBasedSecretsWatcherChangeDetector, HttpBasedSecretsWatchChangeDetector {
+public abstract sealed class SecretsWatcherChangeDetector implements RefreshTrigger
+		permits BusEventBasedSecretsWatcherChangeDetector, HttpBasedSecretsWatchChangeDetector {
 
 	private final Scheduler scheduler;
 
@@ -59,21 +54,28 @@ abstract sealed class SecretsWatcherChangeDetector extends KubernetesClientEvent
 	 */
 	private final ConfigurationWatcherConfigurationProperties k8SConfigurationProperties;
 
-	SecretsWatcherChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
-			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
-			KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
-			KubernetesNamespaceProvider kubernetesNamespaceProvider,
+	private final KubernetesClientEventBasedSecretsChangeDetector changeDetector;
+
+	SecretsWatcherChangeDetector(KubernetesClientEventBasedSecretsChangeDetector changeDetector,
+			ConfigReloadProperties reloadProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 		scheduler = Schedulers.fromExecutor(
 				newScheduledThreadPool(k8SConfigurationProperties.getThreadPoolSize(), threadPoolTaskExecutor));
-		this.reloadProperties = properties;
+		this.reloadProperties = reloadProperties;
 		this.k8SConfigurationProperties = k8SConfigurationProperties;
+		this.changeDetector = changeDetector;
 	}
 
-	@Override
-	protected final void onEvent(KubernetesObject secret) {
+	public final void start() {
+		changeDetector.start(this::onEvent);
+	}
+
+	public final void stop() {
+		changeDetector.stop();
+	}
+
+	private void onEvent(KubernetesObject secret) {
 		WatcherUtil.onEvent(secret, reloadProperties.secretApps(),
 				k8SConfigurationProperties.getRefreshDelay().toMillis(), scheduler, this::triggerRefresh);
 	}
