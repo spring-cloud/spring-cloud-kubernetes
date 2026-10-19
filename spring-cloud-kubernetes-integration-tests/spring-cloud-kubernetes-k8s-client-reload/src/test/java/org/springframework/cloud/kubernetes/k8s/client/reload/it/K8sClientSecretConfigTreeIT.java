@@ -73,7 +73,10 @@ class K8sClientSecretConfigTreeIT extends K8sClientReloadBase {
 	 */
 	@Test
 	void test(NativeClientKubernetesFixture fixture) throws Exception {
-		WebClient webClient = builder().baseUrl("http://localhost:32321/secret").build();
+		String namespace = "default";
+		String serviceName = "spring-cloud-kubernetes-k8s-client-reload";
+		int nodePort = fixture.nodePort(namespace, serviceName);
+		WebClient webClient = builder().baseUrl("http://localhost:" + nodePort + "/secret").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
 			.bodyToMono(String.class)

@@ -21,6 +21,7 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.kubernetes.integration.tests.commons.fabric8_client.Fabric8ClientKubernetesFixture;
 import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.Fabric8ClientIntegrationTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -36,8 +37,11 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Com
 class Fabric8IstioIT {
 
 	@Test
-	void test() {
-		WebClient client = builder().baseUrl("http://localhost:32321/profiles").build();
+	void test(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
+		String namespace = "istio-test";
+		String serviceName = "spring-cloud-kubernetes-fabric8-client-istio";
+		int nodePort = fabric8KubernetesFixture.nodePort(namespace, serviceName);
+		WebClient client = builder().baseUrl("http://localhost:" + nodePort + "/profiles").build();
 
 		@SuppressWarnings("unchecked")
 		List<String> result = client.method(HttpMethod.GET)

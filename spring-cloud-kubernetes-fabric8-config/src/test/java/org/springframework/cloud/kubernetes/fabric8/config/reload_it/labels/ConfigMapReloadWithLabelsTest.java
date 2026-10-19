@@ -19,10 +19,13 @@ package org.springframework.cloud.kubernetes.fabric8.config.reload_it.labels;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 import static org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities.awaitUntil;
 
@@ -31,10 +34,12 @@ import static org.springframework.cloud.kubernetes.integration.tests.commons.Awa
  */
 @SpringBootTest(
 		properties = { "spring.main.allow-bean-definition-overriding=true", "configmaps.labels.filtering=true" },
-		classes = { CommonAbstractFiltering.TestConfig.class,
+		classes = { ConfigMapReloadWithLabelsTest.KubernetesClientConfiguration.class,
+				CommonAbstractFiltering.TestConfig.class,
 				CommonAbstractFiltering.ConfigReloadPropertiesConfiguration.class })
-@ContextConfiguration(initializers = CommonAbstractFiltering.Initializer.class)
 class ConfigMapReloadWithLabelsTest extends CommonAbstractFiltering {
+
+	private static KubernetesClient mockKubernetesClient;
 
 	/**
 	 * <pre>
@@ -46,8 +51,19 @@ class ConfigMapReloadWithLabelsTest extends CommonAbstractFiltering {
 	void test() {
 		ConfigMap configMap = configMap(CONFIG_MAP_NAME, Map.of("a", "b"), Map.of("only-shape", "round"));
 
-		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMap).create();
+		kubernetesClient().configMaps().inNamespace(NAMESPACE).resource(configMap).create();
 		awaitUntil(10, 1000, reloadProbe::isCalled);
+	}
+
+	@TestConfiguration
+	static class KubernetesClientConfiguration {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return mockKubernetesClient;
+		}
+
 	}
 
 }

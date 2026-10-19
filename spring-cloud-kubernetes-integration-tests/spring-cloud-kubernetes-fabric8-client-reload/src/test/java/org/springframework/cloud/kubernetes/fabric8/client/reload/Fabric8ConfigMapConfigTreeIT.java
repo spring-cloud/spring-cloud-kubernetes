@@ -73,7 +73,10 @@ class Fabric8ConfigMapConfigTreeIT {
 	 */
 	@Test
 	void test(Fabric8ClientKubernetesFixture fabric8KubernetesFixture) {
-		WebClient webClient = builder().baseUrl("http://localhost:32321/key").build();
+		String namespace = "default";
+		String serviceName = "spring-cloud-kubernetes-fabric8-client-reload";
+		int nodePort = fabric8KubernetesFixture.nodePort(namespace, serviceName);
+		WebClient webClient = builder().baseUrl("http://localhost:" + nodePort + "/key").build();
 		String result = webClient.method(HttpMethod.GET)
 			.retrieve()
 			.bodyToMono(String.class)

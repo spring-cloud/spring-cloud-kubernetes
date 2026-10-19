@@ -20,21 +20,26 @@ import java.time.Duration;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author wind57
  */
 @SpringBootTest(
 		properties = { "spring.main.allow-bean-definition-overriding=true", "configmaps.reload.filtering=true" },
-		classes = { CommonAbstractFiltering.TestConfig.class,
+		classes = { ConfigMapReloadWithoutFilterTest.KubernetesClientConfiguration.class,
+				CommonAbstractFiltering.TestConfig.class,
 				CommonAbstractFiltering.ConfigReloadPropertiesConfiguration.class })
-@ContextConfiguration(initializers = CommonAbstractFiltering.Initializer.class)
 class ConfigMapReloadWithoutFilterTest extends CommonAbstractFiltering {
+
+	private static KubernetesClient mockKubernetesClient;
 
 	/**
 	 * <pre>
@@ -46,13 +51,24 @@ class ConfigMapReloadWithoutFilterTest extends CommonAbstractFiltering {
 	void test() {
 		ConfigMap configMapOne = configMap(CONFIG_MAP_NAME, Map.of("a", "b"), Map.of("shape", "round"));
 
-		kubernetesClient.configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
+		kubernetesClient().configMaps().inNamespace(NAMESPACE).resource(configMapOne).create();
 
 		Awaitility.await()
 			.during(Duration.ofSeconds(3))
 			.atMost(Duration.ofSeconds(4))
 			.pollInterval(Duration.ofMillis(100))
 			.until(reloadProbe::isNotCalled);
+
+	}
+
+	@TestConfiguration
+	static class KubernetesClientConfiguration {
+
+		@Bean
+		@Primary
+		KubernetesClient kubernetesClient() {
+			return mockKubernetesClient;
+		}
 
 	}
 

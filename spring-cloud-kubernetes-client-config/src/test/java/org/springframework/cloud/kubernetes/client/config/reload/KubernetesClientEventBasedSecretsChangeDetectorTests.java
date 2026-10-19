@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.config.reload;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -146,120 +145,78 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		// ------------------------------------------------------------------------------------------------------------
 		// 4. assertions
 
-		changeDetectorAssert();
+		changeDetectorAssert(false);
 	}
 
 	/**
-	 * both are null, treat that as no change.
+	 * <pre>
+	 *     - HA mode is enabled, so inform() does not start the informer.
+	 *     - an explicit start() starts the informer and it processes the events.
+	 * </pre>
 	 */
 	@Test
-	void equalsOne() {
-		Map<String, byte[]> left = null;
-		Map<String, byte[]> right = null;
+	void watchStartsOnlyAfterExplicitStartInHaMode() {
 
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
+		// ------------------------------------------------------------------------------------------------------------
+		// 0. initial request of the informer ( resourceVersion=0 )
+
+		V1Secret dbPassword = new V1Secret().metadata(new V1ObjectMeta().name("db-password").resourceVersion("1"))
+			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd".getBytes()))
+			.putDataItem("password", Base64.getEncoder().encode("p455w0rd".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+
+		V1SecretList secretList = new V1SecretList().metadata(new V1ListMeta().resourceVersion("1"))
+			.items(List.of(dbPassword));
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("false"))
+			.withQueryParam("resourceVersion", equalTo("0"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(secretList))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 1. first watch response to request with resourceVersion=1
+
+		V1Secret dbPasswordUpdated = new V1Secret()
+			.metadata(new V1ObjectMeta().name("db-password").resourceVersion("2"))
+			.putStringDataItem("password", Base64.getEncoder().encodeToString("p455w0rd2".getBytes()))
+			.putDataItem("password", Base64.getEncoder().encode("p455w0rd2".getBytes()))
+			.putStringDataItem("username", Base64.getEncoder().encodeToString("user".getBytes()))
+			.putDataItem("username", Base64.getEncoder().encode("user".getBytes()));
+
+		Response<V1Secret> watchResponse = new Response<>(MODIFIED.name(), dbPasswordUpdated);
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("1"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(watchResponse))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 2. second watch response to request with resourceVersion=2
+
+		V1Secret rabbitPasswordAdded = new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+			.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()));
+
+		Response<V1Secret> rabbitPasswordAddedResponse = new Response<>(ADDED.name(), rabbitPasswordAdded);
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("2"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordAddedResponse))));
+
+		// ------------------------------------------------------------------------------------------------------------
+		// 3. third watch response to request with resourceVersion=3
+
+		V1Secret rabbitPasswordDeleted = new V1Secret().metadata(new V1ObjectMeta().name("rabbit-password"))
+			.putDataItem("rabbit-pw", Base64.getEncoder().encode("password".getBytes()));
+
+		Response<V1Secret> rabbitPasswordDeletedResponse = new Response<>(DELETED.name(), rabbitPasswordDeleted);
+
+		stubFor(get(urlMatching("/api/v1/namespaces/default/secrets.*")).withQueryParam("watch", equalTo("true"))
+			.withQueryParam("resourceVersion", equalTo("3"))
+			.willReturn(aResponse().withStatus(200).withBody(JSON.serialize(rabbitPasswordDeletedResponse))));
+
+		changeDetectorAssert(true);
 	}
 
-	/**
-	 * - left is empty map - right is null
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsTwo() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = null;
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is empty map - right is null
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsThree() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = null;
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is null - right is empty map
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsFour() {
-		Map<String, byte[]> left = null;
-		Map<String, byte[]> right = Map.of();
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is empty map - right is empty map
-	 *
-	 * treat as equal, that is: no change
-	 */
-	@Test
-	void equalsFive() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = Map.of();
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isTrue();
-	}
-
-	/**
-	 * - left is empty map - right is [1, b]
-	 *
-	 * treat as non-equal, that is change
-	 */
-	@Test
-	void equalsSix() {
-		Map<String, byte[]> left = Map.of();
-		Map<String, byte[]> right = Map.of("1", "b".getBytes());
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isFalse();
-	}
-
-	/**
-	 * - left is [1, a] - right is [1, b]
-	 *
-	 * treat as non-equal, that is change
-	 */
-	@Test
-	void equalsSeven() {
-		Map<String, byte[]> left = Map.of("1", "a".getBytes());
-		Map<String, byte[]> right = Map.of("1", "b".getBytes());
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isFalse();
-	}
-
-	/**
-	 * - left is [1, a, 2 aa] - right is [1, b, 2, aa]
-	 *
-	 * treat as non-equal, that is change
-	 */
-	@Test
-	void equalsEight() {
-		Map<String, byte[]> left = Map.of("1", "a".getBytes(), "2", "aa".getBytes());
-		Map<String, byte[]> right = Map.of("1", "b".getBytes(), "2", "aa".getBytes());
-
-		boolean result = KubernetesClientEventBasedSecretsChangeDetector.equals(left, right);
-		Assertions.assertThat(result).isFalse();
-	}
-
-	private void changeDetectorAssert() {
+	private void changeDetectorAssert(boolean haEnabled) {
 
 		// coreV1Api
 		ApiClient apiClient = new ClientBuilder().setBasePath("http://localhost:" + wireMockServer.port()).build();
@@ -289,10 +246,18 @@ class KubernetesClientEventBasedSecretsChangeDetectorTests {
 		when(kubernetesNamespaceProvider.getNamespace()).thenReturn("default");
 
 		// change detector
-		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-				coreV1Api, environment, properties, strategy, locator, kubernetesNamespaceProvider);
-
-		changeDetector.inform();
+		KubernetesClientEventBasedSecretsChangeDetector changeDetector;
+		if (haEnabled) {
+			changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(strategy, locator, environment,
+					coreV1Api, properties, kubernetesNamespaceProvider, KubernetesClientSecretsPropertySource.class);
+			Assertions.assertThat(onEventCalls[0]).isZero();
+			changeDetector.start(changeDetector::onEvent);
+		}
+		else {
+			changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(strategy, locator, environment,
+					coreV1Api, properties, kubernetesNamespaceProvider, KubernetesClientSecretsPropertySource.class);
+			changeDetector.start(changeDetector::onEvent);
+		}
 
 		// all 4 events are caught
 		Awaitilities.awaitUntil(10, 1000, () -> onEventCalls[0] >= 4);

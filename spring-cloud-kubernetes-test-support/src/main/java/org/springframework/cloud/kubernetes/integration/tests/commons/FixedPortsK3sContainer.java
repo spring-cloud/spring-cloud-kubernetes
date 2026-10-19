@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.integration.tests.commons;
 
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
@@ -37,7 +38,14 @@ final class FixedPortsK3sContainer extends K3sContainer {
 	/**
 	 * Test containers exposed ports.
 	 */
-	private static final int[] EXPOSED_PORTS = new int[] { 80, 6443, 8080, 8888, 9092, 32321, 32322 };
+	private static final int NODE_PORT_RANGE_START = 32321;
+
+	private static final int NODE_PORT_RANGE_END = 32325;
+
+	private static final int[] EXPOSED_PORTS = IntStream
+		.concat(IntStream.of(80, 6443, 8080, 8888, 9092),
+				IntStream.rangeClosed(NODE_PORT_RANGE_START, NODE_PORT_RANGE_END))
+		.toArray();
 
 	/**
 	 * Rancher version to use for test-containers.
@@ -53,8 +61,11 @@ final class FixedPortsK3sContainer extends K3sContainer {
 	 * <li><code>--tls-san=host.docker.internal</code> adds host.docker.internal to the
 	 * API server certificate SANs so Dockerized test clients can connect without TLS
 	 * hostname verification failures</li>
+	 * <li><code>--service-node-port-range</code> keeps dynamically assigned NodePorts
+	 * inside the small set of ports exposed by Testcontainers</li>
 	 */
-	private static final String RANCHER_COMMAND = "server --disable=metric-server --tls-san=host.docker.internal";
+	private static final String RANCHER_COMMAND = "server --disable=metric-server --tls-san=host.docker.internal "
+			+ "--service-node-port-range=" + NODE_PORT_RANGE_START + "-" + NODE_PORT_RANGE_END;
 
 	static final K3sContainer CONTAINER = new FixedPortsK3sContainer(DockerImageName.parse(RANCHER_VERSION))
 		.configureFixedPorts()

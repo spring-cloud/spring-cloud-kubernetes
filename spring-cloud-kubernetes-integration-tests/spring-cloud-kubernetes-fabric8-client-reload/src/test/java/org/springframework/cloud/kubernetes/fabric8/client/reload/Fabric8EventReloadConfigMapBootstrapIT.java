@@ -122,7 +122,7 @@ class Fabric8EventReloadConfigMapBootstrapIT extends Fabric8EventReloadBase {
 				() -> output.getOut().contains("ConfigMap right-configmap was updated in namespace right"));
 
 		Awaitilities.awaitUntil(60, 1000,
-				() -> output.getOut().contains("data in configmap has not changed, will not reload"));
+				() -> output.getOut().contains("data in ConfigMap has not changed, will not reload"));
 
 		// then deploy a new version of right-configmap, that actually changes some data
 		ConfigMap rightConfigMapAfterChange = new ConfigMapBuilder()
