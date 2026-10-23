@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -30,10 +31,10 @@ public final class HttpBasedSecretsWatchChangeDetector extends SecretsWatcherCha
 	private final HttpRefreshTrigger httpRefreshTrigger;
 
 	public HttpBasedSecretsWatchChangeDetector(HttpRefreshTrigger httpRefreshTrigger,
-			KubernetesClientEventBasedSecretsChangeDetector changeDetector,
+			KubernetesClientEventBasedSecretsChangeDetector changeDetector, ConfigReloadProperties reloadProperties,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(changeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
+		super(changeDetector, reloadProperties, k8SConfigurationProperties, threadPoolTaskExecutor);
 
 		this.httpRefreshTrigger = httpRefreshTrigger;
 	}

@@ -10,4 +10,5 @@ spring:
         namespaces:
           - right
         monitoring-config-maps: true
-        enable-reload-filtering: true
+        config-maps-labels:
+          spring.cloud.kubernetes.config.informer.enabled : "true"

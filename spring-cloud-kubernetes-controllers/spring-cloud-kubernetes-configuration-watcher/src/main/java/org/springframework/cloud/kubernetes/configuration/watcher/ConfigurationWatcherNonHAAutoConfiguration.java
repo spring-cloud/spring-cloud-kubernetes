@@ -28,6 +28,7 @@ import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfig
 import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
 import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.configuration.watcher.ha.ConditionalOnConfigurationWatcherHANotEnabled;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,9 +62,10 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	ConfigMapWatcherChangeDetector busConfigMapWatchChangeDetector(
 			ConfigurationWatcherConfigurationProperties properties, ThreadPoolTaskExecutor threadFactory,
 			BusRefreshTrigger busRefreshTrigger,
-			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector changeDetector) {
+			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector changeDetector,
+			ConfigReloadProperties configReloadProperties) {
 		ConfigMapWatcherChangeDetector detector = new BusEventBasedConfigMapWatcherChangeDetector(busRefreshTrigger,
-				changeDetector, properties, threadFactory);
+				changeDetector, configReloadProperties, properties, threadFactory);
 
 		detector.start();
 
@@ -77,9 +79,10 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	ConfigMapWatcherChangeDetector httpBasedConfigMapWatchChangeDetector(
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadFactory, HttpRefreshTrigger httpRefreshTrigger,
-			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector changeDetector) {
+			@Qualifier("configurationWatcherConfigMapChangeDetector") KubernetesClientEventBasedConfigMapChangeDetector changeDetector,
+			ConfigReloadProperties configReloadProperties) {
 		ConfigMapWatcherChangeDetector detector = new HttpBasedConfigMapWatchChangeDetector(httpRefreshTrigger,
-				changeDetector, k8SConfigurationProperties, threadFactory);
+				changeDetector, configReloadProperties, k8SConfigurationProperties, threadFactory);
 
 		detector.start();
 
@@ -92,9 +95,10 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	@Profile({ AMQP, KAFKA })
 	SecretsWatcherChangeDetector busSecretsWatchChangeDetector(ConfigurationWatcherConfigurationProperties properties,
 			ThreadPoolTaskExecutor threadFactory, BusRefreshTrigger busRefreshTrigger,
-			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
+			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector changeDetector,
+			ConfigReloadProperties configReloadProperties) {
 		SecretsWatcherChangeDetector detector = new BusEventBasedSecretsWatcherChangeDetector(changeDetector,
-				properties, threadFactory, busRefreshTrigger);
+				configReloadProperties, properties, threadFactory, busRefreshTrigger);
 
 		detector.start();
 
@@ -108,9 +112,10 @@ class ConfigurationWatcherNonHAAutoConfiguration {
 	SecretsWatcherChangeDetector httpBasedSecretsWatchChangeDetector(
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
 			ThreadPoolTaskExecutor threadFactory, HttpRefreshTrigger httpRefreshTrigger,
-			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector changeDetector) {
+			@Qualifier("configurationWatcherSecretsChangeDetector") KubernetesClientEventBasedSecretsChangeDetector changeDetector,
+			ConfigReloadProperties configReloadProperties) {
 		SecretsWatcherChangeDetector detector = new HttpBasedSecretsWatchChangeDetector(httpRefreshTrigger,
-				changeDetector, k8SConfigurationProperties, threadFactory);
+				changeDetector, configReloadProperties, k8SConfigurationProperties, threadFactory);
 
 		detector.start();
 
