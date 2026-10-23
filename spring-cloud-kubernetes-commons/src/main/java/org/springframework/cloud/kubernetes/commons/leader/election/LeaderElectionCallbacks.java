@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.commons.leader.election;
 import java.net.UnknownHostException;
 import java.util.function.Consumer;
 
-import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
 import org.springframework.cloud.kubernetes.commons.leader.election.events.NewLeaderEvent;
 import org.springframework.cloud.kubernetes.commons.leader.election.events.StartLeadingEvent;
 import org.springframework.cloud.kubernetes.commons.leader.election.events.StopLeadingEvent;
