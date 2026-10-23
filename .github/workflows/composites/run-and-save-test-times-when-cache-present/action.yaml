@@ -158,7 +158,8 @@ runs:
         ./.github/workflows/composites/scripts/run-tests-with-retry.sh \
               "${tests_to_run_in_current_index}" \
               -Dsurefire-reports-directory=surefire-reports/${CURRENT_INDEX} \
-              -Dfailsafe-reports-directory=failsafe-reports/${CURRENT_INDEX}
+              -Dfailsafe-reports-directory=failsafe-reports/${CURRENT_INDEX} \
+              2>&1 | tee /tmp/test_output_${CURRENT_INDEX}.log
         
         touch /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
         
