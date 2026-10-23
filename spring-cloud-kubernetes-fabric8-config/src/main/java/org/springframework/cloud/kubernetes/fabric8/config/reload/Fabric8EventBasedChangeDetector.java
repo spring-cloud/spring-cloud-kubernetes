@@ -18,7 +18,6 @@ package org.springframework.cloud.kubernetes.fabric8.config.reload;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -26,14 +25,12 @@ import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import jakarta.annotation.PreDestroy;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
-import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadUtil;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationChangeDetector;
 import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.log.LogAccessor;
 
 /**
  * Common functionality for Fabric8 event-based ConfigMap and Secret change detectors.
@@ -42,8 +39,6 @@ import org.springframework.core.log.LogAccessor;
  * @author wind57
  */
 abstract class Fabric8EventBasedChangeDetector<T extends HasMetadata> extends ConfigurationChangeDetector {
-
-	private static final LogAccessor LOG = new LogAccessor(Fabric8EventBasedChangeDetector.class);
 
 	private final PropertySourceLocator propertySourceLocator;
 
@@ -63,24 +58,6 @@ abstract class Fabric8EventBasedChangeDetector<T extends HasMetadata> extends Co
 		this.kubernetesClient = kubernetesClient;
 		this.propertySourceLocator = propertySourceLocator;
 		this.existingSourcesType = existingSourcesType;
-	}
-
-	protected final Map<String, String> resolveLabelSelector(boolean enableReloadFiltering,
-			Map<String, String> configuredLabels, String replacementProperty) {
-
-		if (!enableReloadFiltering) {
-			return configuredLabels;
-		}
-
-		LOG.warn(() -> "enable reload filtering is deprecated and will be removed in the next major release");
-		LOG.warn(() -> "use " + replacementProperty + " instead");
-
-		if (!configuredLabels.isEmpty()) {
-			LOG.warn(() -> replacementProperty + " is not empty, but "
-					+ "spring.cloud.kubernetes.reload.enable-reload-filtering is enabled and will override it");
-		}
-
-		return Map.of(ConfigReloadProperties.RELOAD_LABEL_FILTER, "true");
 	}
 
 	protected final void onEvent(T resource) {

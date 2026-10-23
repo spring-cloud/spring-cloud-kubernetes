@@ -17,6 +17,7 @@
 package org.springframework.cloud.kubernetes.client.config;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
@@ -33,9 +34,9 @@ class KubernetesClientConfigUtilsTests {
 
 	@Test
 	void testNamespacesFromProperties() {
-		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, false,
+		ConfigReloadProperties properties = new ConfigReloadProperties(false, false, Map.of(), false, Map.of(),
 				ConfigReloadProperties.ReloadStrategy.REFRESH, ConfigReloadProperties.ReloadDetectionMode.EVENT,
-				Duration.ofMillis(15000), Set.of("non-default"), false, Duration.ofSeconds(2));
+				Duration.ofMillis(15000), Set.of("non-default"), Duration.ofSeconds(2));
 		Set<String> namespaces = KubernetesClientConfigUtils
 			.namespaces(new KubernetesNamespaceProvider(new MockEnvironment()), properties, "configmap");
 		Assertions.assertThat(1).isEqualTo(namespaces.size());

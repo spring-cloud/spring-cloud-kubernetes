@@ -56,8 +56,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 
 	private final Set<String> namespaces;
 
-	private final boolean enableReloadFiltering;
-
 	private final boolean monitoringSecrets;
 
 	private final Map<String, String> secretsLabels;
@@ -70,7 +68,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 
 		this.coreV1Api = coreV1Api;
 		this.apiClient = createApiClientForInformerClient();
-		this.enableReloadFiltering = properties.enableReloadFiltering();
 		this.monitoringSecrets = properties.monitoringSecrets();
 		this.secretsLabels = properties.secretsLabels();
 		namespaces = namespaces(kubernetesNamespaceProvider, properties, "secret");
@@ -82,9 +79,6 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 
 			KubernetesResourceEventHandler<V1Secret> handler = new KubernetesResourceEventHandler<>(onEventHandler);
 
-			Map<String, String> labelSelector = resolveLabelSelector(enableReloadFiltering, secretsLabels,
-					"spring.cloud.kubernetes.reload.secrets-labels");
-
 			namespaces.forEach(namespace -> {
 				SharedInformerFactory factory = new SharedInformerFactory(apiClient);
 				factories.add(factory);
@@ -93,11 +87,11 @@ public class KubernetesClientEventBasedSecretsChangeDetector extends KubernetesC
 						.timeoutSeconds(params.timeoutSeconds)
 						.resourceVersion(params.resourceVersion)
 						.watch(params.watch)
-						.labelSelector(labelSelector(labelSelector))
+						.labelSelector(labelSelector(secretsLabels))
 						.buildCall(null), V1Secret.class, V1SecretList.class);
 
 				LOG.debug(
-						() -> "added secret informer for namespace : " + namespace + " with labels : " + labelSelector);
+						() -> "added secret informer for namespace : " + namespace + " with labels : " + secretsLabels);
 
 				informer.addEventHandler(handler);
 				informers.add(informer);
