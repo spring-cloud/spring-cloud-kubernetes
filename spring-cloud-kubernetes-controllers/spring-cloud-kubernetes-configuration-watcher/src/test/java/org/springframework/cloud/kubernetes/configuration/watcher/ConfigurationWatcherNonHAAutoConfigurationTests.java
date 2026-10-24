@@ -176,8 +176,8 @@ class ConfigurationWatcherNonHAAutoConfigurationTests {
 		ConfigReloadProperties configReloadProperties() {
 			ConfigReloadProperties defaults = ConfigReloadProperties.DEFAULT;
 			return new ConfigReloadProperties(defaults.enabled(), false, defaults.configMapsLabels(), false,
-					defaults.secretsLabels(), defaults.strategy(), defaults.mode(), defaults.period(), defaults.namespaces(),
-					defaults.enableReloadFiltering(), defaults.maxWaitForRestart());
+					defaults.secretsLabels(), defaults.strategy(), defaults.mode(), defaults.period(),
+					defaults.namespaces(), defaults.enableReloadFiltering(), defaults.maxWaitForRestart());
 		}
 
 		@Bean
