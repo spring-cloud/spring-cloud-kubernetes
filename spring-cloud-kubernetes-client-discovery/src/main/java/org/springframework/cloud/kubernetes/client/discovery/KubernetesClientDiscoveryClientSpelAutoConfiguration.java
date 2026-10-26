@@ -56,6 +56,7 @@ public final class KubernetesClientDiscoveryClientSpelAutoConfiguration {
 
 		SpelExpressionParser parser = new SpelExpressionParser();
 		SimpleEvaluationContext evaluationContext = SimpleEvaluationContext.forReadOnlyDataBinding()
+			.withInstanceMethods()
 			.build();
 
 		Expression filterExpr = parser.parseExpression(spelExpression);
