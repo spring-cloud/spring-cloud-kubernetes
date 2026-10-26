@@ -45,6 +45,7 @@ import org.springframework.cloud.kubernetes.integration.tests.commons.Commons;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Images;
 import org.springframework.cloud.kubernetes.integration.tests.commons.K3sImageLoader;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Phase;
+import org.springframework.cloud.kubernetes.integration.tests.commons.PodDiagnostics;
 
 /**
  * @author wind57
@@ -450,7 +451,22 @@ public final class Fabric8ClientKubernetesFixture {
 
 	private void waitForDeployment(String namespace, Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		Awaitilities.awaitUntil(600, 2000, () -> isDeploymentReady(namespace, deploymentName));
+		try {
+			Awaitilities.awaitUntil(600, 2000, () -> isDeploymentReady(namespace, deploymentName));
+		}
+		catch (RuntimeException | Error e) {
+			// "Available replicas: 0" does not say why, so log what kubernetes knows
+			PodDiagnostics.dump(container, namespace, deploymentName, selectorLabels(deployment));
+			throw e;
+		}
+	}
+
+	private Map<String, String> selectorLabels(Deployment deployment) {
+		if (deployment.getSpec() == null || deployment.getSpec().getSelector() == null
+				|| deployment.getSpec().getSelector().getMatchLabels() == null) {
+			return Map.of();
+		}
+		return deployment.getSpec().getSelector().getMatchLabels();
 	}
 
 	private boolean isDeploymentReady(String namespace, String deploymentName) {
