@@ -46,6 +46,10 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
  * @param useEndpointSlices use EndpointSlice instead of Endpoints
  * @param includeExternalNameServices should the discovery also search for services that
  * have "type: ExternalName" in their spec.
+ * @param discoveryServerUrl url of the discovery server
+ * @param filterInstanceMethodsEnabled if true, the SpEL expression set via 'filter' is
+ * allowed to invoke instance methods (for example 'metadata.name.startsWith("a")') on the
+ * evaluated service. By default, it is not allowed.
  */
 // @formatter:off
 @ConfigurationProperties(KubernetesDiscoveryProperties.PREFIX)
@@ -61,7 +65,8 @@ public record KubernetesDiscoveryProperties(
 		@DefaultValue("" + DEFAULT_ORDER) int order,
 		boolean useEndpointSlices,
 		boolean includeExternalNameServices,
-		String discoveryServerUrl) {
+		String discoveryServerUrl,
+		boolean filterInstanceMethodsEnabled) {
 // @formatter:on
 
 	/**
@@ -74,12 +79,21 @@ public record KubernetesDiscoveryProperties(
 
 	}
 
+	public KubernetesDiscoveryProperties(boolean enabled, boolean allNamespaces, Set<String> namespaces,
+			boolean waitCacheReady, long cacheLoadingTimeoutSeconds, boolean includeNotReadyAddresses, String filter,
+			Set<Integer> knownSecurePorts, Map<String, String> serviceLabels, String primaryPortName, Metadata metadata,
+			int order, boolean useEndpointSlices, boolean includeExternalNameServices, String discoveryServerUrl) {
+		this(enabled, allNamespaces, namespaces, waitCacheReady, cacheLoadingTimeoutSeconds, includeNotReadyAddresses,
+				filter, knownSecurePorts, serviceLabels, primaryPortName, metadata, order, useEndpointSlices,
+				includeExternalNameServices, discoveryServerUrl, false);
+	}
+
 	/**
 	 * Default instance.
 	 */
 	public static final KubernetesDiscoveryProperties DEFAULT = new KubernetesDiscoveryProperties(true, false, Set.of(),
 			true, 60, false, null, Set.of(), Map.of(), null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false,
-			false, null);
+			false, null, false);
 
 	/**
 	 * @param addLabels include labels as metadata
