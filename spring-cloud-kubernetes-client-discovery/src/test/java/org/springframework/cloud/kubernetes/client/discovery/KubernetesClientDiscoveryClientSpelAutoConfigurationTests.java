@@ -123,52 +123,26 @@ class KubernetesClientDiscoveryClientSpelAutoConfigurationTests {
 		Assertions.assertThat(filtered).isEmpty();
 	}
 
-	/**
-	 * instance methods are explicitly enabled, so 'startsWith' can be invoked.
-	 */
 	@Test
-	void testInstanceMethodsEnabledPrefix() {
-		Predicate<V1Service> predicate = predicate("#root.metadata.name.startsWith('service')", true);
+	void testPrefix() {
+		Predicate<V1Service> predicate = predicate("#root.metadata.name matches '^service.*'");
 
 		Assertions.assertThat(prefixed(predicate)).containsExactly("serviceA", "serviceB");
 	}
 
-	/**
-	 * same as above, but using the 'matches' operator, which needs no instance methods.
-	 */
 	@Test
-	void testInstanceMethodsDisabledPrefix() {
-		Predicate<V1Service> predicate = predicate("#root.metadata.name matches '^service.*'", false);
-
-		Assertions.assertThat(prefixed(predicate)).containsExactly("serviceA", "serviceB");
-	}
-
-	/**
-	 * instance methods are explicitly enabled, so 'containsKey' can be invoked.
-	 */
-	@Test
-	void testInstanceMethodsEnabledLabels() {
-		Predicate<V1Service> predicate = predicate("#root.metadata.labels.containsKey(\"number\")", true);
-
-		Assertions.assertThat(labeled(predicate)).containsExactly("withLabel");
-	}
-
-	/**
-	 * same as above, but using map indexing, which needs no instance methods.
-	 */
-	@Test
-	void testInstanceMethodsDisabledLabels() {
+	void testLabels() {
 		Predicate<V1Service> predicate = predicate(
-				"#root.metadata.labels != null and #root.metadata.labels[\"number\"] != null", false);
+				"#root.metadata.labels != null and #root.metadata.labels[\"number\"] != null");
 
 		Assertions.assertThat(labeled(predicate)).containsExactly("withLabel");
 	}
 
 	/**
-	 * instance methods are disabled by default, so invoking one must fail.
+	 * invoking instance methods is not allowed, so this must fail.
 	 */
 	@Test
-	void testInstanceMethodsDisabledByDefault() {
+	void testInstanceMethodsNotAllowed() {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
 				false, "#root.metadata.name.startsWith('service')", Set.of(), Map.of(), null, null, 0, false, false,
 				null);
@@ -180,9 +154,9 @@ class KubernetesClientDiscoveryClientSpelAutoConfigurationTests {
 			.hasMessageContaining("EL1004E");
 	}
 
-	private Predicate<V1Service> predicate(String spelFilter, boolean filterInstanceMethodsEnabled) {
+	private Predicate<V1Service> predicate(String spelFilter) {
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, false, Set.of(), true, 60L,
-				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null, filterInstanceMethodsEnabled);
+				false, spelFilter, Set.of(), Map.of(), null, null, 0, false, false, null);
 		return toTest.predicate(properties);
 	}
 
