@@ -46,6 +46,7 @@ import static org.springframework.cloud.client.discovery.DiscoveryClient.DEFAULT
  * @param useEndpointSlices use EndpointSlice instead of Endpoints
  * @param includeExternalNameServices should the discovery also search for services that
  * have "type: ExternalName" in their spec.
+ * @param discoveryServerUrl url of the discovery server
  */
 // @formatter:off
 @ConfigurationProperties(KubernetesDiscoveryProperties.PREFIX)

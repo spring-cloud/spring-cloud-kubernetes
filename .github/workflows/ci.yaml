@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Determine build matrix
         id: determine
-        uses: spring-cloud/spring-cloud-github-actions/.github/actions/determine-matrix@dcb46519e39cac30da944657880e628f1acaba23 # v1.1.2
+        uses: spring-cloud/spring-cloud-github-actions/.github/actions/determine-matrix@3438b5f08fb79debef7a7a8b76a9a74391680b86 # v1.1.3
         with:
           repository: ${{ github.repository }}
           event-name: ${{ github.event_name }}
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch CI for non-default branches
-        uses: spring-cloud/spring-cloud-github-actions/.github/actions/trigger-branch-ci@dcb46519e39cac30da944657880e628f1acaba23 # v1.1.2
+        uses: spring-cloud/spring-cloud-github-actions/.github/actions/trigger-branch-ci@3438b5f08fb79debef7a7a8b76a9a74391680b86 # v1.1.3
         with:
           non-default-branches: ${{ needs.determine-matrix.outputs.non-default-branches }}
           repository: ${{ github.repository }}

@@ -31,8 +31,10 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
 import org.springframework.cloud.kubernetes.commons.discovery.SelectiveNamespaces;
+import org.springframework.expression.spel.SpelEvaluationException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @EnableKubernetesMockClient(crud = true, https = false)
 class Fabric8DiscoveryClientFilterTest extends Fabric8DiscoveryClientBase {
@@ -101,7 +103,7 @@ class Fabric8DiscoveryClientFilterTest extends Fabric8DiscoveryClientBase {
 		mockClient.endpoints().inNamespace(NAMESPACE).resource(endpoints).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
-				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
+				false, "metadata.name matches '^service.*'", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 		Fabric8DiscoveryClient client = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of(NAMESPACE)),
 				mockClient);
@@ -109,12 +111,25 @@ class Fabric8DiscoveryClientFilterTest extends Fabric8DiscoveryClientBase {
 		assertThat(filteredServices).containsExactlyInAnyOrder("serviceA", "serviceB", "serviceC");
 
 		properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60, false,
-				"metadata.name.startsWith('another')", Set.of(), Map.of(), null,
+				"metadata.name matches '^another.*'", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 		client = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
 		filteredServices = client.getServices();
 		assertThat(filteredServices).containsExactlyInAnyOrder("anotherService");
 
+	}
+
+	@Test
+	void testInstanceMethodsNotAllowed() {
+		createSpringBootServiceByName(List.of("serviceA"));
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
+		Fabric8DiscoveryClient client = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of(NAMESPACE)),
+				mockClient);
+		assertThatThrownBy(client::getServices).isInstanceOf(SpelEvaluationException.class)
+			.hasMessageContaining("EL1004E");
 	}
 
 	@Test

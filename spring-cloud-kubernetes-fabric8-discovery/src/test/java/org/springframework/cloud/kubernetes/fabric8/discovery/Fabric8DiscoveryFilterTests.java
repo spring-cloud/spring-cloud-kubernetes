@@ -282,7 +282,7 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 	 *     - all-namespaces = false
 	 *     - specific namespace = namespaceA, namespaceB
 	 *     - labels = {}
-	 *     - filter = "#root.metadata.labels.containsKey("number")"
+	 *     - filter = "#root.metadata.labels != null and #root.metadata.labels["number"] != null"
 	 *       (namespaceA or namespaceC)
 	 *
 	 *     - serviceA exists in namespaceA with labels = {color=red, number=1}
@@ -298,7 +298,7 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		boolean allNamespaces = false;
 		Map<String, String> labels = Map.of();
 		String spelFilter = """
-							#root.metadata.labels.containsKey("number")
+							#root.metadata.labels != null and #root.metadata.labels["number"] != null
 				""".stripLeading();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
@@ -408,7 +408,7 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 	 *     - all-namespaces = false
 	 *     - some namespaces = [namespaceA, namespaceB]
 	 *     - labels = {color=purple}
-	 *     - filter = #root.metadata.labels.containsKey("number")
+	 *     - filter = #root.metadata.labels != null and #root.metadata.labels["number"] != null
 	 *
 	 *     - serviceA exists in namespaceA with labels = {color=purple}
 	 *     - serviceA exists in namespaceB with labels = {color=red}
@@ -423,7 +423,7 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 		Set<String> someNamespaces = Set.of("namespaceA", "namespaceB");
 		Map<String, String> labels = Map.of("color", "purple");
 		String spelFilter = """
-							#root.metadata.labels.containsKey("number")
+							#root.metadata.labels != null and #root.metadata.labels["number"] != null
 				""".stripLeading();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
