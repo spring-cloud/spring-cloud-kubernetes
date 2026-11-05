@@ -1,0 +1,30 @@
+= AOT and Native Images (Work in Progress)
+
+Native Image support in Spring Cloud Kubernetes is a work in progress. We are starting by building the Spring Cloud Kubernetes controller images as native images, with Configuration Watcher as the first one. This page describes that initial work and may change as support develops.
+
+== Configuration Watcher
+
+A native image build has two relevant steps: Spring AOT processes the application first, then GraalVM Native Image compiles the AOT output into an executable. During AOT processing, Spring evaluates conditions such as `@ConditionalOnProperty` and generates the bean definitions that will be compiled into the image. A property used by one of these conditions must be set when AOT runs; otherwise, a bean omitted at that point cannot be added when the native image starts.
+
+For example, Configuration Watcher can enable secrets monitoring with the runtime environment variable `SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED=TRUE`. For a native image, that runtime variable cannot restore the Secrets detector if AOT omitted its bean. Set the equivalent property for the JVM used by the `process-aot` goal with `spring-boot.aot.jvmArguments`:
+
+[source,shell]
+----
+mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher \
+    -am clean install -Pnative -DskipITs -DskipTests \
+    -Dspring-boot.build-image.cleanCache=true \
+    '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true'
+----
+
+The last argument has two parts:
+
+* `-Dspring-boot.aot.jvmArguments=...` is a Maven property read by the Spring Boot Maven plugin for AOT processing.
+* The nested `-Dspring.cloud.kubernetes.secrets.enabled=true` is passed to the JVM running `process-aot`, so Spring sees Secrets as enabled when it evaluates the conditions and generates the bean definitions.
+
+The build-time sequence is:
+
+. Maven passes the nested property to the JVM running `process-aot`.
+. Spring AOT sees Secrets enabled and includes the Secrets detector in the generated bean definitions.
+. GraalVM Native Image compiles those definitions into the native executable.
+
+The quotes keep the complete Maven property together in the shell. This is a build-time setting for the AOT-generated bean graph; a Kubernetes environment variable set at runtime cannot add a detector that was left out during AOT processing.
