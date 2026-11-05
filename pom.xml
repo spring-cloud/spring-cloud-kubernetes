@@ -308,6 +308,22 @@
 						</plugin>
 					</plugins>
 				</pluginManagement>
+				<plugins>
+					<plugin>
+						<groupId>org.graalvm.buildtools</groupId>
+						<artifactId>native-maven-plugin</artifactId>
+						<version>1.1.14</version>
+						<executions>
+							<execution>
+								<id>add-reachability-metadata</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>add-reachability-metadata</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
 			</build>
 		</profile>
 
