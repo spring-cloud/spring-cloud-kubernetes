@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.github.dockerjava.api.command.ListImagesCmd;
-import com.github.dockerjava.api.command.PullImageCmd;
 import com.github.dockerjava.api.command.SaveImageCmd;
 import com.github.dockerjava.api.model.Image;
 import org.apache.commons.logging.Log;
@@ -134,24 +133,13 @@ public final class K3sImageLoader {
 	public static void validateImage(String image, K3sContainer container) {
 		try (ListImagesCmd listImagesCmd = container.getDockerClient().listImagesCmd()) {
 			List<Image> images = listImagesCmd.exec();
-			images.stream()
-				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
-					.anyMatch(y -> y.contains(image)))
-				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException("Image : " + image + " not build locally. "
-						+ "You need to build it first, and then run the test"));
-		}
-	}
-
-	public static void pullImage(String imageWithTag, String tarName, K3sContainer container)
-			throws InterruptedException {
-
-		if (imageAlreadyInK3s(container, tarName)) {
-			return;
-		}
-
-		try (PullImageCmd pullImageCmd = container.getDockerClient().pullImageCmd(imageWithTag)) {
-			pullImageCmd.start().awaitCompletion();
+			boolean imageFound = images.stream()
+				.anyMatch(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
+					.anyMatch(y -> y.contains(image)));
+			if (!imageFound) {
+				throw new IllegalArgumentException("Image : " + image + " not build locally. "
+						+ "You need to build it first, and then run the test");
+			}
 		}
 	}
 
