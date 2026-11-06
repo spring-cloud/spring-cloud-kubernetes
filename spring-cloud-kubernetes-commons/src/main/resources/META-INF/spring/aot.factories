@@ -1,2 +1,2 @@
 org.springframework.aot.hint.RuntimeHintsRegistrar=\
-org.springframework.cloud.kubernetes.commons.configdata.KubernetesConfigDataRuntimeHints
+org.springframework.cloud.kubernetes.commons.configdata.KubernetesClientConfigurationPropertiesRuntimeHints

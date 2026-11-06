@@ -28,10 +28,10 @@ import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperti
 import org.springframework.cloud.kubernetes.commons.config.SourceConfigProperties;
 
 /**
- * Registers runtime hints needed to bind Spring Cloud Kubernetes ConfigData properties in
+ * Registers runtime hints needed to bind Spring Cloud Kubernetes configuration properties in
  * a native image.
  */
-class KubernetesConfigDataRuntimeHints implements RuntimeHintsRegistrar {
+class KubernetesClientConfigurationPropertiesRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {

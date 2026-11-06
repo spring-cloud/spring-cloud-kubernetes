@@ -28,14 +28,14 @@ import org.springframework.cloud.kubernetes.commons.config.SourceConfigPropertie
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests the runtime hints used for binding Kubernetes ConfigData properties.
+ * Tests the runtime hints used for binding Kubernetes configuration properties.
  */
-class KubernetesConfigDataRuntimeHintsTests {
+class KubernetesClientConfigurationPropertiesRuntimeHintsTests {
 
 	@Test
 	void registersConstructorBindingHints() {
 		RuntimeHints hints = new RuntimeHints();
-		new KubernetesConfigDataRuntimeHints().registerHints(hints, getClass().getClassLoader());
+		new KubernetesClientConfigurationPropertiesRuntimeHints().registerHints(hints, getClass().getClassLoader());
 
 		assertConstructorHint(hints, ConfigMapConfigProperties.class);
 		assertConstructorHint(hints, SecretsConfigProperties.class);
