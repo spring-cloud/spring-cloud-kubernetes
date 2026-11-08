@@ -28,3 +28,15 @@ The build-time sequence is:
 . GraalVM Native Image compiles those definitions into the native executable.
 
 The quotes keep the complete Maven property together in the shell. This is a build-time setting for the AOT-generated bean graph; a Kubernetes environment variable set at runtime cannot add a detector that was left out during AOT processing.
+
+Another example is enabling HA for Configuration Watcher. Its HA auto-configuration is conditional on `spring.cloud.kubernetes.configuration.watcher.ha.enabled`, so that property must also be set while `process-aot` runs. Add it to the same `spring-boot.aot.jvmArguments` value:
+
+[source,shell]
+----
+mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuration-watcher \
+    -am clean install -Pnative -DskipITs -DskipTests \
+    -Dspring-boot.build-image.cleanCache=true \
+    '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true -Dspring.cloud.kubernetes.configuration.watcher.ha.enabled=true'
+----
+
+This causes Spring AOT to include the HA coordinator and leader-election configuration in the native image. The corresponding Kubernetes environment variables are still needed at runtime to turn HA on in the deployed pods.
