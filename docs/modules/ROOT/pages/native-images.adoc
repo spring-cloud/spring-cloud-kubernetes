@@ -38,5 +38,3 @@ mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuratio
     -Dspring-boot.build-image.cleanCache=true \
     '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true -Dspring.cloud.kubernetes.configuration.watcher.ha.enabled=true'
 ----
-
-This causes Spring AOT to include the HA coordinator and leader-election configuration in the native image. The corresponding Kubernetes environment variables are still needed at runtime to turn HA on in the deployed pods.
