@@ -1,12 +1,12 @@
-= AOT and Native Images (Work in Progress)
+= AOT and Native Images (Preview)
 
-Native Image support in Spring Cloud Kubernetes is a work in progress. We are starting by building the Spring Cloud Kubernetes controller images as native images, with Configuration Watcher as the first one. This page describes that initial work and may change as support develops.
+Native Image support in Spring Cloud Kubernetes is a preview and is subject to change in subsequent releases, including breaking changes. This page describes the current support.
 
 == Configuration Watcher
 
 A native image build has two relevant steps: Spring AOT processes the application first, then GraalVM Native Image compiles the AOT output into an executable. During AOT processing, Spring evaluates conditions such as `@ConditionalOnProperty` and generates the bean definitions that will be compiled into the image. A property used by one of these conditions must be set when AOT runs; otherwise, a bean omitted at that point cannot be added when the native image starts.
 
-For example, Configuration Watcher can enable secrets monitoring with the runtime environment variable `SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED=TRUE`. For a native image, that runtime variable cannot restore the Secrets detector if AOT omitted its bean. Set the equivalent property for the JVM used by the `process-aot` goal with `spring-boot.aot.jvmArguments`:
+For example, Configuration Watcher can enable secrets monitoring with the runtime environment variable `SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED=TRUE`. For a native image, that runtime variable cannot restore the Secrets detector if AOT omitted its bean. Set the equivalent property for the JVM used by the `process-aot` goal with `spring-boot.aot.jvmArguments` (notice also the `-Pnative` profile activation that is mantatory for native image) builds):
 
 [source,shell]
 ----
