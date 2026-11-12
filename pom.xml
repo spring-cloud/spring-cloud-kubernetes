@@ -92,6 +92,7 @@
 		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
 		<maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
+		<native-maven-plugin.version>1.1.14</native-maven-plugin.version>
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>5.1.0-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>5.1.0-SNAPSHOT</spring-cloud-config.version>
@@ -210,6 +211,11 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.graalvm.buildtools</groupId>
+					<artifactId>native-maven-plugin</artifactId>
+					<version>${native-maven-plugin.version}</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -274,7 +280,58 @@
 		</plugins>
 	</reporting>
 
+	<!-- profile needed for the native image build -->
 	<profiles>
+		<profile>
+			<id>native</id>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.springframework.boot</groupId>
+							<artifactId>spring-boot-maven-plugin</artifactId>
+							<configuration>
+								<image>
+									<env>
+										<BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
+									</env>
+								</image>
+							</configuration>
+							<executions>
+								<execution>
+									<id>process-aot</id>
+									<configuration>
+										<systemPropertyVariables>
+											<spring.main.cloud-platform>KUBERNETES</spring.main.cloud-platform>
+											<spring.cloud.kubernetes.client.namespace>default</spring.cloud.kubernetes.client.namespace>
+										</systemPropertyVariables>
+									</configuration>
+									<goals>
+										<goal>process-aot</goal>
+									</goals>
+								</execution>
+							</executions>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+				<plugins>
+					<plugin>
+						<groupId>org.graalvm.buildtools</groupId>
+						<artifactId>native-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>add-reachability-metadata</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>add-reachability-metadata</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
 		<profile>
 			<id>central</id>
 			<build>
