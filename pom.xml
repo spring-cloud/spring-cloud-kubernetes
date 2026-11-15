@@ -351,6 +351,7 @@
 								<artifact>spring-cloud-kubernetes-fabric8-leader-election</artifact>
 								<artifact>spring-cloud-kubernetes-k8s-client-catalog-watcher</artifact>
 								<artifact>spring-cloud-kubernetes-k8s-client-configuration-watcher</artifact>
+								<artifact>spring-cloud-kubernetes-k8s-client-configserver</artifact>
 								<artifact>spring-cloud-kubernetes-k8s-client-discovery-server</artifact>
 								<artifact>spring-cloud-kubernetes-k8s-client-discovery</artifact>
 								<artifact>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</artifact>

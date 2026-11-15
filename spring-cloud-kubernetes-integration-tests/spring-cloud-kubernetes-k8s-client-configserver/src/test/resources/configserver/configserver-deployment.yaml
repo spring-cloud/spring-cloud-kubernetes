@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-kubernetes-configserver-native-it
+spec:
+  selector:
+    matchLabels:
+      app: spring-cloud-kubernetes-configserver-native-it
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configserver-native-it
+    spec:
+      serviceAccountName: spring-cloud-kubernetes-serviceaccount
+      containers:
+        - name: configserver
+          image: docker.io/springcloud/spring-cloud-kubernetes-configserver
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_CONFIG_NAME
+              value: application
+          ports:
+            - name: http
+              containerPort: 8888
+          readinessProbe:
+            tcpSocket:
+              port: 8888
+            initialDelaySeconds: 2
+            periodSeconds: 2
+            failureThreshold: 60

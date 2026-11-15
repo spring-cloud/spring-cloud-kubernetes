@@ -90,6 +90,9 @@
 		<!-- configuration watcher is based on k8s-client, there's no fabric8 counterpart -->
 		<module>spring-cloud-kubernetes-k8s-client-configuration-watcher</module>
 
+		<!-- Config Server native image -->
+		<module>spring-cloud-kubernetes-k8s-client-configserver</module>
+
 		<!-- config watcher reload, using kafka and configmap -->
 		<module>spring-cloud-kubernetes-k8s-client-kafka-configmap-reload</module>
 

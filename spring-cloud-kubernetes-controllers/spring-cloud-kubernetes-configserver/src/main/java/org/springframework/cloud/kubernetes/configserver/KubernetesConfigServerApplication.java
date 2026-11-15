@@ -28,8 +28,7 @@ import org.springframework.cloud.config.server.EnableConfigServer;
 public class KubernetesConfigServerApplication {
 
 	public static void main(String[] args) {
-		new SpringApplicationBuilder(KubernetesConfigServerApplication.class)
-			.run(args);
+		new SpringApplicationBuilder(KubernetesConfigServerApplication.class).run(args);
 	}
 
 }
