@@ -19,11 +19,11 @@ package org.springframework.cloud.kubernetes.client.config;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
 import org.springframework.cloud.kubernetes.commons.KubernetesCommonsAutoConfiguration;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +44,7 @@ class KubernetesClientPropertiesConfigDataRegistrationTests {
 		assertThat(applicationContext.getBean(KubernetesClientProperties.class)).isNotNull();
 	}
 
-	@SpringBootConfiguration(proxyBeanMethods = false)
+	@Configuration(proxyBeanMethods = false)
 	@Import(KubernetesCommonsAutoConfiguration.class)
 	static class TestApplication {
 
