@@ -92,7 +92,7 @@
 		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
 		<maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
-		<native-maven-plugin.version>1.1.14</native-maven-plugin.version>
+		<native-maven-plugin.version>1.1.18</native-maven-plugin.version>
 		<mockito-inline.version>4.8.1</mockito-inline.version>
 		<spring-cloud-commons.version>5.1.0-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-config.version>5.1.0-SNAPSHOT</spring-cloud-config.version>
