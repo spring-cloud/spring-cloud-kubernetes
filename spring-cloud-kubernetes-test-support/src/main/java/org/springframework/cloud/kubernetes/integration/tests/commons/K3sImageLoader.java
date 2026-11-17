@@ -134,7 +134,7 @@ public final class K3sImageLoader {
 	public static void validateImage(String image, K3sContainer container) {
 		try (ListImagesCmd listImagesCmd = container.getDockerClient().listImagesCmd()) {
 			List<Image> images = listImagesCmd.exec();
-			images.stream()
+			var unused = images.stream()
 				.filter(x -> Arrays.stream(x.getRepoTags() == null ? new String[] {} : x.getRepoTags())
 					.anyMatch(y -> y.contains(image)))
 				.findFirst()

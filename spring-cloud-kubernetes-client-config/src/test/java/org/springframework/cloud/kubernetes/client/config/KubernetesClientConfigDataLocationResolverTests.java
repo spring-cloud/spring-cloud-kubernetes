@@ -38,6 +38,7 @@ import org.springframework.cloud.kubernetes.commons.config.ConfigMapConfigProper
 import org.springframework.cloud.kubernetes.commons.config.ConfigMapPropertySourceLocator;
 import org.springframework.cloud.kubernetes.commons.config.SecretsConfigProperties;
 import org.springframework.cloud.kubernetes.commons.config.SecretsPropertySourceLocator;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -81,6 +82,32 @@ class KubernetesClientConfigDataLocationResolverTests {
 
 		Assertions.assertThat(context.isRegistered(ConfigMapPropertySourceLocator.class)).isFalse();
 		Assertions.assertThat(context.isRegistered(SecretsPropertySourceLocator.class)).isFalse();
+	}
+
+	@Test
+	void registersCoreV1ApiInApplicationContextWhenBootstrapContextCloses() {
+		MockEnvironment environment = new MockEnvironment();
+		environment.setProperty("spring.cloud.kubernetes.config.enabled", "false");
+		environment.setProperty("spring.cloud.kubernetes.secrets.enabled", "false");
+
+		Binder binder = new Binder(ConfigurationPropertySources.get(environment));
+
+		DefaultBootstrapContext bootstrapContext = new DefaultBootstrapContext();
+		Mockito.when(RESOLVER_CONTEXT.getBinder()).thenReturn(binder);
+		Mockito.when(RESOLVER_CONTEXT.getBootstrapContext()).thenReturn(bootstrapContext);
+
+		Profiles profiles = Mockito.mock(Profiles.class);
+		ConfigDataLocation configDataLocation = ConfigDataLocation.of("kubernetes:abc");
+		RESOLVER.resolveProfileSpecific(RESOLVER_CONTEXT, configDataLocation, profiles);
+
+		CoreV1Api configDataCoreV1Api = bootstrapContext.get(CoreV1Api.class);
+		try (GenericApplicationContext applicationContext = new GenericApplicationContext()) {
+
+			// closing the context registers the beans from the bootstrap context into the application context
+			bootstrapContext.close(applicationContext);
+			Assertions.assertThat(applicationContext.getBeanFactory().getSingleton("configDataCoreV1Api"))
+				.isSameAs(configDataCoreV1Api);
+		}
 	}
 
 	/*
