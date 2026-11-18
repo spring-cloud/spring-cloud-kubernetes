@@ -67,6 +67,7 @@ import static io.kubernetes.client.informer.EventType.MODIFIED;
 				"spring.cloud.kubernetes.reload.monitoring-config-maps=true",
 				"spring.cloud.kubernetes.reload.monitoring-secrets=false",
 				"spring.cloud.kubernetes.reload.config-maps-labels[spring.cloud.kubernetes.config]=true",
+				"spring.cloud.kubernetes.leader.election.enabled=false",
 				"spring.cloud.kubernetes.configuration.watcher.refresh-delay=1ms" })
 class ConfigMapWatcherWithLabelsTest {
 

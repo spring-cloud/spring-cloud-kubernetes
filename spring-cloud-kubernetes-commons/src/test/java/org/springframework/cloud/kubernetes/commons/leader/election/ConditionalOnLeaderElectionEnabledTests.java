@@ -75,9 +75,9 @@ class ConditionalOnLeaderElectionEnabledTests {
 	}
 
 	@Test
-	void leaderElectionNotPresentHaNotPresentTest() {
+	void leaderElectionNotPresentHaNotPresentDefaultsToEnabledTest() {
 		new ApplicationContextRunner().withUserConfiguration(TestConfig.class)
-			.run(context -> Assertions.assertThat(context).doesNotHaveBean("leaderEnabled"));
+			.run(context -> Assertions.assertThat(context).hasBean("leaderEnabled"));
 	}
 
 	@TestConfiguration(proxyBeanMethods = false)

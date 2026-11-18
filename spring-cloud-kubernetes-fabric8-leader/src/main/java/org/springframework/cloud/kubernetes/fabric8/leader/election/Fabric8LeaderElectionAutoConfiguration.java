@@ -45,9 +45,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.log.LogAccessor;
 
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.COORDINATION_GROUP;
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.COORDINATION_VERSION;
-import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEASE;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderUtils.COORDINATION_GROUP;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderUtils.COORDINATION_VERSION;
+import static org.springframework.cloud.kubernetes.commons.leader.election.LeaderUtils.LEASE;
 
 /**
  * @author wind57
