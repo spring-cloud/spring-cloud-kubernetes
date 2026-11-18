@@ -103,7 +103,8 @@ class KubernetesClientConfigDataLocationResolverTests {
 		CoreV1Api configDataCoreV1Api = bootstrapContext.get(CoreV1Api.class);
 		try (GenericApplicationContext applicationContext = new GenericApplicationContext()) {
 
-			// closing the context registers the beans from the bootstrap context into the application context
+			// closing the context registers the beans from the bootstrap context into the
+			// application context
 			bootstrapContext.close(applicationContext);
 			Assertions.assertThat(applicationContext.getBeanFactory().getSingleton("configDataCoreV1Api"))
 				.isSameAs(configDataCoreV1Api);
