@@ -25,6 +25,7 @@ import io.kubernetes.client.util.ClientBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
@@ -49,6 +50,7 @@ public class FirstConfig {
 	}
 
 	@Bean
+	@Primary
 	CoreV1Api coreApi(ApiClient apiClient) {
 		return new CoreV1Api(apiClient);
 	}

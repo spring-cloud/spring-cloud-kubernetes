@@ -38,3 +38,32 @@ mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuratio
     -Dspring-boot.build-image.cleanCache=true \
     '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true -Dspring.cloud.kubernetes.configuration.watcher.ha.enabled=true'
 ----
+
+== Config Server
+
+The Config Server includes Kubernetes ConfigMap support by default. Secret support is conditional on `spring.cloud.kubernetes.secrets.enabled`.
+
+Spring Cloud context refresh and `@RefreshScope` are not supported for Spring AOT and native images. Config Server normally puts its `EnvironmentController` in refresh scope so it can be recreated after the Config Server's own configuration is refreshed. For a native image, disable refresh while AOT runs; Config Server will use the regular controller, and refresh events will not recreate it. A runtime property cannot restore refresh-scope behavior omitted during AOT.
+
+To include Secret support, disable refresh scope, and have Spring AOT process `application.yaml`, set these properties while Spring AOT runs:
+
+[source,shell]
+----
+mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver \
+    -am clean install -Pnative -DskipITs -DskipTests \
+    -Dspring-boot.build-image.cleanCache=true \
+    '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true -Dspring.cloud.refresh.enabled=false -Dspring.config.name=application'
+----
+
+The application sets `spring.config.name=configserver` by default, while its packaged configuration file is named `application.yaml`. Set `SPRING_CONFIG_NAME=application` in the running container as well so it loads that file at runtime, including `server.port=8888`.
+
+The Config Server native image smoke test is in the integration-tests module. It starts the image in k3s, creates a ConfigMap, and verifies that the Config Server endpoint returns a value from it. Build the image and run that test with:
+
+[source,shell]
+----
+mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver,spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-k8s-client-configserver \
+    -am clean verify -Pnative -DskipTests \
+    '-DtestsToRun=**/ConfigServerNativeIT.java' \
+    -Dspring-boot.build-image.cleanCache=true \
+    '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.refresh.enabled=false'
+----

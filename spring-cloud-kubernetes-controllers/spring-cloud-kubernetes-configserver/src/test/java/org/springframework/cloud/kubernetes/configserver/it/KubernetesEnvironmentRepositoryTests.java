@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.JSON;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ConfigMapList;
 import io.kubernetes.client.openapi.models.V1SecretList;
 import io.kubernetes.client.util.ClientBuilder;
@@ -46,6 +47,7 @@ import org.springframework.cloud.config.environment.PropertySource;
 import org.springframework.cloud.kubernetes.configserver.KubernetesConfigServerApplication;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -118,6 +120,12 @@ class KubernetesEnvironmentRepositoryTests {
 		@Bean
 		ApiClient apiClient() {
 			return new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build();
+		}
+
+		@Bean
+		@Primary
+		CoreV1Api coreApi(ApiClient apiClient) {
+			return new CoreV1Api(apiClient);
 		}
 
 	}
