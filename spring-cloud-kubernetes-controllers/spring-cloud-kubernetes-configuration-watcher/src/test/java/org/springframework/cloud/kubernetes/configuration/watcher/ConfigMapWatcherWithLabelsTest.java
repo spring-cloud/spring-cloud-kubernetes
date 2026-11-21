@@ -47,6 +47,7 @@ import org.springframework.cloud.kubernetes.client.KubernetesClientUtils;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.integration.tests.commons.Awaitilities;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -183,6 +184,7 @@ class ConfigMapWatcherWithLabelsTest {
 	static class TestConfig {
 
 		@Bean
+		@Primary
 		CoreV1Api coreV1Api() {
 			return new CoreV1Api(new ClientBuilder().setBasePath(wireMockServer.baseUrl()).build());
 		}

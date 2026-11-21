@@ -69,7 +69,7 @@ public class ConfigReloadAutoConfiguration {
 		String strategyName = properties.strategy().name();
 		return switch (properties.strategy()) {
 			case RESTART_CONTEXT -> {
-				restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
+				var unused = restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
 				yield new ConfigurationUpdateStrategy(strategyName, () -> {
 					wait(properties);
 					restarter.get().restart();
