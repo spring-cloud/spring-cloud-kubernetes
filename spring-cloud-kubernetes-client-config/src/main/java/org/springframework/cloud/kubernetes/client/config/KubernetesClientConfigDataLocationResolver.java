@@ -19,7 +19,6 @@ package org.springframework.cloud.kubernetes.client.config;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 
-import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.boot.bootstrap.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.cloud.kubernetes.commons.KubernetesClientProperties;
@@ -83,7 +82,7 @@ public class KubernetesClientConfigDataLocationResolver extends KubernetesConfig
 		registerSingle(bootstrapContext, ApiClient.class, apiClient, "configDataApiClient");
 
 		CoreV1Api coreV1Api = new CoreV1Api(apiClient);
-		bootstrapContext.registerIfAbsent(CoreV1Api.class, BootstrapRegistry.InstanceSupplier.of(coreV1Api));
+		registerSingle(bootstrapContext, CoreV1Api.class, coreV1Api, "configDataCoreV1Api");
 
 		return coreV1Api;
 	}
