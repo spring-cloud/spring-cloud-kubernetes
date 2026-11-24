@@ -87,8 +87,7 @@ class ConfigServerNativeIT {
 			.retryWhen(retrySpec())
 			.block();
 
-		assertThat(response.getStatusCode().value())
-			.as("Config Server response body: %s", response.getBody())
+		assertThat(response.getStatusCode().value()).as("Config Server response body: %s", response.getBody())
 			.isEqualTo(200);
 
 		Environment environment = new ObjectMapper().readValue(response.getBody(), Environment.class);
