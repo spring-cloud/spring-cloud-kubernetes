@@ -16,9 +16,6 @@ spec:
         - name: configserver
           image: docker.io/springcloud/spring-cloud-kubernetes-configserver
           imagePullPolicy: IfNotPresent
-          env:
-            - name: SPRING_CONFIG_NAME
-              value: application
           ports:
             - name: http
               containerPort: 8888

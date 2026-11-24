@@ -55,7 +55,7 @@ mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver
     '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true -Dspring.cloud.refresh.enabled=false'
 ----
 
-The application sets `spring.config.name=configserver` by default, while its packaged configuration file is named `application.yaml`. Set `SPRING_CONFIG_NAME=application` in the running container as well so it loads that file at runtime, including `server.port=8888`.
+The Config Server's packaged `application.yaml` sets `server.port=8888`.
 
 The Config Server native image smoke test is in the integration-tests module. It starts the image in k3s, creates a ConfigMap, and verifies that the Config Server endpoint returns a value from it. Build the image and run that test with:
 
