@@ -16,14 +16,8 @@
 
 package org.springframework.cloud.kubernetes.configserver.it;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
-import java.util.List;
+import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.kubernetes.client.openapi.models.V1ConfigMap;
 import io.kubernetes.client.openapi.models.V1ConfigMapBuilder;
@@ -34,10 +28,16 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.config.environment.Environment;
 import org.springframework.cloud.kubernetes.integration.tests.commons.k3s.NativeClientIntegrationTest;
 import org.springframework.cloud.kubernetes.integration.tests.commons.native_client.NativeClientKubernetesFixture;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.builder;
+import static org.springframework.cloud.kubernetes.integration.tests.commons.Commons.retrySpec;
 
 /**
  * Verifies that the Config Server native image serves configuration from a Kubernetes
@@ -73,32 +73,30 @@ class ConfigServerNativeIT {
 
 	@AfterAll
 	static void afterAll(NativeClientKubernetesFixture fixture) {
-		if (configServerDeployment != null || configServerService != null) {
-			fixture.deleteAndWait(NAMESPACE, configServerDeployment, configServerService);
-		}
-		if (configMap != null) {
-			fixture.deleteAndWait(NAMESPACE, configMap, null);
-		}
+		fixture.deleteAndWait(NAMESPACE, configServerDeployment, configServerService);
+		fixture.deleteAndWait(NAMESPACE, configMap, null);
 	}
 
 	@Test
 	void servesConfigurationFromConfigMap(NativeClientKubernetesFixture fixture) throws Exception {
 		int nodePort = fixture.nodePort(NAMESPACE, CONFIG_SERVER_SERVICE);
-		HttpRequest request = HttpRequest
-			.newBuilder(URI.create("http://localhost:" + nodePort + "/native-smoke/default"))
-			.timeout(Duration.ofSeconds(30))
-			.GET()
-			.build();
-		HttpResponse<String> response = HttpClient.newBuilder()
-			.connectTimeout(Duration.ofSeconds(10))
-			.build()
-			.send(request, HttpResponse.BodyHandlers.ofString());
+		WebClient webClient = builder().baseUrl("http://localhost:" + nodePort + "/native-smoke/default").build();
+		ResponseEntity<String> response = webClient.method(HttpMethod.GET)
+			.retrieve()
+			.toEntity(String.class)
+			.retryWhen(retrySpec())
+			.block();
 
-		assertThat(response.statusCode()).as("Config Server response body: %s", response.body()).isEqualTo(200);
+		assertThat(response.getStatusCode().value())
+			.as("Config Server response body: %s", response.getBody())
+			.isEqualTo(200);
 
-		JsonNode environment = new ObjectMapper().readTree(response.body());
-		List<JsonNode> values = environment.path("propertySources").findValues("native.image.smoke");
-		assertThat(values.stream().map(JsonNode::asText).toList()).contains("from-configmap");
+		Environment environment = new ObjectMapper().readValue(response.getBody(), Environment.class);
+		assertThat(environment.getPropertySources()).anySatisfy(propertySource -> {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> source = (Map<String, Object>) propertySource.getSource();
+			assertThat(source).containsEntry("native.image.smoke", "from-configmap");
+		});
 	}
 
 }
