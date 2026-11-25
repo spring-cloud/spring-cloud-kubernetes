@@ -61,7 +61,7 @@ runs:
     #    meaning there could be many of them already present and this is not an exact match
     #    github in this case will pick up the latest one, exactly what we want.
     - name: save test times in cache
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6
       with:
         path: /tmp/sorted.txt
         key: ${{ runner.os }}-spring-cloud-k8s-jdk${{ inputs.jdk-version }}-test-times-cache-${{ github.run_id }}
