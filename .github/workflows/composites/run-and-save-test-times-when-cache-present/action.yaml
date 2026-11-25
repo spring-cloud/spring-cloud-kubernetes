@@ -15,13 +15,13 @@ runs:
   steps:
 
     - name: download tests with times
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: tests-with-times-sorted-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/
 
     - name: download tests without times
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: tests-without-times-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/
@@ -190,7 +190,7 @@ runs:
       run: cat /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
 
     - name: upload individual tests
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test_times_${{ inputs.branch }}_jdk${{ inputs.jdk-version }}_${{ env.CURRENT_INDEX }}.txt
         path: /tmp/test_times_${{ env.CURRENT_INDEX }}.txt
