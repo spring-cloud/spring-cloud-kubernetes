@@ -24,7 +24,7 @@ runs:
 
     # we omit the name, as such all artifacts are downloaded
     - name: download all artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         path: /tmp/all-artifacts
 
