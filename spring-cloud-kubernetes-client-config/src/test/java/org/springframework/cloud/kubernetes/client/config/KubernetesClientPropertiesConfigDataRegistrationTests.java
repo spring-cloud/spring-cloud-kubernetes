@@ -28,6 +28,12 @@ import org.springframework.context.annotation.Import;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Verifies that the {@code kubernetes:} Config Data import registers a single
+ * {@link KubernetesClientProperties} bean when Commons auto-configuration is loaded in
+ * the same application context. ConfigMap and Secret loading are disabled so the test
+ * focuses on client-properties registration.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
 		properties = { "spring.main.cloud-platform=KUBERNETES", "spring.config.import=kubernetes:",
 				"spring.cloud.kubernetes.config.enabled=false", "spring.cloud.kubernetes.secrets.enabled=false" },
