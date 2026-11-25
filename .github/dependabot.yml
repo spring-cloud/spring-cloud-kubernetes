@@ -6,7 +6,9 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/workflows/composites/*"
     target-branch: "main"
     exclude-paths:
       - ".github/workflows/release-train-test.yml"
@@ -35,7 +37,9 @@ updates:
     schedule:
       interval: weekly
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directories:
+      - "/"
+      - "/.github/workflows/composites/*"
     target-branch: "5.0.x"
     exclude-paths:
       - ".github/workflows/release-train-test.yml"
