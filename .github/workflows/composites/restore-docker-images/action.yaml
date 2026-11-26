@@ -5,7 +5,7 @@ runs:
   steps:
 
     - name: restore images if cache matches
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v6
       id: images-cache
       with:
         path: /tmp/docker/images
@@ -26,7 +26,7 @@ runs:
         
     - name: save docker images
       id: save-docker-images
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v6
       if: steps.images-cache.outputs.cache-hit != 'true'
       with:
         path: /tmp/docker/images
