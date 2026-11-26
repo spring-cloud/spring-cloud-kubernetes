@@ -35,8 +35,7 @@ public class VisibleKubernetesClientEventBasedSecretsChangeDetector
 			ConfigurableEnvironment environment, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy, KubernetesClientSecretsPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
-				KubernetesClientSecretsPropertySource.class);
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 	}
 
 	@Override

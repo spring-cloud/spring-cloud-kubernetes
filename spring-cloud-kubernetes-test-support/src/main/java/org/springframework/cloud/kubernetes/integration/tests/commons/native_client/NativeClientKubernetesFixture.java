@@ -508,11 +508,10 @@ public final class NativeClientKubernetesFixture {
 	}
 
 	public void configWatcher(Phase phase, String refreshDelay, boolean reloadEnabled, String[] watchNamespaces,
-			boolean kafkaEnabled, boolean rabbitMqEnabled, boolean enableHa, int replicas) {
+			boolean kafkaEnabled, boolean rabbitMqEnabled) {
 
 		V1Deployment deployment = yaml("config-watcher/deployment.yaml", V1Deployment.class);
 		V1Service service = yaml("config-watcher/service.yaml", V1Service.class);
-		deployment.getSpec().setReplicas(replicas);
 
 		List<V1EnvVar> envVars = new ArrayList<>();
 		envVars
@@ -523,11 +522,6 @@ public final class NativeClientKubernetesFixture {
 		envVars.add(new V1EnvVar().name("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_KUBERNETES_CLIENT_CONFIG_RELOAD")
 			.value("DEBUG"));
 		envVars.add(new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_SECRETS_ENABLED").value("TRUE"));
-
-		if (enableHa) {
-			envVars.add(new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_LEADER_ELECTION_ENABLED").value("true"));
-			envVars.add(new V1EnvVar().name("SPRING_CLOUD_KUBERNETES_CONFIGURATION_WATCHER_HA_ENABLED").value("true"));
-		}
 
 		if (kafkaEnabled) {
 			envVars.add(new V1EnvVar().name("SPRING_PROFILES_ACTIVE").value("bus-kafka"));
@@ -622,11 +616,10 @@ public final class NativeClientKubernetesFixture {
 
 	private void waitForDeployment(String namespace, V1Deployment deployment) {
 		String deploymentName = deploymentName(deployment);
-		int expectedReplicas = deployment.getSpec().getReplicas() == null ? 1 : deployment.getSpec().getReplicas();
 		try {
 			Awaitilities.awaitUntil(600, 1000, () -> {
 				try {
-					return isDeploymentReady(deploymentName, namespace, expectedReplicas);
+					return isDeploymentReady(deploymentName, namespace);
 				}
 				catch (ApiException e) {
 					throw new RuntimeException(e);
@@ -777,8 +770,7 @@ public final class NativeClientKubernetesFixture {
 
 	}
 
-	private boolean isDeploymentReady(String deploymentName, String namespace, int expectedReplicas)
-			throws ApiException {
+	private boolean isDeploymentReady(String deploymentName, String namespace) throws ApiException {
 		V1DeploymentList deployments = appsV1Api.listNamespacedDeployment(namespace)
 			.fieldSelector("metadata.name=" + deploymentName)
 			.execute();
@@ -791,7 +783,7 @@ public final class NativeClientKubernetesFixture {
 			logDeploymentConditions(deployment.getStatus().getConditions(), deployment.getMetadata().getNamespace());
 			LOG.info("Available replicas for " + deploymentName + ": "
 					+ (availableReplicas == null ? 0 : availableReplicas));
-			return availableReplicas != null && availableReplicas >= expectedReplicas;
+			return availableReplicas != null && availableReplicas >= 1;
 		}
 		else {
 			return false;

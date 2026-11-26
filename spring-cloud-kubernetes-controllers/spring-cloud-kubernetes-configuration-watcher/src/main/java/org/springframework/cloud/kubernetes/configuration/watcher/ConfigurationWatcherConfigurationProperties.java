@@ -21,7 +21,6 @@ import java.time.temporal.ChronoUnit;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
-import org.springframework.cloud.kubernetes.configuration.watcher.ha.ConfigurationWatcherHaProperties;
 
 /**
  * @author Ryan Baxter
@@ -42,7 +41,7 @@ public class ConfigurationWatcherConfigurationProperties {
 	/**
 	 * not AMQP or KAFKA profile name.
 	 */
-	public static final String NOT_AMQP_NOT_KAFKA = "!" + AMQP + " & !" + KAFKA;
+	static final String NOT_AMQP_NOT_KAFKA = "!" + AMQP + " & !" + KAFKA;
 
 	/**
 	 * label to enable refresh/restart when using configmaps.
@@ -87,8 +86,6 @@ public class ConfigurationWatcherConfigurationProperties {
 	private String actuatorPath = "/actuator";
 
 	private Integer actuatorPort = -1;
-
-	private ConfigurationWatcherHaProperties ha = new ConfigurationWatcherHaProperties();
 
 	public String getActuatorPath() {
 		return actuatorPath;
@@ -135,14 +132,6 @@ public class ConfigurationWatcherConfigurationProperties {
 
 	public void setRefreshStrategy(RefreshStrategy refreshStrategy) {
 		this.refreshStrategy = refreshStrategy;
-	}
-
-	public ConfigurationWatcherHaProperties getHa() {
-		return ha;
-	}
-
-	public void setHa(ConfigurationWatcherHaProperties ha) {
-		this.ha = ha;
 	}
 
 	public enum RefreshStrategy {

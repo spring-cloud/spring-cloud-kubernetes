@@ -23,17 +23,17 @@
 	<parent>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>5.1.1-SNAPSHOT</version>
+		<version>5.0.6-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<artifactId>spring-cloud-kubernetes-dependencies</artifactId>
-	<version>5.1.1-SNAPSHOT</version>
+	<version>5.0.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes :: Dependencies</name>
 	<description>Spring Cloud Kubernetes Dependencies</description>
 	<properties>
-		<kubernetes-fabric8-client.version>8.0.0</kubernetes-fabric8-client.version>
-		<kubernetes-native-client.version>27.0.1</kubernetes-native-client.version>
+		<kubernetes-fabric8-client.version>7.4.1</kubernetes-fabric8-client.version>
+		<kubernetes-native-client.version>24.0.0</kubernetes-native-client.version>
 		<wiremock.version>3.13.2</wiremock.version>
 	</properties>
 	<dependencyManagement>
@@ -48,11 +48,6 @@
 
 			<dependency>
 				<groupId>io.kubernetes</groupId>
-				<artifactId>client-java-api</artifactId>
-				<version>${kubernetes-native-client.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.kubernetes</groupId>
 				<artifactId>client-java</artifactId>
 				<version>${kubernetes-native-client.version}</version>
 			</dependency>
@@ -64,11 +59,6 @@
 			<dependency>
 				<groupId>io.kubernetes</groupId>
 				<artifactId>client-java-spring-integration</artifactId>
-				<version>${kubernetes-native-client.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.kubernetes</groupId>
-				<artifactId>client-java-spring-aot-integration</artifactId>
 				<version>${kubernetes-native-client.version}</version>
 			</dependency>
 

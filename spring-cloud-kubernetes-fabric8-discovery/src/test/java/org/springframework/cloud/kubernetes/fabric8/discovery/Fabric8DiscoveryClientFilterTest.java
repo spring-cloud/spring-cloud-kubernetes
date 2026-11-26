@@ -103,6 +103,38 @@ class Fabric8DiscoveryClientFilterTest extends Fabric8DiscoveryClientBase {
 		mockClient.endpoints().inNamespace(NAMESPACE).resource(endpoints).create();
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
+				false, "metadata.name.startsWith('service')", Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null, true);
+		Fabric8DiscoveryClient client = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of(NAMESPACE)),
+				mockClient);
+		List<String> filteredServices = client.getServices();
+		assertThat(filteredServices).containsExactlyInAnyOrder("serviceA", "serviceB", "serviceC");
+
+		properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60, false,
+				"metadata.name.startsWith('another')", Set.of(), Map.of(), null,
+				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null, true);
+		client = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of(NAMESPACE)), mockClient);
+		filteredServices = client.getServices();
+		assertThat(filteredServices).containsExactlyInAnyOrder("anotherService");
+
+	}
+
+	@Test
+	void testFilteredServicesByPrefixWithoutInstanceMethods() {
+		List<String> springBootServiceNames = List.of("serviceA", "serviceB", "serviceC");
+		List<Service> services = createSpringBootServiceByName(springBootServiceNames);
+
+		// Add non spring boot service
+		Service service = new Service();
+		ObjectMeta objectMeta = new ObjectMeta();
+		objectMeta.setName("anotherService");
+		service.setMetadata(objectMeta);
+		services.add(service);
+		mockClient.services().inNamespace(NAMESPACE).resource(service).create();
+		Endpoints endpoints = endpoints(NAMESPACE, "anotherService", Map.of(), Map.of());
+		mockClient.endpoints().inNamespace(NAMESPACE).resource(endpoints).create();
+
+		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,
 				false, "metadata.name matches '^service.*'", Set.of(), Map.of(), null,
 				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, true, false, null);
 		Fabric8DiscoveryClient client = fabric8DiscoveryClient(properties, new SelectiveNamespaces(List.of(NAMESPACE)),
@@ -120,7 +152,7 @@ class Fabric8DiscoveryClientFilterTest extends Fabric8DiscoveryClientBase {
 	}
 
 	@Test
-	void testInstanceMethodsNotAllowed() {
+	void testInstanceMethodsInFilterDisabledByDefault() {
 		createSpringBootServiceByName(List.of("serviceA"));
 
 		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(true, false, Set.of(), true, 60,

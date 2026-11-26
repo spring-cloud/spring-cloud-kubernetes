@@ -35,8 +35,7 @@ public class VisibleKubernetesClientEventBasedConfigMapChangeDetector
 			ConfigurableEnvironment environment, ConfigReloadProperties properties,
 			ConfigurationUpdateStrategy strategy, KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
-		super(strategy, propertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
-				KubernetesClientConfigMapPropertySource.class);
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider);
 	}
 
 	public void onEvent(KubernetesObject kubernetesObject) {

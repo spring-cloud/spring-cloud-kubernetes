@@ -16,24 +16,33 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Ryan Baxter
  * @author Kris Iyer
  */
-public final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChangeDetector {
+final class HttpBasedConfigMapWatchChangeDetector extends ConfigMapWatcherChangeDetector {
 
 	private final HttpRefreshTrigger httpRefreshTrigger;
 
-	public HttpBasedConfigMapWatchChangeDetector(HttpRefreshTrigger httpRefreshTrigger,
-			KubernetesClientEventBasedConfigMapChangeDetector changeDetector,
+	HttpBasedConfigMapWatchChangeDetector(CoreV1Api coreV1Api, ConfigurableEnvironment environment,
+			ConfigReloadProperties properties, ConfigurationUpdateStrategy strategy,
+			KubernetesClientConfigMapPropertySourceLocator propertySourceLocator,
+			KubernetesNamespaceProvider kubernetesNamespaceProvider,
 			ConfigurationWatcherConfigurationProperties k8SConfigurationProperties,
-			ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-		super(changeDetector, k8SConfigurationProperties, threadPoolTaskExecutor);
+			ThreadPoolTaskExecutor threadPoolTaskExecutor, HttpRefreshTrigger httpRefreshTrigger) {
+		super(coreV1Api, environment, properties, strategy, propertySourceLocator, kubernetesNamespaceProvider,
+				k8SConfigurationProperties, threadPoolTaskExecutor);
+
 		this.httpRefreshTrigger = httpRefreshTrigger;
 	}
 

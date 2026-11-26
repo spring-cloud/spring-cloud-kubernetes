@@ -23,14 +23,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.kubernetes.commons.leader.LeaderUtils;
-import org.springframework.context.annotation.Conditional;
+
+import static org.springframework.cloud.kubernetes.commons.leader.LeaderUtils.LEADER_ELECTION_ENABLED_PROPERTY;
 
 /**
- * Enables leader-election infrastructure when leader election is explicitly enabled or
- * Configuration Watcher HA is enabled.
+ * Provides a more succinct conditional for:
+ * <code>spring.cloud.kubernetes.leader.election.enabled</code>.
  *
  * @author wind57
  */
@@ -38,27 +37,7 @@ import org.springframework.context.annotation.Conditional;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@Conditional(ConditionalOnLeaderElectionEnabled.OnLeaderElectionEnabled.class)
+@ConditionalOnProperty(value = LEADER_ELECTION_ENABLED_PROPERTY, havingValue = "true", matchIfMissing = false)
 public @interface ConditionalOnLeaderElectionEnabled {
-
-	class OnLeaderElectionEnabled extends AnyNestedCondition {
-
-		OnLeaderElectionEnabled() {
-			super(ConfigurationPhase.REGISTER_BEAN);
-		}
-
-		@ConditionalOnProperty(prefix = LeaderUtils.LEADER_ELECTION_PROPERTY_PREFIX, name = "enabled",
-				havingValue = "true")
-		static class OnLeaderElectionPropertyEnabled {
-
-		}
-
-		@ConditionalOnProperty(prefix = "spring.cloud.kubernetes.configuration.watcher.ha", name = "enabled",
-				havingValue = "true")
-		static class OnConfigurationWatcherHaEnabled {
-
-		}
-
-	}
 
 }

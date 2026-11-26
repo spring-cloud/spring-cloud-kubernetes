@@ -171,10 +171,9 @@ class SecretReloadWithFilterTest {
 
 		// change detector
 		KubernetesClientEventBasedSecretsChangeDetector changeDetector = new KubernetesClientEventBasedSecretsChangeDetector(
-				strategy, locator, environment, coreV1Api, properties, namespaceProvider,
-				KubernetesClientSecretsPropertySource.class);
+				coreV1Api, environment, properties, strategy, locator, namespaceProvider);
 
-		changeDetector.start(changeDetector::onEvent);
+		changeDetector.inform();
 
 		// assert that both requests from informer are label based
 		Awaitilities.awaitUntil(10, 1000, () -> {

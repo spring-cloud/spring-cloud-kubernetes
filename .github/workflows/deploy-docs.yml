@@ -13,7 +13,7 @@ on:
     # those would dispatch a full docs build for a ref that is not in the
     # Antora playbook.
     branches:
-      - main
+      - 5.0.x
     tags: '**'
   repository_dispatch:
     types: request-build-reference # legacy

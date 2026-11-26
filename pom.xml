@@ -25,12 +25,12 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>5.1.1-SNAPSHOT</version>
+		<version>5.0.6-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
 	<artifactId>spring-cloud-kubernetes</artifactId>
-	<version>5.1.1-SNAPSHOT</version>
+	<version>5.0.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud Kubernetes</name>
 	<description>Spring Cloud Kubernetes</description>
@@ -91,12 +91,11 @@
 		<surefire-reports-directory>surefire-reports</surefire-reports-directory>
 		<failsafe-reports-directory>failsafe-reports</failsafe-reports-directory>
 		<!-- Dependency Versions -->
-		<maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
-		<native-maven-plugin.version>1.1.19</native-maven-plugin.version>
+		<maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
 		<mockito-inline.version>4.8.1</mockito-inline.version>
-		<spring-cloud-commons.version>5.1.1-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-config.version>5.1.1-SNAPSHOT</spring-cloud-config.version>
-		<spring-cloud-stream.version>5.1.1-SNAPSHOT</spring-cloud-stream.version>
+		<spring-cloud-commons.version>5.0.6-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-config.version>5.0.8-SNAPSHOT</spring-cloud-config.version>
+		<spring-cloud-bus.version>5.0.5-SNAPSHOT</spring-cloud-bus.version>
 
 		<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError>
 		<maven-checkstyle-plugin.failsOnViolation>true
@@ -165,8 +164,8 @@
 
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-stream-dependencies</artifactId>
-				<version>${spring-cloud-stream.version}</version>
+				<artifactId>spring-cloud-bus-dependencies</artifactId>
+				<version>${spring-cloud-bus.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -211,11 +210,6 @@
 						</execution>
 					</executions>
 				</plugin>
-				<plugin>
-					<groupId>org.graalvm.buildtools</groupId>
-					<artifactId>native-maven-plugin</artifactId>
-					<version>${native-maven-plugin.version}</version>
-				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -242,8 +236,6 @@
 				<inherited>true</inherited>
 				<configuration>
 					<parallel>all</parallel>
-					<threadCount>4</threadCount>
-					<perCoreThreadCount>false</perCoreThreadCount>
 					<reuseForks>false</reuseForks>
 					<includes>
 						<include>${testsToRun}</include>
@@ -280,58 +272,7 @@
 		</plugins>
 	</reporting>
 
-	<!-- profile needed for the native image build -->
 	<profiles>
-		<profile>
-			<id>native</id>
-			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<groupId>org.springframework.boot</groupId>
-							<artifactId>spring-boot-maven-plugin</artifactId>
-							<configuration>
-								<image>
-									<env>
-										<BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>
-									</env>
-								</image>
-							</configuration>
-							<executions>
-								<execution>
-									<id>process-aot</id>
-									<configuration>
-										<systemPropertyVariables>
-											<spring.main.cloud-platform>KUBERNETES</spring.main.cloud-platform>
-											<spring.cloud.kubernetes.client.namespace>default</spring.cloud.kubernetes.client.namespace>
-										</systemPropertyVariables>
-									</configuration>
-									<goals>
-										<goal>process-aot</goal>
-									</goals>
-								</execution>
-							</executions>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-				<plugins>
-					<plugin>
-						<groupId>org.graalvm.buildtools</groupId>
-						<artifactId>native-maven-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>add-reachability-metadata</id>
-								<phase>generate-resources</phase>
-								<goals>
-									<goal>add-reachability-metadata</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
 		<profile>
 			<id>central</id>
 			<build>
@@ -432,7 +373,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
-						<version>3.7.0</version>
+						<version>3.6.3</version>
 						<executions>
 							<execution>
 								<id>enforce-no-snapshots</id>
@@ -491,8 +432,6 @@
 						<artifactId>maven-surefire-plugin</artifactId>
 						<configuration>
 							<parallel>all</parallel>
-							<threadCount>4</threadCount>
-							<perCoreThreadCount>false</perCoreThreadCount>
 							<reuseForks>false</reuseForks>
 						</configuration>
 					</plugin>

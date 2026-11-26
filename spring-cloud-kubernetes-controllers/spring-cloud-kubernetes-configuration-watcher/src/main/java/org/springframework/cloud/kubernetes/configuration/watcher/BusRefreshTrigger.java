@@ -37,7 +37,7 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Watcher
  *
  * @author wind57
  */
-public final class BusRefreshTrigger implements RefreshTrigger {
+final class BusRefreshTrigger implements RefreshTrigger {
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(BusRefreshTrigger.class));
 

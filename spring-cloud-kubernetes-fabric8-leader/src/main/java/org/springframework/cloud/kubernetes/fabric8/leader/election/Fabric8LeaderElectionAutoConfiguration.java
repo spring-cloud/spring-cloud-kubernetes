@@ -130,9 +130,7 @@ class Fabric8LeaderElectionAutoConfiguration {
 			}
 			else {
 				LOG.info(() -> "will use lease as the lock for leader election");
-				return new Fabric8ReleaseOnCancelLock(
-						new LeaseLock(properties.lockNamespace(), properties.lockName(), candidateIdentity),
-						properties.lockNamespace(), properties.lockName());
+				return new LeaseLock(properties.lockNamespace(), properties.lockName(), candidateIdentity);
 			}
 		}
 		else {

@@ -172,10 +172,9 @@ class ConfigMapReloadWithFilterTest {
 
 		// change detector
 		KubernetesClientEventBasedConfigMapChangeDetector changeDetector = new KubernetesClientEventBasedConfigMapChangeDetector(
-				strategy, locator, environment, coreV1Api, properties, namespaceProvider,
-				KubernetesClientConfigMapPropertySource.class);
+				coreV1Api, environment, properties, strategy, locator, namespaceProvider);
 
-		changeDetector.start(changeDetector::onEvent);
+		changeDetector.inform();
 
 		// assert that both requests from informer are label based
 		Awaitilities.awaitUntil(10, 1000, () -> {

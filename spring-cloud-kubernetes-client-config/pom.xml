@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-kubernetes</artifactId>
 		<groupId>org.springframework.cloud</groupId>
-		<version>5.1.1-SNAPSHOT</version>
+		<version>5.0.6-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -20,10 +20,6 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-kubernetes-commons</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.kubernetes</groupId>
-			<artifactId>client-java-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.kubernetes</groupId>

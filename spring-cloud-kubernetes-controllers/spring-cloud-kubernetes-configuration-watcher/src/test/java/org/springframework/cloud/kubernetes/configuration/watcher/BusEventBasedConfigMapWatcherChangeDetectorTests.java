@@ -19,6 +19,7 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 import java.util.Map;
 import java.util.Set;
 
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,13 +35,15 @@ import org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent;
 import org.springframework.cloud.bus.event.RemoteApplicationEvent;
 import org.springframework.cloud.bus.event.ShutdownRemoteApplicationEvent;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
-import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider.NAMESPACE_PROPERTY;
 import static org.springframework.cloud.kubernetes.configuration.watcher.ConfigurationWatcherConfigurationProperties.RefreshStrategy;
@@ -52,6 +55,17 @@ import static org.springframework.cloud.kubernetes.configuration.watcher.Configu
 @ExtendWith(MockitoExtension.class)
 class BusEventBasedConfigMapWatcherChangeDetectorTests {
 
+	private static final ConfigurationUpdateStrategy UPDATE_STRATEGY = new ConfigurationUpdateStrategy("strategy",
+			() -> {
+
+			});
+
+	@Mock
+	private CoreV1Api coreV1Api;
+
+	@Mock
+	private KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator;
+
 	@Mock
 	private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
@@ -61,39 +75,15 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 	@Mock
 	private ObjectProvider<ReactiveDiscoveryClient> reactiveDiscoveryClientProvider;
 
-	@Mock
-	private KubernetesClientEventBasedConfigMapChangeDetector configMapChangeDetector;
-
 	private BusProperties busProperties;
+
+	private MockEnvironment mockEnvironment;
 
 	@BeforeEach
 	void setup() {
-		MockEnvironment mockEnvironment = new MockEnvironment();
+		mockEnvironment = new MockEnvironment();
 		mockEnvironment.setProperty(NAMESPACE_PROPERTY, "default");
 		busProperties = new BusProperties();
-	}
-
-	/**
-	 * Test set-up. <pre>
-	 * - start the bus ConfigMap watcher
-	 * - verify that starting the wrapper starts the underlying Kubernetes detector
-	 * - stop the bus ConfigMap watcher
-	 * - verify that stopping the wrapper stops the underlying Kubernetes detector
-	 * </pre>
-	 */
-	@Test
-	void startAndStopDelegateToConfigMapChangeDetector() {
-		ConfigurationWatcherConfigurationProperties properties = new ConfigurationWatcherConfigurationProperties();
-		BusRefreshTrigger refreshTrigger = new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
-				properties, reactiveDiscoveryClientProvider);
-		BusEventBasedConfigMapWatcherChangeDetector detector = new BusEventBasedConfigMapWatcherChangeDetector(
-				refreshTrigger, configMapChangeDetector, properties, threadPoolTaskExecutor);
-
-		detector.start();
-		detector.stop();
-
-		verify(configMapChangeDetector).start(any());
-		verify(configMapChangeDetector).stop();
 	}
 
 	@Test
@@ -138,9 +128,11 @@ class BusEventBasedConfigMapWatcherChangeDetectorTests {
 		ConfigurationWatcherConfigurationProperties configurationWatcherConfigurationProperties = new ConfigurationWatcherConfigurationProperties();
 		configurationWatcherConfigurationProperties.setRefreshStrategy(refreshStrategy);
 		BusEventBasedConfigMapWatcherChangeDetector changeDetector = new BusEventBasedConfigMapWatcherChangeDetector(
+				coreV1Api, mockEnvironment, ConfigReloadProperties.DEFAULT, UPDATE_STRATEGY,
+				configMapPropertySourceLocator, new KubernetesNamespaceProvider(mockEnvironment),
+				configurationWatcherConfigurationProperties, threadPoolTaskExecutor,
 				new BusRefreshTrigger(applicationEventPublisher, busProperties.getId(),
-						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider),
-				configMapChangeDetector, configurationWatcherConfigurationProperties, threadPoolTaskExecutor);
+						configurationWatcherConfigurationProperties, reactiveDiscoveryClientProvider));
 		Mono<Void> result = changeDetector.triggerRefresh(configMapKubernetesSource);
 		StepVerifier.create(result).verifyComplete();
 	}

@@ -1,8 +1,7 @@
 name: Spring Cloud Kubernetes CI Job
-
 on:
   push:
-    branches: [ main, 3.2.x, 3.3.x ]
+    branches: [5.0.x, 3.2.x, 3.3.x]
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
@@ -10,13 +9,11 @@ on:
       branches:
         description: "Which branch should be built (single branch or comma-separated list)"
         required: false
-        default: 'main'
+        default: '5.0.x'
         type: string
-
 permissions:
-  actions: write  # Required to trigger workflows
+  actions: write # Required to trigger workflows
   contents: read
-
 jobs:
   determine-matrix:
     runs-on: ubuntu-latest
@@ -33,7 +30,6 @@ jobs:
           event-name: ${{ github.event_name }}
           ref-name: ${{ github.ref_name }}
           branches: ${{ inputs.branches }}
-
   trigger-branch-ci:
     name: Trigger CI for non-default branches
     needs: determine-matrix
@@ -46,7 +42,6 @@ jobs:
           non-default-branches: ${{ needs.determine-matrix.outputs.non-default-branches }}
           repository: ${{ github.repository }}
           token: ${{ github.token }}
-
   build-and-test:
     name: ${{ matrix.branch }} / JDK ${{ matrix.java-version }}
     needs: determine-matrix
