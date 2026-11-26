@@ -38,12 +38,6 @@ runs:
       shell: bash
       run: cat /tmp/sorted.txt
 
-    - name: download tests
-      uses: actions/download-artifact@v8
-      with:
-        name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
-        path: /tmp/
-
     - name: compute matrix steps
       shell: bash
       run: |
