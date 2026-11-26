@@ -16,9 +16,9 @@
 
 package org.springframework.cloud.kubernetes.configuration.watcher;
 
-import org.springframework.boot.amqp.autoconfigure.health.RabbitHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.rabbitmq.autoconfigure.health.RabbitHealthContributorAutoConfiguration;
 import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 

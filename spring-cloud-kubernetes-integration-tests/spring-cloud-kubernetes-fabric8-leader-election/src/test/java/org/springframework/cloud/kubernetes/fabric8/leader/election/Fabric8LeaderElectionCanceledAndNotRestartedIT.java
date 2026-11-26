@@ -64,7 +64,10 @@ class Fabric8LeaderElectionCanceledAndNotRestartedIT extends AbstractLeaderElect
 		awaitUntil(10, 100, () -> output.getOut().contains("cancel was called on the leader initiator : " + NAME));
 
 		// lease is going to reset
-		awaitUntil(10, 100, () -> getLease().getSpec().getHolderIdentity().isEmpty());
+		awaitUntil(10, 100, () -> {
+			String holderIdentity = getLease().getSpec().getHolderIdentity();
+			return holderIdentity == null || holderIdentity.isEmpty();
+		});
 
 		awaitUntil(10, 100, () -> output.getOut().contains("terminating leadership for : " + NAME));
 

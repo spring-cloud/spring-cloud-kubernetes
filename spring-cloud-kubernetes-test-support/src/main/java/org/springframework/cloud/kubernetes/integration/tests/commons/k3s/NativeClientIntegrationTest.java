@@ -108,6 +108,16 @@ public @interface NativeClientIntegrationTest {
 		boolean reloadEnabled() default true;
 
 		/**
+		 * enable configuration watcher HA.
+		 */
+		boolean enableHa() default false;
+
+		/**
+		 * number of configuration watcher replicas.
+		 */
+		int replicas() default 1;
+
+		/**
 		 * what namespaces to be watched. 'SPRING_CLOUD_KUBERNETES_RELOAD_NAMESPACES_0'
 		 * and so on
 		 */

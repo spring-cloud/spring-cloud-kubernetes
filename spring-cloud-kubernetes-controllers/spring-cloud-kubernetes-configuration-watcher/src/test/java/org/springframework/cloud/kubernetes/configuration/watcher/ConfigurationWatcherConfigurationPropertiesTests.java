@@ -18,6 +18,10 @@ package org.springframework.cloud.kubernetes.configuration.watcher;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Configuration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -32,6 +36,34 @@ class ConfigurationWatcherConfigurationPropertiesTests {
 		assertThat(properties.getActuatorPath()).isEqualTo("/foo");
 		properties.setActuatorPath("/foo/bar/");
 		assertThat(properties.getActuatorPath()).isEqualTo("/foo/bar");
+	}
+
+	@Test
+	void testWithDefaults() {
+		new ApplicationContextRunner().withUserConfiguration(Config.class).run(context -> {
+			ConfigurationWatcherConfigurationProperties props = context
+				.getBean(ConfigurationWatcherConfigurationProperties.class);
+			assertThat(props).isNotNull();
+			assertThat(props.getHa().isEnabled()).isFalse();
+		});
+	}
+
+	@Test
+	void testWithNonDefaults() {
+		new ApplicationContextRunner().withUserConfiguration(Config.class)
+			.withPropertyValues("spring.cloud.kubernetes.configuration.watcher.ha.enabled=true")
+			.run(context -> {
+				ConfigurationWatcherConfigurationProperties props = context
+					.getBean(ConfigurationWatcherConfigurationProperties.class);
+				assertThat(props).isNotNull();
+				assertThat(props.getHa().isEnabled()).isTrue();
+			});
+	}
+
+	@Configuration
+	@EnableConfigurationProperties(ConfigurationWatcherConfigurationProperties.class)
+	static class Config {
+
 	}
 
 }

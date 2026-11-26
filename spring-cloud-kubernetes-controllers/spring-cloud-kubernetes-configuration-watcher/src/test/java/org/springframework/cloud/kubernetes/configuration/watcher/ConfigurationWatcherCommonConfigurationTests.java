@@ -1,0 +1,103 @@
+/*
+ * Copyright 2013-present the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.cloud.kubernetes.configuration.watcher;
+
+import io.kubernetes.client.openapi.apis.CoreV1Api;
+import org.junit.jupiter.api.Test;
+
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientConfigMapPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.KubernetesClientSecretsPropertySourceLocator;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedConfigMapChangeDetector;
+import org.springframework.cloud.kubernetes.client.config.reload.KubernetesClientEventBasedSecretsChangeDetector;
+import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigReloadProperties;
+import org.springframework.cloud.kubernetes.commons.config.reload.ConfigurationUpdateStrategy;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
+/**
+ * @author wind57
+ */
+class ConfigurationWatcherCommonConfigurationTests {
+
+	/**
+	 * <pre>
+	 * - load the common configuration
+	 * - verify that ConfigMap and Secret detector beans are created
+	 * - verify their bean names match the names used by @Qualifier
+	 *
+	 * - this test makes sure that we the correct bean names as expected by @Qualifier
+	 * </pre>
+	 */
+	@Test
+	void createsWatcherOwnedDetectorBeansWithMethodNames() {
+		new ApplicationContextRunner()
+			.withUserConfiguration(TestConfiguration.class, ConfigurationWatcherCommonConfiguration.class)
+			.run(context -> {
+				assertThat(context).hasBean("configurationWatcherConfigMapChangeDetector");
+				assertThat(context).hasBean("configurationWatcherSecretsChangeDetector");
+				assertThat(context).hasSingleBean(KubernetesClientEventBasedConfigMapChangeDetector.class);
+				assertThat(context).hasSingleBean(KubernetesClientEventBasedSecretsChangeDetector.class);
+			});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class TestConfiguration {
+
+		@Bean
+		WebClient.Builder webClientBuilder() {
+			return WebClient.builder();
+		}
+
+		@Bean
+		CoreV1Api coreV1Api() {
+			return mock(CoreV1Api.class);
+		}
+
+		@Bean
+		KubernetesClientConfigMapPropertySourceLocator configMapPropertySourceLocator() {
+			return mock(KubernetesClientConfigMapPropertySourceLocator.class);
+		}
+
+		@Bean
+		KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator() {
+			return mock(KubernetesClientSecretsPropertySourceLocator.class);
+		}
+
+		@Bean
+		ConfigReloadProperties configReloadProperties() {
+			return ConfigReloadProperties.DEFAULT;
+		}
+
+		@Bean
+		ConfigurationUpdateStrategy configurationUpdateStrategy() {
+			return ConfigurationUpdateStrategy.NOOP;
+		}
+
+		@Bean
+		KubernetesNamespaceProvider kubernetesNamespaceProvider() {
+			return new KubernetesNamespaceProvider("default");
+		}
+
+	}
+
+}

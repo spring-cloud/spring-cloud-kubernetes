@@ -46,7 +46,7 @@ import org.springframework.integration.leader.event.LeaderEventPublisher;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(LeaderProperties.class)
 @ConditionalOnBean(KubernetesClient.class)
-@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.kubernetes.leader.enabled", havingValue = "true", matchIfMissing = true)
 @ConditionalOnLeaderElectionDisabled
 public class Fabric8LeaderAutoConfiguration {
 

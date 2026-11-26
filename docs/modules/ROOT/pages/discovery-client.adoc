@@ -128,7 +128,7 @@ spring.cloud.kubernetes.discovery.filter='#root.metadata.namespace matches "^.+A
 
 which tells discovery client to only get services that have the `metadata.namespace` that ends in upper case `A`.
 
-NOTE: The SpEL expression is evaluated in a read-only context that does _not_ allow invoking methods (for example `metadata.name.startsWith('a')` or `metadata.labels.containsKey('a')`). Prefer SpEL operators, such as `matches` or map indexing (`metadata.labels['a'] != null`). If you really need to invoke instance methods, set `spring.cloud.kubernetes.discovery.filter-instance-methods-enabled=true`.
+NOTE: The SpEL expression is evaluated in a read-only context that does _not_ allow invoking methods (for example `metadata.name.startsWith('a')` or `metadata.labels.containsKey('a')`). Use SpEL operators, such as `matches` or map indexing (`metadata.labels['a'] != null`).
 
 If your discovery client is based on k8s-native client, then the SpEL expression must be based on `io.kubernetes.client.openapi.models.V1Service` class. The same filter showed above would work here.
 

@@ -125,8 +125,13 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 			AbstractEnvironment environment, CoreV1Api coreV1Api,
 			KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 
-		return new KubernetesClientEventBasedConfigMapChangeDetector(coreV1Api, environment, properties, strategy,
-				configMapPropertySourceLocator, kubernetesNamespaceProvider);
+		KubernetesClientEventBasedConfigMapChangeDetector detector = new KubernetesClientEventBasedConfigMapChangeDetector(
+				strategy, configMapPropertySourceLocator, environment, coreV1Api, properties,
+				kubernetesNamespaceProvider, KubernetesClientConfigMapPropertySource.class);
+
+		detector.start(detector::onEvent);
+
+		return detector;
 	}
 
 	/**
@@ -145,8 +150,13 @@ public class KubernetesClientConfigReloadAutoConfiguration {
 			KubernetesClientSecretsPropertySourceLocator secretsPropertySourceLocator, AbstractEnvironment environment,
 			CoreV1Api coreV1Api, KubernetesNamespaceProvider kubernetesNamespaceProvider) {
 
-		return new KubernetesClientEventBasedSecretsChangeDetector(coreV1Api, environment, properties, strategy,
-				secretsPropertySourceLocator, kubernetesNamespaceProvider);
+		KubernetesClientEventBasedSecretsChangeDetector detector = new KubernetesClientEventBasedSecretsChangeDetector(
+				strategy, secretsPropertySourceLocator, environment, coreV1Api, properties, kubernetesNamespaceProvider,
+				KubernetesClientSecretsPropertySource.class);
+
+		detector.start(detector::onEvent);
+
+		return detector;
 	}
 
 }

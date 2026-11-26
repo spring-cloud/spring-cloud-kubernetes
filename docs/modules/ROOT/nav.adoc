@@ -17,6 +17,7 @@
 * xref:security-service-accounts.adoc[]
 * xref:service-registry.adoc[]
 * xref:spring-cloud-kubernetes-configuration-watcher.adoc[]
+* xref:native-images.adoc[AOT and Native Images (Work in Progress)]
 * xref:spring-cloud-kubernetes-configserver.adoc[]
 * xref:spring-cloud-kubernetes-discoveryserver.adoc[]
 * xref:examples.adoc[]

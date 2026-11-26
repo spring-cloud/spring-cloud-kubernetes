@@ -282,51 +282,6 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 	 *     - all-namespaces = false
 	 *     - specific namespace = namespaceA, namespaceB
 	 *     - labels = {}
-	 *     - filter = "#root.metadata.labels.containsKey("number")"
-	 *       (namespaceA or namespaceC)
-	 *
-	 *     - serviceA exists in namespaceA with labels = {color=red, number=1}
-	 *     - serviceA exists in namespaceB with labels = {color=purple, cycle=create}
-	 *     - serviceA exists in namespaceC with labels = {color=purple, number=1}
-	 *
-	 *     - we get only serviceA from namespaceB as a result (because of the filter) even if such labels are also
-	 *       present on a different service (but it's in a different namespace).
-	 * </pre>
-	 */
-	@Test
-	void testSpecificNamespaceWithoutLabelsWithFilter() {
-		boolean allNamespaces = false;
-		Map<String, String> labels = Map.of();
-		String spelFilter = """
-							#root.metadata.labels.containsKey("number")
-				""".stripLeading();
-
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces, Set.of(),
-				true, 60L, false, spelFilter, Set.of(), labels, null, KubernetesDiscoveryProperties.Metadata.DEFAULT, 0,
-				false, false, null, true);
-
-		service("namespaceA", "serviceA", Map.of("color", "red", "number", "1"));
-		service("namespaceB", "serviceA", Map.of("color", "purple", "cycle", "create"));
-		service("namespaceC", "serviceA", Map.of("color", "purple", "number", "1"));
-
-		endpoints("namespaceA", "serviceA", Map.of("color", "red"));
-		endpoints("namespaceB", "serviceA", Map.of("color", "purple"));
-		endpoints("namespaceC", "serviceA", Map.of("color", "purple"));
-
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
-				new SelectiveNamespaces(List.of("namespaceA", "namespaceB")), client);
-		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
-
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
-	}
-
-	/**
-	 * <pre>
-	 *     - same as testSpecificNamespaceWithoutLabelsWithFilter, but instance methods are disabled (default)
-	 *     - all-namespaces = false
-	 *     - specific namespace = namespaceA, namespaceB
-	 *     - labels = {}
 	 *     - filter = "#root.metadata.labels != null and #root.metadata.labels["number"] != null"
 	 *       (namespaceA or namespaceC)
 	 *
@@ -339,7 +294,7 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 	 * </pre>
 	 */
 	@Test
-	void testSpecificNamespaceWithoutLabelsWithFilterWithoutInstanceMethods() {
+	void testSpecificNamespaceWithoutLabelsWithFilter() {
 		boolean allNamespaces = false;
 		Map<String, String> labels = Map.of();
 		String spelFilter = """
@@ -453,50 +408,6 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 	 *     - all-namespaces = false
 	 *     - some namespaces = [namespaceA, namespaceB]
 	 *     - labels = {color=purple}
-	 *     - filter = #root.metadata.labels.containsKey("number")
-	 *
-	 *     - serviceA exists in namespaceA with labels = {color=purple}
-	 *     - serviceA exists in namespaceB with labels = {color=red}
-	 *     - serviceA exists in namespaceC with labels = {color=purple}
-	 *
-	 *     - we get serviceA from namespaceA as a result
-	 * </pre>
-	 */
-	@Test
-	void testSomeNamespacesWithLabelsWithFilter() {
-		boolean allNamespaces = false;
-		Set<String> someNamespaces = Set.of("namespaceA", "namespaceB");
-		Map<String, String> labels = Map.of("color", "purple");
-		String spelFilter = """
-							#root.metadata.labels.containsKey("number")
-				""".stripLeading();
-
-		KubernetesDiscoveryProperties properties = new KubernetesDiscoveryProperties(false, allNamespaces,
-				someNamespaces, true, 60L, false, spelFilter, Set.of(), labels, null,
-				KubernetesDiscoveryProperties.Metadata.DEFAULT, 0, false, false, null, true);
-
-		service("namespaceA", "serviceA", Map.of("color", "purple", "number", "1"));
-		service("namespaceB", "serviceA", Map.of("color", "purple", "cycle", "create"));
-		service("namespaceC", "serviceA", Map.of("color", "purple", "number", "1"));
-
-		endpoints("namespaceA", "serviceA", Map.of("color", "purple", "number", "1"));
-		endpoints("namespaceB", "serviceA", Map.of("color", "purple", "cycle", "create"));
-		endpoints("namespaceC", "serviceA", Map.of("color", "purple", "number", "1"));
-
-		DiscoveryClient discoveryClient = fabric8DiscoveryClient(properties,
-				new SelectiveNamespaces(List.of("namespaceA", "namespaceB")), client);
-		List<ServiceInstance> result = discoveryClient.getInstances("serviceA");
-
-		Assertions.assertThat(result.size()).isEqualTo(1);
-		Assertions.assertThat(result.get(0).getMetadata().get("k8s_namespace")).isEqualTo("namespaceA");
-	}
-
-	/**
-	 * <pre>
-	 *     - same as testSomeNamespacesWithLabelsWithFilter, but instance methods are disabled (default)
-	 *     - all-namespaces = false
-	 *     - some namespaces = [namespaceA, namespaceB]
-	 *     - labels = {color=purple}
 	 *     - filter = #root.metadata.labels != null and #root.metadata.labels["number"] != null
 	 *
 	 *     - serviceA exists in namespaceA with labels = {color=purple}
@@ -507,7 +418,7 @@ class Fabric8DiscoveryFilterTests extends Fabric8DiscoveryClientBase {
 	 * </pre>
 	 */
 	@Test
-	void testSomeNamespacesWithLabelsWithFilterWithoutInstanceMethods() {
+	void testSomeNamespacesWithLabelsWithFilter() {
 		boolean allNamespaces = false;
 		Set<String> someNamespaces = Set.of("namespaceA", "namespaceB");
 		Map<String, String> labels = Map.of("color", "purple");
