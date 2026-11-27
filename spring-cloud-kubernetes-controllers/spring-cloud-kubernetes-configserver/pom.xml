@@ -69,6 +69,24 @@
 
 	<profiles>
 		<profile>
+			<id>native</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+						<configuration>
+							<image>
+								<env>
+									<BP_NATIVE_IMAGE_BUILD_ARGUMENTS>-H:-AddAllFileSystemProviders -H:+ReportExceptionStackTraces --initialize-at-build-time=org.bouncycastle --initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG$Default --initialize-at-run-time=org.bouncycastle.jcajce.provider.drbg.DRBG$NonceAndIV</BP_NATIVE_IMAGE_BUILD_ARGUMENTS>
+								</env>
+							</image>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>dockerpush</id>
 			<build>
 				<plugins>
@@ -106,6 +124,7 @@
 				</dependency>
 			</dependencies>
 		</profile>
+
 	</profiles>
 
 </project>

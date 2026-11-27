@@ -38,3 +38,32 @@ mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configuratio
     -Dspring-boot.build-image.cleanCache=true \
     '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true -Dspring.cloud.kubernetes.configuration.watcher.ha.enabled=true'
 ----
+
+== Config Server
+
+The Config Server includes Kubernetes ConfigMap support by default. Secret support is conditional on `spring.cloud.kubernetes.secrets.enabled`.
+
+Spring Cloud refresh is not supported in native Config Server images. Set `spring.cloud.refresh.enabled=false` during the AOT build. Configuration changes made after startup will not take effect until the Config Server restarts.
+
+To include Secret support and disable refresh scope, set these properties while Spring AOT runs:
+
+[source,shell]
+----
+mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver \
+    -am clean install -Pnative -DskipITs -DskipTests \
+    -Dspring-boot.build-image.cleanCache=true \
+    '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.kubernetes.secrets.enabled=true -Dspring.cloud.refresh.enabled=false'
+----
+
+The Config Server's packaged `application.yaml` sets `server.port=8888`.
+
+The Config Server native image smoke test is in the integration-tests module. It starts the image in k3s, creates a ConfigMap, and verifies that the Config Server endpoint returns a value from it. Build the image and run that test with:
+
+[source,shell]
+----
+mvn -pl spring-cloud-kubernetes-controllers/spring-cloud-kubernetes-configserver,spring-cloud-kubernetes-integration-tests/spring-cloud-kubernetes-k8s-client-configserver \
+    -am clean verify -Pnative -DskipTests \
+    '-DtestsToRun=**/ConfigServerNativeIT.java' \
+    -Dspring-boot.build-image.cleanCache=true \
+    '-Dspring-boot.aot.jvmArguments=-Dspring.cloud.refresh.enabled=false'
+----
