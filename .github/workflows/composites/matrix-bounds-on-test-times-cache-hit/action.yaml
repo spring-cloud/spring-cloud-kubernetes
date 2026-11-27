@@ -38,12 +38,6 @@ runs:
       shell: bash
       run: cat /tmp/sorted.txt
 
-    - name: download tests
-      uses: actions/download-artifact@v8
-      with:
-        name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
-        path: /tmp/
-
     - name: compute matrix steps
       shell: bash
       run: |
@@ -132,13 +126,13 @@ runs:
         echo "AVERAGE_TIME_PER_INSTANCE=$(echo $average_time_per_instance_json)" >> $GITHUB_ENV
 
     - name: upload test with times
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: tests-with-times-sorted-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/tests-with-times-sorted.txt
 
     - name: upload test without times
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: tests-without-times-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/tests-without-times.txt

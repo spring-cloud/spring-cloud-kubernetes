@@ -41,7 +41,7 @@ runs:
       run: cat /tmp/tests.txt
 
     - name: upload test
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: tests-${{ inputs.branch }}-jdk${{ inputs.jdk-version }}.txt
         path: /tmp/tests.txt
